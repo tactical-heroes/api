@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserRoles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
@@ -79,21 +81,33 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         builder.ToTable("identity_user_roles");
 
         builder.WithOwner()
-            .HasForeignKey("identity_user_id");
+            .HasForeignKey(role => role.UserId)
+            .HasConstraintName("fk_identity_user_roles_identity_users_identity_user_id");
 
-        builder.HasKey("identity_user_id", nameof(UserRole.Id));
+        builder.Ignore(role => role.Id);
 
-        builder.Property(role => role.Id)
+        builder.HasKey(role => new
+        {
+            role.UserId,
+            role.RoleId
+        });
+
+        builder.Property(role => role.UserId)
+            .HasColumnName("identity_user_id")
+            .HasConversion(UserIdConverter)
+            .ValueGeneratedNever();
+
+        builder.Property(role => role.RoleId)
             .HasColumnName("identity_role_id")
             .HasConversion(RoleIdConverter)
             .ValueGeneratedNever();
 
         builder.HasOne<Role>()
             .WithMany()
-            .HasForeignKey(role => role.Id)
+            .HasForeignKey(role => role.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(role => role.Id);
+        builder.HasIndex(role => role.RoleId);
     }
 
     private static void ConfigureUserClaim(
@@ -108,6 +122,7 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
 
         builder.Property(claim => claim.Id)
             .HasColumnOrder(0)
+            .HasConversion(UserClaimIdConverter)
             .ValueGeneratedNever();
 
         builder.Property(claim => claim.Type)
@@ -145,6 +160,10 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
     private static readonly ValueConverter<RoleId, Guid> RoleIdConverter = new(
         roleId => roleId.Value,
         value => RoleId.Create(value).Value);
+
+    private static readonly ValueConverter<UserClaimId, Guid> UserClaimIdConverter = new(
+        userClaimId => userClaimId.Value,
+        value => UserClaimId.Create(value).Value);
 
     private static readonly ValueConverter<ClaimType, string> ClaimTypeConverter = new(
         claimType => claimType.Value,

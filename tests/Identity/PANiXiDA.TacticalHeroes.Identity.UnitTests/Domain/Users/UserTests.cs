@@ -83,6 +83,8 @@ public sealed class UserTests
         firstResult.IsSuccess.ShouldBeTrue();
         secondResult.IsSuccess.ShouldBeTrue();
         user.Roles.Count.ShouldBe(1);
+        user.Roles.Single().Id.UserId.ShouldBe(user.Id);
+        user.Roles.Single().Id.RoleId.ShouldBe(roleId);
         user.Roles.Single().RoleId.ShouldBe(roleId);
     }
 

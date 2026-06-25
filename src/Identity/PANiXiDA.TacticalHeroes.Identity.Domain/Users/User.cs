@@ -1,6 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserRoles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users;
@@ -163,7 +164,7 @@ public sealed class User : AggregateRoot<UserId>
 
     public Result AssignRole(RoleId roleId)
     {
-        var roleResult = UserRole.Create(roleId);
+        var roleResult = UserRole.Create(Id, roleId);
 
         if (roleResult.IsFailure)
         {

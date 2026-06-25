@@ -1,11 +1,11 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 
-public sealed class RoleClaim : Entity<Guid>
+public sealed class RoleClaim : Entity<RoleClaimId>
 {
     private RoleClaim(
-        Guid id,
+        RoleClaimId id,
         ClaimType type,
         ClaimValue value)
         : base(id)
@@ -33,7 +33,7 @@ public sealed class RoleClaim : Entity<Guid>
         }
 
         return Result.Success(new RoleClaim(
-            Guid.CreateVersion7(),
+            RoleClaimId.New(),
             typeResult.Value,
             valueResult.Value));
     }

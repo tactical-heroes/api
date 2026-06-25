@@ -1,4 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles;

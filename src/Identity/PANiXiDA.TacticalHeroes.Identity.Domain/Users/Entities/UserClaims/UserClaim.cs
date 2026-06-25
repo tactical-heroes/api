@@ -1,11 +1,11 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 
-public sealed class UserClaim : Entity<Guid>
+public sealed class UserClaim : Entity<UserClaimId>
 {
     private UserClaim(
-        Guid id,
+        UserClaimId id,
         ClaimType type,
         ClaimValue value)
         : base(id)
@@ -33,7 +33,7 @@ public sealed class UserClaim : Entity<Guid>
         }
 
         return Result.Success(new UserClaim(
-            Guid.CreateVersion7(),
+            UserClaimId.New(),
             typeResult.Value,
             valueResult.Value));
     }

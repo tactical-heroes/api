@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
@@ -50,6 +51,7 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
 
         builder.Property(claim => claim.Id)
             .HasColumnOrder(0)
+            .HasConversion(RoleClaimIdConverter)
             .ValueGeneratedNever();
 
         builder.Property(claim => claim.Type)
@@ -75,6 +77,10 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
     private static readonly ValueConverter<RoleName, string> RoleNameConverter = new(
         roleName => roleName.Value,
         value => RoleName.Create(value).Value);
+
+    private static readonly ValueConverter<RoleClaimId, Guid> RoleClaimIdConverter = new(
+        roleClaimId => roleClaimId.Value,
+        value => RoleClaimId.Create(value).Value);
 
     private static readonly ValueConverter<ClaimType, string> ClaimTypeConverter = new(
         claimType => claimType.Value,

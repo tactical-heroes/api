@@ -44,6 +44,8 @@ public sealed class UserAutoIncludeTests(IntegrationTestFixture fixture)
                 TestContext.Current.CancellationToken);
 
             loadedUser.ShouldNotBeNull();
+            loadedUser.Roles.Single().Id.UserId.ShouldBe(user.Id);
+            loadedUser.Roles.Single().Id.RoleId.ShouldBe(role.Id);
             loadedUser.Roles.Single().RoleId.ShouldBe(role.Id);
             loadedUser.Claims.Single().Type.Value.ShouldBe("permission");
             loadedUser.Claims.Single().Value.Value.ShouldBe("identity.users.manage");
