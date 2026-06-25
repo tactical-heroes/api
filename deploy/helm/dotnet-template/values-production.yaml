@@ -1,0 +1,17 @@
+replicaCount: 2
+
+env:
+  values:
+    ASPNETCORE_ENVIRONMENT: Production
+    DOTNET_ENVIRONMENT: Production
+    OTEL_SERVICE_NAME: dotnet-template-api-production
+
+externalSecrets:
+  openbao:
+    role: dotnet-template-production
+  app:
+    remoteKey: applications/dotnet-template/production
+
+gateway:
+  host: api.dotnet-template.panixida.ru
+  httpsSectionName: api-dotnet-template-https
