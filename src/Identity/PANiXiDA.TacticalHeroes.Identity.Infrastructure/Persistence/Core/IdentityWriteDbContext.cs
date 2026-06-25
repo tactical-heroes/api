@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.IdentityRoles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.IdentityUsers;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
@@ -11,9 +13,9 @@ public sealed class IdentityWriteDbContext(
     IEnumerable<IInterceptor> interceptors)
     : WriteDbContext<IdentityWriteDbContext>(options, interceptors)
 {
-    public DbSet<IdentityUser> IdentityUsers => Set<IdentityUser>();
+    public DbSet<User> Users => Set<User>();
 
-    public DbSet<IdentityRole> IdentityRoles => Set<IdentityRole>();
+    public DbSet<Role> Roles => Set<Role>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -25,6 +27,9 @@ public sealed class IdentityWriteDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new RoleConfiguration());
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
 
         modelBuilder.UseOpenIddict<Guid>();
     }

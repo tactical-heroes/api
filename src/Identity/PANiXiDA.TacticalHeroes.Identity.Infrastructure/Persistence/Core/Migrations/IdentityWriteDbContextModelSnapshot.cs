@@ -290,7 +290,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                     b.ToTable("OpenIddictTokens", (string)null);
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityRoles.IdentityRole", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -328,7 +328,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                     b.ToTable("identity_roles", (string)null);
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityUsers.IdentityUser", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -421,76 +421,88 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                     b.Navigation("Authorization");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityRoles.IdentityRole", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Role", b =>
                 {
-                    b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityRoles.Entities.IdentityRolePermission", "Permissions", b1 =>
+                    b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaim", "Claims", b1 =>
                         {
                             b1.Property<Guid>("Id")
                                 .HasColumnType("uuid")
                                 .HasColumnName("id")
                                 .HasColumnOrder(0);
 
-                            b1.Property<string>("Name")
+                            b1.Property<string>("Type")
                                 .IsRequired()
                                 .HasMaxLength(256)
                                 .HasColumnType("character varying(256)")
-                                .HasColumnName("name");
+                                .HasColumnName("type");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(1024)
+                                .HasColumnType("character varying(1024)")
+                                .HasColumnName("value");
 
                             b1.Property<Guid>("identity_role_id")
                                 .HasColumnType("uuid")
                                 .HasColumnName("identity_role_id");
 
                             b1.HasKey("Id")
-                                .HasName("pk_identity_role_permissions");
+                                .HasName("pk_identity_role_claims");
 
-                            b1.HasIndex("identity_role_id", "Name")
+                            b1.HasIndex("identity_role_id", "Type", "Value")
                                 .IsUnique()
-                                .HasDatabaseName("ix_identity_role_permissions_identity_role_id_name");
+                                .HasDatabaseName("ix_identity_role_claims_identity_role_id_type_value");
 
-                            b1.ToTable("identity_role_permissions", (string)null);
+                            b1.ToTable("identity_role_claims", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("identity_role_id")
-                                .HasConstraintName("fk_identity_role_permissions_identity_roles_identity_role_id");
+                                .HasConstraintName("fk_identity_role_claims_identity_roles_identity_role_id");
                         });
 
-                    b.Navigation("Permissions");
+                    b.Navigation("Claims");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityUsers.IdentityUser", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.User", b =>
                 {
-                    b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityUsers.Entities.IdentityUserPermission", "DirectPermissions", b1 =>
+                    b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaim", "Claims", b1 =>
                         {
                             b1.Property<Guid>("Id")
                                 .HasColumnType("uuid")
                                 .HasColumnName("id")
                                 .HasColumnOrder(0);
 
-                            b1.Property<string>("Name")
+                            b1.Property<string>("Type")
                                 .IsRequired()
                                 .HasMaxLength(256)
                                 .HasColumnType("character varying(256)")
-                                .HasColumnName("name");
+                                .HasColumnName("type");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(1024)
+                                .HasColumnType("character varying(1024)")
+                                .HasColumnName("value");
 
                             b1.Property<Guid>("identity_user_id")
                                 .HasColumnType("uuid")
                                 .HasColumnName("identity_user_id");
 
                             b1.HasKey("Id")
-                                .HasName("pk_identity_user_permissions");
+                                .HasName("pk_identity_user_claims");
 
-                            b1.HasIndex("identity_user_id", "Name")
+                            b1.HasIndex("identity_user_id", "Type", "Value")
                                 .IsUnique()
-                                .HasDatabaseName("ix_identity_user_permissions_identity_user_id_name");
+                                .HasDatabaseName("ix_identity_user_claims_identity_user_id_type_value");
 
-                            b1.ToTable("identity_user_permissions", (string)null);
+                            b1.ToTable("identity_user_claims", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("identity_user_id")
-                                .HasConstraintName("fk_identity_user_permissions_identity_users_identity_user_id");
+                                .HasConstraintName("fk_identity_user_claims_identity_users_identity_user_id");
                         });
 
-                    b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityUsers.Entities.IdentityUserRole", "Roles", b1 =>
+                    b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserRole", "Roles", b1 =>
                         {
                             b1.Property<Guid>("Id")
                                 .HasColumnType("uuid")
@@ -522,7 +534,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                                 .HasForeignKey("identity_user_id")
                                 .HasConstraintName("fk_identity_user_roles_identity_users_identity_user_id");
 
-                            b1.HasOne("PANiXiDA.TacticalHeroes.Identity.Domain.IdentityRoles.IdentityRole", null)
+                            b1.HasOne("PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Role", null)
                                 .WithMany()
                                 .HasForeignKey("RoleId")
                                 .OnDelete(DeleteBehavior.Restrict)
@@ -530,7 +542,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                                 .HasConstraintName("fk_identity_user_roles_identity_roles_identity_role_id");
                         });
 
-                    b.Navigation("DirectPermissions")
+                    b.Navigation("Claims")
                         .AutoInclude();
 
                     b.Navigation("Roles")

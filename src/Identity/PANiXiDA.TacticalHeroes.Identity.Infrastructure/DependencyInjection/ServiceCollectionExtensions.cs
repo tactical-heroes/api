@@ -4,13 +4,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using OpenIddict.Validation.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.IdentityUsers.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.IdentityRoles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.IdentityUsers.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityUsers;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.IdentityRoles.Write;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.IdentityUsers.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
 using Quartz;
 
@@ -37,12 +37,12 @@ public static class ServiceCollectionExtensions
     {
         serviceCollection.TryAddSingleton(TimeProvider.System);
 
-        serviceCollection.AddScoped<IIdentityUsersRepository, IdentityUsersRepository>();
-        serviceCollection.AddScoped<IIdentityRolesRepository, IdentityRolesRepository>();
+        serviceCollection.AddScoped<IUsersRepository, UsersRepository>();
+        serviceCollection.AddScoped<IRolesRepository, RolesRepository>();
         serviceCollection.AddScoped<IPasswordHashingService, PasswordHashingService>();
-        serviceCollection.AddScoped<IIdentityTokenService, IdentityTokenService>();
-        serviceCollection.AddScoped<IIdentityClaimsProvider, IdentityClaimsProvider>();
-        serviceCollection.AddScoped<IIdentityAuthenticationService, IdentityAuthenticationService>();
+        serviceCollection.AddScoped<IUserTokenService, UserTokenService>();
+        serviceCollection.AddScoped<IUserClaimsProvider, UserClaimsProvider>();
+        serviceCollection.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
     }
 
     private static void AddOpenIddictServices(this IServiceCollection serviceCollection)

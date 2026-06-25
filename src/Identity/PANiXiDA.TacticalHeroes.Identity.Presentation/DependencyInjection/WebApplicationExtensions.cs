@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.IdentityUsers.Token;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Token;
 
 using System.Reflection;
 
