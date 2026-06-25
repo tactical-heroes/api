@@ -81,26 +81,19 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         builder.WithOwner()
             .HasForeignKey("identity_user_id");
 
-        builder.HasKey(role => role.Id);
+        builder.HasKey("identity_user_id", nameof(UserRole.Id));
 
         builder.Property(role => role.Id)
-            .HasColumnOrder(0)
-            .ValueGeneratedNever();
-
-        builder.Property(role => role.RoleId)
             .HasColumnName("identity_role_id")
             .HasConversion(RoleIdConverter)
-            .IsRequired();
+            .ValueGeneratedNever();
 
         builder.HasOne<Role>()
             .WithMany()
-            .HasForeignKey(role => role.RoleId)
+            .HasForeignKey(role => role.Id)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex("identity_user_id", nameof(UserRole.RoleId))
-            .IsUnique();
-
-        builder.HasIndex(role => role.RoleId);
+        builder.HasIndex(role => role.Id);
     }
 
     private static void ConfigureUserClaim(

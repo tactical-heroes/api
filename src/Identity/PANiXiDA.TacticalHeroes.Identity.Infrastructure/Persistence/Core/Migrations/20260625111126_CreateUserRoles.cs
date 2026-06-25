@@ -15,13 +15,14 @@ public partial class CreateUserRoles : Migration
             name: "identity_user_roles",
             columns: table => new
             {
-                id = table.Column<Guid>(type: "uuid", nullable: false),
                 identity_role_id = table.Column<Guid>(type: "uuid", nullable: false),
                 identity_user_id = table.Column<Guid>(type: "uuid", nullable: false)
             },
             constraints: table =>
             {
-                table.PrimaryKey("pk_identity_user_roles", x => x.id);
+                table.PrimaryKey(
+                    "pk_identity_user_roles",
+                    x => new { x.identity_user_id, x.identity_role_id });
                 table.ForeignKey(
                     name: "fk_identity_user_roles_identity_roles_identity_role_id",
                     column: x => x.identity_role_id,
@@ -40,12 +41,6 @@ public partial class CreateUserRoles : Migration
             name: "ix_identity_user_roles_identity_role_id",
             table: "identity_user_roles",
             column: "identity_role_id");
-
-        migrationBuilder.CreateIndex(
-            name: "ix_identity_user_roles_identity_user_id_identity_role_id",
-            table: "identity_user_roles",
-            columns: new[] { "identity_user_id", "identity_role_id" },
-            unique: true);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)

@@ -506,27 +506,17 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         {
                             b1.Property<Guid>("Id")
                                 .HasColumnType("uuid")
-                                .HasColumnName("id")
-                                .HasColumnOrder(0);
-
-                            b1.Property<Guid>("RoleId")
-                                .IsRequired()
-                                .HasColumnType("uuid")
                                 .HasColumnName("identity_role_id");
 
                             b1.Property<Guid>("identity_user_id")
                                 .HasColumnType("uuid")
                                 .HasColumnName("identity_user_id");
 
-                            b1.HasKey("Id")
+                            b1.HasKey("identity_user_id", "Id")
                                 .HasName("pk_identity_user_roles");
 
-                            b1.HasIndex("RoleId")
+                            b1.HasIndex("Id")
                                 .HasDatabaseName("ix_identity_user_roles_identity_role_id");
-
-                            b1.HasIndex("identity_user_id", "RoleId")
-                                .IsUnique()
-                                .HasDatabaseName("ix_identity_user_roles_identity_user_id_identity_role_id");
 
                             b1.ToTable("identity_user_roles", (string)null);
 
@@ -536,7 +526,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
 
                             b1.HasOne("PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Role", null)
                                 .WithMany()
-                                .HasForeignKey("RoleId")
+                                .HasForeignKey("Id")
                                 .OnDelete(DeleteBehavior.Restrict)
                                 .IsRequired()
                                 .HasConstraintName("fk_identity_user_roles_identity_roles_identity_role_id");

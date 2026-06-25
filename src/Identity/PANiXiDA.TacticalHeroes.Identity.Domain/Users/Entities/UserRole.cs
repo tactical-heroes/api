@@ -2,20 +2,17 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities;
 
-public sealed class UserRole : Entity<Guid>
+public sealed class UserRole : Entity<RoleId>
 {
-    private UserRole(
-        Guid id,
-        RoleId roleId)
+    private UserRole(RoleId id)
         : base(id)
     {
-        RoleId = roleId;
     }
 
-    public RoleId RoleId { get; private set; }
+    public RoleId RoleId => Id;
 
     internal static Result<UserRole> Create(RoleId roleId)
     {
-        return Result.Success(new UserRole(Guid.CreateVersion7(), roleId));
+        return Result.Success(new UserRole(roleId));
     }
 }
