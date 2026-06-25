@@ -1,0 +1,226 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "PANiXiDA",
+  "classifications": [
+    "Web",
+    "ASP.NET Core",
+    "Backend",
+    "API",
+    "Service",
+    "Helm",
+    "Docker"
+  ],
+  "identity": "PANiXiDA.Templates.DotnetBackend",
+  "groupIdentity": "PANiXiDA.Templates.DotnetBackend",
+  "name": "PANiXiDA .NET Backend Service",
+  "shortName": "panixida-backend",
+  "defaultName": "Organization.Product",
+  "description": "Modular .NET backend service with ASP.NET Core, PostgreSQL, tests, Docker, Helm, and GitHub Actions.",
+  "sourceName": "PANiXiDA.DotnetTemplate",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "solution",
+    "editorTreatAs": "solution"
+  },
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "exclude": [
+        "**/[Bb]in/**",
+        "**/[Oo]bj/**",
+        "**/*.csproj.user",
+        ".git/**",
+        ".vs/**",
+        ".idea/**",
+        "**/[Gg]enerated/**",
+        "src/Organization.Product.Host/Internal/Generated/**",
+        ".tmp/**",
+        "artifacts/**",
+        "template/**",
+        ".template.config/**",
+        "icon.png",
+        "version.json",
+        "README.md",
+        "PANiXiDA.DotnetTemplate.slnx",
+        "*.nupkg",
+        "**/RepositoryExamples/**"
+      ],
+      "rename": {
+        "README_TEMPLATE.md": "README.md"
+      }
+    },
+    {
+      "source": "template/content/",
+      "target": "./",
+      "modifiers": [
+        {
+          "condition": "(HostIdentifier == \"dotnetcli\" || HostIdentifier == \"dotnetcli-preview\")",
+          "exclude": [
+            "PANiXiDA.DotnetTemplate.VisualStudio.sln"
+          ],
+          "rename": {
+            "PANiXiDA.DotnetTemplate.Template.slnx": "PANiXiDA.DotnetTemplate.slnx"
+          }
+        },
+        {
+          "condition": "(HostIdentifier != \"dotnetcli\" && HostIdentifier != \"dotnetcli-preview\")",
+          "exclude": [
+            "PANiXiDA.DotnetTemplate.Template.slnx"
+          ]
+        }
+      ]
+    }
+  ],
+  "specialCustomOperations": {
+    "**/*.yml": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "if": [
+              "# #if"
+            ],
+            "else": [
+              "# #else"
+            ],
+            "actionableElse": [
+              "# ##else"
+            ],
+            "elseif": [
+              "# #elseif",
+              "# #elif"
+            ],
+            "endif": [
+              "# #endif"
+            ],
+            "actions": [
+              "yamlUncomment"
+            ],
+            "trim": true,
+            "wholeLine": true,
+            "evaluator": "C++2"
+          }
+        },
+        {
+          "type": "replacement",
+          "configuration": {
+            "original": "# ",
+            "replacement": "",
+            "id": "yamlUncomment"
+          }
+        }
+      ]
+    }
+  },
+  "symbols": {
+    "HostIdentifier": {
+      "type": "bind",
+      "binding": "HostIdentifier"
+    },
+    "organization": {
+      "type": "parameter",
+      "dataType": "string",
+      "defaultValue": "Organization",
+      "replaces": "Organization",
+      "fileRename": "Organization",
+      "displayName": "Organization",
+      "description": "Root organization namespace segment."
+    },
+    "product": {
+      "type": "parameter",
+      "dataType": "string",
+      "defaultValue": "Product",
+      "replaces": "Product",
+      "fileRename": "Product",
+      "displayName": "Product",
+      "description": "Product namespace segment."
+    },
+    "module": {
+      "type": "parameter",
+      "dataType": "string",
+      "defaultValue": "Module",
+      "displayName": "Module",
+      "description": "Main module namespace segment used in project and assembly names."
+    },
+    "productModule": {
+      "type": "generated",
+      "generator": "join",
+      "replaces": "Product.Module",
+      "fileRename": "Product.Module",
+      "parameters": {
+        "symbols": [
+          {
+            "type": "ref",
+            "value": "product"
+          },
+          {
+            "type": "ref",
+            "value": "module"
+          }
+        ],
+        "separator": ".",
+        "removeEmptyValues": true
+      },
+      "description": "Internal replacement for the product and module namespace segment."
+    },
+    "serviceSlug": {
+      "type": "parameter",
+      "dataType": "string",
+      "defaultValue": "dotnet-template",
+      "replaces": "dotnet-template",
+      "fileRename": "dotnet-template",
+      "displayName": "Service slug",
+      "description": "Kebab-case service name used in Helm, image names, database names, and deployment configuration."
+    },
+    "repositoryName": {
+      "type": "parameter",
+      "dataType": "string",
+      "defaultValue": "dotnet-backend-template",
+      "replaces": "dotnet-backend-template",
+      "fileRename": "dotnet-backend-template",
+      "displayName": "Repository name",
+      "description": "Repository name segment used in container image paths."
+    },
+    "registryOwner": {
+      "type": "parameter",
+      "dataType": "string",
+      "defaultValue": "panixida-templates",
+      "replaces": "panixida-templates",
+      "displayName": "Registry owner",
+      "description": "Container registry owner or organization path segment."
+    },
+    "serviceName": {
+      "type": "parameter",
+      "dataType": "string",
+      "defaultValue": "<ServiceName>",
+      "replaces": "<ServiceName>",
+      "displayName": "README service name",
+      "description": "Human-readable service name used in the generated README."
+    }
+  },
+  "primaryOutputs": [
+    {
+      "condition": "(HostIdentifier == \"dotnetcli\" || HostIdentifier == \"dotnetcli-preview\")",
+      "path": "PANiXiDA.DotnetTemplate.slnx"
+    },
+    {
+      "condition": "(HostIdentifier != \"dotnetcli\" && HostIdentifier != \"dotnetcli-preview\")",
+      "path": "PANiXiDA.DotnetTemplate.VisualStudio.sln"
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "(HostIdentifier == \"dotnetcli\" || HostIdentifier == \"dotnetcli-preview\")",
+      "description": "Restore NuGet packages required by this solution.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
+}

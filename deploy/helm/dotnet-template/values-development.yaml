@@ -1,0 +1,15 @@
+env:
+  values:
+    ASPNETCORE_ENVIRONMENT: Development
+    DOTNET_ENVIRONMENT: Development
+    OTEL_SERVICE_NAME: dotnet-template-api-development
+
+externalSecrets:
+  openbao:
+    role: dotnet-template-development
+  app:
+    remoteKey: applications/dotnet-template/development
+
+gateway:
+  host: dev.api.dotnet-template.panixida.ru
+  httpsSectionName: api-dev-dotnet-template-https

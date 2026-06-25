@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <DockerfileContext>..\..</DockerfileContext>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="PANiXiDA.Core.Ef.Migrator" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Module\Organization.Product.Module.Infrastructure\Organization.Product.Module.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="PANiXiDA.Core.Ef.Migrator" />
+
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.DependencyInjection" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+</Project>

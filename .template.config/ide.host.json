@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json.schemastore.org/ide.host",
+  "order": 100,
+  "defaultSymbolVisibility": true,
+  "symbolInfo": [
+    {
+      "id": "organization",
+      "name": {
+        "text": "Organization"
+      },
+      "isVisible": true
+    },
+    {
+      "id": "product",
+      "name": {
+        "text": "Product"
+      },
+      "isVisible": true
+    },
+    {
+      "id": "module",
+      "name": {
+        "text": "Module"
+      },
+      "isVisible": true
+    },
+    {
+      "id": "serviceSlug",
+      "name": {
+        "text": "Service slug"
+      },
+      "isVisible": true
+    },
+    {
+      "id": "repositoryName",
+      "name": {
+        "text": "Repository name"
+      },
+      "isVisible": true
+    },
+    {
+      "id": "registryOwner",
+      "name": {
+        "text": "Registry owner"
+      },
+      "isVisible": true
+    },
+    {
+      "id": "serviceName",
+      "name": {
+        "text": "README service name"
+      },
+      "isVisible": true
+    }
+  ]
+}
