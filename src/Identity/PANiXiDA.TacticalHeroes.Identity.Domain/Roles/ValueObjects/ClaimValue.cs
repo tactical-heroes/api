@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Domain.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 public sealed class ClaimValue : ValueObject
 {

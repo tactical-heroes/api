@@ -6,7 +6,6 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
