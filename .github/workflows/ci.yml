@@ -61,24 +61,9 @@ jobs:
       registry-user: ${{ secrets.REGISTRY_USER }}
       registry-token: ${{ secrets.REGISTRY_TOKEN }}
 
-# #if (false)
-  publish-template:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    needs: [ format, tests, helm ]
-    uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/dotnet-publish-global-nuget.yml@main
-    with:
-      project_folder: ${{ vars.TEMPLATE_PROJECT }}
-    secrets:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-# #endif
-
   notify:
     if: ${{ always() && github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development') }}
-# #if (false)
-    needs: [ build-api, build-migrator, publish-template ]
-# ##else
-#     needs: [ build-api, build-migrator ]
-# #endif
+    needs: [ build-api, build-migrator ]
     uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/notify-telegram.yml@main
     with:
       event-name: ${{ github.event_name }}
