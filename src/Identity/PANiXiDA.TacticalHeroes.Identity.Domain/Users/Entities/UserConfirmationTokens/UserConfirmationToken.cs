@@ -8,17 +8,9 @@ public sealed class UserConfirmationToken : Entity<UserConfirmationTokenId>
         UserId userId,
         ConfirmationTokenHash tokenHash,
         ConfirmationTokenExpiration expiresAtUtc)
-        : this(UserConfirmationTokenId.Create(userId).Value, tokenHash, expiresAtUtc)
+        : base(UserConfirmationTokenId.Create(userId).Value)
     {
-    }
-
-    private UserConfirmationToken(
-        UserConfirmationTokenId id,
-        ConfirmationTokenHash tokenHash,
-        ConfirmationTokenExpiration expiresAtUtc)
-        : base(id)
-    {
-        UserId = id.UserId;
+        UserId = userId;
         TokenHash = tokenHash;
         ExpiresAtUtc = expiresAtUtc;
     }
@@ -45,7 +37,7 @@ public sealed class UserConfirmationToken : Entity<UserConfirmationTokenId>
         }
 
         return Result.Success(new UserConfirmationToken(
-            idResult.Value,
+            userId,
             tokenHashResult.Value,
             expirationResult.Value));
     }

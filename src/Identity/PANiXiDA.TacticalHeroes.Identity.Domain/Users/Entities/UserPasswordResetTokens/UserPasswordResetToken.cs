@@ -8,17 +8,9 @@ public sealed class UserPasswordResetToken : Entity<UserPasswordResetTokenId>
         UserId userId,
         PasswordResetTokenHash tokenHash,
         PasswordResetTokenExpiration expiresAtUtc)
-        : this(UserPasswordResetTokenId.Create(userId).Value, tokenHash, expiresAtUtc)
+        : base(UserPasswordResetTokenId.Create(userId).Value)
     {
-    }
-
-    private UserPasswordResetToken(
-        UserPasswordResetTokenId id,
-        PasswordResetTokenHash tokenHash,
-        PasswordResetTokenExpiration expiresAtUtc)
-        : base(id)
-    {
-        UserId = id.UserId;
+        UserId = userId;
         TokenHash = tokenHash;
         ExpiresAtUtc = expiresAtUtc;
     }
@@ -45,7 +37,7 @@ public sealed class UserPasswordResetToken : Entity<UserPasswordResetTokenId>
         }
 
         return Result.Success(new UserPasswordResetToken(
-            idResult.Value,
+            userId,
             tokenHashResult.Value,
             expirationResult.Value));
     }

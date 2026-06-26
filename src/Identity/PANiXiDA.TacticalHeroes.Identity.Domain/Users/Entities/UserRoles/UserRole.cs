@@ -7,15 +7,10 @@ public sealed class UserRole : Entity<UserRoleId>
     private UserRole(
         UserId userId,
         RoleId roleId)
-        : this(UserRoleId.Create(userId, roleId).Value)
+        : base(UserRoleId.Create(userId, roleId).Value)
     {
-    }
-
-    private UserRole(UserRoleId id)
-        : base(id)
-    {
-        UserId = id.UserId;
-        RoleId = id.RoleId;
+        UserId = userId;
+        RoleId = roleId;
     }
 
     public UserId UserId { get; private set; }
@@ -32,6 +27,8 @@ public sealed class UserRole : Entity<UserRoleId>
             return Result.Failure<UserRole>(idResult.Errors);
         }
 
-        return Result.Success(new UserRole(idResult.Value));
+        return Result.Success(new UserRole(
+            userId,
+            roleId));
     }
 }
