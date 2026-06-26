@@ -7,7 +7,7 @@ public sealed class UserPasswordResetToken : Entity<UserPasswordResetTokenId>
     private UserPasswordResetToken(
         UserId userId,
         PasswordResetTokenHash tokenHash,
-        DateTimeOffset expiresAtUtc)
+        PasswordResetTokenExpiration expiresAtUtc)
         : this(UserPasswordResetTokenId.Create(userId).Value, tokenHash, expiresAtUtc)
     {
     }
@@ -15,7 +15,7 @@ public sealed class UserPasswordResetToken : Entity<UserPasswordResetTokenId>
     private UserPasswordResetToken(
         UserPasswordResetTokenId id,
         PasswordResetTokenHash tokenHash,
-        DateTimeOffset expiresAtUtc)
+        PasswordResetTokenExpiration expiresAtUtc)
         : base(id)
     {
         UserId = id.UserId;
@@ -25,37 +25,35 @@ public sealed class UserPasswordResetToken : Entity<UserPasswordResetTokenId>
 
     public UserId UserId { get; private set; }
     public PasswordResetTokenHash TokenHash { get; private set; }
-    public DateTimeOffset ExpiresAtUtc { get; private set; }
+    public PasswordResetTokenExpiration ExpiresAtUtc { get; private set; }
 
     internal static Result<UserPasswordResetToken> Create(
         UserId userId,
         string tokenHash,
         DateTimeOffset expiresAtUtc)
     {
-        if (expiresAtUtc <= DateTimeOffset.UtcNow)
-        {
-            return Result.Failure<UserPasswordResetToken>(
-                Error.Validation("Password reset token expiration must be in the future."));
-        }
-
         var tokenHashResult = PasswordResetTokenHash.Create(tokenHash);
+        var expirationResult = PasswordResetTokenExpiration.CreateFuture(
+            expiresAtUtc,
+            DateTimeOffset.UtcNow);
+        var validationResult = Result.Combine(tokenHashResult, expirationResult);
 
-        if (tokenHashResult.IsFailure)
+        if (validationResult.IsFailure)
         {
-            return Result.Failure<UserPasswordResetToken>(tokenHashResult.Errors);
+            return Result.Failure<UserPasswordResetToken>(validationResult.Errors);
         }
 
         return Result.Success(new UserPasswordResetToken(
             userId,
             tokenHashResult.Value,
-            expiresAtUtc));
+            expirationResult.Value));
     }
 
     internal Result Validate(
         string tokenHash,
         DateTimeOffset nowUtc)
     {
-        if (ExpiresAtUtc < nowUtc)
+        if (ExpiresAtUtc.IsExpired(nowUtc))
         {
             return Result.Failure(
                 Error.Validation("Password reset token expired."));

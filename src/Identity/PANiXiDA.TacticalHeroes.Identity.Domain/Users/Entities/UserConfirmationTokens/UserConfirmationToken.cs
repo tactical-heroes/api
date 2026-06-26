@@ -7,7 +7,7 @@ public sealed class UserConfirmationToken : Entity<UserConfirmationTokenId>
     private UserConfirmationToken(
         UserId userId,
         ConfirmationTokenHash tokenHash,
-        DateTimeOffset expiresAtUtc)
+        ConfirmationTokenExpiration expiresAtUtc)
         : this(UserConfirmationTokenId.Create(userId).Value, tokenHash, expiresAtUtc)
     {
     }
@@ -15,7 +15,7 @@ public sealed class UserConfirmationToken : Entity<UserConfirmationTokenId>
     private UserConfirmationToken(
         UserConfirmationTokenId id,
         ConfirmationTokenHash tokenHash,
-        DateTimeOffset expiresAtUtc)
+        ConfirmationTokenExpiration expiresAtUtc)
         : base(id)
     {
         UserId = id.UserId;
@@ -25,37 +25,35 @@ public sealed class UserConfirmationToken : Entity<UserConfirmationTokenId>
 
     public UserId UserId { get; private set; }
     public ConfirmationTokenHash TokenHash { get; private set; }
-    public DateTimeOffset ExpiresAtUtc { get; private set; }
+    public ConfirmationTokenExpiration ExpiresAtUtc { get; private set; }
 
     internal static Result<UserConfirmationToken> Create(
         UserId userId,
         string tokenHash,
         DateTimeOffset expiresAtUtc)
     {
-        if (expiresAtUtc <= DateTimeOffset.UtcNow)
-        {
-            return Result.Failure<UserConfirmationToken>(
-                Error.Validation("Confirmation token expiration must be in the future."));
-        }
-
         var tokenHashResult = ConfirmationTokenHash.Create(tokenHash);
+        var expirationResult = ConfirmationTokenExpiration.CreateFuture(
+            expiresAtUtc,
+            DateTimeOffset.UtcNow);
+        var validationResult = Result.Combine(tokenHashResult, expirationResult);
 
-        if (tokenHashResult.IsFailure)
+        if (validationResult.IsFailure)
         {
-            return Result.Failure<UserConfirmationToken>(tokenHashResult.Errors);
+            return Result.Failure<UserConfirmationToken>(validationResult.Errors);
         }
 
         return Result.Success(new UserConfirmationToken(
             userId,
             tokenHashResult.Value,
-            expiresAtUtc));
+            expirationResult.Value));
     }
 
     internal Result Validate(
         string tokenHash,
         DateTimeOffset nowUtc)
     {
-        if (ExpiresAtUtc < nowUtc)
+        if (ExpiresAtUtc.IsExpired(nowUtc))
         {
             return Result.Failure(
                 Error.Validation("Confirmation token expired."));

@@ -21,11 +21,13 @@ public sealed class User : AggregateRoot<UserId>
     {
         Email = email;
         PasswordHash = passwordHash;
+        ConfirmationStatus = UserConfirmationStatus.Unconfirmed();
     }
 
     public Email Email { get; private set; }
     public PasswordHash PasswordHash { get; private set; }
-    public bool IsConfirmed { get; private set; }
+    public UserConfirmationStatus ConfirmationStatus { get; private set; }
+    public bool IsConfirmed => ConfirmationStatus.IsConfirmed;
     public UserConfirmationToken? ConfirmationToken { get; private set; }
     public UserPasswordResetToken? PasswordResetToken { get; private set; }
     public IReadOnlyCollection<UserRole> Roles => _roles;
@@ -70,7 +72,7 @@ public sealed class User : AggregateRoot<UserId>
                 user.Id.Value,
                 user.Email.Value,
                 confirmationToken,
-                confirmationTokenResult.Value.ExpiresAtUtc));
+                confirmationTokenResult.Value.ExpiresAtUtc.Value));
 
         return Result.Success(user);
     }
@@ -99,7 +101,7 @@ public sealed class User : AggregateRoot<UserId>
             return validationResult;
         }
 
-        IsConfirmed = true;
+        ConfirmationStatus = UserConfirmationStatus.Confirmed();
         ConfirmationToken = null;
 
         AddDomainEvent(
@@ -139,7 +141,7 @@ public sealed class User : AggregateRoot<UserId>
                 Id.Value,
                 Email.Value,
                 passwordResetToken,
-                passwordResetTokenResult.Value.ExpiresAtUtc));
+                passwordResetTokenResult.Value.ExpiresAtUtc.Value));
 
         return Result.Success();
     }

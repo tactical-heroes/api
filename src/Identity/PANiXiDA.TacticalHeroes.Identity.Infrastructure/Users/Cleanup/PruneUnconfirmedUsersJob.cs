@@ -23,9 +23,12 @@ internal sealed class PruneUnconfirmedUsersJob(
             .Subtract(options.Value.UnconfirmedUserRetention)
             .UtcDateTime;
 
-        await dbContext.Users
-            .Where(user => !user.IsConfirmed)
-            .Where(user => EF.Property<DateTime>(user, "CreatedAt") < deleteBeforeUtc)
-            .ExecuteDeleteAsync(context.CancellationToken);
+        await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             DELETE FROM identity_users
+             WHERE is_confirmed = false
+             AND created_at < {deleteBeforeUtc}
+             """,
+            context.CancellationToken);
     }
 }

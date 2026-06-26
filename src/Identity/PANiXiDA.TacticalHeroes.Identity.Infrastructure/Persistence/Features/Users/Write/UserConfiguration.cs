@@ -41,7 +41,11 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
             .HasMaxLength(PasswordHash.MaxLength)
             .IsRequired();
 
-        builder.Property(user => user.IsConfirmed)
+        builder.Ignore(user => user.IsConfirmed);
+
+        builder.Property(user => user.ConfirmationStatus)
+            .HasColumnName("is_confirmed")
+            .HasConversion(UserConfirmationStatusConverter)
             .IsRequired();
 
         builder.OwnsOne(
@@ -103,6 +107,7 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
 
         builder.Property(token => token.ExpiresAtUtc)
             .HasColumnName("expires_at_utc")
+            .HasConversion(ConfirmationTokenExpirationConverter)
             .IsRequired();
 
         builder.HasIndex(token => token.ExpiresAtUtc);
@@ -134,6 +139,7 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
 
         builder.Property(token => token.ExpiresAtUtc)
             .HasColumnName("expires_at_utc")
+            .HasConversion(PasswordResetTokenExpirationConverter)
             .IsRequired();
 
         builder.HasIndex(token => token.ExpiresAtUtc);
@@ -217,6 +223,10 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         passwordHash => passwordHash.Value,
         value => PasswordHash.Create(value).Value);
 
+    private static readonly ValueConverter<UserConfirmationStatus, bool> UserConfirmationStatusConverter = new(
+        confirmationStatus => confirmationStatus.IsConfirmed,
+        value => UserConfirmationStatus.From(value));
+
     private static readonly ValueConverter<RoleId, Guid> RoleIdConverter = new(
         roleId => roleId.Value,
         value => RoleId.Create(value).Value);
@@ -229,9 +239,19 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         tokenHash => tokenHash.Value,
         value => ConfirmationTokenHash.Create(value).Value);
 
+    private static readonly ValueConverter<ConfirmationTokenExpiration, DateTimeOffset>
+        ConfirmationTokenExpirationConverter = new(
+            expiration => expiration.Value,
+            value => ConfirmationTokenExpiration.Create(value).Value);
+
     private static readonly ValueConverter<PasswordResetTokenHash, string> PasswordResetTokenHashConverter = new(
         tokenHash => tokenHash.Value,
         value => PasswordResetTokenHash.Create(value).Value);
+
+    private static readonly ValueConverter<PasswordResetTokenExpiration, DateTimeOffset>
+        PasswordResetTokenExpirationConverter = new(
+            expiration => expiration.Value,
+            value => PasswordResetTokenExpiration.Create(value).Value);
 
     private static readonly ValueConverter<ClaimType, string> ClaimTypeConverter = new(
         claimType => claimType.Value,

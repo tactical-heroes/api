@@ -23,7 +23,7 @@ public sealed class UserTests
         confirmationEvent.UserId.ShouldBe(user.Id.Value);
         confirmationEvent.Email.ShouldBe(user.Email.Value);
         confirmationEvent.ConfirmationToken.ShouldBe("confirmation-token");
-        confirmationEvent.ExpiresAtUtc.ShouldBe(user.ConfirmationToken.ExpiresAtUtc);
+        confirmationEvent.ExpiresAtUtc.ShouldBe(user.ConfirmationToken.ExpiresAtUtc.Value);
     }
 
     [Fact(DisplayName = "Confirm registration should confirm user and raise registered event")]
@@ -72,7 +72,7 @@ public sealed class UserTests
         passwordResetEvent.UserId.ShouldBe(user.Id.Value);
         passwordResetEvent.Email.ShouldBe(user.Email.Value);
         passwordResetEvent.PasswordResetToken.ShouldBe("password-reset-token");
-        passwordResetEvent.ExpiresAtUtc.ShouldBe(user.PasswordResetToken.ExpiresAtUtc);
+        passwordResetEvent.ExpiresAtUtc.ShouldBe(user.PasswordResetToken.ExpiresAtUtc.Value);
     }
 
     [Fact(DisplayName = "Assign role should store role id once")]
