@@ -9,14 +9,19 @@ public partial class CreateEntityFrameworkHiLoSequence : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
+        migrationBuilder.EnsureSchema(
+            name: "identity");
+
         migrationBuilder.CreateSequence(
             name: "EntityFrameworkHiLoSequence",
+            schema: "identity",
             incrementBy: 10);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropSequence(
-            name: "EntityFrameworkHiLoSequence");
+            name: "EntityFrameworkHiLoSequence",
+            schema: "identity");
     }
 }

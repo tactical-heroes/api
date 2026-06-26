@@ -15,7 +15,7 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
 {
     protected override void ConfigureEntity(EntityTypeBuilder<User> builder)
     {
-        builder.ToTable("identity_users");
+        builder.ToTable("users");
 
         builder.HasKey(user => user.Id);
 
@@ -70,11 +70,11 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
     private static void ConfigureUserRole(
         OwnedNavigationBuilder<User, UserRole> builder)
     {
-        builder.ToTable("identity_user_roles");
+        builder.ToTable("user_roles");
 
         builder.WithOwner()
             .HasForeignKey(role => role.UserId)
-            .HasConstraintName("fk_identity_user_roles_identity_users_identity_user_id");
+            .HasConstraintName("fk_user_roles_users_user_id");
 
         builder.Ignore(role => role.Id);
 
@@ -85,12 +85,12 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         });
 
         builder.Property(role => role.UserId)
-            .HasColumnName("identity_user_id")
+            .HasColumnName("user_id")
             .HasConversion(UserIdConverter)
             .ValueGeneratedNever();
 
         builder.Property(role => role.RoleId)
-            .HasColumnName("identity_role_id")
+            .HasColumnName("role_id")
             .HasConversion(RoleIdConverter)
             .ValueGeneratedNever();
 
@@ -105,10 +105,10 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
     private static void ConfigureUserClaim(
         OwnedNavigationBuilder<User, UserClaim> builder)
     {
-        builder.ToTable("identity_user_claims");
+        builder.ToTable("user_claims");
 
         builder.WithOwner()
-            .HasForeignKey("identity_user_id");
+            .HasForeignKey("user_id");
 
         builder.HasKey(claim => claim.Id);
 
@@ -129,7 +129,7 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
             .HasMaxLength(ClaimValue.MaxLength)
             .IsRequired();
 
-        builder.HasIndex("identity_user_id", nameof(UserClaim.Type), nameof(UserClaim.Value))
+        builder.HasIndex("user_id", nameof(UserClaim.Type), nameof(UserClaim.Value))
             .IsUnique();
     }
 

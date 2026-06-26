@@ -27,8 +27,8 @@ public sealed class UserAutoIncludeTests(IntegrationTestFixture fixture)
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
 
-            dbContext.Roles.Add(role);
-            dbContext.Users.Add(user);
+            dbContext.Set<Role>().Add(role);
+            dbContext.Set<User>().Add(user);
 
             await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         }

@@ -12,7 +12,8 @@ public partial class CreateUsers : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "identity_users",
+            name: "users",
+            schema: "identity",
             columns: table => new
             {
                 id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -25,12 +26,13 @@ public partial class CreateUsers : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("pk_identity_users", x => x.id);
+                table.PrimaryKey("pk_users", x => x.id);
             });
 
         migrationBuilder.CreateIndex(
-            name: "ix_identity_users_email",
-            table: "identity_users",
+            name: "ix_users_email",
+            schema: "identity",
+            table: "users",
             column: "email",
             unique: true);
     }
@@ -38,6 +40,7 @@ public partial class CreateUsers : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "identity_users");
+            name: "users",
+            schema: "identity");
     }
 }

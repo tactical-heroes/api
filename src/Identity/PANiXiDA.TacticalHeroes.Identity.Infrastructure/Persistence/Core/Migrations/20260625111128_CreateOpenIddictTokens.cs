@@ -13,6 +13,7 @@ public partial class CreateOpenIddictTokens : Migration
     {
         migrationBuilder.CreateTable(
             name: "OpenIddictTokens",
+            schema: "identity",
             columns: table => new
             {
                 id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -35,27 +36,32 @@ public partial class CreateOpenIddictTokens : Migration
                 table.ForeignKey(
                     name: "fk_open_iddict_tokens_open_iddict_applications_application_id",
                     column: x => x.application_id,
+                    principalSchema: "identity",
                     principalTable: "OpenIddictApplications",
                     principalColumn: "id");
                 table.ForeignKey(
                     name: "fk_open_iddict_tokens_open_iddict_authorizations_authorization_id",
                     column: x => x.authorization_id,
+                    principalSchema: "identity",
                     principalTable: "OpenIddictAuthorizations",
                     principalColumn: "id");
             });
 
         migrationBuilder.CreateIndex(
             name: "ix_open_iddict_tokens_application_id_status_subject_type",
+            schema: "identity",
             table: "OpenIddictTokens",
             columns: new[] { "application_id", "status", "subject", "type" });
 
         migrationBuilder.CreateIndex(
             name: "ix_open_iddict_tokens_authorization_id",
+            schema: "identity",
             table: "OpenIddictTokens",
             column: "authorization_id");
 
         migrationBuilder.CreateIndex(
             name: "ix_open_iddict_tokens_reference_id",
+            schema: "identity",
             table: "OpenIddictTokens",
             column: "reference_id",
             unique: true);
@@ -64,6 +70,7 @@ public partial class CreateOpenIddictTokens : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "OpenIddictTokens");
+            name: "OpenIddictTokens",
+            schema: "identity");
     }
 }

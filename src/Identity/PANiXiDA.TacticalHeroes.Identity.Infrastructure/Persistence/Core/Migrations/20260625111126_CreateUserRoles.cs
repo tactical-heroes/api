@@ -12,40 +12,45 @@ public partial class CreateUserRoles : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "identity_user_roles",
+            name: "user_roles",
+            schema: "identity",
             columns: table => new
             {
-                identity_role_id = table.Column<Guid>(type: "uuid", nullable: false),
-                identity_user_id = table.Column<Guid>(type: "uuid", nullable: false)
+                user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                role_id = table.Column<Guid>(type: "uuid", nullable: false)
             },
             constraints: table =>
             {
                 table.PrimaryKey(
-                    "pk_identity_user_roles",
-                    x => new { x.identity_user_id, x.identity_role_id });
+                    "pk_user_roles",
+                    x => new { x.user_id, x.role_id });
                 table.ForeignKey(
-                    name: "fk_identity_user_roles_identity_roles_identity_role_id",
-                    column: x => x.identity_role_id,
-                    principalTable: "identity_roles",
+                    name: "fk_user_roles_roles_role_id",
+                    column: x => x.role_id,
+                    principalSchema: "identity",
+                    principalTable: "roles",
                     principalColumn: "id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
-                    name: "fk_identity_user_roles_identity_users_identity_user_id",
-                    column: x => x.identity_user_id,
-                    principalTable: "identity_users",
+                    name: "fk_user_roles_users_user_id",
+                    column: x => x.user_id,
+                    principalSchema: "identity",
+                    principalTable: "users",
                     principalColumn: "id",
                     onDelete: ReferentialAction.Cascade);
             });
 
         migrationBuilder.CreateIndex(
-            name: "ix_identity_user_roles_identity_role_id",
-            table: "identity_user_roles",
-            column: "identity_role_id");
+            name: "ix_user_roles_role_id",
+            schema: "identity",
+            table: "user_roles",
+            column: "role_id");
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "identity_user_roles");
+            name: "user_roles",
+            schema: "identity");
     }
 }

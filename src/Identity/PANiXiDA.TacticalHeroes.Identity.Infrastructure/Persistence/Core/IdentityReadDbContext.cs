@@ -6,6 +6,8 @@ public sealed class IdentityReadDbContext(
     DbContextOptions<IdentityReadDbContext> options)
     : ReadDbContext<IdentityReadDbContext>(options)
 {
+    protected override bool UseContextNameAsSchema => true;
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);

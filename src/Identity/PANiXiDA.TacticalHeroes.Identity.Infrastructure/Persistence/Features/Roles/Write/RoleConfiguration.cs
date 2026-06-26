@@ -13,7 +13,7 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
 {
     protected override void ConfigureEntity(EntityTypeBuilder<Role> builder)
     {
-        builder.ToTable("identity_roles");
+        builder.ToTable("roles");
 
         builder.HasKey(role => role.Id);
 
@@ -42,10 +42,10 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
     private static void ConfigureRoleClaim(
         OwnedNavigationBuilder<Role, RoleClaim> builder)
     {
-        builder.ToTable("identity_role_claims");
+        builder.ToTable("role_claims");
 
         builder.WithOwner()
-            .HasForeignKey("identity_role_id");
+            .HasForeignKey("role_id");
 
         builder.HasKey(claim => claim.Id);
 
@@ -66,7 +66,7 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
             .HasMaxLength(ClaimValue.MaxLength)
             .IsRequired();
 
-        builder.HasIndex("identity_role_id", nameof(RoleClaim.Type), nameof(RoleClaim.Value))
+        builder.HasIndex("role_id", nameof(RoleClaim.Type), nameof(RoleClaim.Value))
             .IsUnique();
     }
 

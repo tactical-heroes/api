@@ -12,7 +12,8 @@ public partial class CreateRoles : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "identity_roles",
+            name: "roles",
+            schema: "identity",
             columns: table => new
             {
                 id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -23,12 +24,13 @@ public partial class CreateRoles : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("pk_identity_roles", x => x.id);
+                table.PrimaryKey("pk_roles", x => x.id);
             });
 
         migrationBuilder.CreateIndex(
-            name: "ix_identity_roles_name",
-            table: "identity_roles",
+            name: "ix_roles_name",
+            schema: "identity",
+            table: "roles",
             column: "name",
             unique: true);
     }
@@ -36,6 +38,7 @@ public partial class CreateRoles : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "identity_roles");
+            name: "roles",
+            schema: "identity");
     }
 }

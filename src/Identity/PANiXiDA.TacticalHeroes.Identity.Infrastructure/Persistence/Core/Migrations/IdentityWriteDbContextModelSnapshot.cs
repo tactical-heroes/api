@@ -17,6 +17,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("identity")
                 .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -105,7 +106,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .IsUnique()
                         .HasDatabaseName("ix_open_iddict_applications_client_id");
 
-                    b.ToTable("OpenIddictApplications", (string)null);
+                    b.ToTable("OpenIddictApplications", "identity");
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization<System.Guid>", b =>
@@ -158,7 +159,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                     b.HasIndex("ApplicationId", "Status", "Subject", "Type")
                         .HasDatabaseName("ix_open_iddict_authorizations_application_id_status_subject_type");
 
-                    b.ToTable("OpenIddictAuthorizations", (string)null);
+                    b.ToTable("OpenIddictAuthorizations", "identity");
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreScope<System.Guid>", b =>
@@ -210,7 +211,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .IsUnique()
                         .HasDatabaseName("ix_open_iddict_scopes_name");
 
-                    b.ToTable("OpenIddictScopes", (string)null);
+                    b.ToTable("OpenIddictScopes", "identity");
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreToken<System.Guid>", b =>
@@ -287,7 +288,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                     b.HasIndex("ApplicationId", "Status", "Subject", "Type")
                         .HasDatabaseName("ix_open_iddict_tokens_application_id_status_subject_type");
 
-                    b.ToTable("OpenIddictTokens", (string)null);
+                    b.ToTable("OpenIddictTokens", "identity");
                 });
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Role", b =>
@@ -319,13 +320,63 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .HasColumnOrder(2);
 
                     b.HasKey("Id")
-                        .HasName("pk_identity_roles");
+                        .HasName("pk_roles");
 
                     b.HasIndex("Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_identity_roles_name");
+                        .HasDatabaseName("ix_roles_name");
 
-                    b.ToTable("identity_roles", (string)null);
+                    b.ToTable("roles", "identity");
+                });
+
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens.UserConfirmationToken", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("UserId")
+                        .HasName("pk_user_confirmation_tokens");
+
+                    b.HasIndex("ExpiresAtUtc")
+                        .HasDatabaseName("ix_user_confirmation_tokens_expires_at_utc");
+
+                    b.ToTable("user_confirmation_tokens", "identity");
+                });
+
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens.UserPasswordResetToken", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("UserId")
+                        .HasName("pk_user_password_reset_tokens");
+
+                    b.HasIndex("ExpiresAtUtc")
+                        .HasDatabaseName("ix_user_password_reset_tokens_expires_at_utc");
+
+                    b.ToTable("user_password_reset_tokens", "identity");
                 });
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.User", b =>
@@ -334,6 +385,10 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasColumnOrder(0);
+
+                    b.Property<bool>("ConfirmationStatus")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_confirmed");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -351,10 +406,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
-                    b.Property<bool>("IsConfirmed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_confirmed");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(1024)
@@ -367,13 +418,13 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .HasColumnOrder(2);
 
                     b.HasKey("Id")
-                        .HasName("pk_identity_users");
+                        .HasName("pk_users");
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_identity_users_email");
+                        .HasDatabaseName("ix_users_email");
 
-                    b.ToTable("identity_users", (string)null);
+                    b.ToTable("users", "identity");
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization<System.Guid>", b =>
@@ -424,115 +475,77 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                                 .HasColumnType("character varying(1024)")
                                 .HasColumnName("value");
 
-                            b1.Property<Guid>("identity_role_id")
+                            b1.Property<Guid>("role_id")
                                 .HasColumnType("uuid")
-                                .HasColumnName("identity_role_id");
+                                .HasColumnName("role_id");
 
                             b1.HasKey("Id")
-                                .HasName("pk_identity_role_claims");
+                                .HasName("pk_role_claims");
 
-                            b1.HasIndex("identity_role_id", "Type", "Value")
+                            b1.HasIndex("role_id", "Type", "Value")
                                 .IsUnique()
-                                .HasDatabaseName("ix_identity_role_claims_identity_role_id_type_value");
+                                .HasDatabaseName("ix_role_claims_role_id_type_value");
 
-                            b1.ToTable("identity_role_claims", (string)null);
+                            b1.ToTable("role_claims", "identity");
 
                             b1.WithOwner()
-                                .HasForeignKey("identity_role_id")
-                                .HasConstraintName("fk_identity_role_claims_identity_roles_identity_role_id");
+                                .HasForeignKey("role_id")
+                                .HasConstraintName("fk_role_claims_roles_role_id");
                         });
 
                     b.Navigation("Claims");
                 });
 
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens.UserConfirmationToken", b =>
+                {
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Domain.Users.User", null)
+                        .WithOne("ConfirmationToken")
+                        .HasForeignKey("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens.UserConfirmationToken", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_confirmation_tokens_users_user_id");
+                });
+
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens.UserPasswordResetToken", b =>
+                {
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Domain.Users.User", null)
+                        .WithOne("PasswordResetToken")
+                        .HasForeignKey("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens.UserPasswordResetToken", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_password_reset_tokens_users_user_id");
+                });
+
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.User", b =>
                 {
-                    b.OwnsOne("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens.UserConfirmationToken", "ConfirmationToken", b1 =>
-                        {
-                            b1.Property<Guid>("UserId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("identity_user_id");
-
-                            b1.Property<DateTimeOffset>("ExpiresAtUtc")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("expires_at_utc");
-
-                            b1.Property<string>("TokenHash")
-                                .IsRequired()
-                                .HasMaxLength(128)
-                                .HasColumnType("character varying(128)")
-                                .HasColumnName("token_hash");
-
-                            b1.HasKey("UserId")
-                                .HasName("pk_identity_user_confirmation_tokens");
-
-                            b1.HasIndex("ExpiresAtUtc")
-                                .HasDatabaseName("ix_identity_user_confirmation_tokens_expires_at_utc");
-
-                            b1.ToTable("identity_user_confirmation_tokens", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserId")
-                                .HasConstraintName("fk_identity_user_confirmation_tokens_identity_users_identity_user_id");
-                        });
-
-                    b.OwnsOne("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens.UserPasswordResetToken", "PasswordResetToken", b1 =>
-                        {
-                            b1.Property<Guid>("UserId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("identity_user_id");
-
-                            b1.Property<DateTimeOffset>("ExpiresAtUtc")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("expires_at_utc");
-
-                            b1.Property<string>("TokenHash")
-                                .IsRequired()
-                                .HasMaxLength(128)
-                                .HasColumnType("character varying(128)")
-                                .HasColumnName("token_hash");
-
-                            b1.HasKey("UserId")
-                                .HasName("pk_identity_user_password_reset_tokens");
-
-                            b1.HasIndex("ExpiresAtUtc")
-                                .HasDatabaseName("ix_identity_user_password_reset_tokens_expires_at_utc");
-
-                            b1.ToTable("identity_user_password_reset_tokens", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserId")
-                                .HasConstraintName("fk_identity_user_password_reset_tokens_identity_users_identity_user_id");
-                        });
-
                     b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserRoles.UserRole", "Roles", b1 =>
                         {
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uuid")
-                                .HasColumnName("identity_user_id");
+                                .HasColumnName("user_id");
 
                             b1.Property<Guid>("RoleId")
                                 .HasColumnType("uuid")
-                                .HasColumnName("identity_role_id");
+                                .HasColumnName("role_id");
 
                             b1.HasKey("UserId", "RoleId")
-                                .HasName("pk_identity_user_roles");
+                                .HasName("pk_user_roles");
 
                             b1.HasIndex("RoleId")
-                                .HasDatabaseName("ix_identity_user_roles_identity_role_id");
+                                .HasDatabaseName("ix_user_roles_role_id");
 
-                            b1.ToTable("identity_user_roles", (string)null);
+                            b1.ToTable("user_roles", "identity");
 
                             b1.HasOne("PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Role", null)
                                 .WithMany()
                                 .HasForeignKey("RoleId")
                                 .OnDelete(DeleteBehavior.Restrict)
                                 .IsRequired()
-                                .HasConstraintName("fk_identity_user_roles_identity_roles_identity_role_id");
+                                .HasConstraintName("fk_user_roles_roles_role_id");
 
                             b1.WithOwner()
                                 .HasForeignKey("UserId")
-                                .HasConstraintName("fk_identity_user_roles_identity_users_identity_user_id");
+                                .HasConstraintName("fk_user_roles_users_user_id");
                         });
 
                     b.OwnsMany("PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.UserClaim", "Claims", b1 =>
@@ -554,29 +567,25 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                                 .HasColumnType("character varying(1024)")
                                 .HasColumnName("value");
 
-                            b1.Property<Guid>("identity_user_id")
+                            b1.Property<Guid>("user_id")
                                 .HasColumnType("uuid")
-                                .HasColumnName("identity_user_id");
+                                .HasColumnName("user_id");
 
                             b1.HasKey("Id")
-                                .HasName("pk_identity_user_claims");
+                                .HasName("pk_user_claims");
 
-                            b1.HasIndex("identity_user_id", "Type", "Value")
+                            b1.HasIndex("user_id", "Type", "Value")
                                 .IsUnique()
-                                .HasDatabaseName("ix_identity_user_claims_identity_user_id_type_value");
+                                .HasDatabaseName("ix_user_claims_user_id_type_value");
 
-                            b1.ToTable("identity_user_claims", (string)null);
+                            b1.ToTable("user_claims", "identity");
 
                             b1.WithOwner()
-                                .HasForeignKey("identity_user_id")
-                                .HasConstraintName("fk_identity_user_claims_identity_users_identity_user_id");
+                                .HasForeignKey("user_id")
+                                .HasConstraintName("fk_user_claims_users_user_id");
                         });
 
                     b.Navigation("Claims");
-
-                    b.Navigation("ConfirmationToken");
-
-                    b.Navigation("PasswordResetToken");
 
                     b.Navigation("Roles");
                 });
@@ -591,6 +600,13 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization<System.Guid>", b =>
                 {
                     b.Navigation("Tokens");
+                });
+
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Domain.Users.User", b =>
+                {
+                    b.Navigation("ConfirmationToken");
+
+                    b.Navigation("PasswordResetToken");
                 });
 #pragma warning restore 612, 618
         }

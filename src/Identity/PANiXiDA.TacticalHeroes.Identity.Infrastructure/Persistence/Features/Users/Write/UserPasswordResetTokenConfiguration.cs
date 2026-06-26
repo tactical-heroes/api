@@ -12,14 +12,14 @@ internal sealed class UserPasswordResetTokenConfiguration : IEntityTypeConfigura
 {
     public void Configure(EntityTypeBuilder<UserPasswordResetToken> builder)
     {
-        builder.ToTable("identity_user_password_reset_tokens");
+        builder.ToTable("user_password_reset_tokens");
 
         builder.Ignore(token => token.Id);
 
         builder.HasKey(token => token.UserId);
 
         builder.Property(token => token.UserId)
-            .HasColumnName("identity_user_id")
+            .HasColumnName("user_id")
             .HasConversion(UserIdConverter)
             .ValueGeneratedNever();
 
@@ -39,7 +39,7 @@ internal sealed class UserPasswordResetTokenConfiguration : IEntityTypeConfigura
         builder.HasOne<User>()
             .WithOne(user => user.PasswordResetToken)
             .HasForeignKey<UserPasswordResetToken>(token => token.UserId)
-            .HasConstraintName("fk_identity_user_password_reset_tokens_identity_users_identity_user_id")
+            .HasConstraintName("fk_user_password_reset_tokens_users_user_id")
             .OnDelete(DeleteBehavior.Cascade);
     }
 

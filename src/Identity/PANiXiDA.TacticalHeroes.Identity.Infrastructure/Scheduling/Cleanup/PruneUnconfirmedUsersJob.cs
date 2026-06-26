@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
 
@@ -28,7 +29,7 @@ internal sealed class PruneUnconfirmedUsersJob(
             .GetUtcNow()
             .Subtract(options.Value.UnconfirmedUserRetention)
             .UtcDateTime;
-        var users = await dbContext.Users
+        var users = await dbContext.Set<User>()
             .IgnoreAutoIncludes()
             .ToListAsync(cancellationToken);
 
@@ -45,7 +46,7 @@ internal sealed class PruneUnconfirmedUsersJob(
             return;
         }
 
-        dbContext.Users.RemoveRange(staleUnconfirmedUsers);
+        dbContext.Set<User>().RemoveRange(staleUnconfirmedUsers);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }

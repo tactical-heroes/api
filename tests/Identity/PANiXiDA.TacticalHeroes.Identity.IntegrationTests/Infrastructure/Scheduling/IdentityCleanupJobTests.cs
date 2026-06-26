@@ -41,7 +41,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
 
-            dbContext.Users.AddRange(
+            dbContext.Set<User>().AddRange(
                 staleUnconfirmedUser,
                 recentUnconfirmedUser,
                 staleConfirmedUser);
@@ -70,7 +70,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            var remainingUserIds = await dbContext.Users
+            var remainingUserIds = await dbContext.Set<User>()
                 .IgnoreAutoIncludes()
                 .Select(user => user.Id)
                 .ToArrayAsync(TestContext.Current.CancellationToken);
@@ -91,7 +91,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
 
-            dbContext.Users.AddRange(expiredTokenUser, activeTokenUser);
+            dbContext.Set<User>().AddRange(expiredTokenUser, activeTokenUser);
             await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             SetConfirmationTokenExpiration(dbContext, expiredTokenUser, NowUtc.AddMinutes(-1));
@@ -113,7 +113,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            var remainingTokenUserIds = await dbContext.UserConfirmationTokens
+            var remainingTokenUserIds = await dbContext.Set<UserConfirmationToken>()
                 .Select(token => token.UserId)
                 .ToArrayAsync(TestContext.Current.CancellationToken);
 
@@ -132,7 +132,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
 
-            dbContext.Users.AddRange(expiredTokenUser, activeTokenUser);
+            dbContext.Set<User>().AddRange(expiredTokenUser, activeTokenUser);
             await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             SetPasswordResetTokenExpiration(dbContext, expiredTokenUser, NowUtc.AddMinutes(-1));
@@ -154,7 +154,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            var remainingTokenUserIds = await dbContext.UserPasswordResetTokens
+            var remainingTokenUserIds = await dbContext.Set<UserPasswordResetToken>()
                 .Select(token => token.UserId)
                 .ToArrayAsync(TestContext.Current.CancellationToken);
 
@@ -201,7 +201,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         User user,
         DateTimeOffset createdAtUtc)
     {
-        return dbContext.Users
+        return dbContext.Set<User>()
             .IgnoreAutoIncludes()
             .Where(storedUser => storedUser.Id == user.Id)
             .ExecuteUpdateAsync(

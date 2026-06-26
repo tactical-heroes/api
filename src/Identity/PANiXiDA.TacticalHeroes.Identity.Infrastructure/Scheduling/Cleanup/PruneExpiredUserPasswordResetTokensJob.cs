@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using Quartz;
@@ -23,7 +24,7 @@ internal sealed class PruneExpiredUserPasswordResetTokensJob(
     {
         var nowUtc = timeProvider.GetUtcNow();
 
-        var tokens = await dbContext.UserPasswordResetTokens
+        var tokens = await dbContext.Set<UserPasswordResetToken>()
             .ToListAsync(cancellationToken);
 
         var expiredTokens = tokens
@@ -35,7 +36,7 @@ internal sealed class PruneExpiredUserPasswordResetTokensJob(
             return;
         }
 
-        dbContext.UserPasswordResetTokens.RemoveRange(expiredTokens);
+        dbContext.Set<UserPasswordResetToken>().RemoveRange(expiredTokens);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }

@@ -13,6 +13,7 @@ public partial class CreateOpenIddictAuthorizations : Migration
     {
         migrationBuilder.CreateTable(
             name: "OpenIddictAuthorizations",
+            schema: "identity",
             columns: table => new
             {
                 id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -31,12 +32,14 @@ public partial class CreateOpenIddictAuthorizations : Migration
                 table.ForeignKey(
                     name: "fk_open_iddict_authorizations_open_iddict_applications_application",
                     column: x => x.application_id,
+                    principalSchema: "identity",
                     principalTable: "OpenIddictApplications",
                     principalColumn: "id");
             });
 
         migrationBuilder.CreateIndex(
             name: "ix_open_iddict_authorizations_application_id_status_subject_type",
+            schema: "identity",
             table: "OpenIddictAuthorizations",
             columns: new[] { "application_id", "status", "subject", "type" });
     }
@@ -44,6 +47,7 @@ public partial class CreateOpenIddictAuthorizations : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "OpenIddictAuthorizations");
+            name: "OpenIddictAuthorizations",
+            schema: "identity");
     }
 }
