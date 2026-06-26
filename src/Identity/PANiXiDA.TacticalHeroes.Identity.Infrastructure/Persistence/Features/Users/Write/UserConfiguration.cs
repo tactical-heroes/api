@@ -41,8 +41,6 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
             .HasMaxLength(PasswordHash.MaxLength)
             .IsRequired();
 
-        builder.Ignore(user => user.IsConfirmed);
-
         builder.Property(user => user.ConfirmationStatus)
             .HasColumnName("is_confirmed")
             .HasConversion(UserConfirmationStatusConverter)

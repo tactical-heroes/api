@@ -20,7 +20,7 @@ public sealed class RequestPasswordResetHandler(
             new UserByEmailSpecification(command.Email),
             cancellationToken);
 
-        if (user is null || !user.IsConfirmed)
+        if (user is null || !user.ConfirmationStatus.IsConfirmed)
         {
             return Result.Success();
         }

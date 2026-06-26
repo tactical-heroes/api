@@ -11,7 +11,7 @@ public sealed class UserTests
     {
         var user = CreateUser("confirmation-token", out var confirmationTokenHash);
 
-        user.IsConfirmed.ShouldBeFalse();
+        user.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
         user.ConfirmationToken.ShouldNotBeNull();
         user.ConfirmationToken.Id.UserId.ShouldBe(user.Id);
         user.ConfirmationToken.TokenHash.Value.ShouldBe(confirmationTokenHash);
@@ -37,7 +37,7 @@ public sealed class UserTests
             DateTimeOffset.UtcNow);
 
         result.IsSuccess.ShouldBeTrue();
-        user.IsConfirmed.ShouldBeTrue();
+        user.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
         user.ConfirmationToken.ShouldBeNull();
 
         var registeredEvent = user.GetDomainEvents()

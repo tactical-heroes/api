@@ -27,7 +27,6 @@ public sealed class User : AggregateRoot<UserId>
     public Email Email { get; private set; }
     public PasswordHash PasswordHash { get; private set; }
     public UserConfirmationStatus ConfirmationStatus { get; private set; }
-    public bool IsConfirmed => ConfirmationStatus.IsConfirmed;
     public UserConfirmationToken? ConfirmationToken { get; private set; }
     public UserPasswordResetToken? PasswordResetToken { get; private set; }
     public IReadOnlyCollection<UserRole> Roles => _roles;
@@ -81,7 +80,7 @@ public sealed class User : AggregateRoot<UserId>
         string confirmationTokenHash,
         DateTimeOffset confirmedAtUtc)
     {
-        if (IsConfirmed)
+        if (ConfirmationStatus.IsConfirmed)
         {
             return Result.Success();
         }
@@ -117,7 +116,7 @@ public sealed class User : AggregateRoot<UserId>
         DateTimeOffset passwordResetTokenExpiresAtUtc,
         string passwordResetToken)
     {
-        if (!IsConfirmed)
+        if (!ConfirmationStatus.IsConfirmed)
         {
             return Result.Failure(
                 Error.Conflict("Cannot reset password for unconfirmed account."));

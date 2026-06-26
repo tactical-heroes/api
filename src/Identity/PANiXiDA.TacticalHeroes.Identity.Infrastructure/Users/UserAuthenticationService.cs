@@ -27,7 +27,7 @@ public sealed class UserAuthenticationService(
             return InvalidCredentials();
         }
 
-        if (!user.IsConfirmed)
+        if (!user.ConfirmationStatus.IsConfirmed)
         {
             return Result.Failure<AuthenticatedUser>(
                 Error.Forbidden("Account is not confirmed."));
@@ -57,7 +57,7 @@ public sealed class UserAuthenticationService(
                 Error.NotFound("User was not found."));
         }
 
-        if (!user.IsConfirmed)
+        if (!user.ConfirmationStatus.IsConfirmed)
         {
             return Result.Failure<AuthenticatedUser>(
                 Error.Forbidden("Account is not confirmed."));
@@ -76,7 +76,7 @@ public sealed class UserAuthenticationService(
             new AuthenticatedUser(
                 user.Id.Value,
                 user.Email.Value,
-                user.IsConfirmed,
+                user.ConfirmationStatus.IsConfirmed,
                 claims.Roles,
                 claims.Claims));
     }

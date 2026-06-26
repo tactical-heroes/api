@@ -32,11 +32,12 @@ public sealed class UserPasswordResetToken : Entity<UserPasswordResetTokenId>
         string tokenHash,
         DateTimeOffset expiresAtUtc)
     {
+        var idResult = UserPasswordResetTokenId.Create(userId);
         var tokenHashResult = PasswordResetTokenHash.Create(tokenHash);
         var expirationResult = PasswordResetTokenExpiration.CreateFuture(
             expiresAtUtc,
             DateTimeOffset.UtcNow);
-        var validationResult = Result.Combine(tokenHashResult, expirationResult);
+        var validationResult = Result.Combine(idResult, tokenHashResult, expirationResult);
 
         if (validationResult.IsFailure)
         {
@@ -44,7 +45,7 @@ public sealed class UserPasswordResetToken : Entity<UserPasswordResetTokenId>
         }
 
         return Result.Success(new UserPasswordResetToken(
-            userId,
+            idResult.Value,
             tokenHashResult.Value,
             expirationResult.Value));
     }

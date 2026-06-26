@@ -32,11 +32,12 @@ public sealed class UserConfirmationToken : Entity<UserConfirmationTokenId>
         string tokenHash,
         DateTimeOffset expiresAtUtc)
     {
+        var idResult = UserConfirmationTokenId.Create(userId);
         var tokenHashResult = ConfirmationTokenHash.Create(tokenHash);
         var expirationResult = ConfirmationTokenExpiration.CreateFuture(
             expiresAtUtc,
             DateTimeOffset.UtcNow);
-        var validationResult = Result.Combine(tokenHashResult, expirationResult);
+        var validationResult = Result.Combine(idResult, tokenHashResult, expirationResult);
 
         if (validationResult.IsFailure)
         {
@@ -44,7 +45,7 @@ public sealed class UserConfirmationToken : Entity<UserConfirmationTokenId>
         }
 
         return Result.Success(new UserConfirmationToken(
-            userId,
+            idResult.Value,
             tokenHashResult.Value,
             expirationResult.Value));
     }
