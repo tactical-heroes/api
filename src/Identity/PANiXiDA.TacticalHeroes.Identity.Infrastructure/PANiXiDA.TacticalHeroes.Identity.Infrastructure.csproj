@@ -25,6 +25,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="PANiXiDA.TacticalHeroes.Identity.IntegrationTests" />
+        <InternalsVisibleTo Include="PANiXiDA.TacticalHeroes.Identity.FunctionalTests" />
     </ItemGroup>
 
     <ItemGroup>

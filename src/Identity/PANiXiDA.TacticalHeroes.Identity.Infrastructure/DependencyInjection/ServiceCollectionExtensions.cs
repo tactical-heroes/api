@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
             IdentityWriteDbContext, IdentityReadDbContext>(configuration);
 
         serviceCollection.AddScheduling(configuration);
-        serviceCollection.AddIdentityProvider();
+        serviceCollection.AddIdentityProvider(configuration);
         serviceCollection.AddMessaging(configuration);
 
         serviceCollection.AddWolverineMediator<IdentityWriteDbContext>();

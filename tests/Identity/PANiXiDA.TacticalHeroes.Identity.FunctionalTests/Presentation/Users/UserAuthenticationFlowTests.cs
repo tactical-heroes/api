@@ -17,6 +17,7 @@ public sealed class UserAuthenticationFlowTests(FunctionalTestFixture fixture)
     private const string Email = "hero@example.com";
     private const string Password = "StrongPassword1";
     private const string NewPassword = "StrongerPassword2";
+    private const string ClientId = "tactical-heroes-web";
 
     [Fact(DisplayName = "Registered and confirmed user should login refresh and stay authorized after restart")]
     public async Task RegisteredAndConfirmedUser_Should_Login_Refresh_And_StayAuthorized_AfterRestart()
@@ -140,6 +141,7 @@ public sealed class UserAuthenticationFlowTests(FunctionalTestFixture fixture)
             new FormUrlEncodedContent(
                 new Dictionary<string, string>
                 {
+                    ["client_id"] = ClientId,
                     ["grant_type"] = "password",
                     ["username"] = email,
                     ["password"] = password,
@@ -155,6 +157,7 @@ public sealed class UserAuthenticationFlowTests(FunctionalTestFixture fixture)
             new FormUrlEncodedContent(
                 new Dictionary<string, string>
                 {
+                    ["client_id"] = ClientId,
                     ["grant_type"] = "refresh_token",
                     ["refresh_token"] = refreshToken
                 }),

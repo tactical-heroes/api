@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
@@ -31,13 +32,16 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         await dbContext.Database.MigrateAsync();
+
+        await SeedIdentityProviderAsync(TestContext.Current.CancellationToken);
     }
 
-    public Task ResetDatabaseAsync(CancellationToken cancellationToken)
+    public async Task ResetDatabaseAsync(CancellationToken cancellationToken)
     {
         EventBus.Clear();
 
-        return _database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+        await _database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+        await SeedIdentityProviderAsync(cancellationToken);
     }
 
     public void RestartApplication()
@@ -52,6 +56,14 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
 
         Client = _factory.CreateClient();
         _clients.Add(Client);
+    }
+
+    private async Task SeedIdentityProviderAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<IdentityProviderApplicationSeeder>();
+
+        await seeder.SeedAsync(cancellationToken);
     }
 
     public async ValueTask DisposeAsync()

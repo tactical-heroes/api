@@ -1,28 +1,35 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Validation.AspNetCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
 
 internal static class IdentityProviderServiceCollectionExtensions
 {
     public static IServiceCollection AddIdentityProvider(
-        this IServiceCollection serviceCollection)
+        this IServiceCollection serviceCollection,
+        IConfiguration configuration)
     {
-        serviceCollection.AddScoped<IUsersRepository, UsersRepository>();
-        serviceCollection.AddScoped<IRolesRepository, RolesRepository>();
+        var identityProviderOptions = configuration
+            .GetSection(IdentityProviderOptions.SectionName)
+            .Get<IdentityProviderOptions>() ?? new IdentityProviderOptions();
+
+        serviceCollection.Configure<IdentityProviderOptions>(
+            configuration.GetSection(IdentityProviderOptions.SectionName));
+
         serviceCollection.AddScoped<IPasswordHashingService, PasswordHashingService>();
         serviceCollection.AddScoped<IUserTokenService, UserTokenService>();
         serviceCollection.AddScoped<IUserClaimsProvider, UserClaimsProvider>();
         serviceCollection.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+        serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
+        serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
 
         serviceCollection.AddOpenIddict()
             .AddCore(options =>
@@ -38,14 +45,13 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.SetTokenEndpointUris("/connect/token");
                 options.AllowPasswordFlow();
                 options.AllowRefreshTokenFlow();
-                options.AcceptAnonymousClients();
                 options.RegisterScopes(
                     OpenIddictConstants.Scopes.Email,
                     OpenIddictConstants.Scopes.OfflineAccess,
                     OpenIddictConstants.Scopes.Profile,
                     OpenIddictConstants.Scopes.Roles);
-                options.SetAccessTokenLifetime(TimeSpan.FromMinutes(15));
-                options.SetRefreshTokenLifetime(TimeSpan.FromDays(30));
+                options.SetAccessTokenLifetime(identityProviderOptions.AccessTokenLifetime);
+                options.SetRefreshTokenLifetime(identityProviderOptions.RefreshTokenLifetime);
                 options.UseReferenceAccessTokens();
                 options.UseReferenceRefreshTokens();
                 options.AddDevelopmentEncryptionCertificate();
