@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging;
 
-internal static class IdentityMessagingServiceCollectionExtensions
+internal static class MessagingServiceCollectionExtensions
 {
-    public static IServiceCollection AddIdentityMessaging(
+    public static IServiceCollection AddMessaging(
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {

@@ -9,9 +9,9 @@ using Quartz;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.DependencyInjection;
 
-internal static class IdentitySchedulingServiceCollectionExtensions
+internal static class SchedulingServiceCollectionExtensions
 {
-    public static IServiceCollection AddIdentityScheduling(
+    public static IServiceCollection AddScheduling(
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {

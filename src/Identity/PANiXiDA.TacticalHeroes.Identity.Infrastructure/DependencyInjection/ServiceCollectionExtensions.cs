@@ -17,9 +17,9 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddPostgreSqlEfRepository<
             IdentityWriteDbContext, IdentityReadDbContext>(configuration);
 
-        serviceCollection.AddIdentityScheduling(configuration);
+        serviceCollection.AddScheduling(configuration);
         serviceCollection.AddIdentityProvider();
-        serviceCollection.AddIdentityMessaging(configuration);
+        serviceCollection.AddMessaging(configuration);
 
         serviceCollection.AddWolverineMediator<IdentityWriteDbContext>();
 
