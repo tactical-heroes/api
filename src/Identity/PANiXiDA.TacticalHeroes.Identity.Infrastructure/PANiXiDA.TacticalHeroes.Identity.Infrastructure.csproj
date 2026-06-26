@@ -12,6 +12,7 @@
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine" />
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Persistence.Ef" />
         <PackageReference Include="PANiXiDA.Core.ResultPattern" />
+        <PackageReference Include="PANiXiDA.Core.SpecificationPattern" />
         <PackageReference Include="Quartz.Extensions.Hosting" />
         <PackageReference Include="Riok.Mapperly" />
     </ItemGroup>

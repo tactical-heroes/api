@@ -2,6 +2,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users;
 
@@ -16,8 +17,8 @@ public sealed class UserAuthenticationService(
         string password,
         CancellationToken cancellationToken)
     {
-        var user = await usersRepository.GetByEmailAsync(
-            email,
+        var user = await usersRepository.GetBySpecificationAsync(
+            new UserByEmailSpecification(email),
             cancellationToken);
 
         if (user is null ||

@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.Core.SpecificationPattern.Abstractions;
+using PANiXiDA.Core.SpecificationPattern.Extensions;
+
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
@@ -12,18 +15,13 @@ public sealed class RolesRepository(
     : EfRepository<IdentityWriteDbContext, RoleId, Role>(dbContext, aggregateTracker),
     IRolesRepository
 {
-    public async Task<IReadOnlyCollection<Role>> GetByIdsAsync(
-        IReadOnlyCollection<RoleId> roleIds,
+    public async Task<IReadOnlyCollection<Role>> GetBySpecificationAsync(
+        ISpecification<Role> specification,
         CancellationToken cancellationToken)
     {
-        if (roleIds.Count == 0)
-        {
-            return [];
-        }
-
         return await DbSet
             .Include(role => role.Claims)
-            .Where(role => roleIds.Contains(role.Id))
+            .Where(specification)
             .ToArrayAsync(cancellationToken);
     }
 }

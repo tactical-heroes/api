@@ -1,7 +1,8 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Specifications;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users;
 
@@ -14,12 +15,12 @@ public sealed class UserClaimsProvider(
         CancellationToken cancellationToken)
     {
         var roleIds = user.Roles
-            .Select(role => role.RoleId)
+            .Select(role => role.RoleId.Value)
             .Distinct()
             .ToArray();
 
-        var roles = await rolesRepository.GetByIdsAsync(
-            roleIds,
+        var roles = await rolesRepository.GetBySpecificationAsync(
+            new RolesByIdsSpecification(roleIds),
             cancellationToken);
 
         var roleNames = roles

@@ -1,6 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Register;
 
@@ -24,8 +25,8 @@ public sealed class RegisterUserHandler(
             return Result.Failure<RegisterUserResult>(passwordResult.Errors);
         }
 
-        var existingUser = await identityUsersRepository.GetByEmailAsync(
-            command.Email,
+        var existingUser = await identityUsersRepository.GetBySpecificationAsync(
+            new UserByEmailSpecification(command.Email),
             cancellationToken);
 
         if (existingUser is not null)

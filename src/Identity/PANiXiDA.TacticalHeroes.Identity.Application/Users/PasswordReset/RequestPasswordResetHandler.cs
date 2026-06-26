@@ -1,5 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset;
 
@@ -15,8 +16,8 @@ public sealed class RequestPasswordResetHandler(
         RequestPasswordResetCommand command,
         CancellationToken cancellationToken)
     {
-        var user = await identityUsersRepository.GetByEmailAsync(
-            command.Email,
+        var user = await identityUsersRepository.GetBySpecificationAsync(
+            new UserByEmailSpecification(command.Email),
             cancellationToken);
 
         if (user is null || !user.IsConfirmed)
