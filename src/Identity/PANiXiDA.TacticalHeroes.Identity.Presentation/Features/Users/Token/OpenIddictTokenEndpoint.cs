@@ -19,7 +19,13 @@ internal static class OpenIddictTokenEndpoint
     {
         return endpoints.MapPost("/connect/token", HandleAsync)
             .AllowAnonymous()
-            .ExcludeFromDescription();
+            .WithTags("Users")
+            .WithName("ExchangeIdentityToken")
+            .WithSummary("Exchange identity token")
+            .WithDescription("OAuth2 token endpoint for password and refresh_token grant types.")
+            .Accepts<OpenIddictTokenRequest>("application/x-www-form-urlencoded")
+            .Produces<OpenIddictTokenResponse>(StatusCodes.Status200OK)
+            .Produces<OpenIddictTokenErrorResponse>(StatusCodes.Status400BadRequest);
     }
 
     private static async Task<IResult> HandleAsync(
