@@ -32,16 +32,25 @@ public sealed class User : AggregateRoot<UserId>
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
     public static Result<User> Register(
-        Email email,
-        PasswordHash passwordHash,
+        string email,
+        string passwordHash,
         string confirmationTokenHash,
         DateTimeOffset confirmationTokenExpiresAtUtc,
         string confirmationToken)
     {
+        var emailResult = Email.Create(email);
+        var passwordHashResult = PasswordHash.Create(passwordHash);
+        var validationResult = Result.Combine(emailResult, passwordHashResult);
+
+        if (validationResult.IsFailure)
+        {
+            return Result.Failure<User>(validationResult.Errors);
+        }
+
         var user = new User(
             UserId.New(),
-            email,
-            passwordHash);
+            emailResult.Value,
+            passwordHashResult.Value);
 
         var confirmationTokenResult = UserConfirmationToken.Create(
             user.Id,
@@ -137,7 +146,7 @@ public sealed class User : AggregateRoot<UserId>
 
     public Result ResetPassword(
         string passwordResetTokenHash,
-        PasswordHash passwordHash,
+        string passwordHash,
         DateTimeOffset resetAtUtc)
     {
         if (PasswordResetToken is null)
@@ -155,15 +164,29 @@ public sealed class User : AggregateRoot<UserId>
             return validationResult;
         }
 
-        PasswordHash = passwordHash;
+        var passwordHashResult = PasswordHash.Create(passwordHash);
+
+        if (passwordHashResult.IsFailure)
+        {
+            return Result.Failure(passwordHashResult.Errors);
+        }
+
+        PasswordHash = passwordHashResult.Value;
         PasswordResetToken = null;
 
         return Result.Success();
     }
 
-    public Result AssignRole(RoleId roleId)
+    public Result AssignRole(Guid roleId)
     {
-        var roleResult = UserRole.Create(Id, roleId);
+        var roleIdResult = RoleId.Create(roleId);
+
+        if (roleIdResult.IsFailure)
+        {
+            return Result.Failure(roleIdResult.Errors);
+        }
+
+        var roleResult = UserRole.Create(Id, roleIdResult.Value);
 
         if (roleResult.IsFailure)
         {

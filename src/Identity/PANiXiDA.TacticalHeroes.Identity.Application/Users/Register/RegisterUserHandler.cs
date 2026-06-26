@@ -1,7 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Register;
 
@@ -18,17 +17,15 @@ public sealed class RegisterUserHandler(
         RegisterUserCommand command,
         CancellationToken cancellationToken)
     {
-        var emailResult = Email.Create(command.Email);
         var passwordResult = PasswordPolicy.Validate(command.Password);
-        var validationResult = Result.Combine(emailResult, passwordResult);
 
-        if (validationResult.IsFailure)
+        if (passwordResult.IsFailure)
         {
-            return Result.Failure<RegisterUserResult>(validationResult.Errors);
+            return Result.Failure<RegisterUserResult>(passwordResult.Errors);
         }
 
         var existingUser = await identityUsersRepository.GetByEmailAsync(
-            emailResult.Value,
+            command.Email,
             cancellationToken);
 
         if (existingUser is not null)
@@ -42,7 +39,7 @@ public sealed class RegisterUserHandler(
         var passwordHash = passwordHashingService.HashPassword(passwordResult.Value);
 
         var userResult = User.Register(
-            emailResult.Value,
+            command.Email,
             passwordHash,
             confirmationTokenHash,
             timeProvider.GetUtcNow().Add(ConfirmationTokenLifetime),

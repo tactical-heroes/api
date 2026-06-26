@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 public interface IPasswordHashingService
 {
-    PasswordHash HashPassword(ValidatedPassword password);
+    string HashPassword(ValidatedPassword password);
 
     bool VerifyPassword(
         PasswordHash passwordHash,

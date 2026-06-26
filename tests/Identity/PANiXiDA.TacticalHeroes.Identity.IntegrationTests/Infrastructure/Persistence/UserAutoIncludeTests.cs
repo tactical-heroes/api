@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
@@ -16,7 +15,7 @@ public sealed class UserAutoIncludeTests(IntegrationTestFixture fixture)
     {
         var role = Role.Create("admin").Value;
         var user = CreateUser();
-        var assignRoleResult = user.AssignRole(role.Id);
+        var assignRoleResult = user.AssignRole(role.Id.Value);
         var grantClaimResult = user.GrantClaim("permission", "identity.users.manage");
 
         assignRoleResult.IsSuccess.ShouldBeTrue();
@@ -55,8 +54,8 @@ public sealed class UserAutoIncludeTests(IntegrationTestFixture fixture)
     private static User CreateUser()
     {
         return User.Register(
-                Email.Create("auto-include@example.com").Value,
-                PasswordHash.Create("password-hash").Value,
+                "auto-include@example.com",
+                "password-hash",
                 "confirmation-token-hash",
                 DateTimeOffset.UtcNow.AddHours(1),
                 "confirmation-token")

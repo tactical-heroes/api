@@ -14,10 +14,17 @@ public sealed class UsersRepository(
     IUsersRepository
 {
     public Task<User?> GetByEmailAsync(
-        Email email,
+        string email,
         CancellationToken cancellationToken)
     {
+        var emailResult = Email.Create(email);
+
+        if (emailResult.IsFailure)
+        {
+            return Task.FromResult<User?>(null);
+        }
+
         return DbSet
-            .SingleOrDefaultAsync(user => user.Email == email, cancellationToken);
+            .SingleOrDefaultAsync(user => user.Email == emailResult.Value, cancellationToken);
     }
 }

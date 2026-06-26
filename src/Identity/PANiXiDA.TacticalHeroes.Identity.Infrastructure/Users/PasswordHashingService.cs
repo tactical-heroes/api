@@ -12,11 +12,9 @@ public sealed class PasswordHashingService : IPasswordHashingService
 
     private readonly PasswordHasher<PasswordHashingUser> _passwordHasher = new();
 
-    public PasswordHash HashPassword(ValidatedPassword password)
+    public string HashPassword(ValidatedPassword password)
     {
-        var hash = _passwordHasher.HashPassword(User, password.Value);
-
-        return PasswordHash.Create(hash).Value;
+        return _passwordHasher.HashPassword(User, password.Value);
     }
 
     public bool VerifyPassword(

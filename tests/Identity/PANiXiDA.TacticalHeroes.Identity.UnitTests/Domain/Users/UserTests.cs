@@ -1,7 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users;
 
@@ -82,8 +81,8 @@ public sealed class UserTests
         var user = CreateUser("confirmation-token", out _);
         var roleId = RoleId.New();
 
-        var firstResult = user.AssignRole(roleId);
-        var secondResult = user.AssignRole(roleId);
+        var firstResult = user.AssignRole(roleId.Value);
+        var secondResult = user.AssignRole(roleId.Value);
 
         firstResult.IsSuccess.ShouldBeTrue();
         secondResult.IsSuccess.ShouldBeTrue();
@@ -115,8 +114,8 @@ public sealed class UserTests
         confirmationTokenHash = "confirmation-token-hash";
 
         var userResult = User.Register(
-            Email.Create("hero@example.com").Value,
-            PasswordHash.Create("password-hash").Value,
+            "hero@example.com",
+            "password-hash",
             confirmationTokenHash,
             DateTimeOffset.UtcNow.AddHours(1),
             confirmationToken);
