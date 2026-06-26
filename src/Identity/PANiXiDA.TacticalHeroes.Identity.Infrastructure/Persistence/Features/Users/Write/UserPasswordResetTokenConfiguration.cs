@@ -12,8 +12,6 @@ internal sealed class UserPasswordResetTokenConfiguration : IEntityTypeConfigura
 {
     public void Configure(EntityTypeBuilder<UserPasswordResetToken> builder)
     {
-        builder.ToTable("user_password_reset_tokens");
-
         builder.Ignore(token => token.Id);
 
         builder.HasKey(token => token.UserId);

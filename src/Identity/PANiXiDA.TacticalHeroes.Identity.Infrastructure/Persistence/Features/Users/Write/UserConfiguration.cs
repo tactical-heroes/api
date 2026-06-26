@@ -15,8 +15,6 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
 {
     protected override void ConfigureEntity(EntityTypeBuilder<User> builder)
     {
-        builder.ToTable("users");
-
         builder.HasKey(user => user.Id);
 
         builder.Property(user => user.Id)
@@ -97,7 +95,8 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         builder.HasOne<Role>()
             .WithMany()
             .HasForeignKey(role => role.RoleId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_user_roles_roles_role_id");
 
         builder.HasIndex(role => role.RoleId);
     }
@@ -108,7 +107,8 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         builder.ToTable("user_claims");
 
         builder.WithOwner()
-            .HasForeignKey("user_id");
+            .HasForeignKey("user_id")
+            .HasConstraintName("fk_user_claims_users_user_id");
 
         builder.HasKey(claim => claim.Id);
 

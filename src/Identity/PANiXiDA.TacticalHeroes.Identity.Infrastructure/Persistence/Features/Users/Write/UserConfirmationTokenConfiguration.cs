@@ -12,8 +12,6 @@ internal sealed class UserConfirmationTokenConfiguration : IEntityTypeConfigurat
 {
     public void Configure(EntityTypeBuilder<UserConfirmationToken> builder)
     {
-        builder.ToTable("user_confirmation_tokens");
-
         builder.Ignore(token => token.Id);
 
         builder.HasKey(token => token.UserId);

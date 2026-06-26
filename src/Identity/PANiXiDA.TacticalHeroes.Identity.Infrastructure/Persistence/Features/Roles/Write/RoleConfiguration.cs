@@ -13,8 +13,6 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
 {
     protected override void ConfigureEntity(EntityTypeBuilder<Role> builder)
     {
-        builder.ToTable("roles");
-
         builder.HasKey(role => role.Id);
 
         builder.Property(role => role.Id)
@@ -45,7 +43,8 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
         builder.ToTable("role_claims");
 
         builder.WithOwner()
-            .HasForeignKey("role_id");
+            .HasForeignKey("role_id")
+            .HasConstraintName("fk_role_claims_roles_role_id");
 
         builder.HasKey(claim => claim.Id);
 
