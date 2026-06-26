@@ -10,6 +10,7 @@ public sealed class MigrationSchemaTests(IntegrationTestFixture fixture)
     {
         var expectedIdentityTables = new[]
         {
+            "__ef_migrations_history",
             "open_iddict_applications",
             "open_iddict_authorizations",
             "open_iddict_scopes",
@@ -21,10 +22,6 @@ public sealed class MigrationSchemaTests(IntegrationTestFixture fixture)
             "user_password_reset_tokens",
             "user_roles",
             "users"
-        };
-        var expectedPublicTables = new[]
-        {
-            "__EFMigrationsHistory"
         };
 
         await using var connection = new NpgsqlConnection(Fixture.ConnectionString);
@@ -39,7 +36,7 @@ public sealed class MigrationSchemaTests(IntegrationTestFixture fixture)
             "identity",
             TestContext.Current.CancellationToken);
 
-        publicTables.ShouldBe(expectedPublicTables, ignoreOrder: true);
+        publicTables.ShouldBeEmpty();
         identityTables.ShouldBe(expectedIdentityTables, ignoreOrder: true);
     }
 

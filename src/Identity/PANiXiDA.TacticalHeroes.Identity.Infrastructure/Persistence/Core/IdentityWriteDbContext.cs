@@ -14,6 +14,8 @@ public sealed class IdentityWriteDbContext(
     {
         base.OnConfiguring(optionsBuilder);
 
+        optionsBuilder.UseNpgsql(options =>
+            options.MigrationsHistoryTable("__ef_migrations_history", "identity"));
         optionsBuilder.UseOpenIddict<Guid>();
     }
 
