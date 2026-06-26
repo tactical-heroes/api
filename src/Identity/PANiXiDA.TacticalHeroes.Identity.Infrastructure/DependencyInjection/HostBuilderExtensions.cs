@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using PANiXiDA.TacticalHeroes.Identity.Application;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
+using System.Reflection;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
 
 public static class HostBuilderExtensions
@@ -20,7 +22,7 @@ public static class HostBuilderExtensions
         hostBuilder.UseWolverineMediator<IdentityWriteDbContext>(
             messageStoreConnectionString,
             ApplicationAssembly.Instance,
-            typeof(HostBuilderExtensions).Assembly);
+            Assembly.GetExecutingAssembly());
 
         return hostBuilder;
     }
