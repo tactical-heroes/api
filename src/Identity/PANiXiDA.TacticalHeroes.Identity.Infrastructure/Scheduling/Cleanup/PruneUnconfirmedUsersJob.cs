@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
 
 using Quartz;
 
@@ -23,12 +24,10 @@ internal sealed class PruneUnconfirmedUsersJob(
             .Subtract(options.Value.UnconfirmedUserRetention)
             .UtcDateTime;
 
-        await dbContext.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-             DELETE FROM identity_users
-             WHERE is_confirmed = false
-             AND created_at < {deleteBeforeUtc}
-             """,
-            context.CancellationToken);
+        await dbContext.Users
+            .Where(user =>
+                !EF.Property<bool>(user, "IsConfirmed") &&
+                EF.Property<DateTime>(user, "CreatedAt") < deleteBeforeUtc)
+            .ExecuteDeleteAsync(context.CancellationToken);
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using Quartz;
@@ -18,11 +19,21 @@ internal sealed class PruneExpiredUserConfirmationTokensJob(
     {
         var nowUtc = timeProvider.GetUtcNow();
 
-        await dbContext.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-             DELETE FROM identity_user_confirmation_tokens
-             WHERE expires_at_utc < {nowUtc}
-             """,
-            context.CancellationToken);
+        var users = await dbContext.Users
+            .IgnoreAutoIncludes()
+            .Include(user => user.ConfirmationToken)
+            .Where(user =>
+                user.ConfirmationToken != null &&
+                EF.Property<DateTimeOffset>(
+                    user.ConfirmationToken,
+                    nameof(UserConfirmationToken.ExpiresAtUtc)) < nowUtc)
+            .ToListAsync(context.CancellationToken);
+
+        foreach (var user in users)
+        {
+            user.RemoveExpiredConfirmationToken(nowUtc);
+        }
+
+        await dbContext.SaveChangesAsync(context.CancellationToken);
     }
 }
