@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging;
@@ -14,6 +15,8 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
+        serviceCollection.TryAddSingleton(TimeProvider.System);
+
         serviceCollection.AddPostgreSqlEfRepository<
             IdentityWriteDbContext, IdentityReadDbContext>(configuration);
 

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
@@ -15,7 +14,6 @@ internal static class SchedulingServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.TryAddSingleton(TimeProvider.System);
         serviceCollection.Configure<IdentityCleanupOptions>(
             configuration.GetSection(IdentityCleanupOptions.SectionName));
 
