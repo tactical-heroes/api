@@ -24,6 +24,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="PANiXiDA.TacticalHeroes.Identity.IntegrationTests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Using Include="PANiXiDA.Core.Domain" />
         <Using Include="PANiXiDA.Core.Domain.AggregateRoots" />
         <Using Include="PANiXiDA.Core.Domain.DomainEvents" />

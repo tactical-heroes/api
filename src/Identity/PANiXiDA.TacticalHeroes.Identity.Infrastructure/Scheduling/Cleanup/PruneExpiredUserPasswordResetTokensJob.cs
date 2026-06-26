@@ -14,15 +14,29 @@ internal sealed class PruneExpiredUserPasswordResetTokensJob(
 {
     public static readonly JobKey Key = new(nameof(PruneExpiredUserPasswordResetTokensJob));
 
-    public async Task Execute(IJobExecutionContext context)
+    public Task Execute(IJobExecutionContext context)
+    {
+        return ExecuteAsync(context.CancellationToken);
+    }
+
+    internal async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var nowUtc = timeProvider.GetUtcNow();
 
-        await dbContext.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-             DELETE FROM identity_user_password_reset_tokens
-             WHERE expires_at_utc < {nowUtc}
-             """,
-            context.CancellationToken);
+        var tokens = await dbContext.UserPasswordResetTokens
+            .ToListAsync(cancellationToken);
+
+        var expiredTokens = tokens
+            .Where(token => token.ExpiresAtUtc.IsExpired(nowUtc))
+            .ToArray();
+
+        if (expiredTokens.Length == 0)
+        {
+            return;
+        }
+
+        dbContext.UserPasswordResetTokens.RemoveRange(expiredTokens);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

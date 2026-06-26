@@ -14,15 +14,29 @@ internal sealed class PruneExpiredUserConfirmationTokensJob(
 {
     public static readonly JobKey Key = new(nameof(PruneExpiredUserConfirmationTokensJob));
 
-    public async Task Execute(IJobExecutionContext context)
+    public Task Execute(IJobExecutionContext context)
+    {
+        return ExecuteAsync(context.CancellationToken);
+    }
+
+    internal async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var nowUtc = timeProvider.GetUtcNow();
 
-        await dbContext.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-             DELETE FROM identity_user_confirmation_tokens
-             WHERE expires_at_utc < {nowUtc}
-             """,
-            context.CancellationToken);
+        var tokens = await dbContext.UserConfirmationTokens
+            .ToListAsync(cancellationToken);
+
+        var expiredTokens = tokens
+            .Where(token => token.ExpiresAtUtc.IsExpired(nowUtc))
+            .ToArray();
+
+        if (expiredTokens.Length == 0)
+        {
+            return;
+        }
+
+        dbContext.UserConfirmationTokens.RemoveRange(expiredTokens);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }
