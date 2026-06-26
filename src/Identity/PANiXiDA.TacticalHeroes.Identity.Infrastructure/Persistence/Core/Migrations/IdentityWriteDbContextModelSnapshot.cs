@@ -388,7 +388,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
 
                     b.Property<bool>("ConfirmationStatus")
                         .HasColumnType("boolean")
-                        .HasColumnName("is_confirmed");
+                        .HasColumnName("confirmation_status");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")

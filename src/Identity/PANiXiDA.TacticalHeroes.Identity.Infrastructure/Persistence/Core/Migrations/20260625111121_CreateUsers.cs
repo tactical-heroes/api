@@ -22,7 +22,7 @@ public partial class CreateUsers : Migration
                 deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                 email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),
                 password_hash = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
-                is_confirmed = table.Column<bool>(type: "boolean", nullable: false)
+                confirmation_status = table.Column<bool>(type: "boolean", nullable: false)
             },
             constraints: table =>
             {

@@ -17,18 +17,15 @@ internal sealed class UserConfirmationTokenConfiguration : IEntityTypeConfigurat
         builder.HasKey(token => token.UserId);
 
         builder.Property(token => token.UserId)
-            .HasColumnName("user_id")
             .HasConversion(UserIdConverter)
             .ValueGeneratedNever();
 
         builder.Property(token => token.TokenHash)
-            .HasColumnName("token_hash")
             .HasConversion(ConfirmationTokenHashConverter)
             .HasMaxLength(ConfirmationTokenHash.MaxLength)
             .IsRequired();
 
         builder.Property(token => token.ExpiresAtUtc)
-            .HasColumnName("expires_at_utc")
             .HasConversion(ConfirmationTokenExpirationConverter)
             .IsRequired();
 

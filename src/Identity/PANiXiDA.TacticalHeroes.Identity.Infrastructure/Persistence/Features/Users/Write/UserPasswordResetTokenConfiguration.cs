@@ -17,18 +17,15 @@ internal sealed class UserPasswordResetTokenConfiguration : IEntityTypeConfigura
         builder.HasKey(token => token.UserId);
 
         builder.Property(token => token.UserId)
-            .HasColumnName("user_id")
             .HasConversion(UserIdConverter)
             .ValueGeneratedNever();
 
         builder.Property(token => token.TokenHash)
-            .HasColumnName("token_hash")
             .HasConversion(PasswordResetTokenHashConverter)
             .HasMaxLength(PasswordResetTokenHash.MaxLength)
             .IsRequired();
 
         builder.Property(token => token.ExpiresAtUtc)
-            .HasColumnName("expires_at_utc")
             .HasConversion(PasswordResetTokenExpirationConverter)
             .IsRequired();
 

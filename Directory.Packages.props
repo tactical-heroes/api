@@ -18,7 +18,7 @@
         <PackageVersion Include="PANiXiDA.Core.Application" Version="2.0.2" />
         <PackageVersion Include="PANiXiDA.Core.Domain" Version="1.0.4" />
         <PackageVersion Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine" Version="2.0.2" />
-        <PackageVersion Include="PANiXiDA.Core.Infrastructure.Persistence.Ef" Version="1.0.5" />
+        <PackageVersion Include="PANiXiDA.Core.Infrastructure.Persistence.Ef" Version="1.0.6" />
         <PackageVersion Include="PANiXiDA.Core.Observability" Version="1.0.3" />
         <PackageVersion Include="PANiXiDA.Core.Presentation.Http" Version="2.0.5-preview" />
         <PackageVersion Include="PANiXiDA.Core.ResultPattern" Version="1.0.2" />

@@ -40,8 +40,6 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
     private static void ConfigureRoleClaim(
         OwnedNavigationBuilder<Role, RoleClaim> builder)
     {
-        builder.ToTable("role_claims");
-
         builder.WithOwner()
             .HasForeignKey("role_id")
             .HasConstraintName("fk_role_claims_roles_role_id");
@@ -54,13 +52,11 @@ internal sealed class RoleConfiguration : AuditableEntityConfiguration<Role>
             .ValueGeneratedNever();
 
         builder.Property(claim => claim.Type)
-            .HasColumnName("type")
             .HasConversion(ClaimTypeConverter)
             .HasMaxLength(ClaimType.MaxLength)
             .IsRequired();
 
         builder.Property(claim => claim.Value)
-            .HasColumnName("value")
             .HasConversion(ClaimValueConverter)
             .HasMaxLength(ClaimValue.MaxLength)
             .IsRequired();

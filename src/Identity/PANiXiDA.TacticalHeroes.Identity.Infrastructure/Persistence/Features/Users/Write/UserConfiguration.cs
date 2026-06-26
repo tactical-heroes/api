@@ -36,7 +36,6 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
             .IsRequired();
 
         builder.Property(user => user.ConfirmationStatus)
-            .HasColumnName("is_confirmed")
             .HasConversion(UserConfirmationStatusConverter)
             .IsRequired();
 
@@ -68,8 +67,6 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
     private static void ConfigureUserRole(
         OwnedNavigationBuilder<User, UserRole> builder)
     {
-        builder.ToTable("user_roles");
-
         builder.WithOwner()
             .HasForeignKey(role => role.UserId)
             .HasConstraintName("fk_user_roles_users_user_id");
@@ -83,12 +80,10 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         });
 
         builder.Property(role => role.UserId)
-            .HasColumnName("user_id")
             .HasConversion(UserIdConverter)
             .ValueGeneratedNever();
 
         builder.Property(role => role.RoleId)
-            .HasColumnName("role_id")
             .HasConversion(RoleIdConverter)
             .ValueGeneratedNever();
 
@@ -104,8 +99,6 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
     private static void ConfigureUserClaim(
         OwnedNavigationBuilder<User, UserClaim> builder)
     {
-        builder.ToTable("user_claims");
-
         builder.WithOwner()
             .HasForeignKey("user_id")
             .HasConstraintName("fk_user_claims_users_user_id");
@@ -118,13 +111,11 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
             .ValueGeneratedNever();
 
         builder.Property(claim => claim.Type)
-            .HasColumnName("type")
             .HasConversion(ClaimTypeConverter)
             .HasMaxLength(ClaimType.MaxLength)
             .IsRequired();
 
         builder.Property(claim => claim.Value)
-            .HasColumnName("value")
             .HasConversion(ClaimValueConverter)
             .HasMaxLength(ClaimValue.MaxLength)
             .IsRequired();
