@@ -6,6 +6,10 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserRoles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
@@ -46,6 +50,14 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
         builder.OwnsMany(
             user => user.Claims,
             ConfigureUserClaim);
+
+        builder.OwnsOne(
+            user => user.ConfirmationToken,
+            ConfigureConfirmationToken);
+
+        builder.OwnsOne(
+            user => user.PasswordResetToken,
+            ConfigurePasswordResetToken);
 
         builder.Navigation(user => user.Roles)
             .HasField("_roles")
@@ -124,6 +136,64 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
             .IsUnique();
     }
 
+    private static void ConfigureConfirmationToken(
+        OwnedNavigationBuilder<User, UserConfirmationToken> builder)
+    {
+        builder.ToTable("user_confirmation_tokens");
+
+        builder.WithOwner()
+            .HasForeignKey(token => token.UserId)
+            .HasConstraintName("fk_user_confirmation_tokens_users_user_id");
+
+        builder.Ignore(token => token.Id);
+
+        builder.HasKey(token => token.UserId);
+
+        builder.Property(token => token.UserId)
+            .HasConversion(UserIdConverter)
+            .ValueGeneratedNever();
+
+        builder.Property(token => token.TokenHash)
+            .HasConversion(ConfirmationTokenHashConverter)
+            .HasMaxLength(ConfirmationTokenHash.MaxLength)
+            .IsRequired();
+
+        builder.Property(token => token.ExpiresAtUtc)
+            .HasConversion(ConfirmationTokenExpirationConverter)
+            .IsRequired();
+
+        builder.HasIndex(token => token.ExpiresAtUtc);
+    }
+
+    private static void ConfigurePasswordResetToken(
+        OwnedNavigationBuilder<User, UserPasswordResetToken> builder)
+    {
+        builder.ToTable("user_password_reset_tokens");
+
+        builder.WithOwner()
+            .HasForeignKey(token => token.UserId)
+            .HasConstraintName("fk_user_password_reset_tokens_users_user_id");
+
+        builder.Ignore(token => token.Id);
+
+        builder.HasKey(token => token.UserId);
+
+        builder.Property(token => token.UserId)
+            .HasConversion(UserIdConverter)
+            .ValueGeneratedNever();
+
+        builder.Property(token => token.TokenHash)
+            .HasConversion(PasswordResetTokenHashConverter)
+            .HasMaxLength(PasswordResetTokenHash.MaxLength)
+            .IsRequired();
+
+        builder.Property(token => token.ExpiresAtUtc)
+            .HasConversion(PasswordResetTokenExpirationConverter)
+            .IsRequired();
+
+        builder.HasIndex(token => token.ExpiresAtUtc);
+    }
+
     private static readonly ValueConverter<UserId, Guid> UserIdConverter = new(
         userId => userId.Value,
         value => UserId.Create(value).Value);
@@ -155,4 +225,22 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
     private static readonly ValueConverter<ClaimValue, string> ClaimValueConverter = new(
         claimValue => claimValue.Value,
         value => ClaimValue.Create(value).Value);
+
+    private static readonly ValueConverter<ConfirmationTokenHash, string> ConfirmationTokenHashConverter = new(
+        tokenHash => tokenHash.Value,
+        value => ConfirmationTokenHash.Create(value).Value);
+
+    private static readonly ValueConverter<ConfirmationTokenExpiration, DateTimeOffset>
+        ConfirmationTokenExpirationConverter = new(
+            expiration => expiration.Value,
+            value => ConfirmationTokenExpiration.Create(value).Value);
+
+    private static readonly ValueConverter<PasswordResetTokenHash, string> PasswordResetTokenHashConverter = new(
+        tokenHash => tokenHash.Value,
+        value => PasswordResetTokenHash.Create(value).Value);
+
+    private static readonly ValueConverter<PasswordResetTokenExpiration, DateTimeOffset>
+        PasswordResetTokenExpirationConverter = new(
+            expiration => expiration.Value,
+            value => PasswordResetTokenExpiration.Create(value).Value);
 }

@@ -113,9 +113,15 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            var remainingTokenUserIds = await dbContext.Set<UserConfirmationToken>()
-                .Select(token => token.UserId)
+            var users = await dbContext.Set<User>()
+                .IgnoreAutoIncludes()
+                .Include(user => user.ConfirmationToken)
                 .ToArrayAsync(TestContext.Current.CancellationToken);
+
+            var remainingTokenUserIds = users
+                .Where(user => user.ConfirmationToken is not null)
+                .Select(user => user.Id)
+                .ToArray();
 
             remainingTokenUserIds.ShouldNotContain(expiredTokenUser.Id);
             remainingTokenUserIds.ShouldContain(activeTokenUser.Id);
@@ -154,9 +160,15 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            var remainingTokenUserIds = await dbContext.Set<UserPasswordResetToken>()
-                .Select(token => token.UserId)
+            var users = await dbContext.Set<User>()
+                .IgnoreAutoIncludes()
+                .Include(user => user.PasswordResetToken)
                 .ToArrayAsync(TestContext.Current.CancellationToken);
+
+            var remainingTokenUserIds = users
+                .Where(user => user.PasswordResetToken is not null)
+                .Select(user => user.Id)
+                .ToArray();
 
             remainingTokenUserIds.ShouldNotContain(expiredTokenUser.Id);
             remainingTokenUserIds.ShouldContain(activeTokenUser.Id);
