@@ -180,32 +180,6 @@ public sealed class User : AggregateRoot<UserId>
         return Result.Success();
     }
 
-    public bool RemoveExpiredConfirmationToken(DateTimeOffset nowUtc)
-    {
-        if (ConfirmationToken is null ||
-            !ConfirmationToken.ExpiresAtUtc.IsExpired(nowUtc))
-        {
-            return false;
-        }
-
-        ConfirmationToken = null;
-
-        return true;
-    }
-
-    public bool RemoveExpiredPasswordResetToken(DateTimeOffset nowUtc)
-    {
-        if (PasswordResetToken is null ||
-            !PasswordResetToken.ExpiresAtUtc.IsExpired(nowUtc))
-        {
-            return false;
-        }
-
-        PasswordResetToken = null;
-
-        return true;
-    }
-
     public Result AssignRole(Guid roleId)
     {
         var roleIdResult = RoleId.Create(roleId);

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
 
@@ -26,8 +27,8 @@ internal sealed class PruneUnconfirmedUsersJob(
 
         await dbContext.Users
             .Where(user =>
-                !EF.Property<bool>(user, "IsConfirmed") &&
-                EF.Property<DateTime>(user, "CreatedAt") < deleteBeforeUtc)
+                !EF.Property<bool>(user, nameof(UserConfirmationStatus.IsConfirmed)) &&
+                EF.Property<DateTime>(user, EfConstants.CreatedAt) < deleteBeforeUtc)
             .ExecuteDeleteAsync(context.CancellationToken);
     }
 }

@@ -75,41 +75,6 @@ public sealed class UserTests
         passwordResetEvent.ExpiresAtUtc.ShouldBe(user.PasswordResetToken.ExpiresAtUtc.Value);
     }
 
-    [Fact(DisplayName = "Remove expired confirmation token should clear only expired token")]
-    public void RemoveExpiredConfirmationToken_Should_ClearOnlyExpiredToken()
-    {
-        var user = CreateUser("confirmation-token", out _);
-        var expiresAtUtc = user.ConfirmationToken.ShouldNotBeNull().ExpiresAtUtc.Value;
-
-        var activeResult = user.RemoveExpiredConfirmationToken(expiresAtUtc.AddTicks(-1));
-        var expiredResult = user.RemoveExpiredConfirmationToken(expiresAtUtc.AddTicks(1));
-
-        activeResult.ShouldBeFalse();
-        expiredResult.ShouldBeTrue();
-        user.ConfirmationToken.ShouldBeNull();
-    }
-
-    [Fact(DisplayName = "Remove expired password reset token should clear only expired token")]
-    public void RemoveExpiredPasswordResetToken_Should_ClearOnlyExpiredToken()
-    {
-        var user = CreateUser("confirmation-token", out var confirmationTokenHash);
-        user.ConfirmRegistration(confirmationTokenHash, DateTimeOffset.UtcNow);
-
-        user.RequestPasswordReset(
-            "password-reset-token-hash",
-            DateTimeOffset.UtcNow.AddHours(1),
-            "password-reset-token");
-
-        var expiresAtUtc = user.PasswordResetToken.ShouldNotBeNull().ExpiresAtUtc.Value;
-
-        var activeResult = user.RemoveExpiredPasswordResetToken(expiresAtUtc.AddTicks(-1));
-        var expiredResult = user.RemoveExpiredPasswordResetToken(expiresAtUtc.AddTicks(1));
-
-        activeResult.ShouldBeFalse();
-        expiredResult.ShouldBeTrue();
-        user.PasswordResetToken.ShouldBeNull();
-    }
-
     [Fact(DisplayName = "Assign role should store role id once")]
     public void AssignRole_Should_StoreRoleIdOnce()
     {
