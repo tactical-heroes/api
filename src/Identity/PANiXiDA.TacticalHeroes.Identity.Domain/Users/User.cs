@@ -27,8 +27,10 @@ public sealed class User : AggregateRoot<UserId>
     public Email Email { get; private set; }
     public PasswordHash PasswordHash { get; private set; }
     public UserConfirmationStatus ConfirmationStatus { get; private set; }
+
     public UserConfirmationToken? ConfirmationToken { get; private set; }
     public UserPasswordResetToken? PasswordResetToken { get; private set; }
+
     public IReadOnlyCollection<UserRole> Roles => _roles;
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 

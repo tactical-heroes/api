@@ -17,6 +17,7 @@ public sealed class Role : AggregateRoot<RoleId>
     }
 
     public RoleName Name { get; private set; }
+
     public IReadOnlyCollection<RoleClaim> Claims => _claims;
 
     public static Result<Role> Create(string name)
