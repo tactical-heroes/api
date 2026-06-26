@@ -47,6 +47,20 @@ public sealed class ConfirmationTokenExpiration : ValueObject
         return Value < nowUtc;
     }
 
+    public static bool operator <(
+        ConfirmationTokenExpiration left,
+        ConfirmationTokenExpiration right)
+    {
+        return left.Value < right.Value;
+    }
+
+    public static bool operator >(
+        ConfirmationTokenExpiration left,
+        ConfirmationTokenExpiration right)
+    {
+        return left.Value > right.Value;
+    }
+
     public override string ToString()
     {
         return Value.ToString("O");

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using Quartz;
@@ -23,23 +25,24 @@ internal sealed class PruneExpiredUserPasswordResetTokensJob(
     internal async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var nowUtc = timeProvider.GetUtcNow();
+        var nowExpiration = PasswordResetTokenExpiration.Create(nowUtc).Value;
 
         var users = await dbContext.Set<User>()
             .IgnoreAutoIncludes()
             .Include(user => user.PasswordResetToken)
-            .Where(user => user.PasswordResetToken != null)
+            .Where(user =>
+                user.PasswordResetToken != null &&
+                EF.Property<PasswordResetTokenExpiration>(
+                    user.PasswordResetToken,
+                    nameof(UserPasswordResetToken.ExpiresAtUtc)) < nowExpiration)
             .ToListAsync(cancellationToken);
 
-        var expiredTokenUsers = users
-            .Where(user => user.PasswordResetToken!.ExpiresAtUtc.IsExpired(nowUtc))
-            .ToArray();
-
-        if (expiredTokenUsers.Length == 0)
+        if (users.Count == 0)
         {
             return;
         }
 
-        foreach (var user in expiredTokenUsers)
+        foreach (var user in users)
         {
             dbContext.Entry(user)
                 .Reference(storedUser => storedUser.PasswordResetToken)

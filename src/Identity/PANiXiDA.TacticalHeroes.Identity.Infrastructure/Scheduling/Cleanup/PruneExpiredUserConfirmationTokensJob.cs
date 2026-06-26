@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using Quartz;
@@ -23,23 +25,24 @@ internal sealed class PruneExpiredUserConfirmationTokensJob(
     internal async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var nowUtc = timeProvider.GetUtcNow();
+        var nowExpiration = ConfirmationTokenExpiration.Create(nowUtc).Value;
 
         var users = await dbContext.Set<User>()
             .IgnoreAutoIncludes()
             .Include(user => user.ConfirmationToken)
-            .Where(user => user.ConfirmationToken != null)
+            .Where(user =>
+                user.ConfirmationToken != null &&
+                EF.Property<ConfirmationTokenExpiration>(
+                    user.ConfirmationToken,
+                    nameof(UserConfirmationToken.ExpiresAtUtc)) < nowExpiration)
             .ToListAsync(cancellationToken);
 
-        var expiredTokenUsers = users
-            .Where(user => user.ConfirmationToken!.ExpiresAtUtc.IsExpired(nowUtc))
-            .ToArray();
-
-        if (expiredTokenUsers.Length == 0)
+        if (users.Count == 0)
         {
             return;
         }
 
-        foreach (var user in expiredTokenUsers)
+        foreach (var user in users)
         {
             dbContext.Entry(user)
                 .Reference(storedUser => storedUser.ConfirmationToken)
