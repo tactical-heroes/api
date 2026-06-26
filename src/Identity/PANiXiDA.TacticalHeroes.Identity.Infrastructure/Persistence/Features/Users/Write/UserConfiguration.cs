@@ -71,13 +71,9 @@ internal sealed class UserConfiguration : AuditableEntityConfiguration<User>
             .AutoInclude();
 
         builder.Navigation(user => user.ConfirmationToken)
-            .HasField("_confirmationToken")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
             .AutoInclude();
 
         builder.Navigation(user => user.PasswordResetToken)
-            .HasField("_passwordResetToken")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
             .AutoInclude();
     }
 

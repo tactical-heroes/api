@@ -12,8 +12,6 @@ public sealed class User : AggregateRoot<UserId>
 {
     private readonly List<UserRole> _roles = [];
     private readonly List<UserClaim> _claims = [];
-    private UserConfirmationToken? _confirmationToken;
-    private UserPasswordResetToken? _passwordResetToken;
 
     private User(
         UserId id,
@@ -28,8 +26,8 @@ public sealed class User : AggregateRoot<UserId>
     public Email Email { get; private set; }
     public PasswordHash PasswordHash { get; private set; }
     public bool IsConfirmed { get; private set; }
-    public UserConfirmationToken? ConfirmationToken => _confirmationToken;
-    public UserPasswordResetToken? PasswordResetToken => _passwordResetToken;
+    public UserConfirmationToken? ConfirmationToken { get; private set; }
+    public UserPasswordResetToken? PasswordResetToken { get; private set; }
     public IReadOnlyCollection<UserRole> Roles => _roles;
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
@@ -56,7 +54,7 @@ public sealed class User : AggregateRoot<UserId>
                 confirmationTokenResult.Errors);
         }
 
-        user._confirmationToken = confirmationTokenResult.Value;
+        user.ConfirmationToken = confirmationTokenResult.Value;
 
         user.AddDomainEvent(
             new AccountConfirmationRequested(
@@ -76,13 +74,13 @@ public sealed class User : AggregateRoot<UserId>
             return Result.Success();
         }
 
-        if (_confirmationToken is null)
+        if (ConfirmationToken is null)
         {
             return Result.Failure(
                 Error.Conflict("Account confirmation was not requested."));
         }
 
-        var validationResult = _confirmationToken.Validate(
+        var validationResult = ConfirmationToken.Validate(
             confirmationTokenHash,
             confirmedAtUtc);
 
@@ -92,7 +90,7 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         IsConfirmed = true;
-        _confirmationToken = null;
+        ConfirmationToken = null;
 
         AddDomainEvent(
             new UserRegistered(
@@ -124,7 +122,7 @@ public sealed class User : AggregateRoot<UserId>
                 passwordResetTokenResult.Errors);
         }
 
-        _passwordResetToken = passwordResetTokenResult.Value;
+        PasswordResetToken = passwordResetTokenResult.Value;
 
         AddDomainEvent(
             new PasswordResetRequested(
@@ -140,13 +138,13 @@ public sealed class User : AggregateRoot<UserId>
         PasswordHash passwordHash,
         DateTimeOffset resetAtUtc)
     {
-        if (_passwordResetToken is null)
+        if (PasswordResetToken is null)
         {
             return Result.Failure(
                 Error.Conflict("Password reset was not requested."));
         }
 
-        var validationResult = _passwordResetToken.Validate(
+        var validationResult = PasswordResetToken.Validate(
             passwordResetTokenHash,
             resetAtUtc);
 
@@ -156,7 +154,7 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         PasswordHash = passwordHash;
-        _passwordResetToken = null;
+        PasswordResetToken = null;
 
         return Result.Success();
     }
