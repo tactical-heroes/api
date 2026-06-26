@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
 
@@ -29,25 +30,13 @@ internal sealed class PruneUnconfirmedUsersJob(
             .GetUtcNow()
             .Subtract(options.Value.UnconfirmedUserRetention)
             .UtcDateTime;
-        var users = await dbContext.Set<User>()
+        var unconfirmedStatus = UserConfirmationStatus.Unconfirmed();
+
+        await dbContext.Set<User>()
             .IgnoreAutoIncludes()
-            .ToListAsync(cancellationToken);
-
-        var staleUnconfirmedUsers = users
             .Where(user =>
-                !user.ConfirmationStatus.IsConfirmed &&
-                dbContext.Entry(user)
-                    .Property<DateTime>(EfConstants.CreatedAt)
-                    .CurrentValue < deleteBeforeUtc)
-            .ToArray();
-
-        if (staleUnconfirmedUsers.Length == 0)
-        {
-            return;
-        }
-
-        dbContext.Set<User>().RemoveRange(staleUnconfirmedUsers);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+                user.ConfirmationStatus == unconfirmedStatus &&
+                EF.Property<DateTime>(user, EfConstants.CreatedAt) < deleteBeforeUtc)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }
