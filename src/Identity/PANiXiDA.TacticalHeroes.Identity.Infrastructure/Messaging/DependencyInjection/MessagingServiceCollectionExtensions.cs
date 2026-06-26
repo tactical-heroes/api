@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options;
+
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
 
 internal static class MessagingServiceCollectionExtensions
 {

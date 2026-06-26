@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.DependencyInjection;
 
