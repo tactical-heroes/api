@@ -19,7 +19,8 @@ public static class HostBuilderExtensions
 
         hostBuilder.UseWolverineMediator<IdentityWriteDbContext>(
             messageStoreConnectionString,
-            ApplicationAssembly.Instance);
+            ApplicationAssembly.Instance,
+            typeof(HostBuilderExtensions).Assembly);
 
         return hostBuilder;
     }

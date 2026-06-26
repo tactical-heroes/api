@@ -60,7 +60,8 @@ public sealed class User : AggregateRoot<UserId>
             new AccountConfirmationRequested(
                 user.Id.Value,
                 user.Email.Value,
-                confirmationToken));
+                confirmationToken,
+                confirmationTokenResult.Value.ExpiresAtUtc));
 
         return Result.Success(user);
     }
@@ -128,7 +129,8 @@ public sealed class User : AggregateRoot<UserId>
             new PasswordResetRequested(
                 Id.Value,
                 Email.Value,
-                passwordResetToken));
+                passwordResetToken,
+                passwordResetTokenResult.Value.ExpiresAtUtc));
 
         return Result.Success();
     }

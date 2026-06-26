@@ -7,6 +7,7 @@ using OpenIddict.Validation.AspNetCore;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users.Cleanup;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
@@ -27,6 +28,7 @@ public static class ServiceCollectionExtensions
             IdentityWriteDbContext, IdentityReadDbContext>(configuration);
 
         serviceCollection.AddIdentityServices();
+        serviceCollection.AddIdentityMessaging(configuration);
         serviceCollection.AddOpenIddictServices(configuration);
 
         serviceCollection.AddWolverineMediator<IdentityWriteDbContext>();
@@ -44,6 +46,14 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IUserTokenService, UserTokenService>();
         serviceCollection.AddScoped<IUserClaimsProvider, UserClaimsProvider>();
         serviceCollection.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+    }
+
+    private static void AddIdentityMessaging(
+        this IServiceCollection serviceCollection,
+        IConfiguration configuration)
+    {
+        serviceCollection.Configure<IdentityMessagingOptions>(
+            configuration.GetSection(IdentityMessagingOptions.SectionName));
     }
 
     private static void AddOpenIddictServices(
