@@ -21,11 +21,7 @@ public partial class CreateUsers : Migration
                 deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                 email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),
                 password_hash = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
-                is_confirmed = table.Column<bool>(type: "boolean", nullable: false),
-                confirmation_token_hash = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
-                confirmation_token_expires_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                password_reset_token_hash = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
-                password_reset_token_expires_at_utc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                is_confirmed = table.Column<bool>(type: "boolean", nullable: false)
             },
             constraints: table =>
             {

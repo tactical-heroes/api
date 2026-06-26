@@ -1,5 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserRoles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
@@ -10,50 +12,51 @@ public sealed class User : AggregateRoot<UserId>
 {
     private readonly List<UserRole> _roles = [];
     private readonly List<UserClaim> _claims = [];
+    private UserConfirmationToken? _confirmationToken;
+    private UserPasswordResetToken? _passwordResetToken;
 
     private User(
         UserId id,
         Email email,
-        PasswordHash passwordHash,
-        TokenHash? confirmationTokenHash,
-        DateTimeOffset? confirmationTokenExpiresAtUtc)
+        PasswordHash passwordHash)
         : base(id)
     {
         Email = email;
         PasswordHash = passwordHash;
-        ConfirmationTokenHash = confirmationTokenHash;
-        ConfirmationTokenExpiresAtUtc = confirmationTokenExpiresAtUtc;
     }
 
     public Email Email { get; private set; }
     public PasswordHash PasswordHash { get; private set; }
     public bool IsConfirmed { get; private set; }
-    public TokenHash? ConfirmationTokenHash { get; private set; }
-    public DateTimeOffset? ConfirmationTokenExpiresAtUtc { get; private set; }
-    public TokenHash? PasswordResetTokenHash { get; private set; }
-    public DateTimeOffset? PasswordResetTokenExpiresAtUtc { get; private set; }
+    public UserConfirmationToken? ConfirmationToken => _confirmationToken;
+    public UserPasswordResetToken? PasswordResetToken => _passwordResetToken;
     public IReadOnlyCollection<UserRole> Roles => _roles;
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
     public static Result<User> Register(
         Email email,
         PasswordHash passwordHash,
-        TokenHash confirmationTokenHash,
+        string confirmationTokenHash,
         DateTimeOffset confirmationTokenExpiresAtUtc,
         string confirmationToken)
     {
-        if (confirmationTokenExpiresAtUtc <= DateTimeOffset.UtcNow)
-        {
-            return Result.Failure<User>(
-                Error.Validation("Confirmation token expiration must be in the future."));
-        }
-
         var user = new User(
             UserId.New(),
             email,
-            passwordHash,
+            passwordHash);
+
+        var confirmationTokenResult = UserConfirmationToken.Create(
+            user.Id,
             confirmationTokenHash,
             confirmationTokenExpiresAtUtc);
+
+        if (confirmationTokenResult.IsFailure)
+        {
+            return Result.Failure<User>(
+                confirmationTokenResult.Errors);
+        }
+
+        user._confirmationToken = confirmationTokenResult.Value;
 
         user.AddDomainEvent(
             new AccountConfirmationRequested(
@@ -65,7 +68,7 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     public Result ConfirmRegistration(
-        TokenHash confirmationTokenHash,
+        string confirmationTokenHash,
         DateTimeOffset confirmedAtUtc)
     {
         if (IsConfirmed)
@@ -73,27 +76,23 @@ public sealed class User : AggregateRoot<UserId>
             return Result.Success();
         }
 
-        if (ConfirmationTokenHash is null || ConfirmationTokenExpiresAtUtc is null)
+        if (_confirmationToken is null)
         {
             return Result.Failure(
                 Error.Conflict("Account confirmation was not requested."));
         }
 
-        if (ConfirmationTokenExpiresAtUtc < confirmedAtUtc)
-        {
-            return Result.Failure(
-                Error.Validation("Confirmation token expired."));
-        }
+        var validationResult = _confirmationToken.Validate(
+            confirmationTokenHash,
+            confirmedAtUtc);
 
-        if (ConfirmationTokenHash != confirmationTokenHash)
+        if (validationResult.IsFailure)
         {
-            return Result.Failure(
-                Error.Validation("Confirmation token is invalid."));
+            return validationResult;
         }
 
         IsConfirmed = true;
-        ConfirmationTokenHash = null;
-        ConfirmationTokenExpiresAtUtc = null;
+        _confirmationToken = null;
 
         AddDomainEvent(
             new UserRegistered(
@@ -104,7 +103,7 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     public Result RequestPasswordReset(
-        TokenHash passwordResetTokenHash,
+        string passwordResetTokenHash,
         DateTimeOffset passwordResetTokenExpiresAtUtc,
         string passwordResetToken)
     {
@@ -114,14 +113,18 @@ public sealed class User : AggregateRoot<UserId>
                 Error.Conflict("Cannot reset password for unconfirmed account."));
         }
 
-        if (passwordResetTokenExpiresAtUtc <= DateTimeOffset.UtcNow)
+        var passwordResetTokenResult = UserPasswordResetToken.Create(
+            Id,
+            passwordResetTokenHash,
+            passwordResetTokenExpiresAtUtc);
+
+        if (passwordResetTokenResult.IsFailure)
         {
             return Result.Failure(
-                Error.Validation("Password reset token expiration must be in the future."));
+                passwordResetTokenResult.Errors);
         }
 
-        PasswordResetTokenHash = passwordResetTokenHash;
-        PasswordResetTokenExpiresAtUtc = passwordResetTokenExpiresAtUtc;
+        _passwordResetToken = passwordResetTokenResult.Value;
 
         AddDomainEvent(
             new PasswordResetRequested(
@@ -133,31 +136,27 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     public Result ResetPassword(
-        TokenHash passwordResetTokenHash,
+        string passwordResetTokenHash,
         PasswordHash passwordHash,
         DateTimeOffset resetAtUtc)
     {
-        if (PasswordResetTokenHash is null || PasswordResetTokenExpiresAtUtc is null)
+        if (_passwordResetToken is null)
         {
             return Result.Failure(
                 Error.Conflict("Password reset was not requested."));
         }
 
-        if (PasswordResetTokenExpiresAtUtc < resetAtUtc)
-        {
-            return Result.Failure(
-                Error.Validation("Password reset token expired."));
-        }
+        var validationResult = _passwordResetToken.Validate(
+            passwordResetTokenHash,
+            resetAtUtc);
 
-        if (PasswordResetTokenHash != passwordResetTokenHash)
+        if (validationResult.IsFailure)
         {
-            return Result.Failure(
-                Error.Validation("Password reset token is invalid."));
+            return validationResult;
         }
 
         PasswordHash = passwordHash;
-        PasswordResetTokenHash = null;
-        PasswordResetTokenExpiresAtUtc = null;
+        _passwordResetToken = null;
 
         return Result.Success();
     }

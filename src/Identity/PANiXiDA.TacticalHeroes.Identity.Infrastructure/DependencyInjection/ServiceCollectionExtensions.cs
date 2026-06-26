@@ -8,6 +8,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users.Cleanup;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
@@ -26,7 +27,7 @@ public static class ServiceCollectionExtensions
             IdentityWriteDbContext, IdentityReadDbContext>(configuration);
 
         serviceCollection.AddIdentityServices();
-        serviceCollection.AddOpenIddictServices();
+        serviceCollection.AddOpenIddictServices(configuration);
 
         serviceCollection.AddWolverineMediator<IdentityWriteDbContext>();
 
@@ -45,9 +46,44 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
     }
 
-    private static void AddOpenIddictServices(this IServiceCollection serviceCollection)
+    private static void AddOpenIddictServices(
+        this IServiceCollection serviceCollection,
+        IConfiguration configuration)
     {
-        serviceCollection.AddQuartz();
+        serviceCollection.Configure<IdentityCleanupOptions>(
+            configuration.GetSection(IdentityCleanupOptions.SectionName));
+
+        var cleanupOptions = configuration
+            .GetSection(IdentityCleanupOptions.SectionName)
+            .Get<IdentityCleanupOptions>() ?? new IdentityCleanupOptions();
+
+        serviceCollection.AddQuartz(options =>
+        {
+            options.AddJob<PruneUnconfirmedUsersJob>(job =>
+                job.WithIdentity(PruneUnconfirmedUsersJob.Key));
+
+            options.AddTrigger(trigger => trigger
+                .ForJob(PruneUnconfirmedUsersJob.Key)
+                .WithIdentity($"{nameof(PruneUnconfirmedUsersJob)}Trigger")
+                .WithCronSchedule(cleanupOptions.UnconfirmedUsersCronSchedule));
+
+            options.AddJob<PruneExpiredUserConfirmationTokensJob>(job =>
+                job.WithIdentity(PruneExpiredUserConfirmationTokensJob.Key));
+
+            options.AddTrigger(trigger => trigger
+                .ForJob(PruneExpiredUserConfirmationTokensJob.Key)
+                .WithIdentity($"{nameof(PruneExpiredUserConfirmationTokensJob)}Trigger")
+                .WithCronSchedule(cleanupOptions.ExpiredConfirmationTokensCronSchedule));
+
+            options.AddJob<PruneExpiredUserPasswordResetTokensJob>(job =>
+                job.WithIdentity(PruneExpiredUserPasswordResetTokensJob.Key));
+
+            options.AddTrigger(trigger => trigger
+                .ForJob(PruneExpiredUserPasswordResetTokensJob.Key)
+                .WithIdentity($"{nameof(PruneExpiredUserPasswordResetTokensJob)}Trigger")
+                .WithCronSchedule(cleanupOptions.ExpiredPasswordResetTokensCronSchedule));
+        });
+
         serviceCollection.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
         serviceCollection.AddOpenIddict()

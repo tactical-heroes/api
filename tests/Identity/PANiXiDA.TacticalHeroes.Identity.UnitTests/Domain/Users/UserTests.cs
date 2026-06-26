@@ -10,9 +10,12 @@ public sealed class UserTests
     [Fact(DisplayName = "Register should create unconfirmed user and raise confirmation requested event")]
     public void Register_Should_CreateUnconfirmedUser_And_RaiseConfirmationRequestedEvent()
     {
-        var user = CreateUser("confirmation-token", out _);
+        var user = CreateUser("confirmation-token", out var confirmationTokenHash);
 
         user.IsConfirmed.ShouldBeFalse();
+        user.ConfirmationToken.ShouldNotBeNull();
+        user.ConfirmationToken.Id.UserId.ShouldBe(user.Id);
+        user.ConfirmationToken.TokenHash.Value.ShouldBe(confirmationTokenHash);
 
         var confirmationEvent = user.GetDomainEvents()
             .OfType<AccountConfirmationRequested>()
@@ -35,8 +38,7 @@ public sealed class UserTests
 
         result.IsSuccess.ShouldBeTrue();
         user.IsConfirmed.ShouldBeTrue();
-        user.ConfirmationTokenHash.ShouldBeNull();
-        user.ConfirmationTokenExpiresAtUtc.ShouldBeNull();
+        user.ConfirmationToken.ShouldBeNull();
 
         var registeredEvent = user.GetDomainEvents()
             .OfType<UserRegistered>()
@@ -53,14 +55,15 @@ public sealed class UserTests
         user.ConfirmRegistration(confirmationTokenHash, DateTimeOffset.UtcNow);
         user.ClearDomainEvents();
 
-        var passwordResetTokenHash = TokenHash.Create("password-reset-token-hash").Value;
+        const string passwordResetTokenHash = "password-reset-token-hash";
         var result = user.RequestPasswordReset(
             passwordResetTokenHash,
             DateTimeOffset.UtcNow.AddHours(1),
             "password-reset-token");
 
         result.IsSuccess.ShouldBeTrue();
-        user.PasswordResetTokenHash.ShouldBe(passwordResetTokenHash);
+        user.PasswordResetToken.ShouldNotBeNull();
+        user.PasswordResetToken.TokenHash.Value.ShouldBe(passwordResetTokenHash);
 
         var passwordResetEvent = user.GetDomainEvents()
             .OfType<PasswordResetRequested>()
@@ -105,9 +108,9 @@ public sealed class UserTests
 
     private static User CreateUser(
         string confirmationToken,
-        out TokenHash confirmationTokenHash)
+        out string confirmationTokenHash)
     {
-        confirmationTokenHash = TokenHash.Create("confirmation-token-hash").Value;
+        confirmationTokenHash = "confirmation-token-hash";
 
         var userResult = User.Register(
             Email.Create("hero@example.com").Value,

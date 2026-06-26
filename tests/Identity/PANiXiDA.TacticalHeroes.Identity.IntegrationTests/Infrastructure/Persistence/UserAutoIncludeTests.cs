@@ -57,7 +57,7 @@ public sealed class UserAutoIncludeTests(IntegrationTestFixture fixture)
         return User.Register(
                 Email.Create("auto-include@example.com").Value,
                 PasswordHash.Create("password-hash").Value,
-                TokenHash.Create("confirmation-token-hash").Value,
+                "confirmation-token-hash",
                 DateTimeOffset.UtcNow.AddHours(1),
                 "confirmation-token")
             .Value;
