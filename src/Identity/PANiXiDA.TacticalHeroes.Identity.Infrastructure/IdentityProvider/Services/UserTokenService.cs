@@ -3,7 +3,7 @@ using System.Text;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
 public sealed class UserTokenService : IUserTokenService
 {

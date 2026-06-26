@@ -4,7 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using Quartz;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Users.Cleanup;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
 
 [DisallowConcurrentExecution]
 internal sealed class PruneExpiredUserPasswordResetTokensJob(
