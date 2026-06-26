@@ -12,7 +12,7 @@ public partial class CreateOpenIddictApplications : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "OpenIddictApplications",
+            name: "open_iddict_applications",
             schema: "identity",
             columns: table => new
             {
@@ -41,7 +41,7 @@ public partial class CreateOpenIddictApplications : Migration
         migrationBuilder.CreateIndex(
             name: "ix_open_iddict_applications_client_id",
             schema: "identity",
-            table: "OpenIddictApplications",
+            table: "open_iddict_applications",
             column: "client_id",
             unique: true);
     }
@@ -49,7 +49,7 @@ public partial class CreateOpenIddictApplications : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "OpenIddictApplications",
+            name: "open_iddict_applications",
             schema: "identity");
     }
 }

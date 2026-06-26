@@ -12,7 +12,7 @@ public partial class CreateOpenIddictAuthorizations : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "OpenIddictAuthorizations",
+            name: "open_iddict_authorizations",
             schema: "identity",
             columns: table => new
             {
@@ -30,24 +30,24 @@ public partial class CreateOpenIddictAuthorizations : Migration
             {
                 table.PrimaryKey("pk_open_iddict_authorizations", x => x.id);
                 table.ForeignKey(
-                    name: "fk_open_iddict_authorizations_open_iddict_applications_application",
+                    name: "fk_open_iddict_authorizations_open_iddict_applications_applica",
                     column: x => x.application_id,
                     principalSchema: "identity",
-                    principalTable: "OpenIddictApplications",
+                    principalTable: "open_iddict_applications",
                     principalColumn: "id");
             });
 
         migrationBuilder.CreateIndex(
-            name: "ix_open_iddict_authorizations_application_id_status_subject_type",
+            name: "ix_open_iddict_authorizations_application_id_status_subject_ty",
             schema: "identity",
-            table: "OpenIddictAuthorizations",
+            table: "open_iddict_authorizations",
             columns: new[] { "application_id", "status", "subject", "type" });
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "OpenIddictAuthorizations",
+            name: "open_iddict_authorizations",
             schema: "identity");
     }
 }

@@ -12,7 +12,7 @@ public partial class CreateOpenIddictScopes : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "OpenIddictScopes",
+            name: "open_iddict_scopes",
             schema: "identity",
             columns: table => new
             {
@@ -34,7 +34,7 @@ public partial class CreateOpenIddictScopes : Migration
         migrationBuilder.CreateIndex(
             name: "ix_open_iddict_scopes_name",
             schema: "identity",
-            table: "OpenIddictScopes",
+            table: "open_iddict_scopes",
             column: "name",
             unique: true);
     }
@@ -42,7 +42,7 @@ public partial class CreateOpenIddictScopes : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "OpenIddictScopes",
+            name: "open_iddict_scopes",
             schema: "identity");
     }
 }
