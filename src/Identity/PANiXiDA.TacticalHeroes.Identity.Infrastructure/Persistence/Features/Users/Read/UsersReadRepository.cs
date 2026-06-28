@@ -14,7 +14,8 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
         Guid userId,
         CancellationToken cancellationToken)
     {
-        return GetByIdAsync<AuthenticatedUserReadModel, AuthenticatedUserReadModelMapper>(
+        return AuthenticatedUserReadModelMapper.GetByIdAsync(
+            Query,
             userId,
             cancellationToken);
     }

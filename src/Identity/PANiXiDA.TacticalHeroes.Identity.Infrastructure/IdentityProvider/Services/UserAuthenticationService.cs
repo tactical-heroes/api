@@ -43,7 +43,7 @@ public sealed class UserAuthenticationService(
         var claims = await userClaimsProvider.GetClaimsAsync(user, cancellationToken);
 
         return Result.Success(
-            AuthenticatedUserReadModel.Create(
+            new AuthenticatedUserReadModel(
                 user.Id.Value,
                 user.Email.Value,
                 user.ConfirmationStatus.IsConfirmed,
