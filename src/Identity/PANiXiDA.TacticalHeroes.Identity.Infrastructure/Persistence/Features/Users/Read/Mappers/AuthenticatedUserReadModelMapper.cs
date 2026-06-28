@@ -9,18 +9,15 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.U
 internal sealed partial class AuthenticatedUserReadModelMapper :
     IReadModelMapper<Guid, UserReadDbModel, AuthenticatedUserReadModel>
 {
-    private const string RolesConstructorParameter = "roles";
-    private const string DirectClaimsConstructorParameter = "directClaims";
     private const string RoleClaimsConstructorParameter = "roleClaims";
 
     public static partial IQueryable<AuthenticatedUserReadModel> ProjectTo(
         IQueryable<UserReadDbModel> query);
 
     [MapperRequiredMapping(RequiredMappingStrategy.Target)]
-    [MapProperty(nameof(UserReadDbModel.Roles), RolesConstructorParameter, Use = nameof(MapRoles))]
-    [MapProperty(nameof(UserReadDbModel.Claims), DirectClaimsConstructorParameter, Use = nameof(MapDirectClaims))]
+    [MapProperty(nameof(UserReadDbModel.Roles), nameof(AuthenticatedUserReadModel.Roles), Use = nameof(MapRoles))]
+    [MapProperty(nameof(UserReadDbModel.Claims), nameof(AuthenticatedUserReadModel.Claims), Use = nameof(MapDirectClaims))]
     [MapPropertyFromSource(RoleClaimsConstructorParameter, Use = nameof(MapRoleClaims))]
-    [MapperIgnoreTarget(nameof(AuthenticatedUserReadModel.Claims))]
     private static partial AuthenticatedUserReadModel ToReadModel(
         UserReadDbModel source);
 

@@ -12,7 +12,7 @@ public sealed record AuthenticatedUserReadModel(
         string email,
         bool confirmationStatus,
         IReadOnlyCollection<string> roles,
-        IReadOnlyCollection<AuthenticatedUserClaimReadModel> directClaims,
+        IReadOnlyCollection<AuthenticatedUserClaimReadModel> claims,
         IReadOnlyCollection<AuthenticatedUserClaimReadModel> roleClaims)
         : this(
             id,
@@ -22,7 +22,7 @@ public sealed record AuthenticatedUserReadModel(
                 .Distinct(StringComparer.Ordinal)
                 .OrderBy(role => role, StringComparer.Ordinal)
                 .ToArray(),
-            directClaims
+            claims
                 .Concat(roleClaims)
                 .Distinct()
                 .OrderBy(claim => claim.Type, StringComparer.Ordinal)
