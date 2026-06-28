@@ -6,20 +6,48 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.Mappers;
 
 [Mapper]
-internal static partial class AuthenticatedUserReadModelMapper
+internal sealed partial class AuthenticatedUserReadModelMapper :
+    IReadModelMapper<Guid, UserReadDbModel, AuthenticatedUserReadModel>
 {
+    public static IQueryable<AuthenticatedUserReadModel> ProjectTo(
+        IQueryable<UserReadDbModel> query)
+    {
+        return query.Select(user => new AuthenticatedUserReadModel(
+            user.Id,
+            user.Email,
+            user.ConfirmationStatus,
+            user.Roles
+                .Where(userRole => userRole.Role != null)
+                .Select(userRole => userRole.Role!.Name)
+                .ToArray(),
+            user.Claims
+                .Select(claim => new AuthenticatedUserClaimReadModel(
+                    claim.Type,
+                    claim.Value))
+                .ToArray(),
+            user.Roles
+                .Where(userRole => userRole.Role != null)
+                .SelectMany(userRole => userRole.Role!.Claims)
+                .Select(claim => new AuthenticatedUserClaimReadModel(
+                    claim.Type,
+                    claim.Value))
+                .ToArray()));
+    }
+
     [MapperRequiredMapping(RequiredMappingStrategy.Target)]
     [MapProperty(nameof(UserReadDbModel.Roles), nameof(AuthenticatedUserReadModel.Roles), Use = nameof(MapRoles))]
     [MapPropertyFromSource(nameof(AuthenticatedUserReadModel.Claims), Use = nameof(MapClaims))]
-    public static partial AuthenticatedUserReadModel ToReadModel(
-        this UserReadDbModel source);
+    private static partial AuthenticatedUserReadModel ToReadModel(
+        UserReadDbModel source);
 
     private static IReadOnlyCollection<string> MapRoles(
         ICollection<UserRoleReadDbModel> source)
     {
         return source
-            .Where(userRole => userRole.Role is not null)
+            .Where(userRole => userRole.Role != null)
             .Select(userRole => userRole.Role!.Name)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(roleName => roleName, StringComparer.Ordinal)
             .ToArray();
     }
 
@@ -32,7 +60,7 @@ internal static partial class AuthenticatedUserReadModelMapper
                 claim.Value))
             .Concat(
                 source.Roles
-                    .Where(userRole => userRole.Role is not null)
+                    .Where(userRole => userRole.Role != null)
                     .SelectMany(userRole => userRole.Role!.Claims)
                     .Select(claim => new AuthenticatedUserClaimReadModel(
                         claim.Type,
@@ -42,6 +70,8 @@ internal static partial class AuthenticatedUserReadModelMapper
                 claim.Type,
                 claim.Value
             })
+            .OrderBy(claim => claim.Type, StringComparer.Ordinal)
+            .ThenBy(claim => claim.Value, StringComparer.Ordinal)
             .ToArray();
     }
 }

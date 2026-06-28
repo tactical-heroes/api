@@ -5,7 +5,32 @@ public sealed record AuthenticatedUserReadModel(
     string Email,
     bool ConfirmationStatus,
     IReadOnlyCollection<string> Roles,
-    IReadOnlyCollection<AuthenticatedUserClaimReadModel> Claims);
+    IReadOnlyCollection<AuthenticatedUserClaimReadModel> Claims)
+{
+    public AuthenticatedUserReadModel(
+        Guid id,
+        string email,
+        bool confirmationStatus,
+        IReadOnlyCollection<string> roles,
+        IReadOnlyCollection<AuthenticatedUserClaimReadModel> directClaims,
+        IReadOnlyCollection<AuthenticatedUserClaimReadModel> roleClaims)
+        : this(
+            id,
+            email,
+            confirmationStatus,
+            roles
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(role => role, StringComparer.Ordinal)
+                .ToArray(),
+            directClaims
+                .Concat(roleClaims)
+                .Distinct()
+                .OrderBy(claim => claim.Type, StringComparer.Ordinal)
+                .ThenBy(claim => claim.Value, StringComparer.Ordinal)
+                .ToArray())
+    {
+    }
+}
 
 public sealed record AuthenticatedUserClaimReadModel(
     string Type,

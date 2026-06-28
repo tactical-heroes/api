@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
@@ -16,14 +14,8 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
         Guid userId,
         CancellationToken cancellationToken)
     {
-        var user = await Query
-            .Include(user => user.Claims)
-            .Include(user => user.Roles)
-            .ThenInclude(userRole => userRole.Role)
-            .ThenInclude(role => role!.Claims)
-            .Where(user => user.Id == userId)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return user?.ToReadModel();
+        return await GetByIdAsync<AuthenticatedUserReadModel, AuthenticatedUserReadModelMapper>(
+            userId,
+            cancellationToken);
     }
 }
