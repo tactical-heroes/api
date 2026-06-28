@@ -1,5 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Specifications;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
@@ -28,12 +29,12 @@ public sealed class UserClaimsProvider(
             .ToArray();
 
         var roleClaims = roles
-            .SelectMany(role => role.Claims.Select(claim => new AuthorizationClaim(
+            .SelectMany(role => role.Claims.Select(claim => new AuthenticatedUserClaimReadModel(
                 claim.Type.Value,
                 claim.Value.Value)));
 
         var directClaims = user.Claims
-            .Select(claim => new AuthorizationClaim(
+            .Select(claim => new AuthenticatedUserClaimReadModel(
                 claim.Type.Value,
                 claim.Value.Value));
 

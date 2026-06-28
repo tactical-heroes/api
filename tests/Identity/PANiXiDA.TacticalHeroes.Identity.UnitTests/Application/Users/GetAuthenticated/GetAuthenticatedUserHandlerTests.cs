@@ -1,4 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 
@@ -12,7 +11,7 @@ public sealed class GetAuthenticatedUserHandlerTests
         var repository = Substitute.For<IUsersReadRepository>();
         repository
             .GetAuthenticatedUserByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns((AuthenticatedUser?)null);
+            .Returns((AuthenticatedUserReadModel?)null);
         var handler = new GetAuthenticatedUserHandler(repository);
 
         var result = await handler.HandleAsync(
@@ -26,12 +25,12 @@ public sealed class GetAuthenticatedUserHandlerTests
     [Fact(DisplayName = "Handle should return forbidden when user is not confirmed")]
     public async Task Handle_Should_ReturnForbidden_When_UserIsNotConfirmed()
     {
-        var user = new AuthenticatedUser(
+        var user = AuthenticatedUserReadModel.Create(
             Guid.CreateVersion7(),
             "hero@example.com",
-            IsConfirmed: false,
-            Roles: [],
-            Claims: []);
+            isConfirmed: false,
+            roles: [],
+            claims: []);
         var repository = Substitute.For<IUsersReadRepository>();
         repository
             .GetAuthenticatedUserByIdAsync(user.Id, Arg.Any<CancellationToken>())
@@ -49,12 +48,12 @@ public sealed class GetAuthenticatedUserHandlerTests
     [Fact(DisplayName = "Handle should return authenticated user when user is confirmed")]
     public async Task Handle_Should_ReturnAuthenticatedUser_When_UserIsConfirmed()
     {
-        var user = new AuthenticatedUser(
+        var user = AuthenticatedUserReadModel.Create(
             Guid.CreateVersion7(),
             "hero@example.com",
-            IsConfirmed: true,
-            Roles: ["admin"],
-            Claims: [new AuthorizationClaim("permission", "identity.users.manage")]);
+            isConfirmed: true,
+            roles: ["admin"],
+            claims: [new AuthenticatedUserClaimReadModel("permission", "identity.users.manage")]);
         var repository = Substitute.For<IUsersReadRepository>();
         repository
             .GetAuthenticatedUserByIdAsync(user.Id, Arg.Any<CancellationToken>())

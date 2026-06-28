@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
@@ -43,8 +44,8 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         readModel.Roles.ShouldBe(["admin"]);
         readModel.Claims.ShouldBe(
         [
-            new AuthorizationClaim(AuthorizationClaimTypes.Permission, "identity.profile.read"),
-            new AuthorizationClaim(AuthorizationClaimTypes.Permission, "identity.users.manage")
+            new AuthenticatedUserClaimReadModel(AuthorizationClaimTypes.Permission, "identity.profile.read"),
+            new AuthenticatedUserClaimReadModel(AuthorizationClaimTypes.Permission, "identity.users.manage")
         ]);
 
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityReadDbContext>();

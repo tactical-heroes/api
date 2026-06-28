@@ -4,9 +4,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 
 public sealed class GetAuthenticatedUserHandler(
     IUsersReadRepository usersReadRepository)
-    : IQueryHandler<GetAuthenticatedUserQuery, Result<AuthenticatedUser>>
+    : IQueryHandler<GetAuthenticatedUserQuery, Result<AuthenticatedUserReadModel>>
 {
-    public async Task<Result<AuthenticatedUser>> HandleAsync(
+    public async Task<Result<AuthenticatedUserReadModel>> HandleAsync(
         GetAuthenticatedUserQuery query,
         CancellationToken cancellationToken)
     {
@@ -16,13 +16,13 @@ public sealed class GetAuthenticatedUserHandler(
 
         if (user is null)
         {
-            return Result.Failure<AuthenticatedUser>(
+            return Result.Failure<AuthenticatedUserReadModel>(
                 Error.NotFound("User was not found."));
         }
 
         if (!user.IsConfirmed)
         {
-            return Result.Failure<AuthenticatedUser>(
+            return Result.Failure<AuthenticatedUserReadModel>(
                 Error.Forbidden("Account is not confirmed."));
         }
 

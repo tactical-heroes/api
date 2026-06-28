@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Routing;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 
@@ -92,7 +91,7 @@ internal static class OpenIddictTokenEndpoint
     }
 
     private static ClaimsPrincipal CreatePrincipal(
-        AuthenticatedUser user,
+        AuthenticatedUserReadModel user,
         IEnumerable<string> scopes)
     {
         var identity = new ClaimsIdentity(

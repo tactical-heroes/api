@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
@@ -12,7 +12,7 @@ public sealed class UserAuthenticationService(
     IUserClaimsProvider userClaimsProvider)
     : IUserAuthenticationService
 {
-    public async Task<Result<AuthenticatedUser>> AuthenticateAsync(
+    public async Task<Result<AuthenticatedUserReadModel>> AuthenticateAsync(
         string email,
         string password,
         CancellationToken cancellationToken)
@@ -29,21 +29,21 @@ public sealed class UserAuthenticationService(
 
         if (!user.ConfirmationStatus.IsConfirmed)
         {
-            return Result.Failure<AuthenticatedUser>(
+            return Result.Failure<AuthenticatedUserReadModel>(
                 Error.Forbidden("Account is not confirmed."));
         }
 
         return await CreateAuthenticatedUserAsync(user, cancellationToken);
     }
 
-    private async Task<Result<AuthenticatedUser>> CreateAuthenticatedUserAsync(
+    private async Task<Result<AuthenticatedUserReadModel>> CreateAuthenticatedUserAsync(
         User user,
         CancellationToken cancellationToken)
     {
         var claims = await userClaimsProvider.GetClaimsAsync(user, cancellationToken);
 
         return Result.Success(
-            new AuthenticatedUser(
+            AuthenticatedUserReadModel.Create(
                 user.Id.Value,
                 user.Email.Value,
                 user.ConfirmationStatus.IsConfirmed,
@@ -51,9 +51,9 @@ public sealed class UserAuthenticationService(
                 claims.Claims));
     }
 
-    private static Result<AuthenticatedUser> InvalidCredentials()
+    private static Result<AuthenticatedUserReadModel> InvalidCredentials()
     {
-        return Result.Failure<AuthenticatedUser>(
+        return Result.Failure<AuthenticatedUserReadModel>(
             Error.Unauthorized("Invalid credentials."));
     }
 }

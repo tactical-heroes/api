@@ -47,7 +47,7 @@ internal sealed class GetCurrentUserEndpoint : IEndpoint<UsersEndpoints>
     }
 
     private static IReadOnlyCollection<string> GetPermissions(
-        IReadOnlyCollection<AuthorizationClaim> claims)
+        IReadOnlyCollection<AuthenticatedUserClaimReadModel> claims)
     {
         return claims
             .Where(claim => claim.Type == AuthorizationClaimTypes.Permission)
