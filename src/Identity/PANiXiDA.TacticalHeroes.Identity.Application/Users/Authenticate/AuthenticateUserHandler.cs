@@ -1,29 +1,28 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
 
-public sealed class UserAuthenticationService(
+public sealed class AuthenticateUserHandler(
     IUsersRepository usersRepository,
     IPasswordHashingService passwordHashingService,
     IUsersReadRepository usersReadRepository)
-    : IUserAuthenticationService
+    : ICommandHandler<AuthenticateUserCommand, Result<AuthenticatedUserReadModel>>
 {
-    public async Task<Result<AuthenticatedUserReadModel>> AuthenticateAsync(
-        string email,
-        string password,
+    public async Task<Result<AuthenticatedUserReadModel>> HandleAsync(
+        AuthenticateUserCommand command,
         CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetBySpecificationAsync(
-            new UserByEmailSpecification(email),
+            new UserByEmailSpecification(command.Email),
             cancellationToken);
 
         if (user is null ||
-            !passwordHashingService.VerifyPassword(user.PasswordHash, password))
+            !passwordHashingService.VerifyPassword(user.PasswordHash, command.Password))
         {
-            return InvalidCredentials();
+            return Result.Failure<AuthenticatedUserReadModel>(
+                Error.Unauthorized("Invalid credentials."));
         }
 
         if (!user.ConfirmationStatus.IsConfirmed)
@@ -37,13 +36,8 @@ public sealed class UserAuthenticationService(
             cancellationToken);
 
         return authenticatedUser is null
-            ? InvalidCredentials()
+            ? Result.Failure<AuthenticatedUserReadModel>(
+                Error.Unauthorized("Invalid credentials."))
             : Result.Success(authenticatedUser);
-    }
-
-    private static Result<AuthenticatedUserReadModel> InvalidCredentials()
-    {
-        return Result.Failure<AuthenticatedUserReadModel>(
-            Error.Unauthorized("Invalid credentials."));
     }
 }

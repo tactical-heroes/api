@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
 
 public sealed class GetAuthenticatedUserHandler(
     IUsersReadRepository usersReadRepository)

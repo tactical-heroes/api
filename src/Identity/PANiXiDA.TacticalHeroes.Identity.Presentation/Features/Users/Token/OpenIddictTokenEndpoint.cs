@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Routing;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
 
 using System.Security.Claims;
 
@@ -30,7 +29,6 @@ internal static class OpenIddictTokenEndpoint
 
     private static async Task<IResult> HandleAsync(
         HttpContext httpContext,
-        IUserAuthenticationService identityAuthenticationService,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
@@ -39,9 +37,10 @@ internal static class OpenIddictTokenEndpoint
 
         if (request.IsPasswordGrantType())
         {
-            var userResult = await identityAuthenticationService.AuthenticateAsync(
-                request.Username ?? string.Empty,
-                request.Password ?? string.Empty,
+            var userResult = await mediator.SendAsync(
+                new AuthenticateUserCommand(
+                    request.Username ?? string.Empty,
+                    request.Password ?? string.Empty),
                 cancellationToken);
 
             if (userResult.IsFailure)
