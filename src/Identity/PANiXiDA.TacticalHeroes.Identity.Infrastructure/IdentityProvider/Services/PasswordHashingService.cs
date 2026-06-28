@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
@@ -12,9 +11,9 @@ public sealed class PasswordHashingService : IPasswordHashingService
 
     private readonly PasswordHasher<PasswordHashingUser> _passwordHasher = new();
 
-    public string HashPassword(ValidatedPassword password)
+    public string HashPassword(string password)
     {
-        return _passwordHasher.HashPassword(User, password.Value);
+        return _passwordHasher.HashPassword(User, password);
     }
 
     public bool VerifyPassword(

@@ -1,6 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Policies;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset;
 
@@ -35,7 +36,7 @@ public sealed class ResetPasswordHandler(
 
         var result = user.ResetPassword(
             identityTokenService.HashToken(command.PasswordResetToken),
-            passwordHashingService.HashPassword(passwordResult.Value),
+            passwordHashingService.HashPassword(command.NewPassword),
             timeProvider.GetUtcNow());
 
         if (result.IsFailure)

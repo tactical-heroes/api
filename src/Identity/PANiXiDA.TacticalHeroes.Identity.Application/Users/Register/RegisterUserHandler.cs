@@ -1,6 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Policies;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Register;
@@ -37,7 +38,7 @@ public sealed class RegisterUserHandler(
 
         var confirmationToken = identityTokenService.GenerateToken();
         var confirmationTokenHash = identityTokenService.HashToken(confirmationToken);
-        var passwordHash = passwordHashingService.HashPassword(passwordResult.Value);
+        var passwordHash = passwordHashingService.HashPassword(command.Password);
 
         var userResult = User.Register(
             command.Email,
