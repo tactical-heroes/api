@@ -10,12 +10,10 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
     EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext),
     IUsersReadRepository
 {
-    public async Task<AuthenticatedUserReadModel?> GetAuthenticatedUserByIdAsync(
+    public Task<AuthenticatedUserReadModel?> GetAuthenticatedUserByIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
-    {
-        return await GetByIdAsync<AuthenticatedUserReadModel, AuthenticatedUserReadModelMapper>(
+        => GetByIdAsync<AuthenticatedUserReadModel, AuthenticatedUserReadModelMapper>(
             userId,
             cancellationToken);
-    }
 }
