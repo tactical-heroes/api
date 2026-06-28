@@ -13,7 +13,9 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
     public Task<AuthenticatedUserReadModel?> GetAuthenticatedUserByIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
-        => GetByIdAsync<AuthenticatedUserReadModel, AuthenticatedUserReadModelMapper>(
-            userId,
-            cancellationToken);
+    {
+        return GetByIdAsync<AuthenticatedUserReadModel, AuthenticatedUserReadModelMapper>(
+              userId,
+              cancellationToken);
+    }
 }
