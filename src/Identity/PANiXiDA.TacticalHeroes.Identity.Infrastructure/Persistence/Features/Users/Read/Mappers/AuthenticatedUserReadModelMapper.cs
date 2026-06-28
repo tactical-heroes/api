@@ -44,7 +44,7 @@ internal static class AuthenticatedUserReadModelMapper
         return new AuthenticatedUserReadModel(
             projection.Id,
             projection.Email,
-            projection.IsConfirmed,
+            projection.ConfirmationStatus,
             projection.Roles
                 .Distinct(StringComparer.Ordinal)
                 .Order(StringComparer.Ordinal)
@@ -60,7 +60,7 @@ internal static class AuthenticatedUserReadModelMapper
     private sealed record AuthenticatedUserProjection(
         Guid Id,
         string Email,
-        bool IsConfirmed,
+        bool ConfirmationStatus,
         IReadOnlyCollection<string> Roles,
         IReadOnlyCollection<AuthenticatedUserClaimReadModel> DirectClaims,
         IReadOnlyCollection<AuthenticatedUserRoleClaimsProjection> RoleClaims);

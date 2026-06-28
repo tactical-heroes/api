@@ -101,7 +101,7 @@ internal static class OpenIddictTokenEndpoint
 
         identity.AddClaim(OpenIddictConstants.Claims.Subject, user.Id.ToString());
         identity.AddClaim(OpenIddictConstants.Claims.Email, user.Email);
-        identity.AddClaim(OpenIddictConstants.Claims.EmailVerified, user.IsConfirmed.ToString().ToLowerInvariant());
+        identity.AddClaim(OpenIddictConstants.Claims.EmailVerified, user.ConfirmationStatus.ToString().ToLowerInvariant());
 
         foreach (var role in user.Roles)
         {

@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 public sealed record AuthenticatedUserReadModel(
     Guid Id,
     string Email,
-    bool IsConfirmed,
+    bool ConfirmationStatus,
     IReadOnlyCollection<string> Roles,
     IReadOnlyCollection<AuthenticatedUserClaimReadModel> Claims);
 

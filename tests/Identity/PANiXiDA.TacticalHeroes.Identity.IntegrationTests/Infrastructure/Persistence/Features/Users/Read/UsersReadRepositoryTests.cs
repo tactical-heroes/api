@@ -40,7 +40,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         readModel.ShouldNotBeNull();
         readModel.Id.ShouldBe(user.Id.Value);
         readModel.Email.ShouldBe(user.Email.Value);
-        readModel.IsConfirmed.ShouldBeTrue();
+        readModel.ConfirmationStatus.ShouldBeTrue();
         readModel.Roles.ShouldBe(["admin"]);
         readModel.Claims.ShouldBe(
         [

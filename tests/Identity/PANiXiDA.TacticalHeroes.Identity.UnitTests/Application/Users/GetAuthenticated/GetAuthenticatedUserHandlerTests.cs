@@ -22,13 +22,13 @@ public sealed class GetAuthenticatedUserHandlerTests
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
     }
 
-    [Fact(DisplayName = "Handle should return forbidden when user is not confirmed")]
-    public async Task Handle_Should_ReturnForbidden_When_UserIsNotConfirmed()
+    [Fact(DisplayName = "Handle should return forbidden when confirmation status is false")]
+    public async Task Handle_Should_ReturnForbidden_When_ConfirmationStatusIsFalse()
     {
         var user = new AuthenticatedUserReadModel(
             Guid.CreateVersion7(),
             "hero@example.com",
-            IsConfirmed: false,
+            ConfirmationStatus: false,
             Roles: [],
             Claims: []);
         var repository = Substitute.For<IUsersReadRepository>();
@@ -45,13 +45,13 @@ public sealed class GetAuthenticatedUserHandlerTests
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Forbidden);
     }
 
-    [Fact(DisplayName = "Handle should return authenticated user when user is confirmed")]
-    public async Task Handle_Should_ReturnAuthenticatedUser_When_UserIsConfirmed()
+    [Fact(DisplayName = "Handle should return authenticated user when confirmation status is true")]
+    public async Task Handle_Should_ReturnAuthenticatedUser_When_ConfirmationStatusIsTrue()
     {
         var user = new AuthenticatedUserReadModel(
             Guid.CreateVersion7(),
             "hero@example.com",
-            IsConfirmed: true,
+            ConfirmationStatus: true,
             Roles: ["admin"],
             Claims: [new AuthenticatedUserClaimReadModel("permission", "identity.users.manage")]);
         var repository = Substitute.For<IUsersReadRepository>();

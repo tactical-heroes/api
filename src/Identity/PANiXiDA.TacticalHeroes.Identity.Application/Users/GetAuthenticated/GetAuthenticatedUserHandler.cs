@@ -20,7 +20,7 @@ public sealed class GetAuthenticatedUserHandler(
                 Error.NotFound("User was not found."));
         }
 
-        if (!user.IsConfirmed)
+        if (!user.ConfirmationStatus)
         {
             return Result.Failure<AuthenticatedUserReadModel>(
                 Error.Forbidden("Account is not confirmed."));
