@@ -26,7 +26,6 @@ internal static class IdentityProviderServiceCollectionExtensions
 
         serviceCollection.AddScoped<IPasswordHashingService, PasswordHashingService>();
         serviceCollection.AddScoped<IUserTokenService, UserTokenService>();
-        serviceCollection.AddScoped<IUserClaimsProvider, UserClaimsProvider>();
         serviceCollection.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();

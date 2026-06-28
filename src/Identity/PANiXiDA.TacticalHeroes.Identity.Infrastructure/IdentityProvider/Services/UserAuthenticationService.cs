@@ -1,6 +1,5 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
@@ -9,7 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Servi
 public sealed class UserAuthenticationService(
     IUsersRepository usersRepository,
     IPasswordHashingService passwordHashingService,
-    IUserClaimsProvider userClaimsProvider)
+    IUsersReadRepository usersReadRepository)
     : IUserAuthenticationService
 {
     public async Task<Result<AuthenticatedUserReadModel>> AuthenticateAsync(
@@ -33,22 +32,13 @@ public sealed class UserAuthenticationService(
                 Error.Forbidden("Account is not confirmed."));
         }
 
-        return await CreateAuthenticatedUserAsync(user, cancellationToken);
-    }
+        var authenticatedUser = await usersReadRepository.GetAuthenticatedUserByIdAsync(
+            user.Id.Value,
+            cancellationToken);
 
-    private async Task<Result<AuthenticatedUserReadModel>> CreateAuthenticatedUserAsync(
-        User user,
-        CancellationToken cancellationToken)
-    {
-        var claims = await userClaimsProvider.GetClaimsAsync(user, cancellationToken);
-
-        return Result.Success(
-            new AuthenticatedUserReadModel(
-                user.Id.Value,
-                user.Email.Value,
-                user.ConfirmationStatus.IsConfirmed,
-                claims.Roles,
-                claims.Claims));
+        return authenticatedUser is null
+            ? InvalidCredentials()
+            : Result.Success(authenticatedUser);
     }
 
     private static Result<AuthenticatedUserReadModel> InvalidCredentials()

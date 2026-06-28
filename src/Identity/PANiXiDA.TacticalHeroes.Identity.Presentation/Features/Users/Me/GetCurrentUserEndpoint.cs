@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Me;
 
@@ -15,16 +14,14 @@ internal sealed class GetCurrentUserEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleAsync)
+        builder.MapGet(Handle)
             .RequireAuthorization()
             .Produces<CurrentUserResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> HandleAsync(
-        ClaimsPrincipal principal,
-        IMediator mediator,
-        CancellationToken cancellationToken)
+    private static IResult Handle(
+        ClaimsPrincipal principal)
     {
         var userIdValue = principal.GetClaim(OpenIddictConstants.Claims.Subject);
 
@@ -33,25 +30,38 @@ internal sealed class GetCurrentUserEndpoint : IEndpoint<UsersEndpoints>
             return TypedResults.Unauthorized();
         }
 
-        var result = await mediator.QueryAsync(
-            new GetAuthenticatedUserQuery(userId),
-            cancellationToken);
+        var email = principal.GetClaim(OpenIddictConstants.Claims.Email);
 
-        return result.ToHttpResult(user =>
-            TypedResults.Ok(
-                new CurrentUserResponse(
-                    user.Id,
-                    user.Email,
-                    user.Roles,
-                    GetPermissions(user.Claims))));
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        return TypedResults.Ok(
+            new CurrentUserResponse(
+                userId,
+                email,
+                GetRoles(principal),
+                GetPermissions(principal)));
     }
 
     private static IReadOnlyCollection<string> GetPermissions(
-        IReadOnlyCollection<AuthenticatedUserClaimReadModel> claims)
+        ClaimsPrincipal principal)
     {
-        return claims
-            .Where(claim => claim.Type == AuthorizationClaimTypes.Permission)
+        return principal.FindAll(AuthorizationClaimTypes.Permission)
             .Select(claim => claim.Value)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(permission => permission, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static IReadOnlyCollection<string> GetRoles(
+        ClaimsPrincipal principal)
+    {
+        return principal.FindAll(OpenIddictConstants.Claims.Role)
+            .Select(claim => claim.Value)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(role => role, StringComparer.Ordinal)
             .ToArray();
     }
 }
