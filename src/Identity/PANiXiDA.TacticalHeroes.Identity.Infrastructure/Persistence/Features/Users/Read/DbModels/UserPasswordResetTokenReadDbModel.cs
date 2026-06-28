@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 public sealed class UserPasswordResetTokenReadDbModel
 {
@@ -6,5 +6,5 @@ public sealed class UserPasswordResetTokenReadDbModel
     public string TokenHash { get; set; } = string.Empty;
     public DateTimeOffset ExpiresAtUtc { get; set; }
 
-    public UserReadDbModel User { get; set; } = null!;
+    public UserReadDbModel? User { get; set; }
 }

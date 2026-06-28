@@ -9,7 +9,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Read;
 
@@ -60,9 +60,9 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
             .SingleAsync(readRole => readRole.Id == role.Id.Value, cancellationToken);
 
         userReadModel.Claims.ShouldHaveSingleItem().Value.ShouldBe("identity.profile.read");
-        userReadModel.Roles.ShouldHaveSingleItem().Role.Name.ShouldBe("admin");
+        userReadModel.Roles.ShouldHaveSingleItem().Role!.Name.ShouldBe("admin");
         roleReadModel.Claims.ShouldHaveSingleItem().Value.ShouldBe("identity.users.manage");
-        roleReadModel.Users.ShouldHaveSingleItem().User.Email.ShouldBe("hero@example.com");
+        roleReadModel.Users.ShouldHaveSingleItem().User!.Email.ShouldBe("hero@example.com");
     }
 
     [Fact(DisplayName = "Read user should include confirmation and password reset tokens")]

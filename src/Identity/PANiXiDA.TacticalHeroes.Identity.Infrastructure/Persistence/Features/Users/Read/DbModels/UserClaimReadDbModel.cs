@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 public sealed class UserClaimReadDbModel : ReadDbModel<Guid>
 {
@@ -6,5 +6,5 @@ public sealed class UserClaimReadDbModel : ReadDbModel<Guid>
     public string Value { get; set; } = string.Empty;
     public Guid UserId { get; set; }
 
-    public UserReadDbModel User { get; set; } = null!;
+    public UserReadDbModel? User { get; set; }
 }

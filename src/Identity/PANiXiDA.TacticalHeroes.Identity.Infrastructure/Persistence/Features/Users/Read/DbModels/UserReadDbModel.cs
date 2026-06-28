@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 public sealed class UserReadDbModel : AuditableReadDbModel<Guid>
 {

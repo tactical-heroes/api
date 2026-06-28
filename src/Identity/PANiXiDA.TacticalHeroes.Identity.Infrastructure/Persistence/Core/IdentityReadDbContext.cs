@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 

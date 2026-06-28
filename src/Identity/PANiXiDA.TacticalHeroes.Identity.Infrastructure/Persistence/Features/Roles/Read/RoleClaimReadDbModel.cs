@@ -6,5 +6,5 @@ public sealed class RoleClaimReadDbModel : ReadDbModel<Guid>
     public string Value { get; set; } = string.Empty;
     public Guid RoleId { get; set; }
 
-    public RoleReadDbModel Role { get; set; } = null!;
+    public RoleReadDbModel? Role { get; set; }
 }
