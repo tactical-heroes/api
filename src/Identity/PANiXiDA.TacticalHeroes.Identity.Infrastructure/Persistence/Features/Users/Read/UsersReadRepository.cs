@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
 
@@ -11,20 +10,16 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
     EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext),
     IUsersReadRepository
 {
-    private readonly IdentityReadDbContext _dbContext = dbContext;
-
     public async Task<AuthenticatedUser?> GetAuthenticatedUserByIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
     {
         var user = await Query
+            .Include(user => user.Claims)
+            .Include(user => user.Roles)
+            .ThenInclude(userRole => userRole.Role)
+            .ThenInclude(role => role.Claims)
             .Where(user => user.Id == userId)
-            .Select(user => new
-            {
-                user.Id,
-                user.Email,
-                user.ConfirmationStatus
-            })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (user is null)
@@ -32,40 +27,29 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
             return null;
         }
 
-        var roleNames = await (
-                from userRole in _dbContext.Set<UserRoleReadDbModel>()
-                join role in _dbContext.Set<RoleReadDbModel>() on userRole.RoleId equals role.Id
-                where userRole.UserId == userId
-                select role.Name)
+        var roleNames = user.Roles
+            .Select(userRole => userRole.Role.Name)
             .Distinct()
-            .OrderBy(roleName => roleName)
-            .ToArrayAsync(cancellationToken);
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 
-        var directClaimsQuery = _dbContext.Set<UserClaimReadDbModel>()
-            .Where(claim => claim.UserId == userId)
-            .Select(claim => new
-            {
+        var directClaims = user.Claims
+            .Select(claim => new AuthorizationClaim(
                 claim.Type,
-                claim.Value
-            });
+                claim.Value));
 
-        var roleClaimsQuery =
-            from userRole in _dbContext.Set<UserRoleReadDbModel>()
-            join roleClaim in _dbContext.Set<RoleClaimReadDbModel>() on userRole.RoleId equals roleClaim.RoleId
-            where userRole.UserId == userId
-            select new
-            {
-                roleClaim.Type,
-                roleClaim.Value
-            };
+        var roleClaims = user.Roles
+            .SelectMany(userRole => userRole.Role.Claims)
+            .Select(claim => new AuthorizationClaim(
+                claim.Type,
+                claim.Value));
 
-        var claims = await directClaimsQuery
-            .Concat(roleClaimsQuery)
+        var claims = directClaims
+            .Concat(roleClaims)
             .Distinct()
-            .OrderBy(claim => claim.Type)
-            .ThenBy(claim => claim.Value)
-            .Select(claim => new AuthorizationClaim(claim.Type, claim.Value))
-            .ToArrayAsync(cancellationToken);
+            .OrderBy(claim => claim.Type, StringComparer.Ordinal)
+            .ThenBy(claim => claim.Value, StringComparer.Ordinal)
+            .ToArray();
 
         return new AuthenticatedUser(
             user.Id,
