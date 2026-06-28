@@ -65,6 +65,42 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         roleReadModel.Users.ShouldHaveSingleItem().User.Email.ShouldBe("hero@example.com");
     }
 
+    [Fact(DisplayName = "Read user should include confirmation and password reset tokens")]
+    public async Task ReadUser_Should_IncludeConfirmationAndPasswordResetTokens()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var unconfirmedUser = User.Register(
+                "unconfirmed@example.com",
+                "password-hash",
+                "confirmation-token-hash",
+                DateTimeOffset.UtcNow.AddHours(1),
+                "confirmation-token")
+            .Value;
+        var confirmedUser = CreateConfirmedUser("confirmed@example.com");
+        confirmedUser.RequestPasswordReset(
+                "password-reset-token-hash",
+                DateTimeOffset.UtcNow.AddHours(1),
+                "password-reset-token")
+            .IsSuccess.ShouldBeTrue();
+
+        await AddAsync(unconfirmedUser, confirmedUser, cancellationToken);
+
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityReadDbContext>();
+
+        var unconfirmedReadModel = await dbContext.Set<UserReadDbModel>()
+            .Include(user => user.ConfirmationToken)
+            .SingleAsync(user => user.Id == unconfirmedUser.Id.Value, cancellationToken);
+        var confirmedReadModel = await dbContext.Set<UserReadDbModel>()
+            .Include(user => user.PasswordResetToken)
+            .SingleAsync(user => user.Id == confirmedUser.Id.Value, cancellationToken);
+
+        unconfirmedReadModel.ConfirmationToken.ShouldNotBeNull();
+        unconfirmedReadModel.ConfirmationToken.TokenHash.ShouldBe("confirmation-token-hash");
+        confirmedReadModel.PasswordResetToken.ShouldNotBeNull();
+        confirmedReadModel.PasswordResetToken.TokenHash.ShouldBe("password-reset-token-hash");
+    }
+
     private async Task AddAsync(
         Role role,
         User user,
@@ -84,12 +120,30 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
     }
 
-    private static User CreateConfirmedUser()
+    private async Task AddAsync(
+        User firstUser,
+        User secondUser,
+        CancellationToken cancellationToken)
+    {
+        await using var scope = Fixture.CreateScope();
+        var usersRepository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+        await unitOfWork.ExecuteInTransactionAsync(
+            async ct =>
+            {
+                await usersRepository.AddAsync(firstUser, ct);
+                await usersRepository.AddAsync(secondUser, ct);
+            },
+            cancellationToken);
+    }
+
+    private static User CreateConfirmedUser(string email = "hero@example.com")
     {
         const string confirmationTokenHash = "confirmation-token-hash";
 
         var user = User.Register(
-                "hero@example.com",
+                email,
                 "password-hash",
                 confirmationTokenHash,
                 DateTimeOffset.UtcNow.AddHours(1),

@@ -8,4 +8,6 @@ public sealed class UserReadDbModel : AuditableReadDbModel<Guid>
 
     public ICollection<UserRoleReadDbModel> Roles { get; set; } = [];
     public ICollection<UserClaimReadDbModel> Claims { get; set; } = [];
+    public UserConfirmationTokenReadDbModel? ConfirmationToken { get; set; }
+    public UserPasswordResetTokenReadDbModel? PasswordResetToken { get; set; }
 }

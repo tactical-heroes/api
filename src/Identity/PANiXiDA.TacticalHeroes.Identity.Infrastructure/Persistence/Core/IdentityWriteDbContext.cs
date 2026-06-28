@@ -21,7 +21,6 @@ public sealed class IdentityWriteDbContext(
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // OpenIddict entities must exist before base schema and naming conventions run.
         modelBuilder.UseOpenIddict<Guid>();
 
         base.OnModelCreating(modelBuilder);
