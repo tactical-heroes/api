@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 

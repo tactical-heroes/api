@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Auth;
 
 public sealed record AuthenticateUserCommand(
     string Email,

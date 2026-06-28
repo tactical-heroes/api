@@ -1,17 +1,17 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Refresh;
 
-public sealed class GetAuthenticatedUserHandler(
+public sealed class RefreshAuthenticationHandler(
     IUsersReadRepository usersReadRepository)
-    : IQueryHandler<GetAuthenticatedUserQuery, Result<AuthenticatedUserReadModel>>
+    : ICommandHandler<RefreshAuthenticationCommand, Result<AuthenticatedUserReadModel>>
 {
     public async Task<Result<AuthenticatedUserReadModel>> HandleAsync(
-        GetAuthenticatedUserQuery query,
+        RefreshAuthenticationCommand command,
         CancellationToken cancellationToken)
     {
         var user = await usersReadRepository.GetAuthenticatedUserByIdAsync(
-            query.UserId,
+            command.UserId,
             cancellationToken);
 
         if (user is null)

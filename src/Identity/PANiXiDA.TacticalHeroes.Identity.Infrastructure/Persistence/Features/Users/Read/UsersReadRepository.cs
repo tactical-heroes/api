@@ -1,5 +1,5 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.Mappers;

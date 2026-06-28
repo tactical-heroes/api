@@ -2,7 +2,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Auth;
 
 public sealed class AuthenticateUserHandler(
     IUsersRepository usersRepository,

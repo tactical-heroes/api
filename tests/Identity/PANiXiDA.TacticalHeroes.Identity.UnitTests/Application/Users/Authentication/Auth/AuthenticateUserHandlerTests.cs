@@ -1,11 +1,12 @@
 using PANiXiDA.Core.SpecificationPattern.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Auth;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Authenticate;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Authentication.Auth;
 
 public sealed class AuthenticateUserHandlerTests
 {

@@ -1,9 +1,10 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Refresh;
 
-namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Authenticate;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Authentication.Refresh;
 
-public sealed class GetAuthenticatedUserHandlerTests
+public sealed class RefreshAuthenticationHandlerTests
 {
     [Fact(DisplayName = "Handle should return not found when user does not exist")]
     public async Task Handle_Should_ReturnNotFound_When_UserDoesNotExist()
@@ -12,10 +13,10 @@ public sealed class GetAuthenticatedUserHandlerTests
         repository
             .GetAuthenticatedUserByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((AuthenticatedUserReadModel?)null);
-        var handler = new GetAuthenticatedUserHandler(repository);
+        var handler = new RefreshAuthenticationHandler(repository);
 
         var result = await handler.HandleAsync(
-            new GetAuthenticatedUserQuery(Guid.CreateVersion7()),
+            new RefreshAuthenticationCommand(Guid.CreateVersion7()),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
@@ -35,10 +36,10 @@ public sealed class GetAuthenticatedUserHandlerTests
         repository
             .GetAuthenticatedUserByIdAsync(user.Id, Arg.Any<CancellationToken>())
             .Returns(user);
-        var handler = new GetAuthenticatedUserHandler(repository);
+        var handler = new RefreshAuthenticationHandler(repository);
 
         var result = await handler.HandleAsync(
-            new GetAuthenticatedUserQuery(user.Id),
+            new RefreshAuthenticationCommand(user.Id),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
@@ -58,10 +59,10 @@ public sealed class GetAuthenticatedUserHandlerTests
         repository
             .GetAuthenticatedUserByIdAsync(user.Id, Arg.Any<CancellationToken>())
             .Returns(user);
-        var handler = new GetAuthenticatedUserHandler(repository);
+        var handler = new RefreshAuthenticationHandler(repository);
 
         var result = await handler.HandleAsync(
-            new GetAuthenticatedUserQuery(user.Id),
+            new RefreshAuthenticationCommand(user.Id),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();

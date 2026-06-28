@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Routing;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authenticate;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Auth;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Refresh;
 
 using System.Security.Claims;
 
@@ -63,8 +65,8 @@ internal static class OpenIddictTokenEndpoint
                 return InvalidGrant("Refresh token is invalid.");
             }
 
-            var userResult = await mediator.QueryAsync(
-                new GetAuthenticatedUserQuery(userId),
+            var userResult = await mediator.SendAsync(
+                new RefreshAuthenticationCommand(userId),
                 cancellationToken);
 
             if (userResult.IsFailure)
