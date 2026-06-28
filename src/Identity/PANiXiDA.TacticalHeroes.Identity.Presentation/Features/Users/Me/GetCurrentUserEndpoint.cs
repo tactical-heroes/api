@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetAuthenticated;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Me;
 
@@ -23,7 +23,7 @@ internal sealed class GetCurrentUserEndpoint : IEndpoint<UsersEndpoints>
 
     private static async Task<IResult> HandleAsync(
         ClaimsPrincipal principal,
-        IUserAuthenticationService identityAuthenticationService,
+        IMediator mediator,
         CancellationToken cancellationToken)
     {
         var userIdValue = principal.GetClaim(OpenIddictConstants.Claims.Subject);
@@ -33,8 +33,8 @@ internal sealed class GetCurrentUserEndpoint : IEndpoint<UsersEndpoints>
             return TypedResults.Unauthorized();
         }
 
-        var result = await identityAuthenticationService.GetConfirmedUserAsync(
-            userId,
+        var result = await mediator.QueryAsync(
+            new GetAuthenticatedUserQuery(userId),
             cancellationToken);
 
         return result.ToHttpResult(user =>

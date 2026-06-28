@@ -6,8 +6,4 @@ public interface IUserAuthenticationService
         string email,
         string password,
         CancellationToken cancellationToken);
-
-    Task<Result<AuthenticatedUser>> GetConfirmedUserAsync(
-        Guid userId,
-        CancellationToken cancellationToken);
 }
