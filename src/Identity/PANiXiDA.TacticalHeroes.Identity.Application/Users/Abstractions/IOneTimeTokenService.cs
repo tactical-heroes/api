@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
-public interface IUserTokenService
+public interface IOneTimeTokenService
 {
     string GenerateToken();
 

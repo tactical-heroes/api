@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset;
 
 public sealed class RequestPasswordResetHandler(
     IUsersRepository identityUsersRepository,
-    IUserTokenService identityTokenService,
+    IOneTimeTokenService oneTimeTokenService,
     TimeProvider timeProvider)
     : ICommandHandler<RequestPasswordResetCommand, Result>
 {
@@ -25,9 +25,9 @@ public sealed class RequestPasswordResetHandler(
             return Result.Success();
         }
 
-        var passwordResetToken = identityTokenService.GenerateToken();
+        var passwordResetToken = oneTimeTokenService.GenerateToken();
         var result = user.RequestPasswordReset(
-            identityTokenService.HashToken(passwordResetToken),
+            oneTimeTokenService.HashToken(passwordResetToken),
             timeProvider.GetUtcNow().Add(PasswordResetTokenLifetime),
             passwordResetToken);
 

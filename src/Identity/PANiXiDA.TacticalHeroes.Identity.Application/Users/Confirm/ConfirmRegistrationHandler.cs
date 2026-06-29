@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Confirm;
 
 public sealed class ConfirmRegistrationHandler(
     IUsersRepository identityUsersRepository,
-    IUserTokenService identityTokenService,
+    IOneTimeTokenService oneTimeTokenService,
     TimeProvider timeProvider)
     : ICommandHandler<ConfirmRegistrationCommand, Result>
 {
@@ -31,7 +31,7 @@ public sealed class ConfirmRegistrationHandler(
         }
 
         var result = user.ConfirmRegistration(
-            identityTokenService.HashToken(command.ConfirmationToken),
+            oneTimeTokenService.HashToken(command.ConfirmationToken),
             timeProvider.GetUtcNow());
 
         if (result.IsFailure)

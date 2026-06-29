@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Register;
 public sealed class RegisterUserHandler(
     IUsersRepository identityUsersRepository,
     IPasswordHashingService passwordHashingService,
-    IUserTokenService identityTokenService,
+    IOneTimeTokenService oneTimeTokenService,
     TimeProvider timeProvider)
     : ICommandHandler<RegisterUserCommand, Result<RegisterUserResult>>
 {
@@ -36,8 +36,8 @@ public sealed class RegisterUserHandler(
                 Error.Conflict("User with this email already exists."));
         }
 
-        var confirmationToken = identityTokenService.GenerateToken();
-        var confirmationTokenHash = identityTokenService.HashToken(confirmationToken);
+        var confirmationToken = oneTimeTokenService.GenerateToken();
+        var confirmationTokenHash = oneTimeTokenService.HashToken(confirmationToken);
         var passwordHash = passwordHashingService.HashPassword(command.Password);
 
         var userResult = User.Register(

@@ -5,7 +5,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
-public sealed class UserTokenService : IUserTokenService
+public sealed class OneTimeTokenService : IOneTimeTokenService
 {
     private const int TokenByteLength = 32;
 
