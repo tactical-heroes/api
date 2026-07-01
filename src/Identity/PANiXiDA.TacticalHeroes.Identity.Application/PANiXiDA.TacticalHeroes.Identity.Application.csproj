@@ -25,11 +25,6 @@
         <Using Include="PANiXiDA.Core.Application.Messaging.Mediator.Contracts" />
         <Using Include="PANiXiDA.Core.Application.Validation" />
 
-        <Using Include="PANiXiDA.Core.SpecificationPattern.Abstractions" />
-        <Using Include="PANiXiDA.Core.SpecificationPattern.Core" />
-        <Using Include="PANiXiDA.Core.SpecificationPattern.Extensions" />
-        <Using Include="PANiXiDA.Core.SpecificationPattern.Factories" />
-
         <Using Include="FluentValidation" />
     </ItemGroup>
 </Project>

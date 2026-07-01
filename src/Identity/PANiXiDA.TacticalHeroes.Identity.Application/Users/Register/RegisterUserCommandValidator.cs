@@ -1,4 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Policies;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Register;
@@ -11,6 +10,6 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
             .MustBeValidDomainValue(Email.Create);
 
         RuleFor(command => command.Password)
-            .MustBeValidDomainValue(PasswordPolicy.Validate);
+            .NotEmpty();
     }
 }

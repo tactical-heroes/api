@@ -30,22 +30,6 @@ internal static class SchedulingServiceCollectionExtensions
                 .ForJob(PruneUnconfirmedUsersJob.Key)
                 .WithIdentity($"{nameof(PruneUnconfirmedUsersJob)}Trigger")
                 .WithCronSchedule(cleanupOptions.UnconfirmedUsersCronSchedule));
-
-            options.AddJob<PruneExpiredUserConfirmationTokensJob>(job =>
-                job.WithIdentity(PruneExpiredUserConfirmationTokensJob.Key));
-
-            options.AddTrigger(trigger => trigger
-                .ForJob(PruneExpiredUserConfirmationTokensJob.Key)
-                .WithIdentity($"{nameof(PruneExpiredUserConfirmationTokensJob)}Trigger")
-                .WithCronSchedule(cleanupOptions.ExpiredConfirmationTokensCronSchedule));
-
-            options.AddJob<PruneExpiredUserPasswordResetTokensJob>(job =>
-                job.WithIdentity(PruneExpiredUserPasswordResetTokensJob.Key));
-
-            options.AddTrigger(trigger => trigger
-                .ForJob(PruneExpiredUserPasswordResetTokensJob.Key)
-                .WithIdentity($"{nameof(PruneExpiredUserPasswordResetTokensJob)}Trigger")
-                .WithCronSchedule(cleanupOptions.ExpiredPasswordResetTokensCronSchedule));
         });
 
         serviceCollection.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);

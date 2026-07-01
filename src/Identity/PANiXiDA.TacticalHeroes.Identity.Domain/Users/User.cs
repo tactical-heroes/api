@@ -1,8 +1,5 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserConfirmationTokens;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserPasswordResetTokens;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserRoles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
@@ -10,40 +7,50 @@ namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
 public sealed class User : AggregateRoot<UserId>
 {
-    private readonly List<UserRole> _roles = [];
+    private readonly List<RoleId> _roleIds = [];
     private readonly List<UserClaim> _claims = [];
 
     private User(
         UserId id,
-        Email email,
-        PasswordHash passwordHash)
+        Email email)
         : base(id)
     {
         Email = email;
-        PasswordHash = passwordHash;
         ConfirmationStatus = UserConfirmationStatus.Unconfirmed();
     }
 
     public Email Email { get; private set; }
-    public PasswordHash PasswordHash { get; private set; }
     public UserConfirmationStatus ConfirmationStatus { get; private set; }
 
-    public UserConfirmationToken? ConfirmationToken { get; private set; }
-    public UserPasswordResetToken? PasswordResetToken { get; private set; }
-
-    public IReadOnlyCollection<UserRole> Roles => _roles;
+    public IReadOnlyCollection<RoleId> RoleIds => _roleIds;
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
-    public static Result<User> Register(
-        string email,
-        string passwordHash,
-        string confirmationTokenHash,
-        DateTimeOffset confirmationTokenExpiresAtUtc,
-        string confirmationToken)
+    public static Result<User> Register(string email)
     {
         var emailResult = Email.Create(email);
-        var passwordHashResult = PasswordHash.Create(passwordHash);
-        var validationResult = Result.Combine(emailResult, passwordHashResult);
+
+        if (emailResult.IsFailure)
+        {
+            return Result.Failure<User>(emailResult.Errors);
+        }
+
+        var user = new User(
+            UserId.New(),
+            emailResult.Value);
+
+        return Result.Success(user);
+    }
+
+    internal static Result<User> Create(
+        Guid id,
+        string email,
+        bool confirmationStatus,
+        IEnumerable<Guid> roleIds,
+        IEnumerable<(string Type, string Value)> claims)
+    {
+        var idResult = UserId.Create(id);
+        var emailResult = Email.Create(email);
+        var validationResult = Result.Combine(idResult, emailResult);
 
         if (validationResult.IsFailure)
         {
@@ -51,59 +58,62 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         var user = new User(
-            UserId.New(),
-            emailResult.Value,
-            passwordHashResult.Value);
-
-        var confirmationTokenResult = UserConfirmationToken.Create(
-            user.Id,
-            confirmationTokenHash,
-            confirmationTokenExpiresAtUtc);
-
-        if (confirmationTokenResult.IsFailure)
+            idResult.Value,
+            emailResult.Value)
         {
-            return Result.Failure<User>(
-                confirmationTokenResult.Errors);
+            ConfirmationStatus = UserConfirmationStatus.From(confirmationStatus)
+        };
+
+        foreach (var roleId in roleIds)
+        {
+            var assignRoleResult = user.AssignRole(roleId);
+
+            if (assignRoleResult.IsFailure)
+            {
+                return Result.Failure<User>(assignRoleResult.Errors);
+            }
         }
 
-        user.ConfirmationToken = confirmationTokenResult.Value;
+        foreach (var claim in claims)
+        {
+            var grantClaimResult = user.GrantClaim(claim.Type, claim.Value);
 
-        user.AddDomainEvent(
-            new AccountConfirmationRequested(
-                user.Id.Value,
-                user.Email.Value,
-                confirmationToken,
-                confirmationTokenResult.Value.ExpiresAtUtc.Value));
+            if (grantClaimResult.IsFailure)
+            {
+                return Result.Failure<User>(grantClaimResult.Errors);
+            }
+        }
 
         return Result.Success(user);
     }
 
-    public Result ConfirmRegistration(
-        string confirmationTokenHash,
-        DateTimeOffset confirmedAtUtc)
+    public Result RequestAccountConfirmation(
+        string confirmationToken,
+        DateTimeOffset expiresAtUtc)
     {
         if (ConfirmationStatus.IsConfirmed)
         {
             return Result.Success();
         }
 
-        if (ConfirmationToken is null)
-        {
-            return Result.Failure(
-                Error.Conflict("Account confirmation was not requested."));
-        }
+        AddDomainEvent(
+            new AccountConfirmationRequested(
+                Id.Value,
+                Email.Value,
+                confirmationToken,
+                expiresAtUtc));
 
-        var validationResult = ConfirmationToken.Validate(
-            confirmationTokenHash,
-            confirmedAtUtc);
+        return Result.Success();
+    }
 
-        if (validationResult.IsFailure)
+    public Result ConfirmRegistration()
+    {
+        if (ConfirmationStatus.IsConfirmed)
         {
-            return validationResult;
+            return Result.Success();
         }
 
         ConfirmationStatus = UserConfirmationStatus.Confirmed();
-        ConfirmationToken = null;
 
         AddDomainEvent(
             new UserRegistered(
@@ -114,9 +124,8 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     public Result RequestPasswordReset(
-        string passwordResetTokenHash,
-        DateTimeOffset passwordResetTokenExpiresAtUtc,
-        string passwordResetToken)
+        string passwordResetToken,
+        DateTimeOffset expiresAtUtc)
     {
         if (!ConfirmationStatus.IsConfirmed)
         {
@@ -124,58 +133,12 @@ public sealed class User : AggregateRoot<UserId>
                 Error.Conflict("Cannot reset password for unconfirmed account."));
         }
 
-        var passwordResetTokenResult = UserPasswordResetToken.Create(
-            Id,
-            passwordResetTokenHash,
-            passwordResetTokenExpiresAtUtc);
-
-        if (passwordResetTokenResult.IsFailure)
-        {
-            return Result.Failure(
-                passwordResetTokenResult.Errors);
-        }
-
-        PasswordResetToken = passwordResetTokenResult.Value;
-
         AddDomainEvent(
             new PasswordResetRequested(
                 Id.Value,
                 Email.Value,
                 passwordResetToken,
-                passwordResetTokenResult.Value.ExpiresAtUtc.Value));
-
-        return Result.Success();
-    }
-
-    public Result ResetPassword(
-        string passwordResetTokenHash,
-        string passwordHash,
-        DateTimeOffset resetAtUtc)
-    {
-        if (PasswordResetToken is null)
-        {
-            return Result.Failure(
-                Error.Conflict("Password reset was not requested."));
-        }
-
-        var validationResult = PasswordResetToken.Validate(
-            passwordResetTokenHash,
-            resetAtUtc);
-
-        if (validationResult.IsFailure)
-        {
-            return validationResult;
-        }
-
-        var passwordHashResult = PasswordHash.Create(passwordHash);
-
-        if (passwordHashResult.IsFailure)
-        {
-            return Result.Failure(passwordHashResult.Errors);
-        }
-
-        PasswordHash = passwordHashResult.Value;
-        PasswordResetToken = null;
+                expiresAtUtc));
 
         return Result.Success();
     }
@@ -189,19 +152,12 @@ public sealed class User : AggregateRoot<UserId>
             return Result.Failure(roleIdResult.Errors);
         }
 
-        var roleResult = UserRole.Create(Id, roleIdResult.Value);
-
-        if (roleResult.IsFailure)
-        {
-            return Result.Failure(roleResult.Errors);
-        }
-
-        if (_roles.Any(role => role.RoleId == roleResult.Value.RoleId))
+        if (_roleIds.Contains(roleIdResult.Value))
         {
             return Result.Success();
         }
 
-        _roles.Add(roleResult.Value);
+        _roleIds.Add(roleIdResult.Value);
 
         return Result.Success();
     }

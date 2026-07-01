@@ -1,8 +1,20 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 
-public interface IRolesRepository : IRepository<RoleId, Role>
+public interface IRolesRepository
 {
-    Task<IReadOnlyCollection<Role>> GetBySpecificationAsync(
-        ISpecification<Role> specification,
+    Task<Role?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken);
+
+    Task<Result> AddAsync(
+        Role aggregateRoot,
+        CancellationToken cancellationToken);
+
+    Task<Result> UpdateAsync(
+        Role aggregateRoot,
+        CancellationToken cancellationToken);
+
+    Task<Result> DeleteAsync(
+        Role aggregateRoot,
         CancellationToken cancellationToken);
 }

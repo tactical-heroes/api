@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
@@ -14,16 +15,36 @@ public sealed class IdentityReadDbContext(
     {
         base.OnModelCreating(modelBuilder);
 
+        ConfigureUser(modelBuilder);
+        ConfigureRole(modelBuilder);
         ConfigureUserRole(modelBuilder);
-        ConfigureUserConfirmationToken(modelBuilder);
-        ConfigureUserPasswordResetToken(modelBuilder);
+        ConfigureUserClaim(modelBuilder);
+        ConfigureRoleClaim(modelBuilder);
+        ConfigureUserToken(modelBuilder);
+        ConfigureUserLogin(modelBuilder);
+    }
+
+    private static void ConfigureUser(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UserReadDbModel>(builder =>
+        {
+            builder.ToTable("asp_net_users", "identity");
+        });
+    }
+
+    private static void ConfigureRole(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RoleReadDbModel>(builder =>
+        {
+            builder.ToTable("asp_net_roles", "identity");
+        });
     }
 
     private static void ConfigureUserRole(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserRoleReadDbModel>(builder =>
         {
-            builder.ToTable("user_roles", "identity");
+            builder.ToTable("asp_net_user_roles", "identity");
             builder.HasKey(userRole => new
             {
                 userRole.UserId,
@@ -32,21 +53,46 @@ public sealed class IdentityReadDbContext(
         });
     }
 
-    private static void ConfigureUserConfirmationToken(ModelBuilder modelBuilder)
+    private static void ConfigureUserClaim(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserConfirmationTokenReadDbModel>(builder =>
+        modelBuilder.Entity<UserClaimReadDbModel>(builder =>
         {
-            builder.ToTable("user_confirmation_tokens", "identity");
-            builder.HasKey(token => token.UserId);
+            builder.ToTable("asp_net_user_claims", "identity");
         });
     }
 
-    private static void ConfigureUserPasswordResetToken(ModelBuilder modelBuilder)
+    private static void ConfigureRoleClaim(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserPasswordResetTokenReadDbModel>(builder =>
+        modelBuilder.Entity<RoleClaimReadDbModel>(builder =>
         {
-            builder.ToTable("user_password_reset_tokens", "identity");
-            builder.HasKey(token => token.UserId);
+            builder.ToTable("asp_net_role_claims", "identity");
+        });
+    }
+
+    private static void ConfigureUserToken(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UserTokenReadDbModel>(builder =>
+        {
+            builder.ToTable("asp_net_user_tokens", "identity");
+            builder.HasKey(token => new
+            {
+                token.UserId,
+                token.LoginProvider,
+                token.Name
+            });
+        });
+    }
+
+    private static void ConfigureUserLogin(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UserLoginReadDbModel>(builder =>
+        {
+            builder.ToTable("asp_net_user_logins", "identity");
+            builder.HasKey(login => new
+            {
+                login.LoginProvider,
+                login.ProviderKey
+            });
         });
     }
 }

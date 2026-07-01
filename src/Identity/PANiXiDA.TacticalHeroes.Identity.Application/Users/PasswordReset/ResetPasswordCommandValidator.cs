@@ -1,5 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Policies;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset;
 
 public sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordCommand>
@@ -13,6 +11,6 @@ public sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPassw
             .NotEmpty();
 
         RuleFor(command => command.NewPassword)
-            .MustBeValidDomainValue(PasswordPolicy.Validate);
+            .NotEmpty();
     }
 }

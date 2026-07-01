@@ -20,16 +20,33 @@ public sealed class Role : AggregateRoot<RoleId>
 
     public IReadOnlyCollection<RoleClaim> Claims => _claims;
 
-    public static Result<Role> Create(string name)
+    internal static Result<Role> Create(
+        Guid id,
+        string name,
+        IEnumerable<(string Type, string Value)> claims)
     {
+        var idResult = RoleId.Create(id);
         var nameResult = RoleName.Create(name);
+        var validationResult = Result.Combine(idResult, nameResult);
 
-        if (nameResult.IsFailure)
+        if (validationResult.IsFailure)
         {
-            return Result.Failure<Role>(nameResult.Errors);
+            return Result.Failure<Role>(validationResult.Errors);
         }
 
-        return Result.Success(new Role(RoleId.New(), nameResult.Value));
+        var role = new Role(idResult.Value, nameResult.Value);
+
+        foreach (var claim in claims)
+        {
+            var grantClaimResult = role.GrantClaim(claim.Type, claim.Value);
+
+            if (grantClaimResult.IsFailure)
+            {
+                return Result.Failure<Role>(grantClaimResult.Errors);
+            }
+        }
+
+        return Result.Success(role);
     }
 
     public Result GrantClaim(string type, string value)

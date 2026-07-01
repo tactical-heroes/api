@@ -11,23 +11,23 @@ internal sealed class AuthenticatedUserReadModelMapper :
     {
         return query.Select(user => new AuthenticatedUserReadModel(
             user.Id,
-            user.Email,
-            user.ConfirmationStatus,
+            user.Email!,
+            user.EmailConfirmed,
             user.Roles
                 .Where(userRole => userRole.Role != null)
-                .Select(userRole => userRole.Role!.Name)
+                .Select(userRole => userRole.Role!.Name!)
                 .ToArray(),
             user.Claims
                 .Select(claim => new AuthenticatedUserClaimReadModel(
-                    claim.Type,
-                    claim.Value))
+                    claim.ClaimType!,
+                    claim.ClaimValue!))
                 .ToArray(),
             user.Roles
                 .Where(userRole => userRole.Role != null)
                 .SelectMany(userRole => userRole.Role!.Claims)
                 .Select(claim => new AuthenticatedUserClaimReadModel(
-                    claim.Type,
-                    claim.Value))
+                    claim.ClaimType!,
+                    claim.ClaimValue!))
                 .ToArray()));
     }
 }

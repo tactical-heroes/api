@@ -1,8 +1,13 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.TacticalHeroes.Identity.Application;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+
+using Wolverine;
 
 using System.Reflection;
 
@@ -19,10 +24,19 @@ public static class HostBuilderExtensions
             ?? throw new InvalidOperationException(
                 $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
 
-        hostBuilder.UseWolverineMediator<IdentityWriteDbContext>(
-            messageStoreConnectionString,
-            ApplicationAssembly.Instance,
-            Assembly.GetExecutingAssembly());
+        hostBuilder
+            .UseWolverineMediator<IdentityWriteDbContext>(
+                messageStoreConnectionString,
+                ApplicationAssembly.Instance,
+                Assembly.GetExecutingAssembly())
+            .ConfigureServices(services =>
+            {
+                services.ConfigureWolverine(options =>
+                {
+                    options.CodeGeneration.AlwaysUseServiceLocationFor<UserManager<ApplicationUser>>();
+                    options.CodeGeneration.AlwaysUseServiceLocationFor<RoleManager<ApplicationRole>>();
+                });
+            });
 
         return hostBuilder;
     }

@@ -1,34 +1,19 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Policies;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Specifications;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Register;
 
 public sealed class RegisterUserHandler(
     IUsersRepository identityUsersRepository,
-    IPasswordHashingService passwordHashingService,
-    IOneTimeTokenService oneTimeTokenService,
-    TimeProvider timeProvider)
+    IUserCredentialsService userCredentialsService)
     : ICommandHandler<RegisterUserCommand, Result<RegisterUserResult>>
 {
-    private static readonly TimeSpan ConfirmationTokenLifetime = TimeSpan.FromHours(24);
-
     public async Task<Result<RegisterUserResult>> HandleAsync(
         RegisterUserCommand command,
         CancellationToken cancellationToken)
     {
-        var passwordResult = PasswordPolicy.Validate(command.Password);
-
-        if (passwordResult.IsFailure)
-        {
-            return Result.Failure<RegisterUserResult>(passwordResult.Errors);
-        }
-
-        var existingUser = await identityUsersRepository.GetBySpecificationAsync(
-            new UserByEmailSpecification(command.Email),
-            cancellationToken);
+        var existingUser = await identityUsersRepository.GetByEmailAsync(command.Email, cancellationToken);
 
         if (existingUser is not null)
         {
@@ -36,23 +21,49 @@ public sealed class RegisterUserHandler(
                 Error.Conflict("User with this email already exists."));
         }
 
-        var confirmationToken = oneTimeTokenService.GenerateToken();
-        var confirmationTokenHash = oneTimeTokenService.HashToken(confirmationToken);
-        var passwordHash = passwordHashingService.HashPassword(command.Password);
-
-        var userResult = User.Register(
-            command.Email,
-            passwordHash,
-            confirmationTokenHash,
-            timeProvider.GetUtcNow().Add(ConfirmationTokenLifetime),
-            confirmationToken);
+        var userResult = User.Register(command.Email);
 
         if (userResult.IsFailure)
         {
             return Result.Failure<RegisterUserResult>(userResult.Errors);
         }
 
-        await identityUsersRepository.AddAsync(userResult.Value, cancellationToken);
+        var addUserResult = await identityUsersRepository.AddAsync(
+            userResult.Value,
+            command.Password,
+            cancellationToken);
+
+        if (addUserResult.IsFailure)
+        {
+            return Result.Failure<RegisterUserResult>(addUserResult.Errors);
+        }
+
+        var confirmationTokenResult = await userCredentialsService.GenerateEmailConfirmationTokenAsync(
+            userResult.Value,
+            cancellationToken);
+
+        if (confirmationTokenResult.IsFailure)
+        {
+            return Result.Failure<RegisterUserResult>(confirmationTokenResult.Errors);
+        }
+
+        var requestConfirmationResult = userResult.Value.RequestAccountConfirmation(
+            confirmationTokenResult.Value.Value,
+            confirmationTokenResult.Value.ExpiresAtUtc);
+
+        if (requestConfirmationResult.IsFailure)
+        {
+            return Result.Failure<RegisterUserResult>(requestConfirmationResult.Errors);
+        }
+
+        var updateUserResult = await identityUsersRepository.UpdateAsync(
+            userResult.Value,
+            cancellationToken);
+
+        if (updateUserResult.IsFailure)
+        {
+            return Result.Failure<RegisterUserResult>(updateUserResult.Errors);
+        }
 
         return Result.Success(new RegisterUserResult(userResult.Value.Id.Value));
     }

@@ -1,15 +1,17 @@
+using System.Security.Claims;
+
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Read;
@@ -17,15 +19,20 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    private const string Password = "StrongPassword1";
+
     [Fact(DisplayName = "GetAuthenticatedUserByIdAsync should return confirmed user with roles and claims")]
     public async Task GetAuthenticatedUserByIdAsync_Should_ReturnConfirmedUserWithRolesAndClaims()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var role = Role.Create("admin").Value;
-        role.GrantClaim(AuthorizationClaimTypes.Permission, "identity.users.manage").IsSuccess.ShouldBeTrue();
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "admin"
+        };
 
         var user = CreateConfirmedUser();
-        user.AssignRole(role.Id.Value).IsSuccess.ShouldBeTrue();
+        user.AssignRole(role.Id).IsSuccess.ShouldBeTrue();
         user.GrantClaim(AuthorizationClaimTypes.Permission, "identity.profile.read").IsSuccess.ShouldBeTrue();
 
         await AddAsync(role, user, cancellationToken);
@@ -58,65 +65,38 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
             .Include(readRole => readRole.Claims)
             .Include(readRole => readRole.Users)
             .ThenInclude(userRole => userRole.User)
-            .SingleAsync(readRole => readRole.Id == role.Id.Value, cancellationToken);
+            .SingleAsync(readRole => readRole.Id == role.Id, cancellationToken);
 
-        userReadModel.Claims.ShouldHaveSingleItem().Value.ShouldBe("identity.profile.read");
+        userReadModel.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("identity.profile.read");
         userReadModel.Roles.ShouldHaveSingleItem().Role!.Name.ShouldBe("admin");
-        roleReadModel.Claims.ShouldHaveSingleItem().Value.ShouldBe("identity.users.manage");
+        roleReadModel.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("identity.users.manage");
         roleReadModel.Users.ShouldHaveSingleItem().User!.Email.ShouldBe("hero@example.com");
     }
 
-    [Fact(DisplayName = "Read user should include confirmation and password reset tokens")]
-    public async Task ReadUser_Should_IncludeConfirmationAndPasswordResetTokens()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var unconfirmedUser = User.Register(
-                "unconfirmed@example.com",
-                "password-hash",
-                "confirmation-token-hash",
-                DateTimeOffset.UtcNow.AddHours(1),
-                "confirmation-token")
-            .Value;
-        var confirmedUser = CreateConfirmedUser("confirmed@example.com");
-        confirmedUser.RequestPasswordReset(
-                "password-reset-token-hash",
-                DateTimeOffset.UtcNow.AddHours(1),
-                "password-reset-token")
-            .IsSuccess.ShouldBeTrue();
-
-        await AddAsync(unconfirmedUser, confirmedUser, cancellationToken);
-
-        await using var scope = Fixture.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityReadDbContext>();
-
-        var unconfirmedReadModel = await dbContext.Set<UserReadDbModel>()
-            .Include(user => user.ConfirmationToken)
-            .SingleAsync(user => user.Id == unconfirmedUser.Id.Value, cancellationToken);
-        var confirmedReadModel = await dbContext.Set<UserReadDbModel>()
-            .Include(user => user.PasswordResetToken)
-            .SingleAsync(user => user.Id == confirmedUser.Id.Value, cancellationToken);
-
-        unconfirmedReadModel.ConfirmationToken.ShouldNotBeNull();
-        unconfirmedReadModel.ConfirmationToken.TokenHash.ShouldBe("confirmation-token-hash");
-        confirmedReadModel.PasswordResetToken.ShouldNotBeNull();
-        confirmedReadModel.PasswordResetToken.TokenHash.ShouldBe("password-reset-token-hash");
-    }
-
     private async Task AddAsync(
-        Role role,
+        ApplicationRole role,
         User user,
         CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
-        var rolesRepository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var usersRepository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         await unitOfWork.ExecuteInTransactionAsync(
             async ct =>
             {
-                await rolesRepository.AddAsync(role, ct);
-                await usersRepository.AddAsync(user, ct);
+                var createRoleResult = await roleManager.CreateAsync(role);
+
+                createRoleResult.Succeeded.ShouldBeTrue();
+
+                var addRoleClaimResult = await roleManager.AddClaimAsync(
+                    role,
+                    new Claim(AuthorizationClaimTypes.Permission, "identity.users.manage"));
+
+                addRoleClaimResult.Succeeded.ShouldBeTrue();
+
+                await usersRepository.AddAsync(user, Password, ct);
             },
             cancellationToken);
     }
@@ -133,27 +113,19 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         await unitOfWork.ExecuteInTransactionAsync(
             async ct =>
             {
-                await usersRepository.AddAsync(firstUser, ct);
-                await usersRepository.AddAsync(secondUser, ct);
+                await usersRepository.AddAsync(firstUser, Password, ct);
+                await usersRepository.AddAsync(secondUser, Password, ct);
             },
             cancellationToken);
     }
 
     private static User CreateConfirmedUser(string email = "hero@example.com")
     {
-        const string confirmationTokenHash = "confirmation-token-hash";
-
         var user = User.Register(
-                email,
-                "password-hash",
-                confirmationTokenHash,
-                DateTimeOffset.UtcNow.AddHours(1),
-                "confirmation-token")
+                email)
             .Value;
 
-        user.ConfirmRegistration(
-                confirmationTokenHash,
-                DateTimeOffset.UtcNow)
+        user.ConfirmRegistration()
             .IsSuccess.ShouldBeTrue();
 
         return user;

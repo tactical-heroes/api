@@ -1,28 +1,19 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Confirm;
 
 public sealed class ConfirmRegistrationHandler(
     IUsersRepository identityUsersRepository,
-    IOneTimeTokenService oneTimeTokenService,
-    TimeProvider timeProvider)
+    IUserCredentialsService userCredentialsService)
     : ICommandHandler<ConfirmRegistrationCommand, Result>
 {
     public async Task<Result> HandleAsync(
         ConfirmRegistrationCommand command,
         CancellationToken cancellationToken)
     {
-        var userIdResult = UserId.Create(command.UserId);
-
-        if (userIdResult.IsFailure)
-        {
-            return Result.Failure(userIdResult.Errors);
-        }
-
         var user = await identityUsersRepository.GetByIdAsync(
-            userIdResult.Value,
+            command.UserId,
             cancellationToken);
 
         if (user is null)
@@ -30,17 +21,23 @@ public sealed class ConfirmRegistrationHandler(
             return Result.Failure(Error.NotFound("User was not found."));
         }
 
-        var result = user.ConfirmRegistration(
-            oneTimeTokenService.HashToken(command.ConfirmationToken),
-            timeProvider.GetUtcNow());
+        var confirmEmailResult = await userCredentialsService.ConfirmEmailAsync(
+            user,
+            command.ConfirmationToken,
+            cancellationToken);
+
+        if (confirmEmailResult.IsFailure)
+        {
+            return confirmEmailResult;
+        }
+
+        var result = user.ConfirmRegistration();
 
         if (result.IsFailure)
         {
             return result;
         }
 
-        await identityUsersRepository.UpdateAsync(user, cancellationToken);
-
-        return Result.Success();
+        return await identityUsersRepository.UpdateAsync(user, cancellationToken);
     }
 }

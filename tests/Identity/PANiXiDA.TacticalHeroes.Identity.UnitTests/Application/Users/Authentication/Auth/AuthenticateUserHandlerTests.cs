@@ -1,5 +1,3 @@
-using PANiXiDA.Core.SpecificationPattern.Abstractions;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Auth;
@@ -12,8 +10,6 @@ public sealed class AuthenticateUserHandlerTests
 {
     private const string Email = "hero@example.com";
     private const string Password = "StrongPassword1";
-    private const string PasswordHash = "password-hash";
-    private const string ConfirmationTokenHash = "confirmation-token-hash";
 
     [Fact(DisplayName = "Handle should return unauthorized when user does not exist")]
     public async Task Handle_Should_ReturnUnauthorized_When_UserDoesNotExist()
@@ -34,16 +30,16 @@ public sealed class AuthenticateUserHandlerTests
     {
         var user = CreateConfirmedUser();
         var usersRepository = Substitute.For<IUsersRepository>();
-        var passwordHashingService = Substitute.For<IPasswordHashingService>();
+        var userCredentialsService = Substitute.For<IUserCredentialsService>();
         usersRepository
-            .GetBySpecificationAsync(Arg.Any<ISpecification<User>>(), Arg.Any<CancellationToken>())
+            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
             .Returns(user);
-        passwordHashingService
-            .VerifyPassword(user.PasswordHash, Password)
+        userCredentialsService
+            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
             .Returns(false);
         var handler = CreateHandler(
             usersRepository,
-            passwordHashingService);
+            userCredentialsService);
 
         var result = await handler.HandleAsync(
             new AuthenticateUserCommand(Email, Password),
@@ -58,16 +54,16 @@ public sealed class AuthenticateUserHandlerTests
     {
         var user = CreateUser();
         var usersRepository = Substitute.For<IUsersRepository>();
-        var passwordHashingService = Substitute.For<IPasswordHashingService>();
+        var userCredentialsService = Substitute.For<IUserCredentialsService>();
         usersRepository
-            .GetBySpecificationAsync(Arg.Any<ISpecification<User>>(), Arg.Any<CancellationToken>())
+            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
             .Returns(user);
-        passwordHashingService
-            .VerifyPassword(user.PasswordHash, Password)
+        userCredentialsService
+            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
             .Returns(true);
         var handler = CreateHandler(
             usersRepository,
-            passwordHashingService);
+            userCredentialsService);
 
         var result = await handler.HandleAsync(
             new AuthenticateUserCommand(Email, Password),
@@ -82,20 +78,20 @@ public sealed class AuthenticateUserHandlerTests
     {
         var user = CreateConfirmedUser();
         var usersRepository = Substitute.For<IUsersRepository>();
-        var passwordHashingService = Substitute.For<IPasswordHashingService>();
+        var userCredentialsService = Substitute.For<IUserCredentialsService>();
         var usersReadRepository = Substitute.For<IUsersReadRepository>();
         usersRepository
-            .GetBySpecificationAsync(Arg.Any<ISpecification<User>>(), Arg.Any<CancellationToken>())
+            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
             .Returns(user);
-        passwordHashingService
-            .VerifyPassword(user.PasswordHash, Password)
+        userCredentialsService
+            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
             .Returns(true);
         usersReadRepository
             .GetAuthenticatedUserByIdAsync(user.Id.Value, Arg.Any<CancellationToken>())
             .Returns((AuthenticatedUserReadModel?)null);
         var handler = CreateHandler(
             usersRepository,
-            passwordHashingService,
+            userCredentialsService,
             usersReadRepository);
 
         var result = await handler.HandleAsync(
@@ -117,20 +113,20 @@ public sealed class AuthenticateUserHandlerTests
             Roles: ["admin"],
             Claims: [new AuthenticatedUserClaimReadModel("permission", "identity.users.manage")]);
         var usersRepository = Substitute.For<IUsersRepository>();
-        var passwordHashingService = Substitute.For<IPasswordHashingService>();
+        var userCredentialsService = Substitute.For<IUserCredentialsService>();
         var usersReadRepository = Substitute.For<IUsersReadRepository>();
         usersRepository
-            .GetBySpecificationAsync(Arg.Any<ISpecification<User>>(), Arg.Any<CancellationToken>())
+            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
             .Returns(user);
-        passwordHashingService
-            .VerifyPassword(user.PasswordHash, Password)
+        userCredentialsService
+            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
             .Returns(true);
         usersReadRepository
             .GetAuthenticatedUserByIdAsync(user.Id.Value, Arg.Any<CancellationToken>())
             .Returns(authenticatedUser);
         var handler = CreateHandler(
             usersRepository,
-            passwordHashingService,
+            userCredentialsService,
             usersReadRepository);
 
         var result = await handler.HandleAsync(
@@ -143,12 +139,12 @@ public sealed class AuthenticateUserHandlerTests
 
     private static AuthenticateUserHandler CreateHandler(
         IUsersRepository? usersRepository = null,
-        IPasswordHashingService? passwordHashingService = null,
+        IUserCredentialsService? userCredentialsService = null,
         IUsersReadRepository? usersReadRepository = null)
     {
         return new AuthenticateUserHandler(
             usersRepository ?? Substitute.For<IUsersRepository>(),
-            passwordHashingService ?? Substitute.For<IPasswordHashingService>(),
+            userCredentialsService ?? Substitute.For<IUserCredentialsService>(),
             usersReadRepository ?? Substitute.For<IUsersReadRepository>());
     }
 
@@ -156,9 +152,7 @@ public sealed class AuthenticateUserHandlerTests
     {
         var user = CreateUser();
 
-        user.ConfirmRegistration(
-                ConfirmationTokenHash,
-                DateTimeOffset.UtcNow)
+        user.ConfirmRegistration()
             .IsSuccess.ShouldBeTrue();
 
         return user;
@@ -167,11 +161,7 @@ public sealed class AuthenticateUserHandlerTests
     private static User CreateUser()
     {
         return User.Register(
-                Email,
-                PasswordHash,
-                ConfirmationTokenHash,
-                DateTimeOffset.UtcNow.AddHours(1),
-                "confirmation-token")
+                Email)
             .Value;
     }
 }

@@ -1,10 +1,10 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
 
-public sealed class RoleClaimReadDbModel : ReadDbModel<Guid>
+public sealed class RoleClaimReadDbModel : ReadDbModel<int>
 {
-    public string Type { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
     public Guid RoleId { get; set; }
+    public string? ClaimType { get; set; }
+    public string? ClaimValue { get; set; }
 
     public RoleReadDbModel? Role { get; set; }
 }

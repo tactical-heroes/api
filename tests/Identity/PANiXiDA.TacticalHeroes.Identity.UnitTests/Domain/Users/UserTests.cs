@@ -6,39 +6,46 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users;
 
 public sealed class UserTests
 {
-    [Fact(DisplayName = "Register should create unconfirmed user and raise confirmation requested event")]
-    public void Register_Should_CreateUnconfirmedUser_And_RaiseConfirmationRequestedEvent()
+    [Fact(DisplayName = "Register should create unconfirmed user")]
+    public void Register_Should_CreateUnconfirmedUser()
     {
-        var user = CreateUser("confirmation-token", out var confirmationTokenHash);
+        var user = CreateUser();
 
         user.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
-        user.ConfirmationToken.ShouldNotBeNull();
-        user.ConfirmationToken.Id.UserId.ShouldBe(user.Id);
-        user.ConfirmationToken.TokenHash.Value.ShouldBe(confirmationTokenHash);
+        user.GetDomainEvents().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Request account confirmation should raise confirmation requested event")]
+    public void RequestAccountConfirmation_Should_RaiseConfirmationRequestedEvent()
+    {
+        var user = CreateUser();
+        var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(24);
+
+        var result = user.RequestAccountConfirmation(
+            "confirmation-token",
+            expiresAtUtc);
 
         var confirmationEvent = user.GetDomainEvents()
             .OfType<AccountConfirmationRequested>()
             .Single();
 
+        result.IsSuccess.ShouldBeTrue();
         confirmationEvent.UserId.ShouldBe(user.Id.Value);
         confirmationEvent.Email.ShouldBe(user.Email.Value);
         confirmationEvent.ConfirmationToken.ShouldBe("confirmation-token");
-        confirmationEvent.ExpiresAtUtc.ShouldBe(user.ConfirmationToken.ExpiresAtUtc.Value);
+        confirmationEvent.ExpiresAtUtc.ShouldBe(expiresAtUtc);
     }
 
     [Fact(DisplayName = "Confirm registration should confirm user and raise registered event")]
     public void ConfirmRegistration_Should_ConfirmUser_And_RaiseRegisteredEvent()
     {
-        var user = CreateUser("confirmation-token", out var confirmationTokenHash);
+        var user = CreateUser();
         user.ClearDomainEvents();
 
-        var result = user.ConfirmRegistration(
-            confirmationTokenHash,
-            DateTimeOffset.UtcNow);
+        var result = user.ConfirmRegistration();
 
         result.IsSuccess.ShouldBeTrue();
         user.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
-        user.ConfirmationToken.ShouldBeNull();
 
         var registeredEvent = user.GetDomainEvents()
             .OfType<UserRegistered>()
@@ -51,19 +58,16 @@ public sealed class UserTests
     [Fact(DisplayName = "Request password reset should require confirmed account and raise password reset event")]
     public void RequestPasswordReset_Should_RequireConfirmedAccount_And_RaisePasswordResetEvent()
     {
-        var user = CreateUser("confirmation-token", out var confirmationTokenHash);
-        user.ConfirmRegistration(confirmationTokenHash, DateTimeOffset.UtcNow);
+        var user = CreateUser();
+        var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(1);
+        user.ConfirmRegistration();
         user.ClearDomainEvents();
 
-        const string passwordResetTokenHash = "password-reset-token-hash";
         var result = user.RequestPasswordReset(
-            passwordResetTokenHash,
-            DateTimeOffset.UtcNow.AddHours(1),
-            "password-reset-token");
+            "password-reset-token",
+            expiresAtUtc);
 
         result.IsSuccess.ShouldBeTrue();
-        user.PasswordResetToken.ShouldNotBeNull();
-        user.PasswordResetToken.TokenHash.Value.ShouldBe(passwordResetTokenHash);
 
         var passwordResetEvent = user.GetDomainEvents()
             .OfType<PasswordResetRequested>()
@@ -72,13 +76,13 @@ public sealed class UserTests
         passwordResetEvent.UserId.ShouldBe(user.Id.Value);
         passwordResetEvent.Email.ShouldBe(user.Email.Value);
         passwordResetEvent.PasswordResetToken.ShouldBe("password-reset-token");
-        passwordResetEvent.ExpiresAtUtc.ShouldBe(user.PasswordResetToken.ExpiresAtUtc.Value);
+        passwordResetEvent.ExpiresAtUtc.ShouldBe(expiresAtUtc);
     }
 
     [Fact(DisplayName = "Assign role should store role id once")]
     public void AssignRole_Should_StoreRoleIdOnce()
     {
-        var user = CreateUser("confirmation-token", out _);
+        var user = CreateUser();
         var roleId = RoleId.New();
 
         var firstResult = user.AssignRole(roleId.Value);
@@ -86,16 +90,14 @@ public sealed class UserTests
 
         firstResult.IsSuccess.ShouldBeTrue();
         secondResult.IsSuccess.ShouldBeTrue();
-        user.Roles.Count.ShouldBe(1);
-        user.Roles.Single().Id.UserId.ShouldBe(user.Id);
-        user.Roles.Single().Id.RoleId.ShouldBe(roleId);
-        user.Roles.Single().RoleId.ShouldBe(roleId);
+        user.RoleIds.Count.ShouldBe(1);
+        user.RoleIds.Single().ShouldBe(roleId);
     }
 
     [Fact(DisplayName = "Grant claim should store claim type and value once")]
     public void GrantClaim_Should_StoreClaimTypeAndValueOnce()
     {
-        var user = CreateUser("confirmation-token", out _);
+        var user = CreateUser();
 
         var firstResult = user.GrantClaim("permission", "identity.users.manage");
         var secondResult = user.GrantClaim("permission", "identity.users.manage");
@@ -107,18 +109,10 @@ public sealed class UserTests
         user.Claims.Single().Value.Value.ShouldBe("identity.users.manage");
     }
 
-    private static User CreateUser(
-        string confirmationToken,
-        out string confirmationTokenHash)
+    private static User CreateUser()
     {
-        confirmationTokenHash = "confirmation-token-hash";
-
         var userResult = User.Register(
-            "hero@example.com",
-            "password-hash",
-            confirmationTokenHash,
-            DateTimeOffset.UtcNow.AddHours(1),
-            confirmationToken);
+            "hero@example.com");
 
         userResult.IsSuccess.ShouldBeTrue();
 

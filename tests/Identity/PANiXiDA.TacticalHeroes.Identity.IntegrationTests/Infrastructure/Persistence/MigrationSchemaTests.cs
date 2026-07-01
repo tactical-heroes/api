@@ -11,17 +11,17 @@ public sealed class MigrationSchemaTests(IntegrationTestFixture fixture)
         var expectedIdentityTables = new[]
         {
             "__ef_migrations_history",
+            "asp_net_role_claims",
+            "asp_net_roles",
+            "asp_net_user_claims",
+            "asp_net_user_logins",
+            "asp_net_user_roles",
+            "asp_net_user_tokens",
+            "asp_net_users",
             "open_iddict_applications",
             "open_iddict_authorizations",
             "open_iddict_scopes",
-            "open_iddict_tokens",
-            "role_claims",
-            "roles",
-            "user_claims",
-            "user_confirmation_tokens",
-            "user_password_reset_tokens",
-            "user_roles",
-            "users"
+            "open_iddict_tokens"
         };
 
         await using var connection = new NpgsqlConnection(Fixture.ConnectionString);

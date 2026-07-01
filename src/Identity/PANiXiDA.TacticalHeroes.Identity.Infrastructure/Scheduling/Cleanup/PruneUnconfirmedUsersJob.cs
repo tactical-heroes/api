@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
 
 using Quartz;
@@ -30,13 +29,11 @@ internal sealed class PruneUnconfirmedUsersJob(
             .GetUtcNow()
             .Subtract(options.Value.UnconfirmedUserRetention)
             .UtcDateTime;
-        var unconfirmedStatus = UserConfirmationStatus.Unconfirmed();
 
-        await dbContext.Set<User>()
-            .IgnoreAutoIncludes()
+        await dbContext.Set<ApplicationUser>()
             .Where(user =>
-                user.ConfirmationStatus == unconfirmedStatus &&
-                EF.Property<DateTime>(user, EfConstants.CreatedAt) < deleteBeforeUtc)
+                !user.EmailConfirmed &&
+                user.CreatedAt < deleteBeforeUtc)
             .ExecuteDeleteAsync(cancellationToken);
     }
 }

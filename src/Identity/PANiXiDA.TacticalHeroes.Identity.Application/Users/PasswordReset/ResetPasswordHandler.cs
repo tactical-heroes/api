@@ -1,32 +1,19 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Policies;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset;
 
 public sealed class ResetPasswordHandler(
     IUsersRepository identityUsersRepository,
-    IOneTimeTokenService oneTimeTokenService,
-    IPasswordHashingService passwordHashingService,
-    TimeProvider timeProvider)
+    IUserCredentialsService userCredentialsService)
     : ICommandHandler<ResetPasswordCommand, Result>
 {
     public async Task<Result> HandleAsync(
         ResetPasswordCommand command,
         CancellationToken cancellationToken)
     {
-        var userIdResult = UserId.Create(command.UserId);
-        var passwordResult = PasswordPolicy.Validate(command.NewPassword);
-        var validationResult = Result.Combine(userIdResult, passwordResult);
-
-        if (validationResult.IsFailure)
-        {
-            return Result.Failure(validationResult.Errors);
-        }
-
         var user = await identityUsersRepository.GetByIdAsync(
-            userIdResult.Value,
+            command.UserId,
             cancellationToken);
 
         if (user is null)
@@ -34,18 +21,10 @@ public sealed class ResetPasswordHandler(
             return Result.Failure(Error.NotFound("User was not found."));
         }
 
-        var result = user.ResetPassword(
-            oneTimeTokenService.HashToken(command.PasswordResetToken),
-            passwordHashingService.HashPassword(command.NewPassword),
-            timeProvider.GetUtcNow());
-
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
-        await identityUsersRepository.UpdateAsync(user, cancellationToken);
-
-        return Result.Success();
+        return await userCredentialsService.ResetPasswordAsync(
+            user,
+            command.PasswordResetToken,
+            command.NewPassword,
+            cancellationToken);
     }
 }
