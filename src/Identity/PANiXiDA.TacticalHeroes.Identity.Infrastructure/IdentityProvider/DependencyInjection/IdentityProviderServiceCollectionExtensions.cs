@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,6 +6,7 @@ using OpenIddict.Validation.AspNetCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
@@ -15,8 +17,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Depen
 
 internal static class IdentityProviderServiceCollectionExtensions
 {
-    private const int MinimumPasswordLength = 8;
-
     public static IServiceCollection AddIdentityProvider(
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
@@ -31,34 +31,26 @@ internal static class IdentityProviderServiceCollectionExtensions
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
-        serviceCollection.Configure<EmailConfirmationTokenProviderOptions>(options =>
-        {
-            options.Name = IdentityTokenProviderNames.EmailConfirmation;
-            options.TokenLifespan = identityProviderOptions.EmailConfirmationTokenLifetime;
-        });
-        serviceCollection.Configure<PasswordResetTokenProviderOptions>(options =>
-        {
-            options.Name = IdentityTokenProviderNames.PasswordReset;
-            options.TokenLifespan = identityProviderOptions.PasswordResetTokenLifetime;
-        });
+        serviceCollection.AddDataProtection()
+            .PersistKeysToDbContext<IdentityWriteDbContext>();
 
         serviceCollection
             .AddIdentityCore<ApplicationUser>(options =>
             {
-                options.User.RequireUniqueEmail = true;
-                options.Password.RequiredLength = MinimumPasswordLength;
-                options.Password.RequiredUniqueChars = 1;
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Tokens.EmailConfirmationTokenProvider = IdentityTokenProviderNames.EmailConfirmation;
-                options.Tokens.PasswordResetTokenProvider = IdentityTokenProviderNames.PasswordReset;
+                options.User.RequireUniqueEmail = identityProviderOptions.User.RequireUniqueEmail;
+                options.Password.RequiredLength = identityProviderOptions.Password.RequiredLength;
+                options.Password.RequiredUniqueChars = identityProviderOptions.Password.RequiredUniqueChars;
+                options.Password.RequireDigit = identityProviderOptions.Password.RequireDigit;
+                options.Password.RequireLowercase = identityProviderOptions.Password.RequireLowercase;
+                options.Password.RequireNonAlphanumeric = identityProviderOptions.Password.RequireNonAlphanumeric;
+                options.Password.RequireUppercase = identityProviderOptions.Password.RequireUppercase;
+                options.Tokens.EmailConfirmationTokenProvider = identityProviderOptions.TokenProviders.EmailConfirmation;
+                options.Tokens.PasswordResetTokenProvider = identityProviderOptions.TokenProviders.PasswordReset;
             })
             .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<IdentityWriteDbContext>()
-            .AddTokenProvider<EmailConfirmationTokenProvider>(IdentityTokenProviderNames.EmailConfirmation)
-            .AddTokenProvider<PasswordResetTokenProvider>(IdentityTokenProviderNames.PasswordReset);
+            .AddTokenProvider<EmailConfirmationTokenProvider>(identityProviderOptions.TokenProviders.EmailConfirmation)
+            .AddTokenProvider<PasswordResetTokenProvider>(identityProviderOptions.TokenProviders.PasswordReset);
 
         serviceCollection.AddOpenIddict()
             .AddCore(options =>

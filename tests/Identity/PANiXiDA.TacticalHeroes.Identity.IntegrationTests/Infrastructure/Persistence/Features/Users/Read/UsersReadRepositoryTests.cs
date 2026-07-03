@@ -19,7 +19,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    private const string Password = "StrongPassword1";
+    private const string Password = "StrongPassword1!";
 
     [Fact(DisplayName = "GetAuthenticatedUserByIdAsync should return confirmed user with roles and claims")]
     public async Task GetAuthenticatedUserByIdAsync_Should_ReturnConfirmedUserWithRolesAndClaims()

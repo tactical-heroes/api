@@ -4,12 +4,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="EFCore.NamingConventions" />
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
         <PackageReference Include="OpenIddict.EntityFrameworkCore" />
         <PackageReference Include="OpenIddict.Quartz" />
         <PackageReference Include="OpenIddict.Server.AspNetCore" />

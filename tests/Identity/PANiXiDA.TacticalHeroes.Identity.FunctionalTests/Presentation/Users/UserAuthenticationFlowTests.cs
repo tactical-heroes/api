@@ -15,8 +15,8 @@ public sealed class UserAuthenticationFlowTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
     private const string Email = "hero@example.com";
-    private const string Password = "StrongPassword1";
-    private const string NewPassword = "StrongerPassword2";
+    private const string Password = "StrongPassword1!";
+    private const string NewPassword = "StrongerPassword2!";
     private const string ClientId = "tactical-heroes-web";
 
     [Fact(DisplayName = "Registered and confirmed user should login refresh and stay authorized after restart")]

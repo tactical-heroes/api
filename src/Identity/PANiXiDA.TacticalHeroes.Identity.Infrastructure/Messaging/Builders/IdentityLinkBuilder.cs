@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Services;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Builders;
 
 internal static class IdentityLinkBuilder
 {

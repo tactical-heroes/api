@@ -6,17 +6,17 @@ using Microsoft.Extensions.Options;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
 
-internal sealed class PasswordResetTokenProvider(
+internal sealed class EmailConfirmationTokenProvider(
     IDataProtectionProvider dataProtectionProvider,
-    IOptions<PasswordResetTokenProviderOptions> options,
+    IOptions<IdentityProviderOptions> options,
     ILogger<DataProtectorTokenProvider<ApplicationUser>> logger)
     : DataProtectorTokenProvider<ApplicationUser>(
         dataProtectionProvider,
         Microsoft.Extensions.Options.Options.Create(new DataProtectionTokenProviderOptions
         {
-            Name = options.Value.Name,
-            TokenLifespan = options.Value.TokenLifespan
+            Name = options.Value.TokenProviders.EmailConfirmation,
+            TokenLifespan = options.Value.EmailConfirmationTokenLifetime
         }),
         logger);

@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class UserAutoIncludeTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    private const string Password = "StrongPassword1";
+    private const string Password = "StrongPassword1!";
 
     [Fact(DisplayName = "Get by id should restore identity user details")]
     public async Task GetByIdAsync_Should_RestoreUserDetails()

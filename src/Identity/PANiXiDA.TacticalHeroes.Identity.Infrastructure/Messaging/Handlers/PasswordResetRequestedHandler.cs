@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Builders;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Services;
 
 using DomainEvent = PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events.PasswordResetRequested;
 using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.PasswordResetRequested;

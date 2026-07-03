@@ -9,6 +9,8 @@ public sealed class IdentityReadDbContext(
     DbContextOptions<IdentityReadDbContext> options)
     : ReadDbContext<IdentityReadDbContext>(options)
 {
+    private const string Schema = "identity";
+
     protected override bool UseContextNameAsSchema => true;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,7 +30,7 @@ public sealed class IdentityReadDbContext(
     {
         modelBuilder.Entity<UserReadDbModel>(builder =>
         {
-            builder.ToTable("asp_net_users", "identity");
+            builder.ToTable("asp_net_users", Schema);
         });
     }
 
@@ -36,7 +38,7 @@ public sealed class IdentityReadDbContext(
     {
         modelBuilder.Entity<RoleReadDbModel>(builder =>
         {
-            builder.ToTable("asp_net_roles", "identity");
+            builder.ToTable("asp_net_roles", Schema);
         });
     }
 
@@ -44,7 +46,7 @@ public sealed class IdentityReadDbContext(
     {
         modelBuilder.Entity<UserRoleReadDbModel>(builder =>
         {
-            builder.ToTable("asp_net_user_roles", "identity");
+            builder.ToTable("asp_net_user_roles", Schema);
             builder.HasKey(userRole => new
             {
                 userRole.UserId,
@@ -57,7 +59,7 @@ public sealed class IdentityReadDbContext(
     {
         modelBuilder.Entity<UserClaimReadDbModel>(builder =>
         {
-            builder.ToTable("asp_net_user_claims", "identity");
+            builder.ToTable("asp_net_user_claims", Schema);
         });
     }
 
@@ -65,7 +67,7 @@ public sealed class IdentityReadDbContext(
     {
         modelBuilder.Entity<RoleClaimReadDbModel>(builder =>
         {
-            builder.ToTable("asp_net_role_claims", "identity");
+            builder.ToTable("asp_net_role_claims", Schema);
         });
     }
 
@@ -73,7 +75,7 @@ public sealed class IdentityReadDbContext(
     {
         modelBuilder.Entity<UserTokenReadDbModel>(builder =>
         {
-            builder.ToTable("asp_net_user_tokens", "identity");
+            builder.ToTable("asp_net_user_tokens", Schema);
             builder.HasKey(token => new
             {
                 token.UserId,
@@ -87,7 +89,7 @@ public sealed class IdentityReadDbContext(
     {
         modelBuilder.Entity<UserLoginReadDbModel>(builder =>
         {
-            builder.ToTable("asp_net_user_logins", "identity");
+            builder.ToTable("asp_net_user_logins", Schema);
             builder.HasKey(login => new
             {
                 login.LoginProvider,

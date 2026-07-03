@@ -14,7 +14,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Sched
 public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    private const string Password = "StrongPassword1";
+    private const string Password = "StrongPassword1!";
 
     private static readonly DateTimeOffset NowUtc = new(
         2026,

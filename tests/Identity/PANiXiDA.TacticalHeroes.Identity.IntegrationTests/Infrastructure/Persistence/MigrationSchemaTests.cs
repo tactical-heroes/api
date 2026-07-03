@@ -18,6 +18,7 @@ public sealed class MigrationSchemaTests(IntegrationTestFixture fixture)
             "asp_net_user_roles",
             "asp_net_user_tokens",
             "asp_net_users",
+            "data_protection_keys",
             "open_iddict_applications",
             "open_iddict_authorizations",
             "open_iddict_scopes",

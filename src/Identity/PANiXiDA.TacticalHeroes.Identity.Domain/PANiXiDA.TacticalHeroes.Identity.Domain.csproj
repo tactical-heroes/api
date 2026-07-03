@@ -2,6 +2,7 @@
     <ItemGroup>
         <PackageReference Include="PANiXiDA.Core.Domain" />
         <PackageReference Include="PANiXiDA.Core.ResultPattern" />
+        <PackageReference Include="PANiXiDA.Core.SpecificationPattern" />
     </ItemGroup>
 
     <ItemGroup>
@@ -16,6 +17,11 @@
         <Using Include="PANiXiDA.Core.Domain.AggregateRoots" />
         <Using Include="PANiXiDA.Core.Domain.DomainEvents" />
         <Using Include="PANiXiDA.Core.Domain.Entities" />
+
+        <Using Include="PANiXiDA.Core.SpecificationPattern.Abstractions" />
+        <Using Include="PANiXiDA.Core.SpecificationPattern.Core" />
+        <Using Include="PANiXiDA.Core.SpecificationPattern.Extensions" />
+        <Using Include="PANiXiDA.Core.SpecificationPattern.Factories" />
 
     </ItemGroup>
 </Project>
