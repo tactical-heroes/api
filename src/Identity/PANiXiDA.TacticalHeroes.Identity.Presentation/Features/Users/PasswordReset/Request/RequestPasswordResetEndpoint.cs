@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset.Request;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.PasswordReset;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.PasswordReset.Request;
 
 internal sealed class RequestPasswordResetEndpoint : IEndpoint<UsersEndpoints>
 {

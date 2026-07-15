@@ -27,9 +27,9 @@ internal sealed class RegisterUserEndpoint : IEndpoint<UsersEndpoints>
             new RegisterUserCommand(request.Email, request.Password),
             cancellationToken);
 
-        return result.ToHttpResult(registerResult =>
+        return result.ToHttpResult(userId =>
             TypedResults.Created(
-                $"/api/v1/identity/auth/users/{registerResult.UserId}",
-                new RegisterUserResponse(registerResult.UserId)));
+                $"/api/v1/identity/auth/users/{userId}",
+                new RegisterUserResponse(userId)));
     }
 }

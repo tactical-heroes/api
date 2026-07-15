@@ -6,7 +6,8 @@ using System.Text.Json.Serialization;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Confirm;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Me;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.PasswordReset;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.PasswordReset.Request;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.PasswordReset.Reset;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Register;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Users;

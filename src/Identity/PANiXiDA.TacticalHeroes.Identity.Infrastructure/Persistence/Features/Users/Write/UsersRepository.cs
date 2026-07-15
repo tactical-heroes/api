@@ -9,6 +9,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
@@ -31,7 +32,7 @@ public sealed class UsersRepository(
         var user = await Query
             .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
 
-        return user is null ? null : MapToDomain(user);
+        return user is null ? null : ApplicationUserMapper.ToDomain(user).Value;
     }
 
     public async Task<User?> GetByEmailAsync(
@@ -248,16 +249,4 @@ public sealed class UsersRepository(
 
         return Result.Success();
     }
-
-    private static User MapToDomain(ApplicationUser user)
-    {
-        return User.Create(
-                user.Id,
-                user.Email!,
-                user.EmailConfirmed,
-                user.Roles.Select(role => role.RoleId),
-                user.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)))
-            .Value;
-    }
-
 }

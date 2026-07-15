@@ -1,29 +1,28 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 public interface IUserCredentialsService
 {
-    Task<bool> CheckPasswordAsync(
-        User user,
+    Task<Result<Guid>> RegisterAsync(
+        string email,
         string password,
         CancellationToken cancellationToken);
 
-    Task<Result<UserGeneratedToken>> GenerateEmailConfirmationTokenAsync(
-        User user,
+    Task<Result<Guid>> AuthenticateAsync(
+        string email,
+        string password,
         CancellationToken cancellationToken);
 
-    Task<Result> ConfirmEmailAsync(
-        User user,
+    Task<Result> ConfirmRegistrationAsync(
+        Guid userId,
         string confirmationToken,
         CancellationToken cancellationToken);
 
-    Task<Result<UserGeneratedToken>> GeneratePasswordResetTokenAsync(
-        User user,
+    Task<Result> RequestPasswordResetAsync(
+        string email,
         CancellationToken cancellationToken);
 
     Task<Result> ResetPasswordAsync(
-        User user,
+        Guid userId,
         string passwordResetToken,
         string newPassword,
         CancellationToken cancellationToken);

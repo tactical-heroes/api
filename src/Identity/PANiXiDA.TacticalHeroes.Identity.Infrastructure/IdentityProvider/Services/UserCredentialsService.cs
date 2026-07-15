@@ -4,101 +4,191 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
+    IUsersRepository usersRepository,
     IOptions<IdentityProviderOptions> options,
+    IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IUserCredentialsService
 {
-    public async Task<bool> CheckPasswordAsync(
-        User user,
+    public async Task<Result<Guid>> RegisterAsync(
+        string email,
         string password,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await FindApplicationUserAsync(user, cancellationToken);
+        var existingUser = await usersRepository.GetByEmailAsync(email, cancellationToken);
 
-        return applicationUser is not null &&
-            await userManager.CheckPasswordAsync(applicationUser, password);
-    }
-
-    public async Task<Result<UserGeneratedToken>> GenerateEmailConfirmationTokenAsync(
-        User user,
-        CancellationToken cancellationToken)
-    {
-        var applicationUser = await FindApplicationUserAsync(user, cancellationToken);
-
-        if (applicationUser is null)
+        if (existingUser is not null)
         {
-            return UserNotFound<UserGeneratedToken>();
+            return Result.Failure<Guid>(
+                Error.Conflict("User with this email already exists."));
         }
 
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+        var userResult = User.Register(email);
 
-        return Result.Success(
-            new UserGeneratedToken(
-                token,
-                timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime)));
+        if (userResult.IsFailure)
+        {
+            return Result.Failure<Guid>(userResult.Errors);
+        }
+
+        var addUserResult = await usersRepository.AddAsync(
+            userResult.Value,
+            password,
+            cancellationToken);
+
+        if (addUserResult.IsFailure)
+        {
+            return Result.Failure<Guid>(addUserResult.Errors);
+        }
+
+        var applicationUserResult = await GetApplicationUserAsync(
+            userResult.Value.Id.Value,
+            cancellationToken);
+
+        if (applicationUserResult.IsFailure)
+        {
+            return Result.Failure<Guid>(applicationUserResult.Errors);
+        }
+
+        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUserResult.Value);
+        var requestConfirmationResult = userResult.Value.RequestAccountConfirmation(
+            confirmationToken,
+            timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+
+        if (requestConfirmationResult.IsFailure)
+        {
+            return Result.Failure<Guid>(requestConfirmationResult.Errors);
+        }
+
+        return Result.Success(userResult.Value.Id.Value);
     }
 
-    public async Task<Result> ConfirmEmailAsync(
-        User user,
+    public async Task<Result<Guid>> AuthenticateAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken)
+    {
+        var applicationUser = await userManager.FindByEmailAsync(email);
+
+        if (applicationUser is null ||
+            !await userManager.CheckPasswordAsync(applicationUser, password))
+        {
+            return Result.Failure<Guid>(
+                Error.Unauthorized("Invalid credentials."));
+        }
+
+        if (!applicationUser.EmailConfirmed)
+        {
+            return Result.Failure<Guid>(
+                Error.Forbidden("Account is not confirmed."));
+        }
+
+        return Result.Success(applicationUser.Id);
+    }
+
+    public async Task<Result> ConfirmRegistrationAsync(
+        Guid userId,
         string confirmationToken,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await FindApplicationUserAsync(user, cancellationToken);
+        var applicationUserResult = await GetApplicationUserAsync(
+            userId,
+            cancellationToken);
 
-        if (applicationUser is null)
+        if (applicationUserResult.IsFailure)
         {
-            return UserNotFound();
+            return applicationUserResult;
         }
 
-        var confirmEmailResult = await userManager.ConfirmEmailAsync(applicationUser, confirmationToken);
+        var userResult = ApplicationUserMapper.ToDomain(applicationUserResult.Value);
 
-        return confirmEmailResult.Succeeded
-            ? Result.Success()
-            : IdentityResultMapper.ToResult(confirmEmailResult);
+        if (userResult.IsFailure)
+        {
+            return Result.Failure(userResult.Errors);
+        }
+
+        var confirmEmailResult = await userManager.ConfirmEmailAsync(
+            applicationUserResult.Value,
+            confirmationToken);
+
+        if (!confirmEmailResult.Succeeded)
+        {
+            return IdentityResultMapper.ToResult(confirmEmailResult);
+        }
+
+        var confirmRegistrationResult = userResult.Value.ConfirmRegistration();
+
+        if (confirmRegistrationResult.IsFailure)
+        {
+            return confirmRegistrationResult;
+        }
+
+        aggregateTracker.Track(userResult.Value);
+
+        return Result.Success();
     }
 
-    public async Task<Result<UserGeneratedToken>> GeneratePasswordResetTokenAsync(
-        User user,
+    public async Task<Result> RequestPasswordResetAsync(
+        string email,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await FindApplicationUserAsync(user, cancellationToken);
+        var applicationUser = await GetApplicationUserByEmailAsync(
+            email,
+            cancellationToken);
 
-        if (applicationUser is null)
+        if (applicationUser is null || !applicationUser.EmailConfirmed)
         {
-            return UserNotFound<UserGeneratedToken>();
+            return Result.Success();
         }
 
-        var token = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
+        var userResult = ApplicationUserMapper.ToDomain(applicationUser);
 
-        return Result.Success(
-            new UserGeneratedToken(
-                token,
-                timeProvider.GetUtcNow().Add(options.Value.PasswordResetTokenLifetime)));
+        if (userResult.IsFailure)
+        {
+            return Result.Failure(userResult.Errors);
+        }
+
+        var passwordResetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
+        var result = userResult.Value.RequestPasswordReset(
+            passwordResetToken,
+            timeProvider.GetUtcNow().Add(options.Value.PasswordResetTokenLifetime));
+
+        if (result.IsFailure)
+        {
+            return result;
+        }
+
+        aggregateTracker.Track(userResult.Value);
+
+        return Result.Success();
     }
 
     public async Task<Result> ResetPasswordAsync(
-        User user,
+        Guid userId,
         string passwordResetToken,
         string newPassword,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await FindApplicationUserAsync(user, cancellationToken);
+        var applicationUserResult = await GetApplicationUserAsync(
+            userId,
+            cancellationToken);
 
-        if (applicationUser is null)
+        if (applicationUserResult.IsFailure)
         {
-            return UserNotFound();
+            return applicationUserResult;
         }
 
         var resetPasswordResult = await userManager.ResetPasswordAsync(
-            applicationUser,
+            applicationUserResult.Value,
             passwordResetToken,
             newPassword);
 
@@ -107,25 +197,42 @@ public sealed class UserCredentialsService(
             : IdentityResultMapper.ToResult(resetPasswordResult);
     }
 
-    private Task<ApplicationUser?> FindApplicationUserAsync(
-        User user,
+    private async Task<Result<ApplicationUser>> GetApplicationUserAsync(
+        Guid userId,
         CancellationToken cancellationToken)
     {
-        return userManager.Users
+        var applicationUser = await QueryUsers()
             .SingleOrDefaultAsync(
-                applicationUser => applicationUser.Id == user.Id.Value,
+                applicationUser => applicationUser.Id == userId,
+                cancellationToken);
+
+        return applicationUser is null
+            ? UserNotFound<ApplicationUser>()
+            : Result.Success(applicationUser);
+    }
+
+    private IQueryable<ApplicationUser> QueryUsers()
+    {
+        return userManager.Users
+            .Include(applicationUser => applicationUser.Roles)
+            .Include(applicationUser => applicationUser.Claims);
+    }
+
+    private async Task<ApplicationUser?> GetApplicationUserByEmailAsync(
+        string email,
+        CancellationToken cancellationToken)
+    {
+        var normalizedEmail = userManager.NormalizeEmail(email);
+
+        return await QueryUsers()
+            .SingleOrDefaultAsync(
+                applicationUser => applicationUser.NormalizedEmail == normalizedEmail,
                 cancellationToken);
     }
 
     private static Result<TValue> UserNotFound<TValue>()
     {
         return Result.Failure<TValue>(
-            Error.NotFound("User was not found."));
-    }
-
-    private static Result UserNotFound()
-    {
-        return Result.Failure(
             Error.NotFound("User was not found."));
     }
 }

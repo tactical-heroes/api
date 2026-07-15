@@ -1,3 +1,5 @@
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Confirm;
 
 public sealed class ConfirmRegistrationCommandValidator : AbstractValidator<ConfirmRegistrationCommand>
@@ -5,7 +7,7 @@ public sealed class ConfirmRegistrationCommandValidator : AbstractValidator<Conf
     public ConfirmRegistrationCommandValidator()
     {
         RuleFor(command => command.UserId)
-            .NotEmpty();
+            .MustBeValidDomainValue(UserId.Create);
 
         RuleFor(command => command.ConfirmationToken)
             .NotEmpty();

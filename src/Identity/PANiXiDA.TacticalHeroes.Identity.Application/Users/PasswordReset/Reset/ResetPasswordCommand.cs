@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.PasswordReset.Reset;
 
 public sealed record ResetPasswordCommand(
     Guid UserId,

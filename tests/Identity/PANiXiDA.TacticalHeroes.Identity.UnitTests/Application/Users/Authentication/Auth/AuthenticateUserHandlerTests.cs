@@ -1,21 +1,24 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Authentication.Auth;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Authentication.Auth;
 
 public sealed class AuthenticateUserHandlerTests
 {
+    private static readonly Guid UserId = Guid.CreateVersion7();
+
     private const string Email = "hero@example.com";
     private const string Password = "StrongPassword1";
 
     [Fact(DisplayName = "Handle should return unauthorized when user does not exist")]
     public async Task Handle_Should_ReturnUnauthorized_When_UserDoesNotExist()
     {
-        var usersRepository = Substitute.For<IUsersRepository>();
-        var handler = CreateHandler(usersRepository);
+        var userCredentialsService = Substitute.For<IUserCredentialsService>();
+        userCredentialsService
+            .AuthenticateAsync(Email, Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<Guid>(Error.Unauthorized("Invalid credentials.")));
+        var handler = CreateHandler(userCredentialsService);
 
         var result = await handler.HandleAsync(
             new AuthenticateUserCommand(Email, Password),
@@ -28,18 +31,11 @@ public sealed class AuthenticateUserHandlerTests
     [Fact(DisplayName = "Handle should return unauthorized when password is invalid")]
     public async Task Handle_Should_ReturnUnauthorized_When_PasswordIsInvalid()
     {
-        var user = CreateConfirmedUser();
-        var usersRepository = Substitute.For<IUsersRepository>();
         var userCredentialsService = Substitute.For<IUserCredentialsService>();
-        usersRepository
-            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
-            .Returns(user);
         userCredentialsService
-            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
-            .Returns(false);
-        var handler = CreateHandler(
-            usersRepository,
-            userCredentialsService);
+            .AuthenticateAsync(Email, Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<Guid>(Error.Unauthorized("Invalid credentials.")));
+        var handler = CreateHandler(userCredentialsService);
 
         var result = await handler.HandleAsync(
             new AuthenticateUserCommand(Email, Password),
@@ -52,18 +48,11 @@ public sealed class AuthenticateUserHandlerTests
     [Fact(DisplayName = "Handle should return forbidden when user is not confirmed")]
     public async Task Handle_Should_ReturnForbidden_When_UserIsNotConfirmed()
     {
-        var user = CreateUser();
-        var usersRepository = Substitute.For<IUsersRepository>();
         var userCredentialsService = Substitute.For<IUserCredentialsService>();
-        usersRepository
-            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
-            .Returns(user);
         userCredentialsService
-            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
-            .Returns(true);
-        var handler = CreateHandler(
-            usersRepository,
-            userCredentialsService);
+            .AuthenticateAsync(Email, Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<Guid>(Error.Forbidden("Account is not confirmed.")));
+        var handler = CreateHandler(userCredentialsService);
 
         var result = await handler.HandleAsync(
             new AuthenticateUserCommand(Email, Password),
@@ -76,21 +65,15 @@ public sealed class AuthenticateUserHandlerTests
     [Fact(DisplayName = "Handle should return unauthorized when authenticated read model does not exist")]
     public async Task Handle_Should_ReturnUnauthorized_When_AuthenticatedReadModelDoesNotExist()
     {
-        var user = CreateConfirmedUser();
-        var usersRepository = Substitute.For<IUsersRepository>();
         var userCredentialsService = Substitute.For<IUserCredentialsService>();
         var usersReadRepository = Substitute.For<IUsersReadRepository>();
-        usersRepository
-            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
-            .Returns(user);
         userCredentialsService
-            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
-            .Returns(true);
+            .AuthenticateAsync(Email, Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Success(UserId));
         usersReadRepository
-            .GetAuthenticatedUserByIdAsync(user.Id.Value, Arg.Any<CancellationToken>())
+            .GetAuthenticatedUserByIdAsync(UserId, Arg.Any<CancellationToken>())
             .Returns((AuthenticatedUserReadModel?)null);
         var handler = CreateHandler(
-            usersRepository,
             userCredentialsService,
             usersReadRepository);
 
@@ -105,27 +88,21 @@ public sealed class AuthenticateUserHandlerTests
     [Fact(DisplayName = "Handle should return authenticated user when credentials are valid")]
     public async Task Handle_Should_ReturnAuthenticatedUser_When_CredentialsAreValid()
     {
-        var user = CreateConfirmedUser();
         var authenticatedUser = new AuthenticatedUserReadModel(
-            user.Id.Value,
+            UserId,
             Email,
             ConfirmationStatus: true,
             Roles: ["admin"],
             Claims: [new AuthenticatedUserClaimReadModel("permission", "identity.users.manage")]);
-        var usersRepository = Substitute.For<IUsersRepository>();
         var userCredentialsService = Substitute.For<IUserCredentialsService>();
         var usersReadRepository = Substitute.For<IUsersReadRepository>();
-        usersRepository
-            .GetByEmailAsync(Email, Arg.Any<CancellationToken>())
-            .Returns(user);
         userCredentialsService
-            .CheckPasswordAsync(user, Password, Arg.Any<CancellationToken>())
-            .Returns(true);
+            .AuthenticateAsync(Email, Password, Arg.Any<CancellationToken>())
+            .Returns(Result.Success(UserId));
         usersReadRepository
-            .GetAuthenticatedUserByIdAsync(user.Id.Value, Arg.Any<CancellationToken>())
+            .GetAuthenticatedUserByIdAsync(UserId, Arg.Any<CancellationToken>())
             .Returns(authenticatedUser);
         var handler = CreateHandler(
-            usersRepository,
             userCredentialsService,
             usersReadRepository);
 
@@ -138,30 +115,11 @@ public sealed class AuthenticateUserHandlerTests
     }
 
     private static AuthenticateUserHandler CreateHandler(
-        IUsersRepository? usersRepository = null,
         IUserCredentialsService? userCredentialsService = null,
         IUsersReadRepository? usersReadRepository = null)
     {
         return new AuthenticateUserHandler(
-            usersRepository ?? Substitute.For<IUsersRepository>(),
             userCredentialsService ?? Substitute.For<IUserCredentialsService>(),
             usersReadRepository ?? Substitute.For<IUsersReadRepository>());
-    }
-
-    private static User CreateConfirmedUser()
-    {
-        var user = CreateUser();
-
-        user.ConfirmRegistration()
-            .IsSuccess.ShouldBeTrue();
-
-        return user;
-    }
-
-    private static User CreateUser()
-    {
-        return User.Register(
-                Email)
-            .Value;
     }
 }
