@@ -1,5 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Token;
-
 using System.Reflection;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.DependencyInjection;
@@ -11,7 +9,6 @@ public static class WebApplicationExtensions
     {
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapOpenIddictTokenEndpoint();
         app.UseHttp(Assembly.GetExecutingAssembly());
 
         return app;

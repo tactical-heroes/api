@@ -19,7 +19,7 @@ internal static class ArchitectureDefinition
     private const string PresentationLayerSuffix = ".Presentation";
     private const string HostLayerSuffix = ".Host";
 
-    private static readonly IReadOnlyCollection<ReflectionAssembly> ProductionAssemblies =
+    internal static readonly IReadOnlyCollection<ReflectionAssembly> ProductionAssemblies =
         LoadProductionAssemblies();
 
     private static readonly IReadOnlyCollection<string> ProductionAssemblyNames =
