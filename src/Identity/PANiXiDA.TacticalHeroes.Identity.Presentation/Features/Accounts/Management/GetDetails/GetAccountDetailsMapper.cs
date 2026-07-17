@@ -9,5 +9,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Manage
 [UseStaticMapper(typeof(Claim))]
 internal static partial class GetAccountDetailsMapper
 {
+    [MapperIgnoreSource(nameof(AccountDetailsReadModel.IsBlocked))]
     internal static partial GetAccountDetailsResponse ToResponse(AccountDetailsReadModel account);
 }

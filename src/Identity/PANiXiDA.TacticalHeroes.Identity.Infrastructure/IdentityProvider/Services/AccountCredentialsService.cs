@@ -47,7 +47,7 @@ public sealed class AccountCredentialsService(
             Email = userResult.Value.Email.Value,
             UserName = userNameResult.Value.Value,
             EmailConfirmed = false,
-            Status = UserStatus.Active.Name,
+            Status = AccountStatus.Active.Name,
             LockoutEnabled = true,
             CreatedAt = nowUtc,
             UpdatedAt = nowUtc
@@ -332,7 +332,7 @@ public sealed class AccountCredentialsService(
     {
         return string.Equals(
             applicationUser.Status,
-            UserStatus.Blocked.Name,
+            AccountStatus.Blocked.Name,
             StringComparison.Ordinal);
     }
 

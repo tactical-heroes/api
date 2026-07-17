@@ -41,7 +41,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
             Email = "hero@example.com",
             UserName = "hero",
             EmailConfirmed = true,
-            Status = UserStatus.Active.Name,
+            Status = AccountStatus.Active.Name,
             LockoutEnabled = true,
             Claims =
             [

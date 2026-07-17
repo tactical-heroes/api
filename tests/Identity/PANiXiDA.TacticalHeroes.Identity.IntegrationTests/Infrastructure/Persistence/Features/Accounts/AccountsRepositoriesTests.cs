@@ -27,7 +27,7 @@ public sealed class AccountsRepositoriesTests(IntegrationTestFixture fixture)
                 Password,
                 true,
                 [new Claim("permission", "identity.profile.read")],
-                UserStatus.Active.Name,
+                AccountStatus.Active.Name,
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -43,7 +43,7 @@ public sealed class AccountsRepositoriesTests(IntegrationTestFixture fixture)
                 "renamed",
                 true,
                 [new Claim("permission", "identity.accounts.manage")],
-                UserStatus.Blocked.Name,
+                AccountStatus.Blocked.Name,
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -57,8 +57,8 @@ public sealed class AccountsRepositoriesTests(IntegrationTestFixture fixture)
             result.IsSuccess.ShouldBeTrue();
             result.Value.Email.ShouldBe("renamed@example.com");
             result.Value.UserName.ShouldBe("renamed");
-            result.Value.Status.ShouldBe(UserStatus.Blocked.Name);
-            result.Value.StatusDisplayName.ShouldBe(UserStatus.Blocked.DisplayName);
+            result.Value.Status.ShouldBe(AccountStatus.Blocked.Name);
+            result.Value.StatusDisplayName.ShouldBe(AccountStatus.Blocked.DisplayName);
             var claim = result.Value.Claims.ShouldHaveSingleItem();
             claim.Type.ShouldBe("permission");
             claim.Value.ShouldBe("identity.accounts.manage");

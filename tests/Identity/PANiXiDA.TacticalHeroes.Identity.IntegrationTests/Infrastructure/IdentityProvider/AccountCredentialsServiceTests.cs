@@ -39,7 +39,7 @@ public sealed class AccountCredentialsServiceTests(IntegrationTestFixture fixtur
             Email = "login@example.com",
             UserName = "login-user",
             EmailConfirmed = true,
-            Status = UserStatus.Active.Name,
+            Status = AccountStatus.Active.Name,
             LockoutEnabled = true,
             Claims =
             [

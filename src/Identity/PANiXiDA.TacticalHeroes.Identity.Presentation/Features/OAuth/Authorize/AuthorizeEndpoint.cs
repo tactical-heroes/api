@@ -63,7 +63,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
             httpContext.RequestAborted);
 
         if (accountResult.IsFailure ||
-            string.Equals(accountResult.Value.Status, "Blocked", StringComparison.OrdinalIgnoreCase) ||
+            accountResult.Value.IsBlocked ||
             !accountResult.Value.IsConfirmed)
         {
             return TypedResults.Forbid();

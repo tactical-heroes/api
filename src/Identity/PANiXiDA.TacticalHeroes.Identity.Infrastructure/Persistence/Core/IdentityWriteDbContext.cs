@@ -65,8 +65,8 @@ public sealed class IdentityWriteDbContext(
 
             builder.Property(user => user.Id).ValueGeneratedNever();
             builder.Property(user => user.Status)
-                .HasMaxLength(UserStatus.MaxNameLength)
-                .HasDefaultValue(UserStatus.Active.Name)
+                .HasMaxLength(AccountStatus.MaxNameLength)
+                .HasDefaultValue(AccountStatus.Active.Name)
                 .IsRequired();
             builder.Property(user => user.Email).HasMaxLength(Email.MaxLength).IsRequired();
             builder.Property(user => user.NormalizedEmail).HasMaxLength(Email.MaxLength).IsRequired();

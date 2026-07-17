@@ -82,7 +82,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
     {
         if (string.Equals(
                 applicationUser.Status,
-                UserStatus.Blocked.Name,
+                AccountStatus.Blocked.Name,
                 StringComparison.Ordinal))
         {
             return Result.Failure(Error.Forbidden("Account is blocked."));

@@ -36,7 +36,7 @@ public sealed class AccountsWriteRepository(
 
         var userResult = CreateUser(email, claims);
         var userNameResult = UserName.Create(userName);
-        var statusResult = UserStatus.Create(status);
+        var statusResult = AccountStatus.Create(status);
         var validationResult = Result.Combine(userResult, userNameResult, statusResult);
 
         if (validationResult.IsFailure)
@@ -81,7 +81,7 @@ public sealed class AccountsWriteRepository(
     {
         var userResult = CreateUser(id, email, isConfirmed, claims);
         var userNameResult = UserName.Create(userName);
-        var statusResult = UserStatus.Create(status);
+        var statusResult = AccountStatus.Create(status);
         var validationResult = Result.Combine(userResult, userNameResult, statusResult);
 
         if (validationResult.IsFailure)
@@ -164,19 +164,19 @@ public sealed class AccountsWriteRepository(
         Guid id,
         CancellationToken cancellationToken)
     {
-        return UpdateStatusAsync(id, UserStatus.Blocked, cancellationToken);
+        return UpdateStatusAsync(id, AccountStatus.Blocked, cancellationToken);
     }
 
     public Task<Result> UnblockAsync(
         Guid id,
         CancellationToken cancellationToken)
     {
-        return UpdateStatusAsync(id, UserStatus.Active, cancellationToken);
+        return UpdateStatusAsync(id, AccountStatus.Active, cancellationToken);
     }
 
     private async Task<Result> UpdateStatusAsync(
         Guid id,
-        UserStatus status,
+        AccountStatus status,
         CancellationToken cancellationToken)
     {
         var applicationUser = await userManager.FindByIdAsync(id.ToString());

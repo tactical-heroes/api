@@ -20,10 +20,10 @@ public sealed class AccountsReadRepository(IdentityReadDbContext dbContext)
         PaginationParameters pagination,
         CancellationToken cancellationToken)
     {
-        var activeName = UserStatus.Active.Name;
-        var activeDisplayName = UserStatus.Active.DisplayName;
-        var blockedName = UserStatus.Blocked.Name;
-        var blockedDisplayName = UserStatus.Blocked.DisplayName;
+        var activeName = AccountStatus.Active.Name;
+        var activeDisplayName = AccountStatus.Active.DisplayName;
+        var blockedName = AccountStatus.Blocked.Name;
+        var blockedDisplayName = AccountStatus.Blocked.DisplayName;
         var query = dbContext.Set<UserReadDbModel>()
             .AsNoTracking();
 
@@ -65,10 +65,10 @@ public sealed class AccountsReadRepository(IdentityReadDbContext dbContext)
         Guid id,
         CancellationToken cancellationToken)
     {
-        var activeName = UserStatus.Active.Name;
-        var activeDisplayName = UserStatus.Active.DisplayName;
-        var blockedName = UserStatus.Blocked.Name;
-        var blockedDisplayName = UserStatus.Blocked.DisplayName;
+        var activeName = AccountStatus.Active.Name;
+        var activeDisplayName = AccountStatus.Active.DisplayName;
+        var blockedName = AccountStatus.Blocked.Name;
+        var blockedDisplayName = AccountStatus.Blocked.DisplayName;
         var account = await dbContext.Set<UserReadDbModel>()
             .AsNoTracking()
             .Where(user => user.Id == id)
@@ -103,7 +103,7 @@ public sealed class AccountsReadRepository(IdentityReadDbContext dbContext)
 
         IReadOnlyCollection<AccountStatusReadModel> statuses =
         [
-            .. UserStatus.GetAll().Select(status =>
+            .. AccountStatus.GetAll().Select(status =>
                 new AccountStatusReadModel(
                     status.Id,
                     status.Name,
