@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.Unblock;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.Unblock;
 
@@ -16,12 +16,18 @@ internal sealed class UnblockAccountEndpoint : IEndpoint<AccountManagementEndpoi
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(Guid id)
+    private static async Task<IResult> Handle(
+        Guid id,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(UnblockAccountEndpoint));
+        var result = await mediator.SendAsync(
+            new UnblockAccountCommand(id),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ForgotPassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ForgotPassword;
 
@@ -15,12 +15,19 @@ internal sealed class ForgotPasswordEndpoint : IEndpoint<AccountsEndpoints>
         builder.MapPost(Handle)
             .AllowAnonymous()
             .Produces(StatusCodes.Status202Accepted)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest);
     }
 
-    private static IResult Handle(ForgotPasswordRequest request)
+    private static async Task<IResult> Handle(
+        ForgotPasswordRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(ForgotPasswordEndpoint));
+        var result = await mediator.SendAsync(
+            new ForgotPasswordCommand(request.Email),
+            cancellationToken);
+
+        return result.ToHttpResult(
+            () => TypedResults.StatusCode(StatusCodes.Status202Accepted));
     }
 }

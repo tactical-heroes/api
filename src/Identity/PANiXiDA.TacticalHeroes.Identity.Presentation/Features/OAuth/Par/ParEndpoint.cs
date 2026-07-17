@@ -1,8 +1,7 @@
 using System.Net.Mime;
 
 using Microsoft.AspNetCore.Http;
-
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Par;
 
@@ -19,12 +18,15 @@ internal sealed class ParEndpoint : IEndpoint<OAuthEndpoints>
             .Accepts<ParRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<ParResponse>(StatusCodes.Status201Created)
             .Produces<ParErrorResponse>(StatusCodes.Status400BadRequest)
-            .Produces<ParErrorResponse>(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .Produces<ParErrorResponse>(StatusCodes.Status401Unauthorized);
     }
 
-    private static IResult Handle()
+    private static ProblemHttpResult Handle()
     {
-        return EndpointStub.NotImplemented(nameof(ParEndpoint));
+        return TypedResults.Problem(
+            title: "OpenIddict pushed authorization endpoint was not handled.",
+            detail: "The /connect/par route must be intercepted by the OpenIddict server pipeline. " +
+                "If this fallback endpoint is executed, OpenIddict pushed authorization endpoint configuration is broken.",
+            statusCode: StatusCodes.Status500InternalServerError);
     }
 }

@@ -13,7 +13,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = FilesConstants.FileRequestSizeLimit;
 });
 
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddPresentation(builder.Configuration);
 
 builder.Host.UseInfrastructure(builder.Configuration);

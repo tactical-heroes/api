@@ -11,6 +11,14 @@ internal static class IdentityResultMapper
             : Result.Failure(result.Errors.Select(MapError));
     }
 
+    public static Result<TValue> ToResult<TValue>(IdentityResult result)
+    {
+        return result.Succeeded
+            ? throw new InvalidOperationException(
+                "A successful identity result must be mapped with an explicit value.")
+            : Result.Failure<TValue>(result.Errors.Select(MapError));
+    }
+
     private static Error MapError(IdentityError error)
     {
         return error.Code switch

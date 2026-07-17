@@ -1,8 +1,7 @@
 using System.Net.Mime;
 
 using Microsoft.AspNetCore.Http;
-
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Introspect;
 
@@ -19,12 +18,15 @@ internal sealed class IntrospectEndpoint : IEndpoint<OAuthEndpoints>
             .Accepts<IntrospectRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<IntrospectResponse>(StatusCodes.Status200OK)
             .Produces<IntrospectErrorResponse>(StatusCodes.Status400BadRequest)
-            .Produces<IntrospectErrorResponse>(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .Produces<IntrospectErrorResponse>(StatusCodes.Status401Unauthorized);
     }
 
-    private static IResult Handle()
+    private static ProblemHttpResult Handle()
     {
-        return EndpointStub.NotImplemented(nameof(IntrospectEndpoint));
+        return TypedResults.Problem(
+            title: "OpenIddict introspection endpoint was not handled.",
+            detail: "The /connect/introspect route must be intercepted by the OpenIddict server pipeline. " +
+                "If this fallback endpoint is executed, OpenIddict introspection endpoint configuration is broken.",
+            statusCode: StatusCodes.Status500InternalServerError);
     }
 }

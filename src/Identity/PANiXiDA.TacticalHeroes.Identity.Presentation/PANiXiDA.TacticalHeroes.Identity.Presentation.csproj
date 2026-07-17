@@ -4,8 +4,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="OpenIddict.Server.AspNetCore" />
         <PackageReference Include="PANiXiDA.Core.Application" />
         <PackageReference Include="PANiXiDA.Core.Presentation.Http" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -13,10 +18,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Using Include="PANiXiDA.Core.ResultPattern" />
+
+        <Using Include="PANiXiDA.Core.Application.Messaging.Mediator" />
         <Using Include="PANiXiDA.Core.Application.Querying.Pagination" />
         <Using Include="Microsoft.AspNetCore.Builder" />
         
         <Using Include="PANiXiDA.Core.Presentation.Http.DependencyInjection" />
         <Using Include="PANiXiDA.Core.Presentation.Http.Endpoints" />
+        <Using Include="PANiXiDA.Core.Presentation.Http.Helpers" />
+
+        <Using Include="OpenIddict.Abstractions" />
     </ItemGroup>
 </Project>

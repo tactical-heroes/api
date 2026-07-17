@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
@@ -13,7 +14,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection serviceCollection,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment? environment = null)
     {
         serviceCollection.TryAddSingleton(TimeProvider.System);
 
@@ -21,7 +23,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddReadPersistence(configuration);
 
         serviceCollection.AddScheduling(configuration);
-        serviceCollection.AddIdentityProvider(configuration);
+        serviceCollection.AddIdentityProvider(configuration, environment);
         serviceCollection.AddMessaging(configuration);
 
         return serviceCollection;

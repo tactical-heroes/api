@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
@@ -17,12 +18,22 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
-    private static IResult Handle(Guid id, UpdateRoleRequest request)
+    private static async Task<IResult> Handle(
+        Guid id,
+        UpdateRoleRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(UpdateRoleEndpoint));
+        var result = await mediator.SendAsync(
+            new UpdateRoleCommand(
+                id,
+                request.Name,
+                [.. request.Claims.Select(Claim.ToApplicationClaim)]),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }

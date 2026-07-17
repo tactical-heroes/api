@@ -8,6 +8,7 @@ using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -63,10 +64,14 @@ public sealed class IdentityWriteDbContext(
             builder.ToTable("asp_net_users", Schema);
 
             builder.Property(user => user.Id).ValueGeneratedNever();
+            builder.Property(user => user.Status)
+                .HasMaxLength(UserStatus.MaxNameLength)
+                .HasDefaultValue(UserStatus.Active.Name)
+                .IsRequired();
             builder.Property(user => user.Email).HasMaxLength(Email.MaxLength).IsRequired();
             builder.Property(user => user.NormalizedEmail).HasMaxLength(Email.MaxLength).IsRequired();
-            builder.Property(user => user.UserName).HasMaxLength(Email.MaxLength).IsRequired();
-            builder.Property(user => user.NormalizedUserName).HasMaxLength(Email.MaxLength).IsRequired();
+            builder.Property(user => user.UserName).HasMaxLength(UserName.MaxLength).IsRequired();
+            builder.Property(user => user.NormalizedUserName).HasMaxLength(UserName.MaxLength).IsRequired();
             builder.Property(user => user.PasswordHash).HasMaxLength(1024).IsRequired();
 
             builder.HasMany(user => user.Roles)

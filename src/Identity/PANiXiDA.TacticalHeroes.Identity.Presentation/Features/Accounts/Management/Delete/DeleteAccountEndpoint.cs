@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.Delete;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.Delete;
 
@@ -16,12 +16,18 @@ internal sealed class DeleteAccountEndpoint : IEndpoint<AccountManagementEndpoin
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(Guid id)
+    private static async Task<IResult> Handle(
+        Guid id,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(DeleteAccountEndpoint));
+        var result = await mediator.SendAsync(
+            new DeleteAccountCommand(id),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }

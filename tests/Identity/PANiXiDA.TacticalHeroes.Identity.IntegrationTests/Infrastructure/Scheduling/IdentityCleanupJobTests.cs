@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
@@ -32,25 +32,16 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         var recentUnconfirmedUser = CreateUser("recent-unconfirmed@example.com");
         var staleConfirmedUser = CreateUser("stale-confirmed@example.com");
 
-        staleConfirmedUser
-            .ConfirmRegistration()
-            .IsSuccess
-            .ShouldBeTrue();
+        staleConfirmedUser.EmailConfirmed = true;
 
         await using (var scope = Fixture.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            var usersRepository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            await unitOfWork.ExecuteInTransactionAsync(
-                async ct =>
-                {
-                    await usersRepository.AddAsync(staleUnconfirmedUser, Password, ct);
-                    await usersRepository.AddAsync(recentUnconfirmedUser, Password, ct);
-                    await usersRepository.AddAsync(staleConfirmedUser, Password, ct);
-                },
-                TestContext.Current.CancellationToken);
+            (await userManager.CreateAsync(staleUnconfirmedUser, Password)).Succeeded.ShouldBeTrue();
+            (await userManager.CreateAsync(recentUnconfirmedUser, Password)).Succeeded.ShouldBeTrue();
+            (await userManager.CreateAsync(staleConfirmedUser, Password)).Succeeded.ShouldBeTrue();
 
             await SetCreatedAtAsync(dbContext, staleUnconfirmedUser, NowUtc.AddDays(-8));
             await SetCreatedAtAsync(dbContext, recentUnconfirmedUser, NowUtc.AddDays(-1));
@@ -78,24 +69,33 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
                 .Select(user => user.Id)
                 .ToArrayAsync(TestContext.Current.CancellationToken);
 
-            remainingUserIds.ShouldNotContain(staleUnconfirmedUser.Id.Value);
-            remainingUserIds.ShouldContain(recentUnconfirmedUser.Id.Value);
-            remainingUserIds.ShouldContain(staleConfirmedUser.Id.Value);
+            remainingUserIds.ShouldNotContain(staleUnconfirmedUser.Id);
+            remainingUserIds.ShouldContain(recentUnconfirmedUser.Id);
+            remainingUserIds.ShouldContain(staleConfirmedUser.Id);
         }
     }
 
-    private static User CreateUser(string email)
+    private static ApplicationUser CreateUser(string email)
     {
-        return User.Register(email).Value;
+        return new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = email,
+            UserName = email,
+            Status = UserStatus.Active.Name,
+            LockoutEnabled = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
     }
 
     private static Task SetCreatedAtAsync(
         IdentityWriteDbContext dbContext,
-        User user,
+        ApplicationUser user,
         DateTimeOffset createdAtUtc)
     {
         return dbContext.Set<ApplicationUser>()
-            .Where(storedUser => storedUser.Id == user.Id.Value)
+            .Where(storedUser => storedUser.Id == user.Id)
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(
                     storedUser => storedUser.CreatedAt,

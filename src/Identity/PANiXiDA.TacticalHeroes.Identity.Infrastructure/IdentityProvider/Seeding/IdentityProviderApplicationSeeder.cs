@@ -24,10 +24,7 @@ internal sealed class IdentityProviderApplicationSeeder(
 
             if (application is null)
             {
-                await applicationManager.CreateAsync(
-                    descriptor,
-                    cancellationToken);
-
+                await applicationManager.CreateAsync(descriptor, cancellationToken);
                 continue;
             }
 
@@ -44,17 +41,70 @@ internal sealed class IdentityProviderApplicationSeeder(
         var descriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = client.ClientId,
-            ClientType = OpenIddictConstants.ClientTypes.Public,
+            ClientSecret = string.IsNullOrWhiteSpace(client.ClientSecret)
+                ? null
+                : client.ClientSecret,
+            ClientType = client.ClientType,
             DisplayName = client.DisplayName
         };
 
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Introspection);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.Password);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.RefreshToken);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Scopes.Email);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Scopes.Profile);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Scopes.Roles);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
+
+        foreach (var grantType in client.GrantTypes)
+        {
+            AddGrantTypePermissions(descriptor, grantType);
+        }
+
+        if (client.PostLogoutRedirectUris.Count > 0)
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.EndSession);
+        }
+
+        descriptor.AddScopePermissions([.. client.Scopes]);
+
+        foreach (var redirectUri in client.RedirectUris)
+        {
+            descriptor.RedirectUris.Add(new Uri(redirectUri));
+        }
+
+        foreach (var postLogoutRedirectUri in client.PostLogoutRedirectUris)
+        {
+            descriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutRedirectUri));
+        }
 
         return descriptor;
+    }
+
+    private static void AddGrantTypePermissions(
+        OpenIddictApplicationDescriptor descriptor,
+        string grantType)
+    {
+        switch (grantType)
+        {
+            case OpenIddictConstants.GrantTypes.AuthorizationCode:
+                descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
+                descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.PushedAuthorization);
+                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+                descriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
+                break;
+
+            case OpenIddictConstants.GrantTypes.RefreshToken:
+                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.RefreshToken);
+                break;
+
+            case OpenIddictConstants.GrantTypes.ClientCredentials:
+                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
+                break;
+
+            case OpenIddictConstants.GrantTypes.TokenExchange:
+                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.TokenExchange);
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported OAuth grant type '{grantType}'.");
+        }
     }
 }

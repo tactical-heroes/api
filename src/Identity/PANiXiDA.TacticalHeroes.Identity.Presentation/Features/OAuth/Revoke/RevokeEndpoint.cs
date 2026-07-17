@@ -1,8 +1,7 @@
 using System.Net.Mime;
 
 using Microsoft.AspNetCore.Http;
-
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Revoke;
 
@@ -18,12 +17,15 @@ internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
             .AllowAnonymous()
             .Accepts<RevokeRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces(StatusCodes.Status200OK)
-            .Produces<RevokeErrorResponse>(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .Produces<RevokeErrorResponse>(StatusCodes.Status400BadRequest);
     }
 
-    private static IResult Handle()
+    private static ProblemHttpResult Handle()
     {
-        return EndpointStub.NotImplemented(nameof(RevokeEndpoint));
+        return TypedResults.Problem(
+            title: "OpenIddict revoke endpoint was not handled.",
+            detail: "The /connect/revoke route must be intercepted by the OpenIddict server pipeline. " +
+                "If this fallback endpoint is executed, OpenIddict revocation endpoint configuration is broken.",
+            statusCode: StatusCodes.Status500InternalServerError);
     }
 }

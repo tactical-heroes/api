@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.Block;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.Block;
 
@@ -16,12 +16,18 @@ internal sealed class BlockAccountEndpoint : IEndpoint<AccountManagementEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(Guid id)
+    private static async Task<IResult> Handle(
+        Guid id,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(BlockAccountEndpoint));
+        var result = await mediator.SendAsync(
+            new BlockAccountCommand(id),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }

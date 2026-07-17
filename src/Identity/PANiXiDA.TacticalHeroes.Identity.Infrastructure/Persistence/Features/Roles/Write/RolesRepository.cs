@@ -3,172 +3,200 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 
 public sealed class RolesRepository(
+    IdentityWriteDbContext dbContext,
     RoleManager<ApplicationRole> roleManager,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
-    : IRolesRepository
+    : IRolesWriteRepository
 {
-    private IQueryable<ApplicationRole> Query =>
-        roleManager.Roles
-            .Include(role => role.Claims);
-
-    public async Task<Role?> GetByIdAsync(
-        Guid id,
+    public async Task<Result<Guid>> AddAsync(
+        string name,
+        IReadOnlyCollection<Claim> claims,
         CancellationToken cancellationToken)
     {
-        var role = await Query
-            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        return role is null ? null : MapToDomain(role);
-    }
+        var roleResult = CreateRole(Guid.NewGuid(), name, claims);
 
-    public async Task<Result> AddAsync(
-        Role aggregateRoot,
-        CancellationToken cancellationToken)
-    {
-        var role = new ApplicationRole
+        if (roleResult.IsFailure)
         {
-            Id = aggregateRoot.Id.Value
+            return Result.Failure<Guid>(roleResult.Errors);
+        }
+
+        var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
+        var applicationRole = new ApplicationRole
+        {
+            Id = roleResult.Value.Id.Value,
+            Name = roleResult.Value.Name.Value,
+            CreatedAt = nowUtc,
+            UpdatedAt = nowUtc,
+            Claims = CreateClaims(claims)
         };
 
-        ApplyRoleState(role, aggregateRoot);
-        var createResult = await roleManager.CreateAsync(role);
+        var identityResult = await roleManager.CreateAsync(applicationRole);
 
-        if (!createResult.Succeeded)
+        if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(createResult);
+            return IdentityResultMapper.ToResult<Guid>(identityResult);
         }
 
-        var syncClaimsResult = await SyncRoleClaimsAsync(role, aggregateRoot);
+        aggregateTracker.Track(roleResult.Value);
 
-        if (syncClaimsResult.IsFailure)
-        {
-            return syncClaimsResult;
-        }
-
-        aggregateTracker.Track(aggregateRoot);
-
-        return Result.Success();
+        return Result.Success(applicationRole.Id);
     }
 
     public async Task<Result> UpdateAsync(
-        Role aggregateRoot,
+        Guid id,
+        string name,
+        IReadOnlyCollection<Claim> claims,
         CancellationToken cancellationToken)
     {
-        var role = await Query
-            .SingleOrDefaultAsync(role => role.Id == aggregateRoot.Id.Value, cancellationToken);
+        var roleResult = CreateRole(id, name, claims);
 
-        if (role is null)
+        if (roleResult.IsFailure)
         {
-            return Result.Failure(Error.NotFound("Role was not found."));
+            return Result.Failure(roleResult.Errors);
         }
 
-        ApplyRoleState(role, aggregateRoot);
-        var updateResult = await roleManager.UpdateAsync(role);
+        var applicationRole = await roleManager.Roles
+            .Include(role => role.Claims)
+            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
 
-        if (!updateResult.Succeeded)
+        if (applicationRole is null)
         {
-            return IdentityResultMapper.ToResult(updateResult);
+            return RoleNotFound();
         }
 
-        var syncClaimsResult = await SyncRoleClaimsAsync(role, aggregateRoot);
+        applicationRole.Name = roleResult.Value.Name.Value;
+        applicationRole.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
+        SyncClaims(applicationRole, claims);
 
-        if (syncClaimsResult.IsFailure)
+        var identityResult = await roleManager.UpdateAsync(applicationRole);
+
+        if (!identityResult.Succeeded)
         {
-            return syncClaimsResult;
+            return IdentityResultMapper.ToResult(identityResult);
         }
 
-        aggregateTracker.Track(aggregateRoot);
+        aggregateTracker.Track(roleResult.Value);
 
         return Result.Success();
     }
 
     public async Task<Result> DeleteAsync(
-        Role aggregateRoot,
+        Guid id,
         CancellationToken cancellationToken)
     {
-        var role = await Query
-            .SingleOrDefaultAsync(role => role.Id == aggregateRoot.Id.Value, cancellationToken);
+        var applicationRole = await roleManager.Roles
+            .Include(role => role.Claims)
+            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
 
-        if (role is null)
+        if (applicationRole is null)
         {
-            return Result.Success();
+            return RoleNotFound();
         }
 
-        var deleteResult = await roleManager.DeleteAsync(role);
+        var roleResult = CreateRole(
+            applicationRole.Id,
+            applicationRole.Name!,
+            applicationRole.Claims.Select(claim =>
+                new Claim(claim.ClaimType!, claim.ClaimValue!)).ToArray());
 
-        if (!deleteResult.Succeeded)
+        if (roleResult.IsFailure)
         {
-            return IdentityResultMapper.ToResult(deleteResult);
+            return Result.Failure(roleResult.Errors);
         }
 
-        aggregateTracker.Track(aggregateRoot);
+        var identityResult = await roleManager.DeleteAsync(applicationRole);
+
+        if (!identityResult.Succeeded)
+        {
+            return IdentityResultMapper.ToResult(identityResult);
+        }
+
+        aggregateTracker.Track(roleResult.Value);
 
         return Result.Success();
     }
 
-    private void ApplyRoleState(
-        ApplicationRole role,
-        Role aggregateRoot)
-    {
-        var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
-
-        role.Name = aggregateRoot.Name.Value;
-        role.UpdatedAt = nowUtc;
-
-        if (role.CreatedAt == default)
-        {
-            role.CreatedAt = nowUtc;
-        }
-    }
-
-    private async Task<Result> SyncRoleClaimsAsync(
-        ApplicationRole role,
-        Role aggregateRoot)
-    {
-        var targetClaims = aggregateRoot.Claims
-            .Select(claim => new Claim(claim.Type.Value, claim.Value.Value))
-            .ToArray();
-        var currentClaims = await roleManager.GetClaimsAsync(role);
-
-        foreach (var claim in currentClaims.Except(targetClaims, IdentityClaimComparer.Instance))
-        {
-            var removeClaimResult = await roleManager.RemoveClaimAsync(role, claim);
-
-            if (!removeClaimResult.Succeeded)
-            {
-                return IdentityResultMapper.ToResult(removeClaimResult);
-            }
-        }
-
-        foreach (var claim in targetClaims.Except(currentClaims, IdentityClaimComparer.Instance))
-        {
-            var addClaimResult = await roleManager.AddClaimAsync(role, claim);
-
-            if (!addClaimResult.Succeeded)
-            {
-                return IdentityResultMapper.ToResult(addClaimResult);
-            }
-        }
-
-        return Result.Success();
-    }
-
-    private static Role MapToDomain(ApplicationRole role)
+    private static Result<Role> CreateRole(
+        Guid id,
+        string name,
+        IReadOnlyCollection<Claim> claims)
     {
         return Role.Create(
-                role.Id,
-                role.Name!,
-                role.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)))
-            .Value;
+            id,
+            name,
+            claims
+                .Distinct(IdentityClaimComparer.Instance)
+                .Select(claim => (claim.Type, claim.Value)));
+    }
+
+    private static List<ApplicationRoleClaim> CreateClaims(
+        IEnumerable<Claim> claims)
+    {
+        return
+        [
+            .. claims
+                .Distinct(IdentityClaimComparer.Instance)
+                .Select(claim => new ApplicationRoleClaim
+                {
+                    ClaimType = claim.Type,
+                    ClaimValue = claim.Value
+                })
+        ];
+    }
+
+    private void SyncClaims(
+        ApplicationRole applicationRole,
+        IReadOnlyCollection<Claim> claims)
+    {
+        var targetClaims = claims
+            .Distinct(IdentityClaimComparer.Instance)
+            .ToArray();
+
+        foreach (var currentClaim in applicationRole.Claims.ToArray())
+        {
+            var claim = new Claim(currentClaim.ClaimType!, currentClaim.ClaimValue!);
+
+            if (targetClaims.Contains(claim, IdentityClaimComparer.Instance))
+            {
+                continue;
+            }
+
+            dbContext.Set<ApplicationRoleClaim>().Remove(currentClaim);
+        }
+
+        foreach (var targetClaim in targetClaims)
+        {
+            if (applicationRole.Claims.Any(currentClaim =>
+                    string.Equals(currentClaim.ClaimType, targetClaim.Type, StringComparison.Ordinal) &&
+                    string.Equals(currentClaim.ClaimValue, targetClaim.Value, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            applicationRole.Claims.Add(
+                new ApplicationRoleClaim
+                {
+                    ClaimType = targetClaim.Type,
+                    ClaimValue = targetClaim.Value
+                });
+        }
+    }
+
+    private static Result RoleNotFound()
+    {
+        return Result.Failure(Error.NotFound("Role was not found."));
     }
 }

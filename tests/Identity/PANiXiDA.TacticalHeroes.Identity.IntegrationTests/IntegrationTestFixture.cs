@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 using Wolverine;
@@ -24,6 +26,8 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     public string ConnectionString => _database.PostgreSqlConnectionString;
 
+    public CommandCounterInterceptor CommandCounter { get; } = new();
+
     public async ValueTask InitializeAsync()
     {
         await _database.InitializeAsync();
@@ -36,6 +40,8 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
             .Build();
 
         var services = new ServiceCollection();
+        services.AddSingleton(CommandCounter);
+        services.AddSingleton<IInterceptor>(CommandCounter);
         services.AddInfrastructure(configuration);
         services.RunWolverineInSoloMode();
 

@@ -432,8 +432,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
 
                     b.Property<string>("NormalizedUserName")
                         .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("character varying(320)")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
                         .HasColumnName("normalized_user_name");
 
                     b.Property<string>("PasswordHash")
@@ -454,6 +454,13 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .HasColumnType("text")
                         .HasColumnName("security_stamp");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("Active")
+                        .HasColumnName("status");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("two_factor_enabled");
@@ -464,8 +471,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
 
                     b.Property<string>("UserName")
                         .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("character varying(320)")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
                         .HasColumnName("user_name");
 
                     b.HasKey("Id")

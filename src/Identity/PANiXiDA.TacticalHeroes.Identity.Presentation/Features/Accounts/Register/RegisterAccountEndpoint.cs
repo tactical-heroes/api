@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Register;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Register;
 
@@ -16,12 +16,24 @@ internal sealed class RegisterAccountEndpoint : IEndpoint<AccountsEndpoints>
             .AllowAnonymous()
             .Produces<RegisterAccountResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status409Conflict)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
-    private static IResult Handle(RegisterAccountRequest request)
+    private static async Task<IResult> Handle(
+        RegisterAccountRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(RegisterAccountEndpoint));
+        var result = await mediator.SendAsync(
+            new RegisterAccountCommand(
+                request.Email,
+                request.UserName,
+                request.Password),
+            cancellationToken);
+
+        return result.ToHttpResult(id =>
+            TypedResults.Created(
+                $"/api/v1/accounts/{id}",
+                new RegisterAccountResponse(id)));
     }
 }

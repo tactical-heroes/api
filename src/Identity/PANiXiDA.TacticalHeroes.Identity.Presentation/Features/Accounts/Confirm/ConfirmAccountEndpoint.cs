@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Confirm;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Confirm;
 
@@ -16,12 +16,20 @@ internal sealed class ConfirmAccountEndpoint : IEndpoint<AccountsEndpoints>
             .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(ConfirmAccountRequest request)
+    private static async Task<IResult> Handle(
+        ConfirmAccountRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(ConfirmAccountEndpoint));
+        var result = await mediator.SendAsync(
+            new ConfirmAccountCommand(
+                request.UserId,
+                request.EmailConfirmationToken),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.GetList;
 
@@ -15,14 +15,31 @@ internal sealed class GetAccountsEndpoint : IEndpoint<AccountManagementEndpoints
         builder.MapGet(Handle)
             .Produces<PaginationResult<AccountListItemResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static IResult Handle(
+    private static async Task<IResult> Handle(
         [AsParameters] GetAccountsRequest request,
-        [AsParameters] PaginationParameters pagination)
+        [AsParameters] PaginationParameters pagination,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(GetAccountsEndpoint));
+        var result = await mediator.QueryAsync(
+            new GetAccountsQuery(request.Email, pagination),
+            cancellationToken);
+
+        return result.ToHttpResult(page =>
+            TypedResults.Ok(
+                PaginationResult<AccountListItemResponse>.Create(
+                    page.Items.Select(item => new AccountListItemResponse(
+                        item.Id,
+                        item.Email,
+                        item.UserName,
+                        item.IsConfirmed,
+                        item.Status,
+                        item.StatusDisplayName)),
+                    page.PageNumber,
+                    page.PageSize,
+                    page.TotalCount)));
     }
 }

@@ -1,14 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Accounts.Read;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Accounts.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
 
@@ -34,6 +39,8 @@ internal static class ServiceCollectionExtensions
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });
+        serviceCollection.AddScoped<IAccountsWriteRepository, AccountsWriteRepository>();
+        serviceCollection.AddScoped<IRolesWriteRepository, RolesRepository>();
 
         return serviceCollection;
     }
@@ -43,8 +50,12 @@ internal static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         serviceCollection.AddPostgreSqlReadEfRepository<IdentityReadDbContext>(configuration);
-        serviceCollection.AddScoped<IUsersRepository, UsersRepository>();
-        serviceCollection.AddScoped<IRolesRepository, RolesRepository>();
+        serviceCollection.AddDbContext<IdentityReadDbContext>((provider, options) =>
+            options.AddInterceptors(provider.GetServices<IInterceptor>()));
+        serviceCollection.AddScoped<IAccountsReadRepository, AccountsReadRepository>();
+        serviceCollection.AddScoped<IRolesReadRepository, RolesReadRepository>();
+        serviceCollection.AddScoped<IOAuthUsersRepository, OAuthUsersRepository>();
+        serviceCollection.AddScoped<IOAuthClientsRepository, OAuthClientsRepository>();
 
         return serviceCollection;
     }

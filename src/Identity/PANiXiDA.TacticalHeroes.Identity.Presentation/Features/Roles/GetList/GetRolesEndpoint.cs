@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetList;
 
@@ -15,12 +15,26 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
         builder.MapGet(Handle)
             .Produces<PaginationResult<RoleListItemResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static IResult Handle([AsParameters] PaginationParameters pagination)
+    private static async Task<IResult> Handle(
+        [AsParameters] PaginationParameters pagination,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(GetRolesEndpoint));
+        var result = await mediator.QueryAsync(
+            new GetRolesQuery(pagination),
+            cancellationToken);
+
+        return result.ToHttpResult(page =>
+            TypedResults.Ok(
+                PaginationResult<RoleListItemResponse>.Create(
+                    page.Items.Select(item => new RoleListItemResponse(
+                        item.Id,
+                        item.Name)),
+                    page.PageNumber,
+                    page.PageSize,
+                    page.TotalCount)));
     }
 }

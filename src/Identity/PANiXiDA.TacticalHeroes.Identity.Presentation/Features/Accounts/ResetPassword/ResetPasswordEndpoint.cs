@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ResetPassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ResetPassword;
 
@@ -17,12 +17,21 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AccountsEndpoints>
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(ResetPasswordRequest request)
+    private static async Task<IResult> Handle(
+        ResetPasswordRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(ResetPasswordEndpoint));
+        var result = await mediator.SendAsync(
+            new ResetPasswordCommand(
+                request.UserId,
+                request.PasswordResetToken,
+                request.NewPassword),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }

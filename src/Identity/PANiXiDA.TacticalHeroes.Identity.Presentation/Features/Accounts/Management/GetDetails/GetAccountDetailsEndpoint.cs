@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.GetDetails;
@@ -16,12 +17,27 @@ internal sealed class GetAccountDetailsEndpoint : IEndpoint<AccountManagementEnd
             .Produces<GetAccountDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(Guid id)
+    private static async Task<IResult> Handle(
+        Guid id,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(GetAccountDetailsEndpoint));
+        var result = await mediator.QueryAsync(
+            new GetAccountDetailsQuery(id),
+            cancellationToken);
+
+        return result.ToHttpResult(account =>
+            TypedResults.Ok(
+                new GetAccountDetailsResponse(
+                    account.Id,
+                    account.Email,
+                    account.UserName,
+                    account.IsConfirmed,
+                    account.Status,
+                    account.StatusDisplayName,
+                    [.. account.Claims.Select(Claim.FromApplicationClaim)])));
     }
 }

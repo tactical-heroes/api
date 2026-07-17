@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ResendConfirmationEmail;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ResendConfirmationEmail;
 
@@ -15,12 +15,18 @@ internal sealed class ResendConfirmationEmailEndpoint : IEndpoint<AccountsEndpoi
         builder.MapPost(Handle)
             .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest);
     }
 
-    private static IResult Handle(ResendConfirmationEmailRequest request)
+    private static async Task<IResult> Handle(
+        ResendConfirmationEmailRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(ResendConfirmationEmailEndpoint));
+        var result = await mediator.SendAsync(
+            new ResendConfirmationEmailCommand(request.Email),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }

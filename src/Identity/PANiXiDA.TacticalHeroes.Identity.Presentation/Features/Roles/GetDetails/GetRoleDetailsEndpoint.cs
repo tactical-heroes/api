@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
@@ -16,12 +17,23 @@ internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
             .Produces<GetRoleDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(Guid id)
+    private static async Task<IResult> Handle(
+        Guid id,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(GetRoleDetailsEndpoint));
+        var result = await mediator.QueryAsync(
+            new GetRoleDetailsQuery(id),
+            cancellationToken);
+
+        return result.ToHttpResult(role =>
+            TypedResults.Ok(
+                new GetRoleDetailsResponse(
+                    role.Id,
+                    role.Name,
+                    [.. role.Claims.Select(Claim.FromApplicationClaim)])));
     }
 }

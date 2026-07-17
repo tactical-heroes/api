@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
@@ -16,12 +17,23 @@ internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
             .Produces<CreateRoleResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status409Conflict)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
-    private static IResult Handle(CreateRoleRequest request)
+    private static async Task<IResult> Handle(
+        CreateRoleRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(CreateRoleEndpoint));
+        var result = await mediator.SendAsync(
+            new CreateRoleCommand(
+                request.Name,
+                [.. request.Claims.Select(Claim.ToApplicationClaim)]),
+            cancellationToken);
+
+        return result.ToHttpResult(id =>
+            TypedResults.Created(
+                $"/api/v1/roles/{id}",
+                new CreateRoleResponse(id)));
     }
 }

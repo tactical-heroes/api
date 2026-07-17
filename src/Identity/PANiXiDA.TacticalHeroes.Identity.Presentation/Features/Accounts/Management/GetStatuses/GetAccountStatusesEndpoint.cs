@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetStatuses;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.GetStatuses;
 
@@ -14,12 +14,22 @@ internal sealed class GetAccountStatusesEndpoint : IEndpoint<AccountManagementEn
     {
         builder.MapGet(Handle)
             .Produces<IReadOnlyCollection<AccountStatusResponse>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static IResult Handle()
+    private static async Task<IResult> Handle(
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(GetAccountStatusesEndpoint));
+        var result = await mediator.QueryAsync(
+            new GetAccountStatusesQuery(),
+            cancellationToken);
+
+        return result.ToHttpResult(statuses =>
+            TypedResults.Ok<IReadOnlyCollection<AccountStatusResponse>>(
+                [.. statuses.Select(status => new AccountStatusResponse(
+                    status.Id,
+                    status.Name,
+                    status.DisplayName))]));
     }
 }

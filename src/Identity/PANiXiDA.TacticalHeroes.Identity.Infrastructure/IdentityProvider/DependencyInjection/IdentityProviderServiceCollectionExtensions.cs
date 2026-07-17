@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using OpenIddict.Validation.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
@@ -19,7 +21,8 @@ internal static class IdentityProviderServiceCollectionExtensions
 {
     public static IServiceCollection AddIdentityProvider(
         this IServiceCollection serviceCollection,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment? environment)
     {
         var identityProviderOptions = configuration
             .GetSection(IdentityProviderOptions.SectionName)
@@ -28,7 +31,7 @@ internal static class IdentityProviderServiceCollectionExtensions
         serviceCollection.Configure<IdentityProviderOptions>(
             configuration.GetSection(IdentityProviderOptions.SectionName));
 
-        serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
+        serviceCollection.AddScoped<IAccountCredentialsService, AccountCredentialsService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
         serviceCollection.AddDataProtection()
@@ -38,19 +41,27 @@ internal static class IdentityProviderServiceCollectionExtensions
             .AddIdentityCore<ApplicationUser>(options =>
             {
                 options.User.RequireUniqueEmail = identityProviderOptions.User.RequireUniqueEmail;
+                options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
+                options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
+                options.ClaimsIdentity.RoleClaimType = OpenIddictConstants.Claims.Role;
                 options.Password.RequiredLength = identityProviderOptions.Password.RequiredLength;
                 options.Password.RequiredUniqueChars = identityProviderOptions.Password.RequiredUniqueChars;
                 options.Password.RequireDigit = identityProviderOptions.Password.RequireDigit;
                 options.Password.RequireLowercase = identityProviderOptions.Password.RequireLowercase;
                 options.Password.RequireNonAlphanumeric = identityProviderOptions.Password.RequireNonAlphanumeric;
                 options.Password.RequireUppercase = identityProviderOptions.Password.RequireUppercase;
+                options.Lockout.MaxFailedAccessAttempts = identityProviderOptions.Lockout.MaxFailedAccessAttempts;
+                options.Lockout.DefaultLockoutTimeSpan = identityProviderOptions.Lockout.DefaultLockoutTimeSpan;
+                options.Lockout.AllowedForNewUsers = true;
                 options.Tokens.EmailConfirmationTokenProvider = identityProviderOptions.TokenProviders.EmailConfirmation;
                 options.Tokens.PasswordResetTokenProvider = identityProviderOptions.TokenProviders.PasswordReset;
             })
             .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<IdentityWriteDbContext>()
+            .AddSignInManager()
             .AddTokenProvider<EmailConfirmationTokenProvider>(identityProviderOptions.TokenProviders.EmailConfirmation)
-            .AddTokenProvider<PasswordResetTokenProvider>(identityProviderOptions.TokenProviders.PasswordReset);
+            .AddTokenProvider<PasswordResetTokenProvider>(identityProviderOptions.TokenProviders.PasswordReset)
+            .AddDefaultTokenProviders();
 
         serviceCollection.AddOpenIddict()
             .AddCore(options =>
@@ -63,24 +74,61 @@ internal static class IdentityProviderServiceCollectionExtensions
             })
             .AddServer(options =>
             {
+                if (identityProviderOptions.Issuer is not null)
+                {
+                    options.SetIssuer(identityProviderOptions.Issuer);
+                }
+
+                options.SetPushedAuthorizationEndpointUris("/connect/par");
+                options.SetAuthorizationEndpointUris("/connect/authorize");
                 options.SetTokenEndpointUris("/connect/token");
-                options.AllowPasswordFlow();
+                options.SetUserInfoEndpointUris("/connect/userinfo");
+                options.SetEndSessionEndpointUris("/connect/logout");
+                options.SetIntrospectionEndpointUris("/connect/introspect");
+                options.SetRevocationEndpointUris("/connect/revoke");
+
+                options.AllowAuthorizationCodeFlow()
+                    .RequireProofKeyForCodeExchange();
+                options.RequirePushedAuthorizationRequests();
+                options.AllowClientCredentialsFlow();
                 options.AllowRefreshTokenFlow();
+                options.AllowTokenExchangeFlow();
                 options.RegisterScopes(
-                    OpenIddictConstants.Scopes.Email,
-                    OpenIddictConstants.Scopes.OfflineAccess,
-                    OpenIddictConstants.Scopes.Profile,
-                    OpenIddictConstants.Scopes.Roles);
+                [
+                    .. new[]
+                    {
+                        OpenIddictConstants.Scopes.OpenId,
+                        OpenIddictConstants.Scopes.Email,
+                        OpenIddictConstants.Scopes.OfflineAccess,
+                        OpenIddictConstants.Scopes.Profile,
+                        OpenIddictConstants.Scopes.Roles
+                    }
+                    .Concat(identityProviderOptions.Clients.SelectMany(client => client.Scopes))
+                    .Where(scope => !string.IsNullOrWhiteSpace(scope))
+                    .Distinct(StringComparer.Ordinal)
+                ]);
                 options.SetAccessTokenLifetime(identityProviderOptions.AccessTokenLifetime);
                 options.SetRefreshTokenLifetime(identityProviderOptions.RefreshTokenLifetime);
+                options.SetAuthorizationCodeLifetime(identityProviderOptions.AuthorizationCodeLifetime);
+                options.SetIdentityTokenLifetime(identityProviderOptions.IdentityTokenLifetime);
                 options.UseReferenceAccessTokens();
                 options.UseReferenceRefreshTokens();
                 options.AddDevelopmentEncryptionCertificate();
                 options.AddDevelopmentSigningCertificate();
 
-                options.UseAspNetCore()
+                var aspNetCore = options.UseAspNetCore()
+                    .EnableAuthorizationEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
-                    .DisableTransportSecurityRequirement();
+                    .EnableUserInfoEndpointPassthrough()
+                    .EnableEndSessionEndpointPassthrough()
+                    .EnableStatusCodePagesIntegration();
+
+                if (environment is null ||
+                    environment.IsDevelopment() ||
+                    environment.IsEnvironment("Test"))
+                {
+                    aspNetCore.DisableTransportSecurityRequirement();
+                }
             })
             .AddValidation(options =>
             {
@@ -89,7 +137,9 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.EnableTokenEntryValidation();
             });
 
-        serviceCollection.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+        serviceCollection
+            .AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+            .AddIdentityCookies();
         serviceCollection.AddAuthorization();
 
         return serviceCollection;

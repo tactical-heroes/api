@@ -22,40 +22,40 @@ public sealed class OpenApiTests(FunctionalTestFixture fixture)
             cancellationToken: TestContext.Current.CancellationToken);
 
         var paths = document.RootElement.GetProperty("paths");
-        var expectedOperations = new (string Path, string Method, string Tag)[]
+        var expectedOperations = new (string Path, string Method, string Tag, int SuccessStatusCode)[]
         {
-            ("/api/v1/accounts/register", "post", "Accounts"),
-            ("/api/v1/accounts/confirm", "post", "Accounts"),
-            ("/api/v1/accounts/change-password", "post", "Accounts"),
-            ("/api/v1/accounts/resend-confirmation-email", "post", "Accounts"),
-            ("/api/v1/accounts/forgot-password", "post", "Accounts"),
-            ("/api/v1/accounts/reset-password", "post", "Accounts"),
-            ("/api/v1/accounts", "post", "Accounts"),
-            ("/api/v1/accounts", "get", "Accounts"),
-            ("/api/v1/accounts/{id}", "get", "Accounts"),
-            ("/api/v1/accounts/{id}", "put", "Accounts"),
-            ("/api/v1/accounts/{id}", "delete", "Accounts"),
-            ("/api/v1/accounts/statuses", "get", "Accounts"),
-            ("/api/v1/accounts/{id}/block", "post", "Accounts"),
-            ("/api/v1/accounts/{id}/unblock", "post", "Accounts"),
-            ("/api/v1/auth/login", "post", "Auth"),
-            ("/api/v1/roles", "post", "Roles"),
-            ("/api/v1/roles", "get", "Roles"),
-            ("/api/v1/roles/{id}", "get", "Roles"),
-            ("/api/v1/roles/{id}", "put", "Roles"),
-            ("/api/v1/roles/{id}", "delete", "Roles"),
-            ("/connect/par", "post", "OAuth"),
-            ("/connect/authorize", "get", "OAuth"),
-            ("/connect/token", "post", "OAuth"),
-            ("/connect/userinfo", "get", "OAuth"),
-            ("/connect/userinfo", "post", "OAuth"),
-            ("/connect/logout", "get", "OAuth"),
-            ("/connect/logout", "post", "OAuth"),
-            ("/connect/introspect", "post", "OAuth"),
-            ("/connect/revoke", "post", "OAuth")
+            ("/api/v1/accounts/register", "post", "Accounts", StatusCodes.Status201Created),
+            ("/api/v1/accounts/confirm", "post", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/accounts/change-password", "post", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/accounts/resend-confirmation-email", "post", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/accounts/forgot-password", "post", "Accounts", StatusCodes.Status202Accepted),
+            ("/api/v1/accounts/reset-password", "post", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/accounts", "post", "Accounts", StatusCodes.Status201Created),
+            ("/api/v1/accounts", "get", "Accounts", StatusCodes.Status200OK),
+            ("/api/v1/accounts/{id}", "get", "Accounts", StatusCodes.Status200OK),
+            ("/api/v1/accounts/{id}", "put", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/accounts/{id}", "delete", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/accounts/statuses", "get", "Accounts", StatusCodes.Status200OK),
+            ("/api/v1/accounts/{id}/block", "post", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/accounts/{id}/unblock", "post", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/auth/login", "post", "Auth", StatusCodes.Status302Found),
+            ("/api/v1/roles", "post", "Roles", StatusCodes.Status201Created),
+            ("/api/v1/roles", "get", "Roles", StatusCodes.Status200OK),
+            ("/api/v1/roles/{id}", "get", "Roles", StatusCodes.Status200OK),
+            ("/api/v1/roles/{id}", "put", "Roles", StatusCodes.Status204NoContent),
+            ("/api/v1/roles/{id}", "delete", "Roles", StatusCodes.Status204NoContent),
+            ("/connect/par", "post", "OAuth", StatusCodes.Status201Created),
+            ("/connect/authorize", "get", "OAuth", StatusCodes.Status302Found),
+            ("/connect/token", "post", "OAuth", StatusCodes.Status200OK),
+            ("/connect/userinfo", "get", "OAuth", StatusCodes.Status200OK),
+            ("/connect/userinfo", "post", "OAuth", StatusCodes.Status200OK),
+            ("/connect/logout", "get", "OAuth", StatusCodes.Status302Found),
+            ("/connect/logout", "post", "OAuth", StatusCodes.Status302Found),
+            ("/connect/introspect", "post", "OAuth", StatusCodes.Status200OK),
+            ("/connect/revoke", "post", "OAuth", StatusCodes.Status200OK)
         };
 
-        foreach (var (path, method, tag) in expectedOperations)
+        foreach (var (path, method, tag, successStatusCode) in expectedOperations)
         {
             var operation = GetOperation(paths, path, method);
             operation
@@ -64,10 +64,13 @@ public sealed class OpenApiTests(FunctionalTestFixture fixture)
                 .Select(element => element.GetString())
                 .ShouldContain(tag);
 
-            operation
-                .GetProperty("responses")
+            var responses = operation.GetProperty("responses");
+            responses
+                .TryGetProperty(successStatusCode.ToString(), out _)
+                .ShouldBeTrue($"{method.ToUpperInvariant()} {path} should document the {successStatusCode} response");
+            responses
                 .TryGetProperty(StatusCodes.Status501NotImplemented.ToString(), out _)
-                .ShouldBeTrue($"{method.ToUpperInvariant()} {path} should document the presentation-only 501 response");
+                .ShouldBeFalse($"{method.ToUpperInvariant()} {path} should not expose a presentation stub response");
         }
 
         paths.EnumerateObject().ShouldNotContain(path =>

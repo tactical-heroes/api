@@ -1,6 +1,8 @@
+using System.Security.Claims;
+
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ChangePassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ChangePassword;
 
@@ -18,12 +20,29 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AccountsEndpoints>
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status501NotImplemented);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static IResult Handle(ChangePasswordRequest request)
+    private static async Task<IResult> Handle(
+        ChangePasswordRequest request,
+        ClaimsPrincipal user,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return EndpointStub.NotImplemented(nameof(ChangePasswordEndpoint));
+        var accountIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
+
+        if (!Guid.TryParse(accountIdValue, out var accountId))
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var result = await mediator.SendAsync(
+            new ChangePasswordCommand(
+                accountId,
+                request.CurrentPassword,
+                request.NewPassword),
+            cancellationToken);
+
+        return result.ToHttpResult(TypedResults.NoContent);
     }
 }
