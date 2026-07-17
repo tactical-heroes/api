@@ -1,6 +1,5 @@
 using Asp.Versioning;
 
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management;
@@ -15,14 +14,8 @@ internal sealed class AccountManagementEndpoints : IEndpointGroup
 
     public void Map(IEndpointRouteBuilder endpoints)
     {
-        var api = endpoints.NewVersionedApi();
-        var group = api.MapGroup($"{EndpointConstants.EndpointPrefix}/{Route}")
-            .HasApiVersion(ApiVersion)
-            .WithTags(Name)
+        EndpointMapper
+            .MapGroupEndpoints<AccountManagementEndpoints>(endpoints)
             .RequireAuthorization();
-
-        EndpointMapper.MapGroupEndpoints<AccountManagementEndpoints>(
-            group,
-            endpoints.ServiceProvider);
     }
 }

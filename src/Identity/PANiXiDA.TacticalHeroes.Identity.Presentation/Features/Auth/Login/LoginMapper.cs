@@ -16,7 +16,7 @@ internal static partial class LoginMapper
 
     internal static ClaimsPrincipal ToClaimsPrincipal(AuthenticatedAccountReadModel account)
     {
-        var claims = new List<System.Security.Claims.Claim>
+        var claims = new List<Claim>
         {
             new(OpenIddictConstants.Claims.Subject, account.Id.ToString()),
             new(OpenIddictConstants.Claims.Name, account.UserName),
