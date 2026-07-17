@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Register;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Register;
 
@@ -25,15 +25,13 @@ internal sealed class RegisterAccountEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new RegisterAccountCommand(
-                request.Email,
-                request.UserName,
-                request.Password),
+            RegisterAccountMapper.ToCommand(request),
             cancellationToken);
 
         return result.ToHttpResult(id =>
-            TypedResults.Created(
-                $"/api/v1/accounts/{id}",
-                new RegisterAccountResponse(id)));
+            TypedResults.CreatedAtRoute(
+                RegisterAccountMapper.ToResponse(id),
+                new GetAccountDetailsEndpoint().Name,
+                new { id }));
     }
 }

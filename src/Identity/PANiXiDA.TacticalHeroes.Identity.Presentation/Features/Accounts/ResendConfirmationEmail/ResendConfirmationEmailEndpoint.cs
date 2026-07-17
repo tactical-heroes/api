@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ResendConfirmationEmail;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ResendConfirmationEmail;
 
 internal sealed class ResendConfirmationEmailEndpoint : IEndpoint<AccountsEndpoints>
@@ -24,7 +22,7 @@ internal sealed class ResendConfirmationEmailEndpoint : IEndpoint<AccountsEndpoi
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new ResendConfirmationEmailCommand(request.Email),
+            ResendConfirmationEmailMapper.ToCommand(request),
             cancellationToken);
 
         return result.ToHttpResult(TypedResults.NoContent);

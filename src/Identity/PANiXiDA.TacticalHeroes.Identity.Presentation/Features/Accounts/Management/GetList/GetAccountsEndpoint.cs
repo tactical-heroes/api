@@ -29,17 +29,6 @@ internal sealed class GetAccountsEndpoint : IEndpoint<AccountManagementEndpoints
             cancellationToken);
 
         return result.ToHttpResult(page =>
-            TypedResults.Ok(
-                PaginationResult<AccountListItemResponse>.Create(
-                    page.Items.Select(item => new AccountListItemResponse(
-                        item.Id,
-                        item.Email,
-                        item.UserName,
-                        item.IsConfirmed,
-                        item.Status,
-                        item.StatusDisplayName)),
-                    page.PageNumber,
-                    page.PageSize,
-                    page.TotalCount)));
+            TypedResults.Ok(GetAccountsMapper.ToResponse(page)));
     }
 }

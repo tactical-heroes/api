@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
 internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
@@ -28,10 +25,7 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new UpdateRoleCommand(
-                id,
-                request.Name,
-                [.. request.Claims.Select(Claim.ToApplicationClaim)]),
+            UpdateRoleMapper.ToCommand(request, id),
             cancellationToken);
 
         return result.ToHttpResult(TypedResults.NoContent);

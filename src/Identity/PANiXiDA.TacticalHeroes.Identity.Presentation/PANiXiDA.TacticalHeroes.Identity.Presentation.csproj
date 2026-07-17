@@ -7,6 +7,7 @@
         <PackageReference Include="OpenIddict.Server.AspNetCore" />
         <PackageReference Include="PANiXiDA.Core.Application" />
         <PackageReference Include="PANiXiDA.Core.Presentation.Http" />
+        <PackageReference Include="Riok.Mapperly" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>

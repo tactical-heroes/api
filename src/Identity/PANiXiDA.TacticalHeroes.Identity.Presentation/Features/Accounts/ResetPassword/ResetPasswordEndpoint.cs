@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ResetPassword;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ResetPassword;
 
 internal sealed class ResetPasswordEndpoint : IEndpoint<AccountsEndpoints>
@@ -26,10 +24,7 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new ResetPasswordCommand(
-                request.UserId,
-                request.PasswordResetToken,
-                request.NewPassword),
+            ResetPasswordMapper.ToCommand(request),
             cancellationToken);
 
         return result.ToHttpResult(TypedResults.NoContent);

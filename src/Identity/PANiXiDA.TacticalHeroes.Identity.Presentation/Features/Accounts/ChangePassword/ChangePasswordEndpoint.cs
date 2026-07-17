@@ -2,8 +2,6 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ChangePassword;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ChangePassword;
 
 internal sealed class ChangePasswordEndpoint : IEndpoint<AccountsEndpoints>
@@ -37,10 +35,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AccountsEndpoints>
         }
 
         var result = await mediator.SendAsync(
-            new ChangePasswordCommand(
-                accountId,
-                request.CurrentPassword,
-                request.NewPassword),
+            ChangePasswordMapper.ToCommand(request, accountId),
             cancellationToken);
 
         return result.ToHttpResult(TypedResults.NoContent);

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 
@@ -26,14 +25,13 @@ internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new CreateRoleCommand(
-                request.Name,
-                [.. request.Claims.Select(Claim.ToApplicationClaim)]),
+            CreateRoleMapper.ToCommand(request),
             cancellationToken);
 
         return result.ToHttpResult(id =>
-            TypedResults.Created(
-                $"/api/v1/roles/{id}",
-                new CreateRoleResponse(id)));
+            TypedResults.CreatedAtRoute(
+                CreateRoleMapper.ToResponse(id),
+                new GetRoleDetailsEndpoint().Name,
+                new { id }));
     }
 }

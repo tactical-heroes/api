@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.GetDetails;
 
 internal sealed class GetAccountDetailsEndpoint : IEndpoint<AccountManagementEndpoints>
@@ -30,14 +28,6 @@ internal sealed class GetAccountDetailsEndpoint : IEndpoint<AccountManagementEnd
             cancellationToken);
 
         return result.ToHttpResult(account =>
-            TypedResults.Ok(
-                new GetAccountDetailsResponse(
-                    account.Id,
-                    account.Email,
-                    account.UserName,
-                    account.IsConfirmed,
-                    account.Status,
-                    account.StatusDisplayName,
-                    [.. account.Claims.Select(Claim.FromApplicationClaim)])));
+            TypedResults.Ok(GetAccountDetailsMapper.ToResponse(account)));
     }
 }

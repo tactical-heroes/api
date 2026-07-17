@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Confirm;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Confirm;
 
 internal sealed class ConfirmAccountEndpoint : IEndpoint<AccountsEndpoints>
@@ -25,9 +23,7 @@ internal sealed class ConfirmAccountEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new ConfirmAccountCommand(
-                request.UserId,
-                request.EmailConfirmationToken),
+            ConfirmAccountMapper.ToCommand(request),
             cancellationToken);
 
         return result.ToHttpResult(TypedResults.NoContent);

@@ -49,23 +49,9 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
             return OAuthErrorResults.InvalidToken("Token is invalid.");
         }
 
-        var scopes = new HashSet<string>(user.GetScopes(), StringComparer.Ordinal);
-        var account = result.Value;
-
         return TypedResults.Ok(
-            new GetUserInfoResponse(
-                account.AccountId.ToString(),
-                scopes.Contains(OpenIddictConstants.Scopes.Profile)
-                    ? account.Name
-                    : null,
-                scopes.Contains(OpenIddictConstants.Scopes.Email)
-                    ? account.Email
-                    : null,
-                scopes.Contains(OpenIddictConstants.Scopes.Email)
-                    ? account.EmailVerified
-                    : null,
-                scopes.Contains(OpenIddictConstants.Scopes.Roles) && account.Roles.Count > 0
-                    ? account.Roles
-                    : null));
+            GetUserInfoMapper.ToResponse(
+                result.Value,
+                user.GetScopes()));
     }
 }

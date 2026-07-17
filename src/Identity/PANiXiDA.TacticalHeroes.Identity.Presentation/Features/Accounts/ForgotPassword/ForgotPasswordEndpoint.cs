@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.ForgotPassword;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ForgotPassword;
 
 internal sealed class ForgotPasswordEndpoint : IEndpoint<AccountsEndpoints>
@@ -24,7 +22,7 @@ internal sealed class ForgotPasswordEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new ForgotPasswordCommand(request.Email),
+            ForgotPasswordMapper.ToCommand(request),
             cancellationToken);
 
         return result.ToHttpResult(

@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
 
 internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
@@ -30,10 +28,6 @@ internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
             cancellationToken);
 
         return result.ToHttpResult(role =>
-            TypedResults.Ok(
-                new GetRoleDetailsResponse(
-                    role.Id,
-                    role.Name,
-                    [.. role.Claims.Select(Claim.FromApplicationClaim)])));
+            TypedResults.Ok(GetRoleDetailsMapper.ToResponse(role)));
     }
 }

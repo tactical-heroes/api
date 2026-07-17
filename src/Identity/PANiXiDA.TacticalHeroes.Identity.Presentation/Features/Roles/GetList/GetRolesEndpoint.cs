@@ -28,13 +28,6 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
             cancellationToken);
 
         return result.ToHttpResult(page =>
-            TypedResults.Ok(
-                PaginationResult<RoleListItemResponse>.Create(
-                    page.Items.Select(item => new RoleListItemResponse(
-                        item.Id,
-                        item.Name)),
-                    page.PageNumber,
-                    page.PageSize,
-                    page.TotalCount)));
+            TypedResults.Ok(GetRolesMapper.ToResponse(page)));
     }
 }

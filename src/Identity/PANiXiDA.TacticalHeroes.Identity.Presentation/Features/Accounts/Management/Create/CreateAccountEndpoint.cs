@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.Create;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.Create;
 
@@ -26,18 +25,13 @@ internal sealed class CreateAccountEndpoint : IEndpoint<AccountManagementEndpoin
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new CreateAccountCommand(
-                request.Email,
-                request.UserName,
-                request.Password,
-                request.IsConfirmed,
-                [.. request.Claims.Select(Claim.ToApplicationClaim)],
-                request.Status),
+            CreateAccountMapper.ToCommand(request),
             cancellationToken);
 
         return result.ToHttpResult(id =>
-            TypedResults.Created(
-                $"/api/v1/accounts/{id}",
-                new CreateAccountResponse(id)));
+            TypedResults.CreatedAtRoute(
+                CreateAccountMapper.ToResponse(id),
+                new GetAccountDetailsEndpoint().Name,
+                new { id }));
     }
 }

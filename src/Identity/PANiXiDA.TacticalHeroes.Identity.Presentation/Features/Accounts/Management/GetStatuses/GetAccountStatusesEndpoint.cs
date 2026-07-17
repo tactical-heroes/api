@@ -26,10 +26,6 @@ internal sealed class GetAccountStatusesEndpoint : IEndpoint<AccountManagementEn
             cancellationToken);
 
         return result.ToHttpResult(statuses =>
-            TypedResults.Ok<IReadOnlyCollection<AccountStatusResponse>>(
-                [.. statuses.Select(status => new AccountStatusResponse(
-                    status.Id,
-                    status.Name,
-                    status.DisplayName))]));
+            TypedResults.Ok(GetAccountStatusesMapper.ToResponse(statuses)));
     }
 }

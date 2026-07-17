@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.Update;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.Management.Update;
 
 internal sealed class UpdateAccountEndpoint : IEndpoint<AccountManagementEndpoints>
@@ -28,13 +25,7 @@ internal sealed class UpdateAccountEndpoint : IEndpoint<AccountManagementEndpoin
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new UpdateAccountCommand(
-                id,
-                request.Email,
-                request.UserName,
-                request.IsConfirmed,
-                [.. request.Claims.Select(Claim.ToApplicationClaim)],
-                request.Status),
+            UpdateAccountMapper.ToCommand(request, id),
             cancellationToken);
 
         return result.ToHttpResult(TypedResults.NoContent);
