@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common.Urls;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 
@@ -31,7 +33,7 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         var returnUrlValidationResult = AllowedRedirectUrlValidator.Validate(
             request.ReturnUrl,
             httpContext,
-            "/connect/authorize",
+            GetAuthorizePath(),
             nameof(LoginRequest.ReturnUrl));
 
         if (returnUrlValidationResult.IsFailure)
@@ -53,5 +55,13 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
             LoginMapper.ToClaimsPrincipal(result.Value));
 
         return TypedResults.Redirect(request.ReturnUrl);
+    }
+
+    private static string GetAuthorizePath()
+    {
+        return string.Concat(
+            "/",
+            new OAuthEndpoints().Route.TrimEnd('/'),
+            new AuthorizeEndpoint().Route);
     }
 }
