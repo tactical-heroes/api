@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Introspec
 
 internal sealed class IntrospectEndpoint : IEndpoint<OAuthEndpoints>
 {
-    public string Route { get; } = "/introspect";
+    public string Route { get; } = OAuthEndpointRoutes.Introspection;
     public string Name { get; } = "IntrospectToken";
     public string Summary { get; } = "Introspect access or refresh token";
 
@@ -25,7 +25,8 @@ internal sealed class IntrospectEndpoint : IEndpoint<OAuthEndpoints>
     {
         return TypedResults.Problem(
             title: "OpenIddict introspection endpoint was not handled.",
-            detail: "The /connect/introspect route must be intercepted by the OpenIddict server pipeline. " +
+            detail: $"The {OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Introspection)} " +
+                "route must be intercepted by the OpenIddict server pipeline. " +
                 "If this fallback endpoint is executed, OpenIddict introspection endpoint configuration is broken.",
             statusCode: StatusCodes.Status500InternalServerError);
     }

@@ -5,11 +5,11 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 
 public interface IOAuthUsersRepository
 {
-    Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByAccountIdAsync(
-        Guid accountId,
+    Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
+        Guid userId,
         CancellationToken cancellationToken);
 
-    Task<Result<UserInfoReadModel>> GetUserInfoByAccountIdAsync(
-        Guid accountId,
+    Task<Result<UserInfoReadModel>> GetUserInfoByUserIdAsync(
+        Guid userId,
         CancellationToken cancellationToken);
 }

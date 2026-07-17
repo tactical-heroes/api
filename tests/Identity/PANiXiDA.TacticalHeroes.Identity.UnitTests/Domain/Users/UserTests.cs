@@ -15,18 +15,18 @@ public sealed class UserTests
         user.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Request account confirmation should raise confirmation requested event")]
-    public void RequestAccountConfirmation_Should_RaiseConfirmationRequestedEvent()
+    [Fact(DisplayName = "Request email confirmation should raise confirmation requested event")]
+    public void RequestEmailConfirmation_Should_RaiseConfirmationRequestedEvent()
     {
         var user = CreateUser();
         var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(24);
 
-        var result = user.RequestAccountConfirmation(
+        var result = user.RequestEmailConfirmation(
             "confirmation-token",
             expiresAtUtc);
 
         var confirmationEvent = user.GetDomainEvents()
-            .OfType<AccountConfirmationRequested>()
+            .OfType<EmailConfirmationRequested>()
             .Single();
 
         result.IsSuccess.ShouldBeTrue();
@@ -37,7 +37,7 @@ public sealed class UserTests
     }
 
     [Fact(DisplayName = "Confirm registration should confirm user and raise registered event")]
-    public void ConfirmRegistration_Should_ConfirmUser_And_RaiseRegisteredEvent()
+    public void ConfirmRegistration_Should_ConfirmEmail_And_RaiseRegisteredEvent()
     {
         var user = CreateUser();
         user.ClearDomainEvents();
@@ -55,8 +55,8 @@ public sealed class UserTests
         registeredEvent.Email.ShouldBe(user.Email.Value);
     }
 
-    [Fact(DisplayName = "Request password reset should require confirmed account and raise password reset event")]
-    public void RequestPasswordReset_Should_RequireConfirmedAccount_And_RaisePasswordResetEvent()
+    [Fact(DisplayName = "Request password reset should require confirmed user and raise password reset event")]
+    public void RequestPasswordReset_Should_RequireConfirmedUser_And_RaisePasswordResetEvent()
     {
         var user = CreateUser();
         var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(1);

@@ -52,7 +52,7 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 
         await httpContext.SignInAsync(
             IdentityConstants.ApplicationScheme,
-            LoginMapper.ToClaimsPrincipal(account: result.Value));
+            LoginMapper.ToClaimsPrincipal(user: result.Value));
 
         return TypedResults.Redirect(url: request.ReturnUrl);
     }

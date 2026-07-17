@@ -32,7 +32,7 @@ public sealed class RolesRepositoriesTests(IntegrationTestFixture fixture)
             var result = await repository.UpdateAsync(
                 roleId,
                 "administrator",
-                [new Claim(type: "permission", value: "identity.accounts.manage")],
+                [new Claim(type: "permission", value: "identity.users.manage")],
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -47,7 +47,7 @@ public sealed class RolesRepositoriesTests(IntegrationTestFixture fixture)
             result.Value.Name.ShouldBe("administrator");
             var claim = result.Value.Claims.ShouldHaveSingleItem();
             claim.Type.ShouldBe("permission");
-            claim.Value.ShouldBe("identity.accounts.manage");
+            claim.Value.ShouldBe("identity.users.manage");
         }
 
         await using (var scope = Fixture.CreateScope())

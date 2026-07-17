@@ -17,7 +17,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.ExchangeT
 
 internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 {
-    public string Route { get; } = "/token";
+    public string Route { get; } = OAuthEndpointRoutes.Token;
     public string Name { get; } = "ExchangeToken";
     public string Summary { get; } = "Exchange authorization code or refresh token for tokens";
 
@@ -93,15 +93,15 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
     {
         var authenticationResult = await httpContext.AuthenticateAsync(
             OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-        var accountIdResult = authenticationResult.Principal.GetSubjectId();
+        var userIdResult = authenticationResult.Principal.GetSubjectId();
 
-        if (accountIdResult.IsFailure)
+        if (userIdResult.IsFailure)
         {
             return OAuthErrorResults.InvalidGrant(description: invalidGrantDescription);
         }
 
         var principalResult = await mediator.QueryAsync(
-            new ExchangeTokenQuery(AccountId: accountIdResult.Value),
+            new ExchangeTokenQuery(UserId: userIdResult.Value),
             cancellationToken);
 
         return principalResult.IsFailure
@@ -154,18 +154,18 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
             return OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.");
         }
 
-        if (Guid.TryParse(input: subject, result: out var accountId))
+        if (Guid.TryParse(input: subject, result: out var userId))
         {
-            var accountResult = await mediator.QueryAsync(
-                new ExchangeTokenQuery(AccountId: accountId),
+            var userResult = await mediator.QueryAsync(
+                new ExchangeTokenQuery(UserId: userId),
                 cancellationToken);
 
-            return accountResult.IsFailure
+            return userResult.IsFailure
                 ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
                 : SignInTokenPrincipal(
                     request,
                     authenticationResult.Principal,
-                    accountResult.Value.Claims,
+                    userResult.Value.Claims,
                     audience);
         }
 

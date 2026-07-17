@@ -82,7 +82,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
             Id = Guid.CreateVersion7(),
             Email = email,
             UserName = email,
-            Status = AccountStatus.Active.Name,
+            Status = UserStatus.Active.Name,
             LockoutEnabled = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

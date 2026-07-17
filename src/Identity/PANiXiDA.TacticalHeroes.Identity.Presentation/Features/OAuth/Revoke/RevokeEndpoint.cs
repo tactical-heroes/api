@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Revoke;
 
 internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
 {
-    public string Route { get; } = "/revoke";
+    public string Route { get; } = OAuthEndpointRoutes.Revocation;
     public string Name { get; } = "RevokeToken";
     public string Summary { get; } = "Revoke access or refresh token";
 
@@ -24,7 +24,8 @@ internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
     {
         return TypedResults.Problem(
             title: "OpenIddict revoke endpoint was not handled.",
-            detail: "The /connect/revoke route must be intercepted by the OpenIddict server pipeline. " +
+            detail: $"The {OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Revocation)} " +
+                "route must be intercepted by the OpenIddict server pipeline. " +
                 "If this fallback endpoint is executed, OpenIddict revocation endpoint configuration is broken.",
             statusCode: StatusCodes.Status500InternalServerError);
     }

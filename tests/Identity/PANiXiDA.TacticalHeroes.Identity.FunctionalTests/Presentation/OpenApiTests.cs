@@ -24,20 +24,20 @@ public sealed class OpenApiTests(FunctionalTestFixture fixture)
         var paths = document.RootElement.GetProperty("paths");
         var expectedOperations = new (string Path, string Method, string Tag, int SuccessStatusCode)[]
         {
-            ("/api/v1/accounts/register", "post", "Accounts", StatusCodes.Status201Created),
-            ("/api/v1/accounts/confirm", "post", "Accounts", StatusCodes.Status204NoContent),
-            ("/api/v1/accounts/change-password", "post", "Accounts", StatusCodes.Status204NoContent),
-            ("/api/v1/accounts/resend-confirmation-email", "post", "Accounts", StatusCodes.Status204NoContent),
-            ("/api/v1/accounts/forgot-password", "post", "Accounts", StatusCodes.Status202Accepted),
-            ("/api/v1/accounts/reset-password", "post", "Accounts", StatusCodes.Status204NoContent),
-            ("/api/v1/accounts", "post", "Accounts", StatusCodes.Status201Created),
-            ("/api/v1/accounts", "get", "Accounts", StatusCodes.Status200OK),
-            ("/api/v1/accounts/{id}", "get", "Accounts", StatusCodes.Status200OK),
-            ("/api/v1/accounts/{id}", "put", "Accounts", StatusCodes.Status204NoContent),
-            ("/api/v1/accounts/{id}", "delete", "Accounts", StatusCodes.Status204NoContent),
-            ("/api/v1/accounts/statuses", "get", "Accounts", StatusCodes.Status200OK),
-            ("/api/v1/accounts/{id}/block", "post", "Accounts", StatusCodes.Status204NoContent),
-            ("/api/v1/accounts/{id}/unblock", "post", "Accounts", StatusCodes.Status204NoContent),
+            ("/api/v1/auth/register", "post", "Auth", StatusCodes.Status201Created),
+            ("/api/v1/auth/confirm-email", "post", "Auth", StatusCodes.Status204NoContent),
+            ("/api/v1/auth/change-password", "post", "Auth", StatusCodes.Status204NoContent),
+            ("/api/v1/auth/resend-confirmation-email", "post", "Auth", StatusCodes.Status204NoContent),
+            ("/api/v1/auth/forgot-password", "post", "Auth", StatusCodes.Status202Accepted),
+            ("/api/v1/auth/reset-password", "post", "Auth", StatusCodes.Status204NoContent),
+            ("/api/v1/users", "post", "Users", StatusCodes.Status201Created),
+            ("/api/v1/users", "get", "Users", StatusCodes.Status200OK),
+            ("/api/v1/users/{id}", "get", "Users", StatusCodes.Status200OK),
+            ("/api/v1/users/{id}", "put", "Users", StatusCodes.Status204NoContent),
+            ("/api/v1/users/{id}", "delete", "Users", StatusCodes.Status204NoContent),
+            ("/api/v1/users/statuses", "get", "Users", StatusCodes.Status200OK),
+            ("/api/v1/users/{id}/block", "post", "Users", StatusCodes.Status204NoContent),
+            ("/api/v1/users/{id}/unblock", "post", "Users", StatusCodes.Status204NoContent),
             ("/api/v1/auth/login", "post", "Auth", StatusCodes.Status302Found),
             ("/api/v1/roles", "post", "Roles", StatusCodes.Status201Created),
             ("/api/v1/roles", "get", "Roles", StatusCodes.Status200OK),
@@ -75,8 +75,8 @@ public sealed class OpenApiTests(FunctionalTestFixture fixture)
 
         paths.EnumerateObject().ShouldNotContain(path =>
             path.Name.StartsWith("/api/v1/identity", StringComparison.Ordinal) ||
-            path.Name.StartsWith("/api/v1/users", StringComparison.Ordinal) ||
-            path.Name.StartsWith("/api/v1/account/", StringComparison.Ordinal));
+            path.Name.StartsWith("/api/v1/accounts", StringComparison.Ordinal) ||
+            path.Name.StartsWith("/api/v1/user/", StringComparison.Ordinal));
     }
 
     private static JsonElement GetOperation(

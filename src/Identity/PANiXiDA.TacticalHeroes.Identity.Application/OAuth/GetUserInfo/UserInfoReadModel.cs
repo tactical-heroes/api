@@ -1,7 +1,7 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 
 public sealed record UserInfoReadModel(
-    Guid AccountId,
+    Guid UserId,
     string? Name,
     string? Email,
     bool? EmailVerified,

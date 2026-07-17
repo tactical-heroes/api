@@ -14,16 +14,16 @@ internal static partial class LoginMapper
     [MapperIgnoreSource(nameof(LoginRequest.ReturnUrl))]
     internal static partial LoginCommand ToCommand(LoginRequest request);
 
-    internal static ClaimsPrincipal ToClaimsPrincipal(AuthenticatedAccountReadModel account)
+    internal static ClaimsPrincipal ToClaimsPrincipal(AuthenticatedUserReadModel user)
     {
         var claims = new List<Claim>
         {
-            new(type: OpenIddictConstants.Claims.Subject, value: account.Id.ToString()),
-            new(type: OpenIddictConstants.Claims.Name, value: account.UserName),
-            new(type: OpenIddictConstants.Claims.Email, value: account.Email)
+            new(type: OpenIddictConstants.Claims.Subject, value: user.Id.ToString()),
+            new(type: OpenIddictConstants.Claims.Name, value: user.UserName),
+            new(type: OpenIddictConstants.Claims.Email, value: user.Email)
         };
         claims.AddRange(
-            account.Claims.Where(claim =>
+            user.Claims.Where(claim =>
                 claim.Type != OpenIddictConstants.Claims.Subject &&
                 claim.Type != OpenIddictConstants.Claims.Name &&
                 claim.Type != OpenIddictConstants.Claims.Email));

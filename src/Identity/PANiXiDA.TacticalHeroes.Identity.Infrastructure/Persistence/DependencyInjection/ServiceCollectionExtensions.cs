@@ -5,12 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Accounts.Read;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Accounts.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
@@ -39,7 +39,7 @@ internal static class ServiceCollectionExtensions
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });
-        serviceCollection.AddScoped<IAccountsWriteRepository, AccountsWriteRepository>();
+        serviceCollection.AddScoped<IUsersWriteRepository, UsersWriteRepository>();
         serviceCollection.AddScoped<IRolesWriteRepository, RolesRepository>();
 
         return serviceCollection;
@@ -52,7 +52,7 @@ internal static class ServiceCollectionExtensions
         serviceCollection.AddPostgreSqlReadEfRepository<IdentityReadDbContext>(configuration);
         serviceCollection.AddDbContext<IdentityReadDbContext>((provider, options) =>
             options.AddInterceptors(provider.GetServices<IInterceptor>()));
-        serviceCollection.AddScoped<IAccountsReadRepository, AccountsReadRepository>();
+        serviceCollection.AddScoped<IUsersReadRepository, UsersReadRepository>();
         serviceCollection.AddScoped<IRolesReadRepository, RolesReadRepository>();
         serviceCollection.AddScoped<IOAuthUsersRepository, OAuthUsersRepository>();
         serviceCollection.AddScoped<IOAuthClientsRepository, OAuthClientsRepository>();

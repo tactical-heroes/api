@@ -8,7 +8,7 @@ public sealed class ApplicationUser : IdentityUser<Guid>
 {
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public string Status { get; set; } = AccountStatus.Active.Name;
+    public string Status { get; set; } = UserStatus.Active.Name;
 
     public ICollection<ApplicationUserRole> Roles { get; set; } = [];
     public ICollection<ApplicationUserClaim> Claims { get; set; } = [];

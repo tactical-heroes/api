@@ -9,8 +9,8 @@ public sealed class ExchangeTokenHandler(IOAuthUsersRepository usersRepository)
         ExchangeTokenQuery query,
         CancellationToken cancellationToken)
     {
-        return usersRepository.GetExchangeTokenByAccountIdAsync(
-            query.AccountId,
+        return usersRepository.GetExchangeTokenByUserIdAsync(
+            query.UserId,
             cancellationToken);
     }
 }

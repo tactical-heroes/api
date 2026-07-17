@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -28,6 +29,8 @@
         <Using Include="PANiXiDA.Core.Presentation.Http.DependencyInjection" />
         <Using Include="PANiXiDA.Core.Presentation.Http.Endpoints" />
         <Using Include="PANiXiDA.Core.Presentation.Http.Helpers" />
+
+        <Using Include="PANiXiDA.TacticalHeroes.Identity.Contracts.OAuth" />
 
         <Using Include="OpenIddict.Abstractions" />
     </ItemGroup>

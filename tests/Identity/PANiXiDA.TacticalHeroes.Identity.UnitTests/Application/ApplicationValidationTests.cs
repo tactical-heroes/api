@@ -4,7 +4,7 @@ using FluentValidation;
 
 using PANiXiDA.Core.Application.Messaging.Mediator.Contracts;
 using PANiXiDA.TacticalHeroes.Identity.Application;
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Register;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Register;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application;
@@ -29,11 +29,11 @@ public sealed class ApplicationValidationTests
         requestsWithoutValidator.ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Register account validator should reject invalid input")]
-    public void Validate_Should_RejectInvalidInput_When_RegisteringAccount()
+    [Fact(DisplayName = "Register user validator should reject invalid input")]
+    public void Validate_Should_RejectInvalidInput_When_RegisteringUser()
     {
-        var validator = new RegisterAccountCommandValidator();
-        var command = new RegisterAccountCommand(Email: string.Empty, UserName: string.Empty, Password: string.Empty);
+        var validator = new RegisterUserCommandValidator();
+        var command = new RegisterUserCommand(Email: string.Empty, UserName: string.Empty, Password: string.Empty);
 
         var result = validator.Validate(command);
 

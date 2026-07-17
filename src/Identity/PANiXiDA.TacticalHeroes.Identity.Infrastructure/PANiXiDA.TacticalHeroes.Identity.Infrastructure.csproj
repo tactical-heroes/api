@@ -50,6 +50,8 @@
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models" />
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Write" />
 
+        <Using Include="PANiXiDA.TacticalHeroes.Identity.Contracts.OAuth" />
+
         <Using Include="OpenIddict.Abstractions" />
     </ItemGroup>
 </Project>

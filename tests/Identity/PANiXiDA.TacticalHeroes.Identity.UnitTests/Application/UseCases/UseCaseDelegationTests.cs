@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
@@ -11,11 +11,11 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.UseCases;
 
 public sealed class UseCaseDelegationTests
 {
-    [Fact(DisplayName = "Account details use case should query its port once")]
-    public async Task HandleAsync_Should_QueryAccountPortOnce_When_GettingDetails()
+    [Fact(DisplayName = "User details use case should query its port once")]
+    public async Task HandleAsync_Should_QueryUserPortOnce_When_GettingDetails()
     {
         var id = Guid.CreateVersion7();
-        var readModel = new AccountDetailsReadModel(
+        var readModel = new UserDetailsReadModel(
             Id: id,
             Email: "hero@example.com",
             UserName: "hero",
@@ -23,13 +23,13 @@ public sealed class UseCaseDelegationTests
             Status: "Active",
             StatusDisplayName: "Active",
             Claims: []);
-        var repository = Substitute.For<IAccountsReadRepository>();
+        var repository = Substitute.For<IUsersReadRepository>();
         repository.GetDetailsByIdAsync(id, Arg.Any<CancellationToken>())
             .Returns(Result.Success(value: readModel));
-        var handler = new GetAccountDetailsHandler(accountsRepository: repository);
+        var handler = new GetUserDetailsHandler(usersRepository: repository);
 
         var result = await handler.HandleAsync(
-            new GetAccountDetailsQuery(Id: id),
+            new GetUserDetailsQuery(Id: id),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -44,15 +44,15 @@ public sealed class UseCaseDelegationTests
     {
         const string email = "hero@example.com";
         const string password = "Password-1";
-        var readModel = new AuthenticatedAccountReadModel(
+        var readModel = new AuthenticatedUserReadModel(
             Id: Guid.CreateVersion7(),
             Email: email,
             UserName: "hero",
             Claims: []);
-        var service = Substitute.For<IAccountCredentialsService>();
+        var service = Substitute.For<IUserCredentialsService>();
         service.LoginAsync(email, password, Arg.Any<CancellationToken>())
             .Returns(Result.Success(value: readModel));
-        var handler = new LoginHandler(accountCredentialsService: service);
+        var handler = new LoginHandler(userCredentialsService: service);
 
         var result = await handler.HandleAsync(
             new LoginCommand(Email: email, Password: password),
@@ -92,23 +92,23 @@ public sealed class UseCaseDelegationTests
     {
         var id = Guid.CreateVersion7();
         var readModel = new UserInfoReadModel(
-            AccountId: id,
+            UserId: id,
             Name: "Hero",
             Email: "hero@example.com",
             EmailVerified: true,
             Roles: ["Administrator"]);
         var repository = Substitute.For<IOAuthUsersRepository>();
-        repository.GetUserInfoByAccountIdAsync(id, Arg.Any<CancellationToken>())
+        repository.GetUserInfoByUserIdAsync(id, Arg.Any<CancellationToken>())
             .Returns(Result.Success(value: readModel));
         var handler = new GetUserInfoHandler(usersRepository: repository);
 
         var result = await handler.HandleAsync(
-            new GetUserInfoQuery(AccountId: id),
+            new GetUserInfoQuery(UserId: id),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(readModel);
-        await repository.Received(1).GetUserInfoByAccountIdAsync(
+        await repository.Received(1).GetUserInfoByUserIdAsync(
             id,
             TestContext.Current.CancellationToken);
     }

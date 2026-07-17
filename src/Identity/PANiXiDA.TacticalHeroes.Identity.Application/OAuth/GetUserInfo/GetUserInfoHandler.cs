@@ -9,8 +9,8 @@ public sealed class GetUserInfoHandler(IOAuthUsersRepository usersRepository)
         GetUserInfoQuery query,
         CancellationToken cancellationToken)
     {
-        return usersRepository.GetUserInfoByAccountIdAsync(
-            query.AccountId,
+        return usersRepository.GetUserInfoByUserIdAsync(
+            query.UserId,
             cancellationToken);
     }
 }

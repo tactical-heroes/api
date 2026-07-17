@@ -18,8 +18,8 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "GetExchangeTokenByAccountIdAsync should load authorization graph in one query")]
-    public async Task GetExchangeTokenByAccountIdAsync_Should_LoadAuthorizationGraphInOneQuery()
+    [Fact(DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query")]
+    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var role = new ApplicationRole
@@ -31,7 +31,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
                 new ApplicationRoleClaim
                 {
                     ClaimType = "permission",
-                    ClaimValue = "identity.accounts.manage"
+                    ClaimValue = "identity.users.manage"
                 }
             ]
         };
@@ -41,7 +41,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
             Email = "hero@example.com",
             UserName = "hero",
             EmailConfirmed = true,
-            Status = AccountStatus.Active.Name,
+            Status = UserStatus.Active.Name,
             LockoutEnabled = true,
             Claims =
             [
@@ -59,7 +59,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
 
-        var result = await repository.GetExchangeTokenByAccountIdAsync(
+        var result = await repository.GetExchangeTokenByUserIdAsync(
             user.Id,
             cancellationToken);
 
@@ -68,7 +68,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
             new Claim(type: "permission", value: "identity.profile.read"),
             IdentityClaimComparer.Instance);
         result.Value.Claims.ShouldContain(
-            new Claim(type: "permission", value: "identity.accounts.manage"),
+            new Claim(type: "permission", value: "identity.users.manage"),
             IdentityClaimComparer.Instance);
         result.Value.Claims.ShouldContain(
             new Claim(type: OpenIddictConstants.Claims.Role, value: "admin"),

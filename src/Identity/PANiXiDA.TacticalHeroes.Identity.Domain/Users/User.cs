@@ -87,7 +87,7 @@ public sealed class User : AggregateRoot<UserId>
         return Result.Success(value: user);
     }
 
-    public Result RequestAccountConfirmation(
+    public Result RequestEmailConfirmation(
         string confirmationToken,
         DateTimeOffset expiresAtUtc)
     {
@@ -97,7 +97,7 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         AddDomainEvent(
-            new AccountConfirmationRequested(
+            new EmailConfirmationRequested(
                 UserId: Id.Value,
                 Email: Email.Value,
                 ConfirmationToken: confirmationToken,
@@ -130,7 +130,7 @@ public sealed class User : AggregateRoot<UserId>
         if (!ConfirmationStatus.IsConfirmed)
         {
             return Result.Failure(
-                error: Error.Conflict(message: "Cannot reset password for unconfirmed account."));
+                error: Error.Conflict(message: "Cannot reset password for unconfirmed user."));
         }
 
         AddDomainEvent(

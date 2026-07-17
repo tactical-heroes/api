@@ -12,7 +12,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserIn
 
 internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 {
-    public string Route { get; } = "/userinfo";
+    public string Route { get; } = OAuthEndpointRoutes.UserInfo;
     public string Name { get; } = "GetUserInfo";
     public string Summary { get; } = "Get OpenID Connect user information";
 
@@ -33,15 +33,15 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var accountIdResult = user.GetSubjectId();
+        var userIdResult = user.GetSubjectId();
 
-        if (accountIdResult.IsFailure)
+        if (userIdResult.IsFailure)
         {
             return OAuthErrorResults.InvalidToken(description: "Token is invalid.");
         }
 
         var result = await mediator.QueryAsync(
-            new GetUserInfoQuery(AccountId: accountIdResult.Value),
+            new GetUserInfoQuery(UserId: userIdResult.Value),
             cancellationToken);
 
         if (result.IsFailure)
@@ -51,7 +51,7 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 
         return TypedResults.Ok(
             value: GetUserInfoMapper.ToResponse(
-                account: result.Value,
+                user: result.Value,
                 scopes: user.GetScopes()));
     }
 }

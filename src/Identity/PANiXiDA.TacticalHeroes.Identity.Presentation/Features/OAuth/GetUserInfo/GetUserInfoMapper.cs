@@ -5,24 +5,24 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserIn
 internal static class GetUserInfoMapper
 {
     internal static GetUserInfoResponse ToResponse(
-        UserInfoReadModel account,
+        UserInfoReadModel user,
         IEnumerable<string> scopes)
     {
         var scopeSet = new HashSet<string>(collection: scopes, comparer: StringComparer.Ordinal);
 
         return new GetUserInfoResponse(
-            Subject: account.AccountId.ToString(),
+            Subject: user.UserId.ToString(),
             Name: scopeSet.Contains(OpenIddictConstants.Scopes.Profile)
-                ? account.Name
+                ? user.Name
                 : null,
             Email: scopeSet.Contains(OpenIddictConstants.Scopes.Email)
-                ? account.Email
+                ? user.Email
                 : null,
             EmailVerified: scopeSet.Contains(OpenIddictConstants.Scopes.Email)
-                ? account.EmailVerified
+                ? user.EmailVerified
                 : null,
-            Role: scopeSet.Contains(OpenIddictConstants.Scopes.Roles) && account.Roles.Count > 0
-                ? account.Roles
+            Role: scopeSet.Contains(OpenIddictConstants.Scopes.Roles) && user.Roles.Count > 0
+                ? user.Roles
                 : null);
     }
 }

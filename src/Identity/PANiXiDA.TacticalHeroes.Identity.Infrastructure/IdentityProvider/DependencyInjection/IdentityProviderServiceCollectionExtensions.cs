@@ -31,7 +31,7 @@ internal static class IdentityProviderServiceCollectionExtensions
         serviceCollection.Configure<IdentityProviderOptions>(
             configuration.GetSection(IdentityProviderOptions.SectionName));
 
-        serviceCollection.AddScoped<IAccountCredentialsService, AccountCredentialsService>();
+        serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
         serviceCollection.AddDataProtection()
@@ -79,13 +79,20 @@ internal static class IdentityProviderServiceCollectionExtensions
                     options.SetIssuer(identityProviderOptions.Issuer);
                 }
 
-                options.SetPushedAuthorizationEndpointUris("/connect/par");
-                options.SetAuthorizationEndpointUris("/connect/authorize");
-                options.SetTokenEndpointUris("/connect/token");
-                options.SetUserInfoEndpointUris("/connect/userinfo");
-                options.SetEndSessionEndpointUris("/connect/logout");
-                options.SetIntrospectionEndpointUris("/connect/introspect");
-                options.SetRevocationEndpointUris("/connect/revoke");
+                options.SetPushedAuthorizationEndpointUris(
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.PushedAuthorization));
+                options.SetAuthorizationEndpointUris(
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Authorization));
+                options.SetTokenEndpointUris(
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Token));
+                options.SetUserInfoEndpointUris(
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.UserInfo));
+                options.SetEndSessionEndpointUris(
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.EndSession));
+                options.SetIntrospectionEndpointUris(
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Introspection));
+                options.SetRevocationEndpointUris(
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Revocation));
 
                 options.AllowAuthorizationCodeFlow()
                     .RequireProofKeyForCodeExchange();

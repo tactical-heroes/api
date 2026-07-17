@@ -7,14 +7,14 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
 
 internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
 {
-    public string Route { get; } = "/authorize";
+    public string Route { get; } = OAuthEndpointRoutes.Authorization;
     public string Name { get; } = "Authorize";
     public string Summary { get; } = "Start OpenID Connect authorization";
 
@@ -43,7 +43,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         {
             if (openIddictRequest.HasPromptValue(OpenIddictConstants.PromptValues.None))
             {
-                return OAuthErrorResults.LoginRequired(description: "Account is not authenticated.");
+                return OAuthErrorResults.LoginRequired(description: "User is not authenticated.");
             }
 
             return TypedResults.Redirect(
@@ -52,19 +52,19 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
                     returnUrl: BuildReturnUrl(httpContext: httpContext, request: request)));
         }
 
-        var accountIdResult = authenticationResult.Principal.GetSubjectId();
-        if (accountIdResult.IsFailure)
+        var userIdResult = authenticationResult.Principal.GetSubjectId();
+        if (userIdResult.IsFailure)
         {
-            return OAuthErrorResults.LoginRequired(description: "Account is not authenticated.");
+            return OAuthErrorResults.LoginRequired(description: "User is not authenticated.");
         }
 
-        var accountResult = await mediator.QueryAsync(
-            new GetAccountDetailsQuery(Id: accountIdResult.Value),
+        var userResult = await mediator.QueryAsync(
+            new GetUserDetailsQuery(Id: userIdResult.Value),
             httpContext.RequestAborted);
 
-        if (accountResult.IsFailure ||
-            accountResult.Value.IsBlocked ||
-            !accountResult.Value.IsConfirmed)
+        if (userResult.IsFailure ||
+            userResult.Value.IsBlocked ||
+            !userResult.Value.IsConfirmed)
         {
             return TypedResults.Forbid();
         }

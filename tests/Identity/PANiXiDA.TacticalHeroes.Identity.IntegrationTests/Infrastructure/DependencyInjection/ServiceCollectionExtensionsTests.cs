@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using OpenIddict.Server;
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
@@ -19,9 +19,9 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
     {
         await using var scope = Fixture.CreateScope();
 
-        scope.ServiceProvider.GetRequiredService<IAccountsReadRepository>().ShouldNotBeNull();
-        scope.ServiceProvider.GetRequiredService<IAccountsWriteRepository>().ShouldNotBeNull();
-        scope.ServiceProvider.GetRequiredService<IAccountCredentialsService>().ShouldNotBeNull();
+        scope.ServiceProvider.GetRequiredService<IUsersReadRepository>().ShouldNotBeNull();
+        scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>().ShouldNotBeNull();
+        scope.ServiceProvider.GetRequiredService<IUserCredentialsService>().ShouldNotBeNull();
         scope.ServiceProvider.GetRequiredService<IRolesReadRepository>().ShouldNotBeNull();
         scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>().ShouldNotBeNull();
         scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>().ShouldNotBeNull();

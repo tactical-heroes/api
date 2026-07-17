@@ -14,19 +14,19 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.O
 public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
     : IOAuthUsersRepository
 {
-    public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByAccountIdAsync(
-        Guid accountId,
+    public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
+        Guid userId,
         CancellationToken cancellationToken)
     {
         var applicationUser = await dbContext.Set<UserReadDbModel>()
             .AsNoTracking()
             .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(user => user.Id == accountId, cancellationToken);
+            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
         if (applicationUser is null)
         {
             return Result.Failure<ExchangeTokenReadModel>(
-                error: Error.NotFound(message: "Account was not found."));
+                error: Error.NotFound(message: "User was not found."));
         }
 
         var availabilityResult = EnsureAvailable(applicationUser);
@@ -38,19 +38,19 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                     Claims: IdentityClaimsFactory.Create(user: applicationUser)));
     }
 
-    public async Task<Result<UserInfoReadModel>> GetUserInfoByAccountIdAsync(
-        Guid accountId,
+    public async Task<Result<UserInfoReadModel>> GetUserInfoByUserIdAsync(
+        Guid userId,
         CancellationToken cancellationToken)
     {
         var applicationUser = await dbContext.Set<UserReadDbModel>()
             .AsNoTracking()
             .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(user => user.Id == accountId, cancellationToken);
+            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
         if (applicationUser is null)
         {
             return Result.Failure<UserInfoReadModel>(
-                error: Error.NotFound(message: "Account was not found."));
+                error: Error.NotFound(message: "User was not found."));
         }
 
         var availabilityResult = EnsureAvailable(applicationUser);
@@ -71,7 +71,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
 
         return Result.Success(
             value: new UserInfoReadModel(
-                AccountId: applicationUser.Id,
+                UserId: applicationUser.Id,
                 Name: applicationUser.UserName,
                 Email: applicationUser.Email,
                 EmailVerified: applicationUser.EmailConfirmed,
@@ -82,14 +82,14 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
     {
         if (string.Equals(
                 applicationUser.Status,
-                AccountStatus.Blocked.Name,
+                UserStatus.Blocked.Name,
                 StringComparison.Ordinal))
         {
-            return Result.Failure(error: Error.Forbidden(message: "Account is blocked."));
+            return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }
 
         return applicationUser.EmailConfirmed
             ? Result.Success()
-            : Result.Failure(error: Error.Forbidden(message: "Account is not confirmed."));
+            : Result.Failure(error: Error.Forbidden(message: "User is not confirmed."));
     }
 }
