@@ -7,6 +7,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Accounts.ResetP
 [Mapper]
 internal static partial class ResetPasswordMapper
 {
-    [MapProperty(nameof(ResetPasswordRequest.UserId), nameof(ResetPasswordCommand.AccountId))]
     internal static partial ResetPasswordCommand ToCommand(ResetPasswordRequest request);
 }
