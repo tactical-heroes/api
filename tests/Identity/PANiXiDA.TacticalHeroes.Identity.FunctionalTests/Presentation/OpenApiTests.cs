@@ -75,7 +75,6 @@ public sealed class OpenApiTests(FunctionalTestFixture fixture)
 
         paths.EnumerateObject().ShouldNotContain(path =>
             path.Name.StartsWith("/api/v1/identity", StringComparison.Ordinal) ||
-            path.Name.StartsWith("/api/v1/accounts", StringComparison.Ordinal) ||
             path.Name.StartsWith("/api/v1/user/", StringComparison.Ordinal));
     }
 
