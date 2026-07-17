@@ -20,7 +20,7 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found);
 
-        builder.MapPost((Func<HttpContext, Task<IResult>>)HandlePost)
+        builder.MapPost(HandlePost)
             .AllowAnonymous()
             .WithName("PostLogout")
             .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
@@ -31,8 +31,6 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         [AsParameters] LogoutRequest request,
         HttpContext httpContext)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         return Handle(httpContext);
     }
 

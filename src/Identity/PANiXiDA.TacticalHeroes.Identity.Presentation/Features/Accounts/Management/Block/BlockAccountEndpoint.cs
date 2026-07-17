@@ -25,9 +25,9 @@ internal sealed class BlockAccountEndpoint : IEndpoint<AccountManagementEndpoint
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new BlockAccountCommand(id),
+            new BlockAccountCommand(Id: id),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

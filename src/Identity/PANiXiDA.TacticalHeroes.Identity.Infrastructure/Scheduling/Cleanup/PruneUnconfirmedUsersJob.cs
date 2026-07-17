@@ -16,7 +16,7 @@ internal sealed class PruneUnconfirmedUsersJob(
     IOptions<IdentityCleanupOptions> options)
     : IJob
 {
-    public static readonly JobKey Key = new(nameof(PruneUnconfirmedUsersJob));
+    public static readonly JobKey Key = new(name: nameof(PruneUnconfirmedUsersJob));
 
     public Task Execute(IJobExecutionContext context)
     {

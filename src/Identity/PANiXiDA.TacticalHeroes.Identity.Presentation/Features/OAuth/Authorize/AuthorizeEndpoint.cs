@@ -34,7 +34,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         IOptions<OAuthTokenOptions> tokenOptions)
     {
         var openIddictRequest = httpContext.GetOpenIddictServerRequest()
-            ?? throw new InvalidOperationException("OpenIddict server request was not found.");
+            ?? throw new InvalidOperationException(message: "OpenIddict server request was not found.");
 
         var authenticationResult = await httpContext.AuthenticateAsync(
             IdentityConstants.ApplicationScheme);
@@ -43,23 +43,23 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         {
             if (openIddictRequest.HasPromptValue(OpenIddictConstants.PromptValues.None))
             {
-                return OAuthErrorResults.LoginRequired("Account is not authenticated.");
+                return OAuthErrorResults.LoginRequired(description: "Account is not authenticated.");
             }
 
             return TypedResults.Redirect(
-                OAuthLoginRedirectUrlBuilder.Build(
-                    spaOptions.Value.LoginUrl,
-                    BuildReturnUrl(httpContext, request)));
+                url: OAuthLoginRedirectUrlBuilder.Build(
+                    loginUrl: spaOptions.Value.LoginUrl,
+                    returnUrl: BuildReturnUrl(httpContext: httpContext, request: request)));
         }
 
         var accountIdResult = authenticationResult.Principal.GetSubjectId();
         if (accountIdResult.IsFailure)
         {
-            return OAuthErrorResults.LoginRequired("Account is not authenticated.");
+            return OAuthErrorResults.LoginRequired(description: "Account is not authenticated.");
         }
 
         var accountResult = await mediator.QueryAsync(
-            new GetAccountDetailsQuery(accountIdResult.Value),
+            new GetAccountDetailsQuery(Id: accountIdResult.Value),
             httpContext.RequestAborted);
 
         if (accountResult.IsFailure ||
@@ -70,12 +70,12 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principal = OAuthAuthorizationPrincipalFactory.Create(
-            authenticationResult.Principal,
-            openIddictRequest.GetScopes(),
-            tokenOptions.Value.Audience);
+            source: authenticationResult.Principal,
+            scopes: openIddictRequest.GetScopes(),
+            audience: tokenOptions.Value.Audience);
 
         return TypedResults.SignIn(
-            principal,
+            principal: principal,
             authenticationScheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
@@ -86,12 +86,12 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         var httpRequest = httpContext.Request;
 
         return UriHelper.BuildAbsolute(
-            httpRequest.Scheme,
-            httpRequest.Host,
-            httpRequest.PathBase,
-            httpRequest.Path,
-            QueryString.Create(
-                new Dictionary<string, string?>
+            scheme: httpRequest.Scheme,
+            host: httpRequest.Host,
+            pathBase: httpRequest.PathBase,
+            path: httpRequest.Path,
+            query: QueryString.Create(
+                parameters: new Dictionary<string, string?>
                 {
                     ["client_id"] = request.ClientId,
                     ["request_uri"] = request.RequestUri

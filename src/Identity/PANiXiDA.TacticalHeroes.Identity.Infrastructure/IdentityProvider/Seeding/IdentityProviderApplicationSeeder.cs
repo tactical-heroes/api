@@ -17,14 +17,14 @@ internal sealed class IdentityProviderApplicationSeeder(
                 continue;
             }
 
-            var descriptor = CreateDescriptor(client);
+            var descriptor = CreateDescriptor(client: client);
             var application = await applicationManager.FindByClientIdAsync(
                 client.ClientId,
                 cancellationToken);
 
             if (application is null)
             {
-                await applicationManager.CreateAsync(descriptor, cancellationToken);
+                await applicationManager.CreateAsync(descriptor: descriptor, cancellationToken: cancellationToken);
                 continue;
             }
 
@@ -66,12 +66,12 @@ internal sealed class IdentityProviderApplicationSeeder(
 
         foreach (var redirectUri in client.RedirectUris)
         {
-            descriptor.RedirectUris.Add(new Uri(redirectUri));
+            descriptor.RedirectUris.Add(new Uri(uriString: redirectUri));
         }
 
         foreach (var postLogoutRedirectUri in client.PostLogoutRedirectUris)
         {
-            descriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutRedirectUri));
+            descriptor.PostLogoutRedirectUris.Add(new Uri(uriString: postLogoutRedirectUri));
         }
 
         return descriptor;
@@ -104,7 +104,7 @@ internal sealed class IdentityProviderApplicationSeeder(
 
             default:
                 throw new InvalidOperationException(
-                    $"Unsupported OAuth grant type '{grantType}'.");
+                    message: $"Unsupported OAuth grant type '{grantType}'.");
         }
     }
 }

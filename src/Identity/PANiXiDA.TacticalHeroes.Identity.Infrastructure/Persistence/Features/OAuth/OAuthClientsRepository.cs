@@ -19,7 +19,7 @@ public sealed class OAuthClientsRepository(IOpenIddictApplicationManager applica
         if (application is null)
         {
             return Result.Failure<OAuthClientTokenPrincipalReadModel>(
-                Error.NotFound("OAuth client was not found."));
+                error: Error.NotFound(message: "OAuth client was not found."));
         }
 
         var displayName = await applicationManager.GetDisplayNameAsync(
@@ -27,12 +27,12 @@ public sealed class OAuthClientsRepository(IOpenIddictApplicationManager applica
             cancellationToken);
         IReadOnlyCollection<Claim> claims =
         [
-            new(OpenIddictConstants.Claims.Subject, clientId),
-            new(OpenIddictConstants.Claims.ClientId, clientId),
-            new(OpenIddictConstants.Claims.Name, displayName ?? clientId)
+            new(type: OpenIddictConstants.Claims.Subject, value: clientId),
+            new(type: OpenIddictConstants.Claims.ClientId, value: clientId),
+            new(type: OpenIddictConstants.Claims.Name, value: displayName ?? clientId)
         ];
 
         return Result.Success(
-            new OAuthClientTokenPrincipalReadModel(claims));
+            value: new OAuthClientTokenPrincipalReadModel(Claims: claims));
     }
 }

@@ -10,31 +10,31 @@ internal static class OAuthErrorResults
 {
     internal static ForbidHttpResult InvalidGrant(string description)
     {
-        return Forbid(OpenIddictConstants.Errors.InvalidGrant, description);
+        return Forbid(error: OpenIddictConstants.Errors.InvalidGrant, description: description);
     }
 
     internal static ForbidHttpResult UnsupportedGrantType(string description)
     {
-        return Forbid(OpenIddictConstants.Errors.UnsupportedGrantType, description);
+        return Forbid(error: OpenIddictConstants.Errors.UnsupportedGrantType, description: description);
     }
 
     internal static ChallengeHttpResult InvalidToken(string description)
     {
         return TypedResults.Challenge(
-            CreateProperties(OpenIddictConstants.Errors.InvalidToken, description),
-            [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
+            properties: CreateProperties(error: OpenIddictConstants.Errors.InvalidToken, description: description),
+            authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
     }
 
     internal static ForbidHttpResult LoginRequired(string description)
     {
-        return Forbid(OpenIddictConstants.Errors.LoginRequired, description);
+        return Forbid(error: OpenIddictConstants.Errors.LoginRequired, description: description);
     }
 
     private static ForbidHttpResult Forbid(string error, string description)
     {
         return TypedResults.Forbid(
-            CreateProperties(error, description),
-            [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
+            properties: CreateProperties(error: error, description: description),
+            authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
     }
 
     private static AuthenticationProperties CreateProperties(
@@ -42,7 +42,7 @@ internal static class OAuthErrorResults
         string description)
     {
         return new AuthenticationProperties(
-            new Dictionary<string, string?>
+            items: new Dictionary<string, string?>
             {
                 [OpenIddictServerAspNetCoreConstants.Properties.Error] = error,
                 [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = description

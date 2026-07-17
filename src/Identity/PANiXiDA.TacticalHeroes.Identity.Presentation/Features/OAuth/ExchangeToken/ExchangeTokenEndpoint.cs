@@ -37,7 +37,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         CancellationToken cancellationToken)
     {
         var request = httpContext.GetOpenIddictServerRequest()
-            ?? throw new InvalidOperationException("OpenIddict server request was not found.");
+            ?? throw new InvalidOperationException(message: "OpenIddict server request was not found.");
 
         if (request.IsAuthorizationCodeGrantType())
         {
@@ -80,7 +80,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
                 cancellationToken);
         }
 
-        return OAuthErrorResults.UnsupportedGrantType("Grant type is not supported.");
+        return OAuthErrorResults.UnsupportedGrantType(description: "Grant type is not supported.");
     }
 
     private static async Task<IResult> HandleUserGrantAsync(
@@ -97,15 +97,15 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 
         if (accountIdResult.IsFailure)
         {
-            return OAuthErrorResults.InvalidGrant(invalidGrantDescription);
+            return OAuthErrorResults.InvalidGrant(description: invalidGrantDescription);
         }
 
         var principalResult = await mediator.QueryAsync(
-            new ExchangeTokenQuery(accountIdResult.Value),
+            new ExchangeTokenQuery(AccountId: accountIdResult.Value),
             cancellationToken);
 
         return principalResult.IsFailure
-            ? OAuthErrorResults.InvalidGrant(invalidGrantDescription)
+            ? OAuthErrorResults.InvalidGrant(description: invalidGrantDescription)
             : SignInTokenPrincipal(
                 request,
                 authenticationResult.Principal,
@@ -121,15 +121,15 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
     {
         if (string.IsNullOrWhiteSpace(request.ClientId))
         {
-            return OAuthErrorResults.InvalidGrant("Client is invalid.");
+            return OAuthErrorResults.InvalidGrant(description: "Client is invalid.");
         }
 
         var principalResult = await mediator.QueryAsync(
-            new GetClientTokenPrincipalQuery(request.ClientId),
+            new GetClientTokenPrincipalQuery(ClientId: request.ClientId),
             cancellationToken);
 
         return principalResult.IsFailure
-            ? OAuthErrorResults.InvalidGrant("Client is invalid.")
+            ? OAuthErrorResults.InvalidGrant(description: "Client is invalid.")
             : SignInTokenPrincipal(
                 request,
                 sourcePrincipal: null,
@@ -151,17 +151,17 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 
         if (string.IsNullOrWhiteSpace(subject))
         {
-            return OAuthErrorResults.InvalidGrant("Subject token is invalid.");
+            return OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.");
         }
 
-        if (Guid.TryParse(subject, out var accountId))
+        if (Guid.TryParse(input: subject, result: out var accountId))
         {
             var accountResult = await mediator.QueryAsync(
-                new ExchangeTokenQuery(accountId),
+                new ExchangeTokenQuery(AccountId: accountId),
                 cancellationToken);
 
             return accountResult.IsFailure
-                ? OAuthErrorResults.InvalidGrant("Subject token is invalid.")
+                ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
                 : SignInTokenPrincipal(
                     request,
                     authenticationResult.Principal,
@@ -170,11 +170,11 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var clientResult = await mediator.QueryAsync(
-            new GetClientTokenPrincipalQuery(subject),
+            new GetClientTokenPrincipalQuery(ClientId: subject),
             cancellationToken);
 
         return clientResult.IsFailure
-            ? OAuthErrorResults.InvalidGrant("Subject token is invalid.")
+            ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
             : SignInTokenPrincipal(
                 request,
                 authenticationResult.Principal,
@@ -192,12 +192,12 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
             request,
             sourcePrincipal);
         var principal = OAuthAuthorizationPrincipalFactory.Create(
-            claims,
-            scopes,
-            audience);
+            claims: claims,
+            scopes: scopes,
+            audience: audience);
 
         return TypedResults.SignIn(
-            principal,
+            principal: principal,
             authenticationScheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 }

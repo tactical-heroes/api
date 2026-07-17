@@ -12,7 +12,7 @@ public sealed class OpenIddictNativeEndpointTests(FunctionalTestFixture fixture)
     [InlineData("/connect/revoke")]
     public async Task Post_Should_BeHandledByOpenIddict_When_RequestIsInvalid(string path)
     {
-        using var content = new FormUrlEncodedContent([]);
+        using var content = new FormUrlEncodedContent(nameValueCollection: []);
         using var response = await Client.PostAsync(
             path,
             content,
@@ -22,7 +22,7 @@ public sealed class OpenIddictNativeEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
 
-        using var document = JsonDocument.Parse(responseBody);
+        using var document = JsonDocument.Parse(json: responseBody);
         document.RootElement.GetProperty("error").GetString().ShouldNotBeNullOrWhiteSpace();
     }
 }

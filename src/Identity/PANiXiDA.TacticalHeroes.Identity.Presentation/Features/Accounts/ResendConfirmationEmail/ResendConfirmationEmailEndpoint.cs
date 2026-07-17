@@ -22,9 +22,9 @@ internal sealed class ResendConfirmationEmailEndpoint : IEndpoint<AccountsEndpoi
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            ResendConfirmationEmailMapper.ToCommand(request),
+            ResendConfirmationEmailMapper.ToCommand(request: request),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

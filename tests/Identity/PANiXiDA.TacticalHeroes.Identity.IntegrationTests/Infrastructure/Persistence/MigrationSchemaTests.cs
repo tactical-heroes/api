@@ -25,7 +25,7 @@ public sealed class MigrationSchemaTests(IntegrationTestFixture fixture)
             "open_iddict_tokens"
         };
 
-        await using var connection = new NpgsqlConnection(Fixture.ConnectionString);
+        await using var connection = new NpgsqlConnection(connectionString: Fixture.ConnectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
 
         var publicTables = await ReadTableNamesAsync(

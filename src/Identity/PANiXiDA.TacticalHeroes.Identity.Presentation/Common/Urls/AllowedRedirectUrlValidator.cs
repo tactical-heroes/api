@@ -14,7 +14,7 @@ internal static class AllowedRedirectUrlValidator
             !IsValid(url, httpContext, allowedPath))
         {
             return Result.Failure(
-                Error.Validation("Return URL is invalid.")
+                error: Error.Validation(message: "Return URL is invalid.")
                     .WithField(fieldName));
         }
 
@@ -32,7 +32,7 @@ internal static class AllowedRedirectUrlValidator
             return GetPath(url).Equals(allowedPath, StringComparison.Ordinal);
         }
 
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        if (!Uri.TryCreate(uriString: url, uriKind: UriKind.Absolute, result: out var uri))
         {
             return false;
         }

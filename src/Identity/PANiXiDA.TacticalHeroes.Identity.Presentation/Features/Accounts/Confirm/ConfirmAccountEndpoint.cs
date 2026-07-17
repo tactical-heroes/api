@@ -23,9 +23,9 @@ internal sealed class ConfirmAccountEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            ConfirmAccountMapper.ToCommand(request),
+            ConfirmAccountMapper.ToCommand(request: request),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

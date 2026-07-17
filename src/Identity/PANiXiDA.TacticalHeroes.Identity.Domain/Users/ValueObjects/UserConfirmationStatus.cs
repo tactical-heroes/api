@@ -11,17 +11,17 @@ public sealed class UserConfirmationStatus : ValueObject
 
     public static UserConfirmationStatus Unconfirmed()
     {
-        return new UserConfirmationStatus(false);
+        return new UserConfirmationStatus(isConfirmed: false);
     }
 
     public static UserConfirmationStatus Confirmed()
     {
-        return new UserConfirmationStatus(true);
+        return new UserConfirmationStatus(isConfirmed: true);
     }
 
     public static UserConfirmationStatus From(bool isConfirmed)
     {
-        return new UserConfirmationStatus(isConfirmed);
+        return new UserConfirmationStatus(isConfirmed: isConfirmed);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()

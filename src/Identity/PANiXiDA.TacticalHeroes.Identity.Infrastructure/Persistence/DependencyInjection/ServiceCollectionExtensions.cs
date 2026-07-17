@@ -31,7 +31,7 @@ internal static class ServiceCollectionExtensions
             var connectionString = configuration.GetConnectionString(
                 EfConstants.PostgreSqlConnectionStringName) ??
                 throw new InvalidOperationException(
-                    $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
+                    message: $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
 
             options
                 .UseNpgsql(connectionString, npgsqlOptions =>

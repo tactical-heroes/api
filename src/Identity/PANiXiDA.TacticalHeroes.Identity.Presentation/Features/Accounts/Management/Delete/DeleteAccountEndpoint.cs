@@ -25,9 +25,9 @@ internal sealed class DeleteAccountEndpoint : IEndpoint<AccountManagementEndpoin
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new DeleteAccountCommand(id),
+            new DeleteAccountCommand(Id: id),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

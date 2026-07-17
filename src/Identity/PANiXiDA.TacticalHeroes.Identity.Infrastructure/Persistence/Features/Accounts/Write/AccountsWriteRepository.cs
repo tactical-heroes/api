@@ -32,16 +32,14 @@ public sealed class AccountsWriteRepository(
         string status,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userResult = CreateUser(email, claims);
-        var userNameResult = UserName.Create(userName);
-        var statusResult = AccountStatus.Create(status);
+        var userResult = CreateUser(email: email, claims: claims);
+        var userNameResult = UserName.Create(value: userName);
+        var statusResult = AccountStatus.Create(value: status);
         var validationResult = Result.Combine(userResult, userNameResult, statusResult);
 
         if (validationResult.IsFailure)
         {
-            return Result.Failure<Guid>(validationResult.Errors);
+            return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
@@ -55,19 +53,19 @@ public sealed class AccountsWriteRepository(
             LockoutEnabled = true,
             CreatedAt = nowUtc,
             UpdatedAt = nowUtc,
-            Claims = CreateClaims(claims)
+            Claims = CreateClaims(claims: claims)
         };
 
-        var identityResult = await userManager.CreateAsync(applicationUser, password);
+        var identityResult = await userManager.CreateAsync(user: applicationUser, password: password);
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<Guid>(identityResult);
+            return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
         aggregateTracker.Track(userResult.Value);
 
-        return Result.Success(applicationUser.Id);
+        return Result.Success(value: applicationUser.Id);
     }
 
     public async Task<Result> UpdateAsync(
@@ -79,14 +77,14 @@ public sealed class AccountsWriteRepository(
         string status,
         CancellationToken cancellationToken)
     {
-        var userResult = CreateUser(id, email, isConfirmed, claims);
-        var userNameResult = UserName.Create(userName);
-        var statusResult = AccountStatus.Create(status);
+        var userResult = CreateUser(id: id, email: email, isConfirmed: isConfirmed, claims: claims);
+        var userNameResult = UserName.Create(value: userName);
+        var statusResult = AccountStatus.Create(value: status);
         var validationResult = Result.Combine(userResult, userNameResult, statusResult);
 
         if (validationResult.IsFailure)
         {
-            return Result.Failure(validationResult.Errors);
+            return Result.Failure(errors: validationResult.Errors);
         }
 
         var applicationUser = await userManager.Users
@@ -114,7 +112,7 @@ public sealed class AccountsWriteRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(userResult.Value);
@@ -136,15 +134,15 @@ public sealed class AccountsWriteRepository(
         }
 
         var userResult = CreateUser(
-            applicationUser.Id,
-            applicationUser.Email!,
-            applicationUser.EmailConfirmed,
-            applicationUser.Claims.Select(claim =>
-                new Claim(claim.ClaimType!, claim.ClaimValue!)).ToArray());
+            id: applicationUser.Id,
+            email: applicationUser.Email!,
+            isConfirmed: applicationUser.EmailConfirmed,
+            claims: applicationUser.Claims.Select(claim =>
+                new Claim(type: claim.ClaimType!, value: claim.ClaimValue!)).ToArray());
 
         if (userResult.IsFailure)
         {
-            return Result.Failure(userResult.Errors);
+            return Result.Failure(errors: userResult.Errors);
         }
 
         await RevokeAllTokensAsync(id, cancellationToken);
@@ -152,7 +150,7 @@ public sealed class AccountsWriteRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(userResult.Value);
@@ -195,7 +193,7 @@ public sealed class AccountsWriteRepository(
         applicationUser.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
         var identityResult = await userManager.UpdateAsync(applicationUser);
 
-        return IdentityResultMapper.ToResult(identityResult);
+        return IdentityResultMapper.ToResult(result: identityResult);
     }
 
     private async Task RevokeAllTokensAsync(
@@ -209,7 +207,7 @@ public sealed class AccountsWriteRepository(
         string email,
         IReadOnlyCollection<Claim> claims)
     {
-        var userResult = User.Register(email);
+        var userResult = User.Register(email: email);
 
         if (userResult.IsFailure)
         {
@@ -222,7 +220,7 @@ public sealed class AccountsWriteRepository(
 
             if (claimResult.IsFailure)
             {
-                return Result.Failure<User>(claimResult.Errors);
+                return Result.Failure<User>(errors: claimResult.Errors);
             }
         }
 
@@ -236,11 +234,11 @@ public sealed class AccountsWriteRepository(
         IReadOnlyCollection<Claim> claims)
     {
         return User.Create(
-            id,
-            email,
-            isConfirmed,
-            [],
-            claims
+            id: id,
+            email: email,
+            confirmationStatus: isConfirmed,
+            roleIds: [],
+            claims: claims
                 .Distinct(IdentityClaimComparer.Instance)
                 .Select(claim => (claim.Type, claim.Value)));
     }
@@ -270,7 +268,7 @@ public sealed class AccountsWriteRepository(
 
         foreach (var currentClaim in applicationUser.Claims.ToArray())
         {
-            var claim = new Claim(currentClaim.ClaimType!, currentClaim.ClaimValue!);
+            var claim = new Claim(type: currentClaim.ClaimType!, value: currentClaim.ClaimValue!);
 
             if (targetClaims.Contains(claim, IdentityClaimComparer.Instance))
             {
@@ -300,6 +298,6 @@ public sealed class AccountsWriteRepository(
 
     private static Result AccountNotFound()
     {
-        return Result.Failure(Error.NotFound("Account was not found."));
+        return Result.Failure(error: Error.NotFound(message: "Account was not found."));
     }
 }

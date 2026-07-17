@@ -25,9 +25,9 @@ internal sealed class UnblockAccountEndpoint : IEndpoint<AccountManagementEndpoi
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new UnblockAccountCommand(id),
+            new UnblockAccountCommand(Id: id),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

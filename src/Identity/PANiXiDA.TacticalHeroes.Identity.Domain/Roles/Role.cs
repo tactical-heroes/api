@@ -25,16 +25,16 @@ public sealed class Role : AggregateRoot<RoleId>
         string name,
         IEnumerable<(string Type, string Value)> claims)
     {
-        var idResult = RoleId.Create(id);
-        var nameResult = RoleName.Create(name);
+        var idResult = RoleId.Create(value: id);
+        var nameResult = RoleName.Create(value: name);
         var validationResult = Result.Combine(idResult, nameResult);
 
         if (validationResult.IsFailure)
         {
-            return Result.Failure<Role>(validationResult.Errors);
+            return Result.Failure<Role>(errors: validationResult.Errors);
         }
 
-        var role = new Role(idResult.Value, nameResult.Value);
+        var role = new Role(id: idResult.Value, name: nameResult.Value);
 
         foreach (var claim in claims)
         {
@@ -42,20 +42,20 @@ public sealed class Role : AggregateRoot<RoleId>
 
             if (grantClaimResult.IsFailure)
             {
-                return Result.Failure<Role>(grantClaimResult.Errors);
+                return Result.Failure<Role>(errors: grantClaimResult.Errors);
             }
         }
 
-        return Result.Success(role);
+        return Result.Success(value: role);
     }
 
     public Result GrantClaim(string type, string value)
     {
-        var claimResult = RoleClaim.Create(type, value);
+        var claimResult = RoleClaim.Create(type: type, value: value);
 
         if (claimResult.IsFailure)
         {
-            return Result.Failure(claimResult.Errors);
+            return Result.Failure(errors: claimResult.Errors);
         }
 
         if (_claims.Any(claim =>
@@ -72,17 +72,17 @@ public sealed class Role : AggregateRoot<RoleId>
 
     public Result RevokeClaim(string type, string value)
     {
-        var typeResult = ClaimType.Create(type);
-        var valueResult = ClaimValue.Create(value);
+        var typeResult = ClaimType.Create(value: type);
+        var valueResult = ClaimValue.Create(value: value);
 
         if (typeResult.IsFailure)
         {
-            return Result.Failure(typeResult.Errors);
+            return Result.Failure(errors: typeResult.Errors);
         }
 
         if (valueResult.IsFailure)
         {
-            return Result.Failure(valueResult.Errors);
+            return Result.Failure(errors: valueResult.Errors);
         }
 
         _claims.RemoveAll(claim =>

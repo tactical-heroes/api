@@ -53,7 +53,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
             ]
         };
 
-        await AddAsync(role, user, cancellationToken);
+        await AddAsync(role, user);
         Fixture.CommandCounter.Reset();
 
         await using var scope = Fixture.CreateScope();
@@ -65,35 +65,32 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Claims.ShouldContain(
-            new Claim("permission", "identity.profile.read"),
+            new Claim(type: "permission", value: "identity.profile.read"),
             IdentityClaimComparer.Instance);
         result.Value.Claims.ShouldContain(
-            new Claim("permission", "identity.accounts.manage"),
+            new Claim(type: "permission", value: "identity.accounts.manage"),
             IdentityClaimComparer.Instance);
         result.Value.Claims.ShouldContain(
-            new Claim(OpenIddictConstants.Claims.Role, "admin"),
+            new Claim(type: OpenIddictConstants.Claims.Role, value: "admin"),
             IdentityClaimComparer.Instance);
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
     private async Task AddAsync(
         ApplicationRole role,
-        ApplicationUser user,
-        CancellationToken cancellationToken)
+        ApplicationUser user)
     {
         await using var scope = Fixture.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        var createRoleResult = await roleManager.CreateAsync(role);
+        var createRoleResult = await roleManager.CreateAsync(role: role);
         createRoleResult.Succeeded.ShouldBeTrue();
 
-        var createUserResult = await userManager.CreateAsync(user, Password);
+        var createUserResult = await userManager.CreateAsync(user: user, password: Password);
         createUserResult.Succeeded.ShouldBeTrue();
 
         var assignRoleResult = await userManager.AddToRoleAsync(user, role.Name!);
         assignRoleResult.Succeeded.ShouldBeTrue();
-
-        cancellationToken.ThrowIfCancellationRequested();
     }
 }

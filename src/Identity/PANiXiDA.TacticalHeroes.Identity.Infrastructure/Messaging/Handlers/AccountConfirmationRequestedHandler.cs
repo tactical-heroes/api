@@ -14,14 +14,14 @@ public sealed class AccountConfirmationRequestedHandler(
     public IntegrationEvent Handle(DomainEvent domainEvent)
     {
         var confirmationUrl = IdentityLinkBuilder.Build(
-            options.Value.AccountConfirmationUrlTemplate,
-            domainEvent.UserId,
-            domainEvent.ConfirmationToken);
+            template: options.Value.AccountConfirmationUrlTemplate,
+            userId: domainEvent.UserId,
+            token: domainEvent.ConfirmationToken);
 
         return new IntegrationEvent(
-            domainEvent.UserId,
-            domainEvent.Email,
-            confirmationUrl,
-            domainEvent.ExpiresAtUtc);
+            UserId: domainEvent.UserId,
+            Email: domainEvent.Email,
+            ConfirmationUrl: confirmationUrl,
+            ExpiresAtUtc: domainEvent.ExpiresAtUtc);
     }
 }

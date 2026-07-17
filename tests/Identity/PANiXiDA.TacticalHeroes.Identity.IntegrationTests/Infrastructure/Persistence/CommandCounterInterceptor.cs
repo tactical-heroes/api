@@ -33,6 +33,6 @@ public sealed class CommandCounterInterceptor : DbCommandInterceptor
     {
         Interlocked.Increment(ref _count);
 
-        return ValueTask.FromResult(result);
+        return ValueTask.FromResult(result: result);
     }
 }

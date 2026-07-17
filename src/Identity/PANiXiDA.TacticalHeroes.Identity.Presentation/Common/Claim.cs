@@ -6,11 +6,11 @@ public sealed record Claim(
 {
     public static System.Security.Claims.Claim ToApplicationClaim(Claim claim)
     {
-        return new System.Security.Claims.Claim(claim.Type, claim.Value);
+        return new System.Security.Claims.Claim(type: claim.Type, value: claim.Value);
     }
 
     public static Claim FromApplicationClaim(System.Security.Claims.Claim claim)
     {
-        return new Claim(claim.Type, claim.Value);
+        return new Claim(Type: claim.Type, Value: claim.Value);
     }
 }

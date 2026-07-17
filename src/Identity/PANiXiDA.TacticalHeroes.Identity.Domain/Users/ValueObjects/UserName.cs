@@ -16,16 +16,16 @@ public sealed class UserName : ValueObject
         if (string.IsNullOrWhiteSpace(value))
         {
             return Result.Failure<UserName>(
-                Error.Validation("User name is required.")
+                error: Error.Validation(message: "User name is required.")
                     .WithField(nameof(UserName)));
         }
 
         var normalizedValue = value.Trim();
 
         return normalizedValue.Length <= MaxLength
-            ? Result.Success(new UserName(normalizedValue))
+            ? Result.Success(value: new UserName(value: normalizedValue))
             : Result.Failure<UserName>(
-                Error.Validation($"User name cannot be longer than {MaxLength} characters.")
+                error: Error.Validation(message: $"User name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UserName)));
     }
 

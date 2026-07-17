@@ -24,10 +24,10 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetRolesQuery(pagination),
+            new GetRolesQuery(Pagination: pagination),
             cancellationToken);
 
-        return result.ToHttpResult(page =>
-            TypedResults.Ok(GetRolesMapper.ToResponse(page)));
+        return result.ToHttpResult(onSuccess: page =>
+            TypedResults.Ok(value: GetRolesMapper.ToResponse(page: page)));
     }
 }

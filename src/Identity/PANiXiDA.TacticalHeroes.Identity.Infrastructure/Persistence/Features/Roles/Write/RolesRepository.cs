@@ -24,13 +24,11 @@ public sealed class RolesRepository(
         IReadOnlyCollection<Claim> claims,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var roleResult = CreateRole(Guid.NewGuid(), name, claims);
+        var roleResult = CreateRole(id: Guid.NewGuid(), name: name, claims: claims);
 
         if (roleResult.IsFailure)
         {
-            return Result.Failure<Guid>(roleResult.Errors);
+            return Result.Failure<Guid>(errors: roleResult.Errors);
         }
 
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
@@ -40,19 +38,19 @@ public sealed class RolesRepository(
             Name = roleResult.Value.Name.Value,
             CreatedAt = nowUtc,
             UpdatedAt = nowUtc,
-            Claims = CreateClaims(claims)
+            Claims = CreateClaims(claims: claims)
         };
 
-        var identityResult = await roleManager.CreateAsync(applicationRole);
+        var identityResult = await roleManager.CreateAsync(role: applicationRole);
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<Guid>(identityResult);
+            return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
         aggregateTracker.Track(roleResult.Value);
 
-        return Result.Success(applicationRole.Id);
+        return Result.Success(value: applicationRole.Id);
     }
 
     public async Task<Result> UpdateAsync(
@@ -61,11 +59,11 @@ public sealed class RolesRepository(
         IReadOnlyCollection<Claim> claims,
         CancellationToken cancellationToken)
     {
-        var roleResult = CreateRole(id, name, claims);
+        var roleResult = CreateRole(id: id, name: name, claims: claims);
 
         if (roleResult.IsFailure)
         {
-            return Result.Failure(roleResult.Errors);
+            return Result.Failure(errors: roleResult.Errors);
         }
 
         var applicationRole = await roleManager.Roles
@@ -85,7 +83,7 @@ public sealed class RolesRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(roleResult.Value);
@@ -107,21 +105,21 @@ public sealed class RolesRepository(
         }
 
         var roleResult = CreateRole(
-            applicationRole.Id,
-            applicationRole.Name!,
-            applicationRole.Claims.Select(claim =>
-                new Claim(claim.ClaimType!, claim.ClaimValue!)).ToArray());
+            id: applicationRole.Id,
+            name: applicationRole.Name!,
+            claims: applicationRole.Claims.Select(claim =>
+                new Claim(type: claim.ClaimType!, value: claim.ClaimValue!)).ToArray());
 
         if (roleResult.IsFailure)
         {
-            return Result.Failure(roleResult.Errors);
+            return Result.Failure(errors: roleResult.Errors);
         }
 
         var identityResult = await roleManager.DeleteAsync(applicationRole);
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(roleResult.Value);
@@ -135,9 +133,9 @@ public sealed class RolesRepository(
         IReadOnlyCollection<Claim> claims)
     {
         return Role.Create(
-            id,
-            name,
-            claims
+            id: id,
+            name: name,
+            claims: claims
                 .Distinct(IdentityClaimComparer.Instance)
                 .Select(claim => (claim.Type, claim.Value)));
     }
@@ -167,7 +165,7 @@ public sealed class RolesRepository(
 
         foreach (var currentClaim in applicationRole.Claims.ToArray())
         {
-            var claim = new Claim(currentClaim.ClaimType!, currentClaim.ClaimValue!);
+            var claim = new Claim(type: currentClaim.ClaimType!, value: currentClaim.ClaimValue!);
 
             if (targetClaims.Contains(claim, IdentityClaimComparer.Instance))
             {
@@ -197,6 +195,6 @@ public sealed class RolesRepository(
 
     private static Result RoleNotFound()
     {
-        return Result.Failure(Error.NotFound("Role was not found."));
+        return Result.Failure(error: Error.NotFound(message: "Role was not found."));
     }
 }

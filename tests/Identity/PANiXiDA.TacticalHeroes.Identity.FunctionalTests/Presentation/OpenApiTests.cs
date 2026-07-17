@@ -18,7 +18,7 @@ public sealed class OpenApiTests(FunctionalTestFixture fixture)
         await using var contentStream = await response.Content.ReadAsStreamAsync(
             TestContext.Current.CancellationToken);
         using var document = await JsonDocument.ParseAsync(
-            contentStream,
+            utf8Json: contentStream,
             cancellationToken: TestContext.Current.CancellationToken);
 
         var paths = document.RootElement.GetProperty("paths");

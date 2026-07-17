@@ -24,10 +24,10 @@ internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetRoleDetailsQuery(id),
+            new GetRoleDetailsQuery(Id: id),
             cancellationToken);
 
-        return result.ToHttpResult(role =>
-            TypedResults.Ok(GetRoleDetailsMapper.ToResponse(role)));
+        return result.ToHttpResult(onSuccess: role =>
+            TypedResults.Ok(value: GetRoleDetailsMapper.ToResponse(role: role)));
     }
 }

@@ -25,13 +25,13 @@ internal sealed class RegisterAccountEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            RegisterAccountMapper.ToCommand(request),
+            RegisterAccountMapper.ToCommand(request: request),
             cancellationToken);
 
-        return result.ToHttpResult(id =>
+        return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(
-                RegisterAccountMapper.ToResponse(id),
-                new GetAccountDetailsEndpoint().Name,
-                new { id }));
+                value: RegisterAccountMapper.ToResponse(id: id),
+                routeName: new GetAccountDetailsEndpoint().Name,
+                routeValues: new { id }));
     }
 }

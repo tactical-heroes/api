@@ -25,13 +25,13 @@ internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            CreateRoleMapper.ToCommand(request),
+            CreateRoleMapper.ToCommand(request: request),
             cancellationToken);
 
-        return result.ToHttpResult(id =>
+        return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(
-                CreateRoleMapper.ToResponse(id),
-                new GetRoleDetailsEndpoint().Name,
-                new { id }));
+                value: CreateRoleMapper.ToResponse(id: id),
+                routeName: new GetRoleDetailsEndpoint().Name,
+                routeValues: new { id }));
     }
 }

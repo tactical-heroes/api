@@ -46,7 +46,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         services.RunWolverineInSoloMode();
 
         _serviceProvider = services.BuildServiceProvider(
-            new ServiceProviderOptions
+            options: new ServiceProviderOptions
             {
                 ValidateScopes = true
             });

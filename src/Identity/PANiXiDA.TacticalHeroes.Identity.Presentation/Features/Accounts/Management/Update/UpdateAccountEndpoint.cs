@@ -25,9 +25,9 @@ internal sealed class UpdateAccountEndpoint : IEndpoint<AccountManagementEndpoin
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            UpdateAccountMapper.ToCommand(request, id),
+            UpdateAccountMapper.ToCommand(request: request, id: id),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

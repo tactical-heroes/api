@@ -2,8 +2,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 
 public sealed class AccountStatus : Enumeration<AccountStatus>
 {
-    public static readonly AccountStatus Active = new(1, nameof(Active), "Активный");
-    public static readonly AccountStatus Blocked = new(2, nameof(Blocked), "Заблокирован");
+    public static readonly AccountStatus Active = new(id: 1, name: nameof(Active), displayName: "Активный");
+    public static readonly AccountStatus Blocked = new(id: 2, name: nameof(Blocked), displayName: "Заблокирован");
 
     private AccountStatus(int id, string name, string displayName)
         : base(id, name)
@@ -22,16 +22,16 @@ public sealed class AccountStatus : Enumeration<AccountStatus>
         if (string.IsNullOrWhiteSpace(value))
         {
             return Result.Failure<AccountStatus>(
-                Error.Validation("Account status is required.")
+                error: Error.Validation(message: "Account status is required.")
                     .WithField(nameof(AccountStatus)));
         }
 
         var normalizedValue = value.Trim();
 
         return TryFromName(normalizedValue, out var status) && status is not null
-            ? Result.Success(status)
+            ? Result.Success(value: status)
             : Result.Failure<AccountStatus>(
-                Error.Validation($"Account status '{normalizedValue}' is invalid.")
+                error: Error.Validation(message: $"Account status '{normalizedValue}' is invalid.")
                     .WithField(nameof(AccountStatus)));
     }
 }

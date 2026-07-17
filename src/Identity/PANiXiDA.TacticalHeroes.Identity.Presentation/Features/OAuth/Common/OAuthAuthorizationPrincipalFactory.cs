@@ -11,7 +11,7 @@ internal static class OAuthAuthorizationPrincipalFactory
         IEnumerable<string> scopes,
         string audience)
     {
-        return Create(source.Claims, scopes, audience);
+        return Create(claims: source.Claims, scopes: scopes, audience: audience);
     }
 
     internal static ClaimsPrincipal Create(
@@ -20,11 +20,11 @@ internal static class OAuthAuthorizationPrincipalFactory
         string audience)
     {
         var identity = new ClaimsIdentity(
-            claims,
-            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-            OpenIddictConstants.Claims.Name,
-            OpenIddictConstants.Claims.Role);
-        var principal = new ClaimsPrincipal(identity);
+            claims: claims,
+            authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            nameType: OpenIddictConstants.Claims.Name,
+            roleType: OpenIddictConstants.Claims.Role);
+        var principal = new ClaimsPrincipal(identity: identity);
 
         principal.SetScopes(
             scopes

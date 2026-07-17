@@ -27,16 +27,16 @@ public sealed class RolesReadRepository(IdentityReadDbContext dbContext)
             .Skip(pagination.Skip)
             .Take(pagination.Take)
             .Select(role => new RoleListItemReadModel(
-                role.Id,
-                role.Name!))
+                Id: role.Id,
+                Name: role.Name!))
             .ToArrayAsync(cancellationToken);
 
         return Result.Success(
-            PaginationResult<RoleListItemReadModel>.Create(
-                roles,
-                pagination.PageNumber,
-                pagination.PageSize,
-                totalCount));
+            value: PaginationResult<RoleListItemReadModel>.Create(
+                items: roles,
+                pageNumber: pagination.PageNumber,
+                pageSize: pagination.PageSize,
+                totalCount: totalCount));
     }
 
     public async Task<Result<RoleDetailsReadModel>> GetDetailsByIdAsync(
@@ -47,18 +47,18 @@ public sealed class RolesReadRepository(IdentityReadDbContext dbContext)
             .AsNoTracking()
             .Where(role => role.Id == id)
             .Select(role => new RoleDetailsReadModel(
-                role.Id,
-                role.Name!,
-                role.Claims
+                Id: role.Id,
+                Name: role.Name!,
+                Claims: role.Claims
                     .Select(claim => new Claim(
-                        claim.ClaimType!,
-                        claim.ClaimValue!))
+                        type: claim.ClaimType!,
+                        value: claim.ClaimValue!))
                     .ToArray()))
             .SingleOrDefaultAsync(cancellationToken);
 
         return role is null
             ? Result.Failure<RoleDetailsReadModel>(
-                Error.NotFound("Role was not found."))
-            : Result.Success(role);
+                error: Error.NotFound(message: "Role was not found."))
+            : Result.Success(value: role);
     }
 }

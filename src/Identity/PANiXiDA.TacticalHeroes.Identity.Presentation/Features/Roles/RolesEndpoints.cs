@@ -10,7 +10,7 @@ internal sealed class RolesEndpoints : IEndpointGroup
 
     public string Route { get; } = "roles";
     public string Name { get; } = "Roles";
-    public ApiVersion ApiVersion { get; } = new(1, 0);
+    public ApiVersion ApiVersion { get; } = new(majorVersion: 1, minorVersion: 0);
 
     public void Map(IEndpointRouteBuilder endpoints)
     {

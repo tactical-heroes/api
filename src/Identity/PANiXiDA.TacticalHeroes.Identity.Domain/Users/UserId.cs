@@ -1,17 +1,10 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
-public readonly record struct UserId
+public readonly record struct UserId(Guid Value)
 {
-    private UserId(Guid value)
-    {
-        Value = value;
-    }
-
-    public Guid Value { get; }
-
     public static UserId New()
     {
-        return new UserId(Guid.CreateVersion7());
+        return new UserId(Value: Guid.CreateVersion7());
     }
 
     public static Result<UserId> Create(Guid value)
@@ -19,10 +12,10 @@ public readonly record struct UserId
         if (value == Guid.Empty)
         {
             return Result.Failure<UserId>(
-                Error.Validation("User id cannot be empty."));
+                error: Error.Validation(message: "User id cannot be empty."));
         }
 
-        return Result.Success(new UserId(value));
+        return Result.Success(value: new UserId(Value: value));
     }
 
     public override string ToString()

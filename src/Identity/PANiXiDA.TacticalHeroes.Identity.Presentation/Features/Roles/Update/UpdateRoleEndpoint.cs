@@ -25,9 +25,9 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            UpdateRoleMapper.ToCommand(request, id),
+            UpdateRoleMapper.ToCommand(request: request, id: id),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

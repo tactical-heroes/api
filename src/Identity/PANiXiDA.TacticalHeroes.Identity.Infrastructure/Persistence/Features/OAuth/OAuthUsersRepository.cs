@@ -26,16 +26,16 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         if (applicationUser is null)
         {
             return Result.Failure<ExchangeTokenReadModel>(
-                Error.NotFound("Account was not found."));
+                error: Error.NotFound(message: "Account was not found."));
         }
 
         var availabilityResult = EnsureAvailable(applicationUser);
 
         return availabilityResult.IsFailure
-            ? Result.Failure<ExchangeTokenReadModel>(availabilityResult.Errors)
+            ? Result.Failure<ExchangeTokenReadModel>(errors: availabilityResult.Errors)
             : Result.Success(
-                new ExchangeTokenReadModel(
-                    IdentityClaimsFactory.Create(applicationUser)));
+                value: new ExchangeTokenReadModel(
+                    Claims: IdentityClaimsFactory.Create(user: applicationUser)));
     }
 
     public async Task<Result<UserInfoReadModel>> GetUserInfoByAccountIdAsync(
@@ -50,14 +50,14 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         if (applicationUser is null)
         {
             return Result.Failure<UserInfoReadModel>(
-                Error.NotFound("Account was not found."));
+                error: Error.NotFound(message: "Account was not found."));
         }
 
         var availabilityResult = EnsureAvailable(applicationUser);
 
         if (availabilityResult.IsFailure)
         {
-            return Result.Failure<UserInfoReadModel>(availabilityResult.Errors);
+            return Result.Failure<UserInfoReadModel>(errors: availabilityResult.Errors);
         }
 
         IReadOnlyCollection<string> roles =
@@ -70,12 +70,12 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         ];
 
         return Result.Success(
-            new UserInfoReadModel(
-                applicationUser.Id,
-                applicationUser.UserName,
-                applicationUser.Email,
-                applicationUser.EmailConfirmed,
-                roles));
+            value: new UserInfoReadModel(
+                AccountId: applicationUser.Id,
+                Name: applicationUser.UserName,
+                Email: applicationUser.Email,
+                EmailVerified: applicationUser.EmailConfirmed,
+                Roles: roles));
     }
 
     private static Result EnsureAvailable(UserReadDbModel applicationUser)
@@ -85,11 +85,11 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 AccountStatus.Blocked.Name,
                 StringComparison.Ordinal))
         {
-            return Result.Failure(Error.Forbidden("Account is blocked."));
+            return Result.Failure(error: Error.Forbidden(message: "Account is blocked."));
         }
 
         return applicationUser.EmailConfirmed
             ? Result.Success()
-            : Result.Failure(Error.Forbidden("Account is not confirmed."));
+            : Result.Failure(error: Error.Forbidden(message: "Account is not confirmed."));
     }
 }

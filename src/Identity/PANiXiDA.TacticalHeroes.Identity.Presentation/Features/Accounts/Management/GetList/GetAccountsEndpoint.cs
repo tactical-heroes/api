@@ -25,10 +25,10 @@ internal sealed class GetAccountsEndpoint : IEndpoint<AccountManagementEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetAccountsQuery(request.Email, pagination),
+            new GetAccountsQuery(Email: request.Email, Pagination: pagination),
             cancellationToken);
 
-        return result.ToHttpResult(page =>
-            TypedResults.Ok(GetAccountsMapper.ToResponse(page)));
+        return result.ToHttpResult(onSuccess: page =>
+            TypedResults.Ok(value: GetAccountsMapper.ToResponse(page: page)));
     }
 }

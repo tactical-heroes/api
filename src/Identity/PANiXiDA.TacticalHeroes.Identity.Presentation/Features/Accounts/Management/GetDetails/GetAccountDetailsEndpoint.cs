@@ -24,10 +24,10 @@ internal sealed class GetAccountDetailsEndpoint : IEndpoint<AccountManagementEnd
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetAccountDetailsQuery(id),
+            new GetAccountDetailsQuery(Id: id),
             cancellationToken);
 
-        return result.ToHttpResult(account =>
-            TypedResults.Ok(GetAccountDetailsMapper.ToResponse(account)));
+        return result.ToHttpResult(onSuccess: account =>
+            TypedResults.Ok(value: GetAccountDetailsMapper.ToResponse(account: account)));
     }
 }

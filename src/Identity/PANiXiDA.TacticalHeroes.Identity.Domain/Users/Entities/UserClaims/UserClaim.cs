@@ -19,22 +19,22 @@ public sealed class UserClaim : Entity<UserClaimId>
 
     internal static Result<UserClaim> Create(string type, string value)
     {
-        var typeResult = ClaimType.Create(type);
-        var valueResult = ClaimValue.Create(value);
+        var typeResult = ClaimType.Create(value: type);
+        var valueResult = ClaimValue.Create(value: value);
 
         if (typeResult.IsFailure)
         {
-            return Result.Failure<UserClaim>(typeResult.Errors);
+            return Result.Failure<UserClaim>(errors: typeResult.Errors);
         }
 
         if (valueResult.IsFailure)
         {
-            return Result.Failure<UserClaim>(valueResult.Errors);
+            return Result.Failure<UserClaim>(errors: valueResult.Errors);
         }
 
-        return Result.Success(new UserClaim(
-            UserClaimId.New(),
-            typeResult.Value,
-            valueResult.Value));
+        return Result.Success(value: new UserClaim(
+            id: UserClaimId.New(),
+            type: typeResult.Value,
+            value: valueResult.Value));
     }
 }

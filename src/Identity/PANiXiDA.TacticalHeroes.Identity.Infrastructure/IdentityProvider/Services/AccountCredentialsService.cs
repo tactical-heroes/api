@@ -29,15 +29,13 @@ public sealed class AccountCredentialsService(
         string password,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userResult = User.Register(email);
-        var userNameResult = UserName.Create(userName);
+        var userResult = User.Register(email: email);
+        var userNameResult = UserName.Create(value: userName);
         var validationResult = Result.Combine(userResult, userNameResult);
 
         if (validationResult.IsFailure)
         {
-            return Result.Failure<Guid>(validationResult.Errors);
+            return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
@@ -53,11 +51,11 @@ public sealed class AccountCredentialsService(
             UpdatedAt = nowUtc
         };
 
-        var identityResult = await userManager.CreateAsync(applicationUser, password);
+        var identityResult = await userManager.CreateAsync(user: applicationUser, password: password);
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<Guid>(identityResult);
+            return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
@@ -67,12 +65,12 @@ public sealed class AccountCredentialsService(
 
         if (confirmationResult.IsFailure)
         {
-            return Result.Failure<Guid>(confirmationResult.Errors);
+            return Result.Failure<Guid>(errors: confirmationResult.Errors);
         }
 
         aggregateTracker.Track(userResult.Value);
 
-        return Result.Success(applicationUser.Id);
+        return Result.Success(value: applicationUser.Id);
     }
 
     public async Task<Result<AuthenticatedAccountReadModel>> LoginAsync(
@@ -95,13 +93,13 @@ public sealed class AccountCredentialsService(
         if (IsBlocked(applicationUser))
         {
             return Result.Failure<AuthenticatedAccountReadModel>(
-                Error.Forbidden("Account is blocked."));
+                error: Error.Forbidden(message: "Account is blocked."));
         }
 
         if (await userManager.IsLockedOutAsync(applicationUser))
         {
             return Result.Failure<AuthenticatedAccountReadModel>(
-                Error.Forbidden("Account is locked out."));
+                error: Error.Forbidden(message: "Account is locked out."));
         }
 
         if (!await userManager.CheckPasswordAsync(applicationUser, password))
@@ -110,7 +108,7 @@ public sealed class AccountCredentialsService(
 
             if (!failureResult.Succeeded)
             {
-                return IdentityResultMapper.ToResult<AuthenticatedAccountReadModel>(failureResult);
+                return IdentityResultMapper.ToResult<AuthenticatedAccountReadModel>(result: failureResult);
             }
 
             return InvalidCredentials();
@@ -120,25 +118,25 @@ public sealed class AccountCredentialsService(
 
         if (!resetResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<AuthenticatedAccountReadModel>(resetResult);
+            return IdentityResultMapper.ToResult<AuthenticatedAccountReadModel>(result: resetResult);
         }
 
         if (!applicationUser.EmailConfirmed)
         {
             return Result.Failure<AuthenticatedAccountReadModel>(
-                Error.Forbidden("Account is not confirmed."));
+                error: Error.Forbidden(message: "Account is not confirmed."));
         }
 
         var claims = IdentityClaimsFactory.Create(
-            applicationUser,
-            userManager.Options);
+            user: applicationUser,
+            identityOptions: userManager.Options);
 
         return Result.Success(
-            new AuthenticatedAccountReadModel(
-                applicationUser.Id,
-                applicationUser.Email!,
-                applicationUser.UserName!,
-                claims));
+            value: new AuthenticatedAccountReadModel(
+                Id: applicationUser.Id,
+                Email: applicationUser.Email!,
+                UserName: applicationUser.UserName!,
+                Claims: claims));
     }
 
     public async Task<Result> ChangePasswordAsync(
@@ -147,8 +145,6 @@ public sealed class AccountCredentialsService(
         string newPassword,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var applicationUser = await userManager.FindByIdAsync(accountId.ToString());
 
         if (applicationUser is null)
@@ -158,12 +154,12 @@ public sealed class AccountCredentialsService(
 
         if (IsBlocked(applicationUser))
         {
-            return Result.Failure(Error.Forbidden("Account is blocked."));
+            return Result.Failure(error: Error.Forbidden(message: "Account is blocked."));
         }
 
         if (await userManager.IsLockedOutAsync(applicationUser))
         {
-            return Result.Failure(Error.Forbidden("Account is locked out."));
+            return Result.Failure(error: Error.Forbidden(message: "Account is locked out."));
         }
 
         var result = await userManager.ChangePasswordAsync(
@@ -171,7 +167,7 @@ public sealed class AccountCredentialsService(
             currentPassword,
             newPassword);
 
-        return IdentityResultMapper.ToResult(result);
+        return IdentityResultMapper.ToResult(result: result);
     }
 
     public async Task<Result> ConfirmAsync(
@@ -179,8 +175,6 @@ public sealed class AccountCredentialsService(
         string emailConfirmationToken,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var applicationUser = await userManager.FindByIdAsync(accountId.ToString());
 
         if (applicationUser is null)
@@ -193,11 +187,11 @@ public sealed class AccountCredentialsService(
             return Result.Success();
         }
 
-        var userResult = ApplicationUserMapper.ToDomain(applicationUser);
+        var userResult = ApplicationUserMapper.ToDomain(user: applicationUser);
 
         if (userResult.IsFailure)
         {
-            return Result.Failure(userResult.Errors);
+            return Result.Failure(errors: userResult.Errors);
         }
 
         var identityResult = await userManager.ConfirmEmailAsync(
@@ -206,7 +200,7 @@ public sealed class AccountCredentialsService(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         var confirmResult = userResult.Value.ConfirmRegistration();
@@ -225,8 +219,6 @@ public sealed class AccountCredentialsService(
         string email,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var applicationUser = await userManager.FindByEmailAsync(email);
 
         if (applicationUser is null ||
@@ -236,11 +228,11 @@ public sealed class AccountCredentialsService(
             return Result.Success();
         }
 
-        var userResult = ApplicationUserMapper.ToDomain(applicationUser);
+        var userResult = ApplicationUserMapper.ToDomain(user: applicationUser);
 
         if (userResult.IsFailure)
         {
-            return Result.Failure(userResult.Errors);
+            return Result.Failure(errors: userResult.Errors);
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
@@ -262,8 +254,6 @@ public sealed class AccountCredentialsService(
         string email,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var applicationUser = await userManager.FindByEmailAsync(email);
 
         if (applicationUser is null ||
@@ -273,11 +263,11 @@ public sealed class AccountCredentialsService(
             return Result.Success();
         }
 
-        var userResult = ApplicationUserMapper.ToDomain(applicationUser);
+        var userResult = ApplicationUserMapper.ToDomain(user: applicationUser);
 
         if (userResult.IsFailure)
         {
-            return Result.Failure(userResult.Errors);
+            return Result.Failure(errors: userResult.Errors);
         }
 
         var resetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
@@ -301,8 +291,6 @@ public sealed class AccountCredentialsService(
         string newPassword,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var applicationUser = await userManager.FindByIdAsync(accountId.ToString());
 
         if (applicationUser is null)
@@ -312,12 +300,12 @@ public sealed class AccountCredentialsService(
 
         if (!applicationUser.EmailConfirmed)
         {
-            return Result.Failure(Error.Forbidden("Account is not confirmed."));
+            return Result.Failure(error: Error.Forbidden(message: "Account is not confirmed."));
         }
 
         if (IsBlocked(applicationUser))
         {
-            return Result.Failure(Error.Forbidden("Account is blocked."));
+            return Result.Failure(error: Error.Forbidden(message: "Account is blocked."));
         }
 
         var result = await userManager.ResetPasswordAsync(
@@ -325,7 +313,7 @@ public sealed class AccountCredentialsService(
             passwordResetToken,
             newPassword);
 
-        return IdentityResultMapper.ToResult(result);
+        return IdentityResultMapper.ToResult(result: result);
     }
 
     private static bool IsBlocked(ApplicationUser applicationUser)
@@ -339,11 +327,11 @@ public sealed class AccountCredentialsService(
     private static Result<AuthenticatedAccountReadModel> InvalidCredentials()
     {
         return Result.Failure<AuthenticatedAccountReadModel>(
-            Error.Unauthorized("Invalid email or password."));
+            error: Error.Unauthorized(message: "Invalid email or password."));
     }
 
     private static Result AccountNotFound()
     {
-        return Result.Failure(Error.NotFound("Account was not found."));
+        return Result.Failure(error: Error.NotFound(message: "Account was not found."));
     }
 }

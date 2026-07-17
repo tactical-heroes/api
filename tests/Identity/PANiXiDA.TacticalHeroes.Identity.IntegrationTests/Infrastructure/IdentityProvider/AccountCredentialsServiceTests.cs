@@ -51,7 +51,7 @@ public sealed class AccountCredentialsServiceTests(IntegrationTestFixture fixtur
             ]
         };
 
-        await AddAsync(role, user, cancellationToken);
+        await AddAsync(role, user);
         Fixture.CommandCounter.Reset();
 
         await using var scope = Fixture.CreateScope();
@@ -64,27 +64,24 @@ public sealed class AccountCredentialsServiceTests(IntegrationTestFixture fixtur
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Claims.ShouldContain(
-            new Claim("permission", "identity.profile.read"),
+            new Claim(type: "permission", value: "identity.profile.read"),
             IdentityClaimComparer.Instance);
         result.Value.Claims.ShouldContain(
-            new Claim("permission", "identity.accounts.manage"),
+            new Claim(type: "permission", value: "identity.accounts.manage"),
             IdentityClaimComparer.Instance);
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
     private async Task AddAsync(
         ApplicationRole role,
-        ApplicationUser user,
-        CancellationToken cancellationToken)
+        ApplicationUser user)
     {
         await using var scope = Fixture.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        (await roleManager.CreateAsync(role)).Succeeded.ShouldBeTrue();
-        (await userManager.CreateAsync(user, Password)).Succeeded.ShouldBeTrue();
+        (await roleManager.CreateAsync(role: role)).Succeeded.ShouldBeTrue();
+        (await userManager.CreateAsync(user: user, password: Password)).Succeeded.ShouldBeTrue();
         (await userManager.AddToRoleAsync(user, role.Name!)).Succeeded.ShouldBeTrue();
-
-        cancellationToken.ThrowIfCancellationRequested();
     }
 }

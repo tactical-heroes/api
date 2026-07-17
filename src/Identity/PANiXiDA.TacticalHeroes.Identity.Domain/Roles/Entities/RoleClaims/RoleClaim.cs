@@ -19,22 +19,22 @@ public sealed class RoleClaim : Entity<RoleClaimId>
 
     internal static Result<RoleClaim> Create(string type, string value)
     {
-        var typeResult = ClaimType.Create(type);
-        var valueResult = ClaimValue.Create(value);
+        var typeResult = ClaimType.Create(value: type);
+        var valueResult = ClaimValue.Create(value: value);
 
         if (typeResult.IsFailure)
         {
-            return Result.Failure<RoleClaim>(typeResult.Errors);
+            return Result.Failure<RoleClaim>(errors: typeResult.Errors);
         }
 
         if (valueResult.IsFailure)
         {
-            return Result.Failure<RoleClaim>(valueResult.Errors);
+            return Result.Failure<RoleClaim>(errors: valueResult.Errors);
         }
 
-        return Result.Success(new RoleClaim(
-            RoleClaimId.New(),
-            typeResult.Value,
-            valueResult.Value));
+        return Result.Success(value: new RoleClaim(
+            id: RoleClaimId.New(),
+            type: typeResult.Value,
+            value: valueResult.Value));
     }
 }

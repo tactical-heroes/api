@@ -8,20 +8,20 @@ internal static class GetUserInfoMapper
         UserInfoReadModel account,
         IEnumerable<string> scopes)
     {
-        var scopeSet = new HashSet<string>(scopes, StringComparer.Ordinal);
+        var scopeSet = new HashSet<string>(collection: scopes, comparer: StringComparer.Ordinal);
 
         return new GetUserInfoResponse(
-            account.AccountId.ToString(),
-            scopeSet.Contains(OpenIddictConstants.Scopes.Profile)
+            Subject: account.AccountId.ToString(),
+            Name: scopeSet.Contains(OpenIddictConstants.Scopes.Profile)
                 ? account.Name
                 : null,
-            scopeSet.Contains(OpenIddictConstants.Scopes.Email)
+            Email: scopeSet.Contains(OpenIddictConstants.Scopes.Email)
                 ? account.Email
                 : null,
-            scopeSet.Contains(OpenIddictConstants.Scopes.Email)
+            EmailVerified: scopeSet.Contains(OpenIddictConstants.Scopes.Email)
                 ? account.EmailVerified
                 : null,
-            scopeSet.Contains(OpenIddictConstants.Scopes.Roles) && account.Roles.Count > 0
+            Role: scopeSet.Contains(OpenIddictConstants.Scopes.Roles) && account.Roles.Count > 0
                 ? account.Roles
                 : null);
     }

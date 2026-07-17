@@ -112,7 +112,7 @@ public sealed class UserTests
     private static User CreateUser()
     {
         var userResult = User.Register(
-            "hero@example.com");
+            email: "hero@example.com");
 
         userResult.IsSuccess.ShouldBeTrue();
 

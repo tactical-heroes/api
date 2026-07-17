@@ -27,18 +27,18 @@ public sealed class User : AggregateRoot<UserId>
 
     public static Result<User> Register(string email)
     {
-        var emailResult = Email.Create(email);
+        var emailResult = Email.Create(value: email);
 
         if (emailResult.IsFailure)
         {
-            return Result.Failure<User>(emailResult.Errors);
+            return Result.Failure<User>(errors: emailResult.Errors);
         }
 
         var user = new User(
-            UserId.New(),
-            emailResult.Value);
+            id: UserId.New(),
+            email: emailResult.Value);
 
-        return Result.Success(user);
+        return Result.Success(value: user);
     }
 
     internal static Result<User> Create(
@@ -48,20 +48,20 @@ public sealed class User : AggregateRoot<UserId>
         IEnumerable<Guid> roleIds,
         IEnumerable<(string Type, string Value)> claims)
     {
-        var idResult = UserId.Create(id);
-        var emailResult = Email.Create(email);
+        var idResult = UserId.Create(value: id);
+        var emailResult = Email.Create(value: email);
         var validationResult = Result.Combine(idResult, emailResult);
 
         if (validationResult.IsFailure)
         {
-            return Result.Failure<User>(validationResult.Errors);
+            return Result.Failure<User>(errors: validationResult.Errors);
         }
 
         var user = new User(
-            idResult.Value,
-            emailResult.Value)
+            id: idResult.Value,
+            email: emailResult.Value)
         {
-            ConfirmationStatus = UserConfirmationStatus.From(confirmationStatus)
+            ConfirmationStatus = UserConfirmationStatus.From(isConfirmed: confirmationStatus)
         };
 
         foreach (var roleId in roleIds)
@@ -70,7 +70,7 @@ public sealed class User : AggregateRoot<UserId>
 
             if (assignRoleResult.IsFailure)
             {
-                return Result.Failure<User>(assignRoleResult.Errors);
+                return Result.Failure<User>(errors: assignRoleResult.Errors);
             }
         }
 
@@ -80,11 +80,11 @@ public sealed class User : AggregateRoot<UserId>
 
             if (grantClaimResult.IsFailure)
             {
-                return Result.Failure<User>(grantClaimResult.Errors);
+                return Result.Failure<User>(errors: grantClaimResult.Errors);
             }
         }
 
-        return Result.Success(user);
+        return Result.Success(value: user);
     }
 
     public Result RequestAccountConfirmation(
@@ -98,10 +98,10 @@ public sealed class User : AggregateRoot<UserId>
 
         AddDomainEvent(
             new AccountConfirmationRequested(
-                Id.Value,
-                Email.Value,
-                confirmationToken,
-                expiresAtUtc));
+                UserId: Id.Value,
+                Email: Email.Value,
+                ConfirmationToken: confirmationToken,
+                ExpiresAtUtc: expiresAtUtc));
 
         return Result.Success();
     }
@@ -117,8 +117,8 @@ public sealed class User : AggregateRoot<UserId>
 
         AddDomainEvent(
             new UserRegistered(
-                Id.Value,
-                Email.Value));
+                UserId: Id.Value,
+                Email: Email.Value));
 
         return Result.Success();
     }
@@ -130,26 +130,26 @@ public sealed class User : AggregateRoot<UserId>
         if (!ConfirmationStatus.IsConfirmed)
         {
             return Result.Failure(
-                Error.Conflict("Cannot reset password for unconfirmed account."));
+                error: Error.Conflict(message: "Cannot reset password for unconfirmed account."));
         }
 
         AddDomainEvent(
             new PasswordResetRequested(
-                Id.Value,
-                Email.Value,
-                passwordResetToken,
-                expiresAtUtc));
+                UserId: Id.Value,
+                Email: Email.Value,
+                PasswordResetToken: passwordResetToken,
+                ExpiresAtUtc: expiresAtUtc));
 
         return Result.Success();
     }
 
     public Result AssignRole(Guid roleId)
     {
-        var roleIdResult = RoleId.Create(roleId);
+        var roleIdResult = RoleId.Create(value: roleId);
 
         if (roleIdResult.IsFailure)
         {
-            return Result.Failure(roleIdResult.Errors);
+            return Result.Failure(errors: roleIdResult.Errors);
         }
 
         if (_roleIds.Contains(roleIdResult.Value))
@@ -164,11 +164,11 @@ public sealed class User : AggregateRoot<UserId>
 
     public Result GrantClaim(string type, string value)
     {
-        var claimResult = UserClaim.Create(type, value);
+        var claimResult = UserClaim.Create(type: type, value: value);
 
         if (claimResult.IsFailure)
         {
-            return Result.Failure(claimResult.Errors);
+            return Result.Failure(errors: claimResult.Errors);
         }
 
         if (_claims.Any(claim =>

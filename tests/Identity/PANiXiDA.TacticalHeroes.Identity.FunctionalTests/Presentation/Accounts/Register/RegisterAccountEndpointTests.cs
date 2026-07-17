@@ -14,9 +14,9 @@ public sealed class RegisterAccountEndpointTests(FunctionalTestFixture fixture)
         using var response = await Client.PostAsJsonAsync(
             "/api/v1/accounts/register",
             new RegisterAccountRequest(
-                "created@example.com",
-                "created-account",
-                "StrongPassword1!"),
+                Email: "created@example.com",
+                UserName: "created-account",
+                Password: "StrongPassword1!"),
             JsonOptions,
             TestContext.Current.CancellationToken);
         var responseBody = await response.Content.ReadFromJsonAsync<RegisterAccountResponse>(

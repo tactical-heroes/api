@@ -16,7 +16,7 @@ public sealed class ClaimType : ValueObject
         if (string.IsNullOrWhiteSpace(value))
         {
             return Result.Failure<ClaimType>(
-                Error.Validation("Claim type cannot be empty.")
+                error: Error.Validation(message: "Claim type cannot be empty.")
                     .WithField(nameof(ClaimType)));
         }
 
@@ -25,11 +25,11 @@ public sealed class ClaimType : ValueObject
         if (normalizedValue.Length > MaxLength)
         {
             return Result.Failure<ClaimType>(
-                Error.Validation($"Claim type cannot be longer than {MaxLength} characters.")
+                error: Error.Validation(message: $"Claim type cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(ClaimType)));
         }
 
-        return Result.Success(new ClaimType(normalizedValue));
+        return Result.Success(value: new ClaimType(value: normalizedValue));
     }
 
     public override string ToString()

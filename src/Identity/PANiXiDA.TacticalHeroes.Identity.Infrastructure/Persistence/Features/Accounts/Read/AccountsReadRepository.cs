@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetList;
-using PANiXiDA.TacticalHeroes.Identity.Application.Accounts.Management.GetStatuses;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
@@ -20,10 +19,6 @@ public sealed class AccountsReadRepository(IdentityReadDbContext dbContext)
         PaginationParameters pagination,
         CancellationToken cancellationToken)
     {
-        var activeName = AccountStatus.Active.Name;
-        var activeDisplayName = AccountStatus.Active.DisplayName;
-        var blockedName = AccountStatus.Blocked.Name;
-        var blockedDisplayName = AccountStatus.Blocked.DisplayName;
         var query = dbContext.Set<UserReadDbModel>()
             .AsNoTracking();
 
@@ -41,75 +36,46 @@ public sealed class AccountsReadRepository(IdentityReadDbContext dbContext)
             .Skip(pagination.Skip)
             .Take(pagination.Take)
             .Select(user => new AccountListItemReadModel(
-                user.Id,
-                user.Email!,
-                user.UserName!,
-                user.EmailConfirmed,
-                user.Status,
-                user.Status == activeName
-                    ? activeDisplayName
-                    : user.Status == blockedName
-                        ? blockedDisplayName
-                        : user.Status))
+                Id: user.Id,
+                Email: user.Email!,
+                UserName: user.UserName!,
+                IsConfirmed: user.EmailConfirmed,
+                Status: user.Status,
+                StatusDisplayName: AccountStatus.FromName(name: user.Status).DisplayName))
             .ToArrayAsync(cancellationToken);
 
         return Result.Success(
-            PaginationResult<AccountListItemReadModel>.Create(
-                accounts,
-                pagination.PageNumber,
-                pagination.PageSize,
-                totalCount));
+            value: PaginationResult<AccountListItemReadModel>.Create(
+                items: accounts,
+                pageNumber: pagination.PageNumber,
+                pageSize: pagination.PageSize,
+                totalCount: totalCount));
     }
 
     public async Task<Result<AccountDetailsReadModel>> GetDetailsByIdAsync(
         Guid id,
         CancellationToken cancellationToken)
     {
-        var activeName = AccountStatus.Active.Name;
-        var activeDisplayName = AccountStatus.Active.DisplayName;
-        var blockedName = AccountStatus.Blocked.Name;
-        var blockedDisplayName = AccountStatus.Blocked.DisplayName;
         var account = await dbContext.Set<UserReadDbModel>()
             .AsNoTracking()
             .Where(user => user.Id == id)
             .Select(user => new AccountDetailsReadModel(
-                user.Id,
-                user.Email!,
-                user.UserName!,
-                user.EmailConfirmed,
-                user.Status,
-                user.Status == activeName
-                    ? activeDisplayName
-                    : user.Status == blockedName
-                        ? blockedDisplayName
-                        : user.Status,
-                user.Claims
+                Id: user.Id,
+                Email: user.Email!,
+                UserName: user.UserName!,
+                IsConfirmed: user.EmailConfirmed,
+                Status: user.Status,
+                StatusDisplayName: AccountStatus.FromName(name: user.Status).DisplayName,
+                Claims: user.Claims
                     .Select(claim => new Claim(
-                        claim.ClaimType!,
-                        claim.ClaimValue!))
+                        type: claim.ClaimType!,
+                        value: claim.ClaimValue!))
                     .ToArray()))
             .SingleOrDefaultAsync(cancellationToken);
 
         return account is null
             ? Result.Failure<AccountDetailsReadModel>(
-                Error.NotFound("Account was not found."))
-            : Result.Success(account);
-    }
-
-    public Task<Result<IReadOnlyCollection<AccountStatusReadModel>>> GetStatusesAsync(
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        IReadOnlyCollection<AccountStatusReadModel> statuses =
-        [
-            .. AccountStatus.GetAll().Select(status =>
-                new AccountStatusReadModel(
-                    status.Id,
-                    status.Name,
-                    status.DisplayName))
-        ];
-
-        return Task.FromResult(Result.Success(statuses));
+                error: Error.NotFound(message: "Account was not found."))
+            : Result.Success(value: account);
     }
 }

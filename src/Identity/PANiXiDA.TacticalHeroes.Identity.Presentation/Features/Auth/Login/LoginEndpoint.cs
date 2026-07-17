@@ -42,7 +42,7 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         }
 
         var result = await mediator.SendAsync(
-            LoginMapper.ToCommand(request),
+            LoginMapper.ToCommand(request: request),
             cancellationToken);
 
         if (result.IsFailure)
@@ -52,9 +52,9 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 
         await httpContext.SignInAsync(
             IdentityConstants.ApplicationScheme,
-            LoginMapper.ToClaimsPrincipal(result.Value));
+            LoginMapper.ToClaimsPrincipal(account: result.Value));
 
-        return TypedResults.Redirect(request.ReturnUrl);
+        return TypedResults.Redirect(url: request.ReturnUrl);
     }
 
     private static string GetAuthorizePath()

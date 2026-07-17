@@ -8,8 +8,8 @@ internal static class OAuthPrincipalExtensions
     {
         var accountIdValue = principal?.GetClaim(OpenIddictConstants.Claims.Subject);
 
-        return Guid.TryParse(accountIdValue, out var accountId)
-            ? Result.Success(accountId)
-            : Result.Failure<Guid>(Error.Validation("Account id is required."));
+        return Guid.TryParse(input: accountIdValue, result: out var accountId)
+            ? Result.Success(value: accountId)
+            : Result.Failure<Guid>(error: Error.Validation(message: "Account id is required."));
     }
 }

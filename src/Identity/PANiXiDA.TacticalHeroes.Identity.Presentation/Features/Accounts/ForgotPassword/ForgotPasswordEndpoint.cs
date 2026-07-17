@@ -22,10 +22,10 @@ internal sealed class ForgotPasswordEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            ForgotPasswordMapper.ToCommand(request),
+            ForgotPasswordMapper.ToCommand(request: request),
             cancellationToken);
 
         return result.ToHttpResult(
-            () => TypedResults.StatusCode(StatusCodes.Status202Accepted));
+            onSuccess: () => TypedResults.StatusCode(statusCode: StatusCodes.Status202Accepted));
     }
 }

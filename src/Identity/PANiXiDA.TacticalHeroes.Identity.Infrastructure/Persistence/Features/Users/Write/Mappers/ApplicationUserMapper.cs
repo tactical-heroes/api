@@ -8,10 +8,10 @@ internal static class ApplicationUserMapper
     public static Result<User> ToDomain(ApplicationUser user)
     {
         return User.Create(
-            user.Id,
-            user.Email!,
-            user.EmailConfirmed,
-            user.Roles.Select(role => role.RoleId),
-            user.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
+            id: user.Id,
+            email: user.Email!,
+            confirmationStatus: user.EmailConfirmed,
+            roleIds: user.Roles.Select(role => role.RoleId),
+            claims: user.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
     }
 }

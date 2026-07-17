@@ -37,21 +37,21 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 
         if (accountIdResult.IsFailure)
         {
-            return OAuthErrorResults.InvalidToken("Token is invalid.");
+            return OAuthErrorResults.InvalidToken(description: "Token is invalid.");
         }
 
         var result = await mediator.QueryAsync(
-            new GetUserInfoQuery(accountIdResult.Value),
+            new GetUserInfoQuery(AccountId: accountIdResult.Value),
             cancellationToken);
 
         if (result.IsFailure)
         {
-            return OAuthErrorResults.InvalidToken("Token is invalid.");
+            return OAuthErrorResults.InvalidToken(description: "Token is invalid.");
         }
 
         return TypedResults.Ok(
-            GetUserInfoMapper.ToResponse(
-                result.Value,
-                user.GetScopes()));
+            value: GetUserInfoMapper.ToResponse(
+                account: result.Value,
+                scopes: user.GetScopes()));
     }
 }

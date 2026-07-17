@@ -29,15 +29,15 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AccountsEndpoints>
     {
         var accountIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
 
-        if (!Guid.TryParse(accountIdValue, out var accountId))
+        if (!Guid.TryParse(input: accountIdValue, result: out var accountId))
         {
             return TypedResults.Unauthorized();
         }
 
         var result = await mediator.SendAsync(
-            ChangePasswordMapper.ToCommand(request, accountId),
+            ChangePasswordMapper.ToCommand(request: request, accountId: accountId),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

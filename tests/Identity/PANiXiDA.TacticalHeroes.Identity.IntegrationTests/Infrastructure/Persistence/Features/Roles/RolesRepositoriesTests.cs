@@ -19,7 +19,7 @@ public sealed class RolesRepositoriesTests(IntegrationTestFixture fixture)
             var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
             var result = await repository.AddAsync(
                 "operator",
-                [new Claim("permission", "identity.profile.read")],
+                [new Claim(type: "permission", value: "identity.profile.read")],
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -32,7 +32,7 @@ public sealed class RolesRepositoriesTests(IntegrationTestFixture fixture)
             var result = await repository.UpdateAsync(
                 roleId,
                 "administrator",
-                [new Claim("permission", "identity.accounts.manage")],
+                [new Claim(type: "permission", value: "identity.accounts.manage")],
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();

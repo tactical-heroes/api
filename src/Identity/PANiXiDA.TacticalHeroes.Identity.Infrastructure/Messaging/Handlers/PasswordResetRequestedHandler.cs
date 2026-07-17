@@ -14,14 +14,14 @@ public sealed class PasswordResetRequestedHandler(
     public IntegrationEvent Handle(DomainEvent domainEvent)
     {
         var passwordResetUrl = IdentityLinkBuilder.Build(
-            options.Value.PasswordResetUrlTemplate,
-            domainEvent.UserId,
-            domainEvent.PasswordResetToken);
+            template: options.Value.PasswordResetUrlTemplate,
+            userId: domainEvent.UserId,
+            token: domainEvent.PasswordResetToken);
 
         return new IntegrationEvent(
-            domainEvent.UserId,
-            domainEvent.Email,
-            passwordResetUrl,
-            domainEvent.ExpiresAtUtc);
+            UserId: domainEvent.UserId,
+            Email: domainEvent.Email,
+            PasswordResetUrl: passwordResetUrl,
+            ExpiresAtUtc: domainEvent.ExpiresAtUtc);
     }
 }

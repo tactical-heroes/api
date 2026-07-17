@@ -18,9 +18,9 @@ internal static partial class LoginMapper
     {
         var claims = new List<Claim>
         {
-            new(OpenIddictConstants.Claims.Subject, account.Id.ToString()),
-            new(OpenIddictConstants.Claims.Name, account.UserName),
-            new(OpenIddictConstants.Claims.Email, account.Email)
+            new(type: OpenIddictConstants.Claims.Subject, value: account.Id.ToString()),
+            new(type: OpenIddictConstants.Claims.Name, value: account.UserName),
+            new(type: OpenIddictConstants.Claims.Email, value: account.Email)
         };
         claims.AddRange(
             account.Claims.Where(claim =>
@@ -29,11 +29,11 @@ internal static partial class LoginMapper
                 claim.Type != OpenIddictConstants.Claims.Email));
 
         var identity = new ClaimsIdentity(
-            claims,
-            IdentityConstants.ApplicationScheme,
-            OpenIddictConstants.Claims.Name,
-            OpenIddictConstants.Claims.Role);
+            claims: claims,
+            authenticationType: IdentityConstants.ApplicationScheme,
+            nameType: OpenIddictConstants.Claims.Name,
+            roleType: OpenIddictConstants.Claims.Role);
 
-        return new ClaimsPrincipal(identity);
+        return new ClaimsPrincipal(identity: identity);
     }
 }

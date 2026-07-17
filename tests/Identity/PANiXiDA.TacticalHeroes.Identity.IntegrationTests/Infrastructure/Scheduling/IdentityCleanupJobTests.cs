@@ -17,20 +17,20 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
     private const string Password = "StrongPassword1!";
 
     private static readonly DateTimeOffset NowUtc = new(
-        2026,
-        6,
-        26,
-        12,
-        0,
-        0,
-        TimeSpan.Zero);
+        year: 2026,
+        month: 6,
+        day: 26,
+        hour: 12,
+        minute: 0,
+        second: 0,
+        offset: TimeSpan.Zero);
 
     [Fact(DisplayName = "Prune unconfirmed users should delete only stale unconfirmed users")]
     public async Task PruneUnconfirmedUsersJob_Should_DeleteOnlyStaleUnconfirmedUsers()
     {
-        var staleUnconfirmedUser = CreateUser("stale-unconfirmed@example.com");
-        var recentUnconfirmedUser = CreateUser("recent-unconfirmed@example.com");
-        var staleConfirmedUser = CreateUser("stale-confirmed@example.com");
+        var staleUnconfirmedUser = CreateUser(email: "stale-unconfirmed@example.com");
+        var recentUnconfirmedUser = CreateUser(email: "recent-unconfirmed@example.com");
+        var staleConfirmedUser = CreateUser(email: "stale-confirmed@example.com");
 
         staleConfirmedUser.EmailConfirmed = true;
 
@@ -39,9 +39,9 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            (await userManager.CreateAsync(staleUnconfirmedUser, Password)).Succeeded.ShouldBeTrue();
-            (await userManager.CreateAsync(recentUnconfirmedUser, Password)).Succeeded.ShouldBeTrue();
-            (await userManager.CreateAsync(staleConfirmedUser, Password)).Succeeded.ShouldBeTrue();
+            (await userManager.CreateAsync(user: staleUnconfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
+            (await userManager.CreateAsync(user: recentUnconfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
+            (await userManager.CreateAsync(user: staleConfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
 
             await SetCreatedAtAsync(dbContext, staleUnconfirmedUser, NowUtc.AddDays(-8));
             await SetCreatedAtAsync(dbContext, recentUnconfirmedUser, NowUtc.AddDays(-1));
@@ -52,11 +52,11 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
             var job = new PruneUnconfirmedUsersJob(
-                dbContext,
-                new FrozenTimeProvider(NowUtc),
-                Options.Create(new IdentityCleanupOptions
+                dbContext: dbContext,
+                timeProvider: new FrozenTimeProvider(utcNow: NowUtc),
+                options: Options.Create(options: new IdentityCleanupOptions
                 {
-                    UnconfirmedUserRetention = TimeSpan.FromDays(7)
+                    UnconfirmedUserRetention = TimeSpan.FromDays(days: 7)
                 }));
 
             await job.ExecuteAsync(TestContext.Current.CancellationToken);

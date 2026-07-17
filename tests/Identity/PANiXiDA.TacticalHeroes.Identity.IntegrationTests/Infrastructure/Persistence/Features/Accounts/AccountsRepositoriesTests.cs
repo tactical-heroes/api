@@ -26,7 +26,7 @@ public sealed class AccountsRepositoriesTests(IntegrationTestFixture fixture)
                 "hero",
                 Password,
                 true,
-                [new Claim("permission", "identity.profile.read")],
+                [new Claim(type: "permission", value: "identity.profile.read")],
                 AccountStatus.Active.Name,
                 cancellationToken);
 
@@ -42,7 +42,7 @@ public sealed class AccountsRepositoriesTests(IntegrationTestFixture fixture)
                 "renamed@example.com",
                 "renamed",
                 true,
-                [new Claim("permission", "identity.accounts.manage")],
+                [new Claim(type: "permission", value: "identity.accounts.manage")],
                 AccountStatus.Blocked.Name,
                 cancellationToken);
 
@@ -52,8 +52,15 @@ public sealed class AccountsRepositoriesTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IAccountsReadRepository>();
+            var pageResult = await repository.GetPagedAsync(
+                email: "renamed@example.com",
+                pagination: new PaginationParameters(PageNumber: 1, PageSize: 10),
+                cancellationToken: cancellationToken);
             var result = await repository.GetDetailsByIdAsync(accountId, cancellationToken);
 
+            pageResult.IsSuccess.ShouldBeTrue();
+            var account = pageResult.Value.Items.ShouldHaveSingleItem();
+            account.StatusDisplayName.ShouldBe(AccountStatus.Blocked.DisplayName);
             result.IsSuccess.ShouldBeTrue();
             result.Value.Email.ShouldBe("renamed@example.com");
             result.Value.UserName.ShouldBe("renamed");

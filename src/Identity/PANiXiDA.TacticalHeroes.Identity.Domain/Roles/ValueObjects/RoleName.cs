@@ -16,7 +16,7 @@ public sealed class RoleName : ValueObject
         if (string.IsNullOrWhiteSpace(value))
         {
             return Result.Failure<RoleName>(
-                Error.Validation("Role name cannot be empty.")
+                error: Error.Validation(message: "Role name cannot be empty.")
                     .WithField(nameof(RoleName)));
         }
 
@@ -25,11 +25,11 @@ public sealed class RoleName : ValueObject
         if (normalizedValue.Length > MaxLength)
         {
             return Result.Failure<RoleName>(
-                Error.Validation($"Role name cannot be longer than {MaxLength} characters.")
+                error: Error.Validation(message: $"Role name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(RoleName)));
         }
 
-        return Result.Success(new RoleName(normalizedValue));
+        return Result.Success(value: new RoleName(value: normalizedValue));
     }
 
     public override string ToString()

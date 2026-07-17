@@ -24,9 +24,9 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AccountsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            ResetPasswordMapper.ToCommand(request),
+            ResetPasswordMapper.ToCommand(request: request),
             cancellationToken);
 
-        return result.ToHttpResult(TypedResults.NoContent);
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

@@ -18,7 +18,7 @@ public sealed class Email : ValueObject
         if (string.IsNullOrWhiteSpace(value))
         {
             return Result.Failure<Email>(
-                Error.Validation("Email cannot be empty.")
+                error: Error.Validation(message: "Email cannot be empty.")
                     .WithField(nameof(Email)));
         }
 
@@ -27,29 +27,29 @@ public sealed class Email : ValueObject
         if (normalizedValue.Length > MaxLength)
         {
             return Result.Failure<Email>(
-                Error.Validation($"Email cannot be longer than {MaxLength} characters.")
+                error: Error.Validation(message: $"Email cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(Email)));
         }
 
         try
         {
-            var mailAddress = new MailAddress(normalizedValue);
+            var mailAddress = new MailAddress(address: normalizedValue);
 
             if (!string.Equals(mailAddress.Address, normalizedValue, StringComparison.Ordinal))
             {
                 return Result.Failure<Email>(
-                    Error.Validation("Email has invalid format.")
+                    error: Error.Validation(message: "Email has invalid format.")
                         .WithField(nameof(Email)));
             }
         }
         catch (FormatException)
         {
             return Result.Failure<Email>(
-                Error.Validation("Email has invalid format.")
+                error: Error.Validation(message: "Email has invalid format.")
                     .WithField(nameof(Email)));
         }
 
-        return Result.Success(new Email(normalizedValue));
+        return Result.Success(value: new Email(value: normalizedValue));
     }
 
     public override string ToString()
