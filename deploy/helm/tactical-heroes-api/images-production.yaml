@@ -1,8 +1,8 @@
 image:
   repository: ghcr.io/panixida/tactical-heroes/api
-  tag: production-78
+  tag: production-81
 
 migrations:
   image:
     repository: ghcr.io/panixida/tactical-heroes/ef-migrator
-    tag: production-78
+    tag: production-81
