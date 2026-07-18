@@ -4,6 +4,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="MailKit" />
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine" />
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Persistence.Ef" />
         <PackageReference Include="PANiXiDA.Core.ResultPattern" />
@@ -11,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Notifications.Application\PANiXiDA.TacticalHeroes.Notifications.Application.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Notifications.Contracts\PANiXiDA.TacticalHeroes.Notifications.Contracts.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Notifications.Domain\PANiXiDA.TacticalHeroes.Notifications.Domain.csproj" />
