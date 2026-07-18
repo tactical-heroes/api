@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="PANiXiDA.TacticalHeroes.Identity.Infrastructure" />
+        <InternalsVisibleTo Include="PANiXiDA.TacticalHeroes.Identity.UnitTests" />
     </ItemGroup>
 
     <ItemGroup>

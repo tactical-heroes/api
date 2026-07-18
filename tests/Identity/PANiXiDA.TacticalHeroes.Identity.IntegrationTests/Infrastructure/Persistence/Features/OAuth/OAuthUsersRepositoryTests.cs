@@ -76,6 +76,70 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
+    [Fact(DisplayName = "Get user info should return identity state from PostgreSQL")]
+    public async Task GetUserInfoByUserIdAsync_Should_ReturnIdentityState_When_UserIsAvailable()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "operator"
+        };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "userinfo@example.com",
+            UserName = "userinfo-hero",
+            EmailConfirmed = true,
+            Status = UserStatus.Active.Name,
+            LockoutEnabled = true
+        };
+
+        await AddAsync(role, user);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+
+        var result = await repository.GetUserInfoByUserIdAsync(user.Id, cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.UserId.ShouldBe(user.Id);
+        result.Value.Name.ShouldBe("userinfo-hero");
+        result.Value.Email.ShouldBe("userinfo@example.com");
+        result.Value.EmailVerified.ShouldBe(true);
+        result.Value.Roles.ShouldContain("operator");
+    }
+
+    [Fact(DisplayName = "Get user info should reject a blocked user")]
+    public async Task GetUserInfoByUserIdAsync_Should_ReturnForbidden_When_UserIsBlocked()
+    {
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "blocked-role"
+        };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "blocked@example.com",
+            UserName = "blocked-hero",
+            EmailConfirmed = true,
+            Status = UserStatus.Blocked.Name,
+            LockoutEnabled = true
+        };
+
+        await AddAsync(role, user);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+
+        var result = await repository.GetUserInfoByUserIdAsync(
+            user.Id,
+            TestContext.Current.CancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Forbidden);
+    }
+
     private async Task AddAsync(
         ApplicationRole role,
         ApplicationUser user)
