@@ -10,7 +10,7 @@ using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
 public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
 {

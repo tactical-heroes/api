@@ -2,7 +2,7 @@ using PANiXiDA.TacticalHeroes.Identity.Contracts.Users;
 
 using System.Net;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
 [Collection(MailpitIntegrationTestCollection.Name)]
 public sealed class NotificationEmailTests(MailpitIntegrationTestFixture fixture)

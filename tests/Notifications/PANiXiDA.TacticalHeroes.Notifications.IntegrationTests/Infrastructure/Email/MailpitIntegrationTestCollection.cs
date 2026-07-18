@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
 [CollectionDefinition(Name)]
 public sealed class MailpitIntegrationTestCollection
