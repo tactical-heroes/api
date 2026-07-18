@@ -1,0 +1,16 @@
+env:
+  values:
+    ASPNETCORE_ENVIRONMENT: Development
+    DOTNET_ENVIRONMENT: Development
+    OTEL_SERVICE_NAME: tactical-heroes-api-development
+    Identity__Provider__Issuer: https://dev.api.tactical-heroes.panixida.ru/
+
+externalSecrets:
+  openbao:
+    role: tactical-heroes-api-development
+  app:
+    remoteKey: applications/tactical-heroes-api/development
+
+gateway:
+  host: dev.api.tactical-heroes.panixida.ru
+  httpsSectionName: api-dev-tactical-heroes-https

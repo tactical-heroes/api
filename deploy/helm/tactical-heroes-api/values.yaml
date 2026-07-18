@@ -1,0 +1,133 @@
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/panixida/tactical-heroes/api
+  pullPolicy: IfNotPresent
+  tag: "0"
+
+imagePullSecrets:
+  - name: tactical-heroes-api-registry
+
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+
+service:
+  type: ClusterIP
+  port: 80
+  containerPort: 8080
+
+env:
+  secretName: tactical-heroes-api-env
+  values:
+    ASPNETCORE_HTTP_PORTS: "8080"
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4317
+    OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+
+externalSecrets:
+  enabled: true
+  secretStoreSyncWave: "-30"
+  syncWave: "-20"
+  refreshInterval: 1h
+  serviceAccount:
+    create: true
+    name: tactical-heroes-api-external-secrets
+    syncWave: "-40"
+    automountServiceAccountToken: false
+  openbao:
+    server: http://openbao.secrets.svc.cluster.local:8200
+    path: secret
+    version: v2
+    authMountPath: kubernetes
+    role: tactical-heroes-api-development
+  app:
+    enabled: true
+    targetName: tactical-heroes-api-env
+    remoteKey: applications/tactical-heroes-api/development
+    data:
+      - secretKey: ConnectionStrings__PostgreSqlConnectionString
+        remoteProperty: ConnectionStrings__PostgreSqlConnectionString
+      - secretKey: Identity__Provider__Clients__1__ClientSecret
+        remoteProperty: Identity__Provider__Clients__1__ClientSecret
+  registry:
+    enabled: true
+    targetName: tactical-heroes-api-registry
+    remoteKey: applications/tactical-heroes-api/registry
+    serverProperty: REGISTRY_URL
+    usernameProperty: REGISTRY_USER
+    passwordProperty: REGISTRY_TOKEN
+
+migrations:
+  enabled: true
+  syncWave: "-5"
+  image:
+    repository: ghcr.io/panixida/tactical-heroes/ef-migrator
+    pullPolicy: IfNotPresent
+    tag: "0"
+  envSecretName: ""
+  backoffLimit: 1
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 86400
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+gateway:
+  enabled: true
+  name: core-platform
+  namespace: envoy-gateway-system
+  httpSectionName: http
+  httpsSectionName: ""
+  host: ""
+  redirectHttpToHttps: true
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+probes:
+  startup:
+    enabled: true
+    tcpSocket:
+      port: http
+    failureThreshold: 30
+    periodSeconds: 5
+  readiness:
+    enabled: true
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  liveness:
+    enabled: true
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 20
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
