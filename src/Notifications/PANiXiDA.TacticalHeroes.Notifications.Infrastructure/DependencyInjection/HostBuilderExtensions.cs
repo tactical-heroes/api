@@ -1,11 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-using PANiXiDA.TacticalHeroes.Notifications.Application;
-
-using System.Reflection;
-
-using Wolverine;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
 
@@ -15,15 +11,6 @@ public static class HostBuilderExtensions
         this IHostBuilder hostBuilder,
         IConfiguration configuration)
     {
-        hostBuilder.ConfigureServices(services =>
-        {
-            services.ConfigureWolverine(options =>
-            {
-                options.Discovery.IncludeAssembly(ApplicationAssembly.Instance);
-                options.Discovery.IncludeAssembly(Assembly.GetExecutingAssembly());
-            });
-        });
-
-        return hostBuilder;
+        return hostBuilder.UseMessaging();
     }
 }
