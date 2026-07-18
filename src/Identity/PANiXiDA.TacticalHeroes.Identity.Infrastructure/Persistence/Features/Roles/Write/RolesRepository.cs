@@ -107,8 +107,8 @@ public sealed class RolesRepository(
         var roleResult = CreateRole(
             id: applicationRole.Id,
             name: applicationRole.Name!,
-            claims: applicationRole.Claims.Select(claim =>
-                new Claim(type: claim.ClaimType!, value: claim.ClaimValue!)).ToArray());
+            claims: [.. applicationRole.Claims.Select(claim =>
+                new Claim(type: claim.ClaimType!, value: claim.ClaimValue!))]);
 
         if (roleResult.IsFailure)
         {

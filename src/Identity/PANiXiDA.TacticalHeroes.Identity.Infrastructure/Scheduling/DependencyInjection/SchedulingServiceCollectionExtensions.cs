@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
@@ -14,12 +15,17 @@ internal static class SchedulingServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.Configure<IdentityCleanupOptions>(
-            configuration.GetSection(IdentityCleanupOptions.SectionName));
+        var cleanupSection = configuration.GetSection(IdentityCleanupOptions.SectionName);
+        var cleanupOptions = cleanupSection.Get<IdentityCleanupOptions>() ??
+            new IdentityCleanupOptions();
 
-        var cleanupOptions = configuration
-            .GetSection(IdentityCleanupOptions.SectionName)
-            .Get<IdentityCleanupOptions>() ?? new IdentityCleanupOptions();
+        serviceCollection.AddSingleton<
+            IValidateOptions<IdentityCleanupOptions>,
+            IdentityCleanupOptionsValidator>();
+        serviceCollection
+            .AddOptions<IdentityCleanupOptions>()
+            .Bind(cleanupSection)
+            .ValidateOnStart();
 
         serviceCollection.AddQuartz(options =>
         {

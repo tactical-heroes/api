@@ -3,13 +3,13 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 
-public interface IRolesReadRepository
+public interface IRolesReadRepository : IReadRepository<Guid>
 {
-    Task<Result<PaginationResult<RoleListItemReadModel>>> GetPagedAsync(
+    Task<PaginationResult<RoleListItemReadModel>> GetPagedAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken);
 
-    Task<Result<RoleDetailsReadModel>> GetDetailsByIdAsync(
+    Task<RoleDetailsReadModel?> GetDetailsByIdAsync(
         Guid id,
         CancellationToken cancellationToken);
 }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth;
 
@@ -12,10 +13,17 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         serviceCollection.AddHttp(configuration);
-        serviceCollection.Configure<OAuthSpaOptions>(
-            configuration.GetSection(OAuthSpaOptions.SectionName));
-        serviceCollection.Configure<OAuthTokenOptions>(
-            configuration.GetSection(OAuthTokenOptions.SectionName));
+        serviceCollection.AddSingleton<IValidateOptions<OAuthSpaOptions>, OAuthSpaOptionsValidator>();
+        serviceCollection.AddSingleton<IValidateOptions<OAuthTokenOptions>, OAuthTokenOptionsValidator>();
+        serviceCollection
+            .AddOptions<OAuthSpaOptions>()
+            .Bind(configuration.GetSection(OAuthSpaOptions.SectionName))
+            .ValidateOnStart();
+        serviceCollection
+            .AddOptions<OAuthTokenOptions>()
+            .Bind(configuration.GetSection(OAuthTokenOptions.SectionName))
+            .ValidateOnStart();
+
         return serviceCollection;
     }
 }

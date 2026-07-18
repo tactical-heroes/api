@@ -25,7 +25,7 @@ public sealed class UseCaseDelegationTests
             Claims: []);
         var repository = Substitute.For<IUsersReadRepository>();
         repository.GetDetailsByIdAsync(id, Arg.Any<CancellationToken>())
-            .Returns(Result.Success(value: readModel));
+            .Returns(readModel);
         var handler = new GetUserDetailsHandler(usersRepository: repository);
 
         var result = await handler.HandleAsync(
@@ -37,6 +37,23 @@ public sealed class UseCaseDelegationTests
         await repository.Received(1).GetDetailsByIdAsync(
             id,
             TestContext.Current.CancellationToken);
+    }
+
+    [Fact(DisplayName = "User details use case should return not found when user is missing")]
+    public async Task HandleAsync_Should_ReturnNotFound_When_UserIsMissing()
+    {
+        var id = Guid.CreateVersion7();
+        var repository = Substitute.For<IUsersReadRepository>();
+        repository.GetDetailsByIdAsync(id, Arg.Any<CancellationToken>())
+            .Returns((UserDetailsReadModel?)null);
+        var handler = new GetUserDetailsHandler(usersRepository: repository);
+
+        var result = await handler.HandleAsync(
+            query: new GetUserDetailsQuery(Id: id),
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
     }
 
     [Fact(DisplayName = "Login use case should call its credentials port once")]
@@ -73,7 +90,7 @@ public sealed class UseCaseDelegationTests
         var readModel = new RoleDetailsReadModel(Id: id, Name: "Administrator", Claims: []);
         var repository = Substitute.For<IRolesReadRepository>();
         repository.GetDetailsByIdAsync(id, Arg.Any<CancellationToken>())
-            .Returns(Result.Success(value: readModel));
+            .Returns(readModel);
         var handler = new GetRoleDetailsHandler(rolesRepository: repository);
 
         var result = await handler.HandleAsync(
@@ -85,6 +102,23 @@ public sealed class UseCaseDelegationTests
         await repository.Received(1).GetDetailsByIdAsync(
             id,
             TestContext.Current.CancellationToken);
+    }
+
+    [Fact(DisplayName = "Role details use case should return not found when role is missing")]
+    public async Task HandleAsync_Should_ReturnNotFound_When_RoleIsMissing()
+    {
+        var id = Guid.CreateVersion7();
+        var repository = Substitute.For<IRolesReadRepository>();
+        repository.GetDetailsByIdAsync(id, Arg.Any<CancellationToken>())
+            .Returns((RoleDetailsReadModel?)null);
+        var handler = new GetRoleDetailsHandler(rolesRepository: repository);
+
+        var result = await handler.HandleAsync(
+            query: new GetRoleDetailsQuery(Id: id),
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
     }
 
     [Fact(DisplayName = "OAuth user info use case should query its port once")]

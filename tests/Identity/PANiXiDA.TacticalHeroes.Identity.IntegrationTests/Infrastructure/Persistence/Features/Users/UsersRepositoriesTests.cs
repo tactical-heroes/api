@@ -52,21 +52,25 @@ public sealed class UsersRepositoriesTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
+            (await repository.ExistsByIdAsync(
+                id: userId,
+                cancellationToken: cancellationToken)).ShouldBeTrue();
             var pageResult = await repository.GetPagedAsync(
                 email: "renamed@example.com",
                 pagination: new PaginationParameters(PageNumber: 1, PageSize: 10),
                 cancellationToken: cancellationToken);
-            var result = await repository.GetDetailsByIdAsync(userId, cancellationToken);
+            var userDetails = await repository.GetDetailsByIdAsync(
+                id: userId,
+                cancellationToken: cancellationToken);
 
-            pageResult.IsSuccess.ShouldBeTrue();
-            var user = pageResult.Value.Items.ShouldHaveSingleItem();
+            var user = pageResult.Items.ShouldHaveSingleItem();
             user.StatusDisplayName.ShouldBe(UserStatus.Blocked.DisplayName);
-            result.IsSuccess.ShouldBeTrue();
-            result.Value.Email.ShouldBe("renamed@example.com");
-            result.Value.UserName.ShouldBe("renamed");
-            result.Value.Status.ShouldBe(UserStatus.Blocked.Name);
-            result.Value.StatusDisplayName.ShouldBe(UserStatus.Blocked.DisplayName);
-            var claim = result.Value.Claims.ShouldHaveSingleItem();
+            userDetails.ShouldNotBeNull();
+            userDetails.Email.ShouldBe("renamed@example.com");
+            userDetails.UserName.ShouldBe("renamed");
+            userDetails.Status.ShouldBe(UserStatus.Blocked.Name);
+            userDetails.StatusDisplayName.ShouldBe(UserStatus.Blocked.DisplayName);
+            var claim = userDetails.Claims.ShouldHaveSingleItem();
             claim.Type.ShouldBe("permission");
             claim.Value.ShouldBe("identity.users.manage");
         }
@@ -80,7 +84,9 @@ public sealed class UsersRepositoriesTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
-            (await repository.GetDetailsByIdAsync(userId, cancellationToken)).IsFailure.ShouldBeTrue();
+            (await repository.GetDetailsByIdAsync(
+                id: userId,
+                cancellationToken: cancellationToken)).ShouldBeNull();
         }
     }
 }

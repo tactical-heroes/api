@@ -3,7 +3,10 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using OpenIddict.Abstractions;
+
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
@@ -35,7 +38,15 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                [PostgreSqlConnectionStringConfigurationKey] = ConnectionString
+                [PostgreSqlConnectionStringConfigurationKey] = ConnectionString,
+                [$"{IdentityProviderOptions.SectionName}:Issuer"] = "https://localhost/",
+                [$"{IdentityProviderOptions.SectionName}:Audience"] = "tactical-heroes-api",
+                [$"{IdentityProviderOptions.SectionName}:Clients:0:ClientId"] = "integration-tests",
+                [$"{IdentityProviderOptions.SectionName}:Clients:0:DisplayName"] = "Integration Tests",
+                [$"{IdentityProviderOptions.SectionName}:Clients:0:ClientType"] =
+                    OpenIddictConstants.ClientTypes.Public,
+                [$"{IdentityProviderOptions.SectionName}:Clients:0:GrantTypes:0"] =
+                    OpenIddictConstants.GrantTypes.AuthorizationCode
             })
             .Build();
 

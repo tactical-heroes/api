@@ -28,8 +28,5 @@ public sealed class IdentityProviderOptions
 
     public IdentityProviderTokenProviderOptions TokenProviders { get; init; } = new();
 
-    public List<IdentityProviderClientOptions> Clients { get; init; } =
-    [
-        new()
-    ];
+    public List<IdentityProviderClientOptions> Clients { get; init; } = [];
 }

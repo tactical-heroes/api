@@ -9,10 +9,8 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
@@ -52,8 +50,6 @@ internal static class ServiceCollectionExtensions
         serviceCollection.AddPostgreSqlReadEfRepository<IdentityReadDbContext>(configuration);
         serviceCollection.AddDbContext<IdentityReadDbContext>((provider, options) =>
             options.AddInterceptors(provider.GetServices<IInterceptor>()));
-        serviceCollection.AddScoped<IUsersReadRepository, UsersReadRepository>();
-        serviceCollection.AddScoped<IRolesReadRepository, RolesReadRepository>();
         serviceCollection.AddScoped<IOAuthUsersRepository, OAuthUsersRepository>();
         serviceCollection.AddScoped<IOAuthClientsRepository, OAuthClientsRepository>();
 

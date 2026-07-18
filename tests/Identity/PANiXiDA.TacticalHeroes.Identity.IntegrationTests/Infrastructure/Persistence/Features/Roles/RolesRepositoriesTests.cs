@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles;
 
 public sealed class RolesRepositoriesTests(IntegrationTestFixture fixture)
@@ -41,11 +42,21 @@ public sealed class RolesRepositoriesTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
-            var result = await repository.GetDetailsByIdAsync(roleId, cancellationToken);
+            (await repository.ExistsByIdAsync(
+                id: roleId,
+                cancellationToken: cancellationToken)).ShouldBeTrue();
+            var pageResult = await repository.GetPagedAsync(
+                pagination: new PaginationParameters(PageNumber: 1, PageSize: 100),
+                cancellationToken: cancellationToken);
+            var roleDetails = await repository.GetDetailsByIdAsync(
+                id: roleId,
+                cancellationToken: cancellationToken);
 
-            result.IsSuccess.ShouldBeTrue();
-            result.Value.Name.ShouldBe("administrator");
-            var claim = result.Value.Claims.ShouldHaveSingleItem();
+            pageResult.Items.ShouldContain(role =>
+                role.Id == roleId && role.Name == "administrator");
+            roleDetails.ShouldNotBeNull();
+            roleDetails.Name.ShouldBe("administrator");
+            var claim = roleDetails.Claims.ShouldHaveSingleItem();
             claim.Type.ShouldBe("permission");
             claim.Value.ShouldBe("identity.users.manage");
         }
@@ -59,7 +70,9 @@ public sealed class RolesRepositoriesTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
-            (await repository.GetDetailsByIdAsync(roleId, cancellationToken)).IsFailure.ShouldBeTrue();
+            (await repository.GetDetailsByIdAsync(
+                id: roleId,
+                cancellationToken: cancellationToken)).ShouldBeNull();
         }
     }
 }

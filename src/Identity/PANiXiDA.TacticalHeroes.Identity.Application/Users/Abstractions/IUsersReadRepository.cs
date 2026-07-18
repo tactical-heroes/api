@@ -3,14 +3,14 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
-public interface IUsersReadRepository
+public interface IUsersReadRepository : IReadRepository<Guid>
 {
-    Task<Result<PaginationResult<UserListItemReadModel>>> GetPagedAsync(
+    Task<PaginationResult<UserListItemReadModel>> GetPagedAsync(
         string? email,
         PaginationParameters pagination,
         CancellationToken cancellationToken);
 
-    Task<Result<UserDetailsReadModel>> GetDetailsByIdAsync(
+    Task<UserDetailsReadModel?> GetDetailsByIdAsync(
         Guid id,
         CancellationToken cancellationToken);
 }

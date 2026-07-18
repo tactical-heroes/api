@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 using OpenIddict.Validation.AspNetCore;
 
@@ -24,12 +25,17 @@ internal static class IdentityProviderServiceCollectionExtensions
         IConfiguration configuration,
         IHostEnvironment? environment)
     {
-        var identityProviderOptions = configuration
-            .GetSection(IdentityProviderOptions.SectionName)
-            .Get<IdentityProviderOptions>() ?? new IdentityProviderOptions();
+        var identityProviderSection = configuration.GetSection(IdentityProviderOptions.SectionName);
+        var identityProviderOptions = identityProviderSection.Get<IdentityProviderOptions>() ??
+            new IdentityProviderOptions();
 
-        serviceCollection.Configure<IdentityProviderOptions>(
-            configuration.GetSection(IdentityProviderOptions.SectionName));
+        serviceCollection.AddSingleton<
+            IValidateOptions<IdentityProviderOptions>,
+            IdentityProviderOptionsValidator>();
+        serviceCollection
+            .AddOptions<IdentityProviderOptions>()
+            .Bind(identityProviderSection)
+            .ValidateOnStart();
 
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
