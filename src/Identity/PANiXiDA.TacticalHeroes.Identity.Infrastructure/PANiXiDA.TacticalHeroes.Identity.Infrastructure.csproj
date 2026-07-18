@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" />
+        <PackageReference Include="OpenIddict.Quartz" />
+        <PackageReference Include="OpenIddict.Server.AspNetCore" />
+        <PackageReference Include="OpenIddict.Validation.AspNetCore" />
+        <PackageReference Include="OpenIddict.Validation.ServerIntegration" />
+        <PackageReference Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine" />
+        <PackageReference Include="PANiXiDA.Core.Infrastructure.Persistence.Ef" />
+        <PackageReference Include="PANiXiDA.Core.ResultPattern" />
+        <PackageReference Include="Quartz.Extensions.Hosting" />
+        <PackageReference Include="Riok.Mapperly" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="PANiXiDA.TacticalHeroes.Identity.IntegrationTests" />
+        <InternalsVisibleTo Include="PANiXiDA.TacticalHeroes.Identity.FunctionalTests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="PANiXiDA.Core.Domain" />
+        <Using Include="PANiXiDA.Core.Domain.AggregateRoots" />
+        <Using Include="PANiXiDA.Core.Domain.DomainEvents" />
+        <Using Include="PANiXiDA.Core.Domain.Entities" />
+
+        <Using Include="PANiXiDA.Core.ResultPattern" />
+
+        <Using Include="PANiXiDA.Core.Application.Persistence" />
+        <Using Include="PANiXiDA.Core.Application.Querying.Filtering" />
+        <Using Include="PANiXiDA.Core.Application.Querying.Pagination" />
+        <Using Include="PANiXiDA.Core.Application.Querying.Sorting" />
+
+        <Using Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine.DependencyInjection" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.DependencyInjection" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.DbContexts" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Write" />
+
+        <Using Include="PANiXiDA.TacticalHeroes.Identity.Contracts.OAuth" />
+
+        <Using Include="OpenIddict.Abstractions" />
+    </ItemGroup>
+</Project>

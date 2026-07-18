@@ -1,0 +1,56 @@
+using System;
+
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations;
+
+[DbContext(typeof(IdentityWriteDbContext))]
+[Migration("20260629174027_CreateAspNetUserRoles")]
+public partial class CreateAspNetUserRoles : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.CreateTable(
+            name: "asp_net_user_roles",
+            schema: "identity",
+            columns: table => new
+            {
+                user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                role_id = table.Column<Guid>(type: "uuid", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("pk_asp_net_user_roles", x => new { x.user_id, x.role_id });
+                table.ForeignKey(
+                    name: "fk_asp_net_user_roles_asp_net_roles_role_id",
+                    column: x => x.role_id,
+                    principalSchema: "identity",
+                    principalTable: "asp_net_roles",
+                    principalColumn: "id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "fk_asp_net_user_roles_asp_net_users_user_id",
+                    column: x => x.user_id,
+                    principalSchema: "identity",
+                    principalTable: "asp_net_users",
+                    principalColumn: "id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateIndex(
+            name: "ix_asp_net_user_roles_role_id",
+            schema: "identity",
+            table: "asp_net_user_roles",
+            column: "role_id");
+    }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropTable(
+            name: "asp_net_user_roles",
+            schema: "identity");
+    }
+}

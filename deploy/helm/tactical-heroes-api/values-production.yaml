@@ -1,0 +1,17 @@
+replicaCount: 2
+
+env:
+  values:
+    ASPNETCORE_ENVIRONMENT: Production
+    DOTNET_ENVIRONMENT: Production
+    OTEL_SERVICE_NAME: tactical-heroes-api-production
+
+externalSecrets:
+  openbao:
+    role: tactical-heroes-api-production
+  app:
+    remoteKey: applications/tactical-heroes-api/production
+
+gateway:
+  host: api.tactical-heroes-api.panixida.ru
+  httpsSectionName: api-tactical-heroes-api-https
