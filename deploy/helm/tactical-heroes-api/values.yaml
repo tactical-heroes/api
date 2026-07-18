@@ -23,11 +23,7 @@ service:
 
 env:
   secretName: tactical-heroes-api-env
-  values:
-    ASPNETCORE_HTTP_PORTS: "8080"
-    ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-    OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4317
-    OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+  values: {}
 
 externalSecrets:
   enabled: true
@@ -49,11 +45,7 @@ externalSecrets:
     enabled: true
     targetName: tactical-heroes-api-env
     remoteKey: applications/tactical-heroes-api/development
-    data:
-      - secretKey: ConnectionStrings__PostgreSqlConnectionString
-        remoteProperty: ConnectionStrings__PostgreSqlConnectionString
-      - secretKey: Identity__Provider__Clients__1__ClientSecret
-        remoteProperty: Identity__Provider__Clients__1__ClientSecret
+    extractAll: true
   registry:
     enabled: true
     targetName: tactical-heroes-api-registry

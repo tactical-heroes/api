@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="PANiXiDA.Core.Observability" />
+        <PackageReference Include="PANiXiDA.Core.Presentation.Http" />
     </ItemGroup>
 
     <ItemGroup>
@@ -16,6 +17,11 @@
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Infrastructure\PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Presentation\PANiXiDA.TacticalHeroes.Identity.Presentation.csproj" />
+        <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Application\PANiXiDA.TacticalHeroes.Notifications.Application.csproj" />
+        <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Contracts\PANiXiDA.TacticalHeroes.Notifications.Contracts.csproj" />
+        <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Domain\PANiXiDA.TacticalHeroes.Notifications.Domain.csproj" />
+        <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Infrastructure\PANiXiDA.TacticalHeroes.Notifications.Infrastructure.csproj" />
+        <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Presentation\PANiXiDA.TacticalHeroes.Notifications.Presentation.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,12 +1,5 @@
 replicaCount: 2
 
-env:
-  values:
-    ASPNETCORE_ENVIRONMENT: Production
-    DOTNET_ENVIRONMENT: Production
-    OTEL_SERVICE_NAME: tactical-heroes-api-production
-    Identity__Provider__Issuer: https://api.tactical-heroes.panixida.ru/
-
 externalSecrets:
   openbao:
     role: tactical-heroes-api-production
