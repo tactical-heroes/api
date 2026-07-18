@@ -7,10 +7,10 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
@@ -32,7 +32,12 @@ public sealed class UsersWriteRepository(
         string status,
         CancellationToken cancellationToken)
     {
-        var userResult = CreateUser(email: email, claims: claims);
+        var userResult = User.Create(
+            id: UserId.New().Value,
+            email: email,
+            confirmationStatus: isConfirmed,
+            roleIds: [],
+            claims: claims.Select(claim => (claim.Type, claim.Value)));
         var userNameResult = UserName.Create(value: userName);
         var statusResult = UserStatus.Create(value: status);
         var validationResult = Result.Combine(userResult, userNameResult, statusResult);
@@ -43,18 +48,12 @@ public sealed class UsersWriteRepository(
         }
 
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
-        var applicationUser = new ApplicationUser
-        {
-            Id = userResult.Value.Id.Value,
-            Email = userResult.Value.Email.Value,
-            UserName = userNameResult.Value.Value,
-            EmailConfirmed = isConfirmed,
-            Status = statusResult.Value.Name,
-            LockoutEnabled = true,
-            CreatedAt = nowUtc,
-            UpdatedAt = nowUtc,
-            Claims = CreateClaims(claims: claims)
-        };
+        var applicationUser = ApplicationUserMapper.ToDbModel(
+            user: userResult.Value,
+            userName: userNameResult.Value,
+            status: statusResult.Value,
+            createdAt: nowUtc,
+            updatedAt: nowUtc);
 
         var identityResult = await userManager.CreateAsync(user: applicationUser, password: password);
 
@@ -77,7 +76,12 @@ public sealed class UsersWriteRepository(
         string status,
         CancellationToken cancellationToken)
     {
-        var userResult = CreateUser(id: id, email: email, isConfirmed: isConfirmed, claims: claims);
+        var userResult = User.Create(
+            id: id,
+            email: email,
+            confirmationStatus: isConfirmed,
+            roleIds: [],
+            claims: claims.Select(claim => (claim.Type, claim.Value)));
         var userNameResult = UserName.Create(value: userName);
         var statusResult = UserStatus.Create(value: status);
         var validationResult = Result.Combine(userResult, userNameResult, statusResult);
@@ -96,12 +100,15 @@ public sealed class UsersWriteRepository(
             return UserNotFound();
         }
 
-        applicationUser.Email = userResult.Value.Email.Value;
-        applicationUser.UserName = userNameResult.Value.Value;
-        applicationUser.EmailConfirmed = isConfirmed;
-        applicationUser.Status = statusResult.Value.Name;
-        applicationUser.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
-        SyncClaims(applicationUser, claims);
+        ApplicationUserMapper.MapToDbModel(
+            user: userResult.Value,
+            userName: userNameResult.Value,
+            status: statusResult.Value,
+            dbModel: applicationUser,
+            updatedAt: timeProvider.GetUtcNow().UtcDateTime);
+        SyncClaims(
+            applicationUser: applicationUser,
+            user: userResult.Value);
 
         if (statusResult.Value.IsBlocked)
         {
@@ -133,12 +140,7 @@ public sealed class UsersWriteRepository(
             return UserNotFound();
         }
 
-        var userResult = CreateUser(
-            id: applicationUser.Id,
-            email: applicationUser.Email!,
-            isConfirmed: applicationUser.EmailConfirmed,
-            claims: applicationUser.Claims.Select(claim =>
-                new Claim(type: claim.ClaimType!, value: claim.ClaimValue!)).ToArray());
+        var userResult = ApplicationUserMapper.ToDomain(user: applicationUser);
 
         if (userResult.IsFailure)
         {
@@ -203,74 +205,19 @@ public sealed class UsersWriteRepository(
         await tokenManager.RevokeBySubjectAsync(id.ToString(), cancellationToken);
     }
 
-    private static Result<User> CreateUser(
-        string email,
-        IReadOnlyCollection<Claim> claims)
-    {
-        var userResult = User.Register(email: email);
-
-        if (userResult.IsFailure)
-        {
-            return userResult;
-        }
-
-        foreach (var claim in claims.Distinct(IdentityClaimComparer.Instance))
-        {
-            var claimResult = userResult.Value.GrantClaim(claim.Type, claim.Value);
-
-            if (claimResult.IsFailure)
-            {
-                return Result.Failure<User>(errors: claimResult.Errors);
-            }
-        }
-
-        return userResult;
-    }
-
-    private static Result<User> CreateUser(
-        Guid id,
-        string email,
-        bool isConfirmed,
-        IReadOnlyCollection<Claim> claims)
-    {
-        return User.Create(
-            id: id,
-            email: email,
-            confirmationStatus: isConfirmed,
-            roleIds: [],
-            claims: claims
-                .Distinct(IdentityClaimComparer.Instance)
-                .Select(claim => (claim.Type, claim.Value)));
-    }
-
-    private static List<ApplicationUserClaim> CreateClaims(
-        IEnumerable<Claim> claims)
-    {
-        return
-        [
-            .. claims
-                .Distinct(IdentityClaimComparer.Instance)
-                .Select(claim => new ApplicationUserClaim
-                {
-                    ClaimType = claim.Type,
-                    ClaimValue = claim.Value
-                })
-        ];
-    }
-
     private void SyncClaims(
         ApplicationUser applicationUser,
-        IReadOnlyCollection<Claim> claims)
+        User user)
     {
-        var targetClaims = claims
-            .Distinct(IdentityClaimComparer.Instance)
-            .ToArray();
+        var targetClaims = ApplicationUserMapper.ToClaimDbModels(
+            userId: user.Id.Value,
+            claims: user.Claims);
 
         foreach (var currentClaim in applicationUser.Claims.ToArray())
         {
-            var claim = new Claim(type: currentClaim.ClaimType!, value: currentClaim.ClaimValue!);
-
-            if (targetClaims.Contains(claim, IdentityClaimComparer.Instance))
+            if (targetClaims.Any(targetClaim =>
+                    string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -281,18 +228,13 @@ public sealed class UsersWriteRepository(
         foreach (var targetClaim in targetClaims)
         {
             if (applicationUser.Claims.Any(currentClaim =>
-                    string.Equals(currentClaim.ClaimType, targetClaim.Type, StringComparison.Ordinal) &&
-                    string.Equals(currentClaim.ClaimValue, targetClaim.Value, StringComparison.Ordinal)))
+                    string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
 
-            applicationUser.Claims.Add(
-                new ApplicationUserClaim
-                {
-                    ClaimType = targetClaim.Type,
-                    ClaimValue = targetClaim.Value
-                });
+            applicationUser.Claims.Add(item: targetClaim);
         }
     }
 

@@ -39,17 +39,12 @@ public sealed class UserCredentialsService(
         }
 
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
-        var applicationUser = new ApplicationUser
-        {
-            Id = userResult.Value.Id.Value,
-            Email = userResult.Value.Email.Value,
-            UserName = userNameResult.Value.Value,
-            EmailConfirmed = false,
-            Status = UserStatus.Active.Name,
-            LockoutEnabled = true,
-            CreatedAt = nowUtc,
-            UpdatedAt = nowUtc
-        };
+        var applicationUser = ApplicationUserMapper.ToDbModel(
+            user: userResult.Value,
+            userName: userNameResult.Value,
+            status: UserStatus.Active,
+            createdAt: nowUtc,
+            updatedAt: nowUtc);
 
         var identityResult = await userManager.CreateAsync(user: applicationUser, password: password);
 

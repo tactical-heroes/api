@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 
@@ -24,7 +24,10 @@ public sealed class RolesRepository(
         IReadOnlyCollection<Claim> claims,
         CancellationToken cancellationToken)
     {
-        var roleResult = CreateRole(id: Guid.NewGuid(), name: name, claims: claims);
+        var roleResult = Role.Create(
+            id: Guid.NewGuid(),
+            name: name,
+            claims: claims.Select(claim => (claim.Type, claim.Value)));
 
         if (roleResult.IsFailure)
         {
@@ -32,14 +35,10 @@ public sealed class RolesRepository(
         }
 
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
-        var applicationRole = new ApplicationRole
-        {
-            Id = roleResult.Value.Id.Value,
-            Name = roleResult.Value.Name.Value,
-            CreatedAt = nowUtc,
-            UpdatedAt = nowUtc,
-            Claims = CreateClaims(claims: claims)
-        };
+        var applicationRole = ApplicationRoleMapper.ToDbModel(
+            role: roleResult.Value,
+            createdAt: nowUtc,
+            updatedAt: nowUtc);
 
         var identityResult = await roleManager.CreateAsync(role: applicationRole);
 
@@ -59,7 +58,10 @@ public sealed class RolesRepository(
         IReadOnlyCollection<Claim> claims,
         CancellationToken cancellationToken)
     {
-        var roleResult = CreateRole(id: id, name: name, claims: claims);
+        var roleResult = Role.Create(
+            id: id,
+            name: name,
+            claims: claims.Select(claim => (claim.Type, claim.Value)));
 
         if (roleResult.IsFailure)
         {
@@ -75,9 +77,13 @@ public sealed class RolesRepository(
             return RoleNotFound();
         }
 
-        applicationRole.Name = roleResult.Value.Name.Value;
-        applicationRole.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
-        SyncClaims(applicationRole, claims);
+        ApplicationRoleMapper.MapToDbModel(
+            role: roleResult.Value,
+            dbModel: applicationRole,
+            updatedAt: timeProvider.GetUtcNow().UtcDateTime);
+        SyncClaims(
+            applicationRole: applicationRole,
+            role: roleResult.Value);
 
         var identityResult = await roleManager.UpdateAsync(applicationRole);
 
@@ -104,11 +110,7 @@ public sealed class RolesRepository(
             return RoleNotFound();
         }
 
-        var roleResult = CreateRole(
-            id: applicationRole.Id,
-            name: applicationRole.Name!,
-            claims: [.. applicationRole.Claims.Select(claim =>
-                new Claim(type: claim.ClaimType!, value: claim.ClaimValue!))]);
+        var roleResult = ApplicationRoleMapper.ToDomain(role: applicationRole);
 
         if (roleResult.IsFailure)
         {
@@ -127,47 +129,17 @@ public sealed class RolesRepository(
         return Result.Success();
     }
 
-    private static Result<Role> CreateRole(
-        Guid id,
-        string name,
-        IReadOnlyCollection<Claim> claims)
-    {
-        return Role.Create(
-            id: id,
-            name: name,
-            claims: claims
-                .Distinct(IdentityClaimComparer.Instance)
-                .Select(claim => (claim.Type, claim.Value)));
-    }
-
-    private static List<ApplicationRoleClaim> CreateClaims(
-        IEnumerable<Claim> claims)
-    {
-        return
-        [
-            .. claims
-                .Distinct(IdentityClaimComparer.Instance)
-                .Select(claim => new ApplicationRoleClaim
-                {
-                    ClaimType = claim.Type,
-                    ClaimValue = claim.Value
-                })
-        ];
-    }
-
     private void SyncClaims(
         ApplicationRole applicationRole,
-        IReadOnlyCollection<Claim> claims)
+        Role role)
     {
-        var targetClaims = claims
-            .Distinct(IdentityClaimComparer.Instance)
-            .ToArray();
+        var targetClaims = ApplicationRoleMapper.ToClaimDbModels(claims: role.Claims);
 
         foreach (var currentClaim in applicationRole.Claims.ToArray())
         {
-            var claim = new Claim(type: currentClaim.ClaimType!, value: currentClaim.ClaimValue!);
-
-            if (targetClaims.Contains(claim, IdentityClaimComparer.Instance))
+            if (targetClaims.Any(targetClaim =>
+                    string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -178,18 +150,13 @@ public sealed class RolesRepository(
         foreach (var targetClaim in targetClaims)
         {
             if (applicationRole.Claims.Any(currentClaim =>
-                    string.Equals(currentClaim.ClaimType, targetClaim.Type, StringComparison.Ordinal) &&
-                    string.Equals(currentClaim.ClaimValue, targetClaim.Value, StringComparison.Ordinal)))
+                    string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
 
-            applicationRole.Claims.Add(
-                new ApplicationRoleClaim
-                {
-                    ClaimType = targetClaim.Type,
-                    ClaimValue = targetClaim.Value
-                });
+            applicationRole.Claims.Add(item: targetClaim);
         }
     }
 

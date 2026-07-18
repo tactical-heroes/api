@@ -7,20 +7,25 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.Queries;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 
 public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
     : IOAuthUsersRepository
 {
+    private IQueryable<UserReadDbModel> Query => dbContext.Set<UserReadDbModel>()
+        .AsNoTracking()
+        .Include(user => user.Claims)
+        .Include(user => user.Roles)
+            .ThenInclude(userRole => userRole.Role)
+                .ThenInclude(role => role!.Claims)
+        .AsSingleQuery();
+
     public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await dbContext.Set<UserReadDbModel>()
-            .AsNoTracking()
-            .WithAuthorizationGraph()
+        var applicationUser = await Query
             .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
         if (applicationUser is null)
@@ -42,9 +47,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         Guid userId,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await dbContext.Set<UserReadDbModel>()
-            .AsNoTracking()
-            .WithAuthorizationGraph()
+        var applicationUser = await Query
             .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
         if (applicationUser is null)
