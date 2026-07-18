@@ -35,6 +35,8 @@ public static class HostBuilderExtensions
                 {
                     options.CodeGeneration.AlwaysUseServiceLocationFor<UserManager<ApplicationUser>>();
                     options.CodeGeneration.AlwaysUseServiceLocationFor<RoleManager<ApplicationRole>>();
+                    options.CodeGeneration.AlwaysUseServiceLocationFor<IOpenIddictApplicationManager>();
+                    options.CodeGeneration.AlwaysUseServiceLocationFor<IOpenIddictTokenManager>();
                 });
             });
 

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
@@ -14,8 +15,10 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
     private readonly List<HttpClient> _clients = [];
 
     private FunctionalTestWebApplicationFactory _factory = null!;
+    private string? _previousConnectionString;
 
     public HttpClient Client { get; private set; } = null!;
+    public IServiceProvider Services => _factory.Services;
 
     internal CapturingEventBus EventBus => _factory.EventBus;
 
@@ -23,15 +26,14 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
     {
         await _database.InitializeAsync();
 
+        _previousConnectionString = Environment.GetEnvironmentVariable(
+            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable);
         Environment.SetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
             _database.PostgreSqlConnectionString);
 
+        await MigrateDatabaseAsync(TestContext.Current.CancellationToken);
         CreateCurrentClient();
-
-        await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-        await dbContext.Database.MigrateAsync();
 
         await SeedIdentityProviderAsync(TestContext.Current.CancellationToken);
     }
@@ -44,9 +46,12 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await SeedIdentityProviderAsync(cancellationToken);
     }
 
-    public void RestartApplication()
+    public HttpClient CreateClient(WebApplicationFactoryClientOptions options)
     {
-        CreateCurrentClient();
+        var client = _factory.CreateClient(options);
+        _clients.Add(client);
+
+        return client;
     }
 
     private void CreateCurrentClient()
@@ -66,6 +71,16 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await seeder.SeedAsync(cancellationToken);
     }
 
+    private async Task MigrateDatabaseAsync(CancellationToken cancellationToken)
+    {
+        var options = new DbContextOptionsBuilder<IdentityWriteDbContext>()
+            .UseNpgsql(_database.PostgreSqlConnectionString)
+            .Options;
+        await using var dbContext = new IdentityWriteDbContext(options, []);
+
+        await dbContext.Database.MigrateAsync(cancellationToken);
+    }
+
     public async ValueTask DisposeAsync()
     {
         foreach (var client in _clients)
@@ -79,5 +94,9 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         }
 
         await _database.DisposeAsync();
+
+        Environment.SetEnvironmentVariable(
+            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
+            _previousConnectionString);
     }
 }

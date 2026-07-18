@@ -19,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Using Include="PANiXiDA.Core.ResultPattern" />
         <Using Include="PANiXiDA.Core.Application.Persistence" />
         <Using Include="PANiXiDA.Core.Application.Querying.Pagination" />
         <Using Include="PANiXiDA.Core.Application.Querying.Sorting" />
