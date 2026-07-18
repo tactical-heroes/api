@@ -48,6 +48,7 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
         serverOptions.RevocationEndpointUris
             .Select(uri => uri.OriginalString)
             .ShouldContain("/connect/revoke");
+        serverOptions.RefreshTokenReuseLeeway.ShouldBe(TimeSpan.FromSeconds(seconds: 5));
         aspNetCoreOptions.EnableAuthorizationEndpointPassthrough.ShouldBeTrue();
         aspNetCoreOptions.EnableTokenEndpointPassthrough.ShouldBeTrue();
         aspNetCoreOptions.EnableUserInfoEndpointPassthrough.ShouldBeTrue();

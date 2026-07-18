@@ -1,3 +1,9 @@
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Clients;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Lockout;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Password;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.TokenProviders;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.User;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
 
 public sealed class IdentityProviderOptions
@@ -11,6 +17,8 @@ public sealed class IdentityProviderOptions
     public TimeSpan AccessTokenLifetime { get; init; } = TimeSpan.FromMinutes(minutes: 15);
 
     public TimeSpan RefreshTokenLifetime { get; init; } = TimeSpan.FromDays(days: 30);
+
+    public TimeSpan RefreshTokenReuseLeeway { get; init; } = TimeSpan.FromSeconds(seconds: 30);
 
     public TimeSpan AuthorizationCodeLifetime { get; init; } = TimeSpan.FromMinutes(minutes: 5);
 

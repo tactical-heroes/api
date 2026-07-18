@@ -29,6 +29,11 @@ internal static class SchedulingServiceCollectionExtensions
 
         serviceCollection.AddQuartz(options =>
         {
+            if (!cleanupOptions.PruneUnconfirmedUsersEnabled)
+            {
+                return;
+            }
+
             options.AddJob<PruneUnconfirmedUsersJob>(job =>
                 job.WithIdentity(PruneUnconfirmedUsersJob.Key));
 

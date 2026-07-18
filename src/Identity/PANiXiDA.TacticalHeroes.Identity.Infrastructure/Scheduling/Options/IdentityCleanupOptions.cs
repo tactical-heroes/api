@@ -4,6 +4,8 @@ internal sealed class IdentityCleanupOptions
 {
     public const string SectionName = "Identity:Cleanup";
 
+    public bool PruneUnconfirmedUsersEnabled { get; init; }
+
     public TimeSpan UnconfirmedUserRetention { get; init; } = TimeSpan.FromDays(days: 7);
 
     public string UnconfirmedUsersCronSchedule { get; init; } = "0 0 * * * ?";

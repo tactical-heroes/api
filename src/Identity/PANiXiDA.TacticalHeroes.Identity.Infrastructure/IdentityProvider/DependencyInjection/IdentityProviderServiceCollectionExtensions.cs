@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
 using OpenIddict.Validation.AspNetCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Common;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
@@ -29,9 +30,7 @@ internal static class IdentityProviderServiceCollectionExtensions
         var identityProviderOptions = identityProviderSection.Get<IdentityProviderOptions>() ??
             new IdentityProviderOptions();
 
-        serviceCollection.AddSingleton<
-            IValidateOptions<IdentityProviderOptions>,
-            IdentityProviderOptionsValidator>();
+        serviceCollection.AddIdentityProviderOptionsValidators();
         serviceCollection
             .AddOptions<IdentityProviderOptions>()
             .Bind(identityProviderSection)
@@ -122,6 +121,7 @@ internal static class IdentityProviderServiceCollectionExtensions
                 ]);
                 options.SetAccessTokenLifetime(identityProviderOptions.AccessTokenLifetime);
                 options.SetRefreshTokenLifetime(identityProviderOptions.RefreshTokenLifetime);
+                options.SetRefreshTokenReuseLeeway(identityProviderOptions.RefreshTokenReuseLeeway);
                 options.SetAuthorizationCodeLifetime(identityProviderOptions.AuthorizationCodeLifetime);
                 options.SetIdentityTokenLifetime(identityProviderOptions.IdentityTokenLifetime);
                 options.UseReferenceAccessTokens();
@@ -138,7 +138,7 @@ internal static class IdentityProviderServiceCollectionExtensions
 
                 if (environment is null ||
                     environment.IsDevelopment() ||
-                    environment.IsEnvironment("Test"))
+                    environment.IsEnvironment(EnvironmentConstants.Test))
                 {
                     aspNetCore.DisableTransportSecurityRequirement();
                 }

@@ -41,6 +41,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
                 [PostgreSqlConnectionStringConfigurationKey] = ConnectionString,
                 [$"{IdentityProviderOptions.SectionName}:Issuer"] = "https://localhost/",
                 [$"{IdentityProviderOptions.SectionName}:Audience"] = "tactical-heroes-api",
+                [$"{IdentityProviderOptions.SectionName}:RefreshTokenReuseLeeway"] = "00:00:05",
                 [$"{IdentityProviderOptions.SectionName}:Clients:0:ClientId"] = "integration-tests",
                 [$"{IdentityProviderOptions.SectionName}:Clients:0:DisplayName"] = "Integration Tests",
                 [$"{IdentityProviderOptions.SectionName}:Clients:0:ClientType"] =

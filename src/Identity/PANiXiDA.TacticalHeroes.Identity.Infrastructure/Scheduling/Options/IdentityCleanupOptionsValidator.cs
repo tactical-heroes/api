@@ -13,6 +13,11 @@ internal sealed class IdentityCleanupOptionsValidator
     {
         List<string> failures = [];
 
+        if (!options.PruneUnconfirmedUsersEnabled)
+        {
+            return ValidateOptionsResult.Success;
+        }
+
         if (options.UnconfirmedUserRetention <= TimeSpan.Zero)
         {
             failures.Add(

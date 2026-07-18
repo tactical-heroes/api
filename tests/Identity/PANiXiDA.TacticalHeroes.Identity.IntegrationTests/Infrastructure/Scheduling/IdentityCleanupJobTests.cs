@@ -56,6 +56,7 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
                 timeProvider: new FrozenTimeProvider(utcNow: NowUtc),
                 options: Options.Create(options: new IdentityCleanupOptions
                 {
+                    PruneUnconfirmedUsersEnabled = true,
                     UnconfirmedUserRetention = TimeSpan.FromDays(days: 7)
                 }));
 
@@ -72,6 +73,51 @@ public sealed class IdentityCleanupJobTests(IntegrationTestFixture fixture)
             remainingUserIds.ShouldNotContain(staleUnconfirmedUser.Id);
             remainingUserIds.ShouldContain(recentUnconfirmedUser.Id);
             remainingUserIds.ShouldContain(staleConfirmedUser.Id);
+        }
+    }
+
+    [Fact(DisplayName = "Prune unconfirmed users should not delete users when cleanup is disabled")]
+    public async Task PruneUnconfirmedUsersJob_Should_NotDeleteUsers_WhenCleanupIsDisabled()
+    {
+        var staleUnconfirmedUser = CreateUser(email: "disabled-cleanup@example.com");
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+            (await userManager.CreateAsync(
+                user: staleUnconfirmedUser,
+                password: Password)).Succeeded.ShouldBeTrue();
+            await SetCreatedAtAsync(
+                dbContext: dbContext,
+                user: staleUnconfirmedUser,
+                createdAtUtc: NowUtc.AddDays(days: -8));
+        }
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var job = new PruneUnconfirmedUsersJob(
+                dbContext: scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>(),
+                timeProvider: new FrozenTimeProvider(utcNow: NowUtc),
+                options: Options.Create(options: new IdentityCleanupOptions
+                {
+                    PruneUnconfirmedUsersEnabled = false,
+                    UnconfirmedUserRetention = TimeSpan.FromDays(days: 7)
+                }));
+
+            await job.ExecuteAsync(TestContext.Current.CancellationToken);
+        }
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+            var userExists = await dbContext.Set<ApplicationUser>()
+                .AnyAsync(
+                    user => user.Id == staleUnconfirmedUser.Id,
+                    TestContext.Current.CancellationToken);
+
+            userExists.ShouldBeTrue();
         }
     }
 

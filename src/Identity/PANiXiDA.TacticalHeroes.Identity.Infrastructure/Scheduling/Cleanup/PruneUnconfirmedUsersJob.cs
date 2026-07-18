@@ -25,9 +25,16 @@ internal sealed class PruneUnconfirmedUsersJob(
 
     internal async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        var cleanupOptions = options.Value;
+
+        if (!cleanupOptions.PruneUnconfirmedUsersEnabled)
+        {
+            return;
+        }
+
         var deleteBeforeUtc = timeProvider
             .GetUtcNow()
-            .Subtract(options.Value.UnconfirmedUserRetention)
+            .Subtract(cleanupOptions.UnconfirmedUserRetention)
             .UtcDateTime;
 
         await dbContext.Set<ApplicationUser>()
