@@ -51,6 +51,8 @@ externalSecrets:
     data:
       - secretKey: ConnectionStrings__PostgreSqlConnectionString
         remoteProperty: ConnectionStrings__PostgreSqlConnectionString
+      - secretKey: Identity__Provider__Clients__1__ClientSecret
+        remoteProperty: Identity__Provider__Clients__1__ClientSecret
   registry:
     enabled: true
     targetName: tactical-heroes-api-registry
