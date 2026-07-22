@@ -30,7 +30,6 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         [AsParameters] AuthorizeRequest request,
         HttpContext httpContext,
         IMediator mediator,
-        IOptions<OAuthSpaOptions> spaOptions,
         IOptions<OAuthTokenOptions> tokenOptions)
     {
         var openIddictRequest = httpContext.GetOpenIddictServerRequest()
@@ -46,9 +45,11 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
                 return OAuthErrorResults.LoginRequired(description: "User is not authenticated.");
             }
 
+            // OpenIddict validates the redirect URI against the registered client
+            // before the request reaches this passthrough endpoint.
             return TypedResults.Redirect(
                 url: OAuthLoginRedirectUrlBuilder.Build(
-                    loginUrl: spaOptions.Value.LoginUrl,
+                    redirectUri: openIddictRequest.RedirectUri,
                     returnUrl: BuildReturnUrl(httpContext: httpContext, request: request)));
         }
 
