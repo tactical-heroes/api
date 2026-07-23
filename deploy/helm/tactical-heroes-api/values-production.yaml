@@ -6,10 +6,6 @@ externalSecrets:
   app:
     remoteKey: applications/tactical-heroes-api/production
 
-env:
-  values:
-    OAuthSpa__LoginUrl: https://tactical-heroes.panixida.ru/login
-
 gateway:
   host: api.tactical-heroes.panixida.ru
   httpsSectionName: api-tactical-heroes-https
