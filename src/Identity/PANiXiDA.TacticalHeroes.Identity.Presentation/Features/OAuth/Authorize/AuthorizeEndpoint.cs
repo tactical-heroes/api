@@ -30,6 +30,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         [AsParameters] AuthorizeRequest request,
         HttpContext httpContext,
         IMediator mediator,
+        IOptions<OAuthSpaOptions> spaOptions,
         IOptions<OAuthTokenOptions> tokenOptions)
     {
         var openIddictRequest = httpContext.GetOpenIddictServerRequest()
@@ -47,7 +48,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
 
             return TypedResults.Redirect(
                 url: OAuthLoginRedirectUrlBuilder.Build(
-                    redirectUri: openIddictRequest.RedirectUri,
+                    loginUrl: spaOptions.Value.LoginUrl,
                     returnUrl: BuildReturnUrl(httpContext: httpContext, request: request)));
         }
 

@@ -12,7 +12,12 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
+        serviceCollection.AddSingleton<IValidateOptions<OAuthSpaOptions>, OAuthSpaOptionsValidator>();
         serviceCollection.AddSingleton<IValidateOptions<OAuthTokenOptions>, OAuthTokenOptionsValidator>();
+        serviceCollection
+            .AddOptions<OAuthSpaOptions>()
+            .Bind(configuration.GetSection(OAuthSpaOptions.SectionName))
+            .ValidateOnStart();
         serviceCollection
             .AddOptions<OAuthTokenOptions>()
             .Bind(configuration.GetSection(OAuthTokenOptions.SectionName))
