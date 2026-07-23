@@ -45,8 +45,6 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
                 return OAuthErrorResults.LoginRequired(description: "User is not authenticated.");
             }
 
-            // OpenIddict validates the redirect URI against the registered client
-            // before the request reaches this passthrough endpoint.
             return TypedResults.Redirect(
                 url: OAuthLoginRedirectUrlBuilder.Build(
                     redirectUri: openIddictRequest.RedirectUri,
