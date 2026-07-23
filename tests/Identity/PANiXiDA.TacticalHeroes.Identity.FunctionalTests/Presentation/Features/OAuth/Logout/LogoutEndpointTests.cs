@@ -37,14 +37,15 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
             string.Concat(
                 "/connect/logout",
                 $"?{OpenIddictConstants.Parameters.ClientId}={OAuthAuthorizationRequestTestHelper.ClientId}",
-                $"&{OpenIddictConstants.Parameters.PostLogoutRedirectUri}={Uri.EscapeDataString("https://localhost:5173/")}",
+                $"&{OpenIddictConstants.Parameters.PostLogoutRedirectUri}={Uri.EscapeDataString("https://localhost:5173/oauth/logout-callback")}",
                 $"&{OpenIddictConstants.Parameters.State}=logout-state"),
             cancellationToken);
         var logoutResponseBody = await logoutResponse.Content.ReadAsStringAsync(cancellationToken);
 
         logoutResponse.StatusCode.ShouldBe(HttpStatusCode.Redirect, logoutResponseBody);
         logoutResponse.Headers.Location.ShouldNotBeNull();
-        logoutResponse.Headers.Location.GetLeftPart(UriPartial.Path).ShouldBe("https://localhost:5173/");
+        logoutResponse.Headers.Location.GetLeftPart(UriPartial.Path)
+            .ShouldBe("https://localhost:5173/oauth/logout-callback");
         OAuthAuthorizationRequestTestHelper.GetQueryParameter(
                 logoutResponse.Headers.Location,
                 OpenIddictConstants.Parameters.State)
