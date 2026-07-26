@@ -12,7 +12,7 @@ internal static class IdentityModuleConfiguration
             builder.Configuration,
             builder.Environment);
         builder.Services.AddPresentation(builder.Configuration);
-        builder.Host.UseInfrastructure(builder.Configuration);
+        builder.Host.UseInfrastructure();
 
         return builder;
     }

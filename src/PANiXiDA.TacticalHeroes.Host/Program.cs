@@ -5,6 +5,7 @@ using PANiXiDA.Core.Presentation.Http.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Host.Common;
 using PANiXiDA.TacticalHeroes.Host.Configurations;
 
+using CompendiumPresentationAssembly = PANiXiDA.TacticalHeroes.Compendium.Presentation.PresentationAssembly;
 using IdentityPresentationAssembly = PANiXiDA.TacticalHeroes.Identity.Presentation.PresentationAssembly;
 using NotificationsPresentationAssembly = PANiXiDA.TacticalHeroes.Notifications.Presentation.PresentationAssembly;
 
@@ -21,6 +22,8 @@ builder.Services.AddHttp(builder.Configuration);
 
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
+builder.AddCompendiumModule();
+builder.AddMessaging();
 
 var app = builder.Build();
 
@@ -28,6 +31,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttp(
     IdentityPresentationAssembly.Instance,
-    NotificationsPresentationAssembly.Instance);
+    NotificationsPresentationAssembly.Instance,
+    CompendiumPresentationAssembly.Instance);
 
 return await app.RunJasperFxCommands(args);

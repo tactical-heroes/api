@@ -10,6 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
         <ProjectReference Include="..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Infrastructure\PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj" />
     </ItemGroup>
 
