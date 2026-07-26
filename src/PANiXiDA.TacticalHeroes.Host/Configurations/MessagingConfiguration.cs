@@ -6,8 +6,6 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using CompendiumApplicationAssembly = PANiXiDA.TacticalHeroes.Compendium.Application.ApplicationAssembly;
 using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Identity.Application.ApplicationAssembly;
-using NotificationsApplicationAssembly = PANiXiDA.TacticalHeroes.Notifications.Application.ApplicationAssembly;
-using NotificationsInfrastructure = PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection.ServiceCollectionExtensions;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations;
 
@@ -26,9 +24,7 @@ internal static class MessagingConfiguration
             modules => modules
                 .AddModule<IdentityWriteDbContext>(
                     IdentityApplicationAssembly.Instance,
-                    typeof(IdentityWriteDbContext).Assembly,
-                    NotificationsApplicationAssembly.Instance,
-                    typeof(NotificationsInfrastructure).Assembly)
+                    typeof(IdentityWriteDbContext).Assembly)
                 .AddModule<CompendiumWriteDbContext>(
                     CompendiumApplicationAssembly.Instance,
                     typeof(CompendiumWriteDbContext).Assembly));
