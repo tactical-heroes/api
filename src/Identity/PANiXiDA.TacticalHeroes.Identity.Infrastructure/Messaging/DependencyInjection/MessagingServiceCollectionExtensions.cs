@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
 
@@ -20,8 +19,6 @@ internal static class MessagingServiceCollectionExtensions
             .AddOptions<IdentityMessagingOptions>()
             .Bind(configuration.GetSection(IdentityMessagingOptions.SectionName))
             .ValidateOnStart();
-
-        serviceCollection.AddWolverineMediator<IdentityWriteDbContext>();
 
         return serviceCollection;
     }

@@ -22,7 +22,8 @@ internal static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         serviceCollection.TryAddScoped<IAggregateTracker, AggregateTracker>();
-        serviceCollection.TryAddScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>();
+        serviceCollection.TryAddKeyedScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>(
+            typeof(IdentityWriteDbContext));
 
         serviceCollection.AddDbContext<IdentityWriteDbContext>(options =>
         {

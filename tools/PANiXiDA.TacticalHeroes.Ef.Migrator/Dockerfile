@@ -15,8 +15,13 @@ COPY ["Directory.Packages.props", "."]
 COPY ["Directory.Build.props", "."]
 COPY ["Directory.Build.targets", "."]
 COPY ["tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj", "tools/PANiXiDA.TacticalHeroes.Ef.Migrator/"]
+COPY ["src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Infrastructure/PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj", "src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Infrastructure/"]
+COPY ["src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Application/PANiXiDA.TacticalHeroes.Compendium.Application.csproj", "src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Application/"]
+COPY ["src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Contracts/PANiXiDA.TacticalHeroes.Compendium.Contracts.csproj", "src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Contracts/"]
+COPY ["src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Domain/PANiXiDA.TacticalHeroes.Compendium.Domain.csproj", "src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Domain/"]
 COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Infrastructure/PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Infrastructure/"]
 COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Application/PANiXiDA.TacticalHeroes.Identity.Application.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Application/"]
+COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Contracts/PANiXiDA.TacticalHeroes.Identity.Contracts.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Contracts/"]
 COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Domain/PANiXiDA.TacticalHeroes.Identity.Domain.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Domain/"]
 RUN dotnet restore "./tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj"
 COPY . .
