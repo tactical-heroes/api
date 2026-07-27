@@ -2,15 +2,29 @@ using System.Reflection;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 
-public sealed class ReadRepositoryParameterConventionTests
+public sealed class RepositoryParameterConventionTests
 {
     private const string ApplicationAssemblySuffix = ".Application";
     private const string ReadRepositorySuffix = "ReadRepository";
+    private const string AggregateRepositoryInterfaceName =
+        "PANiXiDA.Core.Domain.Abstractions.IRepository`2";
+
+    [Fact(DisplayName = "Aggregate repository constructor parameters should follow type-based naming")]
+    public void ConstructorParameters_Should_FollowTypeBasedNaming_When_AggregateRepositoryIsInjected()
+    {
+        AssertConstructorParametersFollowTypeBasedNaming(IsAggregateRepository);
+    }
 
     [Fact(DisplayName = "Read repository constructor parameters should follow type-based naming")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected()
     {
-        var readRepositoryParameters = ArchitectureDefinition.ProductionAssemblies
+        AssertConstructorParametersFollowTypeBasedNaming(IsReadRepository);
+    }
+
+    private static void AssertConstructorParametersFollowTypeBasedNaming(
+        Func<Type, bool> isRepository)
+    {
+        var repositoryParameters = ArchitectureDefinition.ProductionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(
                 ApplicationAssemblySuffix,
                 StringComparison.Ordinal) == true)
@@ -23,18 +37,14 @@ public sealed class ReadRepositoryParameterConventionTests
                     BindingFlags.NonPublic)
                 .SelectMany(constructor => constructor
                     .GetParameters()
-                    .Where(parameter => IsReadRepository(parameter.ParameterType))
-                    .Select(parameter => new
-                    {
-                        DeclaringType = type,
-                        Parameter = parameter
-                    })))
+                    .Where(parameter => isRepository(parameter.ParameterType))
+                    .Select(parameter => new ConstructorParameter(type, parameter))))
             .OrderBy(candidate => candidate.DeclaringType.FullName, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.NotEmpty(readRepositoryParameters);
+        Assert.NotEmpty(repositoryParameters);
 
-        var violations = readRepositoryParameters
+        var violations = repositoryParameters
             .Select(candidate => new
             {
                 candidate.DeclaringType,
@@ -55,6 +65,20 @@ public sealed class ReadRepositoryParameterConventionTests
         Assert.True(
             violations.Length == 0,
             string.Join(Environment.NewLine, violations));
+    }
+
+    private static bool IsAggregateRepository(Type parameterType)
+    {
+        return parameterType.IsInterface &&
+               parameterType
+                   .GetInterfaces()
+                   .Append(parameterType)
+                   .Any(candidate =>
+                       candidate.IsGenericType &&
+                       string.Equals(
+                           candidate.GetGenericTypeDefinition().FullName,
+                           AggregateRepositoryInterfaceName,
+                           StringComparison.Ordinal));
     }
 
     private static bool IsReadRepository(Type parameterType)
@@ -83,4 +107,8 @@ public sealed class ReadRepositoryParameterConventionTests
             ? typeName
             : typeName[..genericAritySeparatorIndex];
     }
+
+    private sealed record ConstructorParameter(
+        Type DeclaringType,
+        ParameterInfo Parameter);
 }
