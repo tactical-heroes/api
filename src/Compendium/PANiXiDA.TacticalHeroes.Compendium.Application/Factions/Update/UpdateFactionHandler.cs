@@ -23,10 +23,11 @@ public sealed class UpdateFactionHandler(IFactionsRepository factionsRepository)
 
         if (faction is null)
         {
-            return FactionNotFound();
+            return Result.Failure(
+                error: Error.NotFound(message: "Faction was not found."));
         }
 
-        var updateResult = faction.UpdateDetails(
+        var updateResult = faction.Update(
             name: command.Name,
             description: command.Description);
 
@@ -40,10 +41,5 @@ public sealed class UpdateFactionHandler(IFactionsRepository factionsRepository)
             cancellationToken: cancellationToken);
 
         return Result.Success();
-    }
-
-    private static Result FactionNotFound()
-    {
-        return Result.Failure(error: Error.NotFound(message: "Faction was not found."));
     }
 }

@@ -18,13 +18,13 @@ public sealed class FactionTests
     }
 
     [Fact(DisplayName = "Faction should update valid details")]
-    public void UpdateDetails_Should_ReplaceDetails_When_ValuesAreValid()
+    public void Update_Should_ReplaceDetails_When_ValuesAreValid()
     {
         var faction = Faction.Create(
             "Northern Alliance",
             "Defenders of the north.").Value;
 
-        var result = faction.UpdateDetails(
+        var result = faction.Update(
             "  Southern Alliance  ",
             "  Defenders of the south.  ");
 
@@ -34,13 +34,13 @@ public sealed class FactionTests
     }
 
     [Fact(DisplayName = "Faction should preserve details when an update is invalid")]
-    public void UpdateDetails_Should_PreserveDetails_When_ValueIsInvalid()
+    public void Update_Should_PreserveDetails_When_ValueIsInvalid()
     {
         var faction = Faction.Create(
             "Northern Alliance",
             "Defenders of the north.").Value;
 
-        var result = faction.UpdateDetails("", "");
+        var result = faction.Update("", "");
 
         result.IsFailure.ShouldBeTrue();
         faction.Name.Value.ShouldBe("Northern Alliance");

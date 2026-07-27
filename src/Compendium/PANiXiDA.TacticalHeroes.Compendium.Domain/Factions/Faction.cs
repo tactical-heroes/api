@@ -34,7 +34,7 @@ public sealed class Faction : AggregateRoot<FactionId>
                     description: descriptionResult.Value));
     }
 
-    public Result UpdateDetails(
+    public Result Update(
         string name,
         string description)
     {

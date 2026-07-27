@@ -36,7 +36,7 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             persistedFaction.ShouldNotBeNull();
-            persistedFaction.UpdateDetails(
+            persistedFaction.Update(
                     "Southern Alliance",
                     "Defenders of the south.")
                 .IsSuccess.ShouldBeTrue();
