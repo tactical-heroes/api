@@ -37,7 +37,7 @@ public sealed class CompendiumWriteDbContextMigrationTests(
             ORDER BY sequence_name;
             """);
 
-        compendiumTables.ShouldBe(["__EFMigrationsHistory"]);
+        compendiumTables.ShouldBe(["__EFMigrationsHistory", "factions"]);
         publicTables.ShouldBeEmpty();
         compendiumSequences.ShouldBe(["EntityFrameworkHiLoSequence"]);
     }

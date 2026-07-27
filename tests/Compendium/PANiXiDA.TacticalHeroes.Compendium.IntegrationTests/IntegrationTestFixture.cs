@@ -16,6 +16,16 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     public string ConnectionString => database.PostgreSqlConnectionString;
 
+    public AsyncServiceScope CreateScope()
+    {
+        return serviceProvider!.CreateAsyncScope();
+    }
+
+    public Task ResetDatabaseAsync(CancellationToken cancellationToken)
+    {
+        return database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+    }
+
     public async ValueTask InitializeAsync()
     {
         await database.InitializeAsync(TestContext.Current.CancellationToken);
