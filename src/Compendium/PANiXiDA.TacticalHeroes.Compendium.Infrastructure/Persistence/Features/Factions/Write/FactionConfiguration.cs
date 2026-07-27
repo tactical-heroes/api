@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
@@ -10,8 +9,6 @@ internal sealed class FactionConfiguration : AuditableEntityConfiguration<Factio
 {
     protected override void ConfigureEntity(EntityTypeBuilder<Faction> builder)
     {
-        builder.ToTable("factions");
-
         builder.HasKey(faction => faction.Id);
 
         builder.Property(faction => faction.Id)
