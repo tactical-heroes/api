@@ -21,9 +21,10 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         }
 
         await using var verificationScope = Fixture.CreateScope();
-        var readRepository = verificationScope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
-        var details = await readRepository.GetDetailsByIdAsync(adminRoleId, cancellationToken);
-        var page = await readRepository.GetPagedAsync(
+        var rolesReadRepository =
+            verificationScope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+        var details = await rolesReadRepository.GetDetailsByIdAsync(adminRoleId, cancellationToken);
+        var page = await rolesReadRepository.GetPagedAsync(
             new PaginationParameters(1, 20),
             cancellationToken);
 
@@ -31,6 +32,6 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         details.Name.ShouldBe("admin");
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name).ShouldBe(["admin", "viewer"]);
-        (await readRepository.ExistsByIdAsync(adminRoleId, cancellationToken)).ShouldBeTrue();
+        (await rolesReadRepository.ExistsByIdAsync(adminRoleId, cancellationToken)).ShouldBeTrue();
     }
 }

@@ -9,15 +9,15 @@ public sealed class GetFactionsHandlerTests
     public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
     {
         var pagination = new PaginationParameters(1, 20);
-        var repository = Substitute.For<IFactionsReadRepository>();
-        var handler = new GetFactionsHandler(repository);
+        var factionsReadRepository = Substitute.For<IFactionsReadRepository>();
+        var handler = new GetFactionsHandler(factionsReadRepository);
 
         var result = await handler.HandleAsync(
             new GetFactionsQuery(pagination),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).GetPagedAsync(
+        await factionsReadRepository.Received(1).GetPagedAsync(
             pagination,
             TestContext.Current.CancellationToken);
     }

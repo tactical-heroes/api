@@ -40,9 +40,10 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         }
 
         await using var verificationScope = Fixture.CreateScope();
-        var readRepository = verificationScope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
-        var details = await readRepository.GetDetailsByIdAsync(firstUserId, cancellationToken);
-        var page = await readRepository.GetPagedAsync(
+        var usersReadRepository =
+            verificationScope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
+        var details = await usersReadRepository.GetDetailsByIdAsync(firstUserId, cancellationToken);
+        var page = await usersReadRepository.GetPagedAsync(
             "first@example.com",
             new PaginationParameters(1, 20),
             cancellationToken);
@@ -55,6 +56,6 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         details.Claims.ShouldHaveSingleItem().Value.ShouldBe("heroes.read");
         page.TotalCount.ShouldBe(1);
         page.Items.ShouldHaveSingleItem().Id.ShouldBe(firstUserId);
-        (await readRepository.ExistsByIdAsync(firstUserId, cancellationToken)).ShouldBeTrue();
+        (await usersReadRepository.ExistsByIdAsync(firstUserId, cancellationToken)).ShouldBeTrue();
     }
 }

@@ -31,12 +31,12 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         }
 
         await using var verificationScope = Fixture.CreateScope();
-        var readRepository =
+        var factionsReadRepository =
             verificationScope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
-        var details = await readRepository.GetDetailsByIdAsync(
+        var details = await factionsReadRepository.GetDetailsByIdAsync(
             northernFaction.Id.Value,
             cancellationToken);
-        var page = await readRepository.GetPagedAsync(
+        var page = await factionsReadRepository.GetPagedAsync(
             new PaginationParameters(1, 20),
             cancellationToken);
 
@@ -46,7 +46,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name)
             .ShouldBe(["Northern Alliance", "Southern Alliance"]);
-        (await readRepository.ExistsByIdAsync(
+        (await factionsReadRepository.ExistsByIdAsync(
                 northernFaction.Id.Value,
                 cancellationToken))
             .ShouldBeTrue();

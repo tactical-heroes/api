@@ -20,13 +20,13 @@ public sealed class GetUsersHandlerTests
             1,
             20,
             1);
-        var repository = Substitute.For<IUsersReadRepository>();
-        repository.GetPagedAsync(
+        var usersReadRepository = Substitute.For<IUsersReadRepository>();
+        usersReadRepository.GetPagedAsync(
                 "hero@example.com",
                 pagination,
                 Arg.Any<CancellationToken>())
             .Returns(page);
-        var handler = new GetUsersHandler(repository);
+        var handler = new GetUsersHandler(usersReadRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -35,7 +35,7 @@ public sealed class GetUsersHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(page);
-        await repository.Received(1).GetPagedAsync(
+        await usersReadRepository.Received(1).GetPagedAsync(
             "hero@example.com",
             pagination,
             cancellationToken);

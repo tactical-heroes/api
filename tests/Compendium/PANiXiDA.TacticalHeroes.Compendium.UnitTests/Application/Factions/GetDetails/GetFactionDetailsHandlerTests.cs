@@ -13,12 +13,12 @@ public sealed class GetFactionDetailsHandlerTests
             factionId,
             "Northern Alliance",
             "Defenders of the north.");
-        var repository = Substitute.For<IFactionsReadRepository>();
-        repository.GetDetailsByIdAsync(
+        var factionsReadRepository = Substitute.For<IFactionsReadRepository>();
+        factionsReadRepository.GetDetailsByIdAsync(
                 factionId,
                 Arg.Any<CancellationToken>())
             .Returns(readModel);
-        var handler = new GetFactionDetailsHandler(repository);
+        var handler = new GetFactionDetailsHandler(factionsReadRepository);
 
         var result = await handler.HandleAsync(
             new GetFactionDetailsQuery(factionId),
@@ -31,12 +31,12 @@ public sealed class GetFactionDetailsHandlerTests
     [Fact(DisplayName = "Faction details handler should return not found for a missing faction")]
     public async Task HandleAsync_Should_ReturnNotFound_When_FactionDoesNotExist()
     {
-        var repository = Substitute.For<IFactionsReadRepository>();
-        repository.GetDetailsByIdAsync(
+        var factionsReadRepository = Substitute.For<IFactionsReadRepository>();
+        factionsReadRepository.GetDetailsByIdAsync(
                 Arg.Any<Guid>(),
                 Arg.Any<CancellationToken>())
             .Returns((FactionDetailsReadModel?)null);
-        var handler = new GetFactionDetailsHandler(repository);
+        var handler = new GetFactionDetailsHandler(factionsReadRepository);
 
         var result = await handler.HandleAsync(
             new GetFactionDetailsQuery(Guid.CreateVersion7()),
