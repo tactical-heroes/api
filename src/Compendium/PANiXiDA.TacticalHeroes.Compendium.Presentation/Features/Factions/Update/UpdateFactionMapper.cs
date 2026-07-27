@@ -1,16 +1,13 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Update;
 
+using Riok.Mapperly.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Update;
 
-internal static class UpdateFactionMapper
+[Mapper]
+internal static partial class UpdateFactionMapper
 {
-    internal static UpdateFactionCommand ToCommand(
+    internal static partial UpdateFactionCommand ToCommand(
         UpdateFactionRequest request,
-        Guid id)
-    {
-        return new UpdateFactionCommand(
-            Id: id,
-            Name: request.Name,
-            Description: request.Description);
-    }
+        Guid id);
 }

@@ -1,18 +1,14 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 
+using Riok.Mapperly.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
 
-internal static class CreateFactionMapper
+[Mapper]
+internal static partial class CreateFactionMapper
 {
-    internal static CreateFactionCommand ToCommand(CreateFactionRequest request)
-    {
-        return new CreateFactionCommand(
-            Name: request.Name,
-            Description: request.Description);
-    }
+    internal static partial CreateFactionCommand ToCommand(
+        CreateFactionRequest request);
 
-    internal static CreateFactionResponse ToResponse(Guid id)
-    {
-        return new CreateFactionResponse(Id: id);
-    }
+    internal static partial CreateFactionResponse ToResponse(Guid id);
 }

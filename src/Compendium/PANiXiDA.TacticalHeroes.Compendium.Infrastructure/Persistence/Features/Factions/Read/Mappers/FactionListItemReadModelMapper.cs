@@ -1,17 +1,17 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
 
+using Riok.Mapperly.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.Mappers;
 
-internal sealed class FactionListItemReadModelMapper
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+internal sealed partial class FactionListItemReadModelMapper
     : IReadModelMapper<Guid, FactionReadDbModel, FactionListItemReadModel>
 {
-    public static IQueryable<FactionListItemReadModel> ProjectTo(
-        IQueryable<FactionReadDbModel> query)
-    {
-        return query.Select(faction => new FactionListItemReadModel(
-            faction.Id,
-            faction.Name,
-            faction.Description));
-    }
+    private static partial FactionListItemReadModel ToReadModel(
+        FactionReadDbModel faction);
+
+    public static partial IQueryable<FactionListItemReadModel> ProjectTo(
+        IQueryable<FactionReadDbModel> query);
 }
