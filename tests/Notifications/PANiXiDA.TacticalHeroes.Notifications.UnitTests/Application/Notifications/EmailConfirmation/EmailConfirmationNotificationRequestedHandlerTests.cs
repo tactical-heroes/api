@@ -1,23 +1,23 @@
 using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
-using PANiXiDA.TacticalHeroes.Notifications.Application.Notifications.PasswordReset;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Notifications.EmailConfirmation;
 using PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.UnitTests.Application.Notifications;
+namespace PANiXiDA.TacticalHeroes.Notifications.UnitTests.Application.Notifications.EmailConfirmation;
 
-public sealed class PasswordResetNotificationRequestedHandlerTests
+public sealed class EmailConfirmationNotificationRequestedHandlerTests
 {
-    [Fact(DisplayName = "Password reset notification should send a formatted email when notification is handled")]
+    [Fact(DisplayName = "Email confirmation notification should send a formatted email when notification is handled")]
     public async Task HandleAsync_Should_SendFormattedEmail_When_NotificationIsHandled()
     {
         var integrationEventId = Guid.CreateVersion7();
-        var passwordResetUrl =
-            "https://localhost:5173/reset-password?userId=0198f65b-b53a-7a93-940c-0d84f82e4d2a&token=password-reset-token";
+        var confirmationUrl =
+            "https://localhost:5173/confirm-email?userId=0198f65b-b53a-7a93-940c-0d84f82e4d2a&token=confirmation-token";
         var expiresAtUtc = new DateTimeOffset(2026, 7, 19, 12, 0, 0, TimeSpan.Zero);
-        var domainEvent = new PasswordResetNotificationRequested(
+        var domainEvent = new EmailConfirmationNotificationRequested(
             IntegrationEventId: integrationEventId,
             UserId: Guid.CreateVersion7(),
             Email: "hero@example.com",
-            PasswordResetUrl: passwordResetUrl,
+            ConfirmationUrl: confirmationUrl,
             ExpiresAtUtc: expiresAtUtc);
         var emailSender = Substitute.For<IEmailSender>();
         EmailMessage? sentMessage = null;
@@ -26,7 +26,7 @@ public sealed class PasswordResetNotificationRequestedHandlerTests
                 Arg.Do<EmailMessage>(message => sentMessage = message),
                 Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
-        var handler = new PasswordResetNotificationRequestedHandler(emailSender);
+        var handler = new EmailConfirmationNotificationRequestedHandler(emailSender);
 
         await handler.HandleAsync(
             domainEvent,
@@ -38,10 +38,10 @@ public sealed class PasswordResetNotificationRequestedHandlerTests
         sentMessage.ShouldNotBeNull();
         sentMessage.CorrelationId.ShouldBe(integrationEventId);
         sentMessage.RecipientEmail.ShouldBe("hero@example.com");
-        sentMessage.Subject.ShouldBe("Reset your Tactical Heroes password");
-        sentMessage.TextBody.ShouldContain(passwordResetUrl);
-        sentMessage.HtmlBody.ShouldContain("Reset your password");
-        sentMessage.HtmlBody.ShouldContain("&amp;token=password-reset-token");
+        sentMessage.Subject.ShouldBe("Confirm your Tactical Heroes email");
+        sentMessage.TextBody.ShouldContain(confirmationUrl);
+        sentMessage.HtmlBody.ShouldContain("Confirm your email");
+        sentMessage.HtmlBody.ShouldContain("&amp;token=confirmation-token");
         sentMessage.HtmlBody.ShouldContain("2026-07-19 12:00 UTC");
     }
 }
