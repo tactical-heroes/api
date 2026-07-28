@@ -6,7 +6,8 @@ public sealed class EndpointFunctionalTestConventionTests
         "PANiXiDA.Core.Presentation.Http.Endpoints.IEndpoint";
     private const string PresentationAssemblySuffix = ".Presentation";
     private const string FunctionalTestsAssemblySuffix = ".FunctionalTests";
-    private const string SolutionFileName = "PANiXiDA.TacticalHeroes.slnx";
+    private const string SourceDirectoryName = "src";
+    private const string TestsDirectoryName = "tests";
 
     [Fact(DisplayName = "Endpoints should have matching functional test files")]
     public void Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared()
@@ -70,7 +71,7 @@ public sealed class EndpointFunctionalTestConventionTests
 
         return Path.Combine(
             repositoryRoot,
-            "tests",
+            TestsDirectoryName,
             moduleDirectoryName,
             functionalTestsAssemblyName,
             "Presentation",
@@ -84,14 +85,20 @@ public sealed class EndpointFunctionalTestConventionTests
              directory is not null;
              directory = directory.Parent)
         {
-            if (File.Exists(Path.Combine(directory.FullName, SolutionFileName)))
+            if (Directory.Exists(Path.Combine(
+                    directory.FullName,
+                    SourceDirectoryName)) &&
+                Directory.Exists(Path.Combine(
+                    directory.FullName,
+                    TestsDirectoryName)))
             {
                 return directory.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing '{SolutionFileName}'.");
+            $"Could not find repository root containing " +
+            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 
     private static bool ImplementsInterface(Type type, string interfaceName)
