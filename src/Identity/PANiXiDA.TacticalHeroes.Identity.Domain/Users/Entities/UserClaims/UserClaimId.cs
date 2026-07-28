@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 
-public readonly record struct UserClaimId(Guid Value)
+public readonly record struct UserClaimId(Guid Value) : IStronglyTypedId
 {
     public static UserClaimId New()
     {

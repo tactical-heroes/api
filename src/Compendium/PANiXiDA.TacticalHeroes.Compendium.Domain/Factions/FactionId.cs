@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 
-public readonly record struct FactionId(Guid Value)
+public readonly record struct FactionId(Guid Value) : IStronglyTypedId
 {
     public static FactionId New()
     {
