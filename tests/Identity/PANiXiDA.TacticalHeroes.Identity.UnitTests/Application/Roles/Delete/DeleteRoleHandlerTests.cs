@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Delete;
 
 public sealed class DeleteRoleHandlerTests
 {
-    [Fact(DisplayName = "Delete role handler should delegate deletion to the write repository")]
+    [Fact(DisplayName = "Delete role handler should delegate deletion to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var roleId = Guid.CreateVersion7();

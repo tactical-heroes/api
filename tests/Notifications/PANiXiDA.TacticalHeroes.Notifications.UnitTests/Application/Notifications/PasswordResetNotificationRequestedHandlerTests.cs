@@ -6,8 +6,8 @@ namespace PANiXiDA.TacticalHeroes.Notifications.UnitTests.Application.Notificati
 
 public sealed class PasswordResetNotificationRequestedHandlerTests
 {
-    [Fact(DisplayName = "Password reset notification should send a formatted email")]
-    public async Task HandleAsync_Should_SendFormattedEmail()
+    [Fact(DisplayName = "Password reset notification should send a formatted email when notification is handled")]
+    public async Task HandleAsync_Should_SendFormattedEmail_When_NotificationIsHandled()
     {
         var integrationEventId = Guid.CreateVersion7();
         var passwordResetUrl =

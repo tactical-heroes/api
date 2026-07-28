@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class OAuthClientsRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "OAuth clients repository should read a seeded client from OpenIddict")]
+    [Fact(DisplayName = "OAuth clients repository should read a seeded client from OpenIddict when client exists")]
     public async Task GetTokenPrincipalByClientIdAsync_Should_ReturnPrincipal_When_ClientExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -30,7 +30,7 @@ public sealed class OAuthClientsRepositoryTests(IntegrationTestFixture fixture)
             claim.Value == "integration-tests");
     }
 
-    [Fact(DisplayName = "OAuth clients repository should return not found for a missing client")]
+    [Fact(DisplayName = "OAuth clients repository should return not found for a missing client when client does not exist")]
     public async Task GetTokenPrincipalByClientIdAsync_Should_ReturnNotFound_When_ClientDoesNotExist()
     {
         await using var scope = Fixture.CreateScope();

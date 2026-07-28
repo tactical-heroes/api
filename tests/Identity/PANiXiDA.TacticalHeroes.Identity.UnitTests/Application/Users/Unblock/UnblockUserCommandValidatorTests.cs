@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Unblock;
 
 public sealed class UnblockUserCommandValidatorTests
 {
-    [Fact(DisplayName = "Unblock user validator should reject an empty user id")]
+    [Fact(DisplayName = "Unblock user validator should reject an empty user id when user id is empty")]
     public void Validate_Should_ReturnError_When_UserIdIsEmpty()
     {
         var validator = new UnblockUserCommandValidator();

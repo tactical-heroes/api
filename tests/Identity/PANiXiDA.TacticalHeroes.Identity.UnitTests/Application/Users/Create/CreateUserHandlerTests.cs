@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 
 public sealed class CreateUserHandlerTests
 {
-    [Fact(DisplayName = "Create user handler should delegate creation to the write repository")]
+    [Fact(DisplayName = "Create user handler should delegate creation to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnUserId_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();

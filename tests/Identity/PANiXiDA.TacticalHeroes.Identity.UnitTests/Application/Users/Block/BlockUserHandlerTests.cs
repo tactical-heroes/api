@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Block;
 
 public sealed class BlockUserHandlerTests
 {
-    [Fact(DisplayName = "Block user handler should delegate blocking to the write repository")]
+    [Fact(DisplayName = "Block user handler should delegate blocking to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();

@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResendConf
 
 public sealed class ResendConfirmationEmailCommandValidatorTests
 {
-    [Fact(DisplayName = "Resend confirmation validator should accept a valid email")]
+    [Fact(DisplayName = "Resend confirmation validator should accept a valid email when email is valid")]
     public void Validate_Should_ReturnValidResult_When_EmailIsValid()
     {
         var validator = new ResendConfirmationEmailCommandValidator();
@@ -14,7 +14,7 @@ public sealed class ResendConfirmationEmailCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Resend confirmation validator should reject an invalid email")]
+    [Fact(DisplayName = "Resend confirmation validator should reject an invalid email when email is invalid")]
     public void Validate_Should_ReturnError_When_EmailIsInvalid()
     {
         var validator = new ResendConfirmationEmailCommandValidator();

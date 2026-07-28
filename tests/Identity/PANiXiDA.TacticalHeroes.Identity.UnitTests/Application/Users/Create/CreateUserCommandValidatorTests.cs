@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 
 public sealed class CreateUserCommandValidatorTests
 {
-    [Fact(DisplayName = "Create user validator should accept valid input")]
+    [Fact(DisplayName = "Create user validator should accept valid input when command is valid")]
     public void Validate_Should_ReturnValidResult_When_CommandIsValid()
     {
         var validator = new CreateUserCommandValidator();
@@ -23,7 +23,7 @@ public sealed class CreateUserCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Create user validator should reject invalid input")]
+    [Fact(DisplayName = "Create user validator should reject invalid input when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new CreateUserCommandValidator();

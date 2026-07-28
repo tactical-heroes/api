@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET OAuth logout should clear the application cookie and redirect to the SPA")]
+    [Fact(DisplayName = "GET OAuth logout should clear the application cookie and redirect to the SPA when user is logged in")]
     public async Task GetLogout_Should_ClearAuthenticationSession_When_UserIsLoggedIn()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

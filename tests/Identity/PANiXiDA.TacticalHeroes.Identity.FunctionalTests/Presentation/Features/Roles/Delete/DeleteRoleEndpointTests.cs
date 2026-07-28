@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class DeleteRoleEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "DELETE role should remove the role from PostgreSQL")]
+    [Fact(DisplayName = "DELETE role should remove the role from PostgreSQL when role exists")]
     public async Task DeleteRole_Should_RemoveRole_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

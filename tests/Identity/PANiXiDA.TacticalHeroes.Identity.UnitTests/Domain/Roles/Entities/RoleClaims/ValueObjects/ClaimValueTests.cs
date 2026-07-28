@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles.Entities.RoleC
 
 public sealed class ClaimValueTests
 {
-    [Fact(DisplayName = "Role claim value should trim a valid value")]
+    [Fact(DisplayName = "Role claim value should trim a valid value when claim value is valid")]
     public void Create_Should_TrimValue_When_ClaimValueIsValid()
     {
         var result = ClaimValue.Create(" heroes.manage ");
@@ -13,7 +13,7 @@ public sealed class ClaimValueTests
         result.Value.Value.ShouldBe("heroes.manage");
     }
 
-    [Fact(DisplayName = "Role claim value should reject an empty value")]
+    [Fact(DisplayName = "Role claim value should reject an empty value when claim value is empty")]
     public void Create_Should_ReturnValidationFailure_When_ClaimValueIsEmpty()
     {
         var result = ClaimValue.Create("   ");
@@ -22,7 +22,7 @@ public sealed class ClaimValueTests
             .ShouldHaveField(nameof(ClaimValue));
     }
 
-    [Fact(DisplayName = "Role claim value should reject a value over the maximum length")]
+    [Fact(DisplayName = "Role claim value should reject a value over the maximum length when claim value is too long")]
     public void Create_Should_ReturnValidationFailure_When_ClaimValueIsTooLong()
     {
         var result = ClaimValue.Create(new string('a', ClaimValue.MaxLength + 1));

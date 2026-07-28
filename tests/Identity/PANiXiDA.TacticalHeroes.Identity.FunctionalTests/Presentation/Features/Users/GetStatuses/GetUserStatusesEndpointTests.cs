@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetUserStatusesEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET user statuses should return all supported statuses")]
+    [Fact(DisplayName = "GET user statuses should return all supported statuses when authorized")]
     public async Task GetUserStatuses_Should_ReturnAllStatuses_When_Authorized()
     {
         var client = new UserApiTestClient(Fixture);

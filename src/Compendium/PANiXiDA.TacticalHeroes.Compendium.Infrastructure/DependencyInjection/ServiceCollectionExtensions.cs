@@ -11,7 +11,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddPostgreSqlWriteEfRepository<CompendiumWriteDbContext>(
+        serviceCollection.AddPostgreSqlEfRepository<
+            CompendiumWriteDbContext,
+            CompendiumReadDbContext>(
             configuration);
 
         return serviceCollection;

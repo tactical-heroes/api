@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ChangePass
 
 public sealed class ChangePasswordHandlerTests
 {
-    [Fact(DisplayName = "Change password handler should delegate password change to credentials service")]
+    [Fact(DisplayName = "Change password handler should delegate password change to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var userId = Guid.CreateVersion7();

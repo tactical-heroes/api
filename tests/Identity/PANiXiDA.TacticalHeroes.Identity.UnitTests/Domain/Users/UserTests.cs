@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users;
 
 public sealed class UserTests
 {
-    [Fact(DisplayName = "Register should create an unconfirmed user with normalized email")]
+    [Fact(DisplayName = "Register should create an unconfirmed user with normalized email when email is valid")]
     public void Register_Should_CreateUnconfirmedUser_When_EmailIsValid()
     {
         var result = User.Register(" HERO@Example.COM ");
@@ -19,7 +19,7 @@ public sealed class UserTests
         result.Value.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Register should reject an invalid email")]
+    [Fact(DisplayName = "Register should reject an invalid email when email is invalid")]
     public void Register_Should_ReturnValidationFailure_When_EmailIsInvalid()
     {
         var result = User.Register("invalid-email");
@@ -27,7 +27,7 @@ public sealed class UserTests
         result.ShouldHaveSingleError(ErrorType.Validation, "Email has invalid format.");
     }
 
-    [Fact(DisplayName = "Create should restore persisted user state")]
+    [Fact(DisplayName = "Create should restore persisted user state when persisted values are valid")]
     public void Create_Should_RestoreState_When_PersistedValuesAreValid()
     {
         var id = Guid.CreateVersion7();
@@ -48,7 +48,7 @@ public sealed class UserTests
         result.Value.Claims.Single().Value.Value.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "Request email confirmation should raise an event for an unconfirmed user")]
+    [Fact(DisplayName = "Request email confirmation should raise an event for an unconfirmed user when user is unconfirmed")]
     public void RequestEmailConfirmation_Should_RaiseEvent_When_UserIsUnconfirmed()
     {
         var user = CreateUser();
@@ -66,7 +66,7 @@ public sealed class UserTests
         domainEvent.ExpiresAtUtc.ShouldBe(expiresAtUtc);
     }
 
-    [Fact(DisplayName = "Request email confirmation should not raise an event for a confirmed user")]
+    [Fact(DisplayName = "Request email confirmation should not raise an event for a confirmed user when user is confirmed")]
     public void RequestEmailConfirmation_Should_NotRaiseEvent_When_UserIsConfirmed()
     {
         var user = CreateUser();
@@ -81,7 +81,7 @@ public sealed class UserTests
         user.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Confirm registration should confirm the user and raise an event once")]
+    [Fact(DisplayName = "Confirm registration should confirm the user and raise an event once when user is unconfirmed")]
     public void ConfirmRegistration_Should_RaiseEventOnce_When_UserIsUnconfirmed()
     {
         var user = CreateUser();
@@ -99,7 +99,7 @@ public sealed class UserTests
         domainEvent.Email.ShouldBe(user.Email.Value);
     }
 
-    [Fact(DisplayName = "Request password reset should reject an unconfirmed user")]
+    [Fact(DisplayName = "Request password reset should reject an unconfirmed user when user is unconfirmed")]
     public void RequestPasswordReset_Should_ReturnConflict_When_UserIsUnconfirmed()
     {
         var user = CreateUser();
@@ -114,7 +114,7 @@ public sealed class UserTests
         user.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Request password reset should raise an event for a confirmed user")]
+    [Fact(DisplayName = "Request password reset should raise an event for a confirmed user when user is confirmed")]
     public void RequestPasswordReset_Should_RaiseEvent_When_UserIsConfirmed()
     {
         var user = CreateUser();
@@ -133,7 +133,7 @@ public sealed class UserTests
         domainEvent.ExpiresAtUtc.ShouldBe(expiresAtUtc);
     }
 
-    [Fact(DisplayName = "Assign role should add a valid role only once")]
+    [Fact(DisplayName = "Assign role should add a valid role only once when role id is valid")]
     public void AssignRole_Should_AddRoleOnce_When_RoleIdIsValid()
     {
         var user = CreateUser();
@@ -147,7 +147,7 @@ public sealed class UserTests
         user.RoleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
     }
 
-    [Fact(DisplayName = "Assign role should reject an empty role id")]
+    [Fact(DisplayName = "Assign role should reject an empty role id when role id is empty")]
     public void AssignRole_Should_ReturnValidationFailure_When_RoleIdIsEmpty()
     {
         var user = CreateUser();
@@ -158,7 +158,7 @@ public sealed class UserTests
         user.RoleIds.ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Grant claim should add a valid claim only once")]
+    [Fact(DisplayName = "Grant claim should add a valid claim only once when claim is valid")]
     public void GrantClaim_Should_AddClaimOnce_When_ClaimIsValid()
     {
         var user = CreateUser();

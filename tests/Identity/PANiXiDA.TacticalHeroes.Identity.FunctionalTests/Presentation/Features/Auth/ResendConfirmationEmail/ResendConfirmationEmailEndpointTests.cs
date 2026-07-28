@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class ResendConfirmationEmailEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST auth resend-confirmation-email should issue a new token for an unconfirmed user")]
+    [Fact(DisplayName = "POST auth resend-confirmation-email should issue a new token for an unconfirmed user when user is unconfirmed")]
     public async Task PostResendConfirmationEmail_Should_PublishConfirmationRequest_When_UserIsUnconfirmed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.ValueObjects;
 
 public sealed class EmailTests
 {
-    [Fact(DisplayName = "Email should normalize a valid value")]
+    [Fact(DisplayName = "Email should normalize a valid value when email is valid")]
     public void Create_Should_NormalizeValue_When_EmailIsValid()
     {
         var result = Email.Create("  HERO@Example.COM  ");
@@ -14,7 +14,7 @@ public sealed class EmailTests
         result.Value.ToString().ShouldBe("hero@example.com");
     }
 
-    [Theory(DisplayName = "Email should reject an empty value")]
+    [Theory(DisplayName = "Email should reject an empty value when email is empty")]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_Should_ReturnValidationFailure_When_EmailIsEmpty(string value)
@@ -25,7 +25,7 @@ public sealed class EmailTests
             .ShouldHaveField(nameof(Email));
     }
 
-    [Theory(DisplayName = "Email should reject an invalid format")]
+    [Theory(DisplayName = "Email should reject an invalid format when email format is invalid")]
     [InlineData("invalid")]
     [InlineData("invalid@")]
     [InlineData("@example.com")]
@@ -37,7 +37,7 @@ public sealed class EmailTests
             .ShouldHaveField(nameof(Email));
     }
 
-    [Fact(DisplayName = "Email should reject a value over the maximum length")]
+    [Fact(DisplayName = "Email should reject a value over the maximum length when email is too long")]
     public void Create_Should_ReturnValidationFailure_When_EmailIsTooLong()
     {
         var result = Email.Create($"{new string('a', Email.MaxLength)}@example.com");

@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetUsersEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET users should return a filtered page from PostgreSQL")]
+    [Fact(DisplayName = "GET users should return a filtered page from PostgreSQL when email is provided")]
     public async Task GetUsers_Should_ReturnFilteredPage_When_EmailIsProvided()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

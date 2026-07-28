@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Update;
 
 public sealed class UpdateUserHandlerTests
 {
-    [Fact(DisplayName = "Update user handler should delegate update to the write repository")]
+    [Fact(DisplayName = "Update user handler should delegate update to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();

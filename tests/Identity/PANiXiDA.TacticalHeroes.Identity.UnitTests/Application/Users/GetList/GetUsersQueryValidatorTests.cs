@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetList;
 
 public sealed class GetUsersQueryValidatorTests
 {
-    [Fact(DisplayName = "User list validator should accept valid filters and pagination")]
+    [Fact(DisplayName = "User list validator should accept valid filters and pagination when query is valid")]
     public void Validate_Should_ReturnValidResult_When_QueryIsValid()
     {
         var validator = new GetUsersQueryValidator();
@@ -15,7 +15,7 @@ public sealed class GetUsersQueryValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "User list validator should reject invalid filters and pagination")]
+    [Fact(DisplayName = "User list validator should reject invalid filters and pagination when query is invalid")]
     public void Validate_Should_ReturnErrors_When_QueryIsInvalid()
     {
         var validator = new GetUsersQueryValidator();

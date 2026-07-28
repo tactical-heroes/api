@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetDetail
 
 public sealed class GetUserDetailsHandlerTests
 {
-    [Fact(DisplayName = "User details handler should return a user from the read repository")]
+    [Fact(DisplayName = "User details handler should return a user from the read repository when user exists")]
     public async Task HandleAsync_Should_ReturnUser_When_UserExists()
     {
         var userId = Guid.CreateVersion7();
@@ -17,10 +17,10 @@ public sealed class GetUserDetailsHandlerTests
             "Active",
             "Active",
             []);
-        var repository = Substitute.For<IUsersReadRepository>();
-        repository.GetDetailsByIdAsync(userId, Arg.Any<CancellationToken>())
+        var usersReadRepository = Substitute.For<IUsersReadRepository>();
+        usersReadRepository.GetDetailsByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(readModel);
-        var handler = new GetUserDetailsHandler(repository);
+        var handler = new GetUserDetailsHandler(usersReadRepository);
 
         var result = await handler.HandleAsync(
             new GetUserDetailsQuery(userId),
@@ -30,13 +30,13 @@ public sealed class GetUserDetailsHandlerTests
         result.Value.ShouldBe(readModel);
     }
 
-    [Fact(DisplayName = "User details handler should return not found for a missing user")]
+    [Fact(DisplayName = "User details handler should return not found for a missing user when user does not exist")]
     public async Task HandleAsync_Should_ReturnNotFound_When_UserDoesNotExist()
     {
-        var repository = Substitute.For<IUsersReadRepository>();
-        repository.GetDetailsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        var usersReadRepository = Substitute.For<IUsersReadRepository>();
+        usersReadRepository.GetDetailsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((UserDetailsReadModel?)null);
-        var handler = new GetUserDetailsHandler(repository);
+        var handler = new GetUserDetailsHandler(usersReadRepository);
 
         var result = await handler.HandleAsync(
             new GetUserDetailsQuery(Guid.CreateVersion7()),

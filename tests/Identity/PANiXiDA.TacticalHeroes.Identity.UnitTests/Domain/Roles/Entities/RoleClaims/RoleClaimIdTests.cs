@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles.Entities.RoleC
 
 public sealed class RoleClaimIdTests
 {
-    [Fact(DisplayName = "Role claim id should create a non-empty value")]
+    [Fact(DisplayName = "Role claim id should create a non-empty value when called")]
     public void New_Should_CreateNonEmptyId_When_Called()
     {
         var id = RoleClaimId.New();
@@ -13,7 +13,7 @@ public sealed class RoleClaimIdTests
         id.ToString().ShouldBe(id.Value.ToString());
     }
 
-    [Fact(DisplayName = "Role claim id should preserve a valid value")]
+    [Fact(DisplayName = "Role claim id should preserve a valid value when value is valid")]
     public void Create_Should_ReturnId_When_ValueIsValid()
     {
         var value = Guid.CreateVersion7();
@@ -24,7 +24,7 @@ public sealed class RoleClaimIdTests
         result.Value.Value.ShouldBe(value);
     }
 
-    [Fact(DisplayName = "Role claim id should reject an empty value")]
+    [Fact(DisplayName = "Role claim id should reject an empty value when value is empty")]
     public void Create_Should_ReturnValidationFailure_When_ValueIsEmpty()
     {
         var result = RoleClaimId.Create(Guid.Empty);

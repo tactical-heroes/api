@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class DeleteUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "DELETE user should remove the user from PostgreSQL")]
+    [Fact(DisplayName = "DELETE user should remove the user from PostgreSQL when user exists")]
     public async Task DeleteUser_Should_RemoveUser_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

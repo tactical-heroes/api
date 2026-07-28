@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Entities.UserC
 
 public sealed class ClaimValueTests
 {
-    [Fact(DisplayName = "User claim value should trim a valid value")]
+    [Fact(DisplayName = "User claim value should trim a valid value when claim value is valid")]
     public void Create_Should_TrimValue_When_ClaimValueIsValid()
     {
         var result = ClaimValue.Create(" heroes.read ");
@@ -14,7 +14,7 @@ public sealed class ClaimValueTests
         result.Value.ToString().ShouldBe("heroes.read");
     }
 
-    [Theory(DisplayName = "User claim value should reject an empty value")]
+    [Theory(DisplayName = "User claim value should reject an empty value when claim value is empty")]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_Should_ReturnValidationFailure_When_ClaimValueIsEmpty(string value)
@@ -25,7 +25,7 @@ public sealed class ClaimValueTests
             .ShouldHaveField(nameof(ClaimValue));
     }
 
-    [Fact(DisplayName = "User claim value should reject a value over the maximum length")]
+    [Fact(DisplayName = "User claim value should reject a value over the maximum length when claim value is too long")]
     public void Create_Should_ReturnValidationFailure_When_ClaimValueIsTooLong()
     {
         var result = ClaimValue.Create(new string('a', ClaimValue.MaxLength + 1));

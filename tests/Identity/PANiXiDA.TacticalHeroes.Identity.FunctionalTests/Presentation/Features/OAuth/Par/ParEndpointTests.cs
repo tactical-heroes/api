@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class ParEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST OAuth PAR should persist a pushed authorization request")]
+    [Fact(DisplayName = "POST OAuth PAR should persist a pushed authorization request when request is valid")]
     public async Task PostPar_Should_ReturnRequestUri_When_RequestIsValid()
     {
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);

@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Update;
 
 public sealed class UpdateUserCommandValidatorTests
 {
-    [Fact(DisplayName = "Update user validator should accept valid input")]
+    [Fact(DisplayName = "Update user validator should accept valid input when command is valid")]
     public void Validate_Should_ReturnValidResult_When_CommandIsValid()
     {
         var validator = new UpdateUserCommandValidator();
@@ -23,7 +23,7 @@ public sealed class UpdateUserCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Update user validator should reject invalid input")]
+    [Fact(DisplayName = "Update user validator should reject invalid input when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new UpdateUserCommandValidator();
