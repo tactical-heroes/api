@@ -35,4 +35,14 @@ public sealed class RoleNameTests
                 $"Role name cannot be longer than {RoleName.MaxLength} characters.")
             .ShouldHaveField(nameof(RoleName));
     }
+
+    [Fact(DisplayName = "Role name should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var roleName = RoleName.Create("admin").Value;
+
+        var result = roleName.ToString();
+
+        result.ShouldBe(roleName.Value);
+    }
 }

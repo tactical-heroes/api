@@ -35,4 +35,14 @@ public sealed class UserNameTests
                 $"User name cannot be longer than {UserName.MaxLength} characters.")
             .ShouldHaveField(nameof(UserName));
     }
+
+    [Fact(DisplayName = "User name should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var userName = UserName.Create("tactical-hero").Value;
+
+        var result = userName.ToString();
+
+        result.ShouldBe(userName.Value);
+    }
 }

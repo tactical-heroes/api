@@ -38,4 +38,14 @@ public sealed class FactionNameTests
                 $"Faction name cannot be longer than {FactionName.MaxLength} characters.")
             .ShouldHaveField(nameof(FactionName));
     }
+
+    [Fact(DisplayName = "Faction name should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var name = FactionName.Create("Northern Alliance").Value;
+
+        var result = name.ToString();
+
+        result.ShouldBe(name.Value);
+    }
 }

@@ -31,4 +31,15 @@ public sealed class UserClaimIdTests
 
         result.ShouldHaveSingleError(ErrorType.Validation, "User claim id cannot be empty.");
     }
+
+    [Fact(DisplayName = "User claim id should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var value = Guid.CreateVersion7();
+        var id = UserClaimId.Create(value).Value;
+
+        var result = id.ToString();
+
+        result.ShouldBe(value.ToString());
+    }
 }

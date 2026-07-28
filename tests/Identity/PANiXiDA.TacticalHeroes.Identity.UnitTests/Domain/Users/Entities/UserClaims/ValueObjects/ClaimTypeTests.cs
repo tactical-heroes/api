@@ -35,4 +35,14 @@ public sealed class ClaimTypeTests
                 $"Claim type cannot be longer than {ClaimType.MaxLength} characters.")
             .ShouldHaveField(nameof(ClaimType));
     }
+
+    [Fact(DisplayName = "User claim type should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var claimType = ClaimType.Create("permission").Value;
+
+        var result = claimType.ToString();
+
+        result.ShouldBe(claimType.Value);
+    }
 }
