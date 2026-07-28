@@ -1,9 +1,9 @@
+using PANiXiDA.Core.Presentation.Http.Endpoints;
+
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 
 public sealed class EndpointFunctionalTestConventionTests
 {
-    private const string EndpointInterfaceName =
-        "PANiXiDA.Core.Presentation.Http.Endpoints.IEndpoint";
     private const string PresentationAssemblySuffix = ".Presentation";
     private const string FunctionalTestsAssemblySuffix = ".FunctionalTests";
     private const string SourceDirectoryName = "src";
@@ -20,7 +20,7 @@ public sealed class EndpointFunctionalTestConventionTests
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                ImplementsInterface(type, EndpointInterfaceName))
+                typeof(IEndpoint).IsAssignableFrom(type))
             .OrderBy(type => type.FullName, StringComparer.Ordinal)
             .ToArray();
 
@@ -99,13 +99,5 @@ public sealed class EndpointFunctionalTestConventionTests
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
             $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
-    }
-
-    private static bool ImplementsInterface(Type type, string interfaceName)
-    {
-        return type.GetInterfaces().Any(candidate =>
-            string.Equals(candidate.FullName, interfaceName, StringComparison.Ordinal) ||
-            candidate.GetInterfaces().Any(parent =>
-                string.Equals(parent.FullName, interfaceName, StringComparison.Ordinal)));
     }
 }

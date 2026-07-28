@@ -1,15 +1,12 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+using PANiXiDA.Core.Presentation.Http.Endpoints;
+
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 
 public sealed class EndpointMetadataConventionTests
 {
-    private const string EndpointInterfaceName =
-        "PANiXiDA.Core.Presentation.Http.Endpoints.IEndpoint";
-    private const string EndpointGroupInterfaceName =
-        "PANiXiDA.Core.Presentation.Http.Endpoints.IEndpointGroup";
-
     private static readonly Regex RouteSegmentPattern = new(
         "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
         RegexOptions.CultureInvariant);
@@ -38,8 +35,8 @@ public sealed class EndpointMetadataConventionTests
             .Select(type => new
             {
                 Type = type,
-                IsEndpoint = ImplementsInterface(type, EndpointInterfaceName),
-                IsEndpointGroup = ImplementsInterface(type, EndpointGroupInterfaceName)
+                IsEndpoint = typeof(IEndpoint).IsAssignableFrom(type),
+                IsEndpointGroup = typeof(IEndpointGroup).IsAssignableFrom(type)
             })
             .Where(metadata => metadata.IsEndpoint || metadata.IsEndpointGroup)
             .OrderBy(metadata => metadata.Type.FullName, StringComparer.Ordinal)
@@ -82,14 +79,6 @@ public sealed class EndpointMetadataConventionTests
         Assert.True(
             violations.Count == 0,
             string.Join(Environment.NewLine, violations));
-    }
-
-    private static bool ImplementsInterface(Type type, string interfaceName)
-    {
-        return type.GetInterfaces().Any(candidate =>
-            string.Equals(candidate.FullName, interfaceName, StringComparison.Ordinal) ||
-            candidate.GetInterfaces().Any(parent =>
-                string.Equals(parent.FullName, interfaceName, StringComparison.Ordinal)));
     }
 
     private static string GetMetadata(object instance, string propertyName)
