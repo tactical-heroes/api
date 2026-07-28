@@ -5,7 +5,7 @@ using System.Net;
 namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
 [Collection(MailpitIntegrationTestCollection.Name)]
-public sealed class NotificationEmailTests(MailpitIntegrationTestFixture fixture)
+public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixture)
 {
     [Fact(DisplayName = "Email confirmation event should send a formatted email through Mailpit")]
     public async Task EmailConfirmationRequested_Should_SendFormattedEmail()
