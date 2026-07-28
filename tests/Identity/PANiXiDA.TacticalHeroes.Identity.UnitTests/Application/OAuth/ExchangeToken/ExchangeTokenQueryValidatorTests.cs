@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.ExchangeT
 
 public sealed class ExchangeTokenQueryValidatorTests
 {
-    [Fact(DisplayName = "Exchange token validator should accept a valid user id")]
+    [Fact(DisplayName = "Exchange token validator should accept a valid user id when user id is valid")]
     public void Validate_Should_ReturnValidResult_When_UserIdIsValid()
     {
         var validator = new ExchangeTokenQueryValidator();
@@ -14,7 +14,7 @@ public sealed class ExchangeTokenQueryValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Exchange token validator should reject an empty user id")]
+    [Fact(DisplayName = "Exchange token validator should reject an empty user id when user id is empty")]
     public void Validate_Should_ReturnError_When_UserIdIsEmpty()
     {
         var validator = new ExchangeTokenQueryValidator();

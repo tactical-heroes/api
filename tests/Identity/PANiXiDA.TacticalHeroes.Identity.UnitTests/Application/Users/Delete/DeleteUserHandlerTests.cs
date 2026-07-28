@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Delete;
 
 public sealed class DeleteUserHandlerTests
 {
-    [Fact(DisplayName = "Delete user handler should delegate deletion to the write repository")]
+    [Fact(DisplayName = "Delete user handler should delegate deletion to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();

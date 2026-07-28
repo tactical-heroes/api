@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "AddAsync should persist a valid faction")]
+    [Fact(DisplayName = "AddAsync should persist a valid faction when faction is valid")]
     public async Task AddAsync_Should_PersistFaction_When_FactionIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -36,7 +36,7 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
         persistedFaction.Description.Value.ShouldBe("Defenders of the north.");
     }
 
-    [Fact(DisplayName = "GetByIdAsync should return an existing faction")]
+    [Fact(DisplayName = "GetByIdAsync should return an existing faction when faction exists")]
     public async Task GetByIdAsync_Should_ReturnFaction_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -54,7 +54,7 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
         persistedFaction.Description.Value.ShouldBe("Defenders of the north.");
     }
 
-    [Fact(DisplayName = "UpdateAsync should persist faction changes")]
+    [Fact(DisplayName = "UpdateAsync should persist faction changes when faction exists")]
     public async Task UpdateAsync_Should_PersistChanges_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -92,7 +92,7 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
         persistedFaction.Description.Value.ShouldBe("Defenders of the south.");
     }
 
-    [Fact(DisplayName = "DeleteAsync should soft delete an existing faction")]
+    [Fact(DisplayName = "DeleteAsync should soft delete an existing faction when faction exists")]
     public async Task DeleteAsync_Should_SoftDeleteFaction_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

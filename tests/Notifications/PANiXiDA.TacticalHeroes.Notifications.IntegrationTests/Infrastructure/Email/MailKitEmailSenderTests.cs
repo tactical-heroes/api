@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.
 [Collection(MailpitIntegrationTestCollection.Name)]
 public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "SendAsync should deliver a formatted email through Mailpit")]
+    [Fact(DisplayName = "SendAsync should deliver a formatted email through Mailpit when message is valid")]
     public async Task SendAsync_Should_DeliverEmail_When_MessageIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -39,8 +39,8 @@ public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixtur
         textBody.ShouldContain(message.TextBody);
     }
 
-    [Fact(DisplayName = "Email confirmation event should send a formatted email through Mailpit")]
-    public async Task EmailConfirmationRequested_Should_SendFormattedEmail()
+    [Fact(DisplayName = "Email confirmation event should send a formatted email through Mailpit when event is published")]
+    public async Task EmailConfirmationRequested_Should_SendFormattedEmail_When_EventIsPublished()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var confirmationUrl =
@@ -73,8 +73,8 @@ public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixtur
         textBody.ShouldContain("2026-07-19 12:00 UTC");
     }
 
-    [Fact(DisplayName = "Password reset event should send a formatted email through Mailpit")]
-    public async Task PasswordResetRequested_Should_SendFormattedEmail()
+    [Fact(DisplayName = "Password reset event should send a formatted email through Mailpit when event is published")]
+    public async Task PasswordResetRequested_Should_SendFormattedEmail_When_EventIsPublished()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var passwordResetUrl =

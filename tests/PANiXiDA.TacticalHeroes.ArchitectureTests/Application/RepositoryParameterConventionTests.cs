@@ -9,16 +9,20 @@ public sealed class RepositoryParameterConventionTests
     private const string AggregateRepositoryInterfaceName =
         "PANiXiDA.Core.Domain.Abstractions.IRepository`2";
 
-    [Fact(DisplayName = "Aggregate repository constructor parameters should follow type-based naming")]
+    [Fact(DisplayName = "Aggregate repository constructor parameters should follow type-based naming when aggregate repository is injected")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_AggregateRepositoryIsInjected()
     {
-        AssertConstructorParametersFollowTypeBasedNaming(IsAggregateRepository);
+        Func<Type, bool> repositoryPredicate = IsAggregateRepository;
+
+        AssertConstructorParametersFollowTypeBasedNaming(repositoryPredicate);
     }
 
-    [Fact(DisplayName = "Read repository constructor parameters should follow type-based naming")]
+    [Fact(DisplayName = "Read repository constructor parameters should follow type-based naming when read repository is injected")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected()
     {
-        AssertConstructorParametersFollowTypeBasedNaming(IsReadRepository);
+        Func<Type, bool> repositoryPredicate = IsReadRepository;
+
+        AssertConstructorParametersFollowTypeBasedNaming(repositoryPredicate);
     }
 
     private static void AssertConstructorParametersFollowTypeBasedNaming(

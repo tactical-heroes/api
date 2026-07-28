@@ -9,7 +9,7 @@ public sealed class EndpointFunctionalTestConventionTests
     private const string SourceDirectoryName = "src";
     private const string TestsDirectoryName = "tests";
 
-    [Fact(DisplayName = "Endpoints should have matching functional test files")]
+    [Fact(DisplayName = "Endpoints should have matching functional test files when declared")]
     public void Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared()
     {
         var repositoryRoot = FindRepositoryRoot();

@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST OAuth token should exchange and refresh a persisted user authorization")]
+    [Fact(DisplayName = "POST OAuth token should exchange and refresh a persisted user authorization when refresh token is valid")]
     public async Task PostToken_Should_IssueNewTokens_When_RefreshTokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

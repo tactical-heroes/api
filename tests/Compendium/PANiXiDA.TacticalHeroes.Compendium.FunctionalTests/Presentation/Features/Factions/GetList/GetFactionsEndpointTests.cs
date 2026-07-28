@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class GetFactionsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET factions should return a sorted page")]
+    [Fact(DisplayName = "GET factions should return a sorted page when factions exist")]
     public async Task GetFactions_Should_ReturnSortedPage_When_FactionsExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

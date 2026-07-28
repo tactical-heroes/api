@@ -15,7 +15,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "AddAsync should persist a valid user")]
+    [Fact(DisplayName = "AddAsync should persist a valid user when command is valid")]
     public async Task AddAsync_Should_PersistUser_When_CommandIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -41,7 +41,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
         user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "UpdateAsync should persist user changes")]
+    [Fact(DisplayName = "UpdateAsync should persist user changes when user exists")]
     public async Task UpdateAsync_Should_PersistChanges_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -83,7 +83,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
         user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
     }
 
-    [Fact(DisplayName = "DeleteAsync should remove an existing user")]
+    [Fact(DisplayName = "DeleteAsync should remove an existing user when user exists")]
     public async Task DeleteAsync_Should_RemoveUser_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -109,7 +109,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Users write repository should return not found for a missing user")]
+    [Fact(DisplayName = "Users write repository should return not found for a missing user when user does not exist")]
     public async Task DeleteAsync_Should_ReturnNotFound_When_UserDoesNotExist()
     {
         await using var scope = Fixture.CreateScope();
@@ -122,7 +122,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
     }
 
-    [Fact(DisplayName = "BlockAsync should block an active user")]
+    [Fact(DisplayName = "BlockAsync should block an active user when user is active")]
     public async Task BlockAsync_Should_BlockUser_When_UserIsActive()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -143,7 +143,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
         (await ReadStatusAsync(userId, cancellationToken)).ShouldBe(UserStatus.Blocked.Name);
     }
 
-    [Fact(DisplayName = "UnblockAsync should activate a blocked user")]
+    [Fact(DisplayName = "UnblockAsync should activate a blocked user when user is blocked")]
     public async Task UnblockAsync_Should_ActivateUser_When_UserIsBlocked()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

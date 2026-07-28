@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Create;
 
 public sealed class CreateRoleHandlerTests
 {
-    [Fact(DisplayName = "Create role handler should delegate creation to the write repository")]
+    [Fact(DisplayName = "Create role handler should delegate creation to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnRoleId_When_RepositorySucceeds()
     {
         var roleId = Guid.CreateVersion7();

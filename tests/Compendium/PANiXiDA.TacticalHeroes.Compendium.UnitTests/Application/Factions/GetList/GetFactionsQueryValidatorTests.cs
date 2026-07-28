@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetL
 
 public sealed class GetFactionsQueryValidatorTests
 {
-    [Fact(DisplayName = "Factions validator should reject invalid pagination")]
+    [Fact(DisplayName = "Factions validator should reject invalid pagination when pagination is invalid")]
     public void Validate_Should_ReturnErrors_When_PaginationIsInvalid()
     {
         var validator = new GetFactionsQueryValidator();

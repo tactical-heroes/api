@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class GetFactionDetailsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET faction should return faction details")]
+    [Fact(DisplayName = "GET faction should return faction details when faction exists")]
     public async Task GetFaction_Should_ReturnDetails_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -25,7 +25,7 @@ public sealed class GetFactionDetailsEndpointTests(FunctionalTestFixture fixture
         faction.Description.ShouldBe("Defenders of the north.");
     }
 
-    [Fact(DisplayName = "GET faction should return not found for a missing faction")]
+    [Fact(DisplayName = "GET faction should return not found for a missing faction when faction does not exist")]
     public async Task GetFaction_Should_ReturnNotFound_When_FactionDoesNotExist()
     {
         var client = new FactionsApiTestClient(Fixture);

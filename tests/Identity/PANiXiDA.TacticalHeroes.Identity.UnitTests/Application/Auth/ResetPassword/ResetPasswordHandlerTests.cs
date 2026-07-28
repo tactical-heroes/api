@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResetPassw
 
 public sealed class ResetPasswordHandlerTests
 {
-    [Fact(DisplayName = "Reset password handler should delegate password reset to credentials service")]
+    [Fact(DisplayName = "Reset password handler should delegate password reset to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var userId = Guid.CreateVersion7();

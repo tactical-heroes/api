@@ -18,7 +18,7 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
         @"(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\(",
         RegexOptions.CultureInvariant);
 
-    [Fact(DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files")]
+    [Fact(DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files when application interfaces are implemented")]
     public void InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
     {
         var repositoryRoot = FindRepositoryRoot();
@@ -47,7 +47,7 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
             string.Join(Environment.NewLine, missingTestFiles));
     }
 
-    [Fact(DisplayName = "Integration tests should cover every implemented Application interface method")]
+    [Fact(DisplayName = "Integration tests should cover every implemented Application interface method when implementation exists")]
     public void IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists()
     {
         var repositoryRoot = FindRepositoryRoot();

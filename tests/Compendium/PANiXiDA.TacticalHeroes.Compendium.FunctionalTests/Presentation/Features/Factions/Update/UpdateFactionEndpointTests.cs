@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class UpdateFactionEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "PUT faction should update faction details")]
+    [Fact(DisplayName = "PUT faction should update faction details when request is valid")]
     public async Task PutFaction_Should_UpdateDetails_When_RequestIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

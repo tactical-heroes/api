@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class CreateFactionEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST factions should create a normalized faction")]
+    [Fact(DisplayName = "POST factions should create a normalized faction when request is valid")]
     public async Task PostFactions_Should_CreateFaction_When_RequestIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

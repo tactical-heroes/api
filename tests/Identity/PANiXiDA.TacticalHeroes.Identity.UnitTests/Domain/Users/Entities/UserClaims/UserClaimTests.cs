@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Entities.UserC
 
 public sealed class UserClaimTests
 {
-    [Fact(DisplayName = "Create should build a user claim from valid values")]
+    [Fact(DisplayName = "Create should build a user claim from valid values when values are valid")]
     public void Create_Should_ReturnUserClaim_When_ValuesAreValid()
     {
         var result = UserClaim.Create(" permission ", " heroes.read ");
@@ -15,7 +15,7 @@ public sealed class UserClaimTests
         result.Value.Value.Value.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "Create should reject an invalid user claim value")]
+    [Fact(DisplayName = "Create should reject an invalid user claim value when value is invalid")]
     public void Create_Should_ReturnValidationFailure_When_ValueIsInvalid()
     {
         var result = UserClaim.Create("permission", "");

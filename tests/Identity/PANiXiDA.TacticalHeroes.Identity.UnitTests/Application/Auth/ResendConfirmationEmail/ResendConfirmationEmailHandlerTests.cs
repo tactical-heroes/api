@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResendConf
 
 public sealed class ResendConfirmationEmailHandlerTests
 {
-    [Fact(DisplayName = "Resend confirmation handler should delegate email request to credentials service")]
+    [Fact(DisplayName = "Resend confirmation handler should delegate email request to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var service = Substitute.For<IUserCredentialsService>();

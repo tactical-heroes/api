@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Create;
 
 public sealed class CreateRoleCommandValidatorTests
 {
-    [Fact(DisplayName = "Create role validator should accept valid input")]
+    [Fact(DisplayName = "Create role validator should accept valid input when command is valid")]
     public void Validate_Should_ReturnValidResult_When_CommandIsValid()
     {
         var validator = new CreateRoleCommandValidator();
@@ -17,7 +17,7 @@ public sealed class CreateRoleCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Create role validator should reject invalid input")]
+    [Fact(DisplayName = "Create role validator should reject invalid input when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new CreateRoleCommandValidator();

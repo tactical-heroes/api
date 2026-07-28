@@ -12,7 +12,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "AddAsync should persist a valid role")]
+    [Fact(DisplayName = "AddAsync should persist a valid role when command is valid")]
     public async Task AddAsync_Should_PersistRole_When_CommandIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -32,7 +32,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "UpdateAsync should persist role changes")]
+    [Fact(DisplayName = "UpdateAsync should persist role changes when role exists")]
     public async Task UpdateAsync_Should_PersistChanges_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -63,7 +63,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
     }
 
-    [Fact(DisplayName = "DeleteAsync should remove an existing role")]
+    [Fact(DisplayName = "DeleteAsync should remove an existing role when role exists")]
     public async Task DeleteAsync_Should_RemoveRole_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -83,7 +83,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Roles repository should return conflict for a duplicate role")]
+    [Fact(DisplayName = "Roles repository should return conflict for a duplicate role when role name already exists")]
     public async Task AddAsync_Should_ReturnConflict_When_RoleNameAlreadyExists()
     {
         await using var scope = Fixture.CreateScope();

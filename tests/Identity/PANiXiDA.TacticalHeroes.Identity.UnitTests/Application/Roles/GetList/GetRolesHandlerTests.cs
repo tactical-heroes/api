@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetList;
 
 public sealed class GetRolesHandlerTests
 {
-    [Fact(DisplayName = "Role list handler should return a page from the read repository")]
+    [Fact(DisplayName = "Role list handler should return a page from the read repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
     {
         var pagination = new PaginationParameters(1, 20);

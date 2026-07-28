@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Entities.UserC
 
 public sealed class UserClaimIdTests
 {
-    [Fact(DisplayName = "User claim id should create a non-empty value")]
+    [Fact(DisplayName = "User claim id should create a non-empty value when called")]
     public void New_Should_CreateNonEmptyId_When_Called()
     {
         var id = UserClaimId.New();
@@ -13,7 +13,7 @@ public sealed class UserClaimIdTests
         id.ToString().ShouldBe(id.Value.ToString());
     }
 
-    [Fact(DisplayName = "User claim id should preserve a valid value")]
+    [Fact(DisplayName = "User claim id should preserve a valid value when value is valid")]
     public void Create_Should_ReturnId_When_ValueIsValid()
     {
         var value = Guid.CreateVersion7();
@@ -24,7 +24,7 @@ public sealed class UserClaimIdTests
         result.Value.Value.ShouldBe(value);
     }
 
-    [Fact(DisplayName = "User claim id should reject an empty value")]
+    [Fact(DisplayName = "User claim id should reject an empty value when value is empty")]
     public void Create_Should_ReturnValidationFailure_When_ValueIsEmpty()
     {
         var result = UserClaimId.Create(Guid.Empty);

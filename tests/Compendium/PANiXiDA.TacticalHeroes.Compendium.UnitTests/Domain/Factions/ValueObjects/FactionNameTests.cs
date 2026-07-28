@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Factions.ValueObje
 
 public sealed class FactionNameTests
 {
-    [Fact(DisplayName = "Faction name should trim a valid value")]
+    [Fact(DisplayName = "Faction name should trim a valid value when name is valid")]
     public void Create_Should_TrimValue_When_NameIsValid()
     {
         var result = FactionName.Create("  Northern Alliance  ");
@@ -14,7 +14,7 @@ public sealed class FactionNameTests
         result.Value.ToString().ShouldBe("Northern Alliance");
     }
 
-    [Theory(DisplayName = "Faction name should reject an empty value")]
+    [Theory(DisplayName = "Faction name should reject an empty value when name is empty")]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_Should_ReturnValidationFailure_When_NameIsEmpty(string value)
@@ -27,7 +27,7 @@ public sealed class FactionNameTests
             .ShouldHaveField(nameof(FactionName));
     }
 
-    [Fact(DisplayName = "Faction name should reject a value over the maximum length")]
+    [Fact(DisplayName = "Faction name should reject a value over the maximum length when name is too long")]
     public void Create_Should_ReturnValidationFailure_When_NameIsTooLong()
     {
         var result = FactionName.Create(

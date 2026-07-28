@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetRoleDetailsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET role details should return persisted role state")]
+    [Fact(DisplayName = "GET role details should return persisted role state when role exists")]
     public async Task GetRoleDetails_Should_ReturnRole_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

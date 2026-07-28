@@ -6,8 +6,8 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class CompendiumWriteDbContextMigrationTests(
     IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Migrations should use the Compendium schema and history table")]
-    public async Task Migrations_Should_UseCompendiumSchemaAndHistoryTable()
+    [Fact(DisplayName = "Migrations should use the Compendium schema and history table when model is built")]
+    public async Task Migrations_Should_UseCompendiumSchemaAndHistoryTable_When_ModelIsBuilt()
     {
         await using var connection = new NpgsqlConnection(fixture.ConnectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);

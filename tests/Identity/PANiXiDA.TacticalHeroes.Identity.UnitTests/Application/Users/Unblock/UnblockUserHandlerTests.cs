@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Unblock;
 
 public sealed class UnblockUserHandlerTests
 {
-    [Fact(DisplayName = "Unblock user handler should delegate unblocking to the write repository")]
+    [Fact(DisplayName = "Unblock user handler should delegate unblocking to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();

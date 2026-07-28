@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "GetDetailsByIdAsync should return faction details")]
+    [Fact(DisplayName = "GetDetailsByIdAsync should return faction details when faction exists")]
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -29,7 +29,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         details.Description.ShouldBe("Defenders of the north.");
     }
 
-    [Fact(DisplayName = "GetPagedAsync should return factions sorted by name")]
+    [Fact(DisplayName = "GetPagedAsync should return factions sorted by name when factions exist")]
     public async Task GetPagedAsync_Should_ReturnSortedPage_When_FactionsExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -55,7 +55,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBe(["Northern Alliance", "Southern Alliance"]);
     }
 
-    [Fact(DisplayName = "ExistsByIdAsync should return true for an existing faction")]
+    [Fact(DisplayName = "ExistsByIdAsync should return true for an existing faction when faction exists")]
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -71,8 +71,8 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "AnyAsync should reflect whether factions exist")]
-    public async Task AnyAsync_Should_ReflectWhetherFactionsExist()
+    [Fact(DisplayName = "AnyAsync should reflect whether factions exist when called")]
+    public async Task AnyAsync_Should_ReflectWhetherFactionsExist_When_Called()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 

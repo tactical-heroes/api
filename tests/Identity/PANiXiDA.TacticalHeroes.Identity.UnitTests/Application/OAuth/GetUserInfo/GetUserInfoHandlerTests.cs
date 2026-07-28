@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.GetUserIn
 
 public sealed class GetUserInfoHandlerTests
 {
-    [Fact(DisplayName = "User info handler should query the OAuth users repository")]
+    [Fact(DisplayName = "User info handler should query the OAuth users repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnUserInfo_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();

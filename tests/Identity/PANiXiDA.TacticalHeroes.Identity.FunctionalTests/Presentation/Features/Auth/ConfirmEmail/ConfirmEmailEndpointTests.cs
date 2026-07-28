@@ -8,7 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class ConfirmEmailEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST auth confirm-email should confirm the persisted user with the issued token")]
+    [Fact(DisplayName = "POST auth confirm-email should confirm the persisted user with the issued token when token is valid")]
     public async Task PostConfirmEmail_Should_ConfirmUser_When_TokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

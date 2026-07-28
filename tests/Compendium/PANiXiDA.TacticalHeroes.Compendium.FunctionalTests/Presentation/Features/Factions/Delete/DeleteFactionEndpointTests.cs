@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class DeleteFactionEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "DELETE faction should remove faction from reads")]
+    [Fact(DisplayName = "DELETE faction should remove faction from reads when faction exists")]
     public async Task DeleteFaction_Should_HideFaction_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -5,8 +5,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class IdentityWriteDbContextMigrationTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Migrations should create identity tables outside public schema")]
-    public async Task Migrations_Should_CreateIdentityTablesOutsidePublicSchema()
+    [Fact(DisplayName = "Migrations should create identity tables outside public schema when model is built")]
+    public async Task Migrations_Should_CreateIdentityTablesOutsidePublicSchema_When_ModelIsBuilt()
     {
         var expectedIdentityTables = new[]
         {

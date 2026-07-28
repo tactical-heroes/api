@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Crea
 
 public sealed class CreateFactionCommandValidatorTests
 {
-    [Fact(DisplayName = "Create faction validator should reject empty details")]
+    [Fact(DisplayName = "Create faction validator should reject empty details when details are empty")]
     public void Validate_Should_ReturnErrors_When_DetailsAreEmpty()
     {
         var validator = new CreateFactionCommandValidator();

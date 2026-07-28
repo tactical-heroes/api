@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetDetail
 
 public sealed class GetRoleDetailsHandlerTests
 {
-    [Fact(DisplayName = "Role details handler should return a role from the read repository")]
+    [Fact(DisplayName = "Role details handler should return a role from the read repository when role exists")]
     public async Task HandleAsync_Should_ReturnRole_When_RoleExists()
     {
         var roleId = Guid.CreateVersion7();
@@ -23,7 +23,7 @@ public sealed class GetRoleDetailsHandlerTests
         result.Value.ShouldBe(readModel);
     }
 
-    [Fact(DisplayName = "Role details handler should return not found for a missing role")]
+    [Fact(DisplayName = "Role details handler should return not found for a missing role when role does not exist")]
     public async Task HandleAsync_Should_ReturnNotFound_When_RoleDoesNotExist()
     {
         var rolesReadRepository = Substitute.For<IRolesReadRepository>();

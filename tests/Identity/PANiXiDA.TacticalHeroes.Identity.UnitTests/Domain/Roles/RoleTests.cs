@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles;
 
 public sealed class RoleTests
 {
-    [Fact(DisplayName = "Create should restore persisted role state")]
+    [Fact(DisplayName = "Create should restore persisted role state when persisted values are valid")]
     public void Create_Should_RestoreState_When_PersistedValuesAreValid()
     {
         var id = Guid.CreateVersion7();
@@ -22,7 +22,7 @@ public sealed class RoleTests
         claim.Value.Value.ShouldBe("heroes.manage");
     }
 
-    [Fact(DisplayName = "Create should reject invalid persisted state")]
+    [Fact(DisplayName = "Create should reject invalid persisted state when persisted state is invalid")]
     public void Create_Should_ReturnValidationFailures_When_PersistedStateIsInvalid()
     {
         var result = Role.Create(Guid.Empty, "", []);
@@ -31,7 +31,7 @@ public sealed class RoleTests
         result.Errors.Count.ShouldBe(2);
     }
 
-    [Fact(DisplayName = "Grant claim should add a valid claim only once")]
+    [Fact(DisplayName = "Grant claim should add a valid claim only once when claim is valid")]
     public void GrantClaim_Should_AddClaimOnce_When_ClaimIsValid()
     {
         var role = CreateRole();
@@ -44,7 +44,7 @@ public sealed class RoleTests
         role.Claims.ShouldHaveSingleItem();
     }
 
-    [Fact(DisplayName = "Grant claim should reject an invalid claim")]
+    [Fact(DisplayName = "Grant claim should reject an invalid claim when claim is invalid")]
     public void GrantClaim_Should_ReturnValidationFailure_When_ClaimIsInvalid()
     {
         var role = CreateRole();
@@ -55,7 +55,7 @@ public sealed class RoleTests
         role.Claims.ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Revoke claim should remove the matching claim")]
+    [Fact(DisplayName = "Revoke claim should remove the matching claim when claim exists")]
     public void RevokeClaim_Should_RemoveClaim_When_ClaimExists()
     {
         var role = CreateRole();

@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class RegisterUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST auth register should create an unconfirmed user in PostgreSQL")]
+    [Fact(DisplayName = "POST auth register should create an unconfirmed user in PostgreSQL when request is valid")]
     public async Task PostRegister_Should_PersistUnconfirmedUser_When_RequestIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

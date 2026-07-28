@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.GetClient
 
 public sealed class GetClientTokenPrincipalHandlerTests
 {
-    [Fact(DisplayName = "Client token principal handler should query the OAuth clients repository")]
+    [Fact(DisplayName = "Client token principal handler should query the OAuth clients repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnPrincipal_When_RepositorySucceeds()
     {
         var readModel = new OAuthClientTokenPrincipalReadModel([]);

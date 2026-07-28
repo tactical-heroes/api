@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Upda
 
 public sealed class UpdateFactionCommandValidatorTests
 {
-    [Fact(DisplayName = "Update faction validator should reject invalid values")]
+    [Fact(DisplayName = "Update faction validator should reject invalid values when values are invalid")]
     public void Validate_Should_ReturnErrors_When_ValuesAreInvalid()
     {
         var validator = new UpdateFactionCommandValidator();

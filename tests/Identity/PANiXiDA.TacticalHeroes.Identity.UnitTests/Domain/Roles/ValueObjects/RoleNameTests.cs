@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles.ValueObjects;
 
 public sealed class RoleNameTests
 {
-    [Fact(DisplayName = "Role name should normalize a valid value")]
+    [Fact(DisplayName = "Role name should normalize a valid value when role name is valid")]
     public void Create_Should_NormalizeValue_When_RoleNameIsValid()
     {
         var result = RoleName.Create("  ADMIN  ");
@@ -14,7 +14,7 @@ public sealed class RoleNameTests
         result.Value.ToString().ShouldBe("admin");
     }
 
-    [Theory(DisplayName = "Role name should reject an empty value")]
+    [Theory(DisplayName = "Role name should reject an empty value when role name is empty")]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_Should_ReturnValidationFailure_When_RoleNameIsEmpty(string value)
@@ -25,7 +25,7 @@ public sealed class RoleNameTests
             .ShouldHaveField(nameof(RoleName));
     }
 
-    [Fact(DisplayName = "Role name should reject a value over the maximum length")]
+    [Fact(DisplayName = "Role name should reject a value over the maximum length when role name is too long")]
     public void Create_Should_ReturnValidationFailure_When_RoleNameIsTooLong()
     {
         var result = RoleName.Create(new string('a', RoleName.MaxLength + 1));

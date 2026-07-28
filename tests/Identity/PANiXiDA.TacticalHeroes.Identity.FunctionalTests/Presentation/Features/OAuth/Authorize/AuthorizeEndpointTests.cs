@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class AuthorizeEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "GET OAuth authorize should redirect an anonymous user to the configured login page")]
+    [Theory(DisplayName = "GET OAuth authorize should redirect an anonymous user to the configured login page when user is anonymous")]
     [InlineData(OAuthAuthorizationRequestTestHelper.RedirectUri)]
     [InlineData("https://dev.tactical-heroes.panixida.ru/oauth/callback")]
     public async Task GetAuthorize_Should_RedirectToConfiguredLogin_When_UserIsAnonymous(

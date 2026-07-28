@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Crea
 
 public sealed class CreateFactionHandlerTests
 {
-    [Fact(DisplayName = "Create faction handler should add a valid faction")]
+    [Fact(DisplayName = "Create faction handler should add a valid faction when command is valid")]
     public async Task HandleAsync_Should_AddFaction_When_CommandIsValid()
     {
         var repository = Substitute.For<IFactionsRepository>();

@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Update;
 
 public sealed class UpdateRoleHandlerTests
 {
-    [Fact(DisplayName = "Update role handler should delegate update to the write repository")]
+    [Fact(DisplayName = "Update role handler should delegate update to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var roleId = Guid.CreateVersion7();

@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.GetClient
 
 public sealed class GetClientTokenPrincipalQueryValidatorTests
 {
-    [Fact(DisplayName = "Client token principal validator should accept a client id")]
+    [Fact(DisplayName = "Client token principal validator should accept a client id when client id is provided")]
     public void Validate_Should_ReturnValidResult_When_ClientIdIsProvided()
     {
         var validator = new GetClientTokenPrincipalQueryValidator();
@@ -15,7 +15,7 @@ public sealed class GetClientTokenPrincipalQueryValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Client token principal validator should reject an empty client id")]
+    [Fact(DisplayName = "Client token principal validator should reject an empty client id when client id is empty")]
     public void Validate_Should_ReturnError_When_ClientIdIsEmpty()
     {
         var validator = new GetClientTokenPrincipalQueryValidator();

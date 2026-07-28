@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST auth reset-password should return not found for a missing user")]
+    [Fact(DisplayName = "POST auth reset-password should return not found for a missing user when user does not exist")]
     public async Task PostResetPassword_Should_ReturnNotFound_When_UserDoesNotExist()
     {
         using var response = await Client.PostAsJsonAsync(

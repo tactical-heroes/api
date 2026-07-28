@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Factions.ValueObje
 
 public sealed class FactionDescriptionTests
 {
-    [Fact(DisplayName = "Faction description should trim a valid value")]
+    [Fact(DisplayName = "Faction description should trim a valid value when description is valid")]
     public void Create_Should_TrimValue_When_DescriptionIsValid()
     {
         var result = FactionDescription.Create("  Defenders of the north.  ");
@@ -14,7 +14,7 @@ public sealed class FactionDescriptionTests
         result.Value.ToString().ShouldBe("Defenders of the north.");
     }
 
-    [Theory(DisplayName = "Faction description should reject an empty value")]
+    [Theory(DisplayName = "Faction description should reject an empty value when description is empty")]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_Should_ReturnValidationFailure_When_DescriptionIsEmpty(
@@ -28,7 +28,7 @@ public sealed class FactionDescriptionTests
             .ShouldHaveField(nameof(FactionDescription));
     }
 
-    [Fact(DisplayName = "Faction description should reject a value over the maximum length")]
+    [Fact(DisplayName = "Faction description should reject a value over the maximum length when description is too long")]
     public void Create_Should_ReturnValidationFailure_When_DescriptionIsTooLong()
     {
         var result = FactionDescription.Create(

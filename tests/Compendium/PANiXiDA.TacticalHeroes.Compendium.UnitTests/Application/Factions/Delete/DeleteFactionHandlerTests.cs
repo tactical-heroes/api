@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Dele
 
 public sealed class DeleteFactionHandlerTests
 {
-    [Fact(DisplayName = "Delete faction handler should delete an existing faction")]
+    [Fact(DisplayName = "Delete faction handler should delete an existing faction when faction exists")]
     public async Task HandleAsync_Should_DeleteFaction_When_FactionExists()
     {
         var faction = Faction.Create(
@@ -26,7 +26,7 @@ public sealed class DeleteFactionHandlerTests
         await repository.Received(1).DeleteAsync(faction, cancellationToken);
     }
 
-    [Fact(DisplayName = "Delete faction handler should return not found for a missing faction")]
+    [Fact(DisplayName = "Delete faction handler should return not found for a missing faction when faction does not exist")]
     public async Task HandleAsync_Should_ReturnNotFound_When_FactionDoesNotExist()
     {
         var repository = Substitute.For<IFactionsRepository>();

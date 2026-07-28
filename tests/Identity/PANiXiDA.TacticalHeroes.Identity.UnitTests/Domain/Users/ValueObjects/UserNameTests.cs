@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.ValueObjects;
 
 public sealed class UserNameTests
 {
-    [Fact(DisplayName = "User name should trim a valid value")]
+    [Fact(DisplayName = "User name should trim a valid value when user name is valid")]
     public void Create_Should_TrimValue_When_UserNameIsValid()
     {
         var result = UserName.Create("  tactical-hero  ");
@@ -14,7 +14,7 @@ public sealed class UserNameTests
         result.Value.ToString().ShouldBe("tactical-hero");
     }
 
-    [Theory(DisplayName = "User name should reject an empty value")]
+    [Theory(DisplayName = "User name should reject an empty value when user name is empty")]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_Should_ReturnValidationFailure_When_UserNameIsEmpty(string value)
@@ -25,7 +25,7 @@ public sealed class UserNameTests
             .ShouldHaveField(nameof(UserName));
     }
 
-    [Fact(DisplayName = "User name should reject a value over the maximum length")]
+    [Fact(DisplayName = "User name should reject a value over the maximum length when user name is too long")]
     public void Create_Should_ReturnValidationFailure_When_UserNameIsTooLong()
     {
         var result = UserName.Create(new string('a', UserName.MaxLength + 1));

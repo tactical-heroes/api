@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetD
 
 public sealed class GetFactionDetailsHandlerTests
 {
-    [Fact(DisplayName = "Faction details handler should return an existing faction")]
+    [Fact(DisplayName = "Faction details handler should return an existing faction when faction exists")]
     public async Task HandleAsync_Should_ReturnFaction_When_FactionExists()
     {
         var factionId = Guid.CreateVersion7();
@@ -28,7 +28,7 @@ public sealed class GetFactionDetailsHandlerTests
         result.Value.ShouldBe(readModel);
     }
 
-    [Fact(DisplayName = "Faction details handler should return not found for a missing faction")]
+    [Fact(DisplayName = "Faction details handler should return not found for a missing faction when faction does not exist")]
     public async Task HandleAsync_Should_ReturnNotFound_When_FactionDoesNotExist()
     {
         var factionsReadRepository = Substitute.For<IFactionsReadRepository>();

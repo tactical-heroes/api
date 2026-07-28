@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST roles should create a role in PostgreSQL")]
+    [Fact(DisplayName = "POST roles should create a role in PostgreSQL when request is valid")]
     public async Task PostRoles_Should_PersistRole_When_RequestIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

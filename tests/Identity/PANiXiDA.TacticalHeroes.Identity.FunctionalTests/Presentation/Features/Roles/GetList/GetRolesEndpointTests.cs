@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetRolesEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET roles should return a sorted page from PostgreSQL")]
+    [Fact(DisplayName = "GET roles should return a sorted page from PostgreSQL when roles exist")]
     public async Task GetRoles_Should_ReturnSortedPage_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

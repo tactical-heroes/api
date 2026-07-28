@@ -18,7 +18,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "RegisterAsync should persist an unconfirmed user")]
+    [Fact(DisplayName = "RegisterAsync should persist an unconfirmed user when credentials are valid")]
     public async Task RegisterAsync_Should_PersistUnconfirmedUser_When_CredentialsAreValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -41,8 +41,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.EmailConfirmed.ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "LoginAsync should load user and all claims in one read query")]
-    public async Task LoginAsync_Should_LoadUserAndAllClaimsInOneReadQuery()
+    [Fact(DisplayName = "LoginAsync should load user and all claims in one read query when credentials are valid")]
+    public async Task LoginAsync_Should_LoadUserAndAllClaimsInOneReadQuery_When_CredentialsAreValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var role = new ApplicationRole
@@ -97,7 +97,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
-    [Fact(DisplayName = "Login should return unauthorized for an invalid password")]
+    [Fact(DisplayName = "Login should return unauthorized for an invalid password when password is invalid")]
     public async Task LoginAsync_Should_ReturnUnauthorized_When_PasswordIsInvalid()
     {
         var role = new ApplicationRole
@@ -127,7 +127,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
     }
 
-    [Fact(DisplayName = "Change password should replace credentials stored by ASP.NET Core Identity")]
+    [Fact(DisplayName = "Change password should replace credentials stored by ASP.NET Core Identity when current password is valid")]
     public async Task ChangePasswordAsync_Should_ReplacePassword_When_CurrentPasswordIsValid()
     {
         var role = new ApplicationRole
@@ -165,7 +165,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         loginResult.Value.Id.ShouldBe(user.Id);
     }
 
-    [Fact(DisplayName = "ConfirmEmailAsync should confirm an unconfirmed user")]
+    [Fact(DisplayName = "ConfirmEmailAsync should confirm an unconfirmed user when token is valid")]
     public async Task ConfirmEmailAsync_Should_ConfirmUser_When_TokenIsValid()
     {
         var user = CreateUser(
@@ -190,7 +190,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         (await userManager.IsEmailConfirmedAsync(persistedUser)).ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "ResendConfirmationEmailAsync should track a confirmation request")]
+    [Fact(DisplayName = "ResendConfirmationEmailAsync should track a confirmation request when user is unconfirmed")]
     public async Task ResendConfirmationEmailAsync_Should_TrackRequest_When_UserIsUnconfirmed()
     {
         var user = CreateUser(
@@ -218,7 +218,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
     }
 
-    [Fact(DisplayName = "ForgotPasswordAsync should track a password reset request")]
+    [Fact(DisplayName = "ForgotPasswordAsync should track a password reset request when user is confirmed")]
     public async Task ForgotPasswordAsync_Should_TrackRequest_When_UserIsConfirmed()
     {
         var user = CreateUser(
@@ -246,7 +246,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         domainEvent.PasswordResetToken.ShouldNotBeNullOrWhiteSpace();
     }
 
-    [Fact(DisplayName = "ResetPasswordAsync should replace a user's password")]
+    [Fact(DisplayName = "ResetPasswordAsync should replace a user's password when token is valid")]
     public async Task ResetPasswordAsync_Should_ReplacePassword_When_TokenIsValid()
     {
         const string newPassword = "NewStrongPassword1!";

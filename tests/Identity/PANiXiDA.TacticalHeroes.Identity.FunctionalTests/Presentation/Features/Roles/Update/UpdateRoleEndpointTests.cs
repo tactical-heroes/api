@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "PUT role should update persisted role state")]
+    [Fact(DisplayName = "PUT role should update persisted role state when request is valid")]
     public async Task PutRole_Should_UpdatePostgreSql_When_RequestIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

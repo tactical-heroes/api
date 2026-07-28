@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ConfirmEma
 
 public sealed class ConfirmEmailHandlerTests
 {
-    [Fact(DisplayName = "Confirm email handler should delegate confirmation to credentials service")]
+    [Fact(DisplayName = "Confirm email handler should delegate confirmation to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var userId = Guid.CreateVersion7();

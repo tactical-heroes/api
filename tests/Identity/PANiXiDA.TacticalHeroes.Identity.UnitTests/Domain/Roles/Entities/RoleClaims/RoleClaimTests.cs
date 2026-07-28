@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles.Entities.RoleC
 
 public sealed class RoleClaimTests
 {
-    [Fact(DisplayName = "Create should build a role claim from valid values")]
+    [Fact(DisplayName = "Create should build a role claim from valid values when values are valid")]
     public void Create_Should_ReturnRoleClaim_When_ValuesAreValid()
     {
         var result = RoleClaim.Create(" permission ", " heroes.manage ");
@@ -15,7 +15,7 @@ public sealed class RoleClaimTests
         result.Value.Value.Value.ShouldBe("heroes.manage");
     }
 
-    [Fact(DisplayName = "Create should reject an invalid role claim type")]
+    [Fact(DisplayName = "Create should reject an invalid role claim type when type is invalid")]
     public void Create_Should_ReturnValidationFailure_When_TypeIsInvalid()
     {
         var result = RoleClaim.Create("", "heroes.manage");

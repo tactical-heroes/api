@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetL
 
 public sealed class GetFactionsHandlerTests
 {
-    [Fact(DisplayName = "Factions handler should return a repository page")]
+    [Fact(DisplayName = "Factions handler should return a repository page when repository succeeds")]
     public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
     {
         var pagination = new PaginationParameters(1, 20);

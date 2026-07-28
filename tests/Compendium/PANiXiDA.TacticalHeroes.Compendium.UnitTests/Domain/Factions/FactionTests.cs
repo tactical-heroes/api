@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Factions;
 
 public sealed class FactionTests
 {
-    [Fact(DisplayName = "Faction should create valid normalized details")]
+    [Fact(DisplayName = "Faction should create valid normalized details when details are valid")]
     public void Create_Should_ReturnFaction_When_DetailsAreValid()
     {
         var result = Faction.Create(
@@ -17,7 +17,7 @@ public sealed class FactionTests
         result.Value.Description.Value.ShouldBe("Defenders of the north.");
     }
 
-    [Fact(DisplayName = "Faction should update valid details")]
+    [Fact(DisplayName = "Faction should update valid details when values are valid")]
     public void Update_Should_ReplaceDetails_When_ValuesAreValid()
     {
         var faction = Faction.Create(
@@ -33,7 +33,7 @@ public sealed class FactionTests
         faction.Description.Value.ShouldBe("Defenders of the south.");
     }
 
-    [Fact(DisplayName = "Faction should preserve details when an update is invalid")]
+    [Fact(DisplayName = "Faction should preserve details when value is invalid")]
     public void Update_Should_PreserveDetails_When_ValueIsInvalid()
     {
         var faction = Faction.Create(

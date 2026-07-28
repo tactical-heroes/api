@@ -12,7 +12,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "GetDetailsByIdAsync should return user details")]
+    [Fact(DisplayName = "GetDetailsByIdAsync should return user details when user exists")]
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -36,7 +36,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         details.Claims.ShouldHaveSingleItem().Value.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "GetPagedAsync should return users filtered by email")]
+    [Fact(DisplayName = "GetPagedAsync should return users filtered by email when users exist")]
     public async Task GetPagedAsync_Should_ReturnFilteredPage_When_UsersExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -66,7 +66,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         page.Items.ShouldHaveSingleItem().Id.ShouldBe(firstUserId);
     }
 
-    [Fact(DisplayName = "ExistsByIdAsync should return true for an existing user")]
+    [Fact(DisplayName = "ExistsByIdAsync should return true for an existing user when user exists")]
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -84,8 +84,8 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         (await repository.ExistsByIdAsync(userId, cancellationToken)).ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "AnyAsync should reflect whether users exist")]
-    public async Task AnyAsync_Should_ReflectWhetherUsersExist()
+    [Fact(DisplayName = "AnyAsync should reflect whether users exist when called")]
+    public async Task AnyAsync_Should_ReflectWhetherUsersExist_When_Called()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 

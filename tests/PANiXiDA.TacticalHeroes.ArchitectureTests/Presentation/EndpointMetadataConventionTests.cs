@@ -23,7 +23,7 @@ public sealed class EndpointMetadataConventionTests
         "^[A-Z][A-Za-z0-9]*(?: [A-Za-z0-9]+)*$",
         RegexOptions.CultureInvariant);
 
-    [Fact(DisplayName = "Endpoint metadata should follow HTTP naming conventions")]
+    [Fact(DisplayName = "Endpoint metadata should follow HTTP naming conventions when endpoint is declared")]
     public void EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared()
     {
         var metadataTypes = ArchitectureDefinition.ProductionAssemblies

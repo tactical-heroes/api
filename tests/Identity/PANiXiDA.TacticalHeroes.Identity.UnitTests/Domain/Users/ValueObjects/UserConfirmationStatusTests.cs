@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.ValueObjects;
 
 public sealed class UserConfirmationStatusTests
 {
-    [Fact(DisplayName = "Unconfirmed should create an unconfirmed status")]
+    [Fact(DisplayName = "Unconfirmed should create an unconfirmed status when called")]
     public void Unconfirmed_Should_CreateStatus_When_Called()
     {
         var status = UserConfirmationStatus.Unconfirmed();
@@ -12,7 +12,7 @@ public sealed class UserConfirmationStatusTests
         status.IsConfirmed.ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Confirmed should create a confirmed status")]
+    [Fact(DisplayName = "Confirmed should create a confirmed status when called")]
     public void Confirmed_Should_CreateStatus_When_Called()
     {
         var status = UserConfirmationStatus.Confirmed();
@@ -20,7 +20,7 @@ public sealed class UserConfirmationStatusTests
         status.IsConfirmed.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "From should create a status from a boolean value")]
+    [Theory(DisplayName = "From should create a status from a boolean value when boolean is provided")]
     [InlineData(true)]
     [InlineData(false)]
     public void From_Should_CreateStatus_When_BooleanIsProvided(bool isConfirmed)

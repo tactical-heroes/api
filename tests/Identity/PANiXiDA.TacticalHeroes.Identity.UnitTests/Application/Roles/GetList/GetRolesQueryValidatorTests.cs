@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetList;
 
 public sealed class GetRolesQueryValidatorTests
 {
-    [Fact(DisplayName = "Role list validator should accept valid pagination")]
+    [Fact(DisplayName = "Role list validator should accept valid pagination when pagination is valid")]
     public void Validate_Should_ReturnValidResult_When_PaginationIsValid()
     {
         var validator = new GetRolesQueryValidator();
@@ -14,7 +14,7 @@ public sealed class GetRolesQueryValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Role list validator should reject invalid pagination")]
+    [Fact(DisplayName = "Role list validator should reject invalid pagination when pagination is invalid")]
     public void Validate_Should_ReturnErrors_When_PaginationIsInvalid()
     {
         var validator = new GetRolesQueryValidator();
