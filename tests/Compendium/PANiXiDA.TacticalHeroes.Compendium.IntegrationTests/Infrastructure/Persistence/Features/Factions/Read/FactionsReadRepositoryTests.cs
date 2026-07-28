@@ -9,46 +9,110 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Factions read repository should return details and a sorted page")]
-    public async Task Repository_Should_ReturnDetailsAndSortedPage_When_FactionsExist()
+    [Fact(DisplayName = "GetDetailsByIdAsync should return faction details")]
+    public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var northernFaction = Faction.Create(
+        var faction = CreateFaction(
             "Northern Alliance",
-            "Defenders of the north.").Value;
-        var southernFaction = Faction.Create(
-            "Southern Alliance",
-            "Defenders of the south.").Value;
+            "Defenders of the north.");
+        await AddFactionsAsync(cancellationToken, faction);
 
-        await using (var scope = Fixture.CreateScope())
-        {
-            var repository = scope.ServiceProvider.GetRequiredService<IFactionsRepository>();
-            var dbContext = scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
-
-            await repository.AddAsync(southernFaction, cancellationToken);
-            await repository.AddAsync(northernFaction, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        await using var verificationScope = Fixture.CreateScope();
-        var factionsReadRepository =
-            verificationScope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
-        var details = await factionsReadRepository.GetDetailsByIdAsync(
-            northernFaction.Id.Value,
-            cancellationToken);
-        var page = await factionsReadRepository.GetPagedAsync(
-            new PaginationParameters(1, 20),
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+        var details = await repository.GetDetailsByIdAsync(
+            faction.Id.Value,
             cancellationToken);
 
         details.ShouldNotBeNull();
         details.Name.ShouldBe("Northern Alliance");
         details.Description.ShouldBe("Defenders of the north.");
+    }
+
+    [Fact(DisplayName = "GetPagedAsync should return factions sorted by name")]
+    public async Task GetPagedAsync_Should_ReturnSortedPage_When_FactionsExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var northernFaction = CreateFaction(
+            "Northern Alliance",
+            "Defenders of the north.");
+        var southernFaction = CreateFaction(
+            "Southern Alliance",
+            "Defenders of the south.");
+        await AddFactionsAsync(
+            cancellationToken,
+            southernFaction,
+            northernFaction);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+        var page = await repository.GetPagedAsync(
+            new PaginationParameters(1, 20),
+            cancellationToken);
+
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name)
             .ShouldBe(["Northern Alliance", "Southern Alliance"]);
-        (await factionsReadRepository.ExistsByIdAsync(
-                northernFaction.Id.Value,
-                cancellationToken))
+    }
+
+    [Fact(DisplayName = "ExistsByIdAsync should return true for an existing faction")]
+    public async Task ExistsByIdAsync_Should_ReturnTrue_When_FactionExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var faction = CreateFaction(
+            "Northern Alliance",
+            "Defenders of the north.");
+        await AddFactionsAsync(cancellationToken, faction);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+
+        (await repository.ExistsByIdAsync(faction.Id.Value, cancellationToken))
             .ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "AnyAsync should reflect whether factions exist")]
+    public async Task AnyAsync_Should_ReflectWhetherFactionsExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using (var emptyScope = Fixture.CreateScope())
+        {
+            var emptyRepository =
+                emptyScope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+            (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
+        }
+
+        await AddFactionsAsync(
+            cancellationToken,
+            CreateFaction("Northern Alliance", "Defenders of the north."));
+
+        await using var populatedScope = Fixture.CreateScope();
+        var populatedRepository =
+            populatedScope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+        (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
+    }
+
+    private static Faction CreateFaction(
+        string name,
+        string description)
+    {
+        return Faction.Create(name, description).Value;
+    }
+
+    private async Task AddFactionsAsync(
+        CancellationToken cancellationToken,
+        params Faction[] factions)
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsRepository>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
+
+        foreach (var faction in factions)
+        {
+            await repository.AddAsync(faction, cancellationToken);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

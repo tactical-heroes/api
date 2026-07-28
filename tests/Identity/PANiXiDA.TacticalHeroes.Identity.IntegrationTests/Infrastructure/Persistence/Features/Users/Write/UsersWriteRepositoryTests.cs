@@ -15,27 +15,43 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "Users write repository should persist, update, and delete user state")]
-    public async Task Repository_Should_PersistUpdateAndDelete_When_CommandsAreValid()
+    [Fact(DisplayName = "AddAsync should persist a valid user")]
+    public async Task AddAsync_Should_PersistUser_When_CommandIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        Guid userId;
+        var userId = await AddUserAsync(
+            " HERO@Example.COM ",
+            " hero ",
+            isConfirmed: false,
+            [new Claim("permission", "heroes.read")],
+            UserStatus.Active.Name,
+            cancellationToken);
 
-        await using (var scope = Fixture.CreateScope())
-        {
-            var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
-            var result = await repository.AddAsync(
-                " HERO@Example.COM ",
-                " hero ",
-                Password,
-                false,
-                [new Claim("permission", "heroes.read")],
-                UserStatus.Active.Name,
-                cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var user = await dbContext.Set<ApplicationUser>()
+            .Include(item => item.Claims)
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == userId, cancellationToken);
 
-            result.IsSuccess.ShouldBeTrue();
-            userId = result.Value;
-        }
+        user.Email.ShouldBe("hero@example.com");
+        user.UserName.ShouldBe("hero");
+        user.EmailConfirmed.ShouldBeFalse();
+        user.Status.ShouldBe(UserStatus.Active.Name);
+        user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.read");
+    }
+
+    [Fact(DisplayName = "UpdateAsync should persist user changes")]
+    public async Task UpdateAsync_Should_PersistChanges_When_UserExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await AddUserAsync(
+            "original@example.com",
+            "original-hero",
+            isConfirmed: false,
+            [],
+            UserStatus.Active.Name,
+            cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -52,22 +68,32 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
             result.IsSuccess.ShouldBeTrue();
         }
 
-        await using (var scope = Fixture.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            var user = await dbContext.Set<ApplicationUser>()
-                .Include(item => item.Claims)
-                .AsNoTracking()
-                .SingleAsync(item => item.Id == userId, cancellationToken);
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext =
+            verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var user = await dbContext.Set<ApplicationUser>()
+            .Include(item => item.Claims)
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == userId, cancellationToken);
 
-            user.Email.ShouldBe("updated@example.com");
-            user.UserName.ShouldBe("updated-hero");
-            user.EmailConfirmed.ShouldBeTrue();
-            user.Status.ShouldBe(UserStatus.Blocked.Name);
-            var claim = user.Claims.ShouldHaveSingleItem();
-            claim.ClaimType.ShouldBe("permission");
-            claim.ClaimValue.ShouldBe("heroes.manage");
-        }
+        user.Email.ShouldBe("updated@example.com");
+        user.UserName.ShouldBe("updated-hero");
+        user.EmailConfirmed.ShouldBeTrue();
+        user.Status.ShouldBe(UserStatus.Blocked.Name);
+        user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
+    }
+
+    [Fact(DisplayName = "DeleteAsync should remove an existing user")]
+    public async Task DeleteAsync_Should_RemoveUser_When_UserExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await AddUserAsync(
+            "delete@example.com",
+            "delete-hero",
+            isConfirmed: true,
+            [],
+            UserStatus.Active.Name,
+            cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -75,33 +101,38 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
             (await repository.DeleteAsync(userId, cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
-        await using (var scope = Fixture.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-            (await dbContext.Set<ApplicationUser>()
-                    .AnyAsync(item => item.Id == userId, cancellationToken))
-                .ShouldBeFalse();
-        }
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext =
+            verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        (await dbContext.Set<ApplicationUser>()
+                .AnyAsync(item => item.Id == userId, cancellationToken))
+            .ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Users write repository should block and unblock an existing user")]
-    public async Task Repository_Should_UpdateStatus_When_UserIsBlockedAndUnblocked()
+    [Fact(DisplayName = "Users write repository should return not found for a missing user")]
+    public async Task DeleteAsync_Should_ReturnNotFound_When_UserDoesNotExist()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
+
+        var result = await repository.DeleteAsync(
+            Guid.CreateVersion7(),
+            TestContext.Current.CancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+    }
+
+    [Fact(DisplayName = "BlockAsync should block an active user")]
+    public async Task BlockAsync_Should_BlockUser_When_UserIsActive()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        Guid userId;
-
-        await using (var scope = Fixture.CreateScope())
-        {
-            var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
-            userId = (await repository.AddAsync(
-                "status@example.com",
-                "status-hero",
-                Password,
-                true,
-                [],
-                UserStatus.Active.Name,
-                cancellationToken)).Value;
-        }
+        var userId = await AddUserAsync(
+            "block@example.com",
+            "block-hero",
+            isConfirmed: true,
+            [],
+            UserStatus.Active.Name,
+            cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -110,6 +141,19 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
         }
 
         (await ReadStatusAsync(userId, cancellationToken)).ShouldBe(UserStatus.Blocked.Name);
+    }
+
+    [Fact(DisplayName = "UnblockAsync should activate a blocked user")]
+    public async Task UnblockAsync_Should_ActivateUser_When_UserIsBlocked()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await AddUserAsync(
+            "unblock@example.com",
+            "unblock-hero",
+            isConfirmed: true,
+            [],
+            UserStatus.Blocked.Name,
+            cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -120,17 +164,28 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
         (await ReadStatusAsync(userId, cancellationToken)).ShouldBe(UserStatus.Active.Name);
     }
 
-    [Fact(DisplayName = "Users write repository should return not found for a missing user")]
-    public async Task Repository_Should_ReturnNotFound_When_UserDoesNotExist()
+    private async Task<Guid> AddUserAsync(
+        string email,
+        string userName,
+        bool isConfirmed,
+        IReadOnlyCollection<Claim> claims,
+        string status,
+        CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
+        var result = await repository.AddAsync(
+            email,
+            userName,
+            Password,
+            isConfirmed,
+            claims,
+            status,
+            cancellationToken);
 
-        var result = await repository.DeleteAsync(
-            Guid.CreateVersion7(),
-            TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
 
-        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+        return result.Value;
     }
 
     private async Task<string> ReadStatusAsync(

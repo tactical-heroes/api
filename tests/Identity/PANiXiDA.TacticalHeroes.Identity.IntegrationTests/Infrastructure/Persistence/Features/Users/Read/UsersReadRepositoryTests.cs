@@ -12,50 +12,125 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "Users read repository should return persisted details and a filtered page")]
-    public async Task Repository_Should_ReturnDetailsAndFilteredPage_When_UserExists()
+    [Fact(DisplayName = "GetDetailsByIdAsync should return user details")]
+    public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        Guid firstUserId;
+        var userId = await AddUserAsync(
+            "details@example.com",
+            "details-hero",
+            isConfirmed: true,
+            [new Claim("permission", "heroes.read")],
+            UserStatus.Active.Name,
+            cancellationToken);
 
-        await using (var scope = Fixture.CreateScope())
-        {
-            var writeRepository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
-            firstUserId = (await writeRepository.AddAsync(
-                "first@example.com",
-                "first-hero",
-                Password,
-                true,
-                [new Claim("permission", "heroes.read")],
-                UserStatus.Active.Name,
-                cancellationToken)).Value;
-            (await writeRepository.AddAsync(
-                "second@example.com",
-                "second-hero",
-                Password,
-                false,
-                [],
-                UserStatus.Blocked.Name,
-                cancellationToken)).IsSuccess.ShouldBeTrue();
-        }
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
+        var details = await repository.GetDetailsByIdAsync(userId, cancellationToken);
 
-        await using var verificationScope = Fixture.CreateScope();
-        var usersReadRepository =
-            verificationScope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
-        var details = await usersReadRepository.GetDetailsByIdAsync(firstUserId, cancellationToken);
-        var page = await usersReadRepository.GetPagedAsync(
+        details.ShouldNotBeNull();
+        details.Email.ShouldBe("details@example.com");
+        details.UserName.ShouldBe("details-hero");
+        details.IsConfirmed.ShouldBeTrue();
+        details.Status.ShouldBe(UserStatus.Active.Name);
+        details.Claims.ShouldHaveSingleItem().Value.ShouldBe("heroes.read");
+    }
+
+    [Fact(DisplayName = "GetPagedAsync should return users filtered by email")]
+    public async Task GetPagedAsync_Should_ReturnFilteredPage_When_UsersExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var firstUserId = await AddUserAsync(
+            "first@example.com",
+            "first-hero",
+            isConfirmed: true,
+            [],
+            UserStatus.Active.Name,
+            cancellationToken);
+        await AddUserAsync(
+            "second@example.com",
+            "second-hero",
+            isConfirmed: false,
+            [],
+            UserStatus.Blocked.Name,
+            cancellationToken);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
+        var page = await repository.GetPagedAsync(
             "first@example.com",
             new PaginationParameters(1, 20),
             cancellationToken);
 
-        details.ShouldNotBeNull();
-        details.Email.ShouldBe("first@example.com");
-        details.UserName.ShouldBe("first-hero");
-        details.IsConfirmed.ShouldBeTrue();
-        details.Status.ShouldBe(UserStatus.Active.Name);
-        details.Claims.ShouldHaveSingleItem().Value.ShouldBe("heroes.read");
         page.TotalCount.ShouldBe(1);
         page.Items.ShouldHaveSingleItem().Id.ShouldBe(firstUserId);
-        (await usersReadRepository.ExistsByIdAsync(firstUserId, cancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "ExistsByIdAsync should return true for an existing user")]
+    public async Task ExistsByIdAsync_Should_ReturnTrue_When_UserExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = await AddUserAsync(
+            "exists@example.com",
+            "exists-hero",
+            isConfirmed: true,
+            [],
+            UserStatus.Active.Name,
+            cancellationToken);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
+
+        (await repository.ExistsByIdAsync(userId, cancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "AnyAsync should reflect whether users exist")]
+    public async Task AnyAsync_Should_ReflectWhetherUsersExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using (var emptyScope = Fixture.CreateScope())
+        {
+            var emptyRepository =
+                emptyScope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
+            (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
+        }
+
+        await AddUserAsync(
+            "any@example.com",
+            "any-hero",
+            isConfirmed: true,
+            [],
+            UserStatus.Active.Name,
+            cancellationToken);
+
+        await using var populatedScope = Fixture.CreateScope();
+        var populatedRepository =
+            populatedScope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
+        (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
+    }
+
+    private async Task<Guid> AddUserAsync(
+        string email,
+        string userName,
+        bool isConfirmed,
+        IReadOnlyCollection<Claim> claims,
+        string status,
+        CancellationToken cancellationToken)
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
+        var result = await repository.AddAsync(
+            email,
+            userName,
+            Password,
+            isConfirmed,
+            claims,
+            status,
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+
+        return result.Value;
     }
 }

@@ -7,31 +7,79 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Roles read repository should return persisted details and a sorted page")]
-    public async Task Repository_Should_ReturnDetailsAndSortedPage_When_RolesExist()
+    [Fact(DisplayName = "GetDetailsByIdAsync should return role details")]
+    public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        Guid adminRoleId;
+        var roleId = await AddRoleAsync("admin", cancellationToken);
 
-        await using (var scope = Fixture.CreateScope())
-        {
-            var writeRepository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
-            (await writeRepository.AddAsync("viewer", [], cancellationToken)).IsSuccess.ShouldBeTrue();
-            adminRoleId = (await writeRepository.AddAsync("admin", [], cancellationToken)).Value;
-        }
-
-        await using var verificationScope = Fixture.CreateScope();
-        var rolesReadRepository =
-            verificationScope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
-        var details = await rolesReadRepository.GetDetailsByIdAsync(adminRoleId, cancellationToken);
-        var page = await rolesReadRepository.GetPagedAsync(
-            new PaginationParameters(1, 20),
-            cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+        var details = await repository.GetDetailsByIdAsync(roleId, cancellationToken);
 
         details.ShouldNotBeNull();
         details.Name.ShouldBe("admin");
+    }
+
+    [Fact(DisplayName = "GetPagedAsync should return roles sorted by name")]
+    public async Task GetPagedAsync_Should_ReturnSortedPage_When_RolesExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync("viewer", cancellationToken);
+        await AddRoleAsync("admin", cancellationToken);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+        var page = await repository.GetPagedAsync(
+            new PaginationParameters(1, 20),
+            cancellationToken);
+
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name).ShouldBe(["admin", "viewer"]);
-        (await rolesReadRepository.ExistsByIdAsync(adminRoleId, cancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "ExistsByIdAsync should return true for an existing role")]
+    public async Task ExistsByIdAsync_Should_ReturnTrue_When_RoleExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var roleId = await AddRoleAsync("exists-role", cancellationToken);
+
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        (await repository.ExistsByIdAsync(roleId, cancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "AnyAsync should reflect whether roles exist")]
+    public async Task AnyAsync_Should_ReflectWhetherRolesExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using (var emptyScope = Fixture.CreateScope())
+        {
+            var emptyRepository =
+                emptyScope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+            (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
+        }
+
+        await AddRoleAsync("any-role", cancellationToken);
+
+        await using var populatedScope = Fixture.CreateScope();
+        var populatedRepository =
+            populatedScope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+        (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
+    }
+
+    private async Task<Guid> AddRoleAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
+        var result = await repository.AddAsync(name, [], cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+
+        return result.Value;
     }
 }

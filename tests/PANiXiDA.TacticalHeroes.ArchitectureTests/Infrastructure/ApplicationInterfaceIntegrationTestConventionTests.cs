@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
@@ -9,22 +10,19 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
     private const string SourceDirectoryName = "src";
     private const string TestsDirectoryName = "tests";
 
+    private static readonly Regex TestMethodPattern = new(
+        @"\[(?:Fact|Theory)(?:Attribute)?(?:\([^\]]*\))?\]" +
+        @"(?:\s*\[[^\]]+\])*\s*" +
+        @"public\s+(?:async\s+)?" +
+        @"(?:void|(?:Task|ValueTask)(?:<[^>]+>)?)\s+" +
+        @"(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\(",
+        RegexOptions.CultureInvariant);
+
     [Fact(DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files")]
     public void InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
-            .ToDictionary(
-                assembly => assembly.GetName().Name
-                    ?? throw new InvalidOperationException(
-                        $"Could not determine the name of assembly '{assembly.FullName}'."),
-                StringComparer.Ordinal);
-        var implementations = ArchitectureDefinition.Modules
-            .SelectMany(module => GetInfrastructureImplementations(
-                module,
-                productionAssemblies))
-            .OrderBy(target => target.Implementation.FullName, StringComparer.Ordinal)
-            .ToArray();
+        var implementations = GetInfrastructureImplementations();
 
         Assert.NotEmpty(implementations);
 
@@ -49,6 +47,43 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
             string.Join(Environment.NewLine, missingTestFiles));
     }
 
+    [Fact(DisplayName = "Integration tests should cover every implemented Application interface method")]
+    public void IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var implementations = GetInfrastructureImplementations();
+
+        Assert.NotEmpty(implementations);
+
+        var missingTestMethods = implementations
+            .SelectMany(target => GetMissingTestMethods(repositoryRoot, target))
+            .ToArray();
+
+        Assert.True(
+            missingTestMethods.Length == 0,
+            $"Missing integration test methods:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, missingTestMethods));
+    }
+
+    private static InfrastructureImplementation[] GetInfrastructureImplementations()
+    {
+        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
+            .ToDictionary(
+                assembly => assembly.GetName().Name
+                    ?? throw new InvalidOperationException(
+                        $"Could not determine the name of assembly '{assembly.FullName}'."),
+                StringComparer.Ordinal);
+
+        return
+        [
+            .. ArchitectureDefinition.Modules
+                .SelectMany(module => GetInfrastructureImplementations(
+                    module,
+                    productionAssemblies))
+                .OrderBy(target => target.Implementation.FullName, StringComparer.Ordinal)
+        ];
+    }
+
     private static IEnumerable<InfrastructureImplementation> GetInfrastructureImplementations(
         ModuleArchitecture module,
         IReadOnlyDictionary<string, Assembly> productionAssemblies)
@@ -63,11 +98,59 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
         return infrastructureAssembly
             .GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false })
-            .Where(type => applicationInterfaces.Any(
-                applicationInterface => applicationInterface.IsAssignableFrom(type)))
             .Select(implementation => new InfrastructureImplementation(
-                module,
-                implementation));
+                Module: module,
+                Implementation: implementation,
+                ApplicationInterfaces:
+                [
+                    .. applicationInterfaces.Where(
+                        applicationInterface => applicationInterface.IsAssignableFrom(implementation))
+                ]))
+            .Where(target => target.ApplicationInterfaces.Count > 0);
+    }
+
+    private static IEnumerable<string> GetMissingTestMethods(
+        string repositoryRoot,
+        InfrastructureImplementation target)
+    {
+        var testFilePath = GetExpectedTestFilePath(
+            repositoryRoot,
+            target.Module,
+            target.Implementation);
+
+        if (!File.Exists(testFilePath))
+        {
+            return [];
+        }
+
+        var testMethodNames = TestMethodPattern
+            .Matches(File.ReadAllText(testFilePath))
+            .Select(match => match.Groups["name"].Value)
+            .ToArray();
+        var contractMethods = target.ApplicationInterfaces
+            .SelectMany(applicationInterface =>
+                applicationInterface.GetInterfaces().Append(applicationInterface))
+            .SelectMany(applicationInterface => applicationInterface.GetMethods())
+            .Where(method => !method.IsSpecialName)
+            .Distinct()
+            .GroupBy(method => method.Name, StringComparer.Ordinal);
+
+        return contractMethods
+            .Select(methods => new
+            {
+                MethodName = methods.Key,
+                RequiredTestCount = methods.Count(),
+                ActualTestCount = testMethodNames.Count(testMethodName =>
+                    testMethodName.StartsWith(
+                        methods.Key + "_Should_",
+                        StringComparison.Ordinal))
+            })
+            .Where(coverage => coverage.ActualTestCount < coverage.RequiredTestCount)
+            .Select(coverage =>
+                $"{target.Implementation.FullName}.{coverage.MethodName}: expected " +
+                $"{coverage.RequiredTestCount} test method(s) starting with " +
+                $"'{coverage.MethodName}_Should_', found {coverage.ActualTestCount} " +
+                $"in '{Path.GetRelativePath(repositoryRoot, testFilePath)}'.");
     }
 
     private static string GetExpectedTestFilePath(
@@ -145,5 +228,6 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
 
     private sealed record InfrastructureImplementation(
         ModuleArchitecture Module,
-        Type Implementation);
+        Type Implementation,
+        IReadOnlyCollection<Type> ApplicationInterfaces);
 }

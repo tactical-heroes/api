@@ -2,11 +2,43 @@ using PANiXiDA.TacticalHeroes.Identity.Contracts.Users;
 
 using System.Net;
 
+using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+
 namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
 [Collection(MailpitIntegrationTestCollection.Name)]
 public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixture)
 {
+    [Fact(DisplayName = "SendAsync should deliver a formatted email through Mailpit")]
+    public async Task SendAsync_Should_DeliverEmail_When_MessageIsValid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var message = new EmailMessage(
+            CorrelationId: Guid.CreateVersion7(),
+            RecipientEmail: "direct@example.com",
+            Subject: "Direct email",
+            TextBody: "Direct text body",
+            HtmlBody: "<strong>Direct HTML body</strong>");
+
+        await fixture.EmailSender.SendAsync(message, cancellationToken);
+
+        await fixture.WaitForMessageAsync(
+            message.Subject,
+            message.RecipientEmail,
+            cancellationToken);
+        var htmlBody = await fixture.WaitForBodyAsync(
+            "html",
+            "Direct HTML body",
+            cancellationToken);
+        var textBody = await fixture.WaitForBodyAsync(
+            "txt",
+            message.TextBody,
+            cancellationToken);
+
+        htmlBody.ShouldContain("Direct HTML body");
+        textBody.ShouldContain(message.TextBody);
+    }
+
     [Fact(DisplayName = "Email confirmation event should send a formatted email through Mailpit")]
     public async Task EmailConfirmationRequested_Should_SendFormattedEmail()
     {
