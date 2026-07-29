@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetList;
 
-public sealed class GetRoleListHandlerTests
+public sealed class GetRolesHandlerTests
 {
     [Fact(DisplayName = "Role list handler should return a page from the read repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
@@ -17,11 +17,11 @@ public sealed class GetRoleListHandlerTests
         var rolesReadRepository = Substitute.For<IRolesReadRepository>();
         rolesReadRepository.GetPagedAsync(pagination, Arg.Any<CancellationToken>())
             .Returns(page);
-        var handler = new GetRoleListHandler(rolesReadRepository);
+        var handler = new GetRolesHandler(rolesReadRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new GetRoleListQuery(pagination),
+            new GetRolesQuery(pagination),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();

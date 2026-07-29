@@ -25,7 +25,7 @@ internal sealed class GetUsersEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetUserListQuery(Email: request.Email, Pagination: pagination),
+            new GetUsersQuery(Email: request.Email, Pagination: pagination),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>

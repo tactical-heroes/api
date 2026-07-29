@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetList;
 
-public sealed class GetUserListHandlerTests
+public sealed class GetUsersHandlerTests
 {
     [Fact(DisplayName = "User list handler should return a filtered page from the read repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
@@ -26,11 +26,11 @@ public sealed class GetUserListHandlerTests
                 pagination,
                 Arg.Any<CancellationToken>())
             .Returns(page);
-        var handler = new GetUserListHandler(usersReadRepository);
+        var handler = new GetUsersHandler(usersReadRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new GetUserListQuery("hero@example.com", pagination),
+            new GetUsersQuery("hero@example.com", pagination),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();

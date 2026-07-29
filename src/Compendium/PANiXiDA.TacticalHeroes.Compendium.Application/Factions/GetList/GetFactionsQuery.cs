@@ -1,4 +1,4 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 
-public sealed record GetFactionListQuery(PaginationParameters Pagination)
+public sealed record GetFactionsQuery(PaginationParameters Pagination)
     : IQuery<Result<PaginationResult<FactionListItemReadModel>>>;

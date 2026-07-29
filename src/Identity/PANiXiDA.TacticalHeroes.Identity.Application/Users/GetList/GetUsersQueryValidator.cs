@@ -2,9 +2,9 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
-public sealed class GetUserListQueryValidator : AbstractValidator<GetUserListQuery>
+public sealed class GetUsersQueryValidator : AbstractValidator<GetUsersQuery>
 {
-    public GetUserListQueryValidator()
+    public GetUsersQueryValidator()
     {
         When(query => !string.IsNullOrWhiteSpace(query.Email), () =>
         {

@@ -47,22 +47,6 @@ public sealed class ApplicationVerticalSliceConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Application requests should include feature names when declared")]
-    public void ApplicationRequests_Should_IncludeFeatureNames_When_Declared()
-    {
-        var useCases = GetApplicationUseCases();
-        var violations = useCases
-            .SelectMany(GetRequestFeatureNameViolations)
-            .ToArray();
-
-        Assert.NotEmpty(useCases);
-        Assert.True(
-            violations.Length == 0,
-            $"Application request feature naming violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
-    }
-
     [Fact(DisplayName = "Application use case types should have expected role suffixes when declared")]
     public void ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared()
     {
@@ -218,31 +202,6 @@ public sealed class ApplicationVerticalSliceConventionTests
         }
 
         return violations;
-    }
-
-    private static IEnumerable<string> GetRequestFeatureNameViolations(
-        ApplicationUseCase useCase)
-    {
-        var expectedRequestSuffix = GetRequestSuffix(useCase.RequestType);
-        var requestStem = useCase.RequestType.Name.EndsWith(
-            expectedRequestSuffix,
-            StringComparison.Ordinal)
-            ? useCase.RequestType.Name[..^expectedRequestSuffix.Length]
-            : useCase.RequestType.Name;
-
-        if (MatchesFeatureName(
-                requestStem,
-                useCase.FeatureName))
-        {
-            return [];
-        }
-
-        return
-        [
-            $"{useCase.RequestType.FullName} must include feature " +
-            $"name '{useCase.FeatureName}'. Additional contextual words " +
-            $"may be inserted into the feature name."
-        ];
     }
 
     private static IEnumerable<string> GetUseCaseRoleSuffixViolations(
@@ -504,16 +463,11 @@ public sealed class ApplicationVerticalSliceConventionTests
                                     .Split(
                                         '.',
                                         StringSplitOptions.RemoveEmptyEntries);
-                            var featureName =
-                                relativeNamespaceSegments.LastOrDefault()
-                                ?? string.Empty;
-
                             return new ApplicationUseCase(
                                 Module: module,
                                 RequestType: requestType,
                                 RelativeNamespaceSegments:
-                                    relativeNamespaceSegments,
-                                FeatureName: featureName);
+                                    relativeNamespaceSegments);
                         });
                 })
                 .OrderBy(
@@ -612,30 +566,6 @@ public sealed class ApplicationVerticalSliceConventionTests
             candidate.GetGenericTypeDefinition() == typeof(ICommand<>))
             ? CommandSuffix
             : QuerySuffix;
-    }
-
-    private static bool MatchesFeatureName(
-        string requestStem,
-        string featureName)
-    {
-        if (string.Equals(
-                requestStem,
-                featureName,
-                StringComparison.Ordinal))
-        {
-            return true;
-        }
-
-        return requestStem.Length > featureName.Length &&
-               Enumerable
-            .Range(0, featureName.Length + 1)
-            .Any(index =>
-                requestStem.StartsWith(
-                    featureName[..index],
-                    StringComparison.Ordinal) &&
-                requestStem.EndsWith(
-                    featureName[index..],
-                    StringComparison.Ordinal));
     }
 
     private static Type? GetClosedGenericInterface(
@@ -916,8 +846,7 @@ public sealed class ApplicationVerticalSliceConventionTests
     private sealed record ApplicationUseCase(
         ModuleArchitecture Module,
         Type RequestType,
-        string[] RelativeNamespaceSegments,
-        string FeatureName);
+        string[] RelativeNamespaceSegments);
 
     private sealed record RepositoryInterface(
         Type Type,

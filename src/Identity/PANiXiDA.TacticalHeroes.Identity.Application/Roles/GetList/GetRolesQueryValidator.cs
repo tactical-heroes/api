@@ -1,8 +1,8 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
 
-public sealed class GetRoleListQueryValidator : AbstractValidator<GetRoleListQuery>
+public sealed class GetRolesQueryValidator : AbstractValidator<GetRolesQuery>
 {
-    public GetRoleListQueryValidator()
+    public GetRolesQueryValidator()
     {
         RuleFor(query => query.Pagination)
             .NotNull();

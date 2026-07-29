@@ -2,11 +2,11 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
-public sealed class GetUserListHandler(IUsersReadRepository usersReadRepository)
-    : IQueryHandler<GetUserListQuery, Result<PaginationResult<UserListItemReadModel>>>
+public sealed class GetUsersHandler(IUsersReadRepository usersReadRepository)
+    : IQueryHandler<GetUsersQuery, Result<PaginationResult<UserListItemReadModel>>>
 {
     public async Task<Result<PaginationResult<UserListItemReadModel>>> HandleAsync(
-        GetUserListQuery query,
+        GetUsersQuery query,
         CancellationToken cancellationToken)
     {
         var users = await usersReadRepository.GetPagedAsync(

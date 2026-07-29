@@ -1,8 +1,8 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 
-public sealed class GetFactionListQueryValidator : AbstractValidator<GetFactionListQuery>
+public sealed class GetFactionsQueryValidator : AbstractValidator<GetFactionsQuery>
 {
-    public GetFactionListQueryValidator()
+    public GetFactionsQueryValidator()
     {
         RuleFor(query => query.Pagination)
             .NotNull();
