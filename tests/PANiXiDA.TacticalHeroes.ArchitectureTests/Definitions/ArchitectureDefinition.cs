@@ -13,6 +13,7 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
 internal static class ArchitectureDefinition
 {
+    private const string ContractsLayerSuffix = ".Contracts";
     private const string DomainLayerSuffix = ".Domain";
     private const string ApplicationLayerSuffix = ".Application";
     private const string InfrastructureLayerSuffix = ".Infrastructure";
@@ -48,6 +49,9 @@ internal static class ArchitectureDefinition
     internal static string DomainAssemblyNamePattern =>
         AssemblyNamePattern(DomainLayerSuffix);
 
+    internal static string ContractsAssemblyNamePattern =>
+        AssemblyNamePattern(ContractsLayerSuffix);
+
     internal static string ApplicationAssemblyNamePattern =>
         AssemblyNamePattern(ApplicationLayerSuffix);
 
@@ -60,6 +64,9 @@ internal static class ArchitectureDefinition
     internal static readonly IObjectProvider<IType> DomainLayer =
         Types().That().ResideInAssemblyMatching(DomainAssemblyNamePattern).As("Domain layer");
 
+    internal static readonly IObjectProvider<IType> ContractsLayer =
+        Types().That().ResideInAssemblyMatching(ContractsAssemblyNamePattern).As("Contracts layer");
+
     internal static readonly IObjectProvider<IType> ApplicationLayer =
         Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern).As("Application layer");
 
@@ -71,6 +78,14 @@ internal static class ArchitectureDefinition
 
     internal static readonly IObjectProvider<IType> HostLayer =
         Types().That().ResideInAssemblyMatching(AssemblyNamePattern(HostLayerSuffix)).As("Host layer");
+
+    internal static IObjectProvider<IType> TypesInAssembly(string assemblyName)
+    {
+        return Types()
+            .That()
+            .ResideInAssemblyMatching(
+                $"^{Regex.Escape(assemblyName)}(,.*)?$");
+    }
 
     private static string AssemblyNamePattern(string suffix)
     {
@@ -114,7 +129,8 @@ internal static class ArchitectureDefinition
 
     private static bool IsLayerAssemblyName(string assemblyName)
     {
-        return assemblyName.EndsWith(DomainLayerSuffix, StringComparison.Ordinal) ||
+        return assemblyName.EndsWith(ContractsLayerSuffix, StringComparison.Ordinal) ||
+               assemblyName.EndsWith(DomainLayerSuffix, StringComparison.Ordinal) ||
                assemblyName.EndsWith(ApplicationLayerSuffix, StringComparison.Ordinal) ||
                assemblyName.EndsWith(InfrastructureLayerSuffix, StringComparison.Ordinal) ||
                assemblyName.EndsWith(PresentationLayerSuffix, StringComparison.Ordinal);
@@ -161,6 +177,7 @@ internal static class ArchitectureDefinition
     {
         return new[]
             {
+                ContractsLayerSuffix,
                 DomainLayerSuffix,
                 ApplicationLayerSuffix,
                 InfrastructureLayerSuffix,
@@ -175,6 +192,7 @@ internal static class ArchitectureDefinition
         var assemblies = moduleAssemblies.ToDictionary(GetLayerSuffix, StringComparer.Ordinal);
         var missingLayers = new[]
             {
+                ContractsLayerSuffix,
                 DomainLayerSuffix,
                 ApplicationLayerSuffix,
                 InfrastructureLayerSuffix,
@@ -193,6 +211,7 @@ internal static class ArchitectureDefinition
         return (
             new ModuleArchitecture(
                 moduleAssemblies.Key,
+                assemblies[ContractsLayerSuffix],
                 assemblies[DomainLayerSuffix],
                 assemblies[ApplicationLayerSuffix],
                 assemblies[InfrastructureLayerSuffix],
