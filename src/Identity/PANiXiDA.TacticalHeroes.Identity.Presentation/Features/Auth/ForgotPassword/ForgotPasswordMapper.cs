@@ -7,5 +7,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ForgotPass
 [Mapper]
 internal static partial class ForgotPasswordMapper
 {
-    internal static partial ForgotUserPasswordCommand ToCommand(ForgotPasswordRequest request);
+    internal static partial ForgotPasswordCommand ToCommand(ForgotPasswordRequest request);
 }

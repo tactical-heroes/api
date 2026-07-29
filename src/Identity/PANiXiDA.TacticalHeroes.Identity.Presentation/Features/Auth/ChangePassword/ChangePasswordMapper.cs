@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePass
 [Mapper]
 internal static partial class ChangePasswordMapper
 {
-    internal static partial ChangeUserPasswordCommand ToCommand(
+    internal static partial ChangePasswordCommand ToCommand(
         ChangePasswordRequest request,
         Guid userId);
 }

@@ -7,6 +7,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResendConf
 [Mapper]
 internal static partial class ResendConfirmationEmailMapper
 {
-    internal static partial ResendUserConfirmationEmailCommand ToCommand(
+    internal static partial ResendConfirmationEmailCommand ToCommand(
         ResendConfirmationEmailRequest request);
 }

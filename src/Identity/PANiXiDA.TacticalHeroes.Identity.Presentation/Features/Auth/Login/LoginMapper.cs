@@ -12,7 +12,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 internal static partial class LoginMapper
 {
     [MapperIgnoreSource(nameof(LoginRequest.ReturnUrl))]
-    internal static partial LoginUserCommand ToCommand(LoginRequest request);
+    internal static partial LoginCommand ToCommand(LoginRequest request);
 
     internal static ClaimsPrincipal ToClaimsPrincipal(AuthenticatedUserReadModel user)
     {

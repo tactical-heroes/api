@@ -101,7 +101,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principalResult = await mediator.QueryAsync(
-            new ExchangeUserTokenQuery(UserId: userIdResult.Value),
+            new ExchangeTokenQuery(UserId: userIdResult.Value),
             cancellationToken);
 
         return principalResult.IsFailure
@@ -157,7 +157,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         if (Guid.TryParse(input: subject, result: out var userId))
         {
             var userResult = await mediator.QueryAsync(
-                new ExchangeUserTokenQuery(UserId: userId),
+                new ExchangeTokenQuery(UserId: userId),
                 cancellationToken);
 
             return userResult.IsFailure

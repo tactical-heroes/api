@@ -47,15 +47,31 @@ public sealed class ApplicationVerticalSliceConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Application use case types should follow feature aggregate and role naming when declared")]
-    public void ApplicationUseCaseTypes_Should_FollowFeatureAggregateAndRoleNaming_When_Declared()
+    [Fact(DisplayName = "Application requests should include feature names when declared")]
+    public void ApplicationRequests_Should_IncludeFeatureNames_When_Declared()
+    {
+        var useCases = GetApplicationUseCases();
+        var violations = useCases
+            .SelectMany(GetRequestFeatureNameViolations)
+            .ToArray();
+
+        Assert.NotEmpty(useCases);
+        Assert.True(
+            violations.Length == 0,
+            $"Application request feature naming violations:" +
+            $"{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Application use case types should have expected role suffixes when declared")]
+    public void ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared()
     {
         var useCases = GetApplicationUseCases();
         var applicationTypes = GetApplicationTypes()
             .Select(target => target.Type)
             .ToArray();
         var violations = useCases
-            .SelectMany(useCase => GetUseCaseNamingViolations(
+            .SelectMany(useCase => GetUseCaseRoleSuffixViolations(
                 useCase,
                 applicationTypes))
             .ToArray();
@@ -63,7 +79,8 @@ public sealed class ApplicationVerticalSliceConventionTests
         Assert.NotEmpty(useCases);
         Assert.True(
             violations.Length == 0,
-            $"Application use case naming violations:{Environment.NewLine}" +
+            $"Application use case role suffix violations:" +
+            $"{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 
@@ -197,14 +214,38 @@ public sealed class ApplicationVerticalSliceConventionTests
         {
             violations.Add(
                 $"{useCase.RequestType.FullName} must reside in a concrete " +
-                $"feature folder below at least one aggregate or logical " +
-                $"group folder.");
+                $"feature folder below at least one grouping folder.");
         }
 
         return violations;
     }
 
-    private static IEnumerable<string> GetUseCaseNamingViolations(
+    private static IEnumerable<string> GetRequestFeatureNameViolations(
+        ApplicationUseCase useCase)
+    {
+        var expectedRequestSuffix = GetRequestSuffix(useCase.RequestType);
+        var requestStem = useCase.RequestType.Name.EndsWith(
+            expectedRequestSuffix,
+            StringComparison.Ordinal)
+            ? useCase.RequestType.Name[..^expectedRequestSuffix.Length]
+            : useCase.RequestType.Name;
+
+        if (MatchesFeatureName(
+                requestStem,
+                useCase.FeatureName))
+        {
+            return [];
+        }
+
+        return
+        [
+            $"{useCase.RequestType.FullName} must include feature " +
+            $"name '{useCase.FeatureName}'. Additional contextual words " +
+            $"may be inserted into the feature name."
+        ];
+    }
+
+    private static IEnumerable<string> GetUseCaseRoleSuffixViolations(
         ApplicationUseCase useCase,
         IReadOnlyCollection<Type> applicationTypes)
     {
@@ -217,21 +258,6 @@ public sealed class ApplicationVerticalSliceConventionTests
         {
             violations.Add(
                 $"{useCase.RequestType.FullName} must end with " +
-                $"'{expectedRequestSuffix}'.");
-
-            return violations;
-        }
-
-        var requestStem =
-            useCase.RequestType.Name[..^expectedRequestSuffix.Length];
-
-        if (!MatchesFeatureAndAggregateName(
-                requestStem,
-                useCase.FeatureName))
-        {
-            violations.Add(
-                $"{useCase.RequestType.FullName} must combine feature " +
-                $"'{useCase.FeatureName}', aggregate name and role " +
                 $"'{expectedRequestSuffix}'.");
         }
 
@@ -588,7 +614,7 @@ public sealed class ApplicationVerticalSliceConventionTests
             : QuerySuffix;
     }
 
-    private static bool MatchesFeatureAndAggregateName(
+    private static bool MatchesFeatureName(
         string requestStem,
         string featureName)
     {

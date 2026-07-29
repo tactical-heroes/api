@@ -7,5 +7,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ConfirmEma
 [Mapper]
 internal static partial class ConfirmEmailMapper
 {
-    internal static partial ConfirmUserEmailCommand ToCommand(ConfirmEmailRequest request);
+    internal static partial ConfirmEmailCommand ToCommand(ConfirmEmailRequest request);
 }
