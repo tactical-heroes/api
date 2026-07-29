@@ -1,7 +1,7 @@
 using System.Security.Claims;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetClientTokenPrincipal;
+using PANiXiDA.TacticalHeroes.Identity.Application.Clients.GetClientTokenPrincipal;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 

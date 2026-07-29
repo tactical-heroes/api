@@ -23,7 +23,7 @@ internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetFactionsQuery(Pagination: pagination),
+            new GetFactionListQuery(Pagination: pagination),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>

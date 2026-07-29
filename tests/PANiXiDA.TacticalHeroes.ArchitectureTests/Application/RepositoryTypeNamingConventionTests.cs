@@ -80,16 +80,25 @@ public sealed class RepositoryTypeNamingConventionTests
         ModuleArchitecture module,
         IReadOnlyDictionary<string, Assembly> productionAssemblies)
     {
+        var domainAssembly = productionAssemblies[module.DomainAssemblyName];
         var applicationAssembly = productionAssemblies[module.ApplicationAssemblyName];
         var infrastructureAssembly = productionAssemblies[module.InfrastructureAssemblyName];
         var implementationTypes = infrastructureAssembly
             .GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false })
             .ToArray();
-
-        return applicationAssembly
+        var repositoryInterfaces = domainAssembly
             .GetTypes()
-            .Where(type => type.IsInterface)
+            .Where(type =>
+                type.IsInterface &&
+                ImplementsOpenGeneric(type, typeof(IRepository<,>)))
+            .Concat(applicationAssembly
+                .GetTypes()
+                .Where(type =>
+                    type.IsInterface &&
+                    ImplementsOpenGeneric(type, typeof(IReadRepository<>))));
+
+        return repositoryInterfaces
             .Select(repositoryInterface => new
             {
                 Interface = repositoryInterface,

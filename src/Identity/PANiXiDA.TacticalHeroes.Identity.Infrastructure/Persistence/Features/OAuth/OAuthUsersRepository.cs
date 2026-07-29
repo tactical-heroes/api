@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetUserInfo;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;

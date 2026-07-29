@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 

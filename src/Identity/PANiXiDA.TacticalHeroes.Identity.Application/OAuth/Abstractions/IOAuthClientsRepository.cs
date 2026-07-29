@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetClientTokenPrincipal;
+using PANiXiDA.TacticalHeroes.Identity.Application.Clients.GetClientTokenPrincipal;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 

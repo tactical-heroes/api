@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 

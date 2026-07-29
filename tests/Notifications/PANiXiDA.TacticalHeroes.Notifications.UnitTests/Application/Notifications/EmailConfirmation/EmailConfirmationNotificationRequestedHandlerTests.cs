@@ -1,4 +1,5 @@
 using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
 using PANiXiDA.TacticalHeroes.Notifications.Application.Notifications.EmailConfirmation;
 using PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events;
 

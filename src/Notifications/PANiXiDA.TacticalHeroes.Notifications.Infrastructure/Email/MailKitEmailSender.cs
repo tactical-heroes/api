@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 
 using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
 using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email;

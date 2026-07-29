@@ -2,7 +2,7 @@ using PANiXiDA.TacticalHeroes.Identity.Contracts.Users;
 
 using System.Net;
 
-using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 

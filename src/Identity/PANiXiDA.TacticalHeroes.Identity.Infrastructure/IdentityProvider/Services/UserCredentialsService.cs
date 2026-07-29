@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Login;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;

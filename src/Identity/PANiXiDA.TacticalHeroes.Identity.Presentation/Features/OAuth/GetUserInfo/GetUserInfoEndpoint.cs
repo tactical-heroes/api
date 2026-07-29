@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetUserInfo;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;

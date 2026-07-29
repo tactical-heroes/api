@@ -1,6 +1,6 @@
 using Riok.Mapperly.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Register;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Register;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
 
