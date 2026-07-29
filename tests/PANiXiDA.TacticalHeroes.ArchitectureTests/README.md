@@ -52,7 +52,14 @@ dotnet test tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHer
    `Presentation` — на свой `Application` и Contracts. Ссылка на Contracts
    может вести как в свой, так и в другой модуль.
 
-## Доменная модель
+## Domain
+
+В папках и пространствах имён `Abstractions` слоя Domain располагаются только
+абстракции. Интерфейс репозитория конкретного агрегата, наследующий
+`IRepository<,>`, является доменным контрактом и должен находиться в
+`Domain/<Aggregates>/Abstractions`. Предметные параметры и результаты такого
+репозитория не должны быть примитивами: для идентификаторов используются strongly
+typed ID, а для состояния — aggregate root и другие доменные типы.
 
 9. `AggregateRoots_Should_ContainOnlyDomainTypes_When_StateIsDeclared` — поля
    aggregate root могут содержать только value object, strongly typed ID,
@@ -126,7 +133,37 @@ dotnet test tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHer
     `UserClaimId` — рядом с `UserClaim`. Неиспользуемые strongly typed ID
     запрещены.
 
-## Application и репозитории
+## Application
+
+### Vertical Slice
+
+1. Все use case агрегата располагаются в его feature-папке, название которой
+   записывается во множественном числе, например `Factions` или `Users`.
+
+2. Внутри feature-папки агрегата каждый use case располагается в отдельной
+   подпапке с названием конкретной фичи, например `Create` или `GetDetails`.
+   Имена типов строятся из названия фичи, названия агрегата и роли типа:
+   `CreateFactionCommand`, `CreateFactionHandler`.
+
+3. В папках и пространствах имён `Abstractions` слоёв Domain и Application
+   располагаются только абстракции. Наследник `IRepository<,>` находится в
+   Domain, а наследник `IReadRepository<>` — в Application.
+
+4. Реализация `ICommand` должна оканчиваться на `Command`, реализация `IQuery` —
+   на `Query`, а реализации `ICommandHandler<,>` и `IQueryHandler<,>` — на
+   `Handler`. Реализация `AbstractValidator<T>` называется по шаблону
+   `<ValidatedType>Validator`, например `CreateFactionCommandValidator`.
+
+5. `Command`, его `Handler` и `Validator` располагаются в одной общей
+   feature-папке. То же правило действует для `Query`, его `Handler` и
+   `Validator`.
+
+6. `IRepository<,>` и его наследники не используют примитивы в предметных
+   контрактах. Для `IReadRepository<>` используются примитивные идентификаторы и
+   параметры; aggregate root не должен быть его параметром типа, аргументом или
+   результатом.
+
+### Автоматические проверки
 
 23. `RepositoryInterfaces_Should_MatchFeatureAndAbstraction_When_Declared` —
     интерфейс, наследующий `IRepository<,>`, должен называться
@@ -134,49 +171,49 @@ dotnet test tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHer
     `I<Feature>ReadRepository`. `<Feature>` берётся из сегмента namespace
     непосредственно перед `.Abstractions`.
 
-24. `RepositoryImplementations_Should_MatchInterfaceNames_When_Declared` —
+24. `ConstructorParameters_Should_FollowTypeBasedNaming_When_AggregateRepositoryIsInjected`
+    — параметр конструктора типа aggregate repository именуется по типу
+    интерфейса без начальной `I` и с маленькой первой буквы:
+    `IFactionsRepository` превращается в `factionsRepository`.
+
+25. `ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected`
+    — параметр конструктора типа read repository строится по тому же правилу:
+    `IFactionsReadRepository` превращается в `factionsReadRepository`.
+
+26. `ApplicationHandlers_Should_HaveMatchingUnitTestFiles_When_HandlersAreDeclared`
+    — каждый конкретный `ICommandHandler<,>`, `IQueryHandler<,>` или
+    `IEventHandler<>` в Application должен иметь отдельный файл unit-тестов.
+    Путь файла повторяет модуль, относительный namespace и имя handler.
+
+27. `ApplicationHandlerUnitTests_Should_CoverEveryHandlerMethod_When_HandlersAreDeclared`
+    — для каждого метода реализуемого handler-контракта должен существовать
+    тестовый метод с префиксом `<ИмяМетода>_Should_`. Для перегрузок учитывается
+    количество методов с одинаковым именем.
+
+28. `CommandAndQueryHandlers_Should_HaveValidators_When_HandlersAreDeclared` —
+    request каждого command или query handler должен иметь реализацию
+    `IValidator<TRequest>`. Для event handler validator не требуется.
+
+29. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
+    — каждая конкретная реализация `IValidator<T>` в Application должна иметь
+    отдельный непустой файл unit-тестов по пути, соответствующему её модулю,
+    namespace и имени.
+
+30. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
+    command, query или event handler в сборках `.Application` должен быть
+    `sealed`.
+
+## Infrastructure
+
+31. `RepositoryImplementations_Should_MatchInterfaceNames_When_Declared` —
     каждый интерфейс репозитория должен иметь ровно одну конкретную реализацию в
     Infrastructure. Имя реализации совпадает с именем интерфейса без начальной
     `I`: например, `IFactionsRepository` реализуется классом
     `FactionsRepository`.
 
-25. `ConstructorParameters_Should_FollowTypeBasedNaming_When_AggregateRepositoryIsInjected`
-    — параметр конструктора типа aggregate repository именуется по типу
-    интерфейса без начальной `I` и с маленькой первой буквы:
-    `IFactionsRepository` превращается в `factionsRepository`.
-
-26. `ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected`
-    — параметр конструктора типа read repository строится по тому же правилу:
-    `IFactionsReadRepository` превращается в `factionsReadRepository`.
-
-27. `ApplicationHandlers_Should_HaveMatchingUnitTestFiles_When_HandlersAreDeclared`
-    — каждый конкретный `ICommandHandler<,>`, `IQueryHandler<,>` или
-    `IEventHandler<>` в Application должен иметь отдельный файл unit-тестов.
-    Путь файла повторяет модуль, относительный namespace и имя handler.
-
-28. `ApplicationHandlerUnitTests_Should_CoverEveryHandlerMethod_When_HandlersAreDeclared`
-    — для каждого метода реализуемого handler-контракта должен существовать
-    тестовый метод с префиксом `<ИмяМетода>_Should_`. Для перегрузок учитывается
-    количество методов с одинаковым именем.
-
-29. `CommandAndQueryHandlers_Should_HaveValidators_When_HandlersAreDeclared` —
-    request каждого command или query handler должен иметь реализацию
-    `IValidator<TRequest>`. Для event handler validator не требуется.
-
-30. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
-    — каждая конкретная реализация `IValidator<T>` в Application должна иметь
-    отдельный непустой файл unit-тестов по пути, соответствующему её модулю,
-    namespace и имени.
-
-31. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
-    command, query или event handler в сборках `.Application` должен быть
-    `sealed`.
-
 32. `RepositoryImplementations_Should_BeSealed_When_Declared` — каждый
     конкретный класс Infrastructure, реализующий `IRepository<,>` или
     `IReadRepository<>`, должен быть `sealed`.
-
-## Infrastructure
 
 33. `InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented`
     — каждый конкретный класс Infrastructure, реализующий интерфейс из
@@ -223,6 +260,6 @@ dotnet test tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHer
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
-Пункты 12, 28 и 34 проверяют наличие соответствующих тестовых методов по их
+Пункты 12, 27 и 34 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
