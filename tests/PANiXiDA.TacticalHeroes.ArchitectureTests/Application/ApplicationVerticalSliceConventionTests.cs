@@ -2,10 +2,6 @@ using FluentValidation;
 
 using PANiXiDA.Core.Application.Messaging.Mediator.Contracts;
 using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
-using PANiXiDA.Core.Application.Persistence;
-using PANiXiDA.Core.Domain.Abstractions;
-using PANiXiDA.Core.Domain.AggregateRoots;
-using PANiXiDA.Core.Domain.Identifiers;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 
@@ -142,53 +138,6 @@ public sealed class ApplicationVerticalSliceConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Repository interfaces should reside in expected layers when declared")]
-    public void RepositoryInterfaces_Should_ResideInExpectedLayers_When_Declared()
-    {
-        var repositoryRoot = FindRepositoryRoot();
-        var repositoryInterfaces = GetRepositoryInterfaces();
-        var writeRepositories = repositoryInterfaces
-            .Where(repository => repository.WriteContract is not null)
-            .ToArray();
-        var readRepositories = repositoryInterfaces
-            .Where(repository => repository.ReadContract is not null)
-            .ToArray();
-        var violations = repositoryInterfaces
-            .SelectMany(repository => GetRepositoryLocationViolations(
-                repositoryRoot,
-                repository))
-            .ToArray();
-
-        Assert.NotEmpty(writeRepositories);
-        Assert.NotEmpty(readRepositories);
-        Assert.True(
-            violations.Length == 0,
-            $"Repository interface location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
-    }
-
-    [Fact(DisplayName = "Repository interfaces should use expected boundary types when declared")]
-    public void RepositoryInterfaces_Should_UseExpectedBoundaryTypes_When_Declared()
-    {
-        var repositoryInterfaces = GetRepositoryInterfaces();
-        var writeRepositories = repositoryInterfaces
-            .Where(repository => repository.WriteContract is not null)
-            .ToArray();
-        var readRepositories = repositoryInterfaces
-            .Where(repository => repository.ReadContract is not null)
-            .ToArray();
-        var violations = repositoryInterfaces
-            .SelectMany(GetRepositoryBoundaryViolations)
-            .ToArray();
-
-        Assert.NotEmpty(writeRepositories);
-        Assert.NotEmpty(readRepositories);
-        Assert.True(
-            violations.Length == 0,
-            $"Repository boundary type violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
-    }
-
     private static IEnumerable<string> GetUseCaseLocationViolations(
         ApplicationUseCase useCase)
     {
@@ -322,121 +271,6 @@ public sealed class ApplicationVerticalSliceConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetRepositoryLocationViolations(
-        string repositoryRoot,
-        RepositoryInterface repository)
-    {
-        var violations = new List<string>();
-        var assemblyName = repository.Type.Assembly.GetName().Name
-            ?? throw new InvalidOperationException(
-                $"Could not determine assembly for " +
-                $"'{repository.Type.FullName}'.");
-
-        if (repository.WriteContract is not null &&
-            !assemblyName.EndsWith(
-                DomainAssemblySuffix,
-                StringComparison.Ordinal))
-        {
-            violations.Add(
-                $"{repository.Type.FullName} inherits IRepository<,> and " +
-                $"must be declared in Domain.");
-        }
-
-        if (repository.ReadContract is not null &&
-            !assemblyName.EndsWith(
-                ApplicationAssemblySuffix,
-                StringComparison.Ordinal))
-        {
-            violations.Add(
-                $"{repository.Type.FullName} inherits IReadRepository<> and " +
-                $"must be declared in Application.");
-        }
-
-        if (!HasNamespaceSegment(
-                repository.Type,
-                AbstractionsNamespaceSegment))
-        {
-            violations.Add(
-                $"{repository.Type.FullName} must be declared in an " +
-                $"'{AbstractionsNamespaceSegment}' namespace.");
-        }
-
-        var expectedSourceFilePath = GetExpectedSourceFilePath(
-            repositoryRoot,
-            GetModule(repository.Type),
-            repository.Type);
-
-        if (!File.Exists(expectedSourceFilePath))
-        {
-            violations.Add(
-                $"{repository.Type.FullName} must have a matching source " +
-                $"file at '{Path.GetRelativePath(
-                    repositoryRoot,
-                    expectedSourceFilePath)}'.");
-        }
-
-        return violations;
-    }
-
-    private static IEnumerable<string> GetRepositoryBoundaryViolations(
-        RepositoryInterface repository)
-    {
-        var violations = new List<string>();
-
-        if (repository.WriteContract is not null)
-        {
-            var genericArguments =
-                repository.WriteContract.GetGenericArguments();
-            var identifierType = genericArguments[0];
-            var aggregateType = genericArguments[1];
-
-            if (IsPrimitiveValue(identifierType) ||
-                !typeof(IStronglyTypedId).IsAssignableFrom(identifierType))
-            {
-                violations.Add(
-                    $"{repository.Type.FullName} must use a non-primitive " +
-                    $"strongly typed ID, found '{identifierType.FullName}'.");
-            }
-
-            if (IsPrimitiveValue(aggregateType) ||
-                !typeof(IAggregateRoot).IsAssignableFrom(aggregateType))
-            {
-                violations.Add(
-                    $"{repository.Type.FullName} must use an aggregate root, " +
-                    $"found '{aggregateType.FullName}'.");
-            }
-
-            violations.AddRange(repository.Type
-                .GetMethods()
-                .Where(MethodContainsPrimitiveValue)
-                .Select(method =>
-                    $"{repository.Type.FullName}.{method.Name} must not use " +
-                    $"primitive parameters or return types."));
-        }
-
-        if (repository.ReadContract is not null)
-        {
-            var identifierType =
-                repository.ReadContract.GetGenericArguments()[0];
-
-            if (!IsPrimitiveValue(identifierType))
-            {
-                violations.Add(
-                    $"{repository.Type.FullName} must use a primitive read " +
-                    $"identifier, found '{identifierType.FullName}'.");
-            }
-
-            violations.AddRange(repository.Type
-                .GetMethods()
-                .Where(MethodContainsAggregateRoot)
-                .Select(method =>
-                    $"{repository.Type.FullName}.{method.Name} must not use " +
-                    $"an aggregate root in parameters or return types."));
-        }
-
-        return violations;
-    }
-
     private static ApplicationUseCase[] GetApplicationUseCases()
     {
         return
@@ -497,30 +331,6 @@ public sealed class ApplicationVerticalSliceConventionTests
         ];
     }
 
-    private static RepositoryInterface[] GetRepositoryInterfaces()
-    {
-        return
-        [
-            .. ArchitectureDefinition.ProductionAssemblies
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => type.IsInterface)
-                .Select(type => new RepositoryInterface(
-                    Type: type,
-                    WriteContract: GetClosedGenericInterface(
-                        type,
-                        typeof(IRepository<,>)),
-                    ReadContract: GetClosedGenericInterface(
-                        type,
-                        typeof(IReadRepository<>))))
-                .Where(repository =>
-                    repository.WriteContract is not null ||
-                    repository.ReadContract is not null)
-                .OrderBy(
-                    repository => repository.Type.FullName,
-                    StringComparer.Ordinal)
-        ];
-    }
-
     private static Type[] GetHandlerRequestTypes(Type type)
     {
         return
@@ -566,114 +376,6 @@ public sealed class ApplicationVerticalSliceConventionTests
             candidate.GetGenericTypeDefinition() == typeof(ICommand<>))
             ? CommandSuffix
             : QuerySuffix;
-    }
-
-    private static Type? GetClosedGenericInterface(
-        Type type,
-        Type openGenericType)
-    {
-        return type
-            .GetInterfaces()
-            .Append(type)
-            .FirstOrDefault(candidate =>
-                candidate.IsGenericType &&
-                candidate.GetGenericTypeDefinition() == openGenericType);
-    }
-
-    private static bool MethodContainsAggregateRoot(
-        System.Reflection.MethodInfo method)
-    {
-        return ContainsAggregateRoot(
-                   method.ReturnType,
-                   new HashSet<Type>()) ||
-               method.GetParameters().Any(parameter =>
-                   ContainsAggregateRoot(
-                       parameter.ParameterType,
-                       new HashSet<Type>()));
-    }
-
-    private static bool MethodContainsPrimitiveValue(
-        System.Reflection.MethodInfo method)
-    {
-        return ContainsPrimitiveValue(
-                   method.ReturnType,
-                   new HashSet<Type>()) ||
-               method.GetParameters().Any(parameter =>
-                   ContainsPrimitiveValue(
-                       parameter.ParameterType,
-                       new HashSet<Type>()));
-    }
-
-    private static bool ContainsAggregateRoot(
-        Type type,
-        ISet<Type> visitedTypes)
-    {
-        if (!visitedTypes.Add(type))
-        {
-            return false;
-        }
-
-        if (typeof(IAggregateRoot).IsAssignableFrom(type))
-        {
-            return true;
-        }
-
-        if (type.HasElementType)
-        {
-            return ContainsAggregateRoot(
-                type.GetElementType()
-                    ?? throw new InvalidOperationException(
-                        $"Could not determine element type for '{type}'."),
-                visitedTypes);
-        }
-
-        return type.IsGenericType &&
-               type.GetGenericArguments().Any(argument =>
-                   ContainsAggregateRoot(argument, visitedTypes));
-    }
-
-    private static bool ContainsPrimitiveValue(
-        Type type,
-        ISet<Type> visitedTypes)
-    {
-        if (!visitedTypes.Add(type))
-        {
-            return false;
-        }
-
-        if (IsPrimitiveValue(type))
-        {
-            return true;
-        }
-
-        if (type.HasElementType)
-        {
-            return ContainsPrimitiveValue(
-                type.GetElementType()
-                    ?? throw new InvalidOperationException(
-                        $"Could not determine element type for '{type}'."),
-                visitedTypes);
-        }
-
-        return type.IsGenericType &&
-               type.GetGenericArguments().Any(argument =>
-                   ContainsPrimitiveValue(argument, visitedTypes));
-    }
-
-    private static bool IsPrimitiveValue(Type type)
-    {
-        var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-        return underlyingType.IsPrimitive ||
-               underlyingType.IsEnum ||
-               underlyingType == typeof(string) ||
-               underlyingType == typeof(decimal) ||
-               underlyingType == typeof(Guid) ||
-               underlyingType == typeof(DateTime) ||
-               underlyingType == typeof(DateTimeOffset) ||
-               underlyingType == typeof(DateOnly) ||
-               underlyingType == typeof(TimeOnly) ||
-               underlyingType == typeof(TimeSpan);
     }
 
     private static bool HasNamespaceSegment(
@@ -848,8 +550,4 @@ public sealed class ApplicationVerticalSliceConventionTests
         Type RequestType,
         string[] RelativeNamespaceSegments);
 
-    private sealed record RepositoryInterface(
-        Type Type,
-        Type? WriteContract,
-        Type? ReadContract);
 }

@@ -3,35 +3,13 @@ using System.Reflection;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Domain.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
+namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
-public sealed class RepositoryTypeNamingConventionTests
+public sealed class RepositoryImplementationNamingConventionTests
 {
     private const string AbstractionsNamespaceSegment = "Abstractions";
     private const string ReadRepositorySuffix = "ReadRepository";
     private const string RepositorySuffix = "Repository";
-
-    [Fact(DisplayName = "Repository interfaces should match feature and abstraction when declared")]
-    public void RepositoryInterfaces_Should_MatchFeatureAndAbstraction_When_Declared()
-    {
-        var repositoryContracts = GetRepositoryContracts();
-        var violations = repositoryContracts
-            .Where(contract =>
-                !string.Equals(
-                    contract.Interface.Name,
-                    contract.ExpectedInterfaceName,
-                    StringComparison.Ordinal))
-            .Select(contract =>
-                $"{contract.Interface.FullName} must be named " +
-                $"'{contract.ExpectedInterfaceName}'.")
-            .ToArray();
-
-        Assert.NotEmpty(repositoryContracts);
-        Assert.True(
-            violations.Length == 0,
-            $"Repository interface naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
-    }
 
     [Fact(DisplayName = "Repository implementations should match interface names when declared")]
     public void RepositoryImplementations_Should_MatchInterfaceNames_When_Declared()
@@ -64,7 +42,8 @@ public sealed class RepositoryTypeNamingConventionTests
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
-                        $"Could not determine the name of assembly '{assembly.FullName}'."),
+                        $"Could not determine the name of assembly " +
+                        $"'{assembly.FullName}'."),
                 StringComparer.Ordinal);
 
         return
@@ -72,7 +51,9 @@ public sealed class RepositoryTypeNamingConventionTests
             .. ArchitectureDefinition.Modules
                 .SelectMany(module =>
                     GetRepositoryContracts(module, productionAssemblies))
-                .OrderBy(contract => contract.Interface.FullName, StringComparer.Ordinal)
+                .OrderBy(
+                    contract => contract.Interface.FullName,
+                    StringComparer.Ordinal)
         ];
     }
 
@@ -81,8 +62,10 @@ public sealed class RepositoryTypeNamingConventionTests
         IReadOnlyDictionary<string, Assembly> productionAssemblies)
     {
         var domainAssembly = productionAssemblies[module.DomainAssemblyName];
-        var applicationAssembly = productionAssemblies[module.ApplicationAssemblyName];
-        var infrastructureAssembly = productionAssemblies[module.InfrastructureAssemblyName];
+        var applicationAssembly =
+            productionAssemblies[module.ApplicationAssemblyName];
+        var infrastructureAssembly =
+            productionAssemblies[module.InfrastructureAssemblyName];
         var implementationTypes = infrastructureAssembly
             .GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false })
@@ -107,13 +90,11 @@ public sealed class RepositoryTypeNamingConventionTests
             .Where(candidate => candidate.Suffix is not null)
             .Select(candidate =>
             {
-                var featureName = GetFeatureName(candidate.Interface);
                 var expectedImplementationName =
-                    featureName + candidate.Suffix;
+                    GetFeatureName(candidate.Interface) + candidate.Suffix;
 
                 return new RepositoryContract(
                     Interface: candidate.Interface,
-                    ExpectedInterfaceName: "I" + expectedImplementationName,
                     ExpectedImplementationName: expectedImplementationName,
                     Implementations:
                     [
@@ -165,9 +146,9 @@ public sealed class RepositoryTypeNamingConventionTests
         if (abstractionsIndex < 1)
         {
             throw new InvalidOperationException(
-                $"Repository interface '{repositoryInterface.FullName}' must be " +
-                $"declared in an '*.{{Feature}}.{AbstractionsNamespaceSegment}' " +
-                $"namespace.");
+                $"Repository interface '{repositoryInterface.FullName}' must " +
+                $"be declared in an '*.{{Feature}}." +
+                $"{AbstractionsNamespaceSegment}' namespace.");
         }
 
         return namespaceSegments[abstractionsIndex - 1];
@@ -187,7 +168,6 @@ public sealed class RepositoryTypeNamingConventionTests
 
     private sealed record RepositoryContract(
         Type Interface,
-        string ExpectedInterfaceName,
         string ExpectedImplementationName,
         Type[] Implementations);
 }

@@ -133,133 +133,143 @@ typed ID, а для состояния — aggregate root и другие дом
     `UserClaimId` — рядом с `UserClaim`. Неиспользуемые strongly typed ID
     запрещены.
 
+23. `Repositories_Should_ResideInDomainAbstractions_When_Declared` — интерфейс,
+    наследующий `IRepository<,>`, должен находиться в Domain в папке и
+    namespace `Abstractions`.
+
+24. `Repositories_Should_UseStronglyTypedIdsAndAggregateRoots_When_Declared` —
+    `IRepository<,>` использует strongly typed ID и aggregate root и не
+    принимает и не возвращает примитивы.
+
+25. `Repositories_Should_MatchFeatureNames_When_Declared` — интерфейс,
+    наследующий `IRepository<,>`, должен называться `I<Feature>Repository`.
+    `<Feature>` берётся из сегмента namespace непосредственно перед
+    `.Abstractions`.
+
+26. `ConstructorParameters_Should_FollowTypeBasedNaming_When_RepositoryIsInjected`
+    — параметр конструктора типа repository именуется по типу интерфейса без
+    начальной `I` и с маленькой первой буквы: `IFactionsRepository`
+    превращается в `factionsRepository`.
+
 ## Application
 
-23. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
+27. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
     `ICommand` и `IQuery` должен находиться в папке конкретной фичи ниже хотя бы
     одной группирующей папки. Между корнем Application и feature-папкой
     разрешено любое количество логических подпапок, например
     `Auth/ChangePassword` или `Users/Administration/Block`.
 
-24. `ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared` —
+28. `ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared` —
     `ICommand` оканчивается на `Command`, `IQuery` — на `Query`,
     `ICommandHandler<,>` и `IQueryHandler<,>` — на `Handler`, validator — на
     `Validator`.
 
-25. `ApplicationUseCaseParts_Should_ShareOneFeatureFolder_When_Declared` —
+29. `ApplicationUseCaseParts_Should_ShareOneFeatureFolder_When_Declared` —
     command или query должен иметь ровно один handler и один validator. Request,
     handler и validator именуются согласованно и располагаются в одной общей
     feature-папке и namespace.
 
-26. `AbstractionsNamespaces_Should_ContainOnlyAbstractions_When_Declared` —
+30. `AbstractionsNamespaces_Should_ContainOnlyAbstractions_When_Declared` —
     папки и пространства имён `Abstractions` в Domain и Application могут
     содержать только интерфейсы, абстрактные типы и делегаты.
 
-27. `RepositoryInterfaces_Should_ResideInExpectedLayers_When_Declared` —
-    наследник `IRepository<,>` должен находиться в Domain, наследник
-    `IReadRepository<>` — в Application. Оба контракта располагаются в
-    `Abstractions`.
+31. `ReadRepositories_Should_ResideInApplicationAbstractions_When_Declared` —
+    интерфейс, наследующий `IReadRepository<>`, должен находиться в Application
+    в папке и namespace `Abstractions`.
 
-28. `RepositoryInterfaces_Should_UseExpectedBoundaryTypes_When_Declared` —
-    `IRepository<,>` использует strongly typed ID и aggregate root, а не
-    примитивы. `IReadRepository<>` использует примитивный идентификатор и не
-    принимает и не возвращает aggregate root.
+32. `ReadRepositories_Should_UsePrimitiveIdsWithoutAggregateRoots_When_Declared`
+    — `IReadRepository<>` использует примитивный идентификатор и не принимает и
+    не возвращает aggregate root.
 
-29. `RepositoryInterfaces_Should_MatchFeatureAndAbstraction_When_Declared` —
-    интерфейс, наследующий `IRepository<,>`, должен называться
-    `I<Feature>Repository`, а наследующий `IReadRepository<>` —
+33. `ReadRepositories_Should_MatchFeatureNames_When_Declared` — интерфейс,
+    наследующий `IReadRepository<>`, должен называться
     `I<Feature>ReadRepository`. `<Feature>` берётся из сегмента namespace
     непосредственно перед `.Abstractions`.
 
-30. `ConstructorParameters_Should_FollowTypeBasedNaming_When_AggregateRepositoryIsInjected`
-    — параметр конструктора типа aggregate repository именуется по типу
-    интерфейса без начальной `I` и с маленькой первой буквы:
-    `IFactionsRepository` превращается в `factionsRepository`.
-
-31. `ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected`
+34. `ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected`
     — параметр конструктора типа read repository строится по тому же правилу:
     `IFactionsReadRepository` превращается в `factionsReadRepository`.
 
-32. `ApplicationHandlers_Should_HaveMatchingUnitTestFiles_When_HandlersAreDeclared`
+35. `ApplicationHandlers_Should_HaveMatchingUnitTestFiles_When_HandlersAreDeclared`
     — каждый конкретный `ICommandHandler<,>`, `IQueryHandler<,>` или
     `IEventHandler<>` в Application должен иметь отдельный файл unit-тестов.
     Путь файла повторяет модуль, относительный namespace и имя handler.
 
-33. `ApplicationHandlerUnitTests_Should_CoverEveryHandlerMethod_When_HandlersAreDeclared`
+36. `ApplicationHandlerUnitTests_Should_CoverEveryHandlerMethod_When_HandlersAreDeclared`
     — для каждого метода реализуемого handler-контракта должен существовать
     тестовый метод с префиксом `<ИмяМетода>_Should_`. Для перегрузок учитывается
     количество методов с одинаковым именем.
 
-34. `CommandAndQueryHandlers_Should_HaveValidators_When_HandlersAreDeclared` —
+37. `CommandAndQueryHandlers_Should_HaveValidators_When_HandlersAreDeclared` —
     request каждого command или query handler должен иметь реализацию
     `IValidator<TRequest>`. Для event handler validator не требуется.
 
-35. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
+38. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
     — каждая конкретная реализация `IValidator<T>` в Application должна иметь
     отдельный непустой файл unit-тестов по пути, соответствующему её модулю,
     namespace и имени.
 
-36. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
+39. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
     command, query или event handler в сборках `.Application` должен быть
     `sealed`.
 
 ## Infrastructure
 
-37. `RepositoryImplementations_Should_MatchInterfaceNames_When_Declared` —
+40. `RepositoryImplementations_Should_MatchInterfaceNames_When_Declared` —
     каждый интерфейс репозитория должен иметь ровно одну конкретную реализацию в
     Infrastructure. Имя реализации совпадает с именем интерфейса без начальной
     `I`: например, `IFactionsRepository` реализуется классом
     `FactionsRepository`.
 
-38. `RepositoryImplementations_Should_BeSealed_When_Declared` — каждый
+41. `RepositoryImplementations_Should_BeSealed_When_Declared` — каждый
     конкретный класс Infrastructure, реализующий `IRepository<,>` или
     `IReadRepository<>`, должен быть `sealed`.
 
-39. `InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented`
+42. `InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented`
     — каждый конкретный класс Infrastructure, реализующий интерфейс из
     Application своего модуля, должен иметь отдельный integration-test файл.
     Путь повторяет относительный namespace и имя реализации.
 
-40. `IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists`
+43. `IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists`
     — для каждого метода реализуемого Application-интерфейса должен существовать
     integration-тест с префиксом `<ИмяМетода>_Should_`. Для перегрузок
     учитывается количество методов с одинаковым именем.
 
 ## Presentation
 
-41. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
+44. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
     конкретный `IEndpoint` должен иметь functional-test файл в том же модуле.
     Путь повторяет относительный namespace и имя endpoint.
 
-42. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
+45. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
     `Route` endpoint и endpoint group состоит из английских lowercase
     kebab-case сегментов и параметров вида `{name}` или `{name:constraint}`;
     `Name` является одним английским PascalCase-идентификатором; `Summary`
     endpoint записывается на английском в sentence case с одиночными пробелами.
 
-43. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
+46. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
     `IEndpoint` и `IEndpointGroup` в сборках `.Presentation` должен быть
     `sealed`.
 
 ## Оформление тестов
 
-44. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+47. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-45. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+48. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-46. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+49. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-47. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+50. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
-Пункты 12, 33 и 40 проверяют наличие соответствующих тестовых методов по их
+Пункты 12, 36 и 43 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
