@@ -9,8 +9,8 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Clients.GetClientTokenPrincipal;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetClientTokenPrincipal;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.ExchangeToken;

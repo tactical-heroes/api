@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.ExchangeToken;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 
 using Riok.Mapperly.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 

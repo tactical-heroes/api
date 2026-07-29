@@ -26,27 +26,14 @@ public sealed class ApplicationVerticalSliceConventionTests
         typeof(IQueryHandler<,>)
     ];
 
-    private static readonly IReadOnlyDictionary<string, string> IrregularPlurals =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["Child"] = "Children",
-            ["Foot"] = "Feet",
-            ["Goose"] = "Geese",
-            ["Man"] = "Men",
-            ["Mouse"] = "Mice",
-            ["Person"] = "People",
-            ["Tooth"] = "Teeth",
-            ["Woman"] = "Women"
-        };
-
     private static readonly Type[] RequestInterfaceDefinitions =
     [
         typeof(ICommand<>),
         typeof(IQuery<>)
     ];
 
-    [Fact(DisplayName = "Application use cases should reside in plural aggregate feature folders when declared")]
-    public void ApplicationUseCases_Should_ResideInPluralAggregateFeatureFolders_When_Declared()
+    [Fact(DisplayName = "Application use cases should reside in feature folders when declared")]
+    public void ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared()
     {
         var useCases = GetApplicationUseCases();
         var violations = useCases
@@ -206,33 +193,12 @@ public sealed class ApplicationVerticalSliceConventionTests
     {
         var violations = new List<string>();
 
-        if (useCase.RelativeNamespaceSegments.Length != 2)
+        if (useCase.RelativeNamespaceSegments.Length < 2)
         {
             violations.Add(
-                $"{useCase.RequestType.FullName} must reside in exactly " +
-                $"'<Aggregates>.<Feature>' below its Application assembly.");
-        }
-
-        if (!useCase.AggregateFolderIsPlural)
-        {
-            violations.Add(
-                $"{useCase.RequestType.FullName} must reside under a plural " +
-                $"aggregate folder, found " +
-                $"'{useCase.RelativeNamespaceSegments.FirstOrDefault()}'.");
-
-            return violations;
-        }
-
-        if (!useCase.RequestType.Name.Contains(
-                useCase.AggregateName,
-                StringComparison.Ordinal) &&
-            !useCase.RequestType.Name.Contains(
-                Pluralize(useCase.AggregateName),
-                StringComparison.Ordinal))
-        {
-            violations.Add(
-                $"{useCase.RequestType.FullName} must contain aggregate " +
-                $"name '{useCase.AggregateName}'.");
+                $"{useCase.RequestType.FullName} must reside in a concrete " +
+                $"feature folder below at least one aggregate or logical " +
+                $"group folder.");
         }
 
         return violations;
@@ -256,24 +222,17 @@ public sealed class ApplicationVerticalSliceConventionTests
             return violations;
         }
 
-        if (useCase.AggregateFolderIsPlural &&
-            useCase.RelativeNamespaceSegments.Length == 2)
-        {
-            var featureName = useCase.RelativeNamespaceSegments[1];
-            var requestStem =
-                useCase.RequestType.Name[..^expectedRequestSuffix.Length];
+        var requestStem =
+            useCase.RequestType.Name[..^expectedRequestSuffix.Length];
 
-            if (!MatchesFeatureAndAggregate(
-                    requestStem,
-                    featureName,
-                    useCase.AggregateName))
-            {
-                violations.Add(
-                    $"{useCase.RequestType.FullName} must combine feature " +
-                    $"'{featureName}', aggregate " +
-                    $"'{useCase.AggregateName}' and role " +
-                    $"'{expectedRequestSuffix}'.");
-            }
+        if (!MatchesFeatureAndAggregateName(
+                requestStem,
+                useCase.FeatureName))
+        {
+            violations.Add(
+                $"{useCase.RequestType.FullName} must combine feature " +
+                $"'{useCase.FeatureName}', aggregate name and role " +
+                $"'{expectedRequestSuffix}'.");
         }
 
         violations.AddRange(applicationTypes
@@ -519,25 +478,16 @@ public sealed class ApplicationVerticalSliceConventionTests
                                     .Split(
                                         '.',
                                         StringSplitOptions.RemoveEmptyEntries);
-                            var aggregateFolder =
-                                relativeNamespaceSegments.FirstOrDefault()
+                            var featureName =
+                                relativeNamespaceSegments.LastOrDefault()
                                 ?? string.Empty;
-                            var aggregateName =
-                                Singularize(aggregateFolder);
 
                             return new ApplicationUseCase(
                                 Module: module,
                                 RequestType: requestType,
                                 RelativeNamespaceSegments:
                                     relativeNamespaceSegments,
-                                AggregateName: aggregateName,
-                                AggregateFolderIsPlural:
-                                    !string.IsNullOrWhiteSpace(
-                                        aggregateFolder) &&
-                                    string.Equals(
-                                        Pluralize(aggregateName),
-                                        aggregateFolder,
-                                        StringComparison.Ordinal));
+                                FeatureName: featureName);
                         });
                 })
                 .OrderBy(
@@ -638,47 +588,28 @@ public sealed class ApplicationVerticalSliceConventionTests
             : QuerySuffix;
     }
 
-    private static bool MatchesFeatureAndAggregate(
+    private static bool MatchesFeatureAndAggregateName(
         string requestStem,
-        string featureName,
-        string aggregateName)
+        string featureName)
     {
         if (string.Equals(
                 requestStem,
                 featureName,
                 StringComparison.Ordinal))
         {
-            return requestStem.Contains(
-                       aggregateName,
-                       StringComparison.Ordinal) ||
-                   requestStem.Contains(
-                       Pluralize(aggregateName),
-                       StringComparison.Ordinal);
+            return true;
         }
 
-        return CanInsertAggregate(
-                   requestStem,
-                   featureName,
-                   aggregateName) ||
-               CanInsertAggregate(
-                   requestStem,
-                   featureName,
-                   Pluralize(aggregateName));
-    }
-
-    private static bool CanInsertAggregate(
-        string requestStem,
-        string featureName,
-        string aggregateName)
-    {
-        return Enumerable
+        return requestStem.Length > featureName.Length &&
+               Enumerable
             .Range(0, featureName.Length + 1)
-            .Any(index => string.Equals(
-                requestStem,
-                featureName[..index] +
-                aggregateName +
-                featureName[index..],
-                StringComparison.Ordinal));
+            .Any(index =>
+                requestStem.StartsWith(
+                    featureName[..index],
+                    StringComparison.Ordinal) &&
+                requestStem.EndsWith(
+                    featureName[index..],
+                    StringComparison.Ordinal));
     }
 
     private static Type? GetClosedGenericInterface(
@@ -921,95 +852,6 @@ public sealed class ApplicationVerticalSliceConventionTests
         return typeNamespace[namespacePrefix.Length..];
     }
 
-    private static string Pluralize(string singularName)
-    {
-        foreach (var irregularPlural in IrregularPlurals)
-        {
-            if (singularName.EndsWith(
-                    irregularPlural.Key,
-                    StringComparison.Ordinal))
-            {
-                return singularName[..^irregularPlural.Key.Length] +
-                       irregularPlural.Value;
-            }
-        }
-
-        if (singularName.EndsWith('y') &&
-            singularName.Length > 1 &&
-            !"aeiou".Contains(
-                char.ToLowerInvariant(singularName[^2]),
-                StringComparison.Ordinal))
-        {
-            return singularName[..^1] + "ies";
-        }
-
-        if (singularName.EndsWith(
-                "s",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "x",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "z",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "ch",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "sh",
-                StringComparison.Ordinal))
-        {
-            return singularName + "es";
-        }
-
-        return singularName + "s";
-    }
-
-    private static string Singularize(string pluralName)
-    {
-        var irregularPlural = IrregularPlurals
-            .SingleOrDefault(candidate => string.Equals(
-                candidate.Value,
-                pluralName,
-                StringComparison.Ordinal));
-
-        if (!string.IsNullOrEmpty(irregularPlural.Key))
-        {
-            return irregularPlural.Key;
-        }
-
-        if (pluralName.EndsWith(
-                "ies",
-                StringComparison.Ordinal) &&
-            pluralName.Length > 3)
-        {
-            return pluralName[..^3] + "y";
-        }
-
-        if (pluralName.EndsWith(
-                "ches",
-                StringComparison.Ordinal) ||
-            pluralName.EndsWith(
-                "shes",
-                StringComparison.Ordinal) ||
-            pluralName.EndsWith(
-                "xes",
-                StringComparison.Ordinal) ||
-            pluralName.EndsWith(
-                "zes",
-                StringComparison.Ordinal) ||
-            pluralName.EndsWith(
-                "sses",
-                StringComparison.Ordinal))
-        {
-            return pluralName[..^2];
-        }
-
-        return pluralName.EndsWith('s')
-            ? pluralName[..^1]
-            : pluralName;
-    }
-
     private static string FormatTypes(
         IReadOnlyCollection<Type> types)
     {
@@ -1049,8 +891,7 @@ public sealed class ApplicationVerticalSliceConventionTests
         ModuleArchitecture Module,
         Type RequestType,
         string[] RelativeNamespaceSegments,
-        string AggregateName,
-        bool AggregateFolderIsPlural);
+        string FeatureName);
 
     private sealed record RepositoryInterface(
         Type Type,

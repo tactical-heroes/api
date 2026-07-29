@@ -135,16 +135,19 @@ typed ID, а для состояния — aggregate root и другие дом
 
 ## Application
 
-23. `ApplicationUseCases_Should_ResideInPluralAggregateFeatureFolders_When_Declared`
-    — каждый `ICommand` и `IQuery` должен находиться ровно на два уровня ниже
-    корня Application: `<Aggregates>/<Feature>`. Папка агрегата называется во
-    множественном числе, а имя request содержит имя соответствующего агрегата.
+23. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
+    `ICommand` и `IQuery` должен находиться в папке конкретной фичи ниже хотя бы
+    одной группирующей папки. Между корнем Application и feature-папкой
+    разрешено любое количество логических подпапок, например
+    `Auth/ChangePassword` или `Users/Administration/Block`.
 
 24. `ApplicationUseCaseTypes_Should_FollowFeatureAggregateAndRoleNaming_When_Declared`
-    — имя command или query строится из названия конкретной фичи, имени агрегата
-    и роли типа. `ICommand` оканчивается на `Command`, `IQuery` — на `Query`,
-    `ICommandHandler<,>` и `IQueryHandler<,>` — на `Handler`, validator — на
-    `Validator`.
+    — имя command или query строится из названия конечной feature-папки, имени
+    агрегата и роли типа. Имя агрегата может добавляться в начало, середину или
+    конец названия фичи; если оно уже входит в название фичи, дублировать его не
+    нужно. Промежуточные логические папки в нейминге не участвуют. `ICommand`
+    оканчивается на `Command`, `IQuery` — на `Query`, `ICommandHandler<,>` и
+    `IQueryHandler<,>` — на `Handler`, validator — на `Validator`.
 
 25. `ApplicationUseCaseParts_Should_ShareOneFeatureFolder_When_Declared` —
     command или query должен иметь ровно один handler и один validator. Request,

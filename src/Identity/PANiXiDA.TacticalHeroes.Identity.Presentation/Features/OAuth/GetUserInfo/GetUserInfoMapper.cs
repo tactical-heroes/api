@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
 

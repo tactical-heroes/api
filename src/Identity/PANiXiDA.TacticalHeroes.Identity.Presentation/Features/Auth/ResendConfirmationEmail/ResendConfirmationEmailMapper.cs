@@ -1,6 +1,6 @@
 using Riok.Mapperly.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.ResendConfirmationEmail;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResendConfirmationEmail;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResendConfirmationEmail;
 
