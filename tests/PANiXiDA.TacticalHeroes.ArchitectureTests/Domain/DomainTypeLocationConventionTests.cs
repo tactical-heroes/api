@@ -15,19 +15,6 @@ public sealed class DomainTypeLocationConventionTests
     private const string SourceDirectoryName = "src";
     private const string ValueObjectsDirectoryName = "ValueObjects";
 
-    private static readonly IReadOnlyDictionary<string, string> IrregularPlurals =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["Child"] = "Children",
-            ["Foot"] = "Feet",
-            ["Goose"] = "Geese",
-            ["Man"] = "Men",
-            ["Mouse"] = "Mice",
-            ["Person"] = "People",
-            ["Tooth"] = "Teeth",
-            ["Woman"] = "Women"
-        };
-
     [Fact(DisplayName = "Aggregate roots should have singular names and plural directories when declared")]
     public void AggregateRoots_Should_HaveSingularNamesAndPluralDirectories_When_Declared()
     {
@@ -42,7 +29,8 @@ public sealed class DomainTypeLocationConventionTests
             {
                 var assemblyName = GetAssemblyName(type);
                 var expectedNamespace =
-                    $"{assemblyName}.{Pluralize(type.Name)}";
+                    $"{assemblyName}." +
+                    $"{EnglishNamingConvention.Pluralize(type.Name)}";
 
                 return GetLocationViolations(
                     repositoryRoot,
@@ -50,7 +38,7 @@ public sealed class DomainTypeLocationConventionTests
                     expectedNamespace,
                     $"Aggregate root '{type.FullName}' must have a singular " +
                     $"type name and reside in plural directory " +
-                    $"'{Pluralize(type.Name)}'.");
+                    $"'{EnglishNamingConvention.Pluralize(type.Name)}'.");
             })
             .ToArray();
 
@@ -242,7 +230,8 @@ public sealed class DomainTypeLocationConventionTests
         IReadOnlyCollection<Type> owners)
     {
         var expectedNamespaceSuffix =
-            $".{EntitiesDirectoryName}.{Pluralize(entity.Name)}";
+            $".{EntitiesDirectoryName}." +
+            $"{EnglishNamingConvention.Pluralize(entity.Name)}";
         var entityNamespace = entity.Namespace;
 
         if (entityNamespace is null ||
@@ -255,7 +244,7 @@ public sealed class DomainTypeLocationConventionTests
                 $"{entity.FullName} must have a singular type name and " +
                 $"reside in " +
                 $"'<owner>.{EntitiesDirectoryName}." +
-                $"{Pluralize(entity.Name)}'."
+                $"{EnglishNamingConvention.Pluralize(entity.Name)}'."
             ];
         }
 
@@ -490,50 +479,6 @@ public sealed class DomainTypeLocationConventionTests
         }
 
         return false;
-    }
-
-    private static string Pluralize(string singularName)
-    {
-        foreach (var irregularPlural in IrregularPlurals)
-        {
-            if (singularName.EndsWith(
-                    irregularPlural.Key,
-                    StringComparison.Ordinal))
-            {
-                return singularName[..^irregularPlural.Key.Length] +
-                       irregularPlural.Value;
-            }
-        }
-
-        if (singularName.EndsWith('y') &&
-            singularName.Length > 1 &&
-            !"aeiou".Contains(
-                char.ToLowerInvariant(singularName[^2]),
-                StringComparison.Ordinal))
-        {
-            return singularName[..^1] + "ies";
-        }
-
-        if (singularName.EndsWith(
-                "s",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "x",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "z",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "ch",
-                StringComparison.Ordinal) ||
-            singularName.EndsWith(
-                "sh",
-                StringComparison.Ordinal))
-        {
-            return singularName + "es";
-        }
-
-        return singularName + "s";
     }
 
     private static string GetAssemblyName(Type type)

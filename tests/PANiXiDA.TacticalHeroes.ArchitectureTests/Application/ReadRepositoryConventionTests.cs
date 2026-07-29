@@ -45,25 +45,34 @@ public sealed class ReadRepositoryConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read repositories should match feature names when declared")]
-    public void ReadRepositories_Should_MatchFeatureNames_When_Declared()
+    [Fact(DisplayName = "Read repositories should match plural aggregate names when declared")]
+    public void ReadRepositories_Should_MatchPluralAggregateNames_When_Declared()
     {
         var readRepositories = GetReadRepositories();
         var violations = readRepositories
             .Select(repository => new
             {
                 repository.Type,
-                ExpectedName =
-                    "I" + GetFeatureName(repository.Type) +
-                    ReadRepositorySuffix
+                ActualFeatureName = GetFeatureName(repository.Type),
+                ExpectedFeatureNames = GetAggregateFeatureNames(
+                    GetModule(repository.Type))
             })
-            .Where(repository => !string.Equals(
-                repository.Type.Name,
-                repository.ExpectedName,
-                StringComparison.Ordinal))
+            .Where(repository =>
+                !repository.ExpectedFeatureNames.Contains(
+                    repository.ActualFeatureName,
+                    StringComparer.Ordinal) ||
+                !string.Equals(
+                    repository.Type.Name,
+                    "I" + repository.ActualFeatureName +
+                    ReadRepositorySuffix,
+                    StringComparison.Ordinal))
             .Select(repository =>
-                $"{repository.Type.FullName} must be named " +
-                $"'{repository.ExpectedName}'.")
+                $"{repository.Type.FullName} must use a plural aggregate " +
+                $"feature and one of these names: " +
+                $"{string.Join(
+                    ", ",
+                    repository.ExpectedFeatureNames.Select(featureName =>
+                        $"'I{featureName}{ReadRepositorySuffix}'"))}.")
             .ToArray();
 
         Assert.NotEmpty(readRepositories);
@@ -299,6 +308,28 @@ public sealed class ReadRepositoryConventionTests
         return namespaceSegments[abstractionsIndex - 1];
     }
 
+    private static string[] GetAggregateFeatureNames(
+        ModuleArchitecture module)
+    {
+        var domainAssembly = ArchitectureDefinition.ProductionAssemblies
+            .Single(assembly => string.Equals(
+                assembly.GetName().Name,
+                module.DomainAssemblyName,
+                StringComparison.Ordinal));
+
+        return
+        [
+            .. domainAssembly
+                .GetTypes()
+                .Where(type =>
+                    type is { IsClass: true, IsAbstract: false } &&
+                    typeof(IAggregateRoot).IsAssignableFrom(type))
+                .Select(type =>
+                    EnglishNamingConvention.Pluralize(type.Name))
+                .Order(StringComparer.Ordinal)
+        ];
+    }
+
     private static string GetExpectedParameterName(Type parameterType)
     {
         var typeName = RemoveGenericArity(parameterType.Name);
@@ -384,6 +415,17 @@ public sealed class ReadRepositoryConventionTests
         return type.Assembly.GetName().Name
             ?? throw new InvalidOperationException(
                 $"Could not determine assembly for '{type.FullName}'.");
+    }
+
+    private static ModuleArchitecture GetModule(Type type)
+    {
+        var assemblyName = GetAssemblyName(type);
+
+        return ArchitectureDefinition.Modules.Single(candidate =>
+            string.Equals(
+                candidate.ApplicationAssemblyName,
+                assemblyName,
+                StringComparison.Ordinal));
     }
 
     private static string FindRepositoryRoot()

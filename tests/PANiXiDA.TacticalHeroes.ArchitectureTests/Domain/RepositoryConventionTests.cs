@@ -47,24 +47,39 @@ public sealed class RepositoryConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Repositories should match feature names when declared")]
-    public void Repositories_Should_MatchFeatureNames_When_Declared()
+    [Fact(DisplayName = "Repositories should match plural aggregate names when declared")]
+    public void Repositories_Should_MatchPluralAggregateNames_When_Declared()
     {
         var repositories = GetRepositories();
         var violations = repositories
             .Select(repository => new
             {
                 repository.Type,
-                ExpectedName =
-                    "I" + GetFeatureName(repository.Type) + RepositorySuffix
+                ActualFeatureName = GetFeatureName(repository.Type),
+                ExpectedFeatureName = EnglishNamingConvention.Pluralize(
+                    repository.Contract.GetGenericArguments()[1].Name)
             })
-            .Where(repository => !string.Equals(
-                repository.Type.Name,
-                repository.ExpectedName,
-                StringComparison.Ordinal))
+            .Select(repository => new
+            {
+                repository.Type,
+                repository.ActualFeatureName,
+                repository.ExpectedFeatureName,
+                ExpectedName =
+                    "I" + repository.ExpectedFeatureName + RepositorySuffix
+            })
+            .Where(repository =>
+                !string.Equals(
+                    repository.Type.Name,
+                    repository.ExpectedName,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
+                    repository.ActualFeatureName,
+                    repository.ExpectedFeatureName,
+                    StringComparison.Ordinal))
             .Select(repository =>
                 $"{repository.Type.FullName} must be named " +
-                $"'{repository.ExpectedName}'.")
+                $"'{repository.ExpectedName}' and reside under aggregate " +
+                $"feature '{repository.ExpectedFeatureName}'.")
             .ToArray();
 
         Assert.NotEmpty(repositories);
