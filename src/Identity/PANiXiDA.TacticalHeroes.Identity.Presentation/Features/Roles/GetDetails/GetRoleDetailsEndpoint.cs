@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
 
 internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
@@ -24,7 +23,7 @@ internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetRoleDetailsQuery(Id: id),
+            GetRoleDetailsMapper.ToQuery(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: role =>

@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Delete;
 
 internal sealed class DeleteUserEndpoint : IEndpoint<UsersEndpoints>
@@ -25,7 +23,7 @@ internal sealed class DeleteUserEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new DeleteUserCommand(Id: id),
+            DeleteUserMapper.ToCommand(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);

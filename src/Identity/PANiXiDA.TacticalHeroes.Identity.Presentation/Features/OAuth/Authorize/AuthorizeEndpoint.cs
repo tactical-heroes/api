@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
@@ -59,7 +58,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var userResult = await mediator.QueryAsync(
-            new GetUserDetailsQuery(Id: userIdResult.Value),
+            AuthorizeMapper.ToQuery(id: userIdResult.Value),
             httpContext.RequestAborted);
 
         if (userResult.IsFailure ||

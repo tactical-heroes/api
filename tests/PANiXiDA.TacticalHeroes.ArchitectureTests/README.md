@@ -298,36 +298,79 @@ typed ID, а для состояния — aggregate root и другие дом
 
 ## Presentation
 
-59. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
+59. `EndpointGroups_Should_ResideInFeatureRootsAndMatchFeatureNames_When_Declared`
+    — каждый конкретный `IEndpointGroup` должен находиться непосредственно в
+    `Features/<AggregatePlural>`, называться `<AggregatePlural>Endpoints`, а его
+    `Name` должен совпадать с `<AggregatePlural>`.
+
+60. `EndpointGroupMetadataProperties_Should_BeGetOnly_When_GroupIsDeclared` —
+    свойства `Route`, `Name` и `ApiVersion` каждого `IEndpointGroup` должны
+    предоставлять только getter.
+
+61. `Endpoints_Should_ResideInFeatureSlicesUnderTheirGenericGroups_When_Declared`
+    — каждый конкретный `IEndpoint<TGroup>` должен находиться в feature-папке
+    внутри дерева своего `TGroup`; между корнем группы и feature-папкой
+    допускаются логические подпапки. Generic-параметр обязан указывать на
+    `IEndpointGroup` из корня этого дерева.
+
+62. `Endpoints_Should_EndWithEndpoint_When_Declared` — каждый конкретный
+    `IEndpoint` должен оканчиваться на `Endpoint`.
+
+63. `MapperlyMappers_Should_EndWithMapper_When_Declared` — каждый mapper,
+    объявленный через Mapperly, должен оканчиваться на `Mapper`.
+
+64. `EndpointInputTypes_Should_EndWithRequest_When_Declared` — входной
+    Presentation-контракт endpoint должен оканчиваться на `Request`.
+
+65. `EndpointOutputTypes_Should_EndWithResponse_When_Declared` — выходной
+    Presentation-контракт endpoint должен оканчиваться на `Response`.
+
+66. `EndpointSliceParts_Should_ShareOneFeatureFolder_When_Declared` —
+    `Endpoint`, его `Request`, `Response` и используемые `Mapper` должны
+    находиться в одной feature-папке и одном namespace.
+
+67. `CreatedAtRouteCalls_Should_UseEndpointNames_When_Declared` — каждый
+    `CreatedAtRoute` должен передавать `routeName` строготипизированно через
+    `new <Target>Endpoint().Name`.
+
+68. `PresentationApplicationReferences_Should_ExistOnlyInMappers_When_Declared`
+    — ссылки из Presentation на Application допускаются только в mapper-файлах.
+
+69. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
+    — endpoint должен обращаться к Application через `IMediator`, а передаваемые
+    в `SendAsync` и `QueryAsync` команды и запросы создавать через mapper своего
+    slice.
+
+70. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
     конкретный `IEndpoint` должен иметь functional-test файл в том же модуле.
     Путь повторяет относительный namespace и имя endpoint.
 
-60. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
+71. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
     `Route` endpoint и endpoint group состоит из английских lowercase
     kebab-case сегментов и параметров вида `{name}` или `{name:constraint}`;
     `Name` является одним английским PascalCase-идентификатором; `Summary`
     endpoint записывается на английском в sentence case с одиночными пробелами.
 
-61. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
+72. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
     `IEndpoint` и `IEndpointGroup` в сборках `.Presentation` должен быть
     `sealed`.
 
 ## Оформление тестов
 
-62. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+73. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-63. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+74. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-64. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+75. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-65. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+76. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 

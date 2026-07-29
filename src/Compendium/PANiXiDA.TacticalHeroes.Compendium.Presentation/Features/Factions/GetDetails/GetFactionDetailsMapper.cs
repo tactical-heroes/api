@@ -7,6 +7,8 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetD
 [Mapper]
 internal static partial class GetFactionDetailsMapper
 {
+    internal static partial GetFactionDetailsQuery ToQuery(Guid id);
+
     internal static partial GetFactionDetailsResponse ToResponse(
         FactionDetailsReadModel faction);
 }

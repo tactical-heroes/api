@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Unblock;
 
 internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
@@ -25,7 +23,7 @@ internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new UnblockUserCommand(Id: id),
+            UnblockUserMapper.ToCommand(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);

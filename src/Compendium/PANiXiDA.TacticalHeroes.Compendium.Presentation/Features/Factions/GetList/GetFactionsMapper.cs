@@ -7,6 +7,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetL
 [Mapper(IncludedConstructors = MemberVisibility.All)]
 internal static partial class GetFactionsMapper
 {
+    internal static partial GetFactionsQuery ToQuery(
+        PaginationParameters pagination);
+
     internal static partial PaginationResult<FactionListItemResponse> ToResponse(
         PaginationResult<FactionListItemReadModel> page);
 }

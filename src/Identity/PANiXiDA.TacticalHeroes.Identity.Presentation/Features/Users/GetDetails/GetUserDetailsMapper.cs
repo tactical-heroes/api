@@ -9,6 +9,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetDetail
 [UseStaticMapper(typeof(Claim))]
 internal static partial class GetUserDetailsMapper
 {
+    internal static partial GetUserDetailsQuery ToQuery(Guid id);
+
     [MapperIgnoreSource(nameof(UserDetailsReadModel.IsBlocked))]
     internal static partial GetUserDetailsResponse ToResponse(UserDetailsReadModel user);
 }
