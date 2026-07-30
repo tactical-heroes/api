@@ -9,7 +9,7 @@ using Riok.Mapperly.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 
-[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Source)]
 internal static partial class ApplicationUserMapper
 {
     [MapProperty(
@@ -30,17 +30,6 @@ internal static partial class ApplicationUserMapper
     [MapValue(
         nameof(ApplicationUser.LockoutEnabled),
         true)]
-    [MapperIgnoreTarget(nameof(ApplicationUser.AccessFailedCount))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.ConcurrencyStamp))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.LockoutEnd))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.Logins))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedEmail))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedUserName))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.PasswordHash))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumber))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumberConfirmed))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.SecurityStamp))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.TwoFactorEnabled))]
     public static partial ApplicationUser ToDbModel(
         User user,
         UserName userName,
@@ -95,8 +84,7 @@ internal static partial class ApplicationUserMapper
     [MapProperty(
         "Value.Value",
         nameof(ApplicationUserClaim.ClaimValue))]
-    [MapperIgnoreTarget(nameof(ApplicationUserClaim.Id))]
-    [MapperIgnoreTarget(nameof(ApplicationUserClaim.User))]
+    [MapperIgnoreSource(nameof(UserClaim.Id))]
     private static partial ApplicationUserClaim ToClaimDbModel(
         UserClaim claim,
         Guid userId);
@@ -107,22 +95,6 @@ internal static partial class ApplicationUserMapper
     [MapProperty(
         "User.ConfirmationStatus.IsConfirmed",
         nameof(ApplicationUser.EmailConfirmed))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.AccessFailedCount))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.Claims))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.ConcurrencyStamp))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.CreatedAt))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.Id))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.LockoutEnabled))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.LockoutEnd))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.Logins))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedEmail))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedUserName))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.PasswordHash))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumber))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumberConfirmed))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.Roles))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.SecurityStamp))]
-    [MapperIgnoreTarget(nameof(ApplicationUser.TwoFactorEnabled))]
     private static partial void MapToDbModel(
         ApplicationUserUpdate source,
         [MappingTarget] ApplicationUser dbModel);
@@ -147,8 +119,6 @@ internal static partial class ApplicationUserMapper
     [MapProperty(
         "Value",
         nameof(ApplicationUserRole.RoleId))]
-    [MapperIgnoreTarget(nameof(ApplicationUserRole.Role))]
-    [MapperIgnoreTarget(nameof(ApplicationUserRole.User))]
     private static partial ApplicationUserRole ToRoleDbModel(
         RoleId roleId,
         Guid userId);

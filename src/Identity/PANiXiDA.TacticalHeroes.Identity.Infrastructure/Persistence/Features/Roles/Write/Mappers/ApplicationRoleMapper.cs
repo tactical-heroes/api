@@ -6,7 +6,7 @@ using Riok.Mapperly.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
 
-[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Source)]
 internal static partial class ApplicationRoleMapper
 {
     [MapProperty(
@@ -15,9 +15,6 @@ internal static partial class ApplicationRoleMapper
     [MapProperty(
         "Name.Value",
         nameof(ApplicationRole.Name))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.ConcurrencyStamp))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.NormalizedName))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.Users))]
     public static partial ApplicationRole ToDbModel(
         Role role,
         DateTime createdAt,
@@ -26,12 +23,8 @@ internal static partial class ApplicationRoleMapper
     [MapProperty(
         "Name.Value",
         nameof(ApplicationRole.Name))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.Claims))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.ConcurrencyStamp))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.CreatedAt))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.Id))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.NormalizedName))]
-    [MapperIgnoreTarget(nameof(ApplicationRole.Users))]
+    [MapperIgnoreSource(nameof(Role.Claims))]
+    [MapperIgnoreSource(nameof(Role.Id))]
     public static partial void MapToDbModel(
         Role role,
         [MappingTarget] ApplicationRole dbModel,
@@ -55,8 +48,6 @@ internal static partial class ApplicationRoleMapper
     [MapProperty(
         "Value.Value",
         nameof(ApplicationRoleClaim.ClaimValue))]
-    [MapperIgnoreTarget(nameof(ApplicationRoleClaim.Id))]
-    [MapperIgnoreTarget(nameof(ApplicationRoleClaim.Role))]
-    [MapperIgnoreTarget(nameof(ApplicationRoleClaim.RoleId))]
+    [MapperIgnoreSource(nameof(RoleClaim.Id))]
     private static partial ApplicationRoleClaim ToClaimDbModel(RoleClaim claim);
 }

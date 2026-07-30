@@ -1,6 +1,5 @@
-using System.Security.Claims;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Common;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;
@@ -8,6 +7,7 @@ using Riok.Mapperly.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.Mappers;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+[UseStaticMapper(typeof(ClaimMapper))]
 internal sealed partial class RoleDetailsReadModelMapper
     : IReadModelMapper<Guid, RoleReadDbModel, RoleDetailsReadModel>
 {
@@ -19,19 +19,4 @@ internal sealed partial class RoleDetailsReadModelMapper
 
     public static partial IQueryable<RoleDetailsReadModel> ProjectTo(
         IQueryable<RoleReadDbModel> query);
-
-    [MapProperty(
-        nameof(RoleClaimReadDbModel.ClaimType),
-        "type",
-        SuppressNullMismatchDiagnostic = true)]
-    [MapProperty(
-        nameof(RoleClaimReadDbModel.ClaimValue),
-        "value",
-        SuppressNullMismatchDiagnostic = true)]
-    [MapperIgnoreTarget(nameof(Claim.Issuer))]
-    [MapperIgnoreTarget(nameof(Claim.OriginalIssuer))]
-    [MapperIgnoreTarget(nameof(Claim.Properties))]
-    [MapperIgnoreTarget(nameof(Claim.Subject))]
-    [MapperIgnoreTarget(nameof(Claim.ValueType))]
-    private static partial Claim ToClaim(RoleClaimReadDbModel claim);
 }
