@@ -393,22 +393,31 @@ repository и query handler являются наследниками `ReadModel
     `IEndpoint` и `IEndpointGroup` в сборках `.Presentation` должен быть
     `sealed`.
 
+## Глобальные соглашения
+
+79. `Namespaces_Should_MatchFolderStructure_When_Declared` — namespace каждого
+    объявленного типа в C#-исходниках проектов из `src`, `tests` и `tools`
+    должен в точности совпадать с корневым namespace проекта, дополненным
+    относительным путём к папке файла. Для файла в корне проекта используется
+    только корневой namespace. Исходники из `bin`, `obj` и `Generated` не
+    проверяются.
+
 ## Оформление тестов
 
-79. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+80. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-80. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+81. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-81. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+82. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-82. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+83. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
