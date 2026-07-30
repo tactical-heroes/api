@@ -7,7 +7,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Converters;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
@@ -59,7 +59,7 @@ public sealed class UsersWriteRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultConverter.ToResult<Guid>(result: identityResult);
+            return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
         aggregateTracker.Track(userResult.Value);
@@ -119,7 +119,7 @@ public sealed class UsersWriteRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultConverter.ToResult(result: identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(userResult.Value);
@@ -152,7 +152,7 @@ public sealed class UsersWriteRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultConverter.ToResult(result: identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(userResult.Value);
@@ -195,7 +195,7 @@ public sealed class UsersWriteRepository(
         applicationUser.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
         var identityResult = await userManager.UpdateAsync(applicationUser);
 
-        return IdentityResultConverter.ToResult(result: identityResult);
+        return IdentityResultMapper.ToResult(result: identityResult);
     }
 
     private async Task RevokeAllTokensAsync(
