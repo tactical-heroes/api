@@ -20,7 +20,7 @@ internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetUserStatusesMapper.ToQuery(),
+            GetUserStatusesMapper.CreateQuery(),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: statuses =>

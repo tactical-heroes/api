@@ -402,22 +402,49 @@ repository и query handler являются наследниками `ReadModel
     только корневой namespace. Исходники из `bin`, `obj` и `Generated` не
     проверяются.
 
+80. `MapperlyMappers_Should_ResideOnlyInInfrastructureOrPresentation_When_Declared`
+    — классы с атрибутом Mapperly `[Mapper]` разрешены только в проектах,
+    оканчивающихся на `.Infrastructure` или `.Presentation`.
+
+81. `MapperlyMappers_Should_DisableAutomaticUserMappings_When_Declared` — для
+    каждого Mapperly mapper параметр `AutoUserMappings` должен быть равен
+    `false` непосредственно в `[Mapper]` или в сборочном `[MapperDefaults]`.
+    Поэтому mapping-методы, создаваемые Mapperly, объявляются как `partial`, а
+    обычные методы с телом могут оставаться helper-методами и не подхватываются
+    генератором автоматически.
+
+82. `MapperlyMapperMethods_Should_BePartialOrIgnoredHelpers_When_Declared` —
+    каждый не-private метод внутри `[Mapper]` должен быть либо `partial`
+    mapping-методом Mapperly, либо явно помеченным `[MapperIgnore]`
+    helper-методом. Поэтому mapper может содержать доступные endpoint
+    фабрики и сложные helper-операции, но их роль задаётся явно.
+
+83. `MapperlyGeneratedMappings_Should_BePartialDefinitions_When_Declared` —
+    mapping-методы, переданные генератору Mapperly, должны быть объявлениями
+    `partial` без тела и expression body. Их реализацию создаёт source
+    generator, а не production-код mapper.
+
+84. `MapperlyUserMappings_Should_BePrivate_When_Declared` — ручные
+    преобразования, явно подключённые к Mapperly через `[UserMapping]`, должны
+    быть `private`. Они остаются внутренними helper-методами, а публичный или
+    internal mapping API mapper формируется `partial`-методами.
+
 ## Оформление тестов
 
-80. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+85. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-81. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+86. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-82. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+87. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-83. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+88. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 

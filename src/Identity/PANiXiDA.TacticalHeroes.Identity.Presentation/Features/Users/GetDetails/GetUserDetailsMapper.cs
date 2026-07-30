@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetDetails;
 
 [Mapper]
-[UseStaticMapper(typeof(Claim))]
+[UseStaticMapper(typeof(ClaimMapper))]
 internal static partial class GetUserDetailsMapper
 {
     internal static partial GetUserDetailsQuery ToQuery(Guid id);

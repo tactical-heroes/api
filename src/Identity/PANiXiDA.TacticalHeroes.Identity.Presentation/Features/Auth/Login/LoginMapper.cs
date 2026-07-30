@@ -14,7 +14,8 @@ internal static partial class LoginMapper
     [MapperIgnoreSource(nameof(LoginRequest.ReturnUrl))]
     internal static partial LoginCommand ToCommand(LoginRequest request);
 
-    internal static ClaimsPrincipal ToClaimsPrincipal(AuthenticatedUserReadModel user)
+    [MapperIgnore]
+    internal static ClaimsPrincipal CreateClaimsPrincipal(AuthenticatedUserReadModel user)
     {
         var claims = new List<Claim>
         {

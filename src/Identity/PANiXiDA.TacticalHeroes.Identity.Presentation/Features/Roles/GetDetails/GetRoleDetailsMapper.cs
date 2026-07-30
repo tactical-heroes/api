@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
 
 [Mapper]
-[UseStaticMapper(typeof(Claim))]
+[UseStaticMapper(typeof(ClaimMapper))]
 internal static partial class GetRoleDetailsMapper
 {
     internal static partial GetRoleDetailsQuery ToQuery(Guid id);
