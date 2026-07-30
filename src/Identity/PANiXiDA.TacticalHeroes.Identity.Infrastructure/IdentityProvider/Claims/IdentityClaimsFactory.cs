@@ -57,9 +57,9 @@ internal static class IdentityClaimsFactory
             new(type: OpenIddictConstants.Claims.Subject, value: id.ToString())
         };
 
-        AddIfPresent(claims, OpenIddictConstants.Claims.Name, userName);
-        AddIfPresent(claims, OpenIddictConstants.Claims.Email, email);
-        AddIfPresent(claims, securityStampClaimType, securityStamp);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Name, value: userName);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Email, value: email);
+        AddIfPresent(claims: claims, type: securityStampClaimType, value: securityStamp);
 
         claims.AddRange(
             roleNames

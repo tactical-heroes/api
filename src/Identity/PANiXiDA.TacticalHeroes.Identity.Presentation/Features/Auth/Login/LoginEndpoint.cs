@@ -31,10 +31,10 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         CancellationToken cancellationToken)
     {
         var returnUrlValidationResult = AllowedRedirectUrlValidator.Validate(
-            request.ReturnUrl,
-            httpContext,
-            GetAuthorizePath(),
-            nameof(LoginRequest.ReturnUrl));
+            url: request.ReturnUrl,
+            httpContext: httpContext,
+            allowedPath: GetAuthorizePath(),
+            fieldName: nameof(LoginRequest.ReturnUrl));
 
         if (returnUrlValidationResult.IsFailure)
         {

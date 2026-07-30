@@ -40,42 +40,42 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         if (request.IsAuthorizationCodeGrantType())
         {
             return await HandleUserGrantAsync(
-                httpContext,
-                request,
-                mediator,
-                options.Value.Audience,
-                "Authorization code is invalid.",
-                cancellationToken);
+                httpContext: httpContext,
+                request: request,
+                mediator: mediator,
+                audience: options.Value.Audience,
+                invalidGrantDescription: "Authorization code is invalid.",
+                cancellationToken: cancellationToken);
         }
 
         if (request.IsRefreshTokenGrantType())
         {
             return await HandleUserGrantAsync(
-                httpContext,
-                request,
-                mediator,
-                options.Value.Audience,
-                "Refresh token is invalid.",
-                cancellationToken);
+                httpContext: httpContext,
+                request: request,
+                mediator: mediator,
+                audience: options.Value.Audience,
+                invalidGrantDescription: "Refresh token is invalid.",
+                cancellationToken: cancellationToken);
         }
 
         if (request.IsClientCredentialsGrantType())
         {
             return await HandleClientCredentialsGrantAsync(
-                request,
-                mediator,
-                options.Value.Audience,
-                cancellationToken);
+                request: request,
+                mediator: mediator,
+                audience: options.Value.Audience,
+                cancellationToken: cancellationToken);
         }
 
         if (request.IsTokenExchangeGrantType())
         {
             return await HandleTokenExchangeGrantAsync(
-                httpContext,
-                request,
-                mediator,
-                options.Value.Audience,
-                cancellationToken);
+                httpContext: httpContext,
+                request: request,
+                mediator: mediator,
+                audience: options.Value.Audience,
+                cancellationToken: cancellationToken);
         }
 
         return OAuthErrorResults.UnsupportedGrantType(description: "Grant type is not supported.");
@@ -105,10 +105,10 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         return principalResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: invalidGrantDescription)
             : SignInTokenPrincipal(
-                request,
-                authenticationResult.Principal,
-                principalResult.Value.Claims,
-                audience);
+                request: request,
+                sourcePrincipal: authenticationResult.Principal,
+                claims: principalResult.Value.Claims,
+                audience: audience);
     }
 
     private static async Task<IResult> HandleClientCredentialsGrantAsync(
@@ -129,10 +129,10 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         return principalResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: "Client is invalid.")
             : SignInTokenPrincipal(
-                request,
+                request: request,
                 sourcePrincipal: null,
-                principalResult.Value.Claims,
-                audience);
+                claims: principalResult.Value.Claims,
+                audience: audience);
     }
 
     private static async Task<IResult> HandleTokenExchangeGrantAsync(
@@ -161,10 +161,10 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
             return userResult.IsFailure
                 ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
                 : SignInTokenPrincipal(
-                    request,
-                    authenticationResult.Principal,
-                    userResult.Value.Claims,
-                    audience);
+                    request: request,
+                    sourcePrincipal: authenticationResult.Principal,
+                    claims: userResult.Value.Claims,
+                    audience: audience);
         }
 
         var clientResult = await mediator.QueryAsync(
@@ -174,10 +174,10 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         return clientResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
             : SignInTokenPrincipal(
-                request,
-                authenticationResult.Principal,
-                clientResult.Value.Claims,
-                audience);
+                request: request,
+                sourcePrincipal: authenticationResult.Principal,
+                claims: clientResult.Value.Claims,
+                audience: audience);
     }
 
     private static SignInHttpResult SignInTokenPrincipal(

@@ -36,18 +36,18 @@ internal sealed class MailKitEmailSender(
         using var smtpClient = new SmtpClient();
 
         await smtpClient.ConnectAsync(
-            options.Value.Host,
-            options.Value.Port,
-            options.Value.SocketOptions,
-            cancellationToken);
+            host: options.Value.Host,
+            port: options.Value.Port,
+            options: options.Value.SocketOptions,
+            cancellationToken: cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(options.Value.Username) &&
             !string.IsNullOrWhiteSpace(options.Value.Password))
         {
             await smtpClient.AuthenticateAsync(
-                options.Value.Username,
-                options.Value.Password,
-                cancellationToken);
+                userName: options.Value.Username,
+                password: options.Value.Password,
+                cancellationToken: cancellationToken);
         }
 
         await smtpClient.SendAsync(email, cancellationToken);

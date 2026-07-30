@@ -30,9 +30,9 @@ internal sealed class IdentityProviderApplicationSeeder(
             }
 
             await applicationManager.UpdateAsync(
-                application,
-                descriptor,
-                cancellationToken);
+                application: application,
+                descriptor: descriptor,
+                cancellationToken: cancellationToken);
         }
     }
 

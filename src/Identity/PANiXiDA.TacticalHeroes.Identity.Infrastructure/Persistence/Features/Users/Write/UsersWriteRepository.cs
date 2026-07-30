@@ -164,14 +164,14 @@ public sealed class UsersWriteRepository(
         Guid id,
         CancellationToken cancellationToken)
     {
-        return UpdateStatusAsync(id, UserStatus.Blocked, cancellationToken);
+        return UpdateStatusAsync(id: id, status: UserStatus.Blocked, cancellationToken: cancellationToken);
     }
 
     public Task<Result> UnblockAsync(
         Guid id,
         CancellationToken cancellationToken)
     {
-        return UpdateStatusAsync(id, UserStatus.Active, cancellationToken);
+        return UpdateStatusAsync(id: id, status: UserStatus.Active, cancellationToken: cancellationToken);
     }
 
     private async Task<Result> UpdateStatusAsync(

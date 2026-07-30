@@ -158,9 +158,9 @@ public sealed class UserCredentialsService(
         }
 
         var result = await userManager.ChangePasswordAsync(
-            applicationUser,
-            currentPassword,
-            newPassword);
+            user: applicationUser,
+            currentPassword: currentPassword,
+            newPassword: newPassword);
 
         return IdentityResultMapper.ToResult(result: result);
     }
@@ -304,9 +304,9 @@ public sealed class UserCredentialsService(
         }
 
         var result = await userManager.ResetPasswordAsync(
-            applicationUser,
-            passwordResetToken,
-            newPassword);
+            user: applicationUser,
+            token: passwordResetToken,
+            newPassword: newPassword);
 
         return IdentityResultMapper.ToResult(result: result);
     }

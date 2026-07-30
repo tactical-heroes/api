@@ -13,10 +13,10 @@ internal sealed class PasswordResetTokenProvider(
     IOptions<IdentityProviderOptions> options,
     ILogger<DataProtectorTokenProvider<ApplicationUser>> logger)
     : DataProtectorTokenProvider<ApplicationUser>(
-        dataProtectionProvider,
-        Microsoft.Extensions.Options.Options.Create(options: new DataProtectionTokenProviderOptions
+        dataProtectionProvider: dataProtectionProvider,
+        options: Microsoft.Extensions.Options.Options.Create(options: new DataProtectionTokenProviderOptions
         {
             Name = options.Value.TokenProviders.PasswordReset,
             TokenLifespan = options.Value.PasswordResetTokenLifetime
         }),
-        logger);
+        logger: logger);

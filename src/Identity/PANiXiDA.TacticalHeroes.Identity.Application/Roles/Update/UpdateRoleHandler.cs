@@ -10,9 +10,9 @@ public sealed class UpdateRoleHandler(IRolesWriteRepository rolesRepository)
         CancellationToken cancellationToken)
     {
         return rolesRepository.UpdateAsync(
-            command.Id,
-            command.Name,
-            command.Claims,
-            cancellationToken);
+            id: command.Id,
+            name: command.Name,
+            claims: command.Claims,
+            cancellationToken: cancellationToken);
     }
 }

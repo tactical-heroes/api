@@ -402,22 +402,28 @@ repository и query handler являются наследниками `ReadModel
     только корневой namespace. Исходники из `bin`, `obj` и `Generated` не
     проверяются.
 
+80. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
+    аргументы `null`, `default`, `true` и `false`, а также все аргументы вызова
+    с тремя и более аргументами в авторских C#-исходниках из `src` должны
+    передаваться по имени параметра. Вызовы методов `System.String`, вызовы с
+    `params`, `nameof`, EF migrations, `bin`, `obj` и `Generated` не проверяются.
+
 ## Оформление тестов
 
-80. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+81. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-81. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+82. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-82. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+83. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-83. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+84. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
