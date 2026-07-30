@@ -47,4 +47,14 @@ public sealed class EmailTests
                 $"Email cannot be longer than {Email.MaxLength} characters.")
             .ShouldHaveField(nameof(Email));
     }
+
+    [Fact(DisplayName = "Email should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var email = Email.Create("hero@example.com").Value;
+
+        var result = email.ToString();
+
+        result.ShouldBe(email.Value);
+    }
 }

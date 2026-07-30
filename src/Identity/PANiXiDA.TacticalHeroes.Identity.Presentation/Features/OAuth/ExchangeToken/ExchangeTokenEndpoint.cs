@@ -9,8 +9,6 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetClientTokenPrincipal;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.ExchangeToken;
@@ -101,7 +99,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principalResult = await mediator.QueryAsync(
-            new ExchangeTokenQuery(UserId: userIdResult.Value),
+            ExchangeTokenMapper.ToUserQuery(userId: userIdResult.Value),
             cancellationToken);
 
         return principalResult.IsFailure
@@ -125,7 +123,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principalResult = await mediator.QueryAsync(
-            new GetClientTokenPrincipalQuery(ClientId: request.ClientId),
+            ExchangeTokenMapper.ToClientQuery(clientId: request.ClientId),
             cancellationToken);
 
         return principalResult.IsFailure
@@ -157,7 +155,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         if (Guid.TryParse(input: subject, result: out var userId))
         {
             var userResult = await mediator.QueryAsync(
-                new ExchangeTokenQuery(UserId: userId),
+                ExchangeTokenMapper.ToUserQuery(userId: userId),
                 cancellationToken);
 
             return userResult.IsFailure
@@ -170,7 +168,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var clientResult = await mediator.QueryAsync(
-            new GetClientTokenPrincipalQuery(ClientId: subject),
+            ExchangeTokenMapper.ToClientQuery(clientId: subject),
             cancellationToken);
 
         return clientResult.IsFailure

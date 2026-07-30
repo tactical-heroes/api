@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Delete;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Delete;
 
 internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
@@ -25,7 +23,7 @@ internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new DeleteRoleCommand(Id: id),
+            DeleteRoleMapper.ToCommand(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);

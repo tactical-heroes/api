@@ -1,0 +1,379 @@
+# Архитектурные тесты
+
+Проект содержит автоматические ограничения на зависимости между слоями и
+модулями, устройство доменной модели, соглашения Application, Infrastructure и
+Presentation, а также единый формат тестов.
+
+Запуск из корня репозитория:
+
+```powershell
+dotnet test tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHeroes.ArchitectureTests.csproj
+```
+
+## Границы слоёв и модулей
+
+1. `DomainLayer_Should_NotDependOnOuterLayers_When_Validated` — типы слоя
+   `Domain` не должны зависеть от `Contracts`, `Application`, `Infrastructure`,
+   `Presentation` или `Host`. Разрешены только сам Domain и общие внешние
+   доменные абстракции.
+
+2. `ApplicationLayer_Should_DependOnlyOnDomainAndSharedAbstractions_When_Validated`
+   — типы слоя `Application` не должны зависеть от `Infrastructure`,
+   `Presentation` или `Host`. Они могут использовать Domain, Contracts и общие
+   прикладные абстракции.
+
+3. `InfrastructureLayer_Should_NotDependOnPresentationOrHost_When_Validated` —
+   типы слоя `Infrastructure` не должны зависеть от `Presentation` или `Host`.
+
+4. `PresentationLayer_Should_NotDependOnDomainInfrastructureOrHost_When_Validated`
+   — типы слоя `Presentation` не должны напрямую зависеть от `Domain`,
+   `Infrastructure` или `Host`. Взаимодействие с бизнес-логикой выполняется
+   через Application.
+
+5. `ContractsLayer_Should_NotDependOnModuleLayersOrHost_When_Validated` — типы
+   `Contracts` не должны зависеть от `Domain`, `Application`, `Infrastructure`,
+   `Presentation` или `Host`. Контракты остаются независимой границей модуля.
+
+6. `Modules_Should_HaveAllExpectedLayerAssemblies_When_Discovered` — каждый
+   обнаруженный модуль должен содержать пять сборок с одинаковым префиксом:
+   `.Contracts`, `.Domain`, `.Application`, `.Infrastructure` и
+   `.Presentation`.
+
+7. `ModuleLayers_Should_NotDependOnOtherModuleInternals_When_Validated` — типы
+   `Domain`, `Application`, `Infrastructure` и `Presentation` одного модуля не
+   должны зависеть от внутренних слоёв другого модуля. Межмодульные зависимости
+   разрешены только через сборки `.Contracts`.
+
+8. `ModuleProjectReferences_Should_FollowAllowedDependencies_When_Validated` —
+   прямые `ProjectReference` модулей должны соответствовать следующему графу:
+   `Contracts` и `Domain` не ссылаются на внутренние проекты; `Application`
+   ссылается только на свой `Domain` и при необходимости на Contracts;
+   `Infrastructure` — на свои `Domain` и `Application`, а также на Contracts;
+   `Presentation` — на свой `Application` и Contracts. Ссылка на Contracts
+   может вести как в свой, так и в другой модуль.
+
+## Domain
+
+В папках и пространствах имён `Abstractions` слоя Domain располагаются только
+абстракции. Интерфейс репозитория конкретного агрегата, наследующий
+`IRepository<,>`, является доменным контрактом и должен находиться в
+`Domain/<Aggregates>/Abstractions`. Предметные параметры и результаты такого
+репозитория не должны быть примитивами: для идентификаторов используются strongly
+typed ID, а для состояния — aggregate root и другие доменные типы.
+
+9. `AggregateRoots_Should_ContainOnlyDomainTypes_When_StateIsDeclared` — поля
+   aggregate root могут содержать только value object, strongly typed ID,
+   `Enumeration<>` или entity. Для коллекций проверяется тип элемента.
+
+10. `Entities_Should_ContainOnlyDomainTypes_When_StateIsDeclared` — поля entity,
+    не являющихся aggregate root, могут содержать только value object, strongly
+    typed ID или `Enumeration<>`. Вложенные entity для них запрещены.
+
+11. `DomainTypes_Should_HaveMatchingUnitTestFiles_When_DomainTypesAreDeclared` —
+    каждый aggregate root, entity, value object, strongly typed ID и
+    `Enumeration<>` должен иметь отдельный файл unit-тестов. Путь файла повторяет
+    модуль, относительный namespace и имя доменного типа.
+
+12. `DomainUnitTests_Should_CoverEveryAccessibleMethod_When_DomainMethodsAreDeclared`
+    — для каждого публичного, internal или protected internal доменного метода
+    должен существовать тестовый метод с префиксом
+    `<ИмяМетода>_Should_`. Для перегрузок требуется соответствующее количество
+    тестовых методов.
+
+13. `AggregateRootsAndEntities_Should_NotDeclarePublicSetters_When_DomainStateIsDeclared`
+    — свойства aggregate root и entity не должны иметь публичные setter.
+    Изменение состояния разрешено только через контролируемое поведение
+    доменной модели.
+
+14. `AggregateRootsAndEntities_Should_NotExposeMutableCollections_When_PublicStateIsDeclared`
+    — публичные поля, свойства и возвращаемые значения методов aggregate root и
+    entity не должны раскрывать массивы, `ICollection<>`, `IList<>`,
+    `IDictionary<,>`, `ISet<>` или их реализации. В том числе проверяются
+    изменяемые коллекции, вложенные в generic-обёртки.
+
+15. `AggregateRoots_Should_NotContainOtherAggregateRoots_When_StateIsDeclared` —
+    поля aggregate root не должны содержать другой aggregate root напрямую,
+    через массив или через generic-коллекцию.
+
+16. `ConcreteDomainClasses_Should_BeSealed_When_Declared` — каждый конкретный
+    класс в сборках `.Domain`, включая aggregate root, entity, value object,
+    enumeration и domain event, должен быть `sealed`.
+
+17. `AggregateRoots_Should_HaveSingularNamesAndPluralDirectories_When_Declared`
+    — имя типа aggregate root должно быть в единственном числе, а его namespace
+    и физическая папка — во множественном. Например, aggregate root `User`
+    размещается в `Users/User.cs`, а `Faction` — в `Factions/Faction.cs`.
+
+18. `Entities_Should_HaveSingularNamesAndPluralDirectories_When_Declared` — имя
+    типа entity должно быть в единственном числе. Entity размещается под своим
+    aggregate root или родительской entity по пути
+    `Entities/<EntityName во множественном числе>/<EntityName>.cs`. Например,
+    `UserClaim` размещается в `Users/Entities/UserClaims/UserClaim.cs`.
+
+19. `ValueObjects_Should_ResideInOwnerValueObjectsDirectories_When_Declared` —
+    каждый value object должен находиться в папке и namespace `ValueObjects`
+    непосредственно под владеющим aggregate root или entity. Например,
+    `UserName` находится в `Users/ValueObjects`, а `ClaimType` для `UserClaim` —
+    в `Users/Entities/UserClaims/ValueObjects`.
+
+20. `Enumerations_Should_ResideInOwnerEnumerationsDirectories_When_Declared` —
+    каждый `Enumeration<>` должен находиться в папке и namespace `Enumerations`
+    непосредственно под владеющим aggregate root или entity. Например,
+    `UserStatus` находится в `Users/Enumerations`.
+
+21. `DomainEvents_Should_ResideInEventsDirectories_When_Declared` — каждый
+    domain event должен находиться в папке и namespace `Events` своей доменной
+    области или владельца. Например, события `User` находятся в
+    `Users/Events`.
+
+22. `StronglyTypedIds_Should_MatchOwnerNamesAndLocations_When_Declared` —
+    strongly typed ID каждого aggregate root или entity называется
+    `<OwnerName>Id`, реализует `IStronglyTypedId` и лежит в той же папке и
+    namespace, что и владелец. Например, `UserId` лежит рядом с `User`, а
+    `UserClaimId` — рядом с `UserClaim`. Неиспользуемые strongly typed ID
+    запрещены.
+
+23. `Repositories_Should_ResideInDomainAbstractions_When_Declared` — интерфейс,
+    наследующий `IRepository<,>`, должен находиться в Domain в папке и
+    namespace `Abstractions`.
+
+24. `Repositories_Should_UseStronglyTypedIdsAndAggregateRoots_When_Declared` —
+    `IRepository<,>` использует strongly typed ID и aggregate root и не
+    принимает и не возвращает примитивы.
+
+25. `Repositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
+    наследующий `IRepository<,>`, должен называться
+    `I<AggregatePlural>Repository` и находиться в одноимённой feature-папке.
+    Корректное английское множественное число строится через Humanizer.
+
+26. `ConstructorParameters_Should_FollowTypeBasedNaming_When_RepositoryIsInjected`
+    — параметр конструктора типа repository именуется по типу интерфейса без
+    начальной `I` и с маленькой первой буквы: `IFactionsRepository`
+    превращается в `factionsRepository`.
+
+## Application
+
+27. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
+    `ICommand` и `IQuery` должен находиться в папке конкретной фичи ниже хотя бы
+    одной группирующей папки. Между корнем Application и feature-папкой
+    разрешено любое количество логических подпапок, например
+    `Auth/ChangePassword` или `Users/Administration/Block`.
+
+28. `ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared` —
+    `ICommand` оканчивается на `Command`, `IQuery` — на `Query`,
+    `ICommandHandler<,>` и `IQueryHandler<,>` — на `Handler`, validator — на
+    `Validator`.
+
+29. `ApplicationUseCaseParts_Should_ShareOneFeatureFolder_When_Declared` —
+    command или query должен иметь ровно один handler и один validator. Request,
+    handler и validator именуются согласованно и располагаются в одной общей
+    feature-папке и namespace.
+
+30. `AbstractionsNamespaces_Should_ContainOnlyAbstractions_When_Declared` —
+    папки и пространства имён `Abstractions` в Domain и Application могут
+    содержать только интерфейсы, абстрактные типы и делегаты.
+
+31. `ReadRepositories_Should_ResideInApplicationAbstractions_When_Declared` —
+    интерфейс, наследующий `IReadRepository<>`, должен находиться в Application
+    в папке и namespace `Abstractions`.
+
+32. `ReadRepositories_Should_UsePrimitiveIdsWithoutAggregateRoots_When_Declared`
+    — `IReadRepository<>` использует примитивный идентификатор и не принимает и
+    не возвращает aggregate root.
+
+33. `ReadRepositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
+    наследующий `IReadRepository<>`, должен называться
+    `I<AggregatePlural>ReadRepository` и находиться в одноимённой
+    feature-папке. Корректное английское множественное число строится через
+    Humanizer.
+
+34. `ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected`
+    — параметр конструктора типа read repository строится по тому же правилу:
+    `IFactionsReadRepository` превращается в `factionsReadRepository`.
+
+35. `ApplicationHandlers_Should_HaveMatchingUnitTestFiles_When_HandlersAreDeclared`
+    — каждый конкретный `ICommandHandler<,>`, `IQueryHandler<,>` или
+    `IEventHandler<>` в Application должен иметь отдельный файл unit-тестов.
+    Путь файла повторяет модуль, относительный namespace и имя handler.
+
+36. `ApplicationHandlerUnitTests_Should_CoverEveryHandlerMethod_When_HandlersAreDeclared`
+    — для каждого метода реализуемого handler-контракта должен существовать
+    тестовый метод с префиксом `<ИмяМетода>_Should_`. Для перегрузок учитывается
+    количество методов с одинаковым именем.
+
+37. `CommandAndQueryHandlers_Should_HaveValidators_When_HandlersAreDeclared` —
+    request каждого command или query handler должен иметь реализацию
+    `IValidator<TRequest>`. Для event handler validator не требуется.
+
+38. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
+    — каждая конкретная реализация `IValidator<T>` в Application должна иметь
+    отдельный непустой файл unit-тестов по пути, соответствующему её модулю,
+    namespace и имени.
+
+39. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
+    command, query или event handler в сборках `.Application` должен быть
+    `sealed`.
+
+## Infrastructure
+
+40. `RepositoryInterfaces_Should_HaveExactlyOneImplementation_When_Declared` —
+    каждый интерфейс, наследующий `IRepository<,>` или `IReadRepository<>`,
+    должен иметь ровно одну конкретную реализацию в Infrastructure.
+
+41. `RepositoryImplementations_Should_UsePluralAggregateNames_When_Declared` —
+    каждый наследник `IRepository<,>` должен иметь ровно одну реализацию с
+    именем `<AggregatePlural>Repository`, например `FactionsRepository`.
+
+42. `ReadRepositoryImplementations_Should_UsePluralAggregateNames_When_Declared`
+    — каждый наследник `IReadRepository<>` должен иметь ровно одну реализацию с
+    именем `<AggregatePlural>ReadRepository`, например
+    `FactionsReadRepository`.
+
+43. `RepositoryImplementations_Should_ResideInWriteRoots_When_Declared` —
+    реализация `IRepository<,>` должна находиться непосредственно в
+    `Persistence/Features/<AggregatePlural>/Write`.
+
+44. `ReadRepositoryImplementations_Should_ResideInReadRoots_When_Declared` —
+    реализация `IReadRepository<>` должна находиться непосредственно в
+    `Persistence/Features/<AggregatePlural>/Read`.
+
+45. `ReadModelMappers_Should_EndWithReadModelMapper_When_Declared` — каждая
+    реализация `IReadModelMapper<,,>` должна оканчиваться на
+    `ReadModelMapper`.
+
+46. `ReadModelMappers_Should_ResideInAggregateReadMappersDirectories_When_Declared`
+    — реализации `IReadModelMapper<,,>` должны находиться в
+    `Persistence/Features/<AggregatePlural>/Read/Mappers`.
+
+47. `ReadDatabaseModels_Should_EndWithReadDbModel_When_Declared` — каждый
+    наследник `ReadDbModel<>` или `AuditableReadDbModel<>` должен оканчиваться
+    на `ReadDbModel`.
+
+48. `ReadDatabaseModels_Should_ResideInAggregateReadDbModelsDirectories_When_Declared`
+    — read database models должны находиться в
+    `Persistence/Features/<AggregatePlural>/Read/DbModels`.
+
+49. `AuditableEntityConfigurations_Should_ResideInAggregateWriteRoots_When_Declared`
+    — наследники `AuditableEntityConfiguration<>` должны находиться
+    непосредственно в `Persistence/Features/<AggregatePlural>/Write`.
+
+50. `EntityTypeConfigurations_Should_ResideInAggregateWriteRoots_When_Declared`
+    — реализации `IEntityTypeConfiguration<>` должны находиться непосредственно
+    в `Persistence/Features/<AggregatePlural>/Write`.
+
+51. `AuditableEntityConfigurations_Should_AvoidExplicitStoreObjectNames_When_Declared`
+    — наследники `AuditableEntityConfiguration<>` не должны явно задавать имена
+    таблиц, представлений и столбцов через `ToTable`, `ToView` или
+    `HasColumnName`.
+
+52. `EntityTypeConfigurations_Should_AvoidExplicitStoreObjectNames_When_Declared`
+    — реализации `IEntityTypeConfiguration<>` подчиняются тому же запрету на
+    явные имена таблиц, представлений и столбцов.
+
+53. `ReadDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared`
+    — наследник `ReadDbContext<>` называется `<Module>ReadDbContext` и находится
+    непосредственно в `Persistence/Core`.
+
+54. `WriteDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared`
+    — наследник `WriteDbContext<>` называется `<Module>WriteDbContext` и
+    находится непосредственно в `Persistence/Core`.
+
+55. `MigrationsAndModelSnapshots_Should_ResideInPersistenceCoreMigrations_When_Declared`
+    — EF Core migrations и model snapshots должны находиться в
+    `Persistence/Core/Migrations`.
+
+56. `RepositoryImplementations_Should_BeSealed_When_Declared` — каждый
+    конкретный класс Infrastructure, реализующий `IRepository<,>` или
+    `IReadRepository<>`, должен быть `sealed`.
+
+57. `InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented`
+    — каждый конкретный класс Infrastructure, реализующий интерфейс из
+    Application своего модуля, должен иметь отдельный integration-test файл.
+    Путь повторяет относительный namespace и имя реализации.
+
+58. `IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists`
+    — для каждого метода реализуемого Application-интерфейса должен существовать
+    integration-тест с префиксом `<ИмяМетода>_Should_`. Для перегрузок
+    учитывается количество методов с одинаковым именем.
+
+## Presentation
+
+59. `EndpointGroups_Should_ResideInFeatureRootsAndMatchFeatureNames_When_Declared`
+    — каждый конкретный `IEndpointGroup` должен находиться непосредственно в
+    `Features/<AggregatePlural>`, называться `<AggregatePlural>Endpoints`, а его
+    `Name` должен совпадать с `<AggregatePlural>`.
+
+60. `EndpointGroupMetadataProperties_Should_BeGetOnly_When_GroupIsDeclared` —
+    свойства `Route`, `Name` и `ApiVersion` каждого `IEndpointGroup` должны
+    предоставлять только getter.
+
+61. `Endpoints_Should_ResideInFeatureSlicesUnderTheirGenericGroups_When_Declared`
+    — каждый конкретный `IEndpoint<TGroup>` должен находиться в feature-папке
+    внутри дерева своего `TGroup`; между корнем группы и feature-папкой
+    допускаются логические подпапки. Generic-параметр обязан указывать на
+    `IEndpointGroup` из корня этого дерева.
+
+62. `Endpoints_Should_EndWithEndpoint_When_Declared` — каждый конкретный
+    `IEndpoint` должен оканчиваться на `Endpoint`.
+
+63. `MapperlyMappers_Should_EndWithMapper_When_Declared` — каждый mapper,
+    объявленный через Mapperly, должен оканчиваться на `Mapper`.
+
+64. `EndpointInputTypes_Should_EndWithRequest_When_Declared` — входной
+    Presentation-контракт endpoint должен оканчиваться на `Request`.
+
+65. `EndpointOutputTypes_Should_EndWithResponse_When_Declared` — выходной
+    Presentation-контракт endpoint должен оканчиваться на `Response`.
+
+66. `EndpointSliceParts_Should_ShareOneFeatureFolder_When_Declared` —
+    `Endpoint`, его `Request`, `Response` и используемые `Mapper` должны
+    находиться в одной feature-папке и одном namespace.
+
+67. `CreatedAtRouteCalls_Should_UseEndpointNames_When_Declared` — каждый
+    `CreatedAtRoute` должен передавать `routeName` строготипизированно через
+    `new <Target>Endpoint().Name`.
+
+68. `PresentationApplicationReferences_Should_ExistOnlyInMappers_When_Declared`
+    — ссылки из Presentation на Application допускаются только в mapper-файлах.
+
+69. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
+    — endpoint должен обращаться к Application через `IMediator`, а передаваемые
+    в `SendAsync` и `QueryAsync` команды и запросы создавать через mapper своего
+    slice.
+
+70. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
+    конкретный `IEndpoint` должен иметь functional-test файл в том же модуле.
+    Путь повторяет относительный namespace и имя endpoint.
+
+71. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
+    `Route` endpoint и endpoint group состоит из английских lowercase
+    kebab-case сегментов и параметров вида `{name}` или `{name:constraint}`;
+    `Name` является одним английским PascalCase-идентификатором; `Summary`
+    endpoint записывается на английском в sentence case с одиночными пробелами.
+
+72. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
+    `IEndpoint` и `IEndpointGroup` в сборках `.Presentation` должен быть
+    `sealed`.
+
+## Оформление тестов
+
+73. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+    `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
+    `DisplayName`, заданный строковым литералом.
+
+74. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+    `DisplayName` записывается на английском по схеме
+    `<subject> should <behavior> when <condition>`. Часть после `when` должна
+    соответствовать условию из имени тестового метода после `_When_`.
+
+75. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+    каждого тестового метода должно соответствовать шаблону
+    `MethodName_Should_DoSomething_When_Condition`.
+
+76. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+    должен иметь block body, как минимум две логические секции, разделённые
+    пустой строкой, и assertion в последней секции.
+
+Пункты 12, 36 и 58 проверяют наличие соответствующих тестовых методов по их
+именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
+отдельно средствами code coverage в CI.

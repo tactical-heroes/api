@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
-
 namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetDetails;
 
 internal sealed class GetFactionDetailsEndpoint : IEndpoint<FactionsEndpoints>
@@ -24,7 +22,7 @@ internal sealed class GetFactionDetailsEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetFactionDetailsQuery(Id: id),
+            GetFactionDetailsMapper.ToQuery(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: faction =>

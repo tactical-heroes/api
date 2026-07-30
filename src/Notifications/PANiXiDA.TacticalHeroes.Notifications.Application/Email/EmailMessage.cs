@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+namespace PANiXiDA.TacticalHeroes.Notifications.Application.Email;
 
 public sealed record EmailMessage(
     Guid CorrelationId,

@@ -11,6 +11,7 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
+            ArchitectureDefinition.ContractsLayer,
             ArchitectureDefinition.ApplicationLayer,
             ArchitectureDefinition.InfrastructureLayer,
             ArchitectureDefinition.PresentationLayer,
@@ -21,6 +22,26 @@ public sealed class LayerDependencyTests
         {
             TypesShouldNotDependOn(
                 ArchitectureDefinition.DomainLayer,
+                forbiddenDependency);
+        }
+    }
+
+    [Fact(DisplayName = "Contracts layer should not depend on module layers or host when validated")]
+    public void ContractsLayer_Should_NotDependOnModuleLayersOrHost_When_Validated()
+    {
+        var forbiddenDependencies = new[]
+        {
+            ArchitectureDefinition.DomainLayer,
+            ArchitectureDefinition.ApplicationLayer,
+            ArchitectureDefinition.InfrastructureLayer,
+            ArchitectureDefinition.PresentationLayer,
+            ArchitectureDefinition.HostLayer
+        };
+
+        foreach (var forbiddenDependency in forbiddenDependencies)
+        {
+            TypesShouldNotDependOn(
+                ArchitectureDefinition.ContractsLayer,
                 forbiddenDependency);
         }
     }

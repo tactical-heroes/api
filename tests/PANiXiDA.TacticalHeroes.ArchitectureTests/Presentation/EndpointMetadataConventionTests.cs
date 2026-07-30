@@ -23,6 +23,13 @@ public sealed class EndpointMetadataConventionTests
         "^[A-Z][A-Za-z0-9]*(?: [A-Za-z0-9]+)*$",
         RegexOptions.CultureInvariant);
 
+    private static readonly string[] EndpointGroupMetadataPropertyNames =
+    [
+        "ApiVersion",
+        "Name",
+        "Route"
+    ];
+
     [Fact(DisplayName = "Endpoint metadata should follow HTTP naming conventions when endpoint is declared")]
     public void EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared()
     {
@@ -78,6 +85,39 @@ public sealed class EndpointMetadataConventionTests
 
         Assert.True(
             violations.Count == 0,
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Endpoint group metadata properties should be get only when group is declared")]
+    public void EndpointGroupMetadataProperties_Should_BeGetOnly_When_GroupIsDeclared()
+    {
+        var endpointGroups =
+            PresentationArchitectureConvention.GetEndpointGroups();
+        var violations = endpointGroups
+            .SelectMany(endpointGroup =>
+                EndpointGroupMetadataPropertyNames.Select(propertyName => new
+                {
+                    EndpointGroup = endpointGroup,
+                    Property = endpointGroup.GetProperty(
+                        propertyName,
+                        BindingFlags.Instance | BindingFlags.Public),
+                    PropertyName = propertyName
+                }))
+            .Where(candidate =>
+                candidate.Property is null ||
+                !candidate.Property.CanRead ||
+                candidate.Property.SetMethod is not null)
+            .Select(candidate =>
+                $"{candidate.EndpointGroup.FullName}." +
+                $"{candidate.PropertyName} must be a get-only public " +
+                $"property.")
+            .ToArray();
+
+        Assert.NotEmpty(endpointGroups);
+        Assert.True(
+            violations.Length == 0,
+            $"Endpoint group metadata mutability violations:" +
+            $"{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 

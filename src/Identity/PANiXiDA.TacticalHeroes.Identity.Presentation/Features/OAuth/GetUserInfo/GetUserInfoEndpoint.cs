@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
@@ -41,7 +40,7 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var result = await mediator.QueryAsync(
-            new GetUserInfoQuery(UserId: userIdResult.Value),
+            GetUserInfoMapper.ToQuery(userId: userIdResult.Value),
             cancellationToken);
 
         if (result.IsFailure)

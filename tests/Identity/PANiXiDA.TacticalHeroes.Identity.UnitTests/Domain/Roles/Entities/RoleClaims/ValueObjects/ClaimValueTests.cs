@@ -32,4 +32,14 @@ public sealed class ClaimValueTests
                 $"Claim value cannot be longer than {ClaimValue.MaxLength} characters.")
             .ShouldHaveField(nameof(ClaimValue));
     }
+
+    [Fact(DisplayName = "Role claim value should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var claimValue = ClaimValue.Create("heroes.manage").Value;
+
+        var result = claimValue.ToString();
+
+        result.ShouldBe(claimValue.Value);
+    }
 }

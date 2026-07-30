@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Delete;
-
 namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Delete;
 
 internal sealed class DeleteFactionEndpoint : IEndpoint<FactionsEndpoints>
@@ -26,7 +24,7 @@ internal sealed class DeleteFactionEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new DeleteFactionCommand(Id: id),
+            DeleteFactionMapper.ToCommand(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);

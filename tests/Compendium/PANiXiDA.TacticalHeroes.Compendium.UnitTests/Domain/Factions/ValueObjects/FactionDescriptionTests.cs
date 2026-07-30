@@ -39,4 +39,14 @@ public sealed class FactionDescriptionTests
                 $"Faction description cannot be longer than {FactionDescription.MaxLength} characters.")
             .ShouldHaveField(nameof(FactionDescription));
     }
+
+    [Fact(DisplayName = "Faction description should return its value when converted to string")]
+    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    {
+        var description = FactionDescription.Create("Defenders of the north.").Value;
+
+        var result = description.ToString();
+
+        result.ShouldBe(description.Value);
+    }
 }

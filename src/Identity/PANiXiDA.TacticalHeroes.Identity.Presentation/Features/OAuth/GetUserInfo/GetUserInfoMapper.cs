@@ -4,6 +4,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserIn
 
 internal static class GetUserInfoMapper
 {
+    internal static GetUserInfoQuery ToQuery(Guid userId) =>
+        new(UserId: userId);
+
     internal static GetUserInfoResponse ToResponse(
         UserInfoReadModel user,
         IEnumerable<string> scopes)

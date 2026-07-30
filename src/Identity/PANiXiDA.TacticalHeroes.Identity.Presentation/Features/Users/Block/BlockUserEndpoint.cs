@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Block;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Block;
 
 internal sealed class BlockUserEndpoint : IEndpoint<UsersEndpoints>
@@ -25,7 +23,7 @@ internal sealed class BlockUserEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new BlockUserCommand(Id: id),
+            BlockUserMapper.ToCommand(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
