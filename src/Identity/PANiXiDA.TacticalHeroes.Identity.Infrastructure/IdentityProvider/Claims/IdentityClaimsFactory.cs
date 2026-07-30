@@ -22,10 +22,10 @@ internal static class IdentityClaimsFactory
             email: user.Email,
             securityStamp: user.SecurityStamp,
             securityStampClaimType: identityOptions.ClaimsIdentity.SecurityStampClaimType,
-            userClaims: user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
-            roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
-            roleClaims: user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+            userClaims: user.Claims.Select(selector: claim => (claim.ClaimType, claim.ClaimValue)),
+            roleNames: user.Roles.Select(selector: userRole => userRole.Role?.Name),
+            roleClaims: user.Roles.SelectMany(selector: userRole =>
+                userRole.Role?.Claims.Select(selector: claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
     }
 
     internal static IReadOnlyCollection<Claim> Create(UserReadDbModel user)
@@ -36,10 +36,10 @@ internal static class IdentityClaimsFactory
             email: user.Email,
             securityStamp: user.SecurityStamp,
             securityStampClaimType: SecurityStampClaimType,
-            userClaims: user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
-            roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
-            roleClaims: user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+            userClaims: user.Claims.Select(selector: claim => (claim.ClaimType, claim.ClaimValue)),
+            roleNames: user.Roles.Select(selector: userRole => userRole.Role?.Name),
+            roleClaims: user.Roles.SelectMany(selector: userRole =>
+                userRole.Role?.Claims.Select(selector: claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
     }
 
     private static IReadOnlyCollection<Claim> Create(
@@ -57,28 +57,28 @@ internal static class IdentityClaimsFactory
             new(type: OpenIddictConstants.Claims.Subject, value: id.ToString())
         };
 
-        AddIfPresent(claims, OpenIddictConstants.Claims.Name, userName);
-        AddIfPresent(claims, OpenIddictConstants.Claims.Email, email);
-        AddIfPresent(claims, securityStampClaimType, securityStamp);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Name, value: userName);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Email, value: email);
+        AddIfPresent(claims: claims, type: securityStampClaimType, value: securityStamp);
 
         claims.AddRange(
-            roleNames
-                .Where(roleName => !string.IsNullOrWhiteSpace(roleName))
-                .Select(roleName => new Claim(type: OpenIddictConstants.Claims.Role, value: roleName!)));
-        claims.AddRange(ToClaims(claims: userClaims));
-        claims.AddRange(ToClaims(claims: roleClaims));
+            collection: roleNames
+                .Where(predicate: roleName => !string.IsNullOrWhiteSpace(value: roleName))
+                .Select(selector: roleName => new Claim(type: OpenIddictConstants.Claims.Role, value: roleName!)));
+        claims.AddRange(collection: ToClaims(claims: userClaims));
+        claims.AddRange(collection: ToClaims(claims: roleClaims));
 
-        return [.. claims.Distinct(IdentityClaimComparer.Instance)];
+        return [.. claims.Distinct(comparer: IdentityClaimComparer.Instance)];
     }
 
     private static IEnumerable<Claim> ToClaims(
         IEnumerable<(string? Type, string? Value)> claims)
     {
         return claims
-            .Where(claim =>
-                !string.IsNullOrWhiteSpace(claim.Type) &&
-                !string.IsNullOrWhiteSpace(claim.Value))
-            .Select(claim => new Claim(type: claim.Type!, value: claim.Value!));
+            .Where(predicate: claim =>
+                !string.IsNullOrWhiteSpace(value: claim.Type) &&
+                !string.IsNullOrWhiteSpace(value: claim.Value))
+            .Select(selector: claim => new Claim(type: claim.Type!, value: claim.Value!));
     }
 
     private static void AddIfPresent(
@@ -86,9 +86,9 @@ internal static class IdentityClaimsFactory
         string type,
         string? value)
     {
-        if (!string.IsNullOrWhiteSpace(value))
+        if (!string.IsNullOrWhiteSpace(value: value))
         {
-            claims.Add(new Claim(type: type, value: value));
+            claims.Add(item: new Claim(type: type, value: value));
         }
     }
 }

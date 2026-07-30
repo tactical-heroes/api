@@ -31,7 +31,8 @@ public sealed class UserCredentialsService(
     {
         var userResult = User.Register(email: email);
         var userNameResult = UserName.Create(value: userName);
-        var validationResult = Result.Combine(userResult, userNameResult);
+        var validationResult = Result.Combine(
+            results: [userResult, userNameResult]);
 
         if (validationResult.IsFailure)
         {
@@ -53,17 +54,17 @@ public sealed class UserCredentialsService(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user: applicationUser);
         var confirmationResult = userResult.Value.RequestEmailConfirmation(
-            confirmationToken,
-            timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+            confirmationToken: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(timeSpan: options.Value.EmailConfirmationTokenLifetime));
 
         if (confirmationResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: confirmationResult.Errors);
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success(value: applicationUser.Id);
     }
@@ -73,33 +74,33 @@ public sealed class UserCredentialsService(
         string password,
         CancellationToken cancellationToken)
     {
-        var normalizedEmail = userManager.NormalizeEmail(email);
+        var normalizedEmail = userManager.NormalizeEmail(email: email);
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
             .SingleOrDefaultAsync(
-                user => user.NormalizedEmail == normalizedEmail,
-                cancellationToken);
+                predicate: user => user.NormalizedEmail == normalizedEmail,
+                cancellationToken: cancellationToken);
 
         if (applicationUser is null)
         {
             return InvalidCredentials();
         }
 
-        if (IsBlocked(applicationUser))
+        if (IsBlocked(applicationUser: applicationUser))
         {
             return Result.Failure<AuthenticatedUserReadModel>(
                 error: Error.Forbidden(message: "User is blocked."));
         }
 
-        if (await userManager.IsLockedOutAsync(applicationUser))
+        if (await userManager.IsLockedOutAsync(user: applicationUser))
         {
             return Result.Failure<AuthenticatedUserReadModel>(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
-        if (!await userManager.CheckPasswordAsync(applicationUser, password))
+        if (!await userManager.CheckPasswordAsync(user: applicationUser, password: password))
         {
-            var failureResult = await userManager.AccessFailedAsync(applicationUser);
+            var failureResult = await userManager.AccessFailedAsync(user: applicationUser);
 
             if (!failureResult.Succeeded)
             {
@@ -109,7 +110,7 @@ public sealed class UserCredentialsService(
             return InvalidCredentials();
         }
 
-        var resetResult = await userManager.ResetAccessFailedCountAsync(applicationUser);
+        var resetResult = await userManager.ResetAccessFailedCountAsync(user: applicationUser);
 
         if (!resetResult.Succeeded)
         {
@@ -140,27 +141,27 @@ public sealed class UserCredentialsService(
         string newPassword,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.FindByIdAsync(userId: userId.ToString());
 
         if (applicationUser is null)
         {
             return UserNotFound();
         }
 
-        if (IsBlocked(applicationUser))
+        if (IsBlocked(applicationUser: applicationUser))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }
 
-        if (await userManager.IsLockedOutAsync(applicationUser))
+        if (await userManager.IsLockedOutAsync(user: applicationUser))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is locked out."));
         }
 
         var result = await userManager.ChangePasswordAsync(
-            applicationUser,
-            currentPassword,
-            newPassword);
+            user: applicationUser,
+            currentPassword: currentPassword,
+            newPassword: newPassword);
 
         return IdentityResultMapper.ToResult(result: result);
     }
@@ -170,7 +171,7 @@ public sealed class UserCredentialsService(
         string emailConfirmationToken,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.FindByIdAsync(userId: userId.ToString());
 
         if (applicationUser is null)
         {
@@ -190,8 +191,8 @@ public sealed class UserCredentialsService(
         }
 
         var identityResult = await userManager.ConfirmEmailAsync(
-            applicationUser,
-            emailConfirmationToken);
+            user: applicationUser,
+            token: emailConfirmationToken);
 
         if (!identityResult.Succeeded)
         {
@@ -205,7 +206,7 @@ public sealed class UserCredentialsService(
             return confirmResult;
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success();
     }
@@ -214,11 +215,11 @@ public sealed class UserCredentialsService(
         string email,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByEmailAsync(email);
+        var applicationUser = await userManager.FindByEmailAsync(email: email);
 
         if (applicationUser is null ||
             applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+            IsBlocked(applicationUser: applicationUser))
         {
             return Result.Success();
         }
@@ -230,17 +231,17 @@ public sealed class UserCredentialsService(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user: applicationUser);
         var confirmationResult = userResult.Value.RequestEmailConfirmation(
-            confirmationToken,
-            timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+            confirmationToken: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(timeSpan: options.Value.EmailConfirmationTokenLifetime));
 
         if (confirmationResult.IsFailure)
         {
             return confirmationResult;
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success();
     }
@@ -249,11 +250,11 @@ public sealed class UserCredentialsService(
         string email,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByEmailAsync(email);
+        var applicationUser = await userManager.FindByEmailAsync(email: email);
 
         if (applicationUser is null ||
             !applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+            IsBlocked(applicationUser: applicationUser))
         {
             return Result.Success();
         }
@@ -265,17 +266,17 @@ public sealed class UserCredentialsService(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        var resetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user: applicationUser);
         var requestResult = userResult.Value.RequestPasswordReset(
-            resetToken,
-            timeProvider.GetUtcNow().Add(options.Value.PasswordResetTokenLifetime));
+            passwordResetToken: resetToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(timeSpan: options.Value.PasswordResetTokenLifetime));
 
         if (requestResult.IsFailure)
         {
             return requestResult;
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success();
     }
@@ -286,7 +287,7 @@ public sealed class UserCredentialsService(
         string newPassword,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.FindByIdAsync(userId: userId.ToString());
 
         if (applicationUser is null)
         {
@@ -298,15 +299,15 @@ public sealed class UserCredentialsService(
             return Result.Failure(error: Error.Forbidden(message: "User is not confirmed."));
         }
 
-        if (IsBlocked(applicationUser))
+        if (IsBlocked(applicationUser: applicationUser))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }
 
         var result = await userManager.ResetPasswordAsync(
-            applicationUser,
-            passwordResetToken,
-            newPassword);
+            user: applicationUser,
+            token: passwordResetToken,
+            newPassword: newPassword);
 
         return IdentityResultMapper.ToResult(result: result);
     }
@@ -314,9 +315,9 @@ public sealed class UserCredentialsService(
     private static bool IsBlocked(ApplicationUser applicationUser)
     {
         return string.Equals(
-            applicationUser.Status,
-            UserStatus.Blocked.Name,
-            StringComparison.Ordinal);
+            a: applicationUser.Status,
+            b: UserStatus.Blocked.Name,
+            comparisonType: StringComparison.Ordinal);
     }
 
     private static Result<AuthenticatedUserReadModel> InvalidCredentials()

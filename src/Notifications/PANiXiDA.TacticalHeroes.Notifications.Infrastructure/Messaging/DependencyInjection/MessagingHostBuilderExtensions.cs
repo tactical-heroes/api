@@ -13,12 +13,12 @@ internal static class MessagingHostBuilderExtensions
 {
     public static IHostBuilder UseMessaging(this IHostBuilder hostBuilder)
     {
-        hostBuilder.ConfigureServices(services =>
+        hostBuilder.ConfigureServices(configureDelegate: services =>
         {
-            services.ConfigureWolverine(options =>
+            services.ConfigureWolverine(configure: options =>
             {
-                options.Discovery.IncludeAssembly(ApplicationAssembly.Instance);
-                options.Discovery.IncludeAssembly(Assembly.GetExecutingAssembly());
+                options.Discovery.IncludeAssembly(assembly: ApplicationAssembly.Instance);
+                options.Discovery.IncludeAssembly(assembly: Assembly.GetExecutingAssembly());
                 options.CodeGeneration.AlwaysUseServiceLocationFor<IEmailSender>();
             });
         });

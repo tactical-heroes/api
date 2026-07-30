@@ -6,7 +6,7 @@ public sealed class DeleteUserCommandValidator : AbstractValidator<DeleteUserCom
 {
     public DeleteUserCommandValidator()
     {
-        RuleFor(command => command.Id)
-            .MustBeValidDomainValue(UserId.Create);
+        RuleFor(expression: command => command.Id)
+            .MustBeValidDomainValue(factory: UserId.Create);
     }
 }

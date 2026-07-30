@@ -14,7 +14,7 @@ public sealed record UserDetailsReadModel(
     IReadOnlyCollection<Claim> Claims) : ReadModel
 {
     public bool IsBlocked => string.Equals(
-        Status,
-        UserStatus.Blocked.Name,
-        StringComparison.OrdinalIgnoreCase);
+        a: Status,
+        b: UserStatus.Blocked.Name,
+        comparisonType: StringComparison.OrdinalIgnoreCase);
 }

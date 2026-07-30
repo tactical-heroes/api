@@ -30,40 +30,40 @@ internal sealed class IdentityMessagingOptionsValidator
         string path,
         ICollection<string> failures)
     {
-        if (string.IsNullOrWhiteSpace(template))
+        if (string.IsNullOrWhiteSpace(value: template))
         {
-            failures.Add($"{path} must not be empty.");
+            failures.Add(item: $"{path} must not be empty.");
             return;
         }
 
-        if (!template.Contains("{userId}", StringComparison.Ordinal))
+        if (!template.Contains(value: "{userId}", comparisonType: StringComparison.Ordinal))
         {
-            failures.Add($"{path} must contain the '{{userId}}' placeholder.");
+            failures.Add(item: $"{path} must contain the '{{userId}}' placeholder.");
         }
 
-        if (!template.Contains("{token}", StringComparison.Ordinal))
+        if (!template.Contains(value: "{token}", comparisonType: StringComparison.Ordinal))
         {
-            failures.Add($"{path} must contain the '{{token}}' placeholder.");
+            failures.Add(item: $"{path} must contain the '{{token}}' placeholder.");
         }
 
         var sampleUrl = template
-            .Replace("{userId}", Guid.Empty.ToString("D"), StringComparison.Ordinal)
-            .Replace("{token}", "token", StringComparison.Ordinal);
+            .Replace(oldValue: "{userId}", newValue: Guid.Empty.ToString(format: "D"), comparisonType: StringComparison.Ordinal)
+            .Replace(oldValue: "{token}", newValue: "token", comparisonType: StringComparison.Ordinal);
 
         if (!Uri.TryCreate(
             uriString: sampleUrl,
             uriKind: UriKind.RelativeOrAbsolute,
             result: out var uri) ||
             uri.IsAbsoluteUri && !IsHttpScheme(uri: uri) ||
-            !uri.IsAbsoluteUri && !sampleUrl.StartsWith("/", StringComparison.Ordinal))
+            !uri.IsAbsoluteUri && !sampleUrl.StartsWith(value: "/", comparisonType: StringComparison.Ordinal))
         {
-            failures.Add($"{path} must be a root-relative or absolute HTTP/HTTPS URL template.");
+            failures.Add(item: $"{path} must be a root-relative or absolute HTTP/HTTPS URL template.");
         }
     }
 
     private static bool IsHttpScheme(Uri uri)
     {
-        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(a: uri.Scheme, b: Uri.UriSchemeHttp, comparisonType: StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(a: uri.Scheme, b: Uri.UriSchemeHttps, comparisonType: StringComparison.OrdinalIgnoreCase);
     }
 }

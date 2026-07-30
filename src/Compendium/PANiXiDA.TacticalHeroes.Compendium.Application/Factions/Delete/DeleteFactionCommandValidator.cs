@@ -6,7 +6,7 @@ public sealed class DeleteFactionCommandValidator : AbstractValidator<DeleteFact
 {
     public DeleteFactionCommandValidator()
     {
-        RuleFor(command => command.Id)
-            .MustBeValidDomainValue(FactionId.Create);
+        RuleFor(expression: command => command.Id)
+            .MustBeValidDomainValue(factory: FactionId.Create);
     }
 }

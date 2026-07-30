@@ -8,7 +8,7 @@ public sealed class UserClaim : Entity<UserClaimId>
         UserClaimId id,
         ClaimType type,
         ClaimValue value)
-        : base(id)
+        : base(id: id)
     {
         Type = type;
         Value = value;

@@ -13,29 +13,29 @@ internal sealed class IdentityProviderTokenProviderOptionsValidator
 
         if (options.TokenProviders is null)
         {
-            failures.Add($"{IdentityProviderOptions.SectionName}:TokenProviders must be configured.");
+            failures.Add(item: $"{IdentityProviderOptions.SectionName}:TokenProviders must be configured.");
         }
         else
         {
-            if (string.IsNullOrWhiteSpace(options.TokenProviders.EmailConfirmation))
+            if (string.IsNullOrWhiteSpace(value: options.TokenProviders.EmailConfirmation))
             {
                 failures.Add(
-                    $"{IdentityProviderOptions.SectionName}:TokenProviders:EmailConfirmation must not be empty.");
+                    item: $"{IdentityProviderOptions.SectionName}:TokenProviders:EmailConfirmation must not be empty.");
             }
 
-            if (string.IsNullOrWhiteSpace(options.TokenProviders.PasswordReset))
+            if (string.IsNullOrWhiteSpace(value: options.TokenProviders.PasswordReset))
             {
                 failures.Add(
-                    $"{IdentityProviderOptions.SectionName}:TokenProviders:PasswordReset must not be empty.");
+                    item: $"{IdentityProviderOptions.SectionName}:TokenProviders:PasswordReset must not be empty.");
             }
 
             if (string.Equals(
-                options.TokenProviders.EmailConfirmation,
-                options.TokenProviders.PasswordReset,
-                StringComparison.Ordinal))
+                a: options.TokenProviders.EmailConfirmation,
+                b: options.TokenProviders.PasswordReset,
+                comparisonType: StringComparison.Ordinal))
             {
                 failures.Add(
-                    $"{IdentityProviderOptions.SectionName}:TokenProviders values must be unique.");
+                    item: $"{IdentityProviderOptions.SectionName}:TokenProviders values must be unique.");
             }
         }
 

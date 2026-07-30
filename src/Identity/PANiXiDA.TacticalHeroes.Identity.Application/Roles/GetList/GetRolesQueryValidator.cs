@@ -4,16 +4,16 @@ public sealed class GetRolesQueryValidator : AbstractValidator<GetRolesQuery>
 {
     public GetRolesQueryValidator()
     {
-        RuleFor(query => query.Pagination)
+        RuleFor(expression: query => query.Pagination)
             .NotNull();
 
-        When(query => query.Pagination is not null, () =>
+        When(predicate: query => query.Pagination is not null, action: () =>
         {
-            RuleFor(query => query.Pagination.PageNumber)
-                .GreaterThan(0);
+            RuleFor(expression: query => query.Pagination.PageNumber)
+                .GreaterThan(valueToCompare: 0);
 
-            RuleFor(query => query.Pagination.PageSize)
-                .GreaterThan(0);
+            RuleFor(expression: query => query.Pagination.PageSize)
+                .GreaterThan(valueToCompare: 0);
         });
     }
 }

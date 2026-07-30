@@ -20,6 +20,6 @@ public static class OAuthEndpointRoutes
 
     public static string GetPath(string endpointRoute)
     {
-        return string.Concat('/', Group, endpointRoute);
+        return string.Concat(arg0: '/', arg1: Group, arg2: endpointRoute);
     }
 }

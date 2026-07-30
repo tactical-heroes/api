@@ -10,8 +10,8 @@ public sealed class CreateRoleHandler(IRolesWriteRepository rolesRepository)
         CancellationToken cancellationToken)
     {
         return rolesRepository.AddAsync(
-            command.Name,
-            command.Claims,
-            cancellationToken);
+            name: command.Name,
+            claims: command.Claims,
+            cancellationToken: cancellationToken);
     }
 }

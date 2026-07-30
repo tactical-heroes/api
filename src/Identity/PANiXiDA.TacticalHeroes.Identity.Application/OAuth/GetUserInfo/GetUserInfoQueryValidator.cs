@@ -6,7 +6,7 @@ public sealed class GetUserInfoQueryValidator : AbstractValidator<GetUserInfoQue
 {
     public GetUserInfoQueryValidator()
     {
-        RuleFor(query => query.UserId)
-            .MustBeValidDomainValue(UserId.Create);
+        RuleFor(expression: query => query.UserId)
+            .MustBeValidDomainValue(factory: UserId.Create);
     }
 }

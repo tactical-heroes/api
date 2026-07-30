@@ -20,7 +20,7 @@ internal sealed class PruneUnconfirmedUsersJob(
 
     public Task Execute(IJobExecutionContext context)
     {
-        return ExecuteAsync(context.CancellationToken);
+        return ExecuteAsync(cancellationToken: context.CancellationToken);
     }
 
     internal async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -34,13 +34,13 @@ internal sealed class PruneUnconfirmedUsersJob(
 
         var deleteBeforeUtc = timeProvider
             .GetUtcNow()
-            .Subtract(cleanupOptions.UnconfirmedUserRetention)
+            .Subtract(value: cleanupOptions.UnconfirmedUserRetention)
             .UtcDateTime;
 
         await dbContext.Set<ApplicationUser>()
-            .Where(user =>
+            .Where(predicate: user =>
                 !user.EmailConfirmed &&
                 user.CreatedAt < deleteBeforeUtc)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ExecuteDeleteAsync(cancellationToken: cancellationToken);
     }
 }

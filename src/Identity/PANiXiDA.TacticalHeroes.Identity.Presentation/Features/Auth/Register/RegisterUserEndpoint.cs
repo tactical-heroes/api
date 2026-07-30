@@ -12,11 +12,11 @@ internal sealed class RegisterUserEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(handler: Handle)
             .AllowAnonymous()
-            .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .Produces<RegisterUserResponse>(statusCode: StatusCodes.Status201Created)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .ProducesProblem(statusCode: StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> Handle(
@@ -25,8 +25,8 @@ internal sealed class RegisterUserEndpoint : IEndpoint<AuthEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            RegisterUserMapper.ToCommand(request: request),
-            cancellationToken);
+            command: RegisterUserMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(

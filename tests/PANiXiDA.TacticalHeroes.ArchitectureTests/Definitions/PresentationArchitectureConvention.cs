@@ -10,8 +10,6 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
 internal static class PresentationArchitectureConvention
 {
-    private const string MapperAttributeFullName =
-        "Riok.Mapperly.Abstractions.MapperAttribute";
     private const string SourceDirectoryName = "src";
 
     private static readonly ConcurrentDictionary<string, string[]>
@@ -85,31 +83,6 @@ internal static class PresentationArchitectureConvention
             .FirstOrDefault(candidate =>
                 candidate.IsGenericType &&
                 candidate.GetGenericTypeDefinition() == openGenericType);
-    }
-
-    internal static bool IsMapperlyMapper(Type type)
-    {
-        return type.CustomAttributes.Any(attribute =>
-                   string.Equals(
-                       attribute.AttributeType.FullName,
-                       MapperAttributeFullName,
-                       StringComparison.Ordinal)) ||
-               GetSourceSyntax(type)
-                   .SelectMany(source => source.Root
-                       .DescendantNodes()
-                       .OfType<BaseTypeDeclarationSyntax>())
-                   .Where(declaration => string.Equals(
-                       declaration.Identifier.ValueText,
-                       type.Name.Split('`')[0],
-                       StringComparison.Ordinal))
-                   .SelectMany(declaration => declaration.AttributeLists)
-                   .SelectMany(attributeList => attributeList.Attributes)
-                   .Any(attribute =>
-                       attribute.Name.ToString() is
-                           "Mapper" or
-                           "MapperAttribute" or
-                           "Riok.Mapperly.Abstractions.Mapper" or
-                           "Riok.Mapperly.Abstractions.MapperAttribute");
     }
 
     internal static ModuleArchitecture GetModule(Type presentationType)

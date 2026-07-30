@@ -27,16 +27,16 @@ internal static class OAuthAuthorizationPrincipalFactory
         var principal = new ClaimsPrincipal(identity: identity);
 
         principal.SetScopes(
-            scopes
-                .Where(scope => !string.IsNullOrWhiteSpace(scope))
-                .Distinct(StringComparer.Ordinal));
+            scopes: scopes
+                .Where(predicate: scope => !string.IsNullOrWhiteSpace(value: scope))
+                .Distinct(comparer: StringComparer.Ordinal));
 
-        if (!string.IsNullOrWhiteSpace(audience))
+        if (!string.IsNullOrWhiteSpace(value: audience))
         {
-            principal.SetAudiences(audience);
+            principal.SetAudiences(audiences: audience);
         }
 
-        principal.SetDestinations(claim => GetDestinations(claim, principal));
+        principal.SetDestinations(selector: claim => GetDestinations(claim: claim, principal: principal));
 
         return principal;
     }
@@ -52,17 +52,17 @@ internal static class OAuthAuthorizationPrincipalFactory
                 OpenIddictConstants.Destinations.AccessToken,
                 OpenIddictConstants.Destinations.IdentityToken
             ],
-            OpenIddictConstants.Claims.Name when principal.HasScope(OpenIddictConstants.Scopes.Profile) =>
+            OpenIddictConstants.Claims.Name when principal.HasScope(scope: OpenIddictConstants.Scopes.Profile) =>
             [
                 OpenIddictConstants.Destinations.AccessToken,
                 OpenIddictConstants.Destinations.IdentityToken
             ],
-            OpenIddictConstants.Claims.Email when principal.HasScope(OpenIddictConstants.Scopes.Email) =>
+            OpenIddictConstants.Claims.Email when principal.HasScope(scope: OpenIddictConstants.Scopes.Email) =>
             [
                 OpenIddictConstants.Destinations.AccessToken,
                 OpenIddictConstants.Destinations.IdentityToken
             ],
-            OpenIddictConstants.Claims.Role when principal.HasScope(OpenIddictConstants.Scopes.Roles) =>
+            OpenIddictConstants.Claims.Role when principal.HasScope(scope: OpenIddictConstants.Scopes.Roles) =>
             [
                 OpenIddictConstants.Destinations.AccessToken,
                 OpenIddictConstants.Destinations.IdentityToken

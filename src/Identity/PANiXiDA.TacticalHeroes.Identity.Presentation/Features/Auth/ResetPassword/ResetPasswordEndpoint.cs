@@ -10,12 +10,12 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(handler: Handle)
             .AllowAnonymous()
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .Produces(statusCode: StatusCodes.Status204NoContent)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .ProducesProblem(statusCode: StatusCodes.Status403Forbidden)
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> Handle(
@@ -24,8 +24,8 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            ResetPasswordMapper.ToCommand(request: request),
-            cancellationToken);
+            command: ResetPasswordMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

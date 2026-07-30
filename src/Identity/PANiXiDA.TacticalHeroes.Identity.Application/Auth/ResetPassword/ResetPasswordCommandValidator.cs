@@ -6,13 +6,13 @@ public sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPassw
 {
     public ResetPasswordCommandValidator()
     {
-        RuleFor(command => command.UserId)
-            .MustBeValidDomainValue(UserId.Create);
+        RuleFor(expression: command => command.UserId)
+            .MustBeValidDomainValue(factory: UserId.Create);
 
-        RuleFor(command => command.PasswordResetToken)
+        RuleFor(expression: command => command.PasswordResetToken)
             .NotEmpty();
 
-        RuleFor(command => command.NewPassword)
+        RuleFor(expression: command => command.NewPassword)
             .NotEmpty();
     }
 }

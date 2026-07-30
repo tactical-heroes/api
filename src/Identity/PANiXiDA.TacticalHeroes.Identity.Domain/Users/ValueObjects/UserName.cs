@@ -13,11 +13,11 @@ public sealed class UserName : ValueObject
 
     public static Result<UserName> Create(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (string.IsNullOrWhiteSpace(value: value))
         {
             return Result.Failure<UserName>(
                 error: Error.Validation(message: "User name is required.")
-                    .WithField(nameof(UserName)));
+                    .WithField(field: nameof(UserName)));
         }
 
         var normalizedValue = value.Trim();
@@ -26,7 +26,7 @@ public sealed class UserName : ValueObject
             ? Result.Success(value: new UserName(value: normalizedValue))
             : Result.Failure<UserName>(
                 error: Error.Validation(message: $"User name cannot be longer than {MaxLength} characters.")
-                    .WithField(nameof(UserName)));
+                    .WithField(field: nameof(UserName)));
     }
 
     public override string ToString()

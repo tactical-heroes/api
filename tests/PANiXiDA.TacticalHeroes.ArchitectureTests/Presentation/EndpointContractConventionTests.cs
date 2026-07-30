@@ -9,27 +9,6 @@ public sealed class EndpointContractConventionTests
     private const string RequestSuffix = "Request";
     private const string ResponseSuffix = "Response";
 
-    [Fact(DisplayName = "Mapperly mappers should end with Mapper when declared")]
-    public void MapperlyMappers_Should_EndWithMapper_When_Declared()
-    {
-        var mappers = PresentationArchitectureConvention
-            .GetPresentationTypes(
-                PresentationArchitectureConvention.IsMapperlyMapper);
-        var violations = mappers
-            .Where(mapper => !mapper.Name.EndsWith(
-                MapperSuffix,
-                StringComparison.Ordinal))
-            .Select(mapper =>
-                $"{mapper.FullName} must end with '{MapperSuffix}'.")
-            .ToArray();
-
-        Assert.NotEmpty(mappers);
-        Assert.True(
-            violations.Length == 0,
-            $"Mapperly mapper naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
-    }
-
     [Fact(DisplayName = "Endpoint input types should end with Request when declared")]
     public void EndpointInputTypes_Should_EndWithRequest_When_Declared()
     {

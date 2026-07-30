@@ -10,12 +10,12 @@ public sealed class CreateUserHandler(IUsersWriteRepository usersRepository)
         CancellationToken cancellationToken)
     {
         return usersRepository.AddAsync(
-            command.Email,
-            command.UserName,
-            command.Password,
-            command.IsConfirmed,
-            command.Claims,
-            command.Status,
-            cancellationToken);
+            email: command.Email,
+            userName: command.UserName,
+            password: command.Password,
+            isConfirmed: command.IsConfirmed,
+            claims: command.Claims,
+            status: command.Status,
+            cancellationToken: cancellationToken);
     }
 }

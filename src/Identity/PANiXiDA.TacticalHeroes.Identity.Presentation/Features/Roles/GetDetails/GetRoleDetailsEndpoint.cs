@@ -10,11 +10,11 @@ internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
-            .Produces<GetRoleDetailsResponse>(StatusCodes.Status200OK)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+        builder.MapGet(handler: Handle)
+            .Produces<GetRoleDetailsResponse>(statusCode: StatusCodes.Status200OK)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .Produces(statusCode: StatusCodes.Status401Unauthorized)
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> Handle(
@@ -23,8 +23,8 @@ internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetRoleDetailsMapper.ToQuery(id: id),
-            cancellationToken);
+            query: GetRoleDetailsMapper.ToQuery(id: id),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: role =>
             TypedResults.Ok(value: GetRoleDetailsMapper.ToResponse(role: role)));

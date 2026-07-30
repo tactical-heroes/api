@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 
 [Mapper]
-[UseStaticMapper(typeof(ClaimMapper))]
+[UseStaticMapper(typeof(Claim))]
 internal static partial class CreateRoleMapper
 {
     internal static partial CreateRoleCommand ToCommand(CreateRoleRequest request);

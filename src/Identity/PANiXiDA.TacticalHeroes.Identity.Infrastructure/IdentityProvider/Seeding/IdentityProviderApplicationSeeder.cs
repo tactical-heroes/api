@@ -13,15 +13,15 @@ internal sealed class IdentityProviderApplicationSeeder(
     {
         foreach (var client in options.Value.Clients)
         {
-            if (string.IsNullOrWhiteSpace(client.ClientId))
+            if (string.IsNullOrWhiteSpace(value: client.ClientId))
             {
                 continue;
             }
 
             var descriptor = CreateDescriptor(client: client);
             var application = await applicationManager.FindByClientIdAsync(
-                client.ClientId,
-                cancellationToken);
+                identifier: client.ClientId,
+                cancellationToken: cancellationToken);
 
             if (application is null)
             {
@@ -30,9 +30,9 @@ internal sealed class IdentityProviderApplicationSeeder(
             }
 
             await applicationManager.UpdateAsync(
-                application,
-                descriptor,
-                cancellationToken);
+                application: application,
+                descriptor: descriptor,
+                cancellationToken: cancellationToken);
         }
     }
 
@@ -42,37 +42,37 @@ internal sealed class IdentityProviderApplicationSeeder(
         var descriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = client.ClientId,
-            ClientSecret = string.IsNullOrWhiteSpace(client.ClientSecret)
+            ClientSecret = string.IsNullOrWhiteSpace(value: client.ClientSecret)
                 ? null
                 : client.ClientSecret,
             ClientType = client.ClientType,
             DisplayName = client.DisplayName
         };
 
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Introspection);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
+        descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.Endpoints.Introspection);
+        descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.Endpoints.Revocation);
 
         foreach (var grantType in client.GrantTypes)
         {
-            AddGrantTypePermissions(descriptor, grantType);
+            AddGrantTypePermissions(descriptor: descriptor, grantType: grantType);
         }
 
         if (client.PostLogoutRedirectUris.Count > 0)
         {
-            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.EndSession);
+            descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.Endpoints.EndSession);
         }
 
-        descriptor.AddScopePermissions([.. client.Scopes]);
+        descriptor.AddScopePermissions(scopes: [.. client.Scopes]);
 
         foreach (var redirectUri in client.RedirectUris)
         {
-            descriptor.RedirectUris.Add(new Uri(uriString: redirectUri));
+            descriptor.RedirectUris.Add(item: new Uri(uriString: redirectUri));
         }
 
         foreach (var postLogoutRedirectUri in client.PostLogoutRedirectUris)
         {
-            descriptor.PostLogoutRedirectUris.Add(new Uri(uriString: postLogoutRedirectUri));
+            descriptor.PostLogoutRedirectUris.Add(item: new Uri(uriString: postLogoutRedirectUri));
         }
 
         return descriptor;
@@ -85,22 +85,22 @@ internal sealed class IdentityProviderApplicationSeeder(
         switch (grantType)
         {
             case OpenIddictConstants.GrantTypes.AuthorizationCode:
-                descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
-                descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.PushedAuthorization);
-                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
-                descriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
+                descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.Endpoints.Authorization);
+                descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.Endpoints.PushedAuthorization);
+                descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+                descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.ResponseTypes.Code);
                 break;
 
             case OpenIddictConstants.GrantTypes.RefreshToken:
-                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.RefreshToken);
+                descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.GrantTypes.RefreshToken);
                 break;
 
             case OpenIddictConstants.GrantTypes.ClientCredentials:
-                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
+                descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
                 break;
 
             case OpenIddictConstants.GrantTypes.TokenExchange:
-                descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.TokenExchange);
+                descriptor.Permissions.Add(item: OpenIddictConstants.Permissions.GrantTypes.TokenExchange);
                 break;
 
             default:

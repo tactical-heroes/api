@@ -8,7 +8,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read;
 
 public sealed class RolesReadRepository(IdentityReadDbContext dbContext) :
-    EfReadRepository<IdentityReadDbContext, Guid, RoleReadDbModel>(dbContext),
+    EfReadRepository<IdentityReadDbContext, Guid, RoleReadDbModel>(dbContext: dbContext),
     IRolesReadRepository
 {
     private static readonly SortParameters Sort = new(

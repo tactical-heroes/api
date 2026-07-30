@@ -10,8 +10,8 @@ public sealed class LoginHandler(IUserCredentialsService userCredentialsService)
         CancellationToken cancellationToken)
     {
         return userCredentialsService.LoginAsync(
-            command.Email,
-            command.Password,
-            cancellationToken);
+            email: command.Email,
+            password: command.Password,
+            cancellationToken: cancellationToken);
     }
 }

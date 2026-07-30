@@ -2,52 +2,57 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
-using Riok.Mapperly.Abstractions;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
 
-[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Source)]
-internal static partial class ApplicationRoleMapper
+internal static class ApplicationRoleMapper
 {
-    [MapProperty(
-        "Id.Value",
-        nameof(ApplicationRole.Id))]
-    [MapProperty(
-        "Name.Value",
-        nameof(ApplicationRole.Name))]
-    public static partial ApplicationRole ToDbModel(
+    public static ApplicationRole ToDbModel(
         Role role,
         DateTime createdAt,
-        DateTime updatedAt);
+        DateTime updatedAt)
+    {
+        var dbModel = new ApplicationRole
+        {
+            Id = role.Id.Value,
+            CreatedAt = createdAt,
+            Claims = ToClaimDbModels(claims: role.Claims)
+        };
 
-    [MapProperty(
-        "Name.Value",
-        nameof(ApplicationRole.Name))]
-    [MapperIgnoreSource(nameof(Role.Claims))]
-    [MapperIgnoreSource(nameof(Role.Id))]
-    public static partial void MapToDbModel(
+        MapToDbModel(
+            role: role,
+            dbModel: dbModel,
+            updatedAt: updatedAt);
+
+        return dbModel;
+    }
+
+    public static void MapToDbModel(
         Role role,
-        [MappingTarget] ApplicationRole dbModel,
-        DateTime updatedAt);
+        ApplicationRole dbModel,
+        DateTime updatedAt)
+    {
+        dbModel.Name = role.Name.Value;
+        dbModel.UpdatedAt = updatedAt;
+    }
 
-    public static partial List<ApplicationRoleClaim> ToClaimDbModels(
-        IEnumerable<RoleClaim> claims);
+    public static List<ApplicationRoleClaim> ToClaimDbModels(
+        IEnumerable<RoleClaim> claims)
+    {
+        return
+        [
+            .. claims.Select(selector: claim => new ApplicationRoleClaim
+            {
+                ClaimType = claim.Type.Value,
+                ClaimValue = claim.Value.Value
+            })
+        ];
+    }
 
-    [MapperIgnore]
     public static Result<Role> ToDomain(ApplicationRole role)
     {
         return Role.Create(
             id: role.Id,
             name: role.Name!,
-            claims: role.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
+            claims: role.Claims.Select(selector: claim => (claim.ClaimType!, claim.ClaimValue!)));
     }
-
-    [MapProperty(
-        "Type.Value",
-        nameof(ApplicationRoleClaim.ClaimType))]
-    [MapProperty(
-        "Value.Value",
-        nameof(ApplicationRoleClaim.ClaimValue))]
-    [MapperIgnoreSource(nameof(RoleClaim.Id))]
-    private static partial ApplicationRoleClaim ToClaimDbModel(RoleClaim claim);
 }

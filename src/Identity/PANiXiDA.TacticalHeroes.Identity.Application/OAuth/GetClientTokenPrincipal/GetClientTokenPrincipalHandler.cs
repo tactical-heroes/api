@@ -10,7 +10,7 @@ public sealed class GetClientTokenPrincipalHandler(IOAuthClientsRepository clien
         CancellationToken cancellationToken)
     {
         return clientsRepository.GetTokenPrincipalByClientIdAsync(
-            query.ClientId,
-            cancellationToken);
+            clientId: query.ClientId,
+            cancellationToken: cancellationToken);
     }
 }

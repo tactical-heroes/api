@@ -13,17 +13,17 @@ internal sealed class IdentityProviderOptionsValidator
 
         if (options.Issuer is null)
         {
-            failures.Add($"{IdentityProviderOptions.SectionName}:Issuer must be configured.");
+            failures.Add(item: $"{IdentityProviderOptions.SectionName}:Issuer must be configured.");
         }
         else if (!options.Issuer.IsAbsoluteUri || !IsHttpScheme(uri: options.Issuer))
         {
             failures.Add(
-                $"{IdentityProviderOptions.SectionName}:Issuer must be an absolute HTTP or HTTPS URI.");
+                item: $"{IdentityProviderOptions.SectionName}:Issuer must be an absolute HTTP or HTTPS URI.");
         }
 
-        if (string.IsNullOrWhiteSpace(options.Audience))
+        if (string.IsNullOrWhiteSpace(value: options.Audience))
         {
-            failures.Add($"{IdentityProviderOptions.SectionName}:Audience must not be empty.");
+            failures.Add(item: $"{IdentityProviderOptions.SectionName}:Audience must not be empty.");
         }
 
         ValidateLifetimes(options: options, failures: failures);
@@ -74,7 +74,7 @@ internal sealed class IdentityProviderOptionsValidator
     {
         if (value <= TimeSpan.Zero)
         {
-            failures.Add($"{path} must be positive.");
+            failures.Add(item: $"{path} must be positive.");
         }
     }
 
@@ -85,13 +85,13 @@ internal sealed class IdentityProviderOptionsValidator
     {
         if (value < TimeSpan.Zero)
         {
-            failures.Add($"{path} must not be negative.");
+            failures.Add(item: $"{path} must not be negative.");
         }
     }
 
     private static bool IsHttpScheme(Uri uri)
     {
-        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(a: uri.Scheme, b: Uri.UriSchemeHttp, comparisonType: StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(a: uri.Scheme, b: Uri.UriSchemeHttps, comparisonType: StringComparison.OrdinalIgnoreCase);
     }
 }

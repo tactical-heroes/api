@@ -13,7 +13,7 @@ public sealed class User : AggregateRoot<UserId>
     private User(
         UserId id,
         Email email)
-        : base(id)
+        : base(id: id)
     {
         Email = email;
         ConfirmationStatus = UserConfirmationStatus.Unconfirmed();
@@ -50,7 +50,7 @@ public sealed class User : AggregateRoot<UserId>
     {
         var idResult = UserId.Create(value: id);
         var emailResult = Email.Create(value: email);
-        var validationResult = Result.Combine(idResult, emailResult);
+        var validationResult = Result.Combine(results: [idResult, emailResult]);
 
         if (validationResult.IsFailure)
         {
@@ -66,7 +66,7 @@ public sealed class User : AggregateRoot<UserId>
 
         foreach (var roleId in roleIds)
         {
-            var assignRoleResult = user.AssignRole(roleId);
+            var assignRoleResult = user.AssignRole(roleId: roleId);
 
             if (assignRoleResult.IsFailure)
             {
@@ -76,7 +76,7 @@ public sealed class User : AggregateRoot<UserId>
 
         foreach (var claim in claims)
         {
-            var grantClaimResult = user.GrantClaim(claim.Type, claim.Value);
+            var grantClaimResult = user.GrantClaim(type: claim.Type, value: claim.Value);
 
             if (grantClaimResult.IsFailure)
             {
@@ -97,7 +97,7 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         AddDomainEvent(
-            new EmailConfirmationRequested(
+            domainEvent: new EmailConfirmationRequested(
                 UserId: Id.Value,
                 Email: Email.Value,
                 ConfirmationToken: confirmationToken,
@@ -116,7 +116,7 @@ public sealed class User : AggregateRoot<UserId>
         ConfirmationStatus = UserConfirmationStatus.Confirmed();
 
         AddDomainEvent(
-            new UserRegistered(
+            domainEvent: new UserRegistered(
                 UserId: Id.Value,
                 Email: Email.Value));
 
@@ -134,7 +134,7 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         AddDomainEvent(
-            new PasswordResetRequested(
+            domainEvent: new PasswordResetRequested(
                 UserId: Id.Value,
                 Email: Email.Value,
                 PasswordResetToken: passwordResetToken,
@@ -152,12 +152,12 @@ public sealed class User : AggregateRoot<UserId>
             return Result.Failure(errors: roleIdResult.Errors);
         }
 
-        if (_roleIds.Contains(roleIdResult.Value))
+        if (_roleIds.Contains(item: roleIdResult.Value))
         {
             return Result.Success();
         }
 
-        _roleIds.Add(roleIdResult.Value);
+        _roleIds.Add(item: roleIdResult.Value);
 
         return Result.Success();
     }
@@ -171,14 +171,14 @@ public sealed class User : AggregateRoot<UserId>
             return Result.Failure(errors: claimResult.Errors);
         }
 
-        if (_claims.Any(claim =>
+        if (_claims.Any(predicate: claim =>
                 claim.Type == claimResult.Value.Type &&
                 claim.Value == claimResult.Value.Value))
         {
             return Result.Success();
         }
 
-        _claims.Add(claimResult.Value);
+        _claims.Add(item: claimResult.Value);
 
         return Result.Success();
     }

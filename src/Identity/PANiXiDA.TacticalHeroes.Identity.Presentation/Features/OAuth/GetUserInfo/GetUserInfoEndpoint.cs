@@ -17,14 +17,14 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapMethods([HttpMethods.Get, HttpMethods.Post], Handle)
+        builder.MapMethods(httpMethods: [HttpMethods.Get, HttpMethods.Post], handler: Handle)
             .RequireAuthorization(
-                new AuthorizeAttribute
+                authorizeData: new AuthorizeAttribute
                 {
                     AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme
                 })
-            .Produces<GetUserInfoResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces<GetUserInfoResponse>(statusCode: StatusCodes.Status200OK)
+            .Produces(statusCode: StatusCodes.Status401Unauthorized);
     }
 
     private static async Task<IResult> Handle(
@@ -40,8 +40,8 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var result = await mediator.QueryAsync(
-            GetUserInfoMapper.ToQuery(userId: userIdResult.Value),
-            cancellationToken);
+            query: GetUserInfoMapper.ToQuery(userId: userIdResult.Value),
+            cancellationToken: cancellationToken);
 
         if (result.IsFailure)
         {

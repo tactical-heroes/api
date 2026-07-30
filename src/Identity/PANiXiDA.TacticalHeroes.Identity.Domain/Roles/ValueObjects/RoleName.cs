@@ -13,11 +13,11 @@ public sealed class RoleName : ValueObject
 
     public static Result<RoleName> Create(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (string.IsNullOrWhiteSpace(value: value))
         {
             return Result.Failure<RoleName>(
                 error: Error.Validation(message: "Role name cannot be empty.")
-                    .WithField(nameof(RoleName)));
+                    .WithField(field: nameof(RoleName)));
         }
 
         var normalizedValue = value.Trim().ToLowerInvariant();
@@ -26,7 +26,7 @@ public sealed class RoleName : ValueObject
         {
             return Result.Failure<RoleName>(
                 error: Error.Validation(message: $"Role name cannot be longer than {MaxLength} characters.")
-                    .WithField(nameof(RoleName)));
+                    .WithField(field: nameof(RoleName)));
         }
 
         return Result.Success(value: new RoleName(value: normalizedValue));

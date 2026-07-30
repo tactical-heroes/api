@@ -1,34 +1,25 @@
 using Microsoft.AspNetCore.Identity;
 
-using Riok.Mapperly.Abstractions;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 
-[Mapper]
-internal static partial class IdentityResultMapper
+internal static class IdentityResultMapper
 {
-    [MapperIgnore]
     public static Result ToResult(IdentityResult result)
     {
         return result.Succeeded
             ? Result.Success()
-            : Result.Failure(errors: ToErrors(errors: result.Errors));
+            : Result.Failure(errors: result.Errors.Select(selector: MapError));
     }
 
-    [MapperIgnore]
     public static Result<TValue> ToResult<TValue>(IdentityResult result)
     {
         return result.Succeeded
             ? throw new InvalidOperationException(
                 message: "A successful identity result must be mapped with an explicit value.")
-            : Result.Failure<TValue>(errors: ToErrors(errors: result.Errors));
+            : Result.Failure<TValue>(errors: result.Errors.Select(selector: MapError));
     }
 
-    private static partial IReadOnlyCollection<Error> ToErrors(
-        IEnumerable<IdentityError> errors);
-
-    [UserMapping(Default = true)]
-    private static Error ToError(IdentityError error)
+    private static Error MapError(IdentityError error)
     {
         return error.Code switch
         {

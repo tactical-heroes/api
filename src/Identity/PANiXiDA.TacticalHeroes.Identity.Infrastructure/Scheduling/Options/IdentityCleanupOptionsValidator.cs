@@ -21,14 +21,14 @@ internal sealed class IdentityCleanupOptionsValidator
         if (options.UnconfirmedUserRetention <= TimeSpan.Zero)
         {
             failures.Add(
-                $"{IdentityCleanupOptions.SectionName}:UnconfirmedUserRetention must be positive.");
+                item: $"{IdentityCleanupOptions.SectionName}:UnconfirmedUserRetention must be positive.");
         }
 
-        if (string.IsNullOrWhiteSpace(options.UnconfirmedUsersCronSchedule) ||
-            !CronExpression.IsValidExpression(options.UnconfirmedUsersCronSchedule))
+        if (string.IsNullOrWhiteSpace(value: options.UnconfirmedUsersCronSchedule) ||
+            !CronExpression.IsValidExpression(cronExpression: options.UnconfirmedUsersCronSchedule))
         {
             failures.Add(
-                $"{IdentityCleanupOptions.SectionName}:UnconfirmedUsersCronSchedule must be a valid Quartz cron expression.");
+                item: $"{IdentityCleanupOptions.SectionName}:UnconfirmedUsersCronSchedule must be a valid Quartz cron expression.");
         }
 
         return failures.Count == 0

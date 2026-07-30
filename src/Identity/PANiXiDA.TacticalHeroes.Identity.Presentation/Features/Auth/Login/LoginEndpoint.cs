@@ -16,12 +16,12 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(handler: Handle)
             .AllowAnonymous()
-            .Produces(StatusCodes.Status302Found)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status403Forbidden);
+            .Produces(statusCode: StatusCodes.Status302Found)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .ProducesProblem(statusCode: StatusCodes.Status401Unauthorized)
+            .ProducesProblem(statusCode: StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> Handle(
@@ -31,10 +31,10 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         CancellationToken cancellationToken)
     {
         var returnUrlValidationResult = AllowedRedirectUrlValidator.Validate(
-            request.ReturnUrl,
-            httpContext,
-            GetAuthorizePath(),
-            nameof(LoginRequest.ReturnUrl));
+            url: request.ReturnUrl,
+            httpContext: httpContext,
+            allowedPath: GetAuthorizePath(),
+            fieldName: nameof(LoginRequest.ReturnUrl));
 
         if (returnUrlValidationResult.IsFailure)
         {
@@ -42,8 +42,8 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         }
 
         var result = await mediator.SendAsync(
-            LoginMapper.ToCommand(request: request),
-            cancellationToken);
+            command: LoginMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         if (result.IsFailure)
         {
@@ -51,8 +51,8 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         }
 
         await httpContext.SignInAsync(
-            IdentityConstants.ApplicationScheme,
-            LoginMapper.CreateClaimsPrincipal(user: result.Value));
+            scheme: IdentityConstants.ApplicationScheme,
+            principal: LoginMapper.ToClaimsPrincipal(user: result.Value));
 
         return TypedResults.Redirect(url: request.ReturnUrl);
     }
@@ -60,8 +60,8 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
     private static string GetAuthorizePath()
     {
         return string.Concat(
-            "/",
-            new OAuthEndpoints().Route.TrimEnd('/'),
-            new AuthorizeEndpoint().Route);
+            str0: "/",
+            str1: new OAuthEndpoints().Route.TrimEnd(trimChar: '/'),
+            str2: new AuthorizeEndpoint().Route);
     }
 }

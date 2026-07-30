@@ -9,16 +9,16 @@ using CompendiumPresentationAssembly = PANiXiDA.TacticalHeroes.Compendium.Presen
 using IdentityPresentationAssembly = PANiXiDA.TacticalHeroes.Identity.Presentation.PresentationAssembly;
 using NotificationsPresentationAssembly = PANiXiDA.TacticalHeroes.Notifications.Presentation.PresentationAssembly;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args: args);
 
 builder.AddObservability();
 
-builder.WebHost.ConfigureKestrel(options =>
+builder.WebHost.ConfigureKestrel(options: options =>
 {
     options.Limits.MaxRequestBodySize = FilesConstants.FileRequestSizeLimit;
 });
 
-builder.Services.AddHttp(builder.Configuration);
+builder.Services.AddHttp(configuration: builder.Configuration);
 
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
@@ -30,8 +30,11 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttp(
-    IdentityPresentationAssembly.Instance,
-    NotificationsPresentationAssembly.Instance,
-    CompendiumPresentationAssembly.Instance);
+    assemblies:
+    [
+        IdentityPresentationAssembly.Instance,
+        NotificationsPresentationAssembly.Instance,
+        CompendiumPresentationAssembly.Instance
+    ]);
 
-return await app.RunJasperFxCommands(args);
+return await app.RunJasperFxCommands(args: args);

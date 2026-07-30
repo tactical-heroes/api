@@ -10,12 +10,12 @@ public sealed class UpdateUserHandler(IUsersWriteRepository usersRepository)
         CancellationToken cancellationToken)
     {
         return usersRepository.UpdateAsync(
-            command.Id,
-            command.Email,
-            command.UserName,
-            command.IsConfirmed,
-            command.Claims,
-            command.Status,
-            cancellationToken);
+            id: command.Id,
+            email: command.Email,
+            userName: command.UserName,
+            isConfirmed: command.IsConfirmed,
+            claims: command.Claims,
+            status: command.Status,
+            cancellationToken: cancellationToken);
     }
 }

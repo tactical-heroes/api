@@ -10,12 +10,12 @@ internal static class AllowedRedirectUrlValidator
         string allowedPath,
         string fieldName)
     {
-        if (string.IsNullOrWhiteSpace(url) ||
-            !IsValid(url, httpContext, allowedPath))
+        if (string.IsNullOrWhiteSpace(value: url) ||
+            !IsValid(url: url, httpContext: httpContext, allowedPath: allowedPath))
         {
             return Result.Failure(
                 error: Error.Validation(message: "Return URL is invalid.")
-                    .WithField(fieldName));
+                    .WithField(field: fieldName));
         }
 
         return Result.Success();
@@ -26,10 +26,10 @@ internal static class AllowedRedirectUrlValidator
         HttpContext httpContext,
         string allowedPath)
     {
-        if (url.StartsWith('/') &&
-            !url.StartsWith("//", StringComparison.Ordinal))
+        if (url.StartsWith(value: '/') &&
+            !url.StartsWith(value: "//", comparisonType: StringComparison.Ordinal))
         {
-            return GetPath(url).Equals(allowedPath, StringComparison.Ordinal);
+            return GetPath(pathAndQuery: url).Equals(value: allowedPath, comparisonType: StringComparison.Ordinal);
         }
 
         if (!Uri.TryCreate(uriString: url, uriKind: UriKind.Absolute, result: out var uri))
@@ -41,16 +41,16 @@ internal static class AllowedRedirectUrlValidator
         var requestHost = request.Host.ToUriComponent();
         var redirectHost = uri.IsDefaultPort
             ? uri.Host
-            : uri.GetComponents(UriComponents.HostAndPort, UriFormat.UriEscaped);
+            : uri.GetComponents(components: UriComponents.HostAndPort, format: UriFormat.UriEscaped);
 
-        return string.Equals(uri.Scheme, request.Scheme, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(redirectHost, requestHost, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(uri.AbsolutePath, allowedPath, StringComparison.Ordinal);
+        return string.Equals(a: uri.Scheme, b: request.Scheme, comparisonType: StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(a: redirectHost, b: requestHost, comparisonType: StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(a: uri.AbsolutePath, b: allowedPath, comparisonType: StringComparison.Ordinal);
     }
 
     private static string GetPath(string pathAndQuery)
     {
-        var queryStartIndex = pathAndQuery.IndexOf('?');
+        var queryStartIndex = pathAndQuery.IndexOf(value: '?');
 
         return queryStartIndex < 0
             ? pathAndQuery

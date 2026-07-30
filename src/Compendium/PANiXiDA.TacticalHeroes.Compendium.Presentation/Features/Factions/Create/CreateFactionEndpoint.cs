@@ -12,11 +12,11 @@ internal sealed class CreateFactionEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(handler: Handle)
             .RequireAuthorization()
-            .Produces<CreateFactionResponse>(StatusCodes.Status201Created)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces<CreateFactionResponse>(statusCode: StatusCodes.Status201Created)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .Produces(statusCode: StatusCodes.Status401Unauthorized);
     }
 
     private static async Task<IResult> Handle(
@@ -25,8 +25,8 @@ internal sealed class CreateFactionEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            CreateFactionMapper.ToCommand(request: request),
-            cancellationToken);
+            command: CreateFactionMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(

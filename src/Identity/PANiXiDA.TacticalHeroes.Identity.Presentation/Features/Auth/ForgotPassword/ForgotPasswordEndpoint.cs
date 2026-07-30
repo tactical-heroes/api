@@ -10,10 +10,10 @@ internal sealed class ForgotPasswordEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(handler: Handle)
             .AllowAnonymous()
-            .Produces(StatusCodes.Status202Accepted)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest);
+            .Produces(statusCode: StatusCodes.Status202Accepted)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }
 
     private static async Task<IResult> Handle(
@@ -22,8 +22,8 @@ internal sealed class ForgotPasswordEndpoint : IEndpoint<AuthEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            ForgotPasswordMapper.ToCommand(request: request),
-            cancellationToken);
+            command: ForgotPasswordMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(
             onSuccess: () => TypedResults.StatusCode(statusCode: StatusCodes.Status202Accepted));

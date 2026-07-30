@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddPostgreSqlEfRepository<
             CompendiumWriteDbContext,
             CompendiumReadDbContext>(
-            configuration);
+                configuration: configuration);
 
         return serviceCollection;
     }

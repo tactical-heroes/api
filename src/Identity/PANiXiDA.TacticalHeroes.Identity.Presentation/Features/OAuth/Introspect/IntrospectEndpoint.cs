@@ -13,12 +13,12 @@ internal sealed class IntrospectEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(handler: Handle)
             .AllowAnonymous()
-            .Accepts<IntrospectRequest>(MediaTypeNames.Application.FormUrlEncoded)
-            .Produces<IntrospectResponse>(StatusCodes.Status200OK)
-            .Produces<IntrospectErrorResponse>(StatusCodes.Status400BadRequest)
-            .Produces<IntrospectErrorResponse>(StatusCodes.Status401Unauthorized);
+            .Accepts<IntrospectRequest>(contentType: MediaTypeNames.Application.FormUrlEncoded)
+            .Produces<IntrospectResponse>(statusCode: StatusCodes.Status200OK)
+            .Produces<IntrospectErrorResponse>(statusCode: StatusCodes.Status400BadRequest)
+            .Produces<IntrospectErrorResponse>(statusCode: StatusCodes.Status401Unauthorized);
     }
 
     private static ProblemHttpResult Handle()

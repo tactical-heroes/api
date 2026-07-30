@@ -14,8 +14,7 @@ internal static partial class LoginMapper
     [MapperIgnoreSource(nameof(LoginRequest.ReturnUrl))]
     internal static partial LoginCommand ToCommand(LoginRequest request);
 
-    [MapperIgnore]
-    internal static ClaimsPrincipal CreateClaimsPrincipal(AuthenticatedUserReadModel user)
+    internal static ClaimsPrincipal ToClaimsPrincipal(AuthenticatedUserReadModel user)
     {
         var claims = new List<Claim>
         {
@@ -24,7 +23,7 @@ internal static partial class LoginMapper
             new(type: OpenIddictConstants.Claims.Email, value: user.Email)
         };
         claims.AddRange(
-            user.Claims.Where(claim =>
+            collection: user.Claims.Where(predicate: claim =>
                 claim.Type != OpenIddictConstants.Claims.Subject &&
                 claim.Type != OpenIddictConstants.Claims.Name &&
                 claim.Type != OpenIddictConstants.Claims.Email));

@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 public sealed class IdentityReadDbContext(
     DbContextOptions<IdentityReadDbContext> options)
-    : ReadDbContext<IdentityReadDbContext>(options)
+    : ReadDbContext<IdentityReadDbContext>(options: options)
 {
     private const string Schema = "identity";
 
@@ -15,39 +15,39 @@ public sealed class IdentityReadDbContext(
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(modelBuilder: modelBuilder);
 
-        ConfigureUser(modelBuilder);
-        ConfigureRole(modelBuilder);
-        ConfigureUserRole(modelBuilder);
-        ConfigureUserClaim(modelBuilder);
-        ConfigureRoleClaim(modelBuilder);
-        ConfigureUserToken(modelBuilder);
-        ConfigureUserLogin(modelBuilder);
+        ConfigureUser(modelBuilder: modelBuilder);
+        ConfigureRole(modelBuilder: modelBuilder);
+        ConfigureUserRole(modelBuilder: modelBuilder);
+        ConfigureUserClaim(modelBuilder: modelBuilder);
+        ConfigureRoleClaim(modelBuilder: modelBuilder);
+        ConfigureUserToken(modelBuilder: modelBuilder);
+        ConfigureUserLogin(modelBuilder: modelBuilder);
     }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserReadDbModel>(builder =>
+        modelBuilder.Entity<UserReadDbModel>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_users", Schema);
+            builder.ToTable(name: "asp_net_users", schema: Schema);
         });
     }
 
     private static void ConfigureRole(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<RoleReadDbModel>(builder =>
+        modelBuilder.Entity<RoleReadDbModel>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_roles", Schema);
+            builder.ToTable(name: "asp_net_roles", schema: Schema);
         });
     }
 
     private static void ConfigureUserRole(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserRoleReadDbModel>(builder =>
+        modelBuilder.Entity<UserRoleReadDbModel>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_roles", Schema);
-            builder.HasKey(userRole => new
+            builder.ToTable(name: "asp_net_user_roles", schema: Schema);
+            builder.HasKey(keyExpression: userRole => new
             {
                 userRole.UserId,
                 userRole.RoleId
@@ -57,26 +57,26 @@ public sealed class IdentityReadDbContext(
 
     private static void ConfigureUserClaim(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserClaimReadDbModel>(builder =>
+        modelBuilder.Entity<UserClaimReadDbModel>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_claims", Schema);
+            builder.ToTable(name: "asp_net_user_claims", schema: Schema);
         });
     }
 
     private static void ConfigureRoleClaim(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<RoleClaimReadDbModel>(builder =>
+        modelBuilder.Entity<RoleClaimReadDbModel>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_role_claims", Schema);
+            builder.ToTable(name: "asp_net_role_claims", schema: Schema);
         });
     }
 
     private static void ConfigureUserToken(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserTokenReadDbModel>(builder =>
+        modelBuilder.Entity<UserTokenReadDbModel>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_tokens", Schema);
-            builder.HasKey(token => new
+            builder.ToTable(name: "asp_net_user_tokens", schema: Schema);
+            builder.HasKey(keyExpression: token => new
             {
                 token.UserId,
                 token.LoginProvider,
@@ -87,10 +87,10 @@ public sealed class IdentityReadDbContext(
 
     private static void ConfigureUserLogin(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserLoginReadDbModel>(builder =>
+        modelBuilder.Entity<UserLoginReadDbModel>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_logins", Schema);
-            builder.HasKey(login => new
+            builder.ToTable(name: "asp_net_user_logins", schema: Schema);
+            builder.HasKey(keyExpression: login => new
             {
                 login.LoginProvider,
                 login.ProviderKey

@@ -6,10 +6,10 @@ public sealed class ConfirmEmailCommandValidator : AbstractValidator<ConfirmEmai
 {
     public ConfirmEmailCommandValidator()
     {
-        RuleFor(command => command.UserId)
-            .MustBeValidDomainValue(UserId.Create);
+        RuleFor(expression: command => command.UserId)
+            .MustBeValidDomainValue(factory: UserId.Create);
 
-        RuleFor(command => command.EmailConfirmationToken)
+        RuleFor(expression: command => command.EmailConfirmationToken)
             .NotEmpty();
     }
 }

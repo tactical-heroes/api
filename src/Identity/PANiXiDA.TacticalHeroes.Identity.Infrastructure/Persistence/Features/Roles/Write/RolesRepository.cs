@@ -27,7 +27,7 @@ public sealed class RolesRepository(
         var roleResult = Role.Create(
             id: Guid.NewGuid(),
             name: name,
-            claims: claims.Select(claim => (claim.Type, claim.Value)));
+            claims: claims.Select(selector: claim => (claim.Type, claim.Value)));
 
         if (roleResult.IsFailure)
         {
@@ -47,7 +47,7 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        aggregateTracker.Track(roleResult.Value);
+        aggregateTracker.Track(aggregateRoot: roleResult.Value);
 
         return Result.Success(value: applicationRole.Id);
     }
@@ -61,7 +61,7 @@ public sealed class RolesRepository(
         var roleResult = Role.Create(
             id: id,
             name: name,
-            claims: claims.Select(claim => (claim.Type, claim.Value)));
+            claims: claims.Select(selector: claim => (claim.Type, claim.Value)));
 
         if (roleResult.IsFailure)
         {
@@ -69,8 +69,8 @@ public sealed class RolesRepository(
         }
 
         var applicationRole = await roleManager.Roles
-            .Include(role => role.Claims)
-            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
+            .Include(navigationPropertyPath: role => role.Claims)
+            .SingleOrDefaultAsync(predicate: role => role.Id == id, cancellationToken: cancellationToken);
 
         if (applicationRole is null)
         {
@@ -85,14 +85,14 @@ public sealed class RolesRepository(
             applicationRole: applicationRole,
             role: roleResult.Value);
 
-        var identityResult = await roleManager.UpdateAsync(applicationRole);
+        var identityResult = await roleManager.UpdateAsync(role: applicationRole);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(roleResult.Value);
+        aggregateTracker.Track(aggregateRoot: roleResult.Value);
 
         return Result.Success();
     }
@@ -102,8 +102,8 @@ public sealed class RolesRepository(
         CancellationToken cancellationToken)
     {
         var applicationRole = await roleManager.Roles
-            .Include(role => role.Claims)
-            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
+            .Include(navigationPropertyPath: role => role.Claims)
+            .SingleOrDefaultAsync(predicate: role => role.Id == id, cancellationToken: cancellationToken);
 
         if (applicationRole is null)
         {
@@ -117,14 +117,14 @@ public sealed class RolesRepository(
             return Result.Failure(errors: roleResult.Errors);
         }
 
-        var identityResult = await roleManager.DeleteAsync(applicationRole);
+        var identityResult = await roleManager.DeleteAsync(role: applicationRole);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(roleResult.Value);
+        aggregateTracker.Track(aggregateRoot: roleResult.Value);
 
         return Result.Success();
     }
@@ -137,21 +137,21 @@ public sealed class RolesRepository(
 
         foreach (var currentClaim in applicationRole.Claims.ToArray())
         {
-            if (targetClaims.Any(targetClaim =>
-                    string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
-                    string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
+            if (targetClaims.Any(predicate: targetClaim =>
+                    string.Equals(a: targetClaim.ClaimType, b: currentClaim.ClaimType, comparisonType: StringComparison.Ordinal) &&
+                    string.Equals(a: targetClaim.ClaimValue, b: currentClaim.ClaimValue, comparisonType: StringComparison.Ordinal)))
             {
                 continue;
             }
 
-            dbContext.Set<ApplicationRoleClaim>().Remove(currentClaim);
+            dbContext.Set<ApplicationRoleClaim>().Remove(entity: currentClaim);
         }
 
         foreach (var targetClaim in targetClaims)
         {
-            if (applicationRole.Claims.Any(currentClaim =>
-                    string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
-                    string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
+            if (applicationRole.Claims.Any(predicate: currentClaim =>
+                    string.Equals(a: currentClaim.ClaimType, b: targetClaim.ClaimType, comparisonType: StringComparison.Ordinal) &&
+                    string.Equals(a: currentClaim.ClaimValue, b: targetClaim.ClaimValue, comparisonType: StringComparison.Ordinal)))
             {
                 continue;
             }

@@ -10,10 +10,10 @@ internal sealed class GetFactionDetailsEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
-            .Produces<GetFactionDetailsResponse>(StatusCodes.Status200OK)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+        builder.MapGet(handler: Handle)
+            .Produces<GetFactionDetailsResponse>(statusCode: StatusCodes.Status200OK)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> Handle(
@@ -22,8 +22,8 @@ internal sealed class GetFactionDetailsEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetFactionDetailsMapper.ToQuery(id: id),
-            cancellationToken);
+            query: GetFactionDetailsMapper.ToQuery(id: id),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: faction =>
             TypedResults.Ok(

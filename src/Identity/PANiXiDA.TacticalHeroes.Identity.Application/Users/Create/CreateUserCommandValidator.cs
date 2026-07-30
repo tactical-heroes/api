@@ -8,29 +8,29 @@ public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCom
 {
     public CreateUserCommandValidator()
     {
-        RuleFor(command => command.Email)
-            .MustBeValidDomainValue(Email.Create);
+        RuleFor(expression: command => command.Email)
+            .MustBeValidDomainValue(factory: Email.Create);
 
-        RuleFor(command => command.UserName)
-            .MustBeValidDomainValue(UserName.Create);
+        RuleFor(expression: command => command.UserName)
+            .MustBeValidDomainValue(factory: UserName.Create);
 
-        RuleFor(command => command.Password)
+        RuleFor(expression: command => command.Password)
             .NotEmpty();
 
-        RuleFor(command => command.Claims)
+        RuleFor(expression: command => command.Claims)
             .NotNull();
 
-        RuleForEach(command => command.Claims)
-            .ChildRules(claim =>
+        RuleForEach(expression: command => command.Claims)
+            .ChildRules(action: claim =>
             {
-                claim.RuleFor(item => item.Type)
-                    .MustBeValidDomainValue(ClaimType.Create);
+                claim.RuleFor(expression: item => item.Type)
+                    .MustBeValidDomainValue(factory: ClaimType.Create);
 
-                claim.RuleFor(item => item.Value)
-                    .MustBeValidDomainValue(ClaimValue.Create);
+                claim.RuleFor(expression: item => item.Value)
+                    .MustBeValidDomainValue(factory: ClaimValue.Create);
             });
 
-        RuleFor(command => command.Status)
-            .MustBeValidDomainValue(UserStatus.Create);
+        RuleFor(expression: command => command.Status)
+            .MustBeValidDomainValue(factory: UserStatus.Create);
     }
 }

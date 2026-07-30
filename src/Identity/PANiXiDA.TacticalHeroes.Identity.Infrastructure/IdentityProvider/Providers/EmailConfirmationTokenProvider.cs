@@ -13,10 +13,10 @@ internal sealed class EmailConfirmationTokenProvider(
     IOptions<IdentityProviderOptions> options,
     ILogger<DataProtectorTokenProvider<ApplicationUser>> logger)
     : DataProtectorTokenProvider<ApplicationUser>(
-        dataProtectionProvider,
-        Microsoft.Extensions.Options.Options.Create(options: new DataProtectionTokenProviderOptions
+        dataProtectionProvider: dataProtectionProvider,
+        options: Microsoft.Extensions.Options.Options.Create(options: new DataProtectionTokenProviderOptions
         {
             Name = options.Value.TokenProviders.EmailConfirmation,
             TokenLifespan = options.Value.EmailConfirmationTokenLifetime
         }),
-        logger);
+        logger: logger);

@@ -13,20 +13,20 @@ internal sealed class IdentityProviderLockoutOptionsValidator
 
         if (options.Lockout is null)
         {
-            failures.Add($"{IdentityProviderOptions.SectionName}:Lockout must be configured.");
+            failures.Add(item: $"{IdentityProviderOptions.SectionName}:Lockout must be configured.");
         }
         else
         {
             if (options.Lockout.MaxFailedAccessAttempts <= 0)
             {
                 failures.Add(
-                    $"{IdentityProviderOptions.SectionName}:Lockout:MaxFailedAccessAttempts must be positive.");
+                    item: $"{IdentityProviderOptions.SectionName}:Lockout:MaxFailedAccessAttempts must be positive.");
             }
 
             if (options.Lockout.DefaultLockoutTimeSpan <= TimeSpan.Zero)
             {
                 failures.Add(
-                    $"{IdentityProviderOptions.SectionName}:Lockout:DefaultLockoutTimeSpan must be positive.");
+                    item: $"{IdentityProviderOptions.SectionName}:Lockout:DefaultLockoutTimeSpan must be positive.");
             }
         }
 

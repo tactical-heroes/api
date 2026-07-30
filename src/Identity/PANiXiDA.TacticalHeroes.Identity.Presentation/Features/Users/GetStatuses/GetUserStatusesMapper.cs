@@ -7,8 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetStatus
 [Mapper]
 internal static partial class GetUserStatusesMapper
 {
-    [MapperIgnore]
-    internal static GetUserStatusesQuery CreateQuery() => new();
+    internal static GetUserStatusesQuery ToQuery() => new();
 
     internal static partial IReadOnlyCollection<UserStatusResponse> ToResponse(
         IReadOnlyCollection<UserStatusReadModel> statuses);

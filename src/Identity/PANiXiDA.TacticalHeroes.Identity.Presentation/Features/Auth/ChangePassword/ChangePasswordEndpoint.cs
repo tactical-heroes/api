@@ -12,13 +12,13 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(handler: Handle)
             .RequireAuthorization()
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .Produces(statusCode: StatusCodes.Status204NoContent)
+            .Produces(statusCode: StatusCodes.Status401Unauthorized)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .ProducesProblem(statusCode: StatusCodes.Status403Forbidden)
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> Handle(
@@ -27,7 +27,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
+        var userIdValue = user.FindFirst(type: OpenIddictConstants.Claims.Subject)?.Value;
 
         if (!Guid.TryParse(input: userIdValue, result: out var userId))
         {
@@ -35,8 +35,8 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
         }
 
         var result = await mediator.SendAsync(
-            ChangePasswordMapper.ToCommand(request: request, userId: userId),
-            cancellationToken);
+            command: ChangePasswordMapper.ToCommand(request: request, userId: userId),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

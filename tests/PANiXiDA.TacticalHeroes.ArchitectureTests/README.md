@@ -354,97 +354,72 @@ repository и query handler являются наследниками `ReadModel
 68. `Endpoints_Should_EndWithEndpoint_When_Declared` — каждый конкретный
     `IEndpoint` должен оканчиваться на `Endpoint`.
 
-69. `MapperlyMappers_Should_EndWithMapper_When_Declared` — каждый mapper,
-    объявленный через Mapperly, должен оканчиваться на `Mapper`.
-
-70. `EndpointInputTypes_Should_EndWithRequest_When_Declared` — входной
+69. `EndpointInputTypes_Should_EndWithRequest_When_Declared` — входной
     Presentation-контракт endpoint должен оканчиваться на `Request`.
 
-71. `EndpointOutputTypes_Should_EndWithResponse_When_Declared` — выходной
+70. `EndpointOutputTypes_Should_EndWithResponse_When_Declared` — выходной
     Presentation-контракт endpoint должен оканчиваться на `Response`.
 
-72. `EndpointSliceParts_Should_ShareOneFeatureFolder_When_Declared` —
+71. `EndpointSliceParts_Should_ShareOneFeatureFolder_When_Declared` —
     `Endpoint`, его `Request`, `Response` и используемые `Mapper` должны
     находиться в одной feature-папке и одном namespace.
 
-73. `CreatedAtRouteCalls_Should_UseEndpointNames_When_Declared` — каждый
+72. `CreatedAtRouteCalls_Should_UseEndpointNames_When_Declared` — каждый
     `CreatedAtRoute` должен передавать `routeName` строготипизированно через
     `new <Target>Endpoint().Name`.
 
-74. `PresentationApplicationReferences_Should_ExistOnlyInMappers_When_Declared`
+73. `PresentationApplicationReferences_Should_ExistOnlyInMappers_When_Declared`
     — ссылки из Presentation на Application допускаются только в mapper-файлах.
 
-75. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
+74. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
     — endpoint должен обращаться к Application через `IMediator`, а передаваемые
     в `SendAsync` и `QueryAsync` команды и запросы создавать через mapper своего
     slice.
 
-76. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
+75. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
     конкретный `IEndpoint` должен иметь functional-test файл в том же модуле.
     Путь повторяет относительный namespace и имя endpoint.
 
-77. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
+76. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
     `Route` endpoint и endpoint group состоит из английских lowercase
     kebab-case сегментов и параметров вида `{name}` или `{name:constraint}`;
     `Name` является одним английским PascalCase-идентификатором; `Summary`
     endpoint записывается на английском в sentence case с одиночными пробелами.
 
-78. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
+77. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
     `IEndpoint` и `IEndpointGroup` в сборках `.Presentation` должен быть
     `sealed`.
 
 ## Глобальные соглашения
 
-79. `Namespaces_Should_MatchFolderStructure_When_Declared` — namespace каждого
+78. `Namespaces_Should_MatchFolderStructure_When_Declared` — namespace каждого
     объявленного типа в C#-исходниках проектов из `src`, `tests` и `tools`
     должен в точности совпадать с корневым namespace проекта, дополненным
     относительным путём к папке файла. Для файла в корне проекта используется
     только корневой namespace. Исходники из `bin`, `obj` и `Generated` не
     проверяются.
 
-80. `MapperlyMappers_Should_ResideOnlyInInfrastructureOrPresentation_When_Declared`
-    — классы с атрибутом Mapperly `[Mapper]` разрешены только в проектах,
-    оканчивающихся на `.Infrastructure` или `.Presentation`.
-
-81. `MapperTypes_Should_UseMapperly_When_Declared` — каждый класс, имя которого
-    оканчивается на `Mapper`, должен быть объявлен как Mapperly mapper через
-    атрибут `[Mapper]`.
-
-82. `MapperlyMapperMethods_Should_BePartialOrExplicitlyIgnored_When_Declared` —
-    каждый не-private метод внутри `[Mapper]` должен быть либо `partial`
-    mapping-методом Mapperly, либо явно помеченным `[MapperIgnore]` исключением.
-    Private helper-методы могут помогать Mapperly со сложными преобразованиями.
-
-83. `MapperlyMappers_Should_HaveGeneratedMappings_When_Declared` — каждый
-    Mapperly mapper должен содержать хотя бы один `partial` mapping-метод,
-    реализацию которого создаёт source generator.
-
-84. `MapperlyGeneratedMappings_Should_BePartialDefinitions_When_Declared` —
-    mapping-методы, переданные генератору Mapperly, должны быть объявлениями
-    `partial` без тела и expression body. Их реализацию создаёт source
-    generator, а не production-код mapper.
-
-85. `MapperlyUserMappings_Should_BePrivate_When_Declared` — ручные
-    преобразования, явно подключённые к Mapperly через `[UserMapping]`, должны
-    быть `private`. Они остаются внутренними helper-методами, а публичный или
-    internal mapping API mapper формируется `partial`-методами.
+79. `InvocationAndConstructorArguments_Should_BeNamed_When_Declared` — каждый
+    аргумент при вызове метода или конструктора в авторских C#-исходниках из
+    `src` должен передаваться по имени параметра. `nameof`, EF migrations,
+    `bin`, `obj` и `Generated` не проверяются.
 
 ## Оформление тестов
 
-86. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+80. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-87. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+81. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-88. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+82. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-89. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+83. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 

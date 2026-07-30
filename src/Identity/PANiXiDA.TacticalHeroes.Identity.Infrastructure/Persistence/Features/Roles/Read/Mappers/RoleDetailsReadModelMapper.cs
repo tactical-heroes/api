@@ -1,22 +1,23 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Common;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
+using System.Security.Claims;
 
-using Riok.Mapperly.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.Mappers;
 
-[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
-[UseStaticMapper(typeof(ClaimMapper))]
-internal sealed partial class RoleDetailsReadModelMapper
+internal sealed class RoleDetailsReadModelMapper
     : IReadModelMapper<Guid, RoleReadDbModel, RoleDetailsReadModel>
 {
-    [MapProperty(
-        nameof(RoleReadDbModel.Name),
-        nameof(RoleDetailsReadModel.Name),
-        SuppressNullMismatchDiagnostic = true)]
-    private static partial RoleDetailsReadModel ToReadModel(RoleReadDbModel role);
-
-    public static partial IQueryable<RoleDetailsReadModel> ProjectTo(
-        IQueryable<RoleReadDbModel> query);
+    public static IQueryable<RoleDetailsReadModel> ProjectTo(
+        IQueryable<RoleReadDbModel> query)
+    {
+        return query.Select(selector: role => new RoleDetailsReadModel(
+            Id: role.Id,
+            Name: role.Name!,
+            Claims: role.Claims
+                .Select(selector: claim => new Claim(
+                    type: claim.ClaimType!,
+                    value: claim.ClaimValue!))
+                .ToArray()));
+    }
 }

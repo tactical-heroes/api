@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
 [Mapper]
-[UseStaticMapper(typeof(ClaimMapper))]
+[UseStaticMapper(typeof(Claim))]
 internal static partial class UpdateRoleMapper
 {
     internal static partial UpdateRoleCommand ToCommand(

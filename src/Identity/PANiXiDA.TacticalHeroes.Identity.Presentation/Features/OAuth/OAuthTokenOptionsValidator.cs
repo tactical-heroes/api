@@ -9,7 +9,7 @@ internal sealed class OAuthTokenOptionsValidator
         string? name,
         OAuthTokenOptions options)
     {
-        return string.IsNullOrWhiteSpace(options.Audience)
+        return string.IsNullOrWhiteSpace(value: options.Audience)
             ? ValidateOptionsResult.Fail(
                 failureMessage: $"{OAuthTokenOptions.SectionName}:Audience must not be empty.")
             : ValidateOptionsResult.Success;

@@ -9,26 +9,26 @@ internal sealed class FactionConfiguration : AuditableEntityConfiguration<Factio
 {
     protected override void ConfigureEntity(EntityTypeBuilder<Faction> builder)
     {
-        builder.HasKey(faction => faction.Id);
+        builder.HasKey(keyExpression: faction => faction.Id);
 
-        builder.Property(faction => faction.Id)
+        builder.Property(propertyExpression: faction => faction.Id)
             .HasConversion(
-                id => id.Value,
-                value => new FactionId(value))
+                convertToProviderExpression: id => id.Value,
+                convertFromProviderExpression: value => new FactionId(Value: value))
             .ValueGeneratedNever();
 
-        builder.Property(faction => faction.Name)
+        builder.Property(propertyExpression: faction => faction.Name)
             .HasConversion(
-                name => name.Value,
-                value => FactionName.Create(value).Value)
-            .HasMaxLength(FactionName.MaxLength)
+                convertToProviderExpression: name => name.Value,
+                convertFromProviderExpression: value => FactionName.Create(value: value).Value)
+            .HasMaxLength(maxLength: FactionName.MaxLength)
             .IsRequired();
 
-        builder.Property(faction => faction.Description)
+        builder.Property(propertyExpression: faction => faction.Description)
             .HasConversion(
-                description => description.Value,
-                value => FactionDescription.Create(value).Value)
-            .HasMaxLength(FactionDescription.MaxLength)
+                convertToProviderExpression: description => description.Value,
+                convertFromProviderExpression: value => FactionDescription.Create(value: value).Value)
+            .HasMaxLength(maxLength: FactionDescription.MaxLength)
             .IsRequired();
     }
 }

@@ -15,11 +15,11 @@ public sealed class Email : ValueObject
 
     public static Result<Email> Create(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (string.IsNullOrWhiteSpace(value: value))
         {
             return Result.Failure<Email>(
                 error: Error.Validation(message: "Email cannot be empty.")
-                    .WithField(nameof(Email)));
+                    .WithField(field: nameof(Email)));
         }
 
         var normalizedValue = value.Trim().ToLowerInvariant();
@@ -28,25 +28,25 @@ public sealed class Email : ValueObject
         {
             return Result.Failure<Email>(
                 error: Error.Validation(message: $"Email cannot be longer than {MaxLength} characters.")
-                    .WithField(nameof(Email)));
+                    .WithField(field: nameof(Email)));
         }
 
         try
         {
             var mailAddress = new MailAddress(address: normalizedValue);
 
-            if (!string.Equals(mailAddress.Address, normalizedValue, StringComparison.Ordinal))
+            if (!string.Equals(a: mailAddress.Address, b: normalizedValue, comparisonType: StringComparison.Ordinal))
             {
                 return Result.Failure<Email>(
                     error: Error.Validation(message: "Email has invalid format.")
-                        .WithField(nameof(Email)));
+                        .WithField(field: nameof(Email)));
             }
         }
         catch (FormatException)
         {
             return Result.Failure<Email>(
                 error: Error.Validation(message: "Email has invalid format.")
-                    .WithField(nameof(Email)));
+                    .WithField(field: nameof(Email)));
         }
 
         return Result.Success(value: new Email(value: normalizedValue));

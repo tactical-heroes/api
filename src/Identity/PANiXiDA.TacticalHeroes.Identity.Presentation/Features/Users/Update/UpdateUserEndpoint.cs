@@ -10,12 +10,12 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPut(Handle)
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+        builder.MapPut(handler: Handle)
+            .Produces(statusCode: StatusCodes.Status204NoContent)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .Produces(statusCode: StatusCodes.Status401Unauthorized)
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound)
+            .ProducesProblem(statusCode: StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> Handle(
@@ -25,8 +25,8 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            UpdateUserMapper.ToCommand(request: request, id: id),
-            cancellationToken);
+            command: UpdateUserMapper.ToCommand(request: request, id: id),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

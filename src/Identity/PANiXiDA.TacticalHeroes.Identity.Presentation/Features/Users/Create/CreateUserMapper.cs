@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
 [Mapper]
-[UseStaticMapper(typeof(ClaimMapper))]
+[UseStaticMapper(typeof(Claim))]
 internal static partial class CreateUserMapper
 {
     internal static partial CreateUserCommand ToCommand(CreateUserRequest request);

@@ -8,7 +8,7 @@ public sealed class Faction : AggregateRoot<FactionId>
         FactionId id,
         FactionName name,
         FactionDescription description)
-        : base(id)
+        : base(id: id)
     {
         Name = name;
         Description = description;
@@ -23,7 +23,8 @@ public sealed class Faction : AggregateRoot<FactionId>
     {
         var nameResult = FactionName.Create(value: name);
         var descriptionResult = FactionDescription.Create(value: description);
-        var validationResult = Result.Combine(nameResult, descriptionResult);
+        var validationResult = Result.Combine(
+            results: [nameResult, descriptionResult]);
 
         return validationResult.IsFailure
             ? Result.Failure<Faction>(errors: validationResult.Errors)
@@ -40,7 +41,8 @@ public sealed class Faction : AggregateRoot<FactionId>
     {
         var nameResult = FactionName.Create(value: name);
         var descriptionResult = FactionDescription.Create(value: description);
-        var validationResult = Result.Combine(nameResult, descriptionResult);
+        var validationResult = Result.Combine(
+            results: [nameResult, descriptionResult]);
 
         if (validationResult.IsFailure)
         {

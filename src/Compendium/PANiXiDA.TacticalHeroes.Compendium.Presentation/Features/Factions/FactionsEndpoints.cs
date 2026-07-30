@@ -14,6 +14,6 @@ internal sealed class FactionsEndpoints : IEndpointGroup
 
     public void Map(IEndpointRouteBuilder endpoints)
     {
-        EndpointMapper.MapGroupEndpoints<FactionsEndpoints>(endpoints);
+        EndpointMapper.MapGroupEndpoints<FactionsEndpoints>(endpoints: endpoints);
     }
 }

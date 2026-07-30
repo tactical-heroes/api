@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 
 [Mapper]
-[UseStaticMapper(typeof(ClaimMapper))]
+[UseStaticMapper(typeof(Claim))]
 internal static partial class UpdateUserMapper
 {
     internal static partial UpdateUserCommand ToCommand(
