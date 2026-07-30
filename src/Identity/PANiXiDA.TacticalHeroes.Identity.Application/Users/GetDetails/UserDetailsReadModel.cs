@@ -11,7 +11,7 @@ public sealed record UserDetailsReadModel(
     bool IsConfirmed,
     string Status,
     string StatusDisplayName,
-    IReadOnlyCollection<Claim> Claims)
+    IReadOnlyCollection<Claim> Claims) : ReadModel
 {
     public bool IsBlocked => string.Equals(
         Status,

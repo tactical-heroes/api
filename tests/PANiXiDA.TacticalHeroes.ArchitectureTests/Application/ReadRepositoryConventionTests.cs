@@ -30,18 +30,71 @@ public sealed class ReadRepositoryConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read repositories should use primitive ids without aggregate roots when declared")]
-    public void ReadRepositories_Should_UsePrimitiveIdsWithoutAggregateRoots_When_Declared()
+    [Fact(DisplayName = "Read repositories should use primitive ids when declared")]
+    public void ReadRepositories_Should_UsePrimitiveIds_When_Declared()
     {
         var readRepositories = GetReadRepositories();
         var violations = readRepositories
-            .SelectMany(GetBoundaryViolations)
+            .Where(repository => !ReadSideConvention.IsPrimitiveValue(
+                repository.Contract.GetGenericArguments()[0]))
+            .Select(repository =>
+                $"{repository.Type.FullName} must use a primitive read " +
+                $"identifier, found " +
+                $"'{repository.Contract.GetGenericArguments()[0].FullName}'.")
             .ToArray();
 
         Assert.NotEmpty(readRepositories);
         Assert.True(
             violations.Length == 0,
-            $"Read repository boundary type violations:{Environment.NewLine}" +
+            $"Read repository identifier violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Read repository methods should use only primitive input models when declared")]
+    public void ReadRepositoryMethods_Should_UseOnlyPrimitiveInputModels_When_Declared()
+    {
+        var methods = GetDeclaredReadRepositoryMethods();
+        var violations = methods
+            .SelectMany(target => target.Method
+                .GetParameters()
+                .Where(parameter =>
+                    !ReadSideConvention.IsAllowedReadInput(
+                        parameter.ParameterType))
+                .Select(parameter =>
+                    $"{target.Repository.FullName}.{target.Method.Name} " +
+                    $"parameter '{parameter.Name}' has type " +
+                    $"'{parameter.ParameterType.FullName}'. Read repository " +
+                    $"inputs must be primitives, CancellationToken, " +
+                    $"collections of primitives, or Application parameter " +
+                    $"models composed only from those types; Domain types " +
+                    $"are forbidden."))
+            .ToArray();
+
+        Assert.NotEmpty(methods);
+        Assert.True(
+            violations.Length == 0,
+            $"Read repository input type violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Read repository methods should return read models when declared")]
+    public void ReadRepositoryMethods_Should_ReturnReadModels_When_Declared()
+    {
+        var methods = GetDeclaredReadRepositoryMethods();
+        var violations = methods
+            .Where(target => !ReadSideConvention.IsReadModelResult(
+                target.Method.ReturnType))
+            .Select(target =>
+                $"{target.Repository.FullName}.{target.Method.Name} must " +
+                $"return a ReadModel, optionally wrapped in Task, a " +
+                $"Result, a collection, or a pagination model; found " +
+                $"'{target.Method.ReturnType}'.")
+            .ToArray();
+
+        Assert.NotEmpty(methods);
+        Assert.True(
+            violations.Length == 0,
+            $"Read repository result type violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 
@@ -196,28 +249,26 @@ public sealed class ReadRepositoryConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetBoundaryViolations(
-        ReadRepository readRepository)
+    private static ReadRepositoryMethod[] GetDeclaredReadRepositoryMethods()
     {
-        var identifierType =
-            readRepository.Contract.GetGenericArguments()[0];
-        var violations = new List<string>();
-
-        if (!IsPrimitiveValue(identifierType))
-        {
-            violations.Add(
-                $"{readRepository.Type.FullName} must use a primitive read " +
-                $"identifier, found '{identifierType.FullName}'.");
-        }
-
-        violations.AddRange(readRepository.Type
-            .GetMethods()
-            .Where(MethodContainsAggregateRoot)
-            .Select(method =>
-                $"{readRepository.Type.FullName}.{method.Name} must not use " +
-                $"an aggregate root in parameters or return types."));
-
-        return violations;
+        return
+        [
+            .. GetReadRepositories()
+                .SelectMany(repository => repository.Type
+                    .GetMethods(
+                        BindingFlags.Instance |
+                        BindingFlags.Public |
+                        BindingFlags.DeclaredOnly)
+                    .Select(method => new ReadRepositoryMethod(
+                        repository.Type,
+                        method)))
+                .OrderBy(
+                    target => target.Repository.FullName,
+                    StringComparer.Ordinal)
+                .ThenBy(
+                    target => target.Method.Name,
+                    StringComparer.Ordinal)
+        ];
     }
 
     private static Type? GetClosedReadRepositoryContract(Type type)
@@ -229,61 +280,6 @@ public sealed class ReadRepositoryConventionTests
                 candidate.IsGenericType &&
                 candidate.GetGenericTypeDefinition() ==
                 typeof(IReadRepository<>));
-    }
-
-    private static bool MethodContainsAggregateRoot(MethodInfo method)
-    {
-        return ContainsAggregateRoot(
-                   method.ReturnType,
-                   new HashSet<Type>()) ||
-               method.GetParameters().Any(parameter =>
-                   ContainsAggregateRoot(
-                       parameter.ParameterType,
-                       new HashSet<Type>()));
-    }
-
-    private static bool ContainsAggregateRoot(
-        Type type,
-        ISet<Type> visitedTypes)
-    {
-        if (!visitedTypes.Add(type))
-        {
-            return false;
-        }
-
-        if (typeof(IAggregateRoot).IsAssignableFrom(type))
-        {
-            return true;
-        }
-
-        if (type.HasElementType)
-        {
-            return ContainsAggregateRoot(
-                type.GetElementType()
-                    ?? throw new InvalidOperationException(
-                        $"Could not determine element type for '{type}'."),
-                visitedTypes);
-        }
-
-        return type.IsGenericType &&
-               type.GetGenericArguments().Any(argument =>
-                   ContainsAggregateRoot(argument, visitedTypes));
-    }
-
-    private static bool IsPrimitiveValue(Type type)
-    {
-        var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-        return underlyingType.IsPrimitive ||
-               underlyingType.IsEnum ||
-               underlyingType == typeof(string) ||
-               underlyingType == typeof(decimal) ||
-               underlyingType == typeof(Guid) ||
-               underlyingType == typeof(DateTime) ||
-               underlyingType == typeof(DateTimeOffset) ||
-               underlyingType == typeof(DateOnly) ||
-               underlyingType == typeof(TimeOnly) ||
-               underlyingType == typeof(TimeSpan);
     }
 
     private static string GetFeatureName(Type readRepository)
@@ -450,6 +446,10 @@ public sealed class ReadRepositoryConventionTests
     private sealed record ReadRepository(
         Type Type,
         Type Contract);
+
+    private sealed record ReadRepositoryMethod(
+        Type Repository,
+        MethodInfo Method);
 
     private sealed record ConstructorParameter(
         Type DeclaringType,
