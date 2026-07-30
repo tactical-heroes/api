@@ -34,28 +34,27 @@ public sealed class MapperlyConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Mapperly mappers should disable automatic user mappings when declared")]
-    public void MapperlyMappers_Should_DisableAutomaticUserMappings_When_Declared()
+    [Fact(DisplayName = "Mapper types should use Mapperly when declared")]
+    public void MapperTypes_Should_UseMapperly_When_Declared()
     {
-        var mappers = MapperlySourceDiscovery.GetMappers();
-        var violations = mappers
-            .Where(mapper => !mapper.AutomaticUserMappingsDisabled)
+        var mapperTypes = MapperlySourceDiscovery.GetMapperTypes();
+        var violations = mapperTypes
+            .Where(mapper => !mapper.UsesMapperly)
             .Select(mapper =>
-                $"{mapper.RelativePath}: Mapperly mapper " +
-                $"'{mapper.FullName}' must set AutoUserMappings to false " +
-                $"directly or through MapperDefaults.")
+                $"{mapper.RelativePath}: mapper '{mapper.FullName}' must " +
+                $"be declared with the Mapperly [Mapper] attribute.")
             .ToArray();
 
-        Assert.NotEmpty(mappers);
+        Assert.NotEmpty(mapperTypes);
         Assert.True(
             violations.Length == 0,
-            $"Mapperly automatic user mapping violations:" +
+            $"Manual mapper type violations:" +
             $"{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Mapperly mapper methods should be partial or ignored helpers when declared")]
-    public void MapperlyMapperMethods_Should_BePartialOrIgnoredHelpers_When_Declared()
+    [Fact(DisplayName = "Mapperly mapper methods should be partial or explicitly ignored when declared")]
+    public void MapperlyMapperMethods_Should_BePartialOrExplicitlyIgnored_When_Declared()
     {
         var mapperMethods = MapperlySourceDiscovery
             .GetMappers()
@@ -75,20 +74,44 @@ public sealed class MapperlyConventionTests
             .Where(mapperMethod =>
                 !MapperlySourceDiscovery.IsGeneratedMapping(
                     mapperMethod.Method) &&
-                !MapperlySourceDiscovery.IsIgnoredHelper(
+                !MapperlySourceDiscovery.IsExplicitlyIgnored(
                     mapperMethod.Method))
             .Select(mapperMethod =>
                 $"{mapperMethod.Declaration.RelativePath}: mapper method " +
                 $"'{mapperMethod.Mapper.FullName}." +
                 $"{mapperMethod.Method.Identifier.ValueText}' must be a " +
                 $"Mapperly partial mapping or an explicit " +
-                $"[MapperIgnore] helper.")
+                $"[MapperIgnore] exception.")
             .ToArray();
 
         Assert.NotEmpty(mapperMethods);
         Assert.True(
             violations.Length == 0,
             $"Mapperly mapper method role violations:" +
+            $"{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Mapperly mappers should have generated mappings when declared")]
+    public void MapperlyMappers_Should_HaveGeneratedMappings_When_Declared()
+    {
+        var mappers = MapperlySourceDiscovery.GetMappers();
+        var violations = mappers
+            .Where(mapper => !mapper.Declarations
+                .SelectMany(declaration =>
+                    declaration.Declaration.Members
+                        .OfType<MethodDeclarationSyntax>())
+                .Any(MapperlySourceDiscovery.IsGeneratedMapping))
+            .Select(mapper =>
+                $"{mapper.RelativePath}: Mapperly mapper " +
+                $"'{mapper.FullName}' must declare at least one partial " +
+                $"mapping method.")
+            .ToArray();
+
+        Assert.NotEmpty(mappers);
+        Assert.True(
+            violations.Length == 0,
+            $"Mapperly generated mapping presence violations:" +
             $"{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
@@ -196,6 +219,31 @@ internal static class MapperlySourceDiscovery
         ];
     }
 
+    internal static MapperTypeSource[] GetMapperTypes()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var sourceRoot = Path.Combine(
+            repositoryRoot,
+            SourceDirectoryName);
+
+        return
+        [
+            .. Directory
+                .EnumerateFiles(
+                    sourceRoot,
+                    "*.csproj",
+                    SearchOption.AllDirectories)
+                .Order(StringComparer.Ordinal)
+                .SelectMany(projectFile =>
+                    GetProjectMapperTypes(
+                        repositoryRoot,
+                        projectFile))
+                .OrderBy(
+                    mapper => mapper.FullName,
+                    StringComparer.Ordinal)
+        ];
+    }
+
     internal static bool IsUserMapping(MethodDeclarationSyntax method)
     {
         return GetAttribute(
@@ -209,17 +257,17 @@ internal static class MapperlySourceDiscovery
             modifier.IsKind(SyntaxKind.PartialKeyword));
     }
 
-    internal static bool IsIgnoredHelper(MethodDeclarationSyntax method)
-    {
-        return GetAttribute(
-            method.AttributeLists,
-            "MapperIgnore") is not null;
-    }
-
     internal static bool HasImplementation(MethodDeclarationSyntax method)
     {
         return method.Body is not null ||
                method.ExpressionBody is not null;
+    }
+
+    internal static bool IsExplicitlyIgnored(MethodDeclarationSyntax method)
+    {
+        return GetAttribute(
+            method.AttributeLists,
+            "MapperIgnore") is not null;
     }
 
     internal static bool IsPrivate(MethodDeclarationSyntax method)
@@ -234,24 +282,9 @@ internal static class MapperlySourceDiscovery
         string repositoryRoot,
         string projectFile)
     {
-        var projectDirectory = Path.GetDirectoryName(projectFile)
-            ?? throw new InvalidOperationException(
-                $"Project '{projectFile}' does not have a directory.");
-        var documents = Directory
-            .EnumerateFiles(
-                projectDirectory,
-                "*.cs",
-                SearchOption.AllDirectories)
-            .Where(IsSourceFile)
-            .Order(StringComparer.Ordinal)
-            .Select(sourceFile => new MapperlySourceDocument(
-                RelativePath: Path.GetRelativePath(
-                    repositoryRoot,
-                    sourceFile),
-                Root: CSharpSyntaxTree
-                    .ParseText(File.ReadAllText(sourceFile))
-                    .GetCompilationUnitRoot()))
-            .ToArray();
+        var documents = GetProjectDocuments(
+            repositoryRoot,
+            projectFile);
         var declarations = documents
             .SelectMany(document => document.Root
                 .DescendantNodes()
@@ -267,8 +300,6 @@ internal static class MapperlySourceDiscovery
                 GetFullTypeName(declaration.Declaration))
             .Distinct(StringComparer.Ordinal)
             .ToArray();
-        var assemblySetting = GetAssemblyAutomaticUserMappingsSetting(
-            documents);
 
         return mapperNames.Select(mapperName =>
         {
@@ -278,70 +309,75 @@ internal static class MapperlySourceDiscovery
                     mapperName,
                     StringComparison.Ordinal))
                 .ToArray();
-            var mapperSetting = mapperDeclarations
-                .Select(declaration =>
-                    GetAutomaticUserMappingsSetting(
-                        GetAttribute(
-                            declaration.Declaration.AttributeLists,
-                            "Mapper")))
-                .OfType<bool>()
-                .ToArray();
-            var effectiveSetting = mapperSetting.Length == 0
-                ? assemblySetting
-                : mapperSetting.Contains(true);
 
             return new MapperlyMapperSource(
                 ProjectName: Path.GetFileNameWithoutExtension(projectFile),
                 FullName: mapperName,
                 RelativePath: mapperDeclarations[0].RelativePath,
-                AutomaticUserMappingsDisabled:
-                    effectiveSetting == false,
                 Declarations: mapperDeclarations);
         });
     }
 
-    private static bool? GetAssemblyAutomaticUserMappingsSetting(
-        IEnumerable<MapperlySourceDocument> documents)
+    private static IEnumerable<MapperTypeSource> GetProjectMapperTypes(
+        string repositoryRoot,
+        string projectFile)
     {
-        var settings = documents
-            .SelectMany(document => document.Root.AttributeLists)
-            .Where(attributeList =>
-                string.Equals(
-                    attributeList.Target?.Identifier.ValueText,
-                    "assembly",
-                    StringComparison.Ordinal))
-            .SelectMany(attributeList =>
-                attributeList.Attributes)
-            .Where(attribute =>
-                IsAttribute(attribute, "MapperDefaults"))
-            .Select(GetAutomaticUserMappingsSetting)
-            .OfType<bool>()
-            .Distinct()
+        var mapperTypes = GetProjectDocuments(
+                repositoryRoot,
+                projectFile)
+            .SelectMany(document => document.Root
+                .DescendantNodes()
+                .OfType<TypeDeclarationSyntax>()
+                .Where(declaration => declaration.Identifier.ValueText
+                    .EndsWith(
+                        "Mapper",
+                        StringComparison.Ordinal))
+                .Select(declaration => new MapperTypeSource(
+                    ProjectName:
+                        Path.GetFileNameWithoutExtension(projectFile),
+                    FullName: GetFullTypeName(declaration),
+                    RelativePath: document.RelativePath,
+                    UsesMapperly: IsMapper(declaration))))
             .ToArray();
 
-        return settings.Length == 1
-            ? settings[0]
-            : null;
+        return mapperTypes
+            .GroupBy(
+                mapper => mapper.FullName,
+                StringComparer.Ordinal)
+            .Select(group => new MapperTypeSource(
+                ProjectName: group.First().ProjectName,
+                FullName: group.Key,
+                RelativePath: group.First().RelativePath,
+                UsesMapperly: group.Any(mapper =>
+                    mapper.UsesMapperly)))
+            .ToArray();
     }
 
-    private static bool? GetAutomaticUserMappingsSetting(
-        AttributeSyntax? attribute)
+    private static MapperlySourceDocument[] GetProjectDocuments(
+        string repositoryRoot,
+        string projectFile)
     {
-        var argument = attribute?
-            .ArgumentList?
-            .Arguments
-            .SingleOrDefault(argument =>
-                string.Equals(
-                    argument.NameEquals?.Name.Identifier.ValueText,
-                    "AutoUserMappings",
-                    StringComparison.Ordinal));
+        var projectDirectory = Path.GetDirectoryName(projectFile)
+            ?? throw new InvalidOperationException(
+                $"Project '{projectFile}' does not have a directory.");
 
-        return argument?.Expression.Kind() switch
-        {
-            SyntaxKind.TrueLiteralExpression => true,
-            SyntaxKind.FalseLiteralExpression => false,
-            _ => null
-        };
+        return
+        [
+            .. Directory
+                .EnumerateFiles(
+                    projectDirectory,
+                    "*.cs",
+                    SearchOption.AllDirectories)
+                .Where(IsSourceFile)
+                .Order(StringComparer.Ordinal)
+                .Select(sourceFile => new MapperlySourceDocument(
+                    RelativePath: Path.GetRelativePath(
+                        repositoryRoot,
+                        sourceFile),
+                    Root: CSharpSyntaxTree
+                        .ParseText(File.ReadAllText(sourceFile))
+                        .GetCompilationUnitRoot()))
+        ];
     }
 
     private static bool IsMapper(
@@ -451,8 +487,13 @@ internal sealed record MapperlyMapperSource(
     string ProjectName,
     string FullName,
     string RelativePath,
-    bool AutomaticUserMappingsDisabled,
     IReadOnlyCollection<MapperlyTypeDeclaration> Declarations);
+
+internal sealed record MapperTypeSource(
+    string ProjectName,
+    string FullName,
+    string RelativePath,
+    bool UsesMapperly);
 
 internal sealed record MapperlyTypeDeclaration(
     string RelativePath,

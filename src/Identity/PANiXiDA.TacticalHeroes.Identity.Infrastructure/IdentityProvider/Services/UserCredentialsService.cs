@@ -8,7 +8,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Converters;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
@@ -50,7 +50,7 @@ public sealed class UserCredentialsService(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<Guid>(result: identityResult);
+            return IdentityResultConverter.ToResult<Guid>(result: identityResult);
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
@@ -103,7 +103,7 @@ public sealed class UserCredentialsService(
 
             if (!failureResult.Succeeded)
             {
-                return IdentityResultMapper.ToResult<AuthenticatedUserReadModel>(result: failureResult);
+                return IdentityResultConverter.ToResult<AuthenticatedUserReadModel>(result: failureResult);
             }
 
             return InvalidCredentials();
@@ -113,7 +113,7 @@ public sealed class UserCredentialsService(
 
         if (!resetResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<AuthenticatedUserReadModel>(result: resetResult);
+            return IdentityResultConverter.ToResult<AuthenticatedUserReadModel>(result: resetResult);
         }
 
         if (!applicationUser.EmailConfirmed)
@@ -162,7 +162,7 @@ public sealed class UserCredentialsService(
             currentPassword,
             newPassword);
 
-        return IdentityResultMapper.ToResult(result: result);
+        return IdentityResultConverter.ToResult(result: result);
     }
 
     public async Task<Result> ConfirmEmailAsync(
@@ -195,7 +195,7 @@ public sealed class UserCredentialsService(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(result: identityResult);
+            return IdentityResultConverter.ToResult(result: identityResult);
         }
 
         var confirmResult = userResult.Value.ConfirmRegistration();
@@ -308,7 +308,7 @@ public sealed class UserCredentialsService(
             passwordResetToken,
             newPassword);
 
-        return IdentityResultMapper.ToResult(result: result);
+        return IdentityResultConverter.ToResult(result: result);
     }
 
     private static bool IsBlocked(ApplicationUser applicationUser)

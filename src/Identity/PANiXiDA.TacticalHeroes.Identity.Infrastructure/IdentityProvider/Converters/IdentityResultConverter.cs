@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Converters;
 
-internal static class IdentityResultMapper
+internal static class IdentityResultConverter
 {
     public static Result ToResult(IdentityResult result)
     {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Converters;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
@@ -44,7 +44,7 @@ public sealed class RolesRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<Guid>(result: identityResult);
+            return IdentityResultConverter.ToResult<Guid>(result: identityResult);
         }
 
         aggregateTracker.Track(roleResult.Value);
@@ -89,7 +89,7 @@ public sealed class RolesRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(result: identityResult);
+            return IdentityResultConverter.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(roleResult.Value);
@@ -121,7 +121,7 @@ public sealed class RolesRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(result: identityResult);
+            return IdentityResultConverter.ToResult(result: identityResult);
         }
 
         aggregateTracker.Track(roleResult.Value);

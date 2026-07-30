@@ -1,41 +1,54 @@
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
+using Riok.Mapperly.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 
-internal static class ApplicationUserMapper
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+internal static partial class ApplicationUserMapper
 {
-    public static ApplicationUser ToDbModel(
+    [MapProperty(
+        "Id.Value",
+        nameof(ApplicationUser.Id))]
+    [MapProperty(
+        "Email.Value",
+        nameof(ApplicationUser.Email))]
+    [MapProperty(
+        "ConfirmationStatus.IsConfirmed",
+        nameof(ApplicationUser.EmailConfirmed))]
+    [MapPropertyFromSource(
+        nameof(ApplicationUser.Claims),
+        Use = nameof(ToClaimDbModelsFromUser))]
+    [MapPropertyFromSource(
+        nameof(ApplicationUser.Roles),
+        Use = nameof(ToRoleDbModels))]
+    [MapValue(
+        nameof(ApplicationUser.LockoutEnabled),
+        true)]
+    [MapperIgnoreTarget(nameof(ApplicationUser.AccessFailedCount))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.LockoutEnd))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.Logins))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedEmail))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedUserName))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.PasswordHash))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumber))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumberConfirmed))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.SecurityStamp))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.TwoFactorEnabled))]
+    public static partial ApplicationUser ToDbModel(
         User user,
         UserName userName,
         UserStatus status,
         DateTime createdAt,
-        DateTime updatedAt)
-    {
-        var dbModel = new ApplicationUser
-        {
-            Id = user.Id.Value,
-            LockoutEnabled = true,
-            CreatedAt = createdAt,
-            Claims = ToClaimDbModels(
-                userId: user.Id.Value,
-                claims: user.Claims),
-            Roles = ToRoleDbModels(user: user)
-        };
+        DateTime updatedAt);
 
-        MapToDbModel(
-            user: user,
-            userName: userName,
-            status: status,
-            dbModel: dbModel,
-            updatedAt: updatedAt);
-
-        return dbModel;
-    }
-
+    [MapperIgnore]
     public static void MapToDbModel(
         User user,
         UserName userName,
@@ -43,28 +56,29 @@ internal static class ApplicationUserMapper
         ApplicationUser dbModel,
         DateTime updatedAt)
     {
-        dbModel.Email = user.Email.Value;
-        dbModel.UserName = userName.Value;
-        dbModel.EmailConfirmed = user.ConfirmationStatus.IsConfirmed;
-        dbModel.Status = status.Name;
-        dbModel.UpdatedAt = updatedAt;
+        MapToDbModel(
+            source: new ApplicationUserUpdate(
+                User: user,
+                UserName: userName,
+                Status: status,
+                UpdatedAt: updatedAt),
+            dbModel: dbModel);
     }
 
+    [MapperIgnore]
     public static List<ApplicationUserClaim> ToClaimDbModels(
         Guid userId,
         IEnumerable<UserClaim> claims)
     {
         return
         [
-            .. claims.Select(claim => new ApplicationUserClaim
-            {
-                UserId = userId,
-                ClaimType = claim.Type.Value,
-                ClaimValue = claim.Value.Value
-            })
+            .. claims.Select(claim => ToClaimDbModel(
+                claim: claim,
+                userId: userId))
         ];
     }
 
+    [MapperIgnore]
     public static Result<User> ToDomain(ApplicationUser user)
     {
         return User.Create(
@@ -75,15 +89,79 @@ internal static class ApplicationUserMapper
             claims: user.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
     }
 
-    private static List<ApplicationUserRole> ToRoleDbModels(User user)
+    [MapProperty(
+        "Type.Value",
+        nameof(ApplicationUserClaim.ClaimType))]
+    [MapProperty(
+        "Value.Value",
+        nameof(ApplicationUserClaim.ClaimValue))]
+    [MapperIgnoreTarget(nameof(ApplicationUserClaim.Id))]
+    [MapperIgnoreTarget(nameof(ApplicationUserClaim.User))]
+    private static partial ApplicationUserClaim ToClaimDbModel(
+        UserClaim claim,
+        Guid userId);
+
+    [MapProperty(
+        "User.Email.Value",
+        nameof(ApplicationUser.Email))]
+    [MapProperty(
+        "User.ConfirmationStatus.IsConfirmed",
+        nameof(ApplicationUser.EmailConfirmed))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.AccessFailedCount))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.Claims))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.CreatedAt))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.Id))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.LockoutEnabled))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.LockoutEnd))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.Logins))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedEmail))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.NormalizedUserName))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.PasswordHash))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumber))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.PhoneNumberConfirmed))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.Roles))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.SecurityStamp))]
+    [MapperIgnoreTarget(nameof(ApplicationUser.TwoFactorEnabled))]
+    private static partial void MapToDbModel(
+        ApplicationUserUpdate source,
+        [MappingTarget] ApplicationUser dbModel);
+
+    private static ICollection<ApplicationUserClaim> ToClaimDbModelsFromUser(User user)
+    {
+        return ToClaimDbModels(
+            userId: user.Id.Value,
+            claims: user.Claims);
+    }
+
+    private static ICollection<ApplicationUserRole> ToRoleDbModels(User user)
     {
         return
         [
-            .. user.RoleIds.Select(roleId => new ApplicationUserRole
-            {
-                UserId = user.Id.Value,
-                RoleId = roleId.Value
-            })
+            .. user.RoleIds.Select(roleId => ToRoleDbModel(
+                roleId: roleId,
+                userId: user.Id.Value))
         ];
     }
+
+    [MapProperty(
+        "Value",
+        nameof(ApplicationUserRole.RoleId))]
+    [MapperIgnoreTarget(nameof(ApplicationUserRole.Role))]
+    [MapperIgnoreTarget(nameof(ApplicationUserRole.User))]
+    private static partial ApplicationUserRole ToRoleDbModel(
+        RoleId roleId,
+        Guid userId);
+
+    [UserMapping(Default = true)]
+    private static string ToUserName(UserName userName) => userName.Value;
+
+    [UserMapping(Default = true)]
+    private static string ToUserStatus(UserStatus status) => status.Name;
+
+    private sealed record ApplicationUserUpdate(
+        User User,
+        UserName UserName,
+        UserStatus Status,
+        DateTime UpdatedAt);
 }
