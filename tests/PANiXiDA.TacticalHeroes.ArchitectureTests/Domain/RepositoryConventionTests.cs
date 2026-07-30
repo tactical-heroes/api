@@ -1,5 +1,6 @@
 using System.Reflection;
 
+using PANiXiDA.Core.Domain;
 using PANiXiDA.Core.Domain.Abstractions;
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.Identifiers;
@@ -37,13 +38,40 @@ public sealed class RepositoryConventionTests
     {
         var repositories = GetRepositories();
         var violations = repositories
-            .SelectMany(GetBoundaryViolations)
+            .SelectMany(GetContractBoundaryViolations)
             .ToArray();
 
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
             $"Repository boundary type violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Repository methods should use only domain types when declared")]
+    public void RepositoryMethods_Should_UseOnlyDomainTypes_When_Declared()
+    {
+        var methods = GetRepositoryMethods();
+        var violations = methods
+            .Where(target =>
+                !IsAllowedRepositoryMethodType(
+                    target.Method.ReturnType,
+                    new HashSet<Type>()) ||
+                target.Method.GetParameters().Any(parameter =>
+                    !IsAllowedRepositoryMethodType(
+                        parameter.ParameterType,
+                        new HashSet<Type>())))
+            .Select(target =>
+                $"{target.Repository.FullName}.{target.Method.Name} may use " +
+                $"only aggregate roots, value objects, Enumerations, " +
+                $"strongly typed IDs, CancellationToken, and framework " +
+                $"wrappers; found signature '{target.Method}'.")
+            .ToArray();
+
+        Assert.NotEmpty(methods);
+        Assert.True(
+            violations.Length == 0,
+            $"Repository method type violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 
@@ -202,7 +230,7 @@ public sealed class RepositoryConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetBoundaryViolations(
+    private static IEnumerable<string> GetContractBoundaryViolations(
         Repository repository)
     {
         var genericArguments = repository.Contract.GetGenericArguments();
@@ -226,14 +254,31 @@ public sealed class RepositoryConventionTests
                 $"found '{aggregateType.FullName}'.");
         }
 
-        violations.AddRange(repository.Type
-            .GetMethods()
-            .Where(MethodContainsPrimitiveValue)
-            .Select(method =>
-                $"{repository.Type.FullName}.{method.Name} must not use " +
-                $"primitive parameters or return types."));
-
         return violations;
+    }
+
+    private static RepositoryMethod[] GetRepositoryMethods()
+    {
+        return
+        [
+            .. GetRepositories()
+                .SelectMany(repository => repository.Type
+                    .GetMethods(
+                        BindingFlags.Instance |
+                        BindingFlags.Public |
+                        BindingFlags.DeclaredOnly)
+                    .Concat(repository.Contract.GetMethods())
+                    .DistinctBy(method => method.ToString())
+                    .Select(method => new RepositoryMethod(
+                        repository.Type,
+                        method)))
+                .OrderBy(
+                    target => target.Repository.FullName,
+                    StringComparer.Ordinal)
+                .ThenBy(
+                    target => target.Method.Name,
+                    StringComparer.Ordinal)
+        ];
     }
 
     private static Type? GetClosedRepositoryContract(Type type)
@@ -247,43 +292,95 @@ public sealed class RepositoryConventionTests
                 typeof(IRepository<,>));
     }
 
-    private static bool MethodContainsPrimitiveValue(MethodInfo method)
-    {
-        return ContainsPrimitiveValue(
-                   method.ReturnType,
-                   new HashSet<Type>()) ||
-               method.GetParameters().Any(parameter =>
-                   ContainsPrimitiveValue(
-                       parameter.ParameterType,
-                       new HashSet<Type>()));
-    }
-
-    private static bool ContainsPrimitiveValue(
+    private static bool IsAllowedRepositoryMethodType(
         Type type,
         ISet<Type> visitedTypes)
     {
         if (!visitedTypes.Add(type))
         {
-            return false;
+            return true;
         }
 
-        if (IsPrimitiveValue(type))
+        if (typeof(IAggregateRoot).IsAssignableFrom(type) ||
+            typeof(ValueObject).IsAssignableFrom(type) ||
+            typeof(IStronglyTypedId).IsAssignableFrom(type) ||
+            IsEnumeration(type))
         {
             return true;
         }
 
+        if (type == typeof(void) ||
+            type == typeof(Task) ||
+            type == typeof(ValueTask) ||
+            type == typeof(CancellationToken))
+        {
+            return true;
+        }
+
+        var nullableType = Nullable.GetUnderlyingType(type);
+
+        if (nullableType is not null)
+        {
+            return IsAllowedRepositoryMethodType(
+                nullableType,
+                visitedTypes);
+        }
+
         if (type.HasElementType)
         {
-            return ContainsPrimitiveValue(
+            return IsAllowedRepositoryMethodType(
                 type.GetElementType()
                     ?? throw new InvalidOperationException(
                         $"Could not determine element type for '{type}'."),
                 visitedTypes);
         }
 
-        return type.IsGenericType &&
-               type.GetGenericArguments().Any(argument =>
-                   ContainsPrimitiveValue(argument, visitedTypes));
+        var collectionElementType = type
+            .GetInterfaces()
+            .Append(type)
+            .Where(candidate => candidate.IsGenericType)
+            .FirstOrDefault(candidate =>
+                candidate.GetGenericTypeDefinition() ==
+                typeof(IEnumerable<>))
+            ?.GetGenericArguments()[0];
+
+        if (collectionElementType is not null)
+        {
+            return IsAllowedRepositoryMethodType(
+                collectionElementType,
+                visitedTypes);
+        }
+
+        if (!type.IsGenericType)
+        {
+            return false;
+        }
+
+        var genericTypeDefinition = type.GetGenericTypeDefinition();
+
+        return (genericTypeDefinition == typeof(Task<>) ||
+                genericTypeDefinition == typeof(ValueTask<>)) &&
+               type.GetGenericArguments().All(argument =>
+                   IsAllowedRepositoryMethodType(
+                       argument,
+                       visitedTypes));
+    }
+
+    private static bool IsEnumeration(Type type)
+    {
+        for (var currentType = type;
+             currentType is not null;
+             currentType = currentType.BaseType)
+        {
+            if (currentType.IsGenericType &&
+                currentType.GetGenericTypeDefinition() ==
+                typeof(Enumeration<>))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsPrimitiveValue(Type type)
@@ -433,6 +530,10 @@ public sealed class RepositoryConventionTests
     private sealed record Repository(
         Type Type,
         Type Contract);
+
+    private sealed record RepositoryMethod(
+        Type Repository,
+        MethodInfo Method);
 
     private sealed record ConstructorParameter(
         Type DeclaringType,

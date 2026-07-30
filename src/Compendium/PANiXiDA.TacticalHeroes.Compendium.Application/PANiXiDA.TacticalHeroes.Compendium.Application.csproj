@@ -16,6 +16,7 @@
         <Using Include="PANiXiDA.Core.Domain.Entities" />
 
         <Using Include="PANiXiDA.Core.Application.Persistence" />
+        <Using Include="PANiXiDA.Core.Application.Querying" />
         <Using Include="PANiXiDA.Core.Application.Querying.Filtering" />
         <Using Include="PANiXiDA.Core.Application.Querying.Pagination" />
         <Using Include="PANiXiDA.Core.Application.Querying.Sorting" />

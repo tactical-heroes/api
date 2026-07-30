@@ -6,4 +6,4 @@ public sealed record AuthenticatedUserReadModel(
     Guid Id,
     string Email,
     string UserName,
-    IReadOnlyCollection<Claim> Claims);
+    IReadOnlyCollection<Claim> Claims) : ReadModel;
