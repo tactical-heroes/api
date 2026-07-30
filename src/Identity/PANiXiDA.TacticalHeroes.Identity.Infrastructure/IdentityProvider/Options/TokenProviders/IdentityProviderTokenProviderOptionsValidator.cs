@@ -30,9 +30,9 @@ internal sealed class IdentityProviderTokenProviderOptionsValidator
             }
 
             if (string.Equals(
-                a: options.TokenProviders.EmailConfirmation,
-                b: options.TokenProviders.PasswordReset,
-                comparisonType: StringComparison.Ordinal))
+                options.TokenProviders.EmailConfirmation,
+                options.TokenProviders.PasswordReset,
+                StringComparison.Ordinal))
             {
                 failures.Add(
                     $"{IdentityProviderOptions.SectionName}:TokenProviders values must be unique.");

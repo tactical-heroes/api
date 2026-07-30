@@ -216,8 +216,8 @@ public sealed class UsersWriteRepository(
         foreach (var currentClaim in applicationUser.Claims.ToArray())
         {
             if (targetClaims.Any(targetClaim =>
-                    string.Equals(a: targetClaim.ClaimType, b: currentClaim.ClaimType, comparisonType: StringComparison.Ordinal) &&
-                    string.Equals(a: targetClaim.ClaimValue, b: currentClaim.ClaimValue, comparisonType: StringComparison.Ordinal)))
+                    string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -228,8 +228,8 @@ public sealed class UsersWriteRepository(
         foreach (var targetClaim in targetClaims)
         {
             if (applicationUser.Claims.Any(currentClaim =>
-                    string.Equals(a: currentClaim.ClaimType, b: targetClaim.ClaimType, comparisonType: StringComparison.Ordinal) &&
-                    string.Equals(a: currentClaim.ClaimValue, b: targetClaim.ClaimValue, comparisonType: StringComparison.Ordinal)))
+                    string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }

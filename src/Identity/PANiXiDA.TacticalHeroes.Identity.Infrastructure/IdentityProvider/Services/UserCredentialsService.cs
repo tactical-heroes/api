@@ -314,9 +314,9 @@ public sealed class UserCredentialsService(
     private static bool IsBlocked(ApplicationUser applicationUser)
     {
         return string.Equals(
-            a: applicationUser.Status,
-            b: UserStatus.Blocked.Name,
-            comparisonType: StringComparison.Ordinal);
+            applicationUser.Status,
+            UserStatus.Blocked.Name,
+            StringComparison.Ordinal);
     }
 
     private static Result<AuthenticatedUserReadModel> InvalidCredentials()

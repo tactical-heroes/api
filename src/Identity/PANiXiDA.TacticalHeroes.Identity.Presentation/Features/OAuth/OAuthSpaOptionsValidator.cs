@@ -24,7 +24,7 @@ internal sealed class OAuthSpaOptionsValidator
 
     private static bool IsHttpScheme(Uri uri)
     {
-        return string.Equals(a: uri.Scheme, b: Uri.UriSchemeHttp, comparisonType: StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(a: uri.Scheme, b: Uri.UriSchemeHttps, comparisonType: StringComparison.OrdinalIgnoreCase);
+        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
     }
 }

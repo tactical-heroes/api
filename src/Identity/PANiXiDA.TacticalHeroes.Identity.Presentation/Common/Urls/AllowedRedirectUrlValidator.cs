@@ -43,9 +43,9 @@ internal static class AllowedRedirectUrlValidator
             ? uri.Host
             : uri.GetComponents(UriComponents.HostAndPort, UriFormat.UriEscaped);
 
-        return string.Equals(a: uri.Scheme, b: request.Scheme, comparisonType: StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(a: redirectHost, b: requestHost, comparisonType: StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(a: uri.AbsolutePath, b: allowedPath, comparisonType: StringComparison.Ordinal);
+        return string.Equals(uri.Scheme, request.Scheme, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(redirectHost, requestHost, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(uri.AbsolutePath, allowedPath, StringComparison.Ordinal);
     }
 
     private static string GetPath(string pathAndQuery)

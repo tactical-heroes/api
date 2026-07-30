@@ -35,7 +35,7 @@ public sealed class Email : ValueObject
         {
             var mailAddress = new MailAddress(address: normalizedValue);
 
-            if (!string.Equals(a: mailAddress.Address, b: normalizedValue, comparisonType: StringComparison.Ordinal))
+            if (!string.Equals(mailAddress.Address, normalizedValue, StringComparison.Ordinal))
             {
                 return Result.Failure<Email>(
                     error: Error.Validation(message: "Email has invalid format.")

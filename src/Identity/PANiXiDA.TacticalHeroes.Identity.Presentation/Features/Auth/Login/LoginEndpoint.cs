@@ -60,8 +60,8 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
     private static string GetAuthorizePath()
     {
         return string.Concat(
-            str0: "/",
-            str1: new OAuthEndpoints().Route.TrimEnd('/'),
-            str2: new AuthorizeEndpoint().Route);
+            "/",
+            new OAuthEndpoints().Route.TrimEnd('/'),
+            new AuthorizeEndpoint().Route);
     }
 }

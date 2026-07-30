@@ -84,9 +84,9 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
     private static Result EnsureAvailable(UserReadDbModel applicationUser)
     {
         if (string.Equals(
-                a: applicationUser.Status,
-                b: UserStatus.Blocked.Name,
-                comparisonType: StringComparison.Ordinal))
+                applicationUser.Status,
+                UserStatus.Blocked.Name,
+                StringComparison.Ordinal))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }

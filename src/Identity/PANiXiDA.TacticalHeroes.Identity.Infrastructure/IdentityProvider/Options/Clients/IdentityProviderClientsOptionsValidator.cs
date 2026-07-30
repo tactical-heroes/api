@@ -71,13 +71,13 @@ internal sealed class IdentityProviderClientsOptionsValidator
         }
 
         var isPublic = string.Equals(
-            a: client.ClientType,
-            b: OpenIddictConstants.ClientTypes.Public,
-            comparisonType: StringComparison.Ordinal);
+            client.ClientType,
+            OpenIddictConstants.ClientTypes.Public,
+            StringComparison.Ordinal);
         var isConfidential = string.Equals(
-            a: client.ClientType,
-            b: OpenIddictConstants.ClientTypes.Confidential,
-            comparisonType: StringComparison.Ordinal);
+            client.ClientType,
+            OpenIddictConstants.ClientTypes.Confidential,
+            StringComparison.Ordinal);
 
         if (!isPublic && !isConfidential)
         {

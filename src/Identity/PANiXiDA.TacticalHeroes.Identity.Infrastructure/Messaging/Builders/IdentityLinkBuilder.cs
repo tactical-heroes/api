@@ -8,7 +8,7 @@ internal static class IdentityLinkBuilder
         string token)
     {
         return template
-            .Replace(oldValue: "{userId}", newValue: Uri.EscapeDataString(userId.ToString("D")), comparisonType: StringComparison.Ordinal)
-            .Replace(oldValue: "{token}", newValue: Uri.EscapeDataString(token), comparisonType: StringComparison.Ordinal);
+            .Replace("{userId}", Uri.EscapeDataString(userId.ToString("D")), StringComparison.Ordinal)
+            .Replace("{token}", Uri.EscapeDataString(token), StringComparison.Ordinal);
     }
 }

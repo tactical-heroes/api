@@ -184,6 +184,9 @@ internal static class NamedArgumentSourceDiscovery
             callNode);
         var callHasParamsParameter = method?.Parameters
             .Any(parameter => parameter.IsParams) == true;
+        var callIsSystemString =
+            method?.ContainingType.SpecialType ==
+            SpecialType.System_String;
         var allArgumentsRequireNames =
             arguments.Count >= NamedArgumentsRequiredFromCount;
 
@@ -193,6 +196,7 @@ internal static class NamedArgumentSourceDiscovery
                 argument.Expression);
             var requiresName =
                 !callHasParamsParameter &&
+                !callIsSystemString &&
                 (isAmbiguousLiteral || allArgumentsRequireNames);
             var requirement = isAmbiguousLiteral
                 ? "null, default and boolean literals are ambiguous"
