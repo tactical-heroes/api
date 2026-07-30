@@ -5,7 +5,7 @@ public sealed class GetClientTokenPrincipalQueryValidator
 {
     public GetClientTokenPrincipalQueryValidator()
     {
-        RuleFor(expression: query => query.ClientId)
+        RuleFor(query => query.ClientId)
             .NotEmpty();
     }
 }

@@ -37,11 +37,10 @@ public sealed class UsersWriteRepository(
             email: email,
             confirmationStatus: isConfirmed,
             roleIds: [],
-            claims: claims.Select(selector: claim => (claim.Type, claim.Value)));
+            claims: claims.Select(claim => (claim.Type, claim.Value)));
         var userNameResult = UserName.Create(value: userName);
         var statusResult = UserStatus.Create(value: status);
-        var validationResult = Result.Combine(
-            results: [userResult, userNameResult, statusResult]);
+        var validationResult = Result.Combine(userResult, userNameResult, statusResult);
 
         if (validationResult.IsFailure)
         {
@@ -63,7 +62,7 @@ public sealed class UsersWriteRepository(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        aggregateTracker.Track(aggregateRoot: userResult.Value);
+        aggregateTracker.Track(userResult.Value);
 
         return Result.Success(value: applicationUser.Id);
     }
@@ -82,11 +81,10 @@ public sealed class UsersWriteRepository(
             email: email,
             confirmationStatus: isConfirmed,
             roleIds: [],
-            claims: claims.Select(selector: claim => (claim.Type, claim.Value)));
+            claims: claims.Select(claim => (claim.Type, claim.Value)));
         var userNameResult = UserName.Create(value: userName);
         var statusResult = UserStatus.Create(value: status);
-        var validationResult = Result.Combine(
-            results: [userResult, userNameResult, statusResult]);
+        var validationResult = Result.Combine(userResult, userNameResult, statusResult);
 
         if (validationResult.IsFailure)
         {
@@ -95,7 +93,7 @@ public sealed class UsersWriteRepository(
 
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(predicate: user => user.Id == id, cancellationToken: cancellationToken);
+            .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
 
         if (applicationUser is null)
         {
@@ -114,17 +112,17 @@ public sealed class UsersWriteRepository(
 
         if (statusResult.Value.IsBlocked)
         {
-            await RevokeAllTokensAsync(id: id, cancellationToken: cancellationToken);
+            await RevokeAllTokensAsync(id, cancellationToken);
         }
 
-        var identityResult = await userManager.UpdateAsync(user: applicationUser);
+        var identityResult = await userManager.UpdateAsync(applicationUser);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(aggregateRoot: userResult.Value);
+        aggregateTracker.Track(userResult.Value);
 
         return Result.Success();
     }
@@ -135,7 +133,7 @@ public sealed class UsersWriteRepository(
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(predicate: user => user.Id == id, cancellationToken: cancellationToken);
+            .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
 
         if (applicationUser is null)
         {
@@ -149,15 +147,15 @@ public sealed class UsersWriteRepository(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        await RevokeAllTokensAsync(id: id, cancellationToken: cancellationToken);
-        var identityResult = await userManager.DeleteAsync(user: applicationUser);
+        await RevokeAllTokensAsync(id, cancellationToken);
+        var identityResult = await userManager.DeleteAsync(applicationUser);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(aggregateRoot: userResult.Value);
+        aggregateTracker.Track(userResult.Value);
 
         return Result.Success();
     }
@@ -181,7 +179,7 @@ public sealed class UsersWriteRepository(
         UserStatus status,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId: id.ToString());
+        var applicationUser = await userManager.FindByIdAsync(id.ToString());
 
         if (applicationUser is null)
         {
@@ -190,12 +188,12 @@ public sealed class UsersWriteRepository(
 
         if (status.IsBlocked)
         {
-            await RevokeAllTokensAsync(id: id, cancellationToken: cancellationToken);
+            await RevokeAllTokensAsync(id, cancellationToken);
         }
 
         applicationUser.Status = status.Name;
         applicationUser.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
-        var identityResult = await userManager.UpdateAsync(user: applicationUser);
+        var identityResult = await userManager.UpdateAsync(applicationUser);
 
         return IdentityResultMapper.ToResult(result: identityResult);
     }
@@ -204,7 +202,7 @@ public sealed class UsersWriteRepository(
         Guid id,
         CancellationToken cancellationToken)
     {
-        await tokenManager.RevokeBySubjectAsync(subject: id.ToString(), cancellationToken: cancellationToken);
+        await tokenManager.RevokeBySubjectAsync(id.ToString(), cancellationToken);
     }
 
     private void SyncClaims(
@@ -217,19 +215,19 @@ public sealed class UsersWriteRepository(
 
         foreach (var currentClaim in applicationUser.Claims.ToArray())
         {
-            if (targetClaims.Any(predicate: targetClaim =>
+            if (targetClaims.Any(targetClaim =>
                     string.Equals(a: targetClaim.ClaimType, b: currentClaim.ClaimType, comparisonType: StringComparison.Ordinal) &&
                     string.Equals(a: targetClaim.ClaimValue, b: currentClaim.ClaimValue, comparisonType: StringComparison.Ordinal)))
             {
                 continue;
             }
 
-            dbContext.Set<ApplicationUserClaim>().Remove(entity: currentClaim);
+            dbContext.Set<ApplicationUserClaim>().Remove(currentClaim);
         }
 
         foreach (var targetClaim in targetClaims)
         {
-            if (applicationUser.Claims.Any(predicate: currentClaim =>
+            if (applicationUser.Claims.Any(currentClaim =>
                     string.Equals(a: currentClaim.ClaimType, b: targetClaim.ClaimType, comparisonType: StringComparison.Ordinal) &&
                     string.Equals(a: currentClaim.ClaimValue, b: targetClaim.ClaimValue, comparisonType: StringComparison.Ordinal)))
             {

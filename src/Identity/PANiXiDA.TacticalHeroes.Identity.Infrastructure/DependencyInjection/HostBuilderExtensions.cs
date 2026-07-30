@@ -12,9 +12,9 @@ public static class HostBuilderExtensions
 {
     public static IHostBuilder UseInfrastructure(this IHostBuilder hostBuilder)
     {
-        hostBuilder.ConfigureServices(configureDelegate: services =>
+        hostBuilder.ConfigureServices(services =>
         {
-            services.ConfigureWolverine(configure: options =>
+            services.ConfigureWolverine(options =>
             {
                 options.CodeGeneration.AlwaysUseServiceLocationFor<UserManager<ApplicationUser>>();
                 options.CodeGeneration.AlwaysUseServiceLocationFor<RoleManager<ApplicationRole>>();

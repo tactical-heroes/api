@@ -10,10 +10,10 @@ internal static class ApplicationUserQueries
         this IQueryable<ApplicationUser> query)
     {
         return query
-            .Include(navigationPropertyPath: user => user.Claims)
-            .Include(navigationPropertyPath: user => user.Roles)
-                .ThenInclude(navigationPropertyPath: userRole => userRole.Role)
-                    .ThenInclude(navigationPropertyPath: role => role!.Claims)
+            .Include(user => user.Claims)
+            .Include(user => user.Roles)
+                .ThenInclude(userRole => userRole.Role)
+                    .ThenInclude(role => role!.Claims)
             .AsSingleQuery();
     }
 }

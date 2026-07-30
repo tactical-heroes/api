@@ -9,6 +9,6 @@ public sealed class UnblockUserHandler(IUsersWriteRepository usersRepository)
         UnblockUserCommand command,
         CancellationToken cancellationToken)
     {
-        return usersRepository.UnblockAsync(id: command.Id, cancellationToken: cancellationToken);
+        return usersRepository.UnblockAsync(command.Id, cancellationToken);
     }
 }

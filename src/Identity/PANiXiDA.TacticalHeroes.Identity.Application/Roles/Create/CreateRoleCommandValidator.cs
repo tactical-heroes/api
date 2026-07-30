@@ -7,20 +7,20 @@ public sealed class CreateRoleCommandValidator : AbstractValidator<CreateRoleCom
 {
     public CreateRoleCommandValidator()
     {
-        RuleFor(expression: command => command.Name)
-            .MustBeValidDomainValue(factory: RoleName.Create);
+        RuleFor(command => command.Name)
+            .MustBeValidDomainValue(RoleName.Create);
 
-        RuleFor(expression: command => command.Claims)
+        RuleFor(command => command.Claims)
             .NotNull();
 
-        RuleForEach(expression: command => command.Claims)
-            .ChildRules(action: claim =>
+        RuleForEach(command => command.Claims)
+            .ChildRules(claim =>
             {
-                claim.RuleFor(expression: item => item.Type)
-                    .MustBeValidDomainValue(factory: ClaimType.Create);
+                claim.RuleFor(item => item.Type)
+                    .MustBeValidDomainValue(ClaimType.Create);
 
-                claim.RuleFor(expression: item => item.Value)
-                    .MustBeValidDomainValue(factory: ClaimValue.Create);
+                claim.RuleFor(item => item.Value)
+                    .MustBeValidDomainValue(ClaimValue.Create);
             });
     }
 }

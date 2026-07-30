@@ -11,11 +11,11 @@ internal sealed class RoleDetailsReadModelMapper
     public static IQueryable<RoleDetailsReadModel> ProjectTo(
         IQueryable<RoleReadDbModel> query)
     {
-        return query.Select(selector: role => new RoleDetailsReadModel(
+        return query.Select(role => new RoleDetailsReadModel(
             Id: role.Id,
             Name: role.Name!,
             Claims: role.Claims
-                .Select(selector: claim => new Claim(
+                .Select(claim => new Claim(
                     type: claim.ClaimType!,
                     value: claim.ClaimValue!))
                 .ToArray()));

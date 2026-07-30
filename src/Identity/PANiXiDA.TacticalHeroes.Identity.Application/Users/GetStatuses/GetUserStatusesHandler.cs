@@ -11,7 +11,7 @@ public sealed class GetUserStatusesHandler
     {
         IReadOnlyCollection<UserStatusReadModel> statuses =
         [
-            .. UserStatus.GetAll().Select(selector: status =>
+            .. UserStatus.GetAll().Select(status =>
                 new UserStatusReadModel(
                     Id: status.Id,
                     Name: status.Name,

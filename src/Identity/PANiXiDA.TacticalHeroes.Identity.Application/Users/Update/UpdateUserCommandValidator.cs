@@ -9,29 +9,29 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
 {
     public UpdateUserCommandValidator()
     {
-        RuleFor(expression: command => command.Id)
-            .MustBeValidDomainValue(factory: UserId.Create);
+        RuleFor(command => command.Id)
+            .MustBeValidDomainValue(UserId.Create);
 
-        RuleFor(expression: command => command.Email)
-            .MustBeValidDomainValue(factory: Email.Create);
+        RuleFor(command => command.Email)
+            .MustBeValidDomainValue(Email.Create);
 
-        RuleFor(expression: command => command.UserName)
-            .MustBeValidDomainValue(factory: UserName.Create);
+        RuleFor(command => command.UserName)
+            .MustBeValidDomainValue(UserName.Create);
 
-        RuleFor(expression: command => command.Claims)
+        RuleFor(command => command.Claims)
             .NotNull();
 
-        RuleForEach(expression: command => command.Claims)
-            .ChildRules(action: claim =>
+        RuleForEach(command => command.Claims)
+            .ChildRules(claim =>
             {
-                claim.RuleFor(expression: item => item.Type)
-                    .MustBeValidDomainValue(factory: ClaimType.Create);
+                claim.RuleFor(item => item.Type)
+                    .MustBeValidDomainValue(ClaimType.Create);
 
-                claim.RuleFor(expression: item => item.Value)
-                    .MustBeValidDomainValue(factory: ClaimValue.Create);
+                claim.RuleFor(item => item.Value)
+                    .MustBeValidDomainValue(ClaimValue.Create);
             });
 
-        RuleFor(expression: command => command.Status)
-            .MustBeValidDomainValue(factory: UserStatus.Create);
+        RuleFor(command => command.Status)
+            .MustBeValidDomainValue(UserStatus.Create);
     }
 }

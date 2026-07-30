@@ -21,11 +21,11 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(handler: Handle)
+        builder.MapPost(Handle)
             .AllowAnonymous()
-            .Accepts<ExchangeTokenRequest>(contentType: MediaTypeNames.Application.FormUrlEncoded)
-            .Produces<ExchangeTokenResponse>(statusCode: StatusCodes.Status200OK)
-            .Produces<ExchangeTokenErrorResponse>(statusCode: StatusCodes.Status400BadRequest);
+            .Accepts<ExchangeTokenRequest>(MediaTypeNames.Application.FormUrlEncoded)
+            .Produces<ExchangeTokenResponse>(StatusCodes.Status200OK)
+            .Produces<ExchangeTokenErrorResponse>(StatusCodes.Status400BadRequest);
     }
 
     private static async Task<IResult> Handle(
@@ -90,7 +90,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         CancellationToken cancellationToken)
     {
         var authenticationResult = await httpContext.AuthenticateAsync(
-            scheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         var userIdResult = authenticationResult.Principal.GetSubjectId();
 
         if (userIdResult.IsFailure)
@@ -99,8 +99,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principalResult = await mediator.QueryAsync(
-            query: ExchangeTokenMapper.ToUserQuery(userId: userIdResult.Value),
-            cancellationToken: cancellationToken);
+            ExchangeTokenMapper.ToUserQuery(userId: userIdResult.Value),
+            cancellationToken);
 
         return principalResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: invalidGrantDescription)
@@ -117,14 +117,14 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         string audience,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(value: request.ClientId))
+        if (string.IsNullOrWhiteSpace(request.ClientId))
         {
             return OAuthErrorResults.InvalidGrant(description: "Client is invalid.");
         }
 
         var principalResult = await mediator.QueryAsync(
-            query: ExchangeTokenMapper.ToClientQuery(clientId: request.ClientId),
-            cancellationToken: cancellationToken);
+            ExchangeTokenMapper.ToClientQuery(clientId: request.ClientId),
+            cancellationToken);
 
         return principalResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: "Client is invalid.")
@@ -143,11 +143,11 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         CancellationToken cancellationToken)
     {
         var authenticationResult = await httpContext.AuthenticateAsync(
-            scheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         var subject = authenticationResult.Principal?.GetClaim(
-            type: OpenIddictConstants.Claims.Subject);
+            OpenIddictConstants.Claims.Subject);
 
-        if (string.IsNullOrWhiteSpace(value: subject))
+        if (string.IsNullOrWhiteSpace(subject))
         {
             return OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.");
         }
@@ -155,8 +155,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         if (Guid.TryParse(input: subject, result: out var userId))
         {
             var userResult = await mediator.QueryAsync(
-                query: ExchangeTokenMapper.ToUserQuery(userId: userId),
-                cancellationToken: cancellationToken);
+                ExchangeTokenMapper.ToUserQuery(userId: userId),
+                cancellationToken);
 
             return userResult.IsFailure
                 ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
@@ -168,8 +168,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var clientResult = await mediator.QueryAsync(
-            query: ExchangeTokenMapper.ToClientQuery(clientId: subject),
-            cancellationToken: cancellationToken);
+            ExchangeTokenMapper.ToClientQuery(clientId: subject),
+            cancellationToken);
 
         return clientResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
@@ -187,8 +187,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         string audience)
     {
         var scopes = OAuthRequestScopes.GetRequestedOrPrincipalScopes(
-            request: request,
-            principal: sourcePrincipal);
+            request,
+            sourcePrincipal);
         var principal = OAuthAuthorizationPrincipalFactory.Create(
             claims: claims,
             scopes: scopes,

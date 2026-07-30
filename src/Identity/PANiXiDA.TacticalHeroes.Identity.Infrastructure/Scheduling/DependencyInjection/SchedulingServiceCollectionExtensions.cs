@@ -15,7 +15,7 @@ internal static class SchedulingServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        var cleanupSection = configuration.GetSection(key: IdentityCleanupOptions.SectionName);
+        var cleanupSection = configuration.GetSection(IdentityCleanupOptions.SectionName);
         var cleanupOptions = cleanupSection.Get<IdentityCleanupOptions>() ??
             new IdentityCleanupOptions();
 
@@ -24,26 +24,26 @@ internal static class SchedulingServiceCollectionExtensions
             IdentityCleanupOptionsValidator>();
         serviceCollection
             .AddOptions<IdentityCleanupOptions>()
-            .Bind(config: cleanupSection)
+            .Bind(cleanupSection)
             .ValidateOnStart();
 
-        serviceCollection.AddQuartz(configure: options =>
+        serviceCollection.AddQuartz(options =>
         {
             if (!cleanupOptions.PruneUnconfirmedUsersEnabled)
             {
                 return;
             }
 
-            options.AddJob<PruneUnconfirmedUsersJob>(configure: job =>
-                job.WithIdentity(key: PruneUnconfirmedUsersJob.Key));
+            options.AddJob<PruneUnconfirmedUsersJob>(job =>
+                job.WithIdentity(PruneUnconfirmedUsersJob.Key));
 
-            options.AddTrigger(configure: trigger => trigger
-                .ForJob(jobKey: PruneUnconfirmedUsersJob.Key)
-                .WithIdentity(name: $"{nameof(PruneUnconfirmedUsersJob)}Trigger")
-                .WithCronSchedule(cronExpression: cleanupOptions.UnconfirmedUsersCronSchedule));
+            options.AddTrigger(trigger => trigger
+                .ForJob(PruneUnconfirmedUsersJob.Key)
+                .WithIdentity($"{nameof(PruneUnconfirmedUsersJob)}Trigger")
+                .WithCronSchedule(cleanupOptions.UnconfirmedUsersCronSchedule));
         });
 
-        serviceCollection.AddQuartzHostedService(configure: options => options.WaitForJobsToComplete = true);
+        serviceCollection.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
         return serviceCollection;
     }

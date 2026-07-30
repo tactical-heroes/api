@@ -27,11 +27,11 @@ internal sealed class MailKitEmailSender(
             }.ToMessageBody()
         };
 
-        email.From.Add(address: new MailboxAddress(
-            name: options.Value.SenderName,
-            address: options.Value.SenderEmail));
-        email.To.Add(address: MailboxAddress.Parse(text: message.RecipientEmail));
-        email.Headers.Add(field: "X-Correlation-Id", value: message.CorrelationId.ToString(format: "D"));
+        email.From.Add(new MailboxAddress(
+            options.Value.SenderName,
+            options.Value.SenderEmail));
+        email.To.Add(MailboxAddress.Parse(message.RecipientEmail));
+        email.Headers.Add("X-Correlation-Id", message.CorrelationId.ToString("D"));
 
         using var smtpClient = new SmtpClient();
 
@@ -41,8 +41,8 @@ internal sealed class MailKitEmailSender(
             options: options.Value.SocketOptions,
             cancellationToken: cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(value: options.Value.Username) &&
-            !string.IsNullOrWhiteSpace(value: options.Value.Password))
+        if (!string.IsNullOrWhiteSpace(options.Value.Username) &&
+            !string.IsNullOrWhiteSpace(options.Value.Password))
         {
             await smtpClient.AuthenticateAsync(
                 userName: options.Value.Username,
@@ -50,7 +50,7 @@ internal sealed class MailKitEmailSender(
                 cancellationToken: cancellationToken);
         }
 
-        await smtpClient.SendAsync(message: email, cancellationToken: cancellationToken);
-        await smtpClient.DisconnectAsync(quit: true, cancellationToken: cancellationToken);
+        await smtpClient.SendAsync(email, cancellationToken);
+        await smtpClient.DisconnectAsync(quit: true, cancellationToken);
     }
 }

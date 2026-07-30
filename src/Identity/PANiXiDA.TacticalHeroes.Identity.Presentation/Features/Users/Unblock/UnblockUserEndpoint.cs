@@ -10,11 +10,11 @@ internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(handler: Handle)
-            .Produces(statusCode: StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
-            .Produces(statusCode: StatusCodes.Status401Unauthorized)
-            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
+        builder.MapPost(Handle)
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> Handle(
@@ -23,8 +23,8 @@ internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            command: UnblockUserMapper.ToCommand(id: id),
-            cancellationToken: cancellationToken);
+            UnblockUserMapper.ToCommand(id: id),
+            cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

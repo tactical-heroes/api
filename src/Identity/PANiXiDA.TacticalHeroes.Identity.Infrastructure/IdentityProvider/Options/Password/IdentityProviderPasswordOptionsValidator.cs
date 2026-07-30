@@ -13,20 +13,20 @@ internal sealed class IdentityProviderPasswordOptionsValidator
 
         if (options.Password is null)
         {
-            failures.Add(item: $"{IdentityProviderOptions.SectionName}:Password must be configured.");
+            failures.Add($"{IdentityProviderOptions.SectionName}:Password must be configured.");
         }
         else
         {
             if (options.Password.RequiredLength <= 0)
             {
-                failures.Add(item: $"{IdentityProviderOptions.SectionName}:Password:RequiredLength must be positive.");
+                failures.Add($"{IdentityProviderOptions.SectionName}:Password:RequiredLength must be positive.");
             }
 
             if (options.Password.RequiredUniqueChars < 0 ||
                 options.Password.RequiredUniqueChars > options.Password.RequiredLength)
             {
                 failures.Add(
-                    item: $"{IdentityProviderOptions.SectionName}:Password:RequiredUniqueChars must be between 0 and RequiredLength.");
+                    $"{IdentityProviderOptions.SectionName}:Password:RequiredUniqueChars must be between 0 and RequiredLength.");
             }
         }
 

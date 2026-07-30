@@ -12,7 +12,7 @@ internal sealed class UserDetailsReadModelMapper
     public static IQueryable<UserDetailsReadModel> ProjectTo(
         IQueryable<UserReadDbModel> query)
     {
-        return query.Select(selector: user => new UserDetailsReadModel(
+        return query.Select(user => new UserDetailsReadModel(
             Id: user.Id,
             Email: user.Email!,
             UserName: user.UserName!,
@@ -20,7 +20,7 @@ internal sealed class UserDetailsReadModelMapper
             Status: user.Status,
             StatusDisplayName: UserStatus.FromName(name: user.Status).DisplayName,
             Claims: user.Claims
-                .Select(selector: claim => new Claim(
+                .Select(claim => new Claim(
                     type: claim.ClaimType!,
                     value: claim.ClaimValue!))
                 .ToArray()));

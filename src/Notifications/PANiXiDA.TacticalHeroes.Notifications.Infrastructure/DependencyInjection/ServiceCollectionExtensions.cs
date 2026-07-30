@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration,
         IHostEnvironment? environment = null)
     {
-        serviceCollection.AddEmail(configuration: configuration);
+        serviceCollection.AddEmail(configuration);
 
         return serviceCollection;
     }

@@ -23,7 +23,7 @@ internal static partial class LoginMapper
             new(type: OpenIddictConstants.Claims.Email, value: user.Email)
         };
         claims.AddRange(
-            collection: user.Claims.Where(predicate: claim =>
+            user.Claims.Where(claim =>
                 claim.Type != OpenIddictConstants.Claims.Subject &&
                 claim.Type != OpenIddictConstants.Claims.Name &&
                 claim.Type != OpenIddictConstants.Claims.Email));

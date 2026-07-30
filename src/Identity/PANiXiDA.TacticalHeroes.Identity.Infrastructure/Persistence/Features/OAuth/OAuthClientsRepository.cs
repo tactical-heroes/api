@@ -13,8 +13,8 @@ public sealed class OAuthClientsRepository(IOpenIddictApplicationManager applica
         CancellationToken cancellationToken)
     {
         var application = await applicationManager.FindByClientIdAsync(
-            identifier: clientId,
-            cancellationToken: cancellationToken);
+            clientId,
+            cancellationToken);
 
         if (application is null)
         {
@@ -23,8 +23,8 @@ public sealed class OAuthClientsRepository(IOpenIddictApplicationManager applica
         }
 
         var displayName = await applicationManager.GetDisplayNameAsync(
-            application: application,
-            cancellationToken: cancellationToken);
+            application,
+            cancellationToken);
         IReadOnlyCollection<Claim> claims =
         [
             new(type: OpenIddictConstants.Claims.Subject, value: clientId),

@@ -10,7 +10,7 @@ public sealed class ResendConfirmationEmailHandler(IUserCredentialsService userC
         CancellationToken cancellationToken)
     {
         return userCredentialsService.ResendConfirmationEmailAsync(
-            email: command.Email,
-            cancellationToken: cancellationToken);
+            command.Email,
+            cancellationToken);
     }
 }

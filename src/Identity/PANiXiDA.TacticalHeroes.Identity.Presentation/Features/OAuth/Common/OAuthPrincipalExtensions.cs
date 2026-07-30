@@ -6,7 +6,7 @@ internal static class OAuthPrincipalExtensions
 {
     internal static Result<Guid> GetSubjectId(this ClaimsPrincipal? principal)
     {
-        var userIdValue = principal?.GetClaim(type: OpenIddictConstants.Claims.Subject);
+        var userIdValue = principal?.GetClaim(OpenIddictConstants.Claims.Subject);
 
         return Guid.TryParse(input: userIdValue, result: out var userId)
             ? Result.Success(value: userId)

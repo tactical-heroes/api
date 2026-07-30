@@ -15,19 +15,19 @@ internal static class MessagingConfiguration
         this WebApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString(
-            name: EfConstants.PostgreSqlConnectionStringName)
+            EfConstants.PostgreSqlConnectionStringName)
             ?? throw new InvalidOperationException(
-                message: $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
+                $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
 
         builder.Host.UseWolverineMediator(
-            messageStoreConnectionString: connectionString,
-            configureModules: modules => modules
+            connectionString,
+            modules => modules
                 .AddModule<IdentityWriteDbContext>(
-                    requestAssembly: IdentityApplicationAssembly.Instance,
-                    handlerAssemblies: typeof(IdentityWriteDbContext).Assembly)
+                    IdentityApplicationAssembly.Instance,
+                    typeof(IdentityWriteDbContext).Assembly)
                 .AddModule<CompendiumWriteDbContext>(
-                    requestAssembly: CompendiumApplicationAssembly.Instance,
-                    handlerAssemblies: typeof(CompendiumWriteDbContext).Assembly));
+                    CompendiumApplicationAssembly.Instance,
+                    typeof(CompendiumWriteDbContext).Assembly));
 
         return builder;
     }

@@ -13,12 +13,12 @@ internal sealed class ParEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(handler: Handle)
+        builder.MapPost(Handle)
             .AllowAnonymous()
-            .Accepts<ParRequest>(contentType: MediaTypeNames.Application.FormUrlEncoded)
-            .Produces<ParResponse>(statusCode: StatusCodes.Status201Created)
-            .Produces<ParErrorResponse>(statusCode: StatusCodes.Status400BadRequest)
-            .Produces<ParErrorResponse>(statusCode: StatusCodes.Status401Unauthorized);
+            .Accepts<ParRequest>(MediaTypeNames.Application.FormUrlEncoded)
+            .Produces<ParResponse>(StatusCodes.Status201Created)
+            .Produces<ParErrorResponse>(StatusCodes.Status400BadRequest)
+            .Produces<ParErrorResponse>(StatusCodes.Status401Unauthorized);
     }
 
     private static ProblemHttpResult Handle()

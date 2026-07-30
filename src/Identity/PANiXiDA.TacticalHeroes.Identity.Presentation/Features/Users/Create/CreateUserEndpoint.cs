@@ -12,11 +12,11 @@ internal sealed class CreateUserEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(handler: Handle)
-            .Produces<CreateUserResponse>(statusCode: StatusCodes.Status201Created)
-            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
-            .Produces(statusCode: StatusCodes.Status401Unauthorized)
-            .ProducesProblem(statusCode: StatusCodes.Status409Conflict);
+        builder.MapPost(Handle)
+            .Produces<CreateUserResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> Handle(
@@ -25,8 +25,8 @@ internal sealed class CreateUserEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            command: CreateUserMapper.ToCommand(request: request),
-            cancellationToken: cancellationToken);
+            CreateUserMapper.ToCommand(request: request),
+            cancellationToken);
 
         return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(

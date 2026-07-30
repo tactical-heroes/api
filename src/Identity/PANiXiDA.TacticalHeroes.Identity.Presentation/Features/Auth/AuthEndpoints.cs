@@ -12,6 +12,6 @@ internal sealed class AuthEndpoints : IEndpointGroup
 
     public void Map(IEndpointRouteBuilder endpoints)
     {
-        EndpointMapper.MapGroupEndpoints<AuthEndpoints>(endpoints: endpoints);
+        EndpointMapper.MapGroupEndpoints<AuthEndpoints>(endpoints);
     }
 }

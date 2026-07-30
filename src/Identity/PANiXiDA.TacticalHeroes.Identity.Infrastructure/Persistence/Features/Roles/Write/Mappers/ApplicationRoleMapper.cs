@@ -40,7 +40,7 @@ internal static class ApplicationRoleMapper
     {
         return
         [
-            .. claims.Select(selector: claim => new ApplicationRoleClaim
+            .. claims.Select(claim => new ApplicationRoleClaim
             {
                 ClaimType = claim.Type.Value,
                 ClaimValue = claim.Value.Value
@@ -53,6 +53,6 @@ internal static class ApplicationRoleMapper
         return Role.Create(
             id: role.Id,
             name: role.Name!,
-            claims: role.Claims.Select(selector: claim => (claim.ClaimType!, claim.ClaimValue!)));
+            claims: role.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
     }
 }

@@ -9,9 +9,9 @@ internal static class IdentityModuleConfiguration
         this WebApplicationBuilder builder)
     {
         builder.Services.AddInfrastructure(
-            configuration: builder.Configuration,
-            environment: builder.Environment);
-        builder.Services.AddPresentation(configuration: builder.Configuration);
+            builder.Configuration,
+            builder.Environment);
+        builder.Services.AddPresentation(builder.Configuration);
         builder.Host.UseInfrastructure();
 
         return builder;

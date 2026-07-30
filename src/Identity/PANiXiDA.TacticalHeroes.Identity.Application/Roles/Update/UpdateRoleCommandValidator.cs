@@ -8,23 +8,23 @@ public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCom
 {
     public UpdateRoleCommandValidator()
     {
-        RuleFor(expression: command => command.Id)
-            .MustBeValidDomainValue(factory: RoleId.Create);
+        RuleFor(command => command.Id)
+            .MustBeValidDomainValue(RoleId.Create);
 
-        RuleFor(expression: command => command.Name)
-            .MustBeValidDomainValue(factory: RoleName.Create);
+        RuleFor(command => command.Name)
+            .MustBeValidDomainValue(RoleName.Create);
 
-        RuleFor(expression: command => command.Claims)
+        RuleFor(command => command.Claims)
             .NotNull();
 
-        RuleForEach(expression: command => command.Claims)
-            .ChildRules(action: claim =>
+        RuleForEach(command => command.Claims)
+            .ChildRules(claim =>
             {
-                claim.RuleFor(expression: item => item.Type)
-                    .MustBeValidDomainValue(factory: ClaimType.Create);
+                claim.RuleFor(item => item.Type)
+                    .MustBeValidDomainValue(ClaimType.Create);
 
-                claim.RuleFor(expression: item => item.Value)
-                    .MustBeValidDomainValue(factory: ClaimValue.Create);
+                claim.RuleFor(item => item.Value)
+                    .MustBeValidDomainValue(ClaimValue.Create);
             });
     }
 }

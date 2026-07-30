@@ -17,7 +17,7 @@ internal static class MessagingServiceCollectionExtensions
             IdentityMessagingOptionsValidator>();
         serviceCollection
             .AddOptions<IdentityMessagingOptions>()
-            .Bind(config: configuration.GetSection(key: IdentityMessagingOptions.SectionName))
+            .Bind(configuration.GetSection(IdentityMessagingOptions.SectionName))
             .ValidateOnStart();
 
         return serviceCollection;

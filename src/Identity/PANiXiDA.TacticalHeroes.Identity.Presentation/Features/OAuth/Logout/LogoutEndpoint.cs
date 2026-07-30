@@ -16,32 +16,32 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(handler: HandleGet)
+        builder.MapGet(HandleGet)
             .AllowAnonymous()
-            .Produces(statusCode: StatusCodes.Status302Found);
+            .Produces(StatusCodes.Status302Found);
 
-        builder.MapPost(handler: HandlePost)
+        builder.MapPost(HandlePost)
             .AllowAnonymous()
-            .WithName(endpointName: "PostLogout")
-            .Accepts<LogoutRequest>(contentType: MediaTypeNames.Application.FormUrlEncoded)
-            .Produces(statusCode: StatusCodes.Status302Found);
+            .WithName("PostLogout")
+            .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
+            .Produces(StatusCodes.Status302Found);
     }
 
     private static Task<IResult> HandleGet(
         [AsParameters] LogoutRequest request,
         HttpContext httpContext)
     {
-        return Handle(httpContext: httpContext);
+        return Handle(httpContext);
     }
 
     private static Task<IResult> HandlePost(HttpContext httpContext)
     {
-        return Handle(httpContext: httpContext);
+        return Handle(httpContext);
     }
 
     private static async Task<IResult> Handle(HttpContext httpContext)
     {
-        await httpContext.SignOutAsync(scheme: IdentityConstants.ApplicationScheme);
+        await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
         return TypedResults.SignOut(
             authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);

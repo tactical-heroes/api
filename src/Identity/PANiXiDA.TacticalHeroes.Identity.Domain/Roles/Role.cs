@@ -11,7 +11,7 @@ public sealed class Role : AggregateRoot<RoleId>
     private Role(
         RoleId id,
         RoleName name)
-        : base(id: id)
+        : base(id)
     {
         Name = name;
     }
@@ -27,7 +27,7 @@ public sealed class Role : AggregateRoot<RoleId>
     {
         var idResult = RoleId.Create(value: id);
         var nameResult = RoleName.Create(value: name);
-        var validationResult = Result.Combine(results: [idResult, nameResult]);
+        var validationResult = Result.Combine(idResult, nameResult);
 
         if (validationResult.IsFailure)
         {
@@ -38,7 +38,7 @@ public sealed class Role : AggregateRoot<RoleId>
 
         foreach (var claim in claims)
         {
-            var grantClaimResult = role.GrantClaim(type: claim.Type, value: claim.Value);
+            var grantClaimResult = role.GrantClaim(claim.Type, claim.Value);
 
             if (grantClaimResult.IsFailure)
             {
@@ -58,14 +58,14 @@ public sealed class Role : AggregateRoot<RoleId>
             return Result.Failure(errors: claimResult.Errors);
         }
 
-        if (_claims.Any(predicate: claim =>
+        if (_claims.Any(claim =>
                 claim.Type == claimResult.Value.Type &&
                 claim.Value == claimResult.Value.Value))
         {
             return Result.Success();
         }
 
-        _claims.Add(item: claimResult.Value);
+        _claims.Add(claimResult.Value);
 
         return Result.Success();
     }
@@ -85,7 +85,7 @@ public sealed class Role : AggregateRoot<RoleId>
             return Result.Failure(errors: valueResult.Errors);
         }
 
-        _claims.RemoveAll(match: claim =>
+        _claims.RemoveAll(claim =>
             claim.Type == typeResult.Value &&
             claim.Value == valueResult.Value);
 

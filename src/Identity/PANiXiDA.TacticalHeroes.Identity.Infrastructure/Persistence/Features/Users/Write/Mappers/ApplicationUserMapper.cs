@@ -56,7 +56,7 @@ internal static class ApplicationUserMapper
     {
         return
         [
-            .. claims.Select(selector: claim => new ApplicationUserClaim
+            .. claims.Select(claim => new ApplicationUserClaim
             {
                 UserId = userId,
                 ClaimType = claim.Type.Value,
@@ -71,15 +71,15 @@ internal static class ApplicationUserMapper
             id: user.Id,
             email: user.Email!,
             confirmationStatus: user.EmailConfirmed,
-            roleIds: user.Roles.Select(selector: role => role.RoleId),
-            claims: user.Claims.Select(selector: claim => (claim.ClaimType!, claim.ClaimValue!)));
+            roleIds: user.Roles.Select(role => role.RoleId),
+            claims: user.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
     }
 
     private static List<ApplicationUserRole> ToRoleDbModels(User user)
     {
         return
         [
-            .. user.RoleIds.Select(selector: roleId => new ApplicationUserRole
+            .. user.RoleIds.Select(roleId => new ApplicationUserRole
             {
                 UserId = user.Id.Value,
                 RoleId = roleId.Value

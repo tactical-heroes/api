@@ -13,11 +13,11 @@ internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(handler: Handle)
+        builder.MapPost(Handle)
             .AllowAnonymous()
-            .Accepts<RevokeRequest>(contentType: MediaTypeNames.Application.FormUrlEncoded)
-            .Produces(statusCode: StatusCodes.Status200OK)
-            .Produces<RevokeErrorResponse>(statusCode: StatusCodes.Status400BadRequest);
+            .Accepts<RevokeRequest>(MediaTypeNames.Application.FormUrlEncoded)
+            .Produces(StatusCodes.Status200OK)
+            .Produces<RevokeErrorResponse>(StatusCodes.Status400BadRequest);
     }
 
     private static ProblemHttpResult Handle()

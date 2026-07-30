@@ -10,9 +10,9 @@ internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(handler: Handle)
-            .Produces<IReadOnlyCollection<UserStatusResponse>>(statusCode: StatusCodes.Status200OK)
-            .Produces(statusCode: StatusCodes.Status401Unauthorized);
+        builder.MapGet(Handle)
+            .Produces<IReadOnlyCollection<UserStatusResponse>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized);
     }
 
     private static async Task<IResult> Handle(
@@ -20,8 +20,8 @@ internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            query: GetUserStatusesMapper.ToQuery(),
-            cancellationToken: cancellationToken);
+            GetUserStatusesMapper.ToQuery(),
+            cancellationToken);
 
         return result.ToHttpResult(onSuccess: statuses =>
             TypedResults.Ok(value: GetUserStatusesMapper.ToResponse(statuses: statuses)));

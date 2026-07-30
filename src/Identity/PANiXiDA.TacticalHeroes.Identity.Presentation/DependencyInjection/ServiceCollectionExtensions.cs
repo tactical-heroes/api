@@ -16,11 +16,11 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<IValidateOptions<OAuthTokenOptions>, OAuthTokenOptionsValidator>();
         serviceCollection
             .AddOptions<OAuthSpaOptions>()
-            .Bind(config: configuration.GetSection(key: OAuthSpaOptions.SectionName))
+            .Bind(configuration.GetSection(OAuthSpaOptions.SectionName))
             .ValidateOnStart();
         serviceCollection
             .AddOptions<OAuthTokenOptions>()
-            .Bind(config: configuration.GetSection(key: OAuthTokenOptions.SectionName))
+            .Bind(configuration.GetSection(OAuthTokenOptions.SectionName))
             .ValidateOnStart();
 
         return serviceCollection;

@@ -10,10 +10,10 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(handler: Handle)
-            .Produces<PaginationResult<RoleListItemResponse>>(statusCode: StatusCodes.Status200OK)
-            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
-            .Produces(statusCode: StatusCodes.Status401Unauthorized);
+        builder.MapGet(Handle)
+            .Produces<PaginationResult<RoleListItemResponse>>(StatusCodes.Status200OK)
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
     }
 
     private static async Task<IResult> Handle(
@@ -22,8 +22,8 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            query: GetRolesMapper.ToQuery(pagination: pagination),
-            cancellationToken: cancellationToken);
+            GetRolesMapper.ToQuery(pagination: pagination),
+            cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>
             TypedResults.Ok(value: GetRolesMapper.ToResponse(page: page)));

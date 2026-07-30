@@ -13,7 +13,7 @@ internal sealed class IdentityProviderClientsOptionsValidator
 
         if (options.Clients is null || options.Clients.Count == 0)
         {
-            failures.Add(item: $"{IdentityProviderOptions.SectionName}:Clients must contain at least one client.");
+            failures.Add($"{IdentityProviderOptions.SectionName}:Clients must contain at least one client.");
         }
         else
         {
@@ -38,7 +38,7 @@ internal sealed class IdentityProviderClientsOptionsValidator
 
             if (client is null)
             {
-                failures.Add(item: $"{path} must be configured.");
+                failures.Add($"{path} must be configured.");
                 continue;
             }
 
@@ -56,18 +56,18 @@ internal sealed class IdentityProviderClientsOptionsValidator
         HashSet<string> clientIds,
         List<string> failures)
     {
-        if (string.IsNullOrWhiteSpace(value: client.ClientId))
+        if (string.IsNullOrWhiteSpace(client.ClientId))
         {
-            failures.Add(item: $"{path}:ClientId must not be empty.");
+            failures.Add($"{path}:ClientId must not be empty.");
         }
-        else if (!clientIds.Add(item: client.ClientId))
+        else if (!clientIds.Add(client.ClientId))
         {
-            failures.Add(item: $"{path}:ClientId must be unique.");
+            failures.Add($"{path}:ClientId must be unique.");
         }
 
-        if (string.IsNullOrWhiteSpace(value: client.DisplayName))
+        if (string.IsNullOrWhiteSpace(client.DisplayName))
         {
-            failures.Add(item: $"{path}:DisplayName must not be empty.");
+            failures.Add($"{path}:DisplayName must not be empty.");
         }
 
         var isPublic = string.Equals(
@@ -81,12 +81,12 @@ internal sealed class IdentityProviderClientsOptionsValidator
 
         if (!isPublic && !isConfidential)
         {
-            failures.Add(item: $"{path}:ClientType must be public or confidential.");
+            failures.Add($"{path}:ClientType must be public or confidential.");
         }
 
-        if (isConfidential && string.IsNullOrWhiteSpace(value: client.ClientSecret))
+        if (isConfidential && string.IsNullOrWhiteSpace(client.ClientSecret))
         {
-            failures.Add(item: $"{path}:ClientSecret must not be empty for a confidential client.");
+            failures.Add($"{path}:ClientSecret must not be empty for a confidential client.");
         }
 
         ValidateRequiredValues(
@@ -118,7 +118,7 @@ internal sealed class IdentityProviderClientsOptionsValidator
     {
         if (values is null || values.Count == 0)
         {
-            failures.Add(item: $"{path} must contain at least one value.");
+            failures.Add($"{path} must contain at least one value.");
             return;
         }
 
@@ -132,18 +132,18 @@ internal sealed class IdentityProviderClientsOptionsValidator
     {
         if (values is null)
         {
-            failures.Add(item: $"{path} must be configured.");
+            failures.Add($"{path} must be configured.");
             return;
         }
 
-        if (values.Any(predicate: string.IsNullOrWhiteSpace))
+        if (values.Any(string.IsNullOrWhiteSpace))
         {
-            failures.Add(item: $"{path} must not contain empty values.");
+            failures.Add($"{path} must not contain empty values.");
         }
 
-        if (values.Distinct(comparer: StringComparer.Ordinal).Count() != values.Count)
+        if (values.Distinct(StringComparer.Ordinal).Count() != values.Count)
         {
-            failures.Add(item: $"{path} must not contain duplicate values.");
+            failures.Add($"{path} must not contain duplicate values.");
         }
     }
 
@@ -157,13 +157,13 @@ internal sealed class IdentityProviderClientsOptionsValidator
             return;
         }
 
-        if (values.Any(predicate: grantType => grantType is not (
+        if (values.Any(grantType => grantType is not (
             OpenIddictConstants.GrantTypes.AuthorizationCode or
             OpenIddictConstants.GrantTypes.RefreshToken or
             OpenIddictConstants.GrantTypes.ClientCredentials or
             OpenIddictConstants.GrantTypes.TokenExchange)))
         {
-            failures.Add(item: $"{path} contains an unsupported OAuth grant type.");
+            failures.Add($"{path} contains an unsupported OAuth grant type.");
         }
     }
 
@@ -174,14 +174,14 @@ internal sealed class IdentityProviderClientsOptionsValidator
     {
         if (values is null)
         {
-            failures.Add(item: $"{path} must be configured.");
+            failures.Add($"{path} must be configured.");
             return;
         }
 
-        if (values.Any(predicate: value =>
+        if (values.Any(value =>
             !Uri.TryCreate(uriString: value, uriKind: UriKind.Absolute, result: out _)))
         {
-            failures.Add(item: $"{path} must contain only absolute URIs.");
+            failures.Add($"{path} must contain only absolute URIs.");
         }
     }
 }

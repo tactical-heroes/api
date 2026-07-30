@@ -14,7 +14,7 @@ internal sealed class IdentityClaimComparer : IEqualityComparer<Claim>
         Claim? first,
         Claim? second)
     {
-        if (ReferenceEquals(objA: first, objB: second))
+        if (ReferenceEquals(first, second))
         {
             return true;
         }
@@ -27,6 +27,6 @@ internal sealed class IdentityClaimComparer : IEqualityComparer<Claim>
 
     public int GetHashCode(Claim claim)
     {
-        return HashCode.Combine(value1: claim.Type, value2: claim.Value);
+        return HashCode.Combine(claim.Type, claim.Value);
     }
 }

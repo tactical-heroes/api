@@ -6,7 +6,7 @@ public sealed class DeleteRoleCommandValidator : AbstractValidator<DeleteRoleCom
 {
     public DeleteRoleCommandValidator()
     {
-        RuleFor(expression: command => command.Id)
-            .MustBeValidDomainValue(factory: RoleId.Create);
+        RuleFor(command => command.Id)
+            .MustBeValidDomainValue(RoleId.Create);
     }
 }

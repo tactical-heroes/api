@@ -8,9 +8,9 @@ internal static class UsersFilter
         IQueryable<UserReadDbModel> query,
         string? email)
     {
-        if (!string.IsNullOrWhiteSpace(value: email))
+        if (!string.IsNullOrWhiteSpace(email))
         {
-            query = query.Where(predicate: user => user.Email == email.Trim());
+            query = query.Where(user => user.Email == email.Trim());
         }
 
         return query;

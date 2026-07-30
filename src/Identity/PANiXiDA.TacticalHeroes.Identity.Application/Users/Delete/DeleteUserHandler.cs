@@ -9,6 +9,6 @@ public sealed class DeleteUserHandler(IUsersWriteRepository usersRepository)
         DeleteUserCommand command,
         CancellationToken cancellationToken)
     {
-        return usersRepository.DeleteAsync(id: command.Id, cancellationToken: cancellationToken);
+        return usersRepository.DeleteAsync(command.Id, cancellationToken);
     }
 }

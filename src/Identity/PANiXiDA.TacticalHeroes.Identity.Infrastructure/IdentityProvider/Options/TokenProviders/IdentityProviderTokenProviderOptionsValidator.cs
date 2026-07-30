@@ -13,20 +13,20 @@ internal sealed class IdentityProviderTokenProviderOptionsValidator
 
         if (options.TokenProviders is null)
         {
-            failures.Add(item: $"{IdentityProviderOptions.SectionName}:TokenProviders must be configured.");
+            failures.Add($"{IdentityProviderOptions.SectionName}:TokenProviders must be configured.");
         }
         else
         {
-            if (string.IsNullOrWhiteSpace(value: options.TokenProviders.EmailConfirmation))
+            if (string.IsNullOrWhiteSpace(options.TokenProviders.EmailConfirmation))
             {
                 failures.Add(
-                    item: $"{IdentityProviderOptions.SectionName}:TokenProviders:EmailConfirmation must not be empty.");
+                    $"{IdentityProviderOptions.SectionName}:TokenProviders:EmailConfirmation must not be empty.");
             }
 
-            if (string.IsNullOrWhiteSpace(value: options.TokenProviders.PasswordReset))
+            if (string.IsNullOrWhiteSpace(options.TokenProviders.PasswordReset))
             {
                 failures.Add(
-                    item: $"{IdentityProviderOptions.SectionName}:TokenProviders:PasswordReset must not be empty.");
+                    $"{IdentityProviderOptions.SectionName}:TokenProviders:PasswordReset must not be empty.");
             }
 
             if (string.Equals(
@@ -35,7 +35,7 @@ internal sealed class IdentityProviderTokenProviderOptionsValidator
                 comparisonType: StringComparison.Ordinal))
             {
                 failures.Add(
-                    item: $"{IdentityProviderOptions.SectionName}:TokenProviders values must be unique.");
+                    $"{IdentityProviderOptions.SectionName}:TokenProviders values must be unique.");
             }
         }
 

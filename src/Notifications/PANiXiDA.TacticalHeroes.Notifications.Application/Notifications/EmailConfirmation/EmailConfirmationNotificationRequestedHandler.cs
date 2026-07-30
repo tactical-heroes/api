@@ -11,7 +11,7 @@ public sealed class EmailConfirmationNotificationRequestedHandler(
         CancellationToken cancellationToken)
     {
         return emailSender.SendAsync(
-            message: EmailNotificationMessageFactory.Create(domainEvent: domainEvent),
-            cancellationToken: cancellationToken);
+            EmailNotificationMessageFactory.Create(domainEvent),
+            cancellationToken);
     }
 }

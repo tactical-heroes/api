@@ -9,7 +9,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
 
 public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
-    EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext: dbContext),
+    EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext),
     IUsersReadRepository
 {
     private static readonly SortParameters Sort = new(

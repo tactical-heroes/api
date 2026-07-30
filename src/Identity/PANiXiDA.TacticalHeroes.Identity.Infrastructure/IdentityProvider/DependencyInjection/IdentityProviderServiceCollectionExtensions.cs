@@ -26,14 +26,14 @@ internal static class IdentityProviderServiceCollectionExtensions
         IConfiguration configuration,
         IHostEnvironment? environment)
     {
-        var identityProviderSection = configuration.GetSection(key: IdentityProviderOptions.SectionName);
+        var identityProviderSection = configuration.GetSection(IdentityProviderOptions.SectionName);
         var identityProviderOptions = identityProviderSection.Get<IdentityProviderOptions>() ??
             new IdentityProviderOptions();
 
         serviceCollection.AddIdentityProviderOptionsValidators();
         serviceCollection
             .AddOptions<IdentityProviderOptions>()
-            .Bind(config: identityProviderSection)
+            .Bind(identityProviderSection)
             .ValidateOnStart();
 
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
@@ -43,7 +43,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             .PersistKeysToDbContext<IdentityWriteDbContext>();
 
         serviceCollection
-            .AddIdentityCore<ApplicationUser>(setupAction: options =>
+            .AddIdentityCore<ApplicationUser>(options =>
             {
                 options.User.RequireUniqueEmail = identityProviderOptions.User.RequireUniqueEmail;
                 options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
@@ -64,12 +64,12 @@ internal static class IdentityProviderServiceCollectionExtensions
             .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<IdentityWriteDbContext>()
             .AddSignInManager()
-            .AddTokenProvider<EmailConfirmationTokenProvider>(providerName: identityProviderOptions.TokenProviders.EmailConfirmation)
-            .AddTokenProvider<PasswordResetTokenProvider>(providerName: identityProviderOptions.TokenProviders.PasswordReset)
+            .AddTokenProvider<EmailConfirmationTokenProvider>(identityProviderOptions.TokenProviders.EmailConfirmation)
+            .AddTokenProvider<PasswordResetTokenProvider>(identityProviderOptions.TokenProviders.PasswordReset)
             .AddDefaultTokenProviders();
 
         serviceCollection.AddOpenIddict()
-            .AddCore(configuration: options =>
+            .AddCore(options =>
             {
                 options.UseEntityFrameworkCore()
                     .UseDbContext<IdentityWriteDbContext>()
@@ -77,27 +77,27 @@ internal static class IdentityProviderServiceCollectionExtensions
 
                 options.UseQuartz();
             })
-            .AddServer(configuration: options =>
+            .AddServer(options =>
             {
                 if (identityProviderOptions.Issuer is not null)
                 {
-                    options.SetIssuer(uri: identityProviderOptions.Issuer);
+                    options.SetIssuer(identityProviderOptions.Issuer);
                 }
 
                 options.SetPushedAuthorizationEndpointUris(
-                    uris: OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.PushedAuthorization));
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.PushedAuthorization));
                 options.SetAuthorizationEndpointUris(
-                    uris: OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Authorization));
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Authorization));
                 options.SetTokenEndpointUris(
-                    uris: OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Token));
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Token));
                 options.SetUserInfoEndpointUris(
-                    uris: OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.UserInfo));
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.UserInfo));
                 options.SetEndSessionEndpointUris(
-                    uris: OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.EndSession));
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.EndSession));
                 options.SetIntrospectionEndpointUris(
-                    uris: OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Introspection));
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Introspection));
                 options.SetRevocationEndpointUris(
-                    uris: OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Revocation));
+                    OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Revocation));
 
                 options.AllowAuthorizationCodeFlow()
                     .RequireProofKeyForCodeExchange();
@@ -106,7 +106,7 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.AllowRefreshTokenFlow();
                 options.AllowTokenExchangeFlow();
                 options.RegisterScopes(
-                    scopes: [
+                [
                     .. new[]
                     {
                         OpenIddictConstants.Scopes.OpenId,
@@ -115,15 +115,15 @@ internal static class IdentityProviderServiceCollectionExtensions
                         OpenIddictConstants.Scopes.Profile,
                         OpenIddictConstants.Scopes.Roles
                     }
-                    .Concat(second: identityProviderOptions.Clients.SelectMany(selector: client => client.Scopes))
-                    .Where(predicate: scope => !string.IsNullOrWhiteSpace(value: scope))
-                    .Distinct(comparer: StringComparer.Ordinal)
+                    .Concat(identityProviderOptions.Clients.SelectMany(client => client.Scopes))
+                    .Where(scope => !string.IsNullOrWhiteSpace(scope))
+                    .Distinct(StringComparer.Ordinal)
                 ]);
-                options.SetAccessTokenLifetime(lifetime: identityProviderOptions.AccessTokenLifetime);
-                options.SetRefreshTokenLifetime(lifetime: identityProviderOptions.RefreshTokenLifetime);
-                options.SetRefreshTokenReuseLeeway(leeway: identityProviderOptions.RefreshTokenReuseLeeway);
-                options.SetAuthorizationCodeLifetime(lifetime: identityProviderOptions.AuthorizationCodeLifetime);
-                options.SetIdentityTokenLifetime(lifetime: identityProviderOptions.IdentityTokenLifetime);
+                options.SetAccessTokenLifetime(identityProviderOptions.AccessTokenLifetime);
+                options.SetRefreshTokenLifetime(identityProviderOptions.RefreshTokenLifetime);
+                options.SetRefreshTokenReuseLeeway(identityProviderOptions.RefreshTokenReuseLeeway);
+                options.SetAuthorizationCodeLifetime(identityProviderOptions.AuthorizationCodeLifetime);
+                options.SetIdentityTokenLifetime(identityProviderOptions.IdentityTokenLifetime);
                 options.UseReferenceAccessTokens();
                 options.UseReferenceRefreshTokens();
                 options.AddDevelopmentEncryptionCertificate();
@@ -138,12 +138,12 @@ internal static class IdentityProviderServiceCollectionExtensions
 
                 if (environment is null ||
                     environment.IsDevelopment() ||
-                    environment.IsEnvironment(environmentName: EnvironmentConstants.Test))
+                    environment.IsEnvironment(EnvironmentConstants.Test))
                 {
                     aspNetCore.DisableTransportSecurityRequirement();
                 }
             })
-            .AddValidation(configuration: options =>
+            .AddValidation(options =>
             {
                 options.UseLocalServer();
                 options.UseAspNetCore();
@@ -151,7 +151,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             });
 
         serviceCollection
-            .AddAuthentication(defaultScheme: OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+            .AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
             .AddIdentityCookies();
         serviceCollection.AddAuthorization();
 

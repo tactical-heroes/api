@@ -17,14 +17,14 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration,
         IHostEnvironment? environment = null)
     {
-        serviceCollection.TryAddSingleton(instance: TimeProvider.System);
+        serviceCollection.TryAddSingleton(TimeProvider.System);
 
-        serviceCollection.AddWritePersistence(configuration: configuration);
-        serviceCollection.AddReadPersistence(configuration: configuration);
+        serviceCollection.AddWritePersistence(configuration);
+        serviceCollection.AddReadPersistence(configuration);
 
-        serviceCollection.AddScheduling(configuration: configuration);
-        serviceCollection.AddIdentityProvider(configuration: configuration, environment: environment);
-        serviceCollection.AddMessaging(configuration: configuration);
+        serviceCollection.AddScheduling(configuration);
+        serviceCollection.AddIdentityProvider(configuration, environment);
+        serviceCollection.AddMessaging(configuration);
 
         return serviceCollection;
     }

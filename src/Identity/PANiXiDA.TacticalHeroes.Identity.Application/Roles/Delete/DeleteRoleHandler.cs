@@ -9,6 +9,6 @@ public sealed class DeleteRoleHandler(IRolesWriteRepository rolesRepository)
         DeleteRoleCommand command,
         CancellationToken cancellationToken)
     {
-        return rolesRepository.DeleteAsync(id: command.Id, cancellationToken: cancellationToken);
+        return rolesRepository.DeleteAsync(command.Id, cancellationToken);
     }
 }

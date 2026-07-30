@@ -6,13 +6,13 @@ public sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePas
 {
     public ChangePasswordCommandValidator()
     {
-        RuleFor(expression: command => command.UserId)
-            .MustBeValidDomainValue(factory: UserId.Create);
+        RuleFor(command => command.UserId)
+            .MustBeValidDomainValue(UserId.Create);
 
-        RuleFor(expression: command => command.CurrentPassword)
+        RuleFor(command => command.CurrentPassword)
             .NotEmpty();
 
-        RuleFor(expression: command => command.NewPassword)
+        RuleFor(command => command.NewPassword)
             .NotEmpty();
     }
 }

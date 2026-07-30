@@ -13,11 +13,11 @@ public sealed class ClaimValue : ValueObject
 
     public static Result<ClaimValue> Create(string value)
     {
-        if (string.IsNullOrWhiteSpace(value: value))
+        if (string.IsNullOrWhiteSpace(value))
         {
             return Result.Failure<ClaimValue>(
                 error: Error.Validation(message: "Claim value cannot be empty.")
-                    .WithField(field: nameof(ClaimValue)));
+                    .WithField(nameof(ClaimValue)));
         }
 
         var normalizedValue = value.Trim();
@@ -26,7 +26,7 @@ public sealed class ClaimValue : ValueObject
         {
             return Result.Failure<ClaimValue>(
                 error: Error.Validation(message: $"Claim value cannot be longer than {MaxLength} characters.")
-                    .WithField(field: nameof(ClaimValue)));
+                    .WithField(nameof(ClaimValue)));
         }
 
         return Result.Success(value: new ClaimValue(value: normalizedValue));

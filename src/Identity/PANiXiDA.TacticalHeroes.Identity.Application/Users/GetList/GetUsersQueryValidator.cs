@@ -6,22 +6,22 @@ public sealed class GetUsersQueryValidator : AbstractValidator<GetUsersQuery>
 {
     public GetUsersQueryValidator()
     {
-        When(predicate: query => !string.IsNullOrWhiteSpace(value: query.Email), action: () =>
+        When(query => !string.IsNullOrWhiteSpace(query.Email), () =>
         {
-            RuleFor(expression: query => query.Email!)
-                .MustBeValidDomainValue(factory: Email.Create);
+            RuleFor(query => query.Email!)
+                .MustBeValidDomainValue(Email.Create);
         });
 
-        RuleFor(expression: query => query.Pagination)
+        RuleFor(query => query.Pagination)
             .NotNull();
 
-        When(predicate: query => query.Pagination is not null, action: () =>
+        When(query => query.Pagination is not null, () =>
         {
-            RuleFor(expression: query => query.Pagination.PageNumber)
-                .GreaterThan(valueToCompare: 0);
+            RuleFor(query => query.Pagination.PageNumber)
+                .GreaterThan(0);
 
-            RuleFor(expression: query => query.Pagination.PageSize)
-                .GreaterThan(valueToCompare: 0);
+            RuleFor(query => query.Pagination.PageSize)
+                .GreaterThan(0);
         });
     }
 }

@@ -9,10 +9,10 @@ internal static class NotificationsModuleConfiguration
         this WebApplicationBuilder builder)
     {
         builder.Services.AddInfrastructure(
-            configuration: builder.Configuration,
-            environment: builder.Environment);
-        builder.Services.AddPresentation(configuration: builder.Configuration);
-        builder.Host.UseInfrastructure(configuration: builder.Configuration);
+            builder.Configuration,
+            builder.Environment);
+        builder.Services.AddPresentation(builder.Configuration);
+        builder.Host.UseInfrastructure(builder.Configuration);
 
         return builder;
     }

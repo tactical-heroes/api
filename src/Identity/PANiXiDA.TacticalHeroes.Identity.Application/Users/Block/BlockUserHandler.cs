@@ -9,6 +9,6 @@ public sealed class BlockUserHandler(IUsersWriteRepository usersRepository)
         BlockUserCommand command,
         CancellationToken cancellationToken)
     {
-        return usersRepository.BlockAsync(id: command.Id, cancellationToken: cancellationToken);
+        return usersRepository.BlockAsync(command.Id, cancellationToken);
     }
 }

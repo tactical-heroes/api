@@ -6,7 +6,7 @@ public sealed class ForgotPasswordCommandValidator : AbstractValidator<ForgotPas
 {
     public ForgotPasswordCommandValidator()
     {
-        RuleFor(expression: command => command.Email)
-            .MustBeValidDomainValue(factory: Email.Create);
+        RuleFor(command => command.Email)
+            .MustBeValidDomainValue(Email.Create);
     }
 }

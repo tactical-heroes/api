@@ -15,16 +15,16 @@ internal static class GetUserInfoMapper
 
         return new GetUserInfoResponse(
             Subject: user.UserId.ToString(),
-            Name: scopeSet.Contains(item: OpenIddictConstants.Scopes.Profile)
+            Name: scopeSet.Contains(OpenIddictConstants.Scopes.Profile)
                 ? user.Name
                 : null,
-            Email: scopeSet.Contains(item: OpenIddictConstants.Scopes.Email)
+            Email: scopeSet.Contains(OpenIddictConstants.Scopes.Email)
                 ? user.Email
                 : null,
-            EmailVerified: scopeSet.Contains(item: OpenIddictConstants.Scopes.Email)
+            EmailVerified: scopeSet.Contains(OpenIddictConstants.Scopes.Email)
                 ? user.EmailVerified
                 : null,
-            Role: scopeSet.Contains(item: OpenIddictConstants.Scopes.Roles) && user.Roles.Count > 0
+            Role: scopeSet.Contains(OpenIddictConstants.Scopes.Roles) && user.Roles.Count > 0
                 ? user.Roles
                 : null);
     }

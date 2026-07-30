@@ -6,7 +6,7 @@ public sealed class UnblockUserCommandValidator : AbstractValidator<UnblockUserC
 {
     public UnblockUserCommandValidator()
     {
-        RuleFor(expression: command => command.Id)
-            .MustBeValidDomainValue(factory: UserId.Create);
+        RuleFor(command => command.Id)
+            .MustBeValidDomainValue(UserId.Create);
     }
 }

@@ -12,37 +12,37 @@ internal sealed class SmtpOptionsValidator : IValidateOptions<SmtpOptions>
     {
         List<string> failures = [];
 
-        if (string.IsNullOrWhiteSpace(value: options.Host))
+        if (string.IsNullOrWhiteSpace(options.Host))
         {
-            failures.Add(item: $"{SmtpOptions.SectionName}:Host must not be empty.");
+            failures.Add($"{SmtpOptions.SectionName}:Host must not be empty.");
         }
 
         if (options.Port is <= 0 or > ushort.MaxValue)
         {
-            failures.Add(item: $"{SmtpOptions.SectionName}:Port must be between 1 and {ushort.MaxValue}.");
+            failures.Add($"{SmtpOptions.SectionName}:Port must be between 1 and {ushort.MaxValue}.");
         }
 
-        if (!MailboxAddress.TryParse(text: options.SenderEmail, mailbox: out _))
+        if (!MailboxAddress.TryParse(options.SenderEmail, out _))
         {
-            failures.Add(item: $"{SmtpOptions.SectionName}:SenderEmail must be a valid email address.");
+            failures.Add($"{SmtpOptions.SectionName}:SenderEmail must be a valid email address.");
         }
 
-        if (string.IsNullOrWhiteSpace(value: options.SenderName))
+        if (string.IsNullOrWhiteSpace(options.SenderName))
         {
-            failures.Add(item: $"{SmtpOptions.SectionName}:SenderName must not be empty.");
+            failures.Add($"{SmtpOptions.SectionName}:SenderName must not be empty.");
         }
 
-        var hasUsername = !string.IsNullOrWhiteSpace(value: options.Username);
-        var hasPassword = !string.IsNullOrWhiteSpace(value: options.Password);
+        var hasUsername = !string.IsNullOrWhiteSpace(options.Username);
+        var hasPassword = !string.IsNullOrWhiteSpace(options.Password);
 
         if (hasUsername != hasPassword)
         {
             failures.Add(
-                item: $"{SmtpOptions.SectionName}:Username and Password must either both be set or both be empty.");
+                $"{SmtpOptions.SectionName}:Username and Password must either both be set or both be empty.");
         }
 
         return failures.Count == 0
             ? ValidateOptionsResult.Success
-            : ValidateOptionsResult.Fail(failures: failures);
+            : ValidateOptionsResult.Fail(failures);
     }
 }

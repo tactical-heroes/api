@@ -399,9 +399,10 @@ repository и query handler являются наследниками `ReadModel
     только корневой namespace. Исходники из `bin`, `obj` и `Generated` не
     проверяются.
 
-79. `InvocationAndConstructorArguments_Should_BeNamed_When_Declared` — каждый
-    аргумент при вызове метода или конструктора в авторских C#-исходниках из
-    `src` должен передаваться по имени параметра. `nameof`, EF migrations,
+79. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
+    аргументы `null`, `default`, `true` и `false`, а также все аргументы вызова
+    с тремя и более аргументами в авторских C#-исходниках из `src` должны
+    передаваться по имени параметра. Вызовы с `params`, `nameof`, EF migrations,
     `bin`, `obj` и `Generated` не проверяются.
 
 ## Оформление тестов

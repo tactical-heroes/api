@@ -14,8 +14,8 @@ internal static class EmailNotificationMessageFactory
     public static EmailMessage Create(
         EmailConfirmationNotificationRequested domainEvent)
     {
-        var expiresAtUtc = FormatExpiration(expiresAtUtc: domainEvent.ExpiresAtUtc);
-        var encodedUrl = WebUtility.HtmlEncode(value: domainEvent.ConfirmationUrl);
+        var expiresAtUtc = FormatExpiration(domainEvent.ExpiresAtUtc);
+        var encodedUrl = WebUtility.HtmlEncode(domainEvent.ConfirmationUrl);
 
         return new EmailMessage(
             CorrelationId: domainEvent.IntegrationEventId,
@@ -35,8 +35,8 @@ internal static class EmailNotificationMessageFactory
     public static EmailMessage Create(
         PasswordResetNotificationRequested domainEvent)
     {
-        var expiresAtUtc = FormatExpiration(expiresAtUtc: domainEvent.ExpiresAtUtc);
-        var encodedUrl = WebUtility.HtmlEncode(value: domainEvent.PasswordResetUrl);
+        var expiresAtUtc = FormatExpiration(domainEvent.ExpiresAtUtc);
+        var encodedUrl = WebUtility.HtmlEncode(domainEvent.PasswordResetUrl);
 
         return new EmailMessage(
             CorrelationId: domainEvent.IntegrationEventId,
@@ -57,7 +57,7 @@ internal static class EmailNotificationMessageFactory
     {
         return expiresAtUtc
             .ToUniversalTime()
-            .ToString(format: "yyyy-MM-dd HH:mm 'UTC'", formatProvider: CultureInfo.InvariantCulture);
+            .ToString("yyyy-MM-dd HH:mm 'UTC'", CultureInfo.InvariantCulture);
     }
 
     private static string BuildHtmlBody(

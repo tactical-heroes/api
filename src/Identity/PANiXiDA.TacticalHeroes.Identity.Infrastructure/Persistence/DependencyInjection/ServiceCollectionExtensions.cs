@@ -23,18 +23,18 @@ internal static class ServiceCollectionExtensions
     {
         serviceCollection.TryAddScoped<IAggregateTracker, AggregateTracker>();
         serviceCollection.TryAddKeyedScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>(
-            serviceKey: typeof(IdentityWriteDbContext));
+            typeof(IdentityWriteDbContext));
 
-        serviceCollection.AddDbContext<IdentityWriteDbContext>(optionsAction: options =>
+        serviceCollection.AddDbContext<IdentityWriteDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString(
-                name: EfConstants.PostgreSqlConnectionStringName) ??
+                EfConstants.PostgreSqlConnectionStringName) ??
                 throw new InvalidOperationException(
                     message: $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
 
             options
-                .UseNpgsql(connectionString: connectionString, npgsqlOptionsAction: npgsqlOptions =>
-                    npgsqlOptions.MigrationsHistoryTable(tableName: "__ef_migrations_history", schema: "identity"))
+                .UseNpgsql(connectionString, npgsqlOptions =>
+                    npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });
@@ -48,9 +48,9 @@ internal static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddPostgreSqlReadEfRepository<IdentityReadDbContext>(configuration: configuration);
-        serviceCollection.AddDbContext<IdentityReadDbContext>(optionsAction: (provider, options) =>
-            options.AddInterceptors(interceptors: provider.GetServices<IInterceptor>()));
+        serviceCollection.AddPostgreSqlReadEfRepository<IdentityReadDbContext>(configuration);
+        serviceCollection.AddDbContext<IdentityReadDbContext>((provider, options) =>
+            options.AddInterceptors(provider.GetServices<IInterceptor>()));
         serviceCollection.AddScoped<IOAuthUsersRepository, OAuthUsersRepository>();
         serviceCollection.AddScoped<IOAuthClientsRepository, OAuthClientsRepository>();
 

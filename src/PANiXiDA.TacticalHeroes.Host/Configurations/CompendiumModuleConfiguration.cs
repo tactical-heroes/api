@@ -7,7 +7,7 @@ internal static class CompendiumModuleConfiguration
     internal static WebApplicationBuilder AddCompendiumModule(
         this WebApplicationBuilder builder)
     {
-        builder.Services.AddInfrastructure(configuration: builder.Configuration);
+        builder.Services.AddInfrastructure(builder.Configuration);
 
         return builder;
     }

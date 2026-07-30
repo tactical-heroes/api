@@ -6,7 +6,7 @@ public sealed class GetRoleDetailsQueryValidator : AbstractValidator<GetRoleDeta
 {
     public GetRoleDetailsQueryValidator()
     {
-        RuleFor(expression: query => query.Id)
-            .MustBeValidDomainValue(factory: RoleId.Create);
+        RuleFor(query => query.Id)
+            .MustBeValidDomainValue(RoleId.Create);
     }
 }

@@ -6,10 +6,10 @@ public sealed class CreateFactionCommandValidator : AbstractValidator<CreateFact
 {
     public CreateFactionCommandValidator()
     {
-        RuleFor(expression: command => command.Name)
-            .MustBeValidDomainValue(factory: FactionName.Create);
+        RuleFor(command => command.Name)
+            .MustBeValidDomainValue(FactionName.Create);
 
-        RuleFor(expression: command => command.Description)
-            .MustBeValidDomainValue(factory: FactionDescription.Create);
+        RuleFor(command => command.Description)
+            .MustBeValidDomainValue(FactionDescription.Create);
     }
 }

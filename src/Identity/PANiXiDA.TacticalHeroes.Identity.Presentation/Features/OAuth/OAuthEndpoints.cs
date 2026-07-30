@@ -13,11 +13,11 @@ internal sealed class OAuthEndpoints : IEndpointGroup
 
     public void Map(IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup(prefix: $"/{Route}")
-            .WithTags(tags: Name);
+        var group = endpoints.MapGroup($"/{Route}")
+            .WithTags(Name);
 
         EndpointMapper.MapGroupEndpoints<OAuthEndpoints>(
-            group: group,
-            serviceProvider: endpoints.ServiceProvider);
+            group,
+            endpoints.ServiceProvider);
     }
 }

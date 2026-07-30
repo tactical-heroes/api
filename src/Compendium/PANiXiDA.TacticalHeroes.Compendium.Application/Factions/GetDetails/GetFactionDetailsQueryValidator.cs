@@ -7,7 +7,7 @@ public sealed class GetFactionDetailsQueryValidator
 {
     public GetFactionDetailsQueryValidator()
     {
-        RuleFor(expression: query => query.Id)
-            .MustBeValidDomainValue(factory: FactionId.Create);
+        RuleFor(query => query.Id)
+            .MustBeValidDomainValue(FactionId.Create);
     }
 }

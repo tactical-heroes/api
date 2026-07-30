@@ -30,24 +30,24 @@ internal sealed class IdentityMessagingOptionsValidator
         string path,
         ICollection<string> failures)
     {
-        if (string.IsNullOrWhiteSpace(value: template))
+        if (string.IsNullOrWhiteSpace(template))
         {
-            failures.Add(item: $"{path} must not be empty.");
+            failures.Add($"{path} must not be empty.");
             return;
         }
 
-        if (!template.Contains(value: "{userId}", comparisonType: StringComparison.Ordinal))
+        if (!template.Contains("{userId}", StringComparison.Ordinal))
         {
-            failures.Add(item: $"{path} must contain the '{{userId}}' placeholder.");
+            failures.Add($"{path} must contain the '{{userId}}' placeholder.");
         }
 
-        if (!template.Contains(value: "{token}", comparisonType: StringComparison.Ordinal))
+        if (!template.Contains("{token}", StringComparison.Ordinal))
         {
-            failures.Add(item: $"{path} must contain the '{{token}}' placeholder.");
+            failures.Add($"{path} must contain the '{{token}}' placeholder.");
         }
 
         var sampleUrl = template
-            .Replace(oldValue: "{userId}", newValue: Guid.Empty.ToString(format: "D"), comparisonType: StringComparison.Ordinal)
+            .Replace(oldValue: "{userId}", newValue: Guid.Empty.ToString("D"), comparisonType: StringComparison.Ordinal)
             .Replace(oldValue: "{token}", newValue: "token", comparisonType: StringComparison.Ordinal);
 
         if (!Uri.TryCreate(
@@ -55,9 +55,9 @@ internal sealed class IdentityMessagingOptionsValidator
             uriKind: UriKind.RelativeOrAbsolute,
             result: out var uri) ||
             uri.IsAbsoluteUri && !IsHttpScheme(uri: uri) ||
-            !uri.IsAbsoluteUri && !sampleUrl.StartsWith(value: "/", comparisonType: StringComparison.Ordinal))
+            !uri.IsAbsoluteUri && !sampleUrl.StartsWith("/", StringComparison.Ordinal))
         {
-            failures.Add(item: $"{path} must be a root-relative or absolute HTTP/HTTPS URL template.");
+            failures.Add($"{path} must be a root-relative or absolute HTTP/HTTPS URL template.");
         }
     }
 

@@ -8,7 +8,7 @@ internal static class IdentityResultMapper
     {
         return result.Succeeded
             ? Result.Success()
-            : Result.Failure(errors: result.Errors.Select(selector: MapError));
+            : Result.Failure(errors: result.Errors.Select(MapError));
     }
 
     public static Result<TValue> ToResult<TValue>(IdentityResult result)
@@ -16,7 +16,7 @@ internal static class IdentityResultMapper
         return result.Succeeded
             ? throw new InvalidOperationException(
                 message: "A successful identity result must be mapped with an explicit value.")
-            : Result.Failure<TValue>(errors: result.Errors.Select(selector: MapError));
+            : Result.Failure<TValue>(errors: result.Errors.Select(MapError));
     }
 
     private static Error MapError(IdentityError error)

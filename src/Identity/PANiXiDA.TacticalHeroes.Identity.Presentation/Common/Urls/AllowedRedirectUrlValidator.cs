@@ -10,12 +10,12 @@ internal static class AllowedRedirectUrlValidator
         string allowedPath,
         string fieldName)
     {
-        if (string.IsNullOrWhiteSpace(value: url) ||
+        if (string.IsNullOrWhiteSpace(url) ||
             !IsValid(url: url, httpContext: httpContext, allowedPath: allowedPath))
         {
             return Result.Failure(
                 error: Error.Validation(message: "Return URL is invalid.")
-                    .WithField(field: fieldName));
+                    .WithField(fieldName));
         }
 
         return Result.Success();
@@ -26,10 +26,10 @@ internal static class AllowedRedirectUrlValidator
         HttpContext httpContext,
         string allowedPath)
     {
-        if (url.StartsWith(value: '/') &&
-            !url.StartsWith(value: "//", comparisonType: StringComparison.Ordinal))
+        if (url.StartsWith('/') &&
+            !url.StartsWith("//", StringComparison.Ordinal))
         {
-            return GetPath(pathAndQuery: url).Equals(value: allowedPath, comparisonType: StringComparison.Ordinal);
+            return GetPath(url).Equals(allowedPath, StringComparison.Ordinal);
         }
 
         if (!Uri.TryCreate(uriString: url, uriKind: UriKind.Absolute, result: out var uri))
@@ -41,7 +41,7 @@ internal static class AllowedRedirectUrlValidator
         var requestHost = request.Host.ToUriComponent();
         var redirectHost = uri.IsDefaultPort
             ? uri.Host
-            : uri.GetComponents(components: UriComponents.HostAndPort, format: UriFormat.UriEscaped);
+            : uri.GetComponents(UriComponents.HostAndPort, UriFormat.UriEscaped);
 
         return string.Equals(a: uri.Scheme, b: request.Scheme, comparisonType: StringComparison.OrdinalIgnoreCase) &&
             string.Equals(a: redirectHost, b: requestHost, comparisonType: StringComparison.OrdinalIgnoreCase) &&
@@ -50,7 +50,7 @@ internal static class AllowedRedirectUrlValidator
 
     private static string GetPath(string pathAndQuery)
     {
-        var queryStartIndex = pathAndQuery.IndexOf(value: '?');
+        var queryStartIndex = pathAndQuery.IndexOf('?');
 
         return queryStartIndex < 0
             ? pathAndQuery

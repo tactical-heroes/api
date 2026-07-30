@@ -13,11 +13,11 @@ public sealed class FactionDescription : ValueObject
 
     public static Result<FactionDescription> Create(string value)
     {
-        if (string.IsNullOrWhiteSpace(value: value))
+        if (string.IsNullOrWhiteSpace(value))
         {
             return Result.Failure<FactionDescription>(
                 error: Error.Validation(message: "Faction description cannot be empty.")
-                    .WithField(field: nameof(FactionDescription)));
+                    .WithField(nameof(FactionDescription)));
         }
 
         var normalizedValue = value.Trim();
@@ -26,8 +26,8 @@ public sealed class FactionDescription : ValueObject
             ? Result.Success(value: new FactionDescription(value: normalizedValue))
             : Result.Failure<FactionDescription>(
                 error: Error.Validation(
-                    message: $"Faction description cannot be longer than {MaxLength} characters.")
-                    .WithField(field: nameof(FactionDescription)));
+                        message: $"Faction description cannot be longer than {MaxLength} characters.")
+                    .WithField(nameof(FactionDescription)));
     }
 
     public override string ToString()

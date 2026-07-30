@@ -8,6 +8,6 @@ public sealed class FactionsRepository(
     CompendiumWriteDbContext dbContext,
     IAggregateTracker aggregateTracker)
     : EfRepository<CompendiumWriteDbContext, FactionId, Faction>(
-        dbContext: dbContext,
-        aggregateTracker: aggregateTracker),
+        dbContext,
+        aggregateTracker),
     IFactionsRepository;
