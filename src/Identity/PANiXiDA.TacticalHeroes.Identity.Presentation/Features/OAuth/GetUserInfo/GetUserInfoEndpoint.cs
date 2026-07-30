@@ -17,7 +17,7 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapMethods([HttpMethods.Get, HttpMethods.Post], Handle)
+        builder.MapMethods([HttpMethods.Get, HttpMethods.Post], HandleAsync)
             .RequireAuthorization(
                 new AuthorizeAttribute
                 {
@@ -27,7 +27,7 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         ClaimsPrincipal user,
         IMediator mediator,
         CancellationToken cancellationToken)

@@ -10,14 +10,14 @@ internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .Produces<GetRoleDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         Guid id,
         IMediator mediator,
         CancellationToken cancellationToken)

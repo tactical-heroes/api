@@ -10,13 +10,13 @@ internal sealed class ForgotPasswordEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status202Accepted)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         ForgotPasswordRequest request,
         IMediator mediator,
         CancellationToken cancellationToken)

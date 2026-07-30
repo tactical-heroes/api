@@ -10,7 +10,7 @@ internal sealed class UpdateFactionEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPut(Handle)
+        builder.MapPut(HandleAsync)
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
@@ -18,7 +18,7 @@ internal sealed class UpdateFactionEndpoint : IEndpoint<FactionsEndpoints>
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         Guid id,
         UpdateFactionRequest request,
         IMediator mediator,

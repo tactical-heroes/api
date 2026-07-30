@@ -16,30 +16,30 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleGet)
+        builder.MapGet(HandleGetAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found);
 
-        builder.MapPost(HandlePost)
+        builder.MapPost(HandlePostAsync)
             .AllowAnonymous()
             .WithName("PostLogout")
             .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces(StatusCodes.Status302Found);
     }
 
-    private static Task<IResult> HandleGet(
+    private static Task<IResult> HandleGetAsync(
         [AsParameters] LogoutRequest request,
         HttpContext httpContext)
     {
-        return Handle(httpContext);
+        return HandleAsync(httpContext);
     }
 
-    private static Task<IResult> HandlePost(HttpContext httpContext)
+    private static Task<IResult> HandlePostAsync(HttpContext httpContext)
     {
-        return Handle(httpContext);
+        return HandleAsync(httpContext);
     }
 
-    private static async Task<IResult> Handle(HttpContext httpContext)
+    private static async Task<IResult> HandleAsync(HttpContext httpContext)
     {
         await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 

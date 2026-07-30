@@ -21,14 +21,14 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .AllowAnonymous()
             .Accepts<ExchangeTokenRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<ExchangeTokenResponse>(StatusCodes.Status200OK)
             .Produces<ExchangeTokenErrorResponse>(StatusCodes.Status400BadRequest);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         HttpContext httpContext,
         IMediator mediator,
         IOptions<OAuthTokenOptions> options,

@@ -19,13 +19,13 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found)
             .Produces(StatusCodes.Status403Forbidden);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         [AsParameters] AuthorizeRequest request,
         HttpContext httpContext,
         IMediator mediator,

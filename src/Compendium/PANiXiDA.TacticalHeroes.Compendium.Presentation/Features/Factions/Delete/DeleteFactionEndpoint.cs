@@ -10,7 +10,7 @@ internal sealed class DeleteFactionEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapDelete(Handle)
+        builder.MapDelete(HandleAsync)
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
@@ -18,7 +18,7 @@ internal sealed class DeleteFactionEndpoint : IEndpoint<FactionsEndpoints>
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         Guid id,
         IMediator mediator,
         CancellationToken cancellationToken)

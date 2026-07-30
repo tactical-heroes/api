@@ -12,14 +12,14 @@ internal sealed class CreateFactionEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .RequireAuthorization()
             .Produces<CreateFactionResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         CreateFactionRequest request,
         IMediator mediator,
         CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
@@ -18,7 +18,7 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         ResetPasswordRequest request,
         IMediator mediator,
         CancellationToken cancellationToken)
