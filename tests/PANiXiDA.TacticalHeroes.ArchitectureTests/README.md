@@ -428,11 +428,12 @@ repository и query handler являются наследниками `ReadModel
 84. `SynchronousMethods_Should_NotEndWithAsync_When_Declared` — синхронные
     production-методы не должны оканчиваться на `Async`.
 
-85. `CurrentTimeAccess_Should_UseTimeProviderUtc_When_Declared` — текущее время
-    в авторских C#-исходниках из `src` должно получаться через
-    `TimeProvider.GetUtcNow()`. Прямые обращения к `DateTime.Now`,
-    `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`,
-    `DateTimeOffset.UtcNow` и `TimeProvider.GetLocalNow()` запрещены. EF
+85. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
+    авторских C#-исходниках из `src` должно получаться через
+    `TimeProvider.GetUtcNow()`. В явных конструкторах также разрешены
+    `DateTime.UtcNow` и `DateTimeOffset.UtcNow` как часть жизненного цикла
+    создаваемого объекта. `DateTime.Now`, `DateTime.Today`,
+    `DateTimeOffset.Now` и `TimeProvider.GetLocalNow()` запрещены везде. EF
     migrations, `bin`, `obj` и `Generated` не проверяются.
 
 ## Оформление тестов

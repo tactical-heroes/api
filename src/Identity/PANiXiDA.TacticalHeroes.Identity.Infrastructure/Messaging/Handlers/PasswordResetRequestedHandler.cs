@@ -9,8 +9,7 @@ using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.Passwo
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Handlers;
 
 public sealed class PasswordResetRequestedHandler(
-    IOptions<IdentityMessagingOptions> options,
-    TimeProvider timeProvider)
+    IOptions<IdentityMessagingOptions> options)
 {
     public IntegrationEvent Handle(DomainEvent domainEvent)
     {
@@ -23,9 +22,6 @@ public sealed class PasswordResetRequestedHandler(
             UserId: domainEvent.UserId,
             Email: domainEvent.Email,
             PasswordResetUrl: passwordResetUrl,
-            ExpiresAtUtc: domainEvent.ExpiresAtUtc)
-        {
-            OccurredOnUtc = timeProvider.GetUtcNow()
-        };
+            ExpiresAtUtc: domainEvent.ExpiresAtUtc);
     }
 }

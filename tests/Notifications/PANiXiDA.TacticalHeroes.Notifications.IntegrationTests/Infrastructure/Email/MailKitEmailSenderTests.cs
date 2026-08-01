@@ -49,10 +49,7 @@ public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixtur
             UserId: Guid.CreateVersion7(),
             Email: "confirmation@example.com",
             ConfirmationUrl: confirmationUrl,
-            ExpiresAtUtc: new DateTimeOffset(2026, 7, 19, 12, 0, 0, TimeSpan.Zero))
-        {
-            OccurredOnUtc = new DateTimeOffset(2026, 7, 19, 11, 0, 0, TimeSpan.Zero)
-        };
+            ExpiresAtUtc: new DateTimeOffset(2026, 7, 19, 12, 0, 0, TimeSpan.Zero));
 
         await fixture.MessageBus.PublishAsync(integrationEvent);
 
@@ -86,10 +83,7 @@ public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixtur
             UserId: Guid.CreateVersion7(),
             Email: "password-reset@example.com",
             PasswordResetUrl: passwordResetUrl,
-            ExpiresAtUtc: new DateTimeOffset(2026, 7, 19, 13, 0, 0, TimeSpan.Zero))
-        {
-            OccurredOnUtc = new DateTimeOffset(2026, 7, 19, 12, 0, 0, TimeSpan.Zero)
-        };
+            ExpiresAtUtc: new DateTimeOffset(2026, 7, 19, 13, 0, 0, TimeSpan.Zero));
 
         await fixture.MessageBus.PublishAsync(integrationEvent);
 

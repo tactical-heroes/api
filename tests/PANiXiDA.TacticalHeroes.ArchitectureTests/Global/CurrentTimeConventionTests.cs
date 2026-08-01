@@ -5,16 +5,17 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class CurrentTimeConventionTests
 {
-    [Fact(DisplayName = "Current time access should use TimeProvider UTC when declared")]
-    public async Task CurrentTimeAccess_Should_UseTimeProviderUtc_When_Declared()
+    [Fact(DisplayName = "Current time access should use UTC sources when declared")]
+    public async Task CurrentTimeAccess_Should_UseUtcSources_When_Declared()
     {
         var accesses = await CurrentTimeSourceDiscovery.GetAccessesAsync();
         var violations = accesses
-            .Where(access => !access.IsUtcTimeProviderAccess)
+            .Where(access => !access.IsAllowed)
             .Select(access =>
                 $"{access.RelativePath}:{access.LineNumber}: " +
-                $"'{access.Expression}' must be replaced with " +
-                $"TimeProvider.GetUtcNow().")
+                $"'{access.Expression}' must use TimeProvider.GetUtcNow(). " +
+                $"DateTime/DateTimeOffset.UtcNow is allowed only in " +
+                $"constructors.")
             .ToArray();
 
         Assert.NotEmpty(accesses);
@@ -128,7 +129,14 @@ internal static class CurrentTimeSourceDiscovery
         return CreateAccess(
             relativePath,
             memberAccess,
-            isUtcTimeProviderAccess: false);
+            isAllowed:
+                string.Equals(
+                    property.Name,
+                    "UtcNow",
+                    StringComparison.Ordinal) &&
+                memberAccess.Ancestors()
+                    .OfType<ConstructorDeclarationSyntax>()
+                    .Any());
     }
 
     private static CurrentTimeAccess? GetTimeProviderAccess(
@@ -151,7 +159,7 @@ internal static class CurrentTimeSourceDiscovery
         return CreateAccess(
             relativePath,
             invocation,
-            isUtcTimeProviderAccess: string.Equals(
+            isAllowed: string.Equals(
                 method.Name,
                 "GetUtcNow",
                 StringComparison.Ordinal));
@@ -160,7 +168,7 @@ internal static class CurrentTimeSourceDiscovery
     private static CurrentTimeAccess CreateAccess(
         string relativePath,
         ExpressionSyntax expression,
-        bool isUtcTimeProviderAccess)
+        bool isAllowed)
     {
         return new CurrentTimeAccess(
             RelativePath: relativePath,
@@ -170,7 +178,7 @@ internal static class CurrentTimeSourceDiscovery
                 .StartLinePosition.Line + 1,
             Position: expression.SpanStart,
             Expression: expression.ToString(),
-            IsUtcTimeProviderAccess: isUtcTimeProviderAccess);
+            IsAllowed: isAllowed);
     }
 
     private static bool IsDateTimeType(ITypeSymbol type)
@@ -195,4 +203,4 @@ internal sealed record CurrentTimeAccess(
     int LineNumber,
     int Position,
     string Expression,
-    bool IsUtcTimeProviderAccess);
+    bool IsAllowed);
