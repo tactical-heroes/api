@@ -436,22 +436,39 @@ repository и query handler являются наследниками `ReadModel
     `DateTimeOffset.Now` и `TimeProvider.GetLocalNow()` запрещены везде. EF
     migrations, `bin`, `obj` и `Generated` не проверяются.
 
+86. `CancellationTokenSentinels_Should_NotBeUsed_When_Declared` — в авторских
+    C#-исходниках из `src`, `tests` и `tools` запрещены
+    `CancellationToken.None`, `default(CancellationToken)` и `default`, если его
+    целевой тип — `CancellationToken`. В том числе токен нельзя объявлять как
+    optional-параметр со значением `default`: вызывающий код должен передавать
+    фактический токен явно.
+
+87. `CancellationTokenParameters_Should_BeUsed_When_Declared` — объявленный в
+    реализованном методе `CancellationToken` должен использоваться; иначе
+    параметр нужно удалить. Overrides и реализации внешних интерфейсов не
+    проверяются на использование, поскольку удалить параметр из их сигнатуры
+    нельзя.
+
+88. `CancellationTokens_Should_BeForwarded_When_Available` — если вызываемый
+    метод объявляет параметр `CancellationToken`, а токен уже доступен в текущей
+    области видимости, его нужно передать явно.
+
 ## Оформление тестов
 
-86. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+89. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-87. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+90. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-88. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+91. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-89. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+92. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 

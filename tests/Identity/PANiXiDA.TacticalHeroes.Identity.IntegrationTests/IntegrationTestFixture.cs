@@ -33,7 +33,9 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await _database.InitializeAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await _database.InitializeAsync(cancellationToken);
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -65,7 +67,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
         await using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-        await dbContext.Database.MigrateAsync();
+        await dbContext.Database.MigrateAsync(cancellationToken);
     }
 
     public AsyncServiceScope CreateScope()

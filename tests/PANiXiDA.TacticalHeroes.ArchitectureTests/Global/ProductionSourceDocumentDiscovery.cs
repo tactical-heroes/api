@@ -7,8 +7,20 @@ internal static class ProductionSourceDocumentDiscovery
 {
     private const string SourceRootDirectoryName = "src";
 
+    private static readonly string[] AuthorSourceRootDirectoryNames =
+    [
+        SourceRootDirectoryName,
+        "tests",
+        "tools"
+    ];
+
     private static readonly Lazy<Task<ProductionSourceContext>> Context =
         new(CreateContextAsync);
+
+    private static readonly string[] ProductionSourceRootDirectoryNames =
+    [
+        SourceRootDirectoryName
+    ];
 
     private static readonly string[] ExcludedDirectoryNames =
     [
@@ -18,8 +30,25 @@ internal static class ProductionSourceDocumentDiscovery
         "Migrations"
     ];
 
-    internal static async Task<T[]> GetItemsAsync<T>(
+    internal static Task<T[]> GetAuthorItemsAsync<T>(
         Func<string, Document, Task<T[]>> getDocumentItemsAsync)
+    {
+        return GetItemsAsync(
+            getDocumentItemsAsync,
+            AuthorSourceRootDirectoryNames);
+    }
+
+    internal static Task<T[]> GetItemsAsync<T>(
+        Func<string, Document, Task<T[]>> getDocumentItemsAsync)
+    {
+        return GetItemsAsync(
+            getDocumentItemsAsync,
+            ProductionSourceRootDirectoryNames);
+    }
+
+    private static async Task<T[]> GetItemsAsync<T>(
+        Func<string, Document, Task<T[]>> getDocumentItemsAsync,
+        IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
         var context = await Context.Value;
         var items = new List<T>();
@@ -28,7 +57,8 @@ internal static class ProductionSourceDocumentDiscovery
                      .Where(project =>
                          IsSourceProject(
                              context.RepositoryRoot,
-                             project.FilePath))
+                             project.FilePath,
+                             sourceRootDirectoryNames))
                      .OrderBy(
                          project => project.FilePath,
                          StringComparer.Ordinal))
@@ -37,7 +67,8 @@ internal static class ProductionSourceDocumentDiscovery
                          .Where(document =>
                              IsSourceFile(
                                  context.RepositoryRoot,
-                                 document.FilePath))
+                                 document.FilePath,
+                                 sourceRootDirectoryNames))
                          .OrderBy(
                              document => document.FilePath,
                              StringComparer.Ordinal))
@@ -72,22 +103,26 @@ internal static class ProductionSourceDocumentDiscovery
 
     private static bool IsSourceProject(
         string repositoryRoot,
-        string? projectFile)
+        string? projectFile,
+        IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
         return projectFile is not null &&
-               IsWithinSourceRoot(
+               IsWithinSourceRoots(
                    repositoryRoot,
-                   projectFile);
+                   projectFile,
+                   sourceRootDirectoryNames);
     }
 
     private static bool IsSourceFile(
         string repositoryRoot,
-        string? sourceFile)
+        string? sourceFile,
+        IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
         return sourceFile is not null &&
-               IsWithinSourceRoot(
+               IsWithinSourceRoots(
                    repositoryRoot,
-                   sourceFile) &&
+                   sourceFile,
+                   sourceRootDirectoryNames) &&
                !sourceFile
                    .Split(
                        [
@@ -101,19 +136,24 @@ internal static class ProductionSourceDocumentDiscovery
                            StringComparer.OrdinalIgnoreCase));
     }
 
-    private static bool IsWithinSourceRoot(
+    private static bool IsWithinSourceRoots(
         string repositoryRoot,
-        string path)
+        string path,
+        IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
-        var sourceRoot = Path.Combine(
-                repositoryRoot,
-                SourceRootDirectoryName)
-            + Path.DirectorySeparatorChar;
+        var fullPath = Path.GetFullPath(path);
 
-        return Path.GetFullPath(path)
-            .StartsWith(
+        return sourceRootDirectoryNames.Any(sourceRootDirectoryName =>
+        {
+            var sourceRoot = Path.Combine(
+                    repositoryRoot,
+                    sourceRootDirectoryName)
+                + Path.DirectorySeparatorChar;
+
+            return fullPath.StartsWith(
                 sourceRoot,
                 StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     private static string FindRepositoryRoot()
