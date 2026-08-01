@@ -84,8 +84,8 @@ public sealed class ReadModelConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations")]
-    public void ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations()
+    [Fact(DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations when declared")]
+    public void ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared()
     {
         var readDbModels = GetReadDatabaseModels();
         var violations = readDbModels

@@ -32,7 +32,7 @@ public sealed class EndpointMappingConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Endpoint mappings should not repeat matching group authorization")]
+    [Fact(DisplayName = "Endpoint mappings should not repeat matching group authorization when authorization matches")]
     public async Task EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches()
     {
         var mappings = await EndpointMappingSourceDiscovery.GetMappingsAsync();

@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Compendium.Application.Validation;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
@@ -17,47 +18,23 @@ public sealed class UpdateUnitCommandValidator : AbstractValidator<UpdateUnitCom
         RuleFor(command => command.Description)
             .MustBeValidDomainValue(UnitDescription.Create);
 
-        RuleFor(command => command.Attack)
-            .GreaterThanOrEqualTo(0);
-
-        RuleFor(command => command.Defense)
-            .GreaterThanOrEqualTo(0);
-
-        RuleFor(command => command.Health)
-            .GreaterThan(0);
-
-        RuleFor(command => command.MinimumDamage)
-            .GreaterThanOrEqualTo(0);
-
-        RuleFor(command => command.MaximumDamage)
-            .GreaterThanOrEqualTo(command => command.MinimumDamage);
-
-        RuleFor(command => command.Initiative)
-            .Must(value => double.IsFinite(value) && value >= 0);
-
-        RuleFor(command => command.Speed)
-            .GreaterThanOrEqualTo(0);
-
-        RuleFor(command => command.Shots)
-            .GreaterThan(0)
-            .When(command => command.Shots.HasValue);
-
-        RuleFor(command => command.RangedAttackRange)
-            .GreaterThan(0)
-            .When(command => command.RangedAttackRange.HasValue);
-
         RuleFor(command => command)
-            .Must(command =>
-                command.Shots.HasValue == command.RangedAttackRange.HasValue)
-            .WithMessage(
-                "Shots and ranged attack range must both be provided or both be omitted.")
-            .OverridePropertyName(nameof(UpdateUnitCommand.RangedAttackRange));
+            .MustBeValidDomainResult(command => UnitCombatStats.Create(
+                attack: command.Attack,
+                defense: command.Defense,
+                health: command.Health,
+                minimumDamage: command.MinimumDamage,
+                maximumDamage: command.MaximumDamage,
+                initiative: command.Initiative,
+                speed: command.Speed,
+                shots: command.Shots,
+                rangedAttackRange: command.RangedAttackRange));
 
         RuleFor(command => command.Morale)
-            .InclusiveBetween(UnitMorale.Minimum, UnitMorale.Maximum);
+            .MustBeValidDomainValue(UnitMorale.Create);
 
         RuleFor(command => command.Luck)
-            .InclusiveBetween(UnitLuck.Minimum, UnitLuck.Maximum);
+            .MustBeValidDomainValue(UnitLuck.Create);
 
         RuleFor(command => command.FactionId)
             .MustBeValidDomainValue(FactionId.Create);

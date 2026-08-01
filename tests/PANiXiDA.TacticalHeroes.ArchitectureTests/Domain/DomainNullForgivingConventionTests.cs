@@ -13,7 +13,7 @@ public sealed class DomainNullForgivingConventionTests
     private const string ValueObjectTypeName =
         "PANiXiDA.Core.Domain.ValueObject";
 
-    [Fact(DisplayName = "Domain null-forgiving assignments should target only complex value objects")]
+    [Fact(DisplayName = "Domain null-forgiving assignments should target only complex value objects when used in domain state")]
     public async Task NullForgivingAssignments_Should_TargetOnlyComplexValueObjects_When_UsedInDomainState()
     {
         var assignments = await ProductionSourceDocumentDiscovery
