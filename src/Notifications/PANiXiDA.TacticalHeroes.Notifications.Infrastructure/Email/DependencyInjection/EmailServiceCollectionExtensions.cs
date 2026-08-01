@@ -21,7 +21,7 @@ internal static class EmailServiceCollectionExtensions
             .Bind(configuration.GetSection(SmtpOptions.SectionName))
             .ValidateOnStart();
 
-        serviceCollection.AddTransient<IEmailSender, MailKitEmailSender>();
+        serviceCollection.AddScoped<IEmailSender, MailKitEmailSender>();
 
         return serviceCollection;
     }

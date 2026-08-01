@@ -1,21 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.Core.Application.Persistence;
-using PANiXiDA.Core.Domain.Abstractions;
-
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
 public sealed class DependencyInjectionConventionTests
 {
-    private static readonly Type[] RepositoryDefinitions =
-    [
-        typeof(IRepository<,>),
-        typeof(IReadRepository<>)
-    ];
+    private const string ApplicationAssemblySuffix = ".Application";
 
-    [Fact(DisplayName = "Infrastructure implementations should be registered for application abstractions when declared")]
-    public void InfrastructureImplementations_Should_BeRegisteredForApplicationAbstractions_When_Declared()
+    [Fact(DisplayName = "Infrastructure implementations should be registered for domain or application abstractions when declared")]
+    public void InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared()
     {
         var registrations = GetAbstractionRegistrations();
         var violations = registrations
@@ -37,12 +30,16 @@ public sealed class DependencyInjectionConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Repository implementations should be registered exactly once as scoped when declared")]
-    public void RepositoryImplementations_Should_BeRegisteredExactlyOnceAsScoped_When_Declared()
+    [Fact(DisplayName = "Application abstraction implementations should be registered exactly once as scoped when declared")]
+    public void ApplicationAbstractionImplementations_Should_BeRegisteredExactlyOnceAsScoped_When_Declared()
     {
         var registrations = GetAbstractionRegistrations()
-            .Where(registration => IsRepositoryContract(
-                registration.Abstraction))
+            .Where(registration => registration.Abstraction.Assembly
+                .GetName()
+                .Name?
+                .EndsWith(
+                    ApplicationAssemblySuffix,
+                    StringComparison.Ordinal) == true)
             .ToArray();
         var violations = registrations
             .Where(registration =>
@@ -62,7 +59,8 @@ public sealed class DependencyInjectionConventionTests
         Assert.NotEmpty(registrations);
         Assert.True(
             violations.Length == 0,
-            $"Repository registration violations:{Environment.NewLine}" +
+            $"Application abstraction registration violations:" +
+            $"{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 
@@ -189,17 +187,6 @@ public sealed class DependencyInjectionConventionTests
                 assembly.GetName().Name,
                 assemblyName,
                 StringComparison.Ordinal));
-    }
-
-    private static bool IsRepositoryContract(Type abstraction)
-    {
-        return abstraction
-            .GetInterfaces()
-            .Append(abstraction)
-            .Any(candidate =>
-                candidate.IsGenericType &&
-                RepositoryDefinitions.Contains(
-                    candidate.GetGenericTypeDefinition()));
     }
 
     private static bool IsImplementation(

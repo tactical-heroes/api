@@ -11,7 +11,6 @@ internal sealed class GetFactionDetailsEndpoint : IEndpoint<FactionsEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapGet(HandleAsync)
-            .AllowAnonymous()
             .Produces<GetFactionDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);

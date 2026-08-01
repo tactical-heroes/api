@@ -488,12 +488,12 @@ repository и query handler являются наследниками `ReadModel
     — конкретные `IEntity` и `ValueObject` должны объявлять только private
     конструкторы и предоставлять создание через фабричные методы.
 
-95. `InfrastructureImplementations_Should_BeRegisteredForApplicationAbstractions_When_Declared`
+95. `InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared`
     — каждая реализация абстракции Domain или Application из Infrastructure
     должна присутствовать в итоговом `IServiceCollection` модуля.
 
-96. `RepositoryImplementations_Should_BeRegisteredExactlyOnceAsScoped_When_Declared`
-    — каждая реализация `IRepository` и `IReadRepository` должна быть
+96. `ApplicationAbstractionImplementations_Should_BeRegisteredExactlyOnceAsScoped_When_Declared`
+    — каждая реализация интерфейса из Application в Infrastructure должна быть
     зарегистрирована ровно один раз с lifetime `Scoped`. Учитываются
     автоматические регистрации из Core, поэтому повторная ручная регистрация
     также считается нарушением.
