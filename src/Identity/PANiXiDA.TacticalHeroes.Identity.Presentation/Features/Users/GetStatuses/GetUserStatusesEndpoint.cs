@@ -10,12 +10,12 @@ internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .Produces<IReadOnlyCollection<UserStatusResponse>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         IMediator mediator,
         CancellationToken cancellationToken)
     {

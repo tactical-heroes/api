@@ -16,7 +16,7 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
@@ -24,7 +24,7 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
             .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         LoginRequest request,
         HttpContext httpContext,
         IMediator mediator,

@@ -10,14 +10,14 @@ internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapDelete(Handle)
+        builder.MapDelete(HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         Guid id,
         IMediator mediator,
         CancellationToken cancellationToken)

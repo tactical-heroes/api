@@ -10,14 +10,14 @@ internal sealed class ConfirmEmailEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         ConfirmEmailRequest request,
         IMediator mediator,
         CancellationToken cancellationToken)

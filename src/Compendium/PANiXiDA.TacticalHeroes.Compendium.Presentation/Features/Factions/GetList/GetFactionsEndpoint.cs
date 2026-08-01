@@ -10,12 +10,12 @@ internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .Produces<PaginationResult<FactionListItemResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         [AsParameters] PaginationParameters pagination,
         IMediator mediator,
         CancellationToken cancellationToken)

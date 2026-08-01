@@ -10,13 +10,13 @@ internal sealed class GetUsersEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .Produces<PaginationResult<UserListItemResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         [AsParameters] GetUsersRequest request,
         [AsParameters] PaginationParameters pagination,
         IMediator mediator,
