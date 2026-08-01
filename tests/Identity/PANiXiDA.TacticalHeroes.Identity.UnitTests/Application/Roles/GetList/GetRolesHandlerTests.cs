@@ -15,7 +15,7 @@ public sealed class GetRolesHandlerTests
             20,
             1);
         var rolesReadRepository = Substitute.For<IRolesReadRepository>();
-        rolesReadRepository.GetPagedAsync(pagination, Arg.Any<CancellationToken>())
+        rolesReadRepository.GetPageAsync(pagination, Arg.Any<CancellationToken>())
             .Returns(page);
         var handler = new GetRolesHandler(rolesReadRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -26,6 +26,6 @@ public sealed class GetRolesHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(page);
-        await rolesReadRepository.Received(1).GetPagedAsync(pagination, cancellationToken);
+        await rolesReadRepository.Received(1).GetPageAsync(pagination, cancellationToken);
     }
 }

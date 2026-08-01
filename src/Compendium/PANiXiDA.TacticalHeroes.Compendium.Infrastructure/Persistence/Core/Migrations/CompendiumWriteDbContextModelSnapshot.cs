@@ -66,6 +66,85 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                     b.ToTable("factions", "compendium");
                 });
 
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Hero", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("FactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("faction_id");
+
+                    b.Property<int>("Luck")
+                        .HasColumnType("integer")
+                        .HasColumnName("luck");
+
+                    b.Property<int>("Morale")
+                        .HasColumnType("integer")
+                        .HasColumnName("morale");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasColumnOrder(2);
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Hero.Stats#HeroCombatStats", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<int>("Attack")
+                                .HasColumnType("integer")
+                                .HasColumnName("stats_attack");
+
+                            b1.Property<int>("Defense")
+                                .HasColumnType("integer")
+                                .HasColumnName("stats_defense");
+
+                            b1.Property<double>("Initiative")
+                                .HasColumnType("double precision")
+                                .HasColumnName("stats_initiative");
+
+                            b1.Property<int>("MaximumDamage")
+                                .HasColumnType("integer")
+                                .HasColumnName("stats_maximum_damage");
+
+                            b1.Property<int>("MinimumDamage")
+                                .HasColumnType("integer")
+                                .HasColumnName("stats_minimum_damage");
+                        });
+
+                    b.HasKey("Id")
+                        .HasName("pk_heroes");
+
+                    b.HasIndex("FactionId")
+                        .HasDatabaseName("ix_heroes_faction_id");
+
+                    b.ToTable("heroes", "compendium");
+                });
+
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit", b =>
                 {
                     b.Property<Guid>("Id")
@@ -159,6 +238,16 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasDatabaseName("ix_units_faction_id");
 
                     b.ToTable("units", "compendium");
+                });
+
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Hero", b =>
+                {
+                    b.HasOne("PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Faction", null)
+                        .WithMany()
+                        .HasForeignKey("FactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_heroes_factions_faction_id");
                 });
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit", b =>

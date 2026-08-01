@@ -15,7 +15,7 @@ public sealed class UnitsReadRepository(CompendiumReadDbContext dbContext)
         Field: nameof(UnitReadDbModel.Name),
         Order: SortOrder.Ascending);
 
-    public Task<PaginationResult<UnitListItemReadModel>> GetPagedAsync(
+    public Task<PaginationResult<UnitListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken)
     {

@@ -30,8 +30,8 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         details.Description.ShouldBe("Defenders of the north.");
     }
 
-    [Fact(DisplayName = "GetPagedAsync should return factions sorted by name when factions exist")]
-    public async Task GetPagedAsync_Should_ReturnSortedPage_When_FactionsExist()
+    [Fact(DisplayName = "GetPageAsync should return factions sorted by name when factions exist")]
+    public async Task GetPageAsync_Should_ReturnSortedPage_When_FactionsExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var northernFaction = CreateFaction(
@@ -47,7 +47,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
-        var page = await repository.GetPagedAsync(
+        var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
             cancellationToken);
 

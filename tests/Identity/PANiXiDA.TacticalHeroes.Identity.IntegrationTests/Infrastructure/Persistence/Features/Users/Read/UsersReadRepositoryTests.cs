@@ -36,8 +36,8 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         details.Claims.ShouldHaveSingleItem().Value.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "GetPagedAsync should return users filtered by email when users exist")]
-    public async Task GetPagedAsync_Should_ReturnFilteredPage_When_UsersExist()
+    [Fact(DisplayName = "GetPageAsync should return users filtered by email when users exist")]
+    public async Task GetPageAsync_Should_ReturnFilteredPage_When_UsersExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var firstUserId = await AddUserAsync(
@@ -57,7 +57,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
-        var page = await repository.GetPagedAsync(
+        var page = await repository.GetPageAsync(
             "first@example.com",
             new PaginationParameters(1, 20),
             cancellationToken);

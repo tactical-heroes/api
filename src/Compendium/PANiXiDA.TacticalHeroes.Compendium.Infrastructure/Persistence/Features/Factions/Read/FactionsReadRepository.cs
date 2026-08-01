@@ -15,7 +15,7 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         Field: nameof(FactionReadDbModel.Name),
         Order: SortOrder.Ascending);
 
-    public Task<PaginationResult<FactionListItemReadModel>> GetPagedAsync(
+    public Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken)
     {

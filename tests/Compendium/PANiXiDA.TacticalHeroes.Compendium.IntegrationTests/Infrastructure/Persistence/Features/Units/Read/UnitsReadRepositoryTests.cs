@@ -47,8 +47,8 @@ public sealed class UnitsReadRepositoryTests(IntegrationTestFixture fixture)
         details.FactionId.ShouldBe(faction.Id.Value);
     }
 
-    [Fact(DisplayName = "GetPagedAsync should return units sorted by name when units exist")]
-    public async Task GetPagedAsync_Should_ReturnSortedPage_When_UnitsExist()
+    [Fact(DisplayName = "GetPageAsync should return units sorted by name when units exist")]
+    public async Task GetPageAsync_Should_ReturnSortedPage_When_UnitsExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
@@ -63,7 +63,7 @@ public sealed class UnitsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider
             .GetRequiredService<IUnitsReadRepository>();
-        var page = await repository.GetPagedAsync(
+        var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
             cancellationToken);
 

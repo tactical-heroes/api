@@ -17,7 +17,7 @@ public sealed class GetUnitsHandlerTests
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await unitsReadRepository.Received(1).GetPagedAsync(
+        await unitsReadRepository.Received(1).GetPageAsync(
             pagination,
             TestContext.Current.CancellationToken);
     }

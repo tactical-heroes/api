@@ -9,7 +9,7 @@ public sealed class GetRolesHandler(IRolesReadRepository rolesReadRepository)
         GetRolesQuery query,
         CancellationToken cancellationToken)
     {
-        var roles = await rolesReadRepository.GetPagedAsync(
+        var roles = await rolesReadRepository.GetPageAsync(
             pagination: query.Pagination,
             cancellationToken: cancellationToken);
 
