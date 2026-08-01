@@ -1,8 +1,8 @@
 image:
   repository: ghcr.io/panixida/tactical-heroes/api
-  tag: development-172
+  tag: development-176
 
 migrations:
   image:
     repository: ghcr.io/panixida/tactical-heroes/ef-migrator
-    tag: development-172
+    tag: development-176
