@@ -17,7 +17,7 @@ public sealed class GetHeroesHandlerTests
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await heroesReadRepository.Received(1).GetPagedAsync(
+        await heroesReadRepository.Received(1).GetPageAsync(
             pagination,
             TestContext.Current.CancellationToken);
     }

@@ -9,7 +9,7 @@ public sealed class GetUsersHandler(IUsersReadRepository usersReadRepository)
         GetUsersQuery query,
         CancellationToken cancellationToken)
     {
-        var users = await usersReadRepository.GetPagedAsync(
+        var users = await usersReadRepository.GetPageAsync(
             email: query.Email,
             pagination: query.Pagination,
             cancellationToken: cancellationToken);

@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 
 public interface IFactionsReadRepository : IReadRepository<Guid>
 {
-    Task<PaginationResult<FactionListItemReadModel>> GetPagedAsync(
+    Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken);
 

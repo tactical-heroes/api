@@ -9,7 +9,7 @@ public sealed class GetUnitsHandler(IUnitsReadRepository unitsReadRepository)
         GetUnitsQuery query,
         CancellationToken cancellationToken)
     {
-        var units = await unitsReadRepository.GetPagedAsync(
+        var units = await unitsReadRepository.GetPageAsync(
             pagination: query.Pagination,
             cancellationToken: cancellationToken);
 

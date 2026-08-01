@@ -43,8 +43,8 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
         details.FactionId.ShouldBe(faction.Id.Value);
     }
 
-    [Fact(DisplayName = "GetPagedAsync should return heroes sorted by name when heroes exist")]
-    public async Task GetPagedAsync_Should_ReturnSortedPage_When_HeroesExist()
+    [Fact(DisplayName = "GetPageAsync should return heroes sorted by name when heroes exist")]
+    public async Task GetPageAsync_Should_ReturnSortedPage_When_HeroesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
@@ -59,7 +59,7 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider
             .GetRequiredService<IHeroesReadRepository>();
-        var page = await repository.GetPagedAsync(
+        var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
             cancellationToken);
 

@@ -9,7 +9,7 @@ public sealed class GetHeroesHandler(IHeroesReadRepository heroesReadRepository)
         GetHeroesQuery query,
         CancellationToken cancellationToken)
     {
-        var heroes = await heroesReadRepository.GetPagedAsync(
+        var heroes = await heroesReadRepository.GetPageAsync(
             pagination: query.Pagination,
             cancellationToken: cancellationToken);
 

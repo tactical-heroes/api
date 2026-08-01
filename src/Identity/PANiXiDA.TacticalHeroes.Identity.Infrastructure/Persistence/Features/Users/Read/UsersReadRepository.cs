@@ -16,7 +16,7 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
         Field: nameof(UserReadDbModel.Email),
         Order: SortOrder.Ascending);
 
-    public Task<PaginationResult<UserListItemReadModel>> GetPagedAsync(
+    public Task<PaginationResult<UserListItemReadModel>> GetPageAsync(
         string? email,
         PaginationParameters pagination,
         CancellationToken cancellationToken)

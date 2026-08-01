@@ -17,7 +17,7 @@ public sealed class GetFactionsHandlerTests
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await factionsReadRepository.Received(1).GetPagedAsync(
+        await factionsReadRepository.Received(1).GetPageAsync(
             pagination,
             TestContext.Current.CancellationToken);
     }

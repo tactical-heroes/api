@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 public interface IUsersReadRepository : IReadRepository<Guid>
 {
-    Task<PaginationResult<UserListItemReadModel>> GetPagedAsync(
+    Task<PaginationResult<UserListItemReadModel>> GetPageAsync(
         string? email,
         PaginationParameters pagination,
         CancellationToken cancellationToken);

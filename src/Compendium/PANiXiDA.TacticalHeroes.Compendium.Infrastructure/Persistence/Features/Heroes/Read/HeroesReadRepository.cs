@@ -15,7 +15,7 @@ public sealed class HeroesReadRepository(CompendiumReadDbContext dbContext)
         Field: nameof(HeroReadDbModel.Name),
         Order: SortOrder.Ascending);
 
-    public Task<PaginationResult<HeroListItemReadModel>> GetPagedAsync(
+    public Task<PaginationResult<HeroListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken)
     {

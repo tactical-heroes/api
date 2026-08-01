@@ -21,8 +21,8 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         details.Name.ShouldBe("admin");
     }
 
-    [Fact(DisplayName = "GetPagedAsync should return roles sorted by name when roles exist")]
-    public async Task GetPagedAsync_Should_ReturnSortedPage_When_RolesExist()
+    [Fact(DisplayName = "GetPageAsync should return roles sorted by name when roles exist")]
+    public async Task GetPageAsync_Should_ReturnSortedPage_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await AddRoleAsync("viewer", cancellationToken);
@@ -30,7 +30,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
-        var page = await repository.GetPagedAsync(
+        var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
             cancellationToken);
 
