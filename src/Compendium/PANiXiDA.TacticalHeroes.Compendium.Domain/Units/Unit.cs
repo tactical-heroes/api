@@ -5,14 +5,21 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 
 public sealed class Unit : AggregateRoot<UnitId>
 {
-    private Unit()
-        : base(id: default)
+    private Unit(
+        UnitId id,
+        UnitName name,
+        UnitDescription description,
+        UnitMorale morale,
+        UnitLuck luck,
+        FactionId factionId)
+        : base(id)
     {
-        Name = null!;
-        Description = null!;
+        Name = name;
+        Description = description;
         Stats = null!;
-        Morale = null!;
-        Luck = null!;
+        Morale = morale;
+        Luck = luck;
+        FactionId = factionId;
     }
 
     private Unit(
@@ -23,14 +30,15 @@ public sealed class Unit : AggregateRoot<UnitId>
         UnitMorale morale,
         UnitLuck luck,
         FactionId factionId)
-        : base(id)
+        : this(
+            id: id,
+            name: name,
+            description: description,
+            morale: morale,
+            luck: luck,
+            factionId: factionId)
     {
-        Name = name;
-        Description = description;
         Stats = stats;
-        Morale = morale;
-        Luck = luck;
-        FactionId = factionId;
     }
 
     public UnitName Name { get; private set; }
@@ -41,90 +49,6 @@ public sealed class Unit : AggregateRoot<UnitId>
     public FactionId FactionId { get; private set; }
 
     public static Result<Unit> Create(
-        string name,
-        string description,
-        int attack,
-        int defense,
-        int health,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange,
-        int morale,
-        int luck,
-        Guid factionId)
-    {
-        return CreateValidated(
-            id: UnitId.New(),
-            name: name,
-            description: description,
-            attack: attack,
-            defense: defense,
-            health: health,
-            minimumDamage: minimumDamage,
-            maximumDamage: maximumDamage,
-            initiative: initiative,
-            speed: speed,
-            shots: shots,
-            rangedAttackRange: rangedAttackRange,
-            morale: morale,
-            luck: luck,
-            factionId: factionId);
-    }
-
-    public Result Update(
-        string name,
-        string description,
-        int attack,
-        int defense,
-        int health,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange,
-        int morale,
-        int luck,
-        Guid factionId)
-    {
-        var candidateResult = CreateValidated(
-            id: Id,
-            name: name,
-            description: description,
-            attack: attack,
-            defense: defense,
-            health: health,
-            minimumDamage: minimumDamage,
-            maximumDamage: maximumDamage,
-            initiative: initiative,
-            speed: speed,
-            shots: shots,
-            rangedAttackRange: rangedAttackRange,
-            morale: morale,
-            luck: luck,
-            factionId: factionId);
-
-        if (candidateResult.IsFailure)
-        {
-            return Result.Failure(errors: candidateResult.Errors);
-        }
-
-        var candidate = candidateResult.Value;
-        Name = candidate.Name;
-        Description = candidate.Description;
-        Stats = candidate.Stats;
-        Morale = candidate.Morale;
-        Luck = candidate.Luck;
-        FactionId = candidate.FactionId;
-
-        return Result.Success();
-    }
-
-    private static Result<Unit> CreateValidated(
-        UnitId id,
         string name,
         string description,
         int attack,
@@ -167,12 +91,66 @@ public sealed class Unit : AggregateRoot<UnitId>
             ? Result.Failure<Unit>(errors: validationResult.Errors)
             : Result.Success(
                 value: new Unit(
-                    id: id,
+                    id: UnitId.New(),
                     name: nameResult.Value,
                     description: descriptionResult.Value,
                     stats: statsResult.Value,
                     morale: moraleResult.Value,
                     luck: luckResult.Value,
                     factionId: factionIdResult.Value));
+    }
+
+    public Result Update(
+        string name,
+        string description,
+        int attack,
+        int defense,
+        int health,
+        int minimumDamage,
+        int maximumDamage,
+        double initiative,
+        int speed,
+        int? shots,
+        int? rangedAttackRange,
+        int morale,
+        int luck,
+        Guid factionId)
+    {
+        var nameResult = UnitName.Create(value: name);
+        var descriptionResult = UnitDescription.Create(value: description);
+        var statsResult = UnitCombatStats.Create(
+            attack: attack,
+            defense: defense,
+            health: health,
+            minimumDamage: minimumDamage,
+            maximumDamage: maximumDamage,
+            initiative: initiative,
+            speed: speed,
+            shots: shots,
+            rangedAttackRange: rangedAttackRange);
+        var moraleResult = UnitMorale.Create(value: morale);
+        var luckResult = UnitLuck.Create(value: luck);
+        var factionIdResult = FactionId.Create(value: factionId);
+        var validationResult = Result.Combine(
+            nameResult,
+            descriptionResult,
+            statsResult,
+            moraleResult,
+            luckResult,
+            factionIdResult);
+
+        if (validationResult.IsFailure)
+        {
+            return Result.Failure(errors: validationResult.Errors);
+        }
+
+        Name = nameResult.Value;
+        Description = descriptionResult.Value;
+        Stats = statsResult.Value;
+        Morale = moraleResult.Value;
+        Luck = luckResult.Value;
+        FactionId = factionIdResult.Value;
+
+        return Result.Success();
     }
 }
