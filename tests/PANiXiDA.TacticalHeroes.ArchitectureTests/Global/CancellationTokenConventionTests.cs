@@ -70,6 +70,37 @@ public sealed class CancellationTokenConventionTests
             $"{violations.Length} total.{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
+
+    [Fact(DisplayName = "Cancellation tokens should be available when cancellable operation is invoked")]
+    public async Task CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked()
+    {
+        var analysis = await CancellationTokenSourceDiscovery.GetAnalysisAsync();
+        var violations = analysis.Invocations
+            .Where(invocation =>
+                IsProductionSource(invocation.RelativePath) &&
+                !invocation.HasAvailableToken &&
+                !invocation.PassesAllTokens)
+            .Select(invocation =>
+                $"{invocation.RelativePath}:{invocation.LineNumber}: " +
+                $"'{invocation.Expression}' supports cancellation, but no " +
+                $"token is available. Add a CancellationToken parameter and " +
+                $"propagate it from the entry point.")
+            .ToArray();
+
+        Assert.NotEmpty(analysis.Invocations);
+        Assert.True(
+            violations.Length == 0,
+            $"Missing cancellation token sources: " +
+            $"{violations.Length} total.{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    private static bool IsProductionSource(string relativePath)
+    {
+        return relativePath.StartsWith(
+            $"src{Path.DirectorySeparatorChar}",
+            StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 internal static class CancellationTokenSourceDiscovery

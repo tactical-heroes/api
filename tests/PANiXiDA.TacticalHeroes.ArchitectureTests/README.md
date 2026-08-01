@@ -453,22 +453,29 @@ repository и query handler являются наследниками `ReadModel
     метод объявляет параметр `CancellationToken`, а токен уже доступен в текущей
     области видимости, его нужно передать явно.
 
+89. `CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked`
+    — если в production-коде из `src` вызываемый метод поддерживает
+    `CancellationToken`, но токен не передан и недоступен в текущей области
+    видимости, текущий метод должен получить токен параметром. Токен
+    последовательно прокидывается по цепочке вызовов от точки входа до
+    отменяемой операции.
+
 ## Оформление тестов
 
-89. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+90. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-90. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+91. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-91. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+92. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-92. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+93. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
