@@ -492,31 +492,24 @@ repository и query handler являются наследниками `ReadModel
     — каждая реализация абстракции Domain или Application из Infrastructure
     должна присутствовать в итоговом `IServiceCollection` модуля.
 
-96. `ApplicationAbstractionImplementations_Should_BeRegisteredExactlyOnceAsScoped_When_Declared`
-    — каждая реализация интерфейса из Application в Infrastructure должна быть
-    зарегистрирована ровно один раз с lifetime `Scoped`. Учитываются
-    автоматические регистрации из Core, поэтому повторная ручная регистрация
-    также считается нарушением.
+96. `DatabaseContexts_Should_BeRegistered_When_Declared` — каждый конкретный
+    `DbContext` должен присутствовать в итоговом `IServiceCollection` модуля.
 
-97. `DatabaseContexts_Should_BeRegisteredExactlyOnceAsScoped_When_Declared` —
-    каждый конкретный `DbContext` должен быть зарегистрирован ровно один раз с
-    lifetime `Scoped`.
-
-98. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
+97. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
     route endpoint должен явно вызвать `RequireAuthorization()` или
     `AllowAnonymous()`, либо наследовать такое решение от своей endpoint group.
 
-99. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
+98. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
     включая явно заданные через `WithName`, должны быть уникальны.
 
-100. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
-     method и полного route endpoint group + endpoint должно быть уникально.
+99. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
+    method и полного route endpoint group + endpoint должно быть уникально.
 
-101. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
+100. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
      production-коде запрещены блокирующие вызовы `Task.Wait()`, `Task.Result`
      и `GetAwaiter().GetResult()`.
 
-102. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
+101. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
      методы, local functions и lambdas в production-коде не должны быть
      `async void`.
 

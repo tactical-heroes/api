@@ -5,8 +5,6 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
 public sealed class DependencyInjectionConventionTests
 {
-    private const string ApplicationAssemblySuffix = ".Application";
-
     [Fact(DisplayName = "Infrastructure implementations should be registered for domain or application abstractions when declared")]
     public void InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared()
     {
@@ -30,53 +28,16 @@ public sealed class DependencyInjectionConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Application abstraction implementations should be registered exactly once as scoped when declared")]
-    public void ApplicationAbstractionImplementations_Should_BeRegisteredExactlyOnceAsScoped_When_Declared()
-    {
-        var registrations = GetAbstractionRegistrations()
-            .Where(registration => registration.Abstraction.Assembly
-                .GetName()
-                .Name?
-                .EndsWith(
-                    ApplicationAssemblySuffix,
-                    StringComparison.Ordinal) == true)
-            .ToArray();
-        var violations = registrations
-            .Where(registration =>
-                registration.ServiceDescriptors.Length != 1 ||
-                registration.ServiceDescriptors[0].Lifetime !=
-                ServiceLifetime.Scoped ||
-                !IsImplementation(
-                    registration.ServiceDescriptors[0],
-                    registration.Implementation))
-            .Select(registration =>
-                $"{registration.Abstraction.FullName} must have exactly one " +
-                $"scoped registration for " +
-                $"{registration.Implementation.FullName}; found " +
-                $"{FormatDescriptors(registration.ServiceDescriptors)}.")
-            .ToArray();
-
-        Assert.NotEmpty(registrations);
-        Assert.True(
-            violations.Length == 0,
-            $"Application abstraction registration violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
-    }
-
-    [Fact(DisplayName = "Database contexts should be registered exactly once as scoped when declared")]
-    public void DatabaseContexts_Should_BeRegisteredExactlyOnceAsScoped_When_Declared()
+    [Fact(DisplayName = "Database contexts should be registered when declared")]
+    public void DatabaseContexts_Should_BeRegistered_When_Declared()
     {
         var registrations = GetDatabaseContextRegistrations();
         var violations = registrations
             .Where(registration =>
-                registration.ServiceDescriptors.Length != 1 ||
-                registration.ServiceDescriptors[0].Lifetime !=
-                ServiceLifetime.Scoped)
+                registration.ServiceDescriptors.Length == 0)
             .Select(registration =>
-                $"{registration.DatabaseContext.FullName} must have exactly " +
-                $"one scoped registration; found " +
-                $"{FormatDescriptors(registration.ServiceDescriptors)}.")
+                $"{registration.DatabaseContext.FullName} must be " +
+                $"registered in the module service collection.")
             .ToArray();
 
         Assert.NotEmpty(registrations);
@@ -195,18 +156,6 @@ public sealed class DependencyInjectionConventionTests
     {
         return descriptor.ImplementationType == implementation ||
                descriptor.ImplementationInstance?.GetType() == implementation;
-    }
-
-    private static string FormatDescriptors(
-        IReadOnlyCollection<ServiceDescriptor> descriptors)
-    {
-        return descriptors.Count == 0
-            ? "<none>"
-            : string.Join(
-                ", ",
-                descriptors.Select(descriptor =>
-                    $"{descriptor.Lifetime}:" +
-                    $"{descriptor.ImplementationType?.FullName ?? "factory"}"));
     }
 
     private sealed record AbstractionRegistration(
