@@ -12,9 +12,12 @@ internal sealed class UnitsApiTestClient(FunctionalTestFixture fixture)
     private const string UnitsPath = "/api/v1/units";
 
     internal Task<CreateFactionResponse> CreateFactionAsync(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        CreateFactionRequest? request = null)
     {
-        return new FactionsApiTestClient(fixture).CreateAsync(cancellationToken);
+        return new FactionsApiTestClient(fixture).CreateAsync(
+            cancellationToken,
+            request);
     }
 
     internal async Task<CreateUnitResponse> CreateAsync(

@@ -1,4 +1,5 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;
@@ -10,32 +11,8 @@ internal sealed partial class UnitListItemReadModelMapper
     : IReadModelMapper<Guid, UnitReadDbModel, UnitListItemReadModel>
 {
     [MapProperty(
-        nameof(UnitReadDbModel.StatsAttack),
-        nameof(UnitListItemReadModel.Attack))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsDefense),
-        nameof(UnitListItemReadModel.Defense))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsHealth),
-        nameof(UnitListItemReadModel.Health))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsMinimumDamage),
-        nameof(UnitListItemReadModel.MinimumDamage))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsMaximumDamage),
-        nameof(UnitListItemReadModel.MaximumDamage))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsInitiative),
-        nameof(UnitListItemReadModel.Initiative))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsSpeed),
-        nameof(UnitListItemReadModel.Speed))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsShots),
-        nameof(UnitListItemReadModel.Shots))]
-    [MapProperty(
-        nameof(UnitReadDbModel.StatsRangedAttackRange),
-        nameof(UnitListItemReadModel.RangedAttackRange))]
+        $"{nameof(UnitReadDbModel.Faction)}.{nameof(FactionReadDbModel.Name)}",
+        nameof(UnitListItemReadModel.FactionName))]
     private static partial UnitListItemReadModel ToReadModel(
         UnitReadDbModel unit);
 

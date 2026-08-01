@@ -71,6 +71,7 @@ public sealed class UnitsReadRepositoryTests(IntegrationTestFixture fixture)
         page.Items.Select(item => item.Name)
             .ShouldBe(["Archer", "Marksman"]);
         page.Items.ShouldAllBe(item => item.FactionId == faction.Id.Value);
+        page.Items.ShouldAllBe(item => item.FactionName == faction.Name.Value);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true when unit exists")]

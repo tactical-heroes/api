@@ -82,6 +82,23 @@ public sealed class ReadModelConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations")]
+    public void ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations()
+    {
+        var readDbModels = GetReadDatabaseModels();
+        var violations = readDbModels
+            .SelectMany(readDbModel =>
+                GetAggregateNavigationViolations(
+                    readDbModel,
+                    readDbModels))
+            .ToArray();
+
+        Assert.True(
+            violations.Length == 0,
+            $"Read database model navigation violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     private static Type[] GetReadModelMappers()
     {
         return InfrastructurePersistenceConvention
@@ -151,5 +168,83 @@ public sealed class ReadModelConventionTests
             featureName,
             "Read",
             "Mappers");
+    }
+
+    private static IEnumerable<string> GetAggregateNavigationViolations(
+        Type dependentReadDbModel,
+        IReadOnlyCollection<Type> readDbModels)
+    {
+        var module =
+            InfrastructurePersistenceConvention.GetModule(dependentReadDbModel);
+        var aggregateNames = InfrastructurePersistenceConvention
+            .GetAggregateRootTypes(module)
+            .Select(type => type.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var foreignKey in dependentReadDbModel
+                     .GetProperties()
+                     .Where(property =>
+                         property.Name.Length > "Id".Length &&
+                         property.Name.EndsWith("Id", StringComparison.Ordinal)))
+        {
+            var aggregateName = foreignKey.Name[..^"Id".Length];
+
+            if (!aggregateNames.Contains(aggregateName))
+            {
+                continue;
+            }
+
+            var principalReadDbModel = readDbModels.SingleOrDefault(type =>
+                type.Assembly == dependentReadDbModel.Assembly &&
+                string.Equals(
+                    type.Name,
+                    aggregateName + ReadDbModelSuffix,
+                    StringComparison.Ordinal));
+
+            if (principalReadDbModel is null)
+            {
+                yield return
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} " +
+                    $"references aggregate '{aggregateName}', but its " +
+                    $"{ReadDbModelSuffix} is not declared in the module.";
+                continue;
+            }
+
+            if (!dependentReadDbModel
+                    .GetProperties()
+                    .Any(property =>
+                        property.PropertyType == principalReadDbModel))
+            {
+                yield return
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} " +
+                    $"must have a reference navigation to " +
+                    $"{principalReadDbModel.FullName}.";
+            }
+
+            if (!principalReadDbModel
+                    .GetProperties()
+                    .Any(property => IsCollectionOf(
+                        property.PropertyType,
+                        dependentReadDbModel)))
+            {
+                yield return
+                    $"{principalReadDbModel.FullName} must have a collection " +
+                    $"navigation to {dependentReadDbModel.FullName} for " +
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name}.";
+            }
+        }
+    }
+
+    private static bool IsCollectionOf(
+        Type propertyType,
+        Type elementType)
+    {
+        return propertyType
+            .GetInterfaces()
+            .Append(propertyType)
+            .Any(type =>
+                type.IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(ICollection<>) &&
+                type.GenericTypeArguments[0] == elementType);
     }
 }
