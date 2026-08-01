@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models;
 
@@ -82,6 +84,23 @@ public sealed class ReadModelConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations when declared")]
+    public void ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared()
+    {
+        var readDbModels = GetReadDatabaseModels();
+        var violations = readDbModels
+            .SelectMany(readDbModel =>
+                GetAggregateNavigationViolations(
+                    readDbModel,
+                    readDbModels))
+            .ToArray();
+
+        Assert.True(
+            violations.Length == 0,
+            $"Read database model navigation violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     private static Type[] GetReadModelMappers()
     {
         return InfrastructurePersistenceConvention
@@ -151,5 +170,94 @@ public sealed class ReadModelConventionTests
             featureName,
             "Read",
             "Mappers");
+    }
+
+    private static IEnumerable<string> GetAggregateNavigationViolations(
+        Type dependentReadDbModel,
+        IReadOnlyCollection<Type> readDbModels)
+    {
+        var module =
+            InfrastructurePersistenceConvention.GetModule(dependentReadDbModel);
+        var aggregateNames = InfrastructurePersistenceConvention
+            .GetAggregateRootTypes(module)
+            .Select(type => type.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var foreignKey in dependentReadDbModel
+                     .GetProperties()
+                     .Where(property =>
+                         property.Name.Length > "Id".Length &&
+                         property.Name.EndsWith("Id", StringComparison.Ordinal)))
+        {
+            var aggregateName = foreignKey.Name[..^"Id".Length];
+
+            if (!aggregateNames.Contains(aggregateName))
+            {
+                continue;
+            }
+
+            var principalReadDbModel = readDbModels.SingleOrDefault(type =>
+                type.Assembly == dependentReadDbModel.Assembly &&
+                string.Equals(
+                    type.Name,
+                    aggregateName + ReadDbModelSuffix,
+                    StringComparison.Ordinal));
+
+            if (principalReadDbModel is null)
+            {
+                yield return
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} " +
+                    $"references aggregate '{aggregateName}', but its " +
+                    $"{ReadDbModelSuffix} is not declared in the module.";
+                continue;
+            }
+
+            var referenceNavigation = dependentReadDbModel
+                .GetProperties()
+                .SingleOrDefault(property =>
+                    property.PropertyType == principalReadDbModel);
+
+            if (referenceNavigation is null)
+            {
+                yield return
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} " +
+                    $"must have a reference navigation to " +
+                    $"{principalReadDbModel.FullName}.";
+            }
+            else if (new NullabilityInfoContext()
+                         .Create(referenceNavigation)
+                         .ReadState != NullabilityState.Nullable)
+            {
+                yield return
+                    $"{dependentReadDbModel.FullName}." +
+                    $"{referenceNavigation.Name} reference navigation " +
+                    $"must be nullable.";
+            }
+
+            if (!principalReadDbModel
+                    .GetProperties()
+                    .Any(property => IsCollectionOf(
+                        property.PropertyType,
+                        dependentReadDbModel)))
+            {
+                yield return
+                    $"{principalReadDbModel.FullName} must have a collection " +
+                    $"navigation to {dependentReadDbModel.FullName} for " +
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name}.";
+            }
+        }
+    }
+
+    private static bool IsCollectionOf(
+        Type propertyType,
+        Type elementType)
+    {
+        return propertyType
+            .GetInterfaces()
+            .Append(propertyType)
+            .Any(type =>
+                type.IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(ICollection<>) &&
+                type.GenericTypeArguments[0] == elementType);
     }
 }

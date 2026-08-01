@@ -508,6 +508,27 @@ repository и query handler являются наследниками `ReadModel
      методы, local functions и lambdas в production-коде не должны быть
      `async void`.
 
+101. `NullForgivingAssignments_Should_TargetOnlyComplexValueObjects_When_UsedInDomainState`
+     — присваивание `null!` в состоянии aggregate root и entity разрешено
+     только для комплексного value object с несколькими значениями.
+
+102. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
+     — command validator не должен повторять бизнес-инварианты через встроенные
+     сравнения, диапазоны или произвольные предикаты FluentValidation; проверки
+     должны делегироваться доменным фабрикам.
+
+103. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
+     — `HasMaxLength` в entity configuration должен ссылаться на публичную
+     доменную константу `MaxLength`, а не дублировать числовое ограничение.
+
+104. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
+     — внешний ключ на aggregate read model из того же модуля требует nullable
+     reference navigation у зависимой модели и collection navigation у главной.
+
+105. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
+     — endpoint не должен повторять тот же `RequireAuthorization` или
+     `AllowAnonymous`, который уже объявлен его endpoint group.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.

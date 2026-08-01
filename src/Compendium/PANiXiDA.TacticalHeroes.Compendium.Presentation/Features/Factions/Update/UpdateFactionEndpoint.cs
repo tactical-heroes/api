@@ -11,7 +11,6 @@ internal sealed class UpdateFactionEndpoint : IEndpoint<FactionsEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPut(HandleAsync)
-            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

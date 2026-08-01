@@ -8,6 +8,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
 public sealed class EntityConfigurationConventionTests
 {
+    private const string MaximumLengthMemberName = "MaxLength";
+
     private static readonly string[] ExplicitStoreNamingMethods =
     [
         "HasColumnName",
@@ -87,6 +89,28 @@ public sealed class EntityConfigurationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Entity configuration length limits should reference domain constants when declared")]
+    public void EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared()
+    {
+        var configurations = GetEntityTypeConfigurations();
+        var domainTypesWithMaximumLength = GetDomainTypesWithMaximumLength();
+        var violations = configurations
+            .SelectMany(configuration =>
+                GetLengthConstraintViolations(
+                    configuration,
+                    domainTypesWithMaximumLength))
+            .ToArray();
+
+        Assert.NotEmpty(configurations);
+        Assert.NotEmpty(domainTypesWithMaximumLength);
+        Assert.True(
+            violations.Length == 0,
+            $"Entity configuration length limits must reference a domain " +
+            $"type's {MaximumLengthMemberName} constant:" +
+            $"{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     private static Type[] GetAuditableEntityConfigurations()
     {
         return InfrastructurePersistenceConvention
@@ -105,6 +129,93 @@ public sealed class EntityConfigurationConventionTests
                     .GetClosedGenericInterface(
                         type,
                         typeof(IEntityTypeConfiguration<>)) is not null);
+    }
+
+    private static HashSet<string> GetDomainTypesWithMaximumLength()
+    {
+        var productionAssemblies = ArchitectureDefinition
+            .ProductionAssemblies
+            .ToDictionary(
+                assembly => assembly.GetName().Name
+                    ?? throw new InvalidOperationException(
+                        $"Could not determine the name of assembly " +
+                        $"'{assembly.FullName}'."),
+                StringComparer.Ordinal);
+
+        return ArchitectureDefinition.Modules
+            .SelectMany(module => productionAssemblies[
+                    module.DomainAssemblyName]
+                .GetTypes())
+            .Where(type => type.GetField(MaximumLengthMemberName) is
+            {
+                IsLiteral: true,
+                IsStatic: true,
+                IsPublic: true
+            })
+            .Select(type => type.Name)
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    private static IEnumerable<string> GetLengthConstraintViolations(
+        Type configuration,
+        IReadOnlySet<string> domainTypesWithMaximumLength)
+    {
+        return InfrastructurePersistenceConvention
+            .FindSourceFiles(configuration)
+            .SelectMany(sourceFile =>
+            {
+                var syntaxRoot = CSharpSyntaxTree
+                    .ParseText(File.ReadAllText(sourceFile))
+                    .GetRoot();
+
+                return syntaxRoot
+                    .DescendantNodes()
+                    .OfType<TypeDeclarationSyntax>()
+                    .Where(declaration => string.Equals(
+                        declaration.Identifier.ValueText,
+                        configuration.Name,
+                        StringComparison.Ordinal))
+                    .SelectMany(declaration => declaration
+                        .DescendantNodes()
+                        .OfType<InvocationExpressionSyntax>())
+                    .Where(invocation => string.Equals(
+                        GetInvokedMethodName(invocation),
+                        "HasMaxLength",
+                        StringComparison.Ordinal))
+                    .Where(invocation => !IsDomainMaximumLengthReference(
+                        invocation,
+                        domainTypesWithMaximumLength))
+                    .Select(invocation =>
+                        $"{configuration.FullName} calls HasMaxLength " +
+                        $"without a domain {MaximumLengthMemberName} " +
+                        $"constant at '{Path.GetFileName(sourceFile)}:" +
+                        $"{invocation.GetLocation()
+                            .GetLineSpan()
+                            .StartLinePosition.Line + 1}'.");
+            });
+    }
+
+    private static bool IsDomainMaximumLengthReference(
+        InvocationExpressionSyntax invocation,
+        IReadOnlySet<string> domainTypesWithMaximumLength)
+    {
+        if (invocation.ArgumentList.Arguments.SingleOrDefault()?.Expression is not
+            MemberAccessExpressionSyntax
+            {
+                Name.Identifier.ValueText: MaximumLengthMemberName
+            } memberAccess)
+        {
+            return false;
+        }
+
+        var ownerName = memberAccess.Expression
+            .DescendantNodesAndSelf()
+            .OfType<SimpleNameSyntax>()
+            .LastOrDefault()
+            ?.Identifier.ValueText;
+
+        return ownerName is not null &&
+               domainTypesWithMaximumLength.Contains(ownerName);
     }
 
     private static IEnumerable<string> GetExplicitStoreNamingViolations(

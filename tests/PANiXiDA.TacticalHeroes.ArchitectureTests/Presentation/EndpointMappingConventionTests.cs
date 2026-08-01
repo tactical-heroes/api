@@ -32,6 +32,29 @@ public sealed class EndpointMappingConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Endpoint mappings should not repeat matching group authorization when authorization matches")]
+    public async Task EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches()
+    {
+        var mappings = await EndpointMappingSourceDiscovery.GetMappingsAsync();
+        var violations = mappings
+            .SelectMany(mapping => mapping.EndpointAuthorizationDeclarations
+                .Intersect(
+                    mapping.GroupAuthorizationDeclarations,
+                    StringComparer.Ordinal)
+                .Select(authorization =>
+                    $"{mapping.RelativePath}:{mapping.LineNumber}: " +
+                    $"{mapping.Endpoint.FullName} repeats group " +
+                    $"authorization '{authorization}'."))
+            .ToArray();
+
+        Assert.NotEmpty(mappings);
+        Assert.True(
+            violations.Length == 0,
+            $"Duplicate endpoint group authorization:" +
+            $"{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     [Fact(DisplayName = "Endpoint names should be unique when mapped")]
     public async Task EndpointNames_Should_BeUnique_When_Mapped()
     {
@@ -118,7 +141,7 @@ internal static class EndpointMappingSourceDiscovery
             .SelectMany(document => document.GroupAuthorization)
             .ToDictionary(
                 authorization => authorization.TypeName,
-                authorization => authorization.HasAuthorizationIntent,
+                authorization => authorization,
                 StringComparer.Ordinal);
         var endpointTypes = PresentationArchitectureConvention
             .GetEndpoints()
@@ -146,7 +169,8 @@ internal static class EndpointMappingSourceDiscovery
     private static EndpointMapping CreateMapping(
         EndpointMappingSource source,
         IReadOnlyDictionary<string, Type> endpointTypes,
-        IReadOnlyDictionary<string, bool> groupAuthorization)
+        IReadOnlyDictionary<string, EndpointGroupAuthorization>
+            groupAuthorization)
     {
         var endpoint = endpointTypes[source.EndpointTypeName];
         var endpointGroup =
@@ -165,6 +189,8 @@ internal static class EndpointMappingSourceDiscovery
             ?? throw new InvalidOperationException(
                 $"Endpoint group '{endpointGroup}' does not have a full " +
                 $"name.");
+        var endpointGroupAuthorization =
+            groupAuthorization.GetValueOrDefault(endpointGroupName);
 
         return new EndpointMapping(
             Endpoint: endpoint,
@@ -179,7 +205,11 @@ internal static class EndpointMappingSourceDiscovery
             ApiVersion: groupInstance.ApiVersion.ToString(),
             HasAuthorizationIntent:
                 source.HasAuthorizationIntent ||
-                groupAuthorization.GetValueOrDefault(endpointGroupName));
+                endpointGroupAuthorization?.HasAuthorizationIntent == true,
+            EndpointAuthorizationDeclarations:
+                source.AuthorizationDeclarations,
+            GroupAuthorizationDeclarations:
+                endpointGroupAuthorization?.AuthorizationDeclarations ?? []);
     }
 
     private static async Task<EndpointMappingDocument[]>
@@ -237,6 +267,9 @@ internal static class EndpointMappingSourceDiscovery
                 TypeName: target.Symbol!.ToDisplayString(),
                 HasAuthorizationIntent: HasAuthorizationIntent(
                     semanticModel,
+                    target.Declaration),
+                AuthorizationDeclarations: GetAuthorizationDeclarations(
+                    semanticModel,
                     target.Declaration)))
             .ToArray();
 
@@ -280,6 +313,9 @@ internal static class EndpointMappingSourceDiscovery
                     semanticModel,
                     target.Invocation),
                 HasAuthorizationIntent: HasAuthorizationIntent(
+                    semanticModel,
+                    GetMappingStatement(target.Invocation)),
+                AuthorizationDeclarations: GetAuthorizationDeclarations(
                     semanticModel,
                     GetMappingStatement(target.Invocation))));
     }
@@ -346,14 +382,40 @@ internal static class EndpointMappingSourceDiscovery
         SemanticModel semanticModel,
         SyntaxNode node)
     {
-        return node
+        return GetAuthorizationDeclarations(
+                semanticModel,
+                node)
+            .Length > 0;
+    }
+
+    private static string[] GetAuthorizationDeclarations(
+        SemanticModel semanticModel,
+        SyntaxNode node)
+    {
+        return
+        [
+            .. node
             .DescendantNodesAndSelf()
             .OfType<InvocationExpressionSyntax>()
-            .Select(invocation => semanticModel.GetOperation(invocation) as
-                IInvocationOperation)
-            .OfType<IInvocationOperation>()
-            .Any(operation => operation.TargetMethod.Name is
-                "RequireAuthorization" or "AllowAnonymous");
+            .Select(invocation => new
+            {
+                Invocation = invocation,
+                Operation = semanticModel.GetOperation(invocation) as
+                    IInvocationOperation
+            })
+            .Where(target => target.Operation?.TargetMethod.Name is
+                "RequireAuthorization" or "AllowAnonymous")
+            .Select(target =>
+                $"{target.Operation!.TargetMethod.Name}(" +
+                string.Join(
+                    ",",
+                    target.Invocation.ArgumentList.Arguments.Select(argument =>
+                        argument.Expression
+                            .NormalizeWhitespace()
+                            .ToFullString())) +
+                ")")
+            .Distinct(StringComparer.Ordinal)
+        ];
     }
 
     private static SyntaxNode GetMappingStatement(
@@ -409,7 +471,9 @@ internal sealed record EndpointMapping(
     string Name,
     string Route,
     string ApiVersion,
-    bool HasAuthorizationIntent);
+    bool HasAuthorizationIntent,
+    string[] EndpointAuthorizationDeclarations,
+    string[] GroupAuthorizationDeclarations);
 
 internal sealed record EndpointMappingDocument(
     EndpointMappingSource[] Mappings,
@@ -422,8 +486,10 @@ internal sealed record EndpointMappingSource(
     int Position,
     string[] HttpMethods,
     string? ExplicitName,
-    bool HasAuthorizationIntent);
+    bool HasAuthorizationIntent,
+    string[] AuthorizationDeclarations);
 
 internal sealed record EndpointGroupAuthorization(
     string TypeName,
-    bool HasAuthorizationIntent);
+    bool HasAuthorizationIntent,
+    string[] AuthorizationDeclarations);
