@@ -1,4 +1,3 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Validation;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
