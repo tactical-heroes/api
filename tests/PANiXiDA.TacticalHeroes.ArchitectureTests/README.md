@@ -428,22 +428,29 @@ repository и query handler являются наследниками `ReadModel
 84. `SynchronousMethods_Should_NotEndWithAsync_When_Declared` — синхронные
     production-методы не должны оканчиваться на `Async`.
 
+85. `CurrentTimeAccess_Should_UseTimeProviderUtc_When_Declared` — текущее время
+    в авторских C#-исходниках из `src` должно получаться через
+    `TimeProvider.GetUtcNow()`. Прямые обращения к `DateTime.Now`,
+    `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`,
+    `DateTimeOffset.UtcNow` и `TimeProvider.GetLocalNow()` запрещены. EF
+    migrations, `bin`, `obj` и `Generated` не проверяются.
+
 ## Оформление тестов
 
-85. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+86. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-86. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+87. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-87. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+88. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-88. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+89. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 

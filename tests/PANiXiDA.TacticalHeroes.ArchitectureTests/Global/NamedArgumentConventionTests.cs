@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
@@ -33,53 +32,11 @@ public sealed class NamedArgumentConventionTests
 internal static class NamedArgumentSourceDiscovery
 {
     private const int NamedArgumentsRequiredFromCount = 3;
-    private const string SourceRootDirectoryName = "src";
-
-    private static readonly string[] ExcludedDirectoryNames =
-    [
-        "bin",
-        "obj",
-        "Generated",
-        "Migrations"
-    ];
 
     internal static async Task<NamedArgumentSource[]> GetArgumentsAsync()
     {
-        var repositoryRoot = FindRepositoryRoot();
-        var solutionPath = Directory
-            .EnumerateFiles(
-                repositoryRoot,
-                "*.slnx",
-                SearchOption.TopDirectoryOnly)
-            .Single();
-        using var workspace = MSBuildWorkspace.Create();
-        var solution = await workspace.OpenSolutionAsync(solutionPath);
-        var arguments = new List<NamedArgumentSource>();
-
-        foreach (var project in solution.Projects
-                     .Where(project =>
-                         IsSourceProject(
-                             repositoryRoot,
-                             project.FilePath))
-                     .OrderBy(
-                         project => project.FilePath,
-                         StringComparer.Ordinal))
-        {
-            foreach (var document in project.Documents
-                         .Where(document =>
-                             IsSourceFile(
-                                 repositoryRoot,
-                                 document.FilePath))
-                         .OrderBy(
-                             document => document.FilePath,
-                             StringComparer.Ordinal))
-            {
-                arguments.AddRange(
-                    await GetDocumentArgumentsAsync(
-                        repositoryRoot,
-                        document));
-            }
-        }
+        var arguments = await ProductionSourceDocumentDiscovery
+            .GetItemsAsync(GetDocumentArgumentsAsync);
 
         return
         [
@@ -270,75 +227,6 @@ internal static class NamedArgumentSourceDiscovery
                    StringComparison.Ordinal);
     }
 
-    private static bool IsSourceProject(
-        string repositoryRoot,
-        string? projectFile)
-    {
-        return projectFile is not null &&
-               IsWithinSourceRoot(
-                   repositoryRoot,
-                   projectFile);
-    }
-
-    private static bool IsSourceFile(
-        string repositoryRoot,
-        string? sourceFile)
-    {
-        return sourceFile is not null &&
-               IsWithinSourceRoot(
-                   repositoryRoot,
-                   sourceFile) &&
-               !sourceFile
-                   .Split(
-                       [
-                           Path.DirectorySeparatorChar,
-                           Path.AltDirectorySeparatorChar
-                       ],
-                       StringSplitOptions.RemoveEmptyEntries)
-                   .Any(segment =>
-                       ExcludedDirectoryNames.Contains(
-                           segment,
-                           StringComparer.OrdinalIgnoreCase));
-    }
-
-    private static bool IsWithinSourceRoot(
-        string repositoryRoot,
-        string path)
-    {
-        var sourceRoot = Path.Combine(
-                repositoryRoot,
-                SourceRootDirectoryName)
-            + Path.DirectorySeparatorChar;
-
-        return Path.GetFullPath(path)
-            .StartsWith(
-                sourceRoot,
-                StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory);
-             directory is not null;
-             directory = directory.Parent)
-        {
-            if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceRootDirectoryName)) &&
-                Directory.EnumerateFiles(
-                        directory.FullName,
-                        "*.slnx",
-                        SearchOption.TopDirectoryOnly)
-                    .Any())
-            {
-                return directory.FullName;
-            }
-        }
-
-        throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"'{SourceRootDirectoryName}' and a solution file.");
-    }
 }
 
 internal sealed record NamedArgumentSource(
