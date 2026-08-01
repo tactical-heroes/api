@@ -9,7 +9,6 @@ public sealed class Hero : AggregateRoot<HeroId>
         HeroId id,
         HeroName name,
         HeroDescription description,
-        HeroCombatStats stats,
         HeroMorale morale,
         HeroLuck luck,
         FactionId factionId)
@@ -17,10 +16,29 @@ public sealed class Hero : AggregateRoot<HeroId>
     {
         Name = name;
         Description = description;
-        Stats = stats;
+        Stats = null!;
         Morale = morale;
         Luck = luck;
         FactionId = factionId;
+    }
+
+    private Hero(
+        HeroId id,
+        HeroName name,
+        HeroDescription description,
+        HeroCombatStats stats,
+        HeroMorale morale,
+        HeroLuck luck,
+        FactionId factionId)
+        : this(
+            id: id,
+            name: name,
+            description: description,
+            morale: morale,
+            luck: luck,
+            factionId: factionId)
+    {
+        Stats = stats;
     }
 
     public HeroName Name { get; private set; }

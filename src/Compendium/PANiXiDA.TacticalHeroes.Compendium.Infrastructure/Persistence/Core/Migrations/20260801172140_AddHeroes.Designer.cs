@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
@@ -12,9 +13,11 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(CompendiumWriteDbContext))]
-    partial class CompendiumWriteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260801172140_AddHeroes")]
+    partial class AddHeroes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
