@@ -1,9 +1,6 @@
-using System.Reflection;
-
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
@@ -58,7 +55,7 @@ public sealed class AggregatePersistenceConventionTests
                                 assembly.GetName().Name,
                                 module.InfrastructureAssemblyName,
                                 StringComparison.Ordinal));
-                    var services = GetServiceCollection(
+                    var services = InfrastructureServiceCollectionFactory.Create(
                         infrastructureAssembly);
                     var infrastructureTypes =
                         infrastructureAssembly.GetTypes();
@@ -142,64 +139,6 @@ public sealed class AggregatePersistenceConventionTests
                     aggregate => aggregate.AggregateType.FullName,
                     StringComparer.Ordinal)
         ];
-    }
-
-    private static IServiceCollection GetServiceCollection(
-        Assembly infrastructureAssembly)
-    {
-        var addInfrastructureMethod = infrastructureAssembly
-            .GetTypes()
-            .SelectMany(type => type.GetMethods(
-                BindingFlags.Public |
-                BindingFlags.Static |
-                BindingFlags.DeclaredOnly))
-            .Single(method =>
-            {
-                var parameters = method.GetParameters();
-
-                return string.Equals(
-                           method.Name,
-                           "AddInfrastructure",
-                           StringComparison.Ordinal) &&
-                       parameters.Length >= 2 &&
-                       parameters[0].ParameterType ==
-                       typeof(IServiceCollection) &&
-                       parameters[1].ParameterType ==
-                       typeof(IConfiguration);
-            });
-        var serviceCollection = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:PostgreSqlConnectionString"] =
-                    "Host=localhost;Database=architecture-tests"
-            })
-            .Build();
-        var arguments = addInfrastructureMethod
-            .GetParameters()
-            .Select(parameter =>
-            {
-                if (parameter.ParameterType == typeof(IServiceCollection))
-                {
-                    return serviceCollection;
-                }
-
-                if (parameter.ParameterType == typeof(IConfiguration))
-                {
-                    return configuration;
-                }
-
-                return parameter.HasDefaultValue
-                    ? parameter.DefaultValue
-                    : null;
-            })
-            .ToArray();
-
-        addInfrastructureMethod.Invoke(
-            obj: null,
-            parameters: arguments);
-
-        return serviceCollection;
     }
 
     private static IEnumerable<string> GetRepositoryViolations(

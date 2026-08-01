@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 
+using PANiXiDA.Core.Domain;
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.Entities;
 
@@ -92,20 +93,56 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Domain objects should declare only private constructors when created through factories")]
+    public void DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories()
+    {
+        var domainObjects = GetDomainTypes()
+            .Where(type =>
+                type is { IsClass: true, IsAbstract: false } &&
+                (typeof(IEntity).IsAssignableFrom(type) ||
+                 typeof(ValueObject).IsAssignableFrom(type)))
+            .ToArray();
+        var violations = domainObjects
+            .SelectMany(type => type
+                .GetConstructors(
+                    BindingFlags.Instance |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.DeclaredOnly)
+                .Where(constructor => !constructor.IsPrivate)
+                .Select(constructor =>
+                    $"{type.FullName} declares non-private constructor " +
+                    $"'{constructor}' and must expose creation through a " +
+                    $"factory method instead."))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(domainObjects);
+        Assert.True(
+            violations.Length == 0,
+            $"Non-private Domain object constructors:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     private static Type[] GetDomainEntities()
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
-                .Where(assembly => assembly.GetName().Name?.EndsWith(
-                    DomainAssemblySuffix,
-                    StringComparison.Ordinal) == true)
-                .SelectMany(assembly => assembly.GetTypes())
+            .. GetDomainTypes()
                 .Where(type =>
                     type is { IsClass: true, IsAbstract: false } &&
                     typeof(IEntity).IsAssignableFrom(type))
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
         ];
+    }
+
+    private static IEnumerable<Type> GetDomainTypes()
+    {
+        return ArchitectureDefinition.ProductionAssemblies
+            .Where(assembly => assembly.GetName().Name?.EndsWith(
+                DomainAssemblySuffix,
+                StringComparison.Ordinal) == true)
+            .SelectMany(assembly => assembly.GetTypes());
     }
 
     private static IEnumerable<PublicStateMember> GetPublicStateMembers(

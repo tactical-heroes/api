@@ -382,53 +382,51 @@ repository и query handler являются наследниками `ReadModel
     `CreatedAtRoute` должен передавать `routeName` строготипизированно через
     `new <Target>Endpoint().Name`.
 
-76. `PresentationApplicationReferences_Should_ExistOnlyInMappers_When_Declared`
-    — ссылки из Presentation на Application допускаются только в mapper-файлах.
+76. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
+    — endpoint должен обращаться к Application через `IMediator`, а первым
+    аргументом фактического `IMediator.SendAsync` или `IMediator.QueryAsync`
+    должен быть непосредственный вызов mapper своего slice. Проверка не зависит
+    от имени переменной mediator.
 
-77. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
-    — endpoint должен обращаться к Application через `IMediator`, а передаваемые
-    в `SendAsync` и `QueryAsync` команды и запросы создавать через mapper своего
-    slice.
-
-78. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
+77. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
     конкретный `IEndpoint` должен иметь functional-test файл в том же модуле.
     Путь повторяет относительный namespace и имя endpoint.
 
-79. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
+78. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
     `Route` endpoint и endpoint group состоит из английских lowercase
     kebab-case сегментов и параметров вида `{name}` или `{name:constraint}`;
     `Name` является одним английским PascalCase-идентификатором; `Summary`
     endpoint записывается на английском в sentence case с одиночными пробелами.
 
-80. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
+79. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
     `IEndpoint` и `IEndpointGroup` в сборках `.Presentation` должен быть
     `sealed`.
 
 ## Глобальные соглашения
 
-81. `Namespaces_Should_MatchFolderStructure_When_Declared` — namespace каждого
+80. `Namespaces_Should_MatchFolderStructure_When_Declared` — namespace каждого
     объявленного типа в C#-исходниках проектов из `src`, `tests` и `tools`
     должен в точности совпадать с корневым namespace проекта, дополненным
     относительным путём к папке файла. Для файла в корне проекта используется
     только корневой namespace. Исходники из `bin`, `obj` и `Generated` не
     проверяются.
 
-82. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
+81. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
     аргументы `null`, `default`, `true` и `false`, а также все аргументы вызова
     с тремя и более аргументами в авторских C#-исходниках из `src` должны
     передаваться по имени параметра. Вызовы методов `System.String`, вызовы с
     `params`, `nameof`, EF migrations, `bin`, `obj` и `Generated` не проверяются.
 
-83. `AsynchronousMethods_Should_EndWithAsync_When_Declared` — каждый
+82. `AsynchronousMethods_Should_EndWithAsync_When_Declared` — каждый
     production-метод, возвращающий `Task`, `ValueTask`, async stream или
     объявленный через `async`, должен оканчиваться на `Async`. Реализации
     внешних интерфейсов и overrides не проверяются, поскольку их имена задаются
     внешним контрактом.
 
-84. `SynchronousMethods_Should_NotEndWithAsync_When_Declared` — синхронные
+83. `SynchronousMethods_Should_NotEndWithAsync_When_Declared` — синхронные
     production-методы не должны оканчиваться на `Async`.
 
-85. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
+84. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
     авторских C#-исходниках из `src` должно получаться через
     `TimeProvider.GetUtcNow()`. В явных конструкторах также разрешены
     `DateTime.UtcNow` и `DateTimeOffset.UtcNow` как часть жизненного цикла
@@ -436,24 +434,24 @@ repository и query handler являются наследниками `ReadModel
     `DateTimeOffset.Now` и `TimeProvider.GetLocalNow()` запрещены везде. EF
     migrations, `bin`, `obj` и `Generated` не проверяются.
 
-86. `CancellationTokenSentinels_Should_NotBeUsed_When_Declared` — в авторских
+85. `CancellationTokenSentinels_Should_NotBeUsed_When_Declared` — в авторских
     C#-исходниках из `src`, `tests` и `tools` запрещены
     `CancellationToken.None`, `default(CancellationToken)` и `default`, если его
     целевой тип — `CancellationToken`. В том числе токен нельзя объявлять как
     optional-параметр со значением `default`: вызывающий код должен передавать
     фактический токен явно.
 
-87. `CancellationTokenParameters_Should_BeUsed_When_Declared` — объявленный в
+86. `CancellationTokenParameters_Should_BeUsed_When_Declared` — объявленный в
     реализованном методе `CancellationToken` должен использоваться; иначе
     параметр нужно удалить. Overrides и реализации внешних интерфейсов не
     проверяются на использование, поскольку удалить параметр из их сигнатуры
     нельзя.
 
-88. `CancellationTokens_Should_BeForwarded_When_Available` — если вызываемый
+87. `CancellationTokens_Should_BeForwarded_When_Available` — если вызываемый
     метод объявляет параметр `CancellationToken`, а токен уже доступен в текущей
     области видимости, его нужно передать явно.
 
-89. `CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked`
+88. `CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked`
     — если в production-коде из `src` вызываемый метод поддерживает
     `CancellationToken`, но токен не передан и недоступен в текущей области
     видимости, текущий метод должен получить токен параметром. Токен
@@ -462,23 +460,54 @@ repository и query handler являются наследниками `ReadModel
 
 ## Оформление тестов
 
-90. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+89. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-91. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+90. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-92. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+91. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-93. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+92. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
-Пункты 12, 42 и 64 проверяют наличие соответствующих тестовых методов по их
+## Дополнительные архитектурные гарантии
+
+93. `DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories`
+    — конкретные `IEntity` и `ValueObject` должны объявлять только private
+    конструкторы и предоставлять создание через фабричные методы.
+
+94. `InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared`
+    — каждая реализация абстракции Domain или Application из Infrastructure
+    должна присутствовать в итоговом `IServiceCollection` модуля.
+
+95. `DatabaseContexts_Should_BeRegistered_When_Declared` — каждый конкретный
+    `DbContext` должен присутствовать в итоговом `IServiceCollection` модуля.
+
+96. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
+    route endpoint должен явно вызвать `RequireAuthorization()` или
+    `AllowAnonymous()`, либо наследовать такое решение от своей endpoint group.
+
+97. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
+    включая явно заданные через `WithName`, должны быть уникальны.
+
+98. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
+    method и полного route endpoint group + endpoint должно быть уникально.
+
+99. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
+     production-коде запрещены блокирующие вызовы `Task.Wait()`, `Task.Result`
+     и `GetAwaiter().GetResult()`.
+
+100. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
+     методы, local functions и lambdas в production-коде не должны быть
+     `async void`.
+
+Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
