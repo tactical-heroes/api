@@ -13,7 +13,6 @@ internal sealed class CreateUnitEndpoint : IEndpoint<UnitsEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPost(HandleAsync)
-            .RequireAuthorization()
             .Produces<CreateUnitResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized);

@@ -11,7 +11,6 @@ internal sealed class DeleteUnitEndpoint : IEndpoint<UnitsEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapDelete(HandleAsync)
-            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
