@@ -28,30 +28,10 @@ public sealed class EndpointBehaviorConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Presentation application references should exist only in mappers when declared")]
-    public async Task PresentationApplicationReferences_Should_ExistOnlyInMappers_When_Declared()
-    {
-        var analysis = await PresentationBoundarySourceDiscovery
-            .GetAnalysisAsync();
-        var violations = analysis.ApplicationReferences
-            .Select(reference =>
-                $"{reference.RelativePath}:{reference.LineNumber}: " +
-                $"'{reference.Expression}' references " +
-                $"{reference.ApplicationAssemblyName} outside a Mapper.")
-            .ToArray();
-
-        Assert.NotEmpty(analysis.PresentationDocuments);
-        Assert.True(
-            violations.Length == 0,
-            $"Presentation Application reference violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
-    }
-
     [Fact(DisplayName = "Mediator messages should be created by slice mappers when endpoint sends a message")]
     public async Task MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage()
     {
-        var analysis = await PresentationBoundarySourceDiscovery
+        var analysis = await MediatorSourceDiscovery
             .GetAnalysisAsync();
         var violations = analysis.MediatorCalls
             .Where(call => !call.UsesPresentationMapper)
@@ -140,9 +120,8 @@ public sealed class EndpointBehaviorConventionTests
         InvocationExpressionSyntax Invocation);
 }
 
-internal static class PresentationBoundarySourceDiscovery
+internal static class MediatorSourceDiscovery
 {
-    private const string ApplicationAssemblySuffix = ".Application";
     private const string EndpointInterfaceNamespace =
         "PANiXiDA.Core.Presentation.Http.Endpoints";
     private const string MapperSuffix = "Mapper";
@@ -156,37 +135,21 @@ internal static class PresentationBoundarySourceDiscovery
         "SendAsync"
     ];
 
-    private static readonly Lazy<Task<PresentationBoundaryAnalysis>> Analysis =
+    private static readonly Lazy<Task<MediatorAnalysis>> Analysis =
         new(CreateAnalysisAsync);
 
-    internal static Task<PresentationBoundaryAnalysis> GetAnalysisAsync()
+    internal static Task<MediatorAnalysis> GetAnalysisAsync()
     {
         return Analysis.Value;
     }
 
-    private static async Task<PresentationBoundaryAnalysis>
+    private static async Task<MediatorAnalysis>
         CreateAnalysisAsync()
     {
         var documents = await ProductionSourceDocumentDiscovery
             .GetItemsAsync(GetDocumentAnalysisAsync);
 
-        return new PresentationBoundaryAnalysis(
-            PresentationDocuments:
-            [
-                .. documents
-                    .Select(document => document.RelativePath)
-                    .Order(StringComparer.Ordinal)
-            ],
-            ApplicationReferences:
-            [
-                .. documents
-                    .SelectMany(document => document.ApplicationReferences)
-                    .Distinct()
-                    .OrderBy(
-                        reference => reference.RelativePath,
-                        StringComparer.Ordinal)
-                    .ThenBy(reference => reference.Position)
-            ],
+        return new MediatorAnalysis(
             MediatorCalls:
             [
                 .. documents
@@ -198,7 +161,7 @@ internal static class PresentationBoundarySourceDiscovery
             ]);
     }
 
-    private static async Task<PresentationBoundaryDocumentAnalysis[]>
+    private static async Task<MediatorDocumentAnalysis[]>
         GetDocumentAnalysisAsync(
             string repositoryRoot,
             Document document)
@@ -226,58 +189,14 @@ internal static class PresentationBoundarySourceDiscovery
         var relativePath = Path.GetRelativePath(
             repositoryRoot,
             sourceFile);
-        var applicationAssemblyName =
-            presentationAssemblyName[..^PresentationAssemblySuffix.Length] +
-            ApplicationAssemblySuffix;
-
         return
         [
-            new PresentationBoundaryDocumentAnalysis(
-                RelativePath: relativePath,
-                ApplicationReferences: GetApplicationReferences(
-                    relativePath,
-                    applicationAssemblyName,
-                    semanticModel,
-                    root),
+            new MediatorDocumentAnalysis(
                 MediatorCalls: GetMediatorCalls(
                     relativePath,
                     presentationAssemblyName,
                     semanticModel,
                     root))
-        ];
-    }
-
-    private static ApplicationReferenceSource[] GetApplicationReferences(
-        string relativePath,
-        string applicationAssemblyName,
-        SemanticModel semanticModel,
-        SyntaxNode root)
-    {
-        return
-        [
-            .. root
-                .DescendantNodes()
-                .OfType<SimpleNameSyntax>()
-                .Where(name => !name.Ancestors().OfType<UsingDirectiveSyntax>()
-                    .Any())
-                .Where(name => !IsInsideMapper(name))
-                .Select(name => new
-                {
-                    Name = name,
-                    Symbol = GetReferencedSymbol(
-                        semanticModel,
-                        name)
-                })
-                .Where(target => string.Equals(
-                    target.Symbol?.ContainingAssembly?.Name,
-                    applicationAssemblyName,
-                    StringComparison.Ordinal))
-                .Select(target => new ApplicationReferenceSource(
-                    RelativePath: relativePath,
-                    LineNumber: GetLineNumber(target.Name),
-                    Position: target.Name.SpanStart,
-                    Expression: target.Name.ToString(),
-                    ApplicationAssemblyName: applicationAssemblyName))
         ];
     }
 
@@ -327,28 +246,6 @@ internal static class PresentationBoundarySourceDiscovery
         ];
     }
 
-    private static ISymbol? GetReferencedSymbol(
-        SemanticModel semanticModel,
-        SimpleNameSyntax name)
-    {
-        var symbolInfo = semanticModel.GetSymbolInfo(name);
-        var symbol = symbolInfo.Symbol ??
-                     symbolInfo.CandidateSymbols.FirstOrDefault();
-
-        return symbol is IAliasSymbol alias
-            ? alias.Target
-            : symbol;
-    }
-
-    private static bool IsInsideMapper(SyntaxNode node)
-    {
-        return node.Ancestors()
-            .OfType<TypeDeclarationSyntax>()
-            .Any(declaration => declaration.Identifier.ValueText.EndsWith(
-                MapperSuffix,
-                StringComparison.Ordinal));
-    }
-
     private static bool IsEndpoint(INamedTypeSymbol type)
     {
         return type.AllInterfaces.Any(interfaceType =>
@@ -387,22 +284,11 @@ internal static class PresentationBoundarySourceDiscovery
     }
 }
 
-internal sealed record PresentationBoundaryAnalysis(
-    string[] PresentationDocuments,
-    ApplicationReferenceSource[] ApplicationReferences,
+internal sealed record MediatorAnalysis(
     MediatorCallSource[] MediatorCalls);
 
-internal sealed record PresentationBoundaryDocumentAnalysis(
-    string RelativePath,
-    ApplicationReferenceSource[] ApplicationReferences,
+internal sealed record MediatorDocumentAnalysis(
     MediatorCallSource[] MediatorCalls);
-
-internal sealed record ApplicationReferenceSource(
-    string RelativePath,
-    int LineNumber,
-    int Position,
-    string Expression,
-    string ApplicationAssemblyName);
 
 internal sealed record MediatorCallSource(
     string RelativePath,

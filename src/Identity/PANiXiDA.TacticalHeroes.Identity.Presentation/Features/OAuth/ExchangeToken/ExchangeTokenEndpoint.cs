@@ -107,7 +107,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
             : SignInTokenPrincipal(
                 request: request,
                 sourcePrincipal: authenticationResult.Principal,
-                claims: ExchangeTokenMapper.ToClaims(principalResult.Value),
+                claims: principalResult.Value.Claims,
                 audience: audience);
     }
 
@@ -131,7 +131,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
             : SignInTokenPrincipal(
                 request: request,
                 sourcePrincipal: null,
-                claims: ExchangeTokenMapper.ToClaims(principalResult.Value),
+                claims: principalResult.Value.Claims,
                 audience: audience);
     }
 
@@ -163,7 +163,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
                 : SignInTokenPrincipal(
                     request: request,
                     sourcePrincipal: authenticationResult.Principal,
-                    claims: ExchangeTokenMapper.ToClaims(userResult.Value),
+                    claims: userResult.Value.Claims,
                     audience: audience);
         }
 
@@ -176,7 +176,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
             : SignInTokenPrincipal(
                 request: request,
                 sourcePrincipal: authenticationResult.Principal,
-                claims: ExchangeTokenMapper.ToClaims(clientResult.Value),
+                claims: clientResult.Value.Claims,
                 audience: audience);
     }
 

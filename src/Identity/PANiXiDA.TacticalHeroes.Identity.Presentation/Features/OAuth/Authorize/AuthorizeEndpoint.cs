@@ -60,13 +60,10 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         var userResult = await mediator.QueryAsync(
             AuthorizeMapper.ToQuery(id: userIdResult.Value),
             httpContext.RequestAborted);
-        var user = userResult.IsSuccess
-            ? AuthorizeMapper.ToResponse(userResult.Value)
-            : null;
 
-        if (user is null ||
-            user.IsBlocked ||
-            !user.IsConfirmed)
+        if (userResult.IsFailure ||
+            userResult.Value.IsBlocked ||
+            !userResult.Value.IsConfirmed)
         {
             return TypedResults.Forbid();
         }
