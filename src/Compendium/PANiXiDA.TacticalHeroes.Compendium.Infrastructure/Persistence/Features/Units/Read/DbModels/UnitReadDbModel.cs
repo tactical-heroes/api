@@ -18,5 +18,6 @@ public sealed class UnitReadDbModel : AuditableReadDbModel<Guid>
     public int Morale { get; set; }
     public int Luck { get; set; }
     public Guid FactionId { get; set; }
-    public FactionReadDbModel Faction { get; set; } = null!;
+
+    public FactionReadDbModel? Faction { get; set; }
 }

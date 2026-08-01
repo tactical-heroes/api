@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models;
 
@@ -210,15 +212,26 @@ public sealed class ReadModelConventionTests
                 continue;
             }
 
-            if (!dependentReadDbModel
-                    .GetProperties()
-                    .Any(property =>
-                        property.PropertyType == principalReadDbModel))
+            var referenceNavigation = dependentReadDbModel
+                .GetProperties()
+                .SingleOrDefault(property =>
+                    property.PropertyType == principalReadDbModel);
+
+            if (referenceNavigation is null)
             {
                 yield return
                     $"{dependentReadDbModel.FullName}.{foreignKey.Name} " +
                     $"must have a reference navigation to " +
                     $"{principalReadDbModel.FullName}.";
+            }
+            else if (new NullabilityInfoContext()
+                         .Create(referenceNavigation)
+                         .ReadState != NullabilityState.Nullable)
+            {
+                yield return
+                    $"{dependentReadDbModel.FullName}." +
+                    $"{referenceNavigation.Name} reference navigation " +
+                    $"must be nullable.";
             }
 
             if (!principalReadDbModel
