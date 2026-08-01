@@ -24,7 +24,9 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await _database.InitializeAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await _database.InitializeAsync(cancellationToken);
 
         _previousConnectionString = Environment.GetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable);
@@ -32,10 +34,10 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
             _database.PostgreSqlConnectionString);
 
-        await MigrateDatabaseAsync(TestContext.Current.CancellationToken);
+        await MigrateDatabaseAsync(cancellationToken);
         CreateCurrentClient();
 
-        await SeedIdentityProviderAsync(TestContext.Current.CancellationToken);
+        await SeedIdentityProviderAsync(cancellationToken);
     }
 
     public async Task ResetDatabaseAsync(CancellationToken cancellationToken)
