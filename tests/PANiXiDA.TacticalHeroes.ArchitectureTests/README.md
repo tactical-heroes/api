@@ -383,12 +383,15 @@ repository и query handler являются наследниками `ReadModel
     `new <Target>Endpoint().Name`.
 
 76. `PresentationApplicationReferences_Should_ExistOnlyInMappers_When_Declared`
-    — ссылки из Presentation на Application допускаются только в mapper-файлах.
+    — семантические обращения из Presentation к типам и членам Application
+    допускаются только внутри mapper-типов. Проверка не зависит от `using`,
+    alias или полностью квалифицированного имени.
 
 77. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
-    — endpoint должен обращаться к Application через `IMediator`, а передаваемые
-    в `SendAsync` и `QueryAsync` команды и запросы создавать через mapper своего
-    slice.
+    — endpoint должен обращаться к Application через `IMediator`, а первым
+    аргументом фактического `IMediator.SendAsync` или `IMediator.QueryAsync`
+    должен быть непосредственный вызов mapper своего slice. Проверка не зависит
+    от имени переменной mediator.
 
 78. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
     конкретный `IEndpoint` должен иметь functional-test файл в том же модуле.
@@ -479,6 +482,44 @@ repository и query handler являются наследниками `ReadModel
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
-Пункты 12, 42 и 64 проверяют наличие соответствующих тестовых методов по их
+## Дополнительные архитектурные гарантии
+
+94. `DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories`
+    — конкретные `IEntity` и `ValueObject` должны объявлять только private
+    конструкторы и предоставлять создание через фабричные методы.
+
+95. `InfrastructureImplementations_Should_BeRegisteredForApplicationAbstractions_When_Declared`
+    — каждая реализация абстракции Domain или Application из Infrastructure
+    должна присутствовать в итоговом `IServiceCollection` модуля.
+
+96. `RepositoryImplementations_Should_BeRegisteredExactlyOnceAsScoped_When_Declared`
+    — каждая реализация `IRepository` и `IReadRepository` должна быть
+    зарегистрирована ровно один раз с lifetime `Scoped`. Учитываются
+    автоматические регистрации из Core, поэтому повторная ручная регистрация
+    также считается нарушением.
+
+97. `DatabaseContexts_Should_BeRegisteredExactlyOnceAsScoped_When_Declared` —
+    каждый конкретный `DbContext` должен быть зарегистрирован ровно один раз с
+    lifetime `Scoped`.
+
+98. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
+    route endpoint должен явно вызвать `RequireAuthorization()` или
+    `AllowAnonymous()`, либо наследовать такое решение от своей endpoint group.
+
+99. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
+    включая явно заданные через `WithName`, должны быть уникальны.
+
+100. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
+     method и полного route endpoint group + endpoint должно быть уникально.
+
+101. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
+     production-коде запрещены блокирующие вызовы `Task.Wait()`, `Task.Result`
+     и `GetAwaiter().GetResult()`.
+
+102. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
+     методы, local functions и lambdas в production-коде не должны быть
+     `async void`.
+
+Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
