@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.Register;
 

@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Host.Configurations;
+namespace PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 
 internal static class CompendiumModuleConfiguration
 {

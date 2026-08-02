@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
-using PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events;
-
 using System.Globalization;
 using System.Net;
+
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.Application.Notifications;
 

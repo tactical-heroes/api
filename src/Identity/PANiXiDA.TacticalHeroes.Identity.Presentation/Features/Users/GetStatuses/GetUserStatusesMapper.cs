@@ -1,6 +1,6 @@
-using Riok.Mapperly.Abstractions;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
+
+using Riok.Mapperly.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetStatuses;
 

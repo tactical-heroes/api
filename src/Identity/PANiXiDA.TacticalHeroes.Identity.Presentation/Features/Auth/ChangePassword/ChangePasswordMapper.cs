@@ -1,6 +1,6 @@
-using Riok.Mapperly.Abstractions;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
+
+using Riok.Mapperly.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
 

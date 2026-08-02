@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Delete;
 

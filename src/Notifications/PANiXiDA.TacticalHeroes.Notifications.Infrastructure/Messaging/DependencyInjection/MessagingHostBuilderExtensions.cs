@@ -1,9 +1,9 @@
+using System.Reflection;
+
 using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.TacticalHeroes.Notifications.Application;
 using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
-
-using System.Reflection;
 
 using Wolverine;
 
