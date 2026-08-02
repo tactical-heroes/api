@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
 internal sealed class IdentityProviderOptionsValidator
     : IValidateOptions<IdentityProviderOptions>

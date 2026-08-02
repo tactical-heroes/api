@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
-using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.DependencyInjection;
 

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthToken;
 
 internal sealed class OAuthTokenOptionsValidator
     : IValidateOptions<OAuthTokenOptions>

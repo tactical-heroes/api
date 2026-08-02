@@ -4,7 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.P
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.TokenProviders;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.User;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
 public sealed class IdentityProviderOptions
 {

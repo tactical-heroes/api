@@ -10,6 +10,7 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 public sealed class OptionsConfigurationConventionTests
 {
     private const string OptionsSuffix = "Options";
+    private const string OptionsDirectoryName = "Options";
     private const string SectionNameFieldName = "SectionName";
     private const string SourceDirectoryName = "src";
     private const string ValidateOnStartMethodName = "ValidateOnStart";
@@ -70,6 +71,28 @@ public sealed class OptionsConfigurationConventionTests
             violations.Length == 0,
             $"Configuration options must be registered through " +
             $"AddOptions<TOptions>() with ValidateOnStart():" +
+            $"{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Configuration options should reside in dedicated Options subdirectories when declared")]
+    public void ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var sourceFiles = GetProductionSourceFiles(repositoryRoot);
+        var optionsTypes = GetConfigurationOptionsTypes();
+        var violations = optionsTypes
+            .SelectMany(optionsType => GetOptionsDirectoryViolations(
+                repositoryRoot,
+                sourceFiles,
+                optionsType))
+            .ToArray();
+
+        Assert.NotEmpty(optionsTypes);
+        Assert.True(
+            violations.Length == 0,
+            $"Configuration options must reside in dedicated " +
+            $"'{OptionsDirectoryName}/<Name>/' subdirectories:" +
             $"{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
@@ -206,6 +229,54 @@ public sealed class OptionsConfigurationConventionTests
             yield return $"{optionsType.FullName} registration at " +
                          $"'{registration.SourceLocation}' must call " +
                          $"{ValidateOnStartMethodName}().";
+        }
+    }
+
+    private static IEnumerable<string> GetOptionsDirectoryViolations(
+        string repositoryRoot,
+        IReadOnlyCollection<string> sourceFiles,
+        Type optionsType)
+    {
+        var optionsSourceFiles = FindSourceFiles(
+            sourceFiles,
+            optionsType);
+
+        if (optionsSourceFiles.Length != 1)
+        {
+            yield return $"{optionsType.FullName} must have exactly one " +
+                         $"source declaration; found " +
+                         $"{optionsSourceFiles.Length}.";
+            yield break;
+        }
+
+        var optionsDirectoryPath = Path.GetDirectoryName(
+            optionsSourceFiles[0]);
+
+        if (optionsDirectoryPath is null)
+        {
+            yield return $"{optionsType.FullName} source directory could " +
+                         $"not be determined.";
+            yield break;
+        }
+
+        var optionsDirectory = new DirectoryInfo(optionsDirectoryPath);
+        var expectedDirectoryName = optionsType.Name[..^OptionsSuffix.Length];
+
+        if (!string.Equals(
+                optionsDirectory.Name,
+                expectedDirectoryName,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                optionsDirectory.Parent?.Name,
+                OptionsDirectoryName,
+                StringComparison.Ordinal))
+        {
+            yield return $"{optionsType.FullName} must reside under " +
+                         $"'{OptionsDirectoryName}/" +
+                         $"{expectedDirectoryName}/'; found " +
+                         $"'{Path.GetRelativePath(
+                             repositoryRoot,
+                             optionsSourceFiles[0])}'.";
         }
     }
 

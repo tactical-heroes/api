@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Password;
 
 internal sealed class IdentityProviderPasswordOptionsValidator

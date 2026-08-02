@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 
 using MimeKit;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options;
+namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
 internal sealed class SmtpOptionsValidator : IValidateOptions<SmtpOptions>
 {

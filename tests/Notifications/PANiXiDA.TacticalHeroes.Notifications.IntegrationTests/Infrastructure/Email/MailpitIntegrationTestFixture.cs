@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
 using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
 using Wolverine;
 

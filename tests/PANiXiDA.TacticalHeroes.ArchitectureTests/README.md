@@ -542,6 +542,10 @@ repository и query handler являются наследниками `ReadModel
      конфигурационный options-класс должен регистрироваться через
      `AddOptions<TOptions>()` с последующим вызовом `ValidateOnStart()`.
 
+108. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
+     — каждый конфигурационный `<Name>Options` должен располагаться вместе со
+     своим validator в выделенной папке `Options/<Name>/`.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
