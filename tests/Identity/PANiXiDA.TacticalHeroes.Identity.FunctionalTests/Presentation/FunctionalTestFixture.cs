@@ -56,6 +56,17 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         return client;
     }
 
+    public HttpClient CreateClient(string environmentName)
+    {
+        var factory = new FunctionalTestWebApplicationFactory(environmentName);
+        _factories.Add(factory);
+
+        var client = factory.CreateClient();
+        _clients.Add(client);
+
+        return client;
+    }
+
     private void CreateCurrentClient()
     {
         _factory = new FunctionalTestWebApplicationFactory();

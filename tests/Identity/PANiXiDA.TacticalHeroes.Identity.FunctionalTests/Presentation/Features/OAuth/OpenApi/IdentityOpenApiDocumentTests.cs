@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using Microsoft.Extensions.Hosting;
+
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.OpenApi;
 
 public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
@@ -9,8 +11,9 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
     public async Task GetIdentityOpenApiDocument_Should_IncludeOAuthEndpoints_When_Requested()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        using var client = Fixture.CreateClient(Environments.Development);
 
-        using var response = await Client.GetAsync(
+        using var response = await client.GetAsync(
             "/openapi/identity.json",
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
