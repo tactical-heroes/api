@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetUsersEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET users should find a user by a case-insensitive email substring")]
+    [Fact(DisplayName = "GET users should return a filtered page when email substring matches")]
     public async Task GetUsers_Should_ReturnFilteredPage_When_EmailSubstringMatches()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

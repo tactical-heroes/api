@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetList;
 
 public sealed class GetUsersQueryValidatorTests
 {
-    [Fact(DisplayName = "User list validator should accept a partial email filter when pagination is valid")]
+    [Fact(DisplayName = "User list validator should return a valid result when email filter is partial")]
     public void Validate_Should_ReturnValidResult_When_EmailFilterIsPartial()
     {
         var validator = new GetUsersQueryValidator();
@@ -15,7 +15,7 @@ public sealed class GetUsersQueryValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "User list validator should reject invalid pagination when query is invalid")]
+    [Fact(DisplayName = "User list validator should return errors when pagination is invalid")]
     public void Validate_Should_ReturnErrors_When_PaginationIsInvalid()
     {
         var validator = new GetUsersQueryValidator();

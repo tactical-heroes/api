@@ -36,7 +36,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         details.Claims.ShouldHaveSingleItem().Value.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "GetPageAsync should find users by a case-insensitive email substring")]
+    [Fact(DisplayName = "GetPageAsync should return a filtered page when email substring matches")]
     public async Task GetPageAsync_Should_ReturnFilteredPage_When_EmailSubstringMatches()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

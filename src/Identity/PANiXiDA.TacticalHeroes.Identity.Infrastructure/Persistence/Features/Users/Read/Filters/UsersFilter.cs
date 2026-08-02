@@ -12,23 +12,13 @@ internal static class UsersFilter
     {
         if (!string.IsNullOrWhiteSpace(email))
         {
-            var pattern = $"%{EscapePattern(email.Trim())}%";
             query = query.Where(user =>
                 user.Email != null &&
                 EF.Functions.ILike(
-                    user.Email,
-                    pattern,
-                    @"\"));
+                    matchExpression: user.Email,
+                    pattern: $"%{email.Trim()}%"));
         }
 
         return query;
-    }
-
-    private static string EscapePattern(string value)
-    {
-        return value
-            .Replace(@"\", @"\\", StringComparison.Ordinal)
-            .Replace("%", @"\%", StringComparison.Ordinal)
-            .Replace("_", @"\_", StringComparison.Ordinal);
     }
 }
