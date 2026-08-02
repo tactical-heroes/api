@@ -18,7 +18,10 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = FilesConstants.FileRequestSizeLimit;
 });
 
-builder.Services.AddHttp(builder.Configuration);
+builder.Services.AddHttp(
+    builder.Configuration,
+    IdentityPresentationAssembly.Instance,
+    CompendiumPresentationAssembly.Instance);
 
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
@@ -29,9 +32,6 @@ var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseHttp(
-    IdentityPresentationAssembly.Instance,
-    NotificationsPresentationAssembly.Instance,
-    CompendiumPresentationAssembly.Instance);
+app.UseHttp(NotificationsPresentationAssembly.Instance);
 
 return await app.RunJasperFxCommands(args);
