@@ -1,7 +1,7 @@
 using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Notifications.Presentation.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Host.Configurations;
+namespace PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 
 internal static class NotificationsModuleConfiguration
 {

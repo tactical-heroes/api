@@ -14,6 +14,7 @@ internal sealed class CapturingEventBus : IEventBus
         CancellationToken cancellationToken)
         where TEvent : DomainEvent
     {
+        cancellationToken.ThrowIfCancellationRequested();
         _events.Enqueue(@event!);
 
         return Task.CompletedTask;

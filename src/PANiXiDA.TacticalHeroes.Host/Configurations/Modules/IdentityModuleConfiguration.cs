@@ -1,7 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Host.Configurations;
+namespace PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 
 internal static class IdentityModuleConfiguration
 {

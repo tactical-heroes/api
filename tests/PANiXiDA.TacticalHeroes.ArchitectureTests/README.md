@@ -52,6 +52,10 @@ dotnet test tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHer
    `Presentation` — на свой `Application` и Contracts. Ссылка на Contracts
    может вести как в свой, так и в другой модуль.
 
+`Modules_Should_HaveHostConfigurationsInModulesDirectory_When_Discovered` —
+каждый обнаруженный модуль должен иметь `<Module>ModuleConfiguration` в
+`Host/Configurations/Modules`.
+
 ## Domain
 
 В папках и пространствах имён `Abstractions` слоя Domain располагаются только
