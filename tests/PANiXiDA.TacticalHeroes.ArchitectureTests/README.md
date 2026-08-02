@@ -533,6 +533,15 @@ repository и query handler являются наследниками `ReadModel
      — endpoint не должен повторять тот же `RequireAuthorization` или
      `AllowAnonymous`, который уже объявлен его endpoint group.
 
+106. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
+     — каждый конфигурационный `<Name>Options` с константой `SectionName`
+     должен иметь зарегистрированный `<Name>OptionsValidator`, реализующий
+     `IValidateOptions<TOptions>` и расположенный рядом с options-классом.
+
+107. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
+     конфигурационный options-класс должен регистрироваться через
+     `AddOptions<TOptions>()` с последующим вызовом `ValidateOnStart()`.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
