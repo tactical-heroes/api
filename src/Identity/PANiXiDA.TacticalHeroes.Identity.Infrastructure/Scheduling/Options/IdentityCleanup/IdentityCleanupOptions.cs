@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
 internal sealed class IdentityCleanupOptions
 {

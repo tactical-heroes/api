@@ -8,8 +8,8 @@ using OpenIddict.Validation.AspNetCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Common;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
 using Quartz;
 

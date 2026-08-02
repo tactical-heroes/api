@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
 using Quartz;
 

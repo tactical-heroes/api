@@ -9,7 +9,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;

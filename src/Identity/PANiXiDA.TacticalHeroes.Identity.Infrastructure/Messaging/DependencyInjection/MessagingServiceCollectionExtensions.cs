@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
 

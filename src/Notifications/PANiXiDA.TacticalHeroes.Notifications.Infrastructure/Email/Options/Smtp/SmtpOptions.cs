@@ -1,6 +1,6 @@
 using MailKit.Security;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options;
+namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
 public sealed class SmtpOptions
 {

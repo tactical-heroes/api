@@ -8,6 +8,8 @@ using Microsoft.Extensions.Options;
 using OpenIddict.Server.AspNetCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthSpa;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthToken;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
 

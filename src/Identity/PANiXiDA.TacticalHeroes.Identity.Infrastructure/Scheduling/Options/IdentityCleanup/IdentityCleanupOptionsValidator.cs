@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 
 using Quartz;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
 internal sealed class IdentityCleanupOptionsValidator
     : IValidateOptions<IdentityCleanupOptions>
