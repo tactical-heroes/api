@@ -1,7 +1,5 @@
 using JasperFx;
 
-using PANiXiDA.Core.Presentation.Http.DependencyInjection;
-
 using PANiXiDA.TacticalHeroes.Host.Configurations;
 using PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 

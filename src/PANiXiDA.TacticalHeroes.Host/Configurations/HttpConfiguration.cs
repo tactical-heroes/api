@@ -24,4 +24,11 @@ internal static class HttpConfiguration
 
         return builder;
     }
+
+    internal static WebApplication UseHttp(this WebApplication app)
+    {
+        ServiceCollectionExtensions.UseHttp(app);
+
+        return app;
+    }
 }
