@@ -11,10 +11,6 @@ internal sealed partial class UserListItemReadModelMapper
     : IReadModelMapper<Guid, UserReadDbModel, UserListItemReadModel>
 {
     [MapProperty(
-        nameof(UserReadDbModel.Email),
-        nameof(UserListItemReadModel.Email),
-        SuppressNullMismatchDiagnostic = true)]
-    [MapProperty(
         nameof(UserReadDbModel.UserName),
         nameof(UserListItemReadModel.UserName),
         SuppressNullMismatchDiagnostic = true)]
