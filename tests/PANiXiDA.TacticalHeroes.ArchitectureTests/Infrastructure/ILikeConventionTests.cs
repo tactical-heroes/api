@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
@@ -23,6 +24,24 @@ public sealed class ILikeConventionTests
         Assert.True(
             violations.Length == 0,
             $"ILIKE convention violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "ILIKE calls should rely on SQL null semantics")]
+    public async Task ILikeCalls_Should_NotUseExplicitNullGuards()
+    {
+        var calls = await ILikeSourceDiscovery.GetCallsAsync();
+        var violations = calls
+            .Where(call => call.HasRedundantNullGuard)
+            .Select(call =>
+                $"{call.RelativePath}:{call.LineNumber}: '{call.Expression}' " +
+                "must not use an explicit null guard for matchExpression.")
+            .ToArray();
+
+        Assert.NotEmpty(calls);
+        Assert.True(
+            violations.Length == 0,
+            $"ILIKE null guard violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 }
@@ -105,7 +124,104 @@ internal static class ILikeSourceDiscovery
             Position: invocation.SpanStart,
             Expression: invocation.ToString(),
             IsValid: UsesNamedSubstringArguments(
-                invocation.ArgumentList.Arguments));
+                invocation.ArgumentList.Arguments),
+            HasRedundantNullGuard: HasRedundantNullGuard(
+                invocation,
+                semanticModel));
+    }
+
+    private static bool HasRedundantNullGuard(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel)
+    {
+        var arguments = invocation.ArgumentList.Arguments;
+
+        if (arguments.Count == 0)
+        {
+            return false;
+        }
+
+        var matchExpressionSymbol = semanticModel
+            .GetSymbolInfo(arguments[0].Expression)
+            .Symbol;
+
+        if (matchExpressionSymbol is null)
+        {
+            return false;
+        }
+
+        return invocation
+            .Ancestors()
+            .OfType<BinaryExpressionSyntax>()
+            .Where(expression =>
+                expression.IsKind(SyntaxKind.LogicalAndExpression))
+            .SelectMany(expression =>
+                expression.DescendantNodesAndSelf())
+            .Any(node => IsNullGuard(
+                node,
+                matchExpressionSymbol,
+                semanticModel));
+    }
+
+    private static bool IsNullGuard(
+        SyntaxNode node,
+        ISymbol matchExpressionSymbol,
+        SemanticModel semanticModel)
+    {
+        if (node is BinaryExpressionSyntax comparison &&
+            comparison.IsKind(SyntaxKind.NotEqualsExpression))
+        {
+            return IsNullComparison(
+                       comparison.Left,
+                       comparison.Right,
+                       matchExpressionSymbol,
+                       semanticModel) ||
+                   IsNullComparison(
+                       comparison.Right,
+                       comparison.Left,
+                       matchExpressionSymbol,
+                       semanticModel);
+        }
+
+        return node is IsPatternExpressionSyntax patternExpression &&
+               patternExpression.Pattern.IsKind(SyntaxKind.NotPattern) &&
+               patternExpression.Pattern
+                   .DescendantNodesAndSelf()
+                   .OfType<ConstantPatternSyntax>()
+                   .Any(pattern =>
+                       pattern.Expression.IsKind(
+                           SyntaxKind.NullLiteralExpression)) &&
+               RefersToMatchExpression(
+                   patternExpression.Expression,
+                   matchExpressionSymbol,
+                   semanticModel);
+    }
+
+    private static bool IsNullComparison(
+        ExpressionSyntax nullExpression,
+        ExpressionSyntax candidateExpression,
+        ISymbol matchExpressionSymbol,
+        SemanticModel semanticModel)
+    {
+        return nullExpression.IsKind(SyntaxKind.NullLiteralExpression) &&
+               RefersToMatchExpression(
+                   candidateExpression,
+                   matchExpressionSymbol,
+                   semanticModel);
+    }
+
+    private static bool RefersToMatchExpression(
+        ExpressionSyntax expression,
+        ISymbol matchExpressionSymbol,
+        SemanticModel semanticModel)
+    {
+        var expressionSymbol = semanticModel
+            .GetSymbolInfo(expression)
+            .Symbol;
+
+        return SymbolEqualityComparer.Default.Equals(
+            expressionSymbol,
+            matchExpressionSymbol);
     }
 
     private static bool UsesNamedSubstringArguments(
@@ -168,4 +284,5 @@ internal sealed record ILikeCall(
     int LineNumber,
     int Position,
     string Expression,
-    bool IsValid);
+    bool IsValid,
+    bool HasRedundantNullGuard);

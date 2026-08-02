@@ -14,7 +14,7 @@ internal sealed class UserDetailsReadModelMapper
     {
         return query.Select(user => new UserDetailsReadModel(
             Id: user.Id,
-            Email: user.Email!,
+            Email: user.Email,
             UserName: user.UserName!,
             IsConfirmed: user.EmailConfirmed,
             Status: user.Status,

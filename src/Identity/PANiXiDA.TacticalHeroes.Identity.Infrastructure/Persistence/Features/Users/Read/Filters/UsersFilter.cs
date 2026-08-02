@@ -13,7 +13,6 @@ internal static class UsersFilter
         if (!string.IsNullOrWhiteSpace(email))
         {
             query = query.Where(user =>
-                user.Email != null &&
                 EF.Functions.ILike(
                     matchExpression: user.Email,
                     pattern: $"%{email.Trim()}%"));
