@@ -1,9 +1,9 @@
+using System.Reflection;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Options;
-
-using System.Reflection;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 

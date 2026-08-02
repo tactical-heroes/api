@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Update;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Update;
 

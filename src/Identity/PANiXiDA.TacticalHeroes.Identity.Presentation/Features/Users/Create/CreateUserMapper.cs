@@ -1,7 +1,7 @@
-using Riok.Mapperly.Abstractions;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+
+using Riok.Mapperly.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 

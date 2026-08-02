@@ -1,8 +1,8 @@
-using ArchUnitNET.Domain;
-using ArchUnitNET.Loader;
-
 using System.Text.Json;
 using System.Text.RegularExpressions;
+
+using ArchUnitNET.Domain;
+using ArchUnitNET.Loader;
 
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 

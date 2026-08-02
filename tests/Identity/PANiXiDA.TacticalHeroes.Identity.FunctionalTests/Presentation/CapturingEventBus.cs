@@ -1,7 +1,7 @@
+using System.Collections.Concurrent;
+
 using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.Core.Domain.DomainEvents;
-
-using System.Collections.Concurrent;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 

@@ -5,13 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
 
