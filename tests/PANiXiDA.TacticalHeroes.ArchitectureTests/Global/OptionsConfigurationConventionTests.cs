@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Options;
@@ -292,9 +293,9 @@ public sealed class OptionsConfigurationConventionTests
         SyntaxNode currentNode = invocation;
 
         while (currentNode.Parent is MemberAccessExpressionSyntax
-               {
-                   Parent: InvocationExpressionSyntax chainedInvocation
-               })
+            {
+                Parent: InvocationExpressionSyntax chainedInvocation
+            })
         {
             if (string.Equals(
                     GetInvokedMethodName(chainedInvocation),
