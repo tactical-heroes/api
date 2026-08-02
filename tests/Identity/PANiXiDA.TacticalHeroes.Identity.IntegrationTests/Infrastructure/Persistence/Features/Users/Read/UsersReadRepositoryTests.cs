@@ -36,8 +36,8 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         details.Claims.ShouldHaveSingleItem().Value.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "GetPageAsync should return users filtered by email when users exist")]
-    public async Task GetPageAsync_Should_ReturnFilteredPage_When_UsersExist()
+    [Fact(DisplayName = "GetPageAsync should find users by a case-insensitive email substring")]
+    public async Task GetPageAsync_Should_ReturnFilteredPage_When_EmailSubstringMatches()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var firstUserId = await AddUserAsync(
@@ -58,7 +58,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
         var page = await repository.GetPageAsync(
-            "first@example.com",
+            "IRST",
             new PaginationParameters(1, 20),
             cancellationToken);
 

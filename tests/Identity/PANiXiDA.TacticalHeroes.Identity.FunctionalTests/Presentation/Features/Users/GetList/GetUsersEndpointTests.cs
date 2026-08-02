@@ -3,8 +3,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetUsersEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET users should return a filtered page from PostgreSQL when email is provided")]
-    public async Task GetUsers_Should_ReturnFilteredPage_When_EmailIsProvided()
+    [Fact(DisplayName = "GET users should find a user by a case-insensitive email substring")]
+    public async Task GetUsers_Should_ReturnFilteredPage_When_EmailSubstringMatches()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
@@ -17,7 +17,7 @@ public sealed class GetUsersEndpointTests(FunctionalTestFixture fixture)
 
         var response = await client.GetListAsync(
             cancellationToken,
-            email: "second@example.com");
+            email: "ECOND");
 
         response.TotalCount.ShouldBe(1);
         var user = response.Items.ShouldHaveSingleItem();
