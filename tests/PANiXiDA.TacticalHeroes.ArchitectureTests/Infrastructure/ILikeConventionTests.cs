@@ -27,8 +27,8 @@ public sealed class ILikeConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "ILIKE calls should rely on SQL null semantics")]
-    public async Task ILikeCalls_Should_NotUseExplicitNullGuards()
+    [Fact(DisplayName = "ILIKE calls should rely on SQL null semantics when declared")]
+    public async Task ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared()
     {
         var calls = await ILikeSourceDiscovery.GetCallsAsync();
         var violations = calls
