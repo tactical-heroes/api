@@ -47,7 +47,7 @@ jobs:
 
   build-api:
     if: ${{ github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development') }}
-    needs: [ format, tests, helm, resolve-env ]
+    needs: [ format, tests, sonar, helm, resolve-env ]
     uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/docker-build.yml@main
     with:
       service-folder: ${{ vars.SERVICE_FOLDER }}
@@ -60,7 +60,7 @@ jobs:
 
   build-migrator:
     if: ${{ github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development') }}
-    needs: [ format, tests, helm, resolve-env ]
+    needs: [ format, tests, sonar, helm, resolve-env ]
     uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/docker-build.yml@main
     with:
       service-folder: ${{ vars.MIGRATOR_FOLDER }}
