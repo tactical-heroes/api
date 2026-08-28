@@ -163,7 +163,7 @@ internal static class InfrastructurePersistenceConvention
         ];
     }
 
-    private static IEnumerable<string> GetLocationViolations(
+    private static List<string> GetLocationViolations(
         Type type,
         IReadOnlyCollection<string[]> relativeNamespaceCandidates)
     {

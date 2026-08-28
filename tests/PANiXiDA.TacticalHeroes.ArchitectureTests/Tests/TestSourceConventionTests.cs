@@ -7,19 +7,19 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
-public sealed class TestSourceConventionTests
+public sealed partial class TestSourceConventionTests
 {
-    private static readonly Regex TestMethodNamePattern = new(
-        @"^[A-Z][A-Za-z0-9]*_Should_[A-Z][A-Za-z0-9]*" +
-        @"_When_[A-Z][A-Za-z0-9]*$",
-        RegexOptions.CultureInvariant);
+    [GeneratedRegex(
+        @"^[A-Z][A-Za-z0-9]*_Should_[A-Z][A-Za-z0-9]*_When_[A-Z][A-Za-z0-9]*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex TestMethodNamePattern();
 
     [Fact(DisplayName = "Test methods should use MethodName Should Behavior When Condition naming when a test is declared")]
     public void TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared()
     {
         var violations = TestSourceDiscovery.GetTestMethods()
             .Where(testMethod =>
-                !TestMethodNamePattern.IsMatch(testMethod.Name))
+                !TestMethodNamePattern().IsMatch(testMethod.Name))
             .Select(testMethod =>
                 $"{testMethod.Location}: {testMethod.Name}")
             .ToArray();
@@ -76,7 +76,7 @@ public sealed class TestSourceConventionTests
         return null;
     }
 
-    private static IReadOnlyList<IReadOnlyList<StatementSyntax>> GetSections(
+    private static List<IReadOnlyList<StatementSyntax>> GetSections(
         BlockSyntax body)
     {
         if (body.Statements.Count == 0)

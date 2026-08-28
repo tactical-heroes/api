@@ -10,17 +10,19 @@ public sealed class HeroTests
     {
         var factionId = Guid.CreateVersion7();
 
-        var result = Hero.Create(
-            name: "  Orrin  ",
-            description: "  A seasoned northern commander.  ",
-            attack: 8,
-            defense: 6,
-            minimumDamage: 3,
-            maximumDamage: 7,
-            initiative: 10.5,
-            morale: 4,
-            luck: 2,
-            factionId: factionId);
+        var result = Hero.Create(new HeroAttributes
+        {
+            Name = "  Orrin  ",
+            Description = "  A seasoned northern commander.  ",
+            Attack = 8,
+            Defense = 6,
+            MinimumDamage = 3,
+            MaximumDamage = 7,
+            Initiative = 10.5,
+            Morale = 4,
+            Luck = 2,
+            FactionId = factionId
+        });
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Id.Value.Version.ShouldBe(7);
@@ -39,17 +41,19 @@ public sealed class HeroTests
     [Fact(DisplayName = "Hero should reject details when values are invalid")]
     public void Create_Should_ReturnValidationFailure_When_ValuesAreInvalid()
     {
-        var result = Hero.Create(
-            name: string.Empty,
-            description: string.Empty,
-            attack: -1,
-            defense: -1,
-            minimumDamage: 8,
-            maximumDamage: 7,
-            initiative: double.NaN,
-            morale: HeroMorale.Maximum + 1,
-            luck: HeroLuck.Minimum - 1,
-            factionId: Guid.Empty);
+        var result = Hero.Create(new HeroAttributes
+        {
+            Name = string.Empty,
+            Description = string.Empty,
+            Attack = -1,
+            Defense = -1,
+            MinimumDamage = 8,
+            MaximumDamage = 7,
+            Initiative = double.NaN,
+            Morale = HeroMorale.Maximum + 1,
+            Luck = HeroLuck.Minimum - 1,
+            FactionId = Guid.Empty
+        });
 
         result.IsFailure.ShouldBeTrue();
         var fields = result.Errors
@@ -71,17 +75,19 @@ public sealed class HeroTests
         var hero = CreateHero();
         var factionId = Guid.CreateVersion7();
 
-        var result = hero.Update(
-            name: "Elara",
-            description: "An agile vanguard commander.",
-            attack: 10,
-            defense: 7,
-            minimumDamage: 4,
-            maximumDamage: 9,
-            initiative: 12.25,
-            morale: 5,
-            luck: 3,
-            factionId: factionId);
+        var result = hero.Update(new HeroAttributes
+        {
+            Name = "Elara",
+            Description = "An agile vanguard commander.",
+            Attack = 10,
+            Defense = 7,
+            MinimumDamage = 4,
+            MaximumDamage = 9,
+            Initiative = 12.25,
+            Morale = 5,
+            Luck = 3,
+            FactionId = factionId
+        });
 
         result.IsSuccess.ShouldBeTrue();
         hero.Name.Value.ShouldBe("Elara");
@@ -102,17 +108,19 @@ public sealed class HeroTests
         var hero = CreateHero();
         var originalFactionId = hero.FactionId;
 
-        var result = hero.Update(
-            name: "Elara",
-            description: "An agile vanguard commander.",
-            attack: -1,
-            defense: 7,
-            minimumDamage: 4,
-            maximumDamage: 9,
-            initiative: 12.25,
-            morale: 5,
-            luck: 3,
-            factionId: Guid.CreateVersion7());
+        var result = hero.Update(new HeroAttributes
+        {
+            Name = "Elara",
+            Description = "An agile vanguard commander.",
+            Attack = -1,
+            Defense = 7,
+            MinimumDamage = 4,
+            MaximumDamage = 9,
+            Initiative = 12.25,
+            Morale = 5,
+            Luck = 3,
+            FactionId = Guid.CreateVersion7()
+        });
 
         result.IsFailure.ShouldBeTrue();
         hero.Name.Value.ShouldBe("Orrin");
@@ -129,16 +137,18 @@ public sealed class HeroTests
 
     private static Hero CreateHero()
     {
-        return Hero.Create(
-            name: "Orrin",
-            description: "A seasoned northern commander.",
-            attack: 8,
-            defense: 6,
-            minimumDamage: 3,
-            maximumDamage: 7,
-            initiative: 10.5,
-            morale: 4,
-            luck: 2,
-            factionId: Guid.CreateVersion7()).Value;
+        return Hero.Create(new HeroAttributes
+        {
+            Name = "Orrin",
+            Description = "A seasoned northern commander.",
+            Attack = 8,
+            Defense = 6,
+            MinimumDamage = 3,
+            MaximumDamage = 7,
+            Initiative = 10.5,
+            Morale = 4,
+            Luck = 2,
+            FactionId = Guid.CreateVersion7()
+        }).Value;
     }
 }

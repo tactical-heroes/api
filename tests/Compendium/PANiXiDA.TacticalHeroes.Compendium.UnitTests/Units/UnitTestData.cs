@@ -3,6 +3,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Units;
 
@@ -17,21 +18,26 @@ internal static class UnitTestData
 
     internal static Unit CreateUnit(Faction faction)
     {
-        return Unit.Create(
-            name: "Archer",
-            description: "A disciplined ranged unit.",
-            attack: 8,
-            defense: 4,
-            health: 12,
-            minimumDamage: 3,
-            maximumDamage: 5,
-            initiative: 10.5,
-            speed: 6,
-            shots: 12,
-            rangedAttackRange: 8,
-            morale: 2,
-            luck: 1,
-            factionId: faction.Id.Value).Value;
+        return Unit.Create(new UnitAttributes
+        {
+            Name = "Archer",
+            Description = "A disciplined ranged unit.",
+            CombatStats = new UnitCombatStatsInput
+            {
+                Attack = 8,
+                Defense = 4,
+                Health = 12,
+                MinimumDamage = 3,
+                MaximumDamage = 5,
+                Initiative = 10.5,
+                Speed = 6,
+                Shots = 12,
+                RangedAttackRange = 8
+            },
+            Morale = 2,
+            Luck = 1,
+            FactionId = faction.Id.Value
+        }).Value;
     }
 
     internal static CreateUnitCommand CreateCommand(Guid factionId)

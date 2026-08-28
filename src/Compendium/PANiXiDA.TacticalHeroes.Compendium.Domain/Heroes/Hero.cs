@@ -48,29 +48,19 @@ public sealed class Hero : AggregateRoot<HeroId>
     public HeroLuck Luck { get; private set; }
     public FactionId FactionId { get; private set; }
 
-    public static Result<Hero> Create(
-        string name,
-        string description,
-        int attack,
-        int defense,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int morale,
-        int luck,
-        Guid factionId)
+    public static Result<Hero> Create(HeroAttributes attributes)
     {
-        var nameResult = HeroName.Create(value: name);
-        var descriptionResult = HeroDescription.Create(value: description);
+        var nameResult = HeroName.Create(value: attributes.Name);
+        var descriptionResult = HeroDescription.Create(value: attributes.Description);
         var statsResult = HeroCombatStats.Create(
-            attack: attack,
-            defense: defense,
-            minimumDamage: minimumDamage,
-            maximumDamage: maximumDamage,
-            initiative: initiative);
-        var moraleResult = HeroMorale.Create(value: morale);
-        var luckResult = HeroLuck.Create(value: luck);
-        var factionIdResult = FactionId.Create(value: factionId);
+            attack: attributes.Attack,
+            defense: attributes.Defense,
+            minimumDamage: attributes.MinimumDamage,
+            maximumDamage: attributes.MaximumDamage,
+            initiative: attributes.Initiative);
+        var moraleResult = HeroMorale.Create(value: attributes.Morale);
+        var luckResult = HeroLuck.Create(value: attributes.Luck);
+        var factionIdResult = FactionId.Create(value: attributes.FactionId);
         var validationResult = Result.Combine(
             nameResult,
             descriptionResult,
@@ -92,29 +82,19 @@ public sealed class Hero : AggregateRoot<HeroId>
                     factionId: factionIdResult.Value));
     }
 
-    public Result Update(
-        string name,
-        string description,
-        int attack,
-        int defense,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int morale,
-        int luck,
-        Guid factionId)
+    public Result Update(HeroAttributes attributes)
     {
-        var nameResult = HeroName.Create(value: name);
-        var descriptionResult = HeroDescription.Create(value: description);
+        var nameResult = HeroName.Create(value: attributes.Name);
+        var descriptionResult = HeroDescription.Create(value: attributes.Description);
         var statsResult = HeroCombatStats.Create(
-            attack: attack,
-            defense: defense,
-            minimumDamage: minimumDamage,
-            maximumDamage: maximumDamage,
-            initiative: initiative);
-        var moraleResult = HeroMorale.Create(value: morale);
-        var luckResult = HeroLuck.Create(value: luck);
-        var factionIdResult = FactionId.Create(value: factionId);
+            attack: attributes.Attack,
+            defense: attributes.Defense,
+            minimumDamage: attributes.MinimumDamage,
+            maximumDamage: attributes.MaximumDamage,
+            initiative: attributes.Initiative);
+        var moraleResult = HeroMorale.Create(value: attributes.Morale);
+        var luckResult = HeroLuck.Create(value: attributes.Luck);
+        var factionIdResult = FactionId.Create(value: attributes.FactionId);
         var validationResult = Result.Combine(
             nameResult,
             descriptionResult,

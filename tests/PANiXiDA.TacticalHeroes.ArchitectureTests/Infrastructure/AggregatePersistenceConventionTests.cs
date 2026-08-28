@@ -276,9 +276,9 @@ public sealed class AggregatePersistenceConventionTests
     }
 
     private static string FormatTypes(
-        IReadOnlyCollection<Type> types)
+        Type[] types)
     {
-        return types.Count == 0
+        return types.Length == 0
             ? "<none>"
             : string.Join(
                 ", ",

@@ -19,15 +19,18 @@ public sealed class UpdateUnitCommandValidator : AbstractValidator<UpdateUnitCom
 
         RuleFor(command => command)
             .MustBeValidDomainResult(command => UnitCombatStats.Create(
-                attack: command.Attack,
-                defense: command.Defense,
-                health: command.Health,
-                minimumDamage: command.MinimumDamage,
-                maximumDamage: command.MaximumDamage,
-                initiative: command.Initiative,
-                speed: command.Speed,
-                shots: command.Shots,
-                rangedAttackRange: command.RangedAttackRange));
+                input: new UnitCombatStatsInput
+                {
+                    Attack = command.Attack,
+                    Defense = command.Defense,
+                    Health = command.Health,
+                    MinimumDamage = command.MinimumDamage,
+                    MaximumDamage = command.MaximumDamage,
+                    Initiative = command.Initiative,
+                    Speed = command.Speed,
+                    Shots = command.Shots,
+                    RangedAttackRange = command.RangedAttackRange
+                }));
 
         RuleFor(command => command.Morale)
             .MustBeValidDomainValue(UnitMorale.Create);

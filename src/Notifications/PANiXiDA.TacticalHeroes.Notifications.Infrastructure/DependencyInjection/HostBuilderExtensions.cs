@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.DependencyInjection;
@@ -7,9 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjecti
 
 public static class HostBuilderExtensions
 {
-    public static IHostBuilder UseInfrastructure(
-        this IHostBuilder hostBuilder,
-        IConfiguration configuration)
+    public static IHostBuilder UseInfrastructure(this IHostBuilder hostBuilder)
     {
         return hostBuilder.UseMessaging();
     }

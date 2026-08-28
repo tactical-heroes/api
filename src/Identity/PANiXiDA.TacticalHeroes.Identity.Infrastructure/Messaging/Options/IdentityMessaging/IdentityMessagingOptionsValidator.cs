@@ -28,7 +28,7 @@ internal sealed class IdentityMessagingOptionsValidator
     private static void ValidateTemplate(
         string template,
         string path,
-        ICollection<string> failures)
+        List<string> failures)
     {
         if (string.IsNullOrWhiteSpace(template))
         {
@@ -55,7 +55,7 @@ internal sealed class IdentityMessagingOptionsValidator
             uriKind: UriKind.RelativeOrAbsolute,
             result: out var uri) ||
             uri.IsAbsoluteUri && !IsHttpScheme(uri: uri) ||
-            !uri.IsAbsoluteUri && !sampleUrl.StartsWith("/", StringComparison.Ordinal))
+            !uri.IsAbsoluteUri && !sampleUrl.StartsWith('/'))
         {
             failures.Add($"{path} must be a root-relative or absolute HTTP/HTTPS URL template.");
         }

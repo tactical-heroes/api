@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Heroes;
 
@@ -86,17 +87,19 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             heroToUpdate.ShouldNotBeNull();
-            heroToUpdate.Update(
-                    name: "Elara",
-                    description: "An agile vanguard commander.",
-                    attack: 10,
-                    defense: 7,
-                    minimumDamage: 4,
-                    maximumDamage: 9,
-                    initiative: 12.25,
-                    morale: 5,
-                    luck: 3,
-                    factionId: faction.Id.Value)
+            heroToUpdate.Update(new HeroAttributes
+            {
+                Name = "Elara",
+                Description = "An agile vanguard commander.",
+                Attack = 10,
+                Defense = 7,
+                MinimumDamage = 4,
+                MaximumDamage = 9,
+                Initiative = 12.25,
+                Morale = 5,
+                Luck = 3,
+                FactionId = faction.Id.Value
+            })
                 .IsSuccess.ShouldBeTrue();
 
             await repository.UpdateAsync(heroToUpdate, cancellationToken);

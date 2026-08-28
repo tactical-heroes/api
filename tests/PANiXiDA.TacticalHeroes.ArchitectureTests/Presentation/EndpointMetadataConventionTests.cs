@@ -5,23 +5,27 @@ using PANiXiDA.Core.Presentation.Http.Endpoints;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 
-public sealed class EndpointMetadataConventionTests
+public sealed partial class EndpointMetadataConventionTests
 {
-    private static readonly Regex RouteSegmentPattern = new(
+    [GeneratedRegex(
         "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
-        RegexOptions.CultureInvariant);
+        RegexOptions.CultureInvariant)]
+    private static partial Regex RouteSegmentPattern();
 
-    private static readonly Regex RouteParameterPattern = new(
+    [GeneratedRegex(
         "^\\{[a-z][a-z0-9]*(?::[a-z][a-z0-9]*)?\\}$",
-        RegexOptions.CultureInvariant);
+        RegexOptions.CultureInvariant)]
+    private static partial Regex RouteParameterPattern();
 
-    private static readonly Regex NamePattern = new(
+    [GeneratedRegex(
         "^[A-Z][A-Za-z0-9]*$",
-        RegexOptions.CultureInvariant);
+        RegexOptions.CultureInvariant)]
+    private static partial Regex NamePattern();
 
-    private static readonly Regex SummaryPattern = new(
+    [GeneratedRegex(
         "^[A-Z][A-Za-z0-9]*(?: [A-Za-z0-9]+)*$",
-        RegexOptions.CultureInvariant);
+        RegexOptions.CultureInvariant)]
+    private static partial Regex SummaryPattern();
 
     private static readonly string[] EndpointGroupMetadataPropertyNames =
     [
@@ -64,7 +68,7 @@ public sealed class EndpointMetadataConventionTests
                     $"{metadata.Type.FullName}.Route must use lowercase English kebab-case: '{route}'.");
             }
 
-            if (!NamePattern.IsMatch(name))
+            if (!NamePattern().IsMatch(name))
             {
                 violations.Add(
                     $"{metadata.Type.FullName}.Name must be one English PascalCase identifier: '{name}'.");
@@ -76,7 +80,7 @@ public sealed class EndpointMetadataConventionTests
             }
 
             var summary = GetMetadata(instance, "Summary");
-            if (!SummaryPattern.IsMatch(summary))
+            if (!SummaryPattern().IsMatch(summary))
             {
                 violations.Add(
                     $"{metadata.Type.FullName}.Summary must be English sentence case with single spaces: '{summary}'.");
@@ -140,7 +144,7 @@ public sealed class EndpointMetadataConventionTests
         return route
             .Split('/', StringSplitOptions.RemoveEmptyEntries)
             .All(segment =>
-                RouteSegmentPattern.IsMatch(segment) ||
-                RouteParameterPattern.IsMatch(segment));
+                RouteSegmentPattern().IsMatch(segment) ||
+                RouteParameterPattern().IsMatch(segment));
     }
 }

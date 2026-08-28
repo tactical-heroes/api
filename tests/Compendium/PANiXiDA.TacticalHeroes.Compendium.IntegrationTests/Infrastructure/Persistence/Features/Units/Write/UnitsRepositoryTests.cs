@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Units;
 
@@ -89,21 +90,26 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             unitToUpdate.ShouldNotBeNull();
-            unitToUpdate.Update(
-                    name: "Marksman",
-                    description: "An elite ranged unit.",
-                    attack: 10,
-                    defense: 5,
-                    health: 14,
-                    minimumDamage: 4,
-                    maximumDamage: 7,
-                    initiative: 11.5,
-                    speed: 7,
-                    shots: 16,
-                    rangedAttackRange: 10,
-                    morale: 3,
-                    luck: 2,
-                    factionId: faction.Id.Value)
+            unitToUpdate.Update(new UnitAttributes
+            {
+                Name = "Marksman",
+                Description = "An elite ranged unit.",
+                CombatStats = new UnitCombatStatsInput
+                {
+                    Attack = 10,
+                    Defense = 5,
+                    Health = 14,
+                    MinimumDamage = 4,
+                    MaximumDamage = 7,
+                    Initiative = 11.5,
+                    Speed = 7,
+                    Shots = 16,
+                    RangedAttackRange = 10
+                },
+                Morale = 3,
+                Luck = 2,
+                FactionId = faction.Id.Value
+            })
                 .IsSuccess.ShouldBeTrue();
 
             await repository.UpdateAsync(unitToUpdate, cancellationToken);

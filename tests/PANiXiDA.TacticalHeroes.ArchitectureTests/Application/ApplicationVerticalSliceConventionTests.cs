@@ -153,7 +153,7 @@ public sealed class ApplicationVerticalSliceConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetUseCaseRoleSuffixViolations(
+    private static List<string> GetUseCaseRoleSuffixViolations(
         ApplicationUseCase useCase,
         IReadOnlyCollection<Type> applicationTypes)
     {
@@ -189,7 +189,7 @@ public sealed class ApplicationVerticalSliceConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetUseCaseColocationViolations(
+    private static List<string> GetUseCaseColocationViolations(
         string repositoryRoot,
         ApplicationUseCase useCase,
         IReadOnlyCollection<Type> applicationTypes)
@@ -511,9 +511,9 @@ public sealed class ApplicationVerticalSliceConventionTests
     }
 
     private static string FormatTypes(
-        IReadOnlyCollection<Type> types)
+        Type[] types)
     {
-        return types.Count == 0
+        return types.Length == 0
             ? "<none>"
             : string.Join(
                 ", ",

@@ -2,6 +2,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 
@@ -48,21 +49,26 @@ public sealed class UpdateUnitHandler(
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        var updateResult = unit.Update(
-            name: command.Name,
-            description: command.Description,
-            attack: command.Attack,
-            defense: command.Defense,
-            health: command.Health,
-            minimumDamage: command.MinimumDamage,
-            maximumDamage: command.MaximumDamage,
-            initiative: command.Initiative,
-            speed: command.Speed,
-            shots: command.Shots,
-            rangedAttackRange: command.RangedAttackRange,
-            morale: command.Morale,
-            luck: command.Luck,
-            factionId: command.FactionId);
+        var updateResult = unit.Update(new UnitAttributes
+        {
+            Name = command.Name,
+            Description = command.Description,
+            CombatStats = new UnitCombatStatsInput
+            {
+                Attack = command.Attack,
+                Defense = command.Defense,
+                Health = command.Health,
+                MinimumDamage = command.MinimumDamage,
+                MaximumDamage = command.MaximumDamage,
+                Initiative = command.Initiative,
+                Speed = command.Speed,
+                Shots = command.Shots,
+                RangedAttackRange = command.RangedAttackRange
+            },
+            Morale = command.Morale,
+            Luck = command.Luck,
+            FactionId = command.FactionId
+        });
 
         if (updateResult.IsFailure)
         {

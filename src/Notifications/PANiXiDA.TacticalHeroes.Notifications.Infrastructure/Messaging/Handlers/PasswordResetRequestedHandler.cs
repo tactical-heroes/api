@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.Handler
 
 public sealed class PasswordResetRequestedHandler
 {
-    public DomainEvent Handle(IntegrationEvent integrationEvent)
+    public static DomainEvent Handle(IntegrationEvent integrationEvent)
     {
         return new DomainEvent(
             IntegrationEventId: integrationEvent.Id,

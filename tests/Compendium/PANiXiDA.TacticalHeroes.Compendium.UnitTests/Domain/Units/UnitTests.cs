@@ -11,21 +11,26 @@ public sealed class UnitTests
     {
         var faction = UnitTestData.CreateFaction();
 
-        var result = Unit.Create(
-            name: "  Archer  ",
-            description: "  A disciplined ranged unit.  ",
-            attack: 8,
-            defense: 4,
-            health: 12,
-            minimumDamage: 3,
-            maximumDamage: 5,
-            initiative: 10.5,
-            speed: 6,
-            shots: 12,
-            rangedAttackRange: 8,
-            morale: 2,
-            luck: 1,
-            factionId: faction.Id.Value);
+        var result = Unit.Create(new UnitAttributes
+        {
+            Name = "  Archer  ",
+            Description = "  A disciplined ranged unit.  ",
+            CombatStats = new UnitCombatStatsInput
+            {
+                Attack = 8,
+                Defense = 4,
+                Health = 12,
+                MinimumDamage = 3,
+                MaximumDamage = 5,
+                Initiative = 10.5,
+                Speed = 6,
+                Shots = 12,
+                RangedAttackRange = 8
+            },
+            Morale = 2,
+            Luck = 1,
+            FactionId = faction.Id.Value
+        });
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Id.Value.Version.ShouldBe(7);
@@ -50,21 +55,26 @@ public sealed class UnitTests
     {
         var faction = UnitTestData.CreateFaction();
 
-        var result = Unit.Create(
-            name: "Swordsman",
-            description: "A disciplined melee unit.",
-            attack: 6,
-            defense: 7,
-            health: 18,
-            minimumDamage: 2,
-            maximumDamage: 4,
-            initiative: 8,
-            speed: 5,
-            shots: null,
-            rangedAttackRange: null,
-            morale: 1,
-            luck: 0,
-            factionId: faction.Id.Value);
+        var result = Unit.Create(new UnitAttributes
+        {
+            Name = "Swordsman",
+            Description = "A disciplined melee unit.",
+            CombatStats = new UnitCombatStatsInput
+            {
+                Attack = 6,
+                Defense = 7,
+                Health = 18,
+                MinimumDamage = 2,
+                MaximumDamage = 4,
+                Initiative = 8,
+                Speed = 5,
+                Shots = null,
+                RangedAttackRange = null
+            },
+            Morale = 1,
+            Luck = 0,
+            FactionId = faction.Id.Value
+        });
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Stats.Shots.ShouldBeNull();
@@ -76,21 +86,26 @@ public sealed class UnitTests
     {
         var faction = UnitTestData.CreateFaction();
 
-        var result = Unit.Create(
-            name: "Archer",
-            description: "A disciplined ranged unit.",
-            attack: -1,
-            defense: -1,
-            health: 0,
-            minimumDamage: 6,
-            maximumDamage: 5,
-            initiative: double.NaN,
-            speed: -1,
-            shots: 12,
-            rangedAttackRange: null,
-            morale: 6,
-            luck: -1,
-            factionId: faction.Id.Value);
+        var result = Unit.Create(new UnitAttributes
+        {
+            Name = "Archer",
+            Description = "A disciplined ranged unit.",
+            CombatStats = new UnitCombatStatsInput
+            {
+                Attack = -1,
+                Defense = -1,
+                Health = 0,
+                MinimumDamage = 6,
+                MaximumDamage = 5,
+                Initiative = double.NaN,
+                Speed = -1,
+                Shots = 12,
+                RangedAttackRange = null
+            },
+            Morale = 6,
+            Luck = -1,
+            FactionId = faction.Id.Value
+        });
 
         result.IsFailure.ShouldBeTrue();
         var fields = result.Errors
@@ -109,21 +124,26 @@ public sealed class UnitTests
         var faction = UnitTestData.CreateFaction();
         var unit = UnitTestData.CreateUnit(faction);
 
-        var result = unit.Update(
-            name: "Marksman",
-            description: "An elite ranged unit.",
-            attack: 10,
-            defense: 5,
-            health: 14,
-            minimumDamage: 4,
-            maximumDamage: 7,
-            initiative: 11.5,
-            speed: 7,
-            shots: 16,
-            rangedAttackRange: 10,
-            morale: 3,
-            luck: 2,
-            factionId: faction.Id.Value);
+        var result = unit.Update(new UnitAttributes
+        {
+            Name = "Marksman",
+            Description = "An elite ranged unit.",
+            CombatStats = new UnitCombatStatsInput
+            {
+                Attack = 10,
+                Defense = 5,
+                Health = 14,
+                MinimumDamage = 4,
+                MaximumDamage = 7,
+                Initiative = 11.5,
+                Speed = 7,
+                Shots = 16,
+                RangedAttackRange = 10
+            },
+            Morale = 3,
+            Luck = 2,
+            FactionId = faction.Id.Value
+        });
 
         result.IsSuccess.ShouldBeTrue();
         unit.Name.Value.ShouldBe("Marksman");
@@ -140,21 +160,26 @@ public sealed class UnitTests
         var faction = UnitTestData.CreateFaction();
         var unit = UnitTestData.CreateUnit(faction);
 
-        var result = unit.Update(
-            name: "Marksman",
-            description: "An elite ranged unit.",
-            attack: -1,
-            defense: 5,
-            health: 14,
-            minimumDamage: 4,
-            maximumDamage: 7,
-            initiative: 11.5,
-            speed: 7,
-            shots: 16,
-            rangedAttackRange: 10,
-            morale: 3,
-            luck: 2,
-            factionId: faction.Id.Value);
+        var result = unit.Update(new UnitAttributes
+        {
+            Name = "Marksman",
+            Description = "An elite ranged unit.",
+            CombatStats = new UnitCombatStatsInput
+            {
+                Attack = -1,
+                Defense = 5,
+                Health = 14,
+                MinimumDamage = 4,
+                MaximumDamage = 7,
+                Initiative = 11.5,
+                Speed = 7,
+                Shots = 16,
+                RangedAttackRange = 10
+            },
+            Morale = 3,
+            Luck = 2,
+            FactionId = faction.Id.Value
+        });
 
         result.IsFailure.ShouldBeTrue();
         unit.Name.Value.ShouldBe("Archer");
