@@ -10,9 +10,9 @@ internal sealed class UnitListItemReadModelMapper
         IQueryable<UnitReadDbModel> query)
     {
         return query.Select(unit => new UnitListItemReadModel(
-            unit.Id,
-            unit.Name,
-            unit.FactionId,
-            unit.Faction == null ? string.Empty : unit.Faction.Name));
+            Id: unit.Id,
+            Name: unit.Name,
+            FactionId: unit.FactionId,
+            FactionName: unit.Faction == null ? string.Empty : unit.Faction.Name));
     }
 }

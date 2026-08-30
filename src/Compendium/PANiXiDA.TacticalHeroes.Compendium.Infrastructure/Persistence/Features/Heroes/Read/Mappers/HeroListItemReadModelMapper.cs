@@ -10,9 +10,9 @@ internal sealed class HeroListItemReadModelMapper
         IQueryable<HeroReadDbModel> query)
     {
         return query.Select(hero => new HeroListItemReadModel(
-            hero.Id,
-            hero.Name,
-            hero.FactionId,
-            hero.Faction == null ? string.Empty : hero.Faction.Name));
+            Id: hero.Id,
+            Name: hero.Name,
+            FactionId: hero.FactionId,
+            FactionName: hero.Faction == null ? string.Empty : hero.Faction.Name));
     }
 }
