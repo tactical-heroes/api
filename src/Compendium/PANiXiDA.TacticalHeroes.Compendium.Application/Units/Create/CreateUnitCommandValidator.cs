@@ -15,18 +15,7 @@ public sealed class CreateUnitCommandValidator : AbstractValidator<CreateUnitCom
 
         RuleFor(command => command)
             .MustBeValidDomainResult(command => UnitCombatStats.Create(
-                input: new UnitCombatStatsInput
-                {
-                    Attack = command.Attack,
-                    Defense = command.Defense,
-                    Health = command.Health,
-                    MinimumDamage = command.MinimumDamage,
-                    MaximumDamage = command.MaximumDamage,
-                    Initiative = command.Initiative,
-                    Speed = command.Speed,
-                    Shots = command.Shots,
-                    RangedAttackRange = command.RangedAttackRange
-                }));
+                input: command.ToUnitAttributes().CombatStats));
 
         RuleFor(command => command.Morale)
             .MustBeValidDomainValue(UnitMorale.Create);

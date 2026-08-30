@@ -1,3 +1,5 @@
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
 
 public sealed record CreateUnitCommand(
@@ -14,4 +16,4 @@ public sealed record CreateUnitCommand(
     int? RangedAttackRange,
     int Morale,
     int Luck,
-    Guid FactionId) : ICommand<Result<Guid>>;
+    Guid FactionId) : ICommand<Result<Guid>>, IUnitAttributesCommand;
