@@ -203,13 +203,17 @@ internal static class AsyncSafetySourceDiscovery
             MethodDeclarationSyntax method =>
                 method.Modifiers.Any(modifier =>
                     modifier.ValueText == "async") &&
-                (semanticModel.GetDeclaredSymbol(method) as IMethodSymbol)
-                    ?.ReturnsVoid == true,
+                semanticModel.GetDeclaredSymbol(method) is IMethodSymbol
+                {
+                    ReturnsVoid: true
+                },
             LocalFunctionStatementSyntax localFunction =>
                 localFunction.Modifiers.Any(modifier =>
                     modifier.ValueText == "async") &&
-                (semanticModel.GetDeclaredSymbol(localFunction) as
-                    IMethodSymbol)?.ReturnsVoid == true,
+                semanticModel.GetDeclaredSymbol(localFunction) is IMethodSymbol
+                {
+                    ReturnsVoid: true
+                },
             AnonymousFunctionExpressionSyntax anonymousFunction =>
                 anonymousFunction.AsyncKeyword.ValueText == "async" &&
                 semanticModel.GetTypeInfo(anonymousFunction).ConvertedType is

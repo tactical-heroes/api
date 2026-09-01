@@ -53,7 +53,7 @@ public sealed class DbContextConventionTests
                         openGenericContextType) is not null);
     }
 
-    private static IEnumerable<string> GetContextViolations(
+    private static List<string> GetContextViolations(
         Type context,
         string expectedSuffix)
     {

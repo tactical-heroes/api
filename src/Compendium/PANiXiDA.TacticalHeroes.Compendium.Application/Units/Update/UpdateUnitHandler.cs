@@ -48,21 +48,7 @@ public sealed class UpdateUnitHandler(
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        var updateResult = unit.Update(
-            name: command.Name,
-            description: command.Description,
-            attack: command.Attack,
-            defense: command.Defense,
-            health: command.Health,
-            minimumDamage: command.MinimumDamage,
-            maximumDamage: command.MaximumDamage,
-            initiative: command.Initiative,
-            speed: command.Speed,
-            shots: command.Shots,
-            rangedAttackRange: command.RangedAttackRange,
-            morale: command.Morale,
-            luck: command.Luck,
-            factionId: command.FactionId);
+        var updateResult = unit.Update(command.ToUnitAttributes());
 
         if (updateResult.IsFailure)
         {

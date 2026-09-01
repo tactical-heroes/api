@@ -86,7 +86,7 @@ public sealed class ReadRepositoryConventionTests
                 target.Method.ReturnType))
             .Select(target =>
                 $"{target.Repository.FullName}.{target.Method.Name} must " +
-                $"return a ReadModel, optionally wrapped in Task, a " +
+                $"return an IReadModel, optionally wrapped in Task, a " +
                 $"Result, a collection, or a pagination model; found " +
                 $"'{target.Method.ReturnType}'.")
             .ToArray();
@@ -208,7 +208,7 @@ public sealed class ReadRepositoryConventionTests
         ];
     }
 
-    private static IEnumerable<string> GetLocationViolations(
+    private static List<string> GetLocationViolations(
         string repositoryRoot,
         Type readRepository)
     {

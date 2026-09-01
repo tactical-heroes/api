@@ -169,7 +169,7 @@ Read-side не использует типы из Domain. Generic-идентиф
 `IReadRepository<>` является примитивом. Дополнительные параметры его методов
 могут быть примитивами, коллекциями примитивов или Application-моделями
 параметров, рекурсивно составленными только из таких значений. Результаты read
-repository и query handler являются наследниками `ReadModel`; коллекции,
+repository и query handler реализуют `IReadModel`; коллекции,
 `Result`, `Task` и модели пагинации могут использоваться как обёртки.
 
 28. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
@@ -204,23 +204,23 @@ repository и query handler являются наследниками `ReadModel
     параметры дополнительных методов read repository могут быть примитивами,
     `CancellationToken`, коллекциями примитивов или Application-моделями,
     публичное состояние которых рекурсивно состоит только из разрешённых типов.
-    Любые типы из Domain и `ReadModel` во входных параметрах запрещены.
+    Любые типы из Domain и `IReadModel` во входных параметрах запрещены.
 
 35. `ReadRepositoryMethods_Should_ReturnReadModels_When_Declared` — каждый
-    дополнительный метод read repository должен возвращать наследника
-    `ReadModel`. Допускаются обёртки `Task`, `Result`, коллекции и модели
+    дополнительный метод read repository должен возвращать реализацию
+    `IReadModel`. Допускаются обёртки `Task`, `Result`, коллекции и модели
     пагинации. Базовые методы `ExistsByIdAsync` и `AnyAsync`, возвращающие
     `bool`, к этому правилу не относятся.
 
 36. `ReadModels_Should_EndWithReadModel_When_Declared` — каждый конкретный
-    наследник `ReadModel` должен оканчиваться на `ReadModel`.
+    тип, реализующий `IReadModel`, должен оканчиваться на `ReadModel`.
 
-37. `TypesEndingWithReadModel_Should_InheritReadModel_When_Declared` — каждый
-    конкретный Application-тип с суффиксом `ReadModel` должен наследоваться от
-    базового `ReadModel`.
+37. `TypesEndingWithReadModel_Should_ImplementIReadModel_When_Declared` — каждый
+    конкретный Application-тип с суффиксом `ReadModel` должен реализовывать
+    `IReadModel`.
 
 38. `QueryHandlers_Should_ReturnReadModels_When_Declared` — payload результата
-    каждого `IQueryHandler<,>` должен быть наследником `ReadModel`. Допускаются
+    каждого `IQueryHandler<,>` должен реализовывать `IReadModel`. Допускаются
     обёртки `Task`, `Result`, коллекции и модели пагинации.
 
 39. `ReadRepositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,

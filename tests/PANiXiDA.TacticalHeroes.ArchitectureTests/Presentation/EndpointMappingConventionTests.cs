@@ -168,7 +168,7 @@ internal static class EndpointMappingSourceDiscovery
 
     private static EndpointMapping CreateMapping(
         EndpointMappingSource source,
-        IReadOnlyDictionary<string, Type> endpointTypes,
+        Dictionary<string, Type> endpointTypes,
         IReadOnlyDictionary<string, EndpointGroupAuthorization>
             groupAuthorization)
     {

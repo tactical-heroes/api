@@ -48,37 +48,14 @@ public sealed class Unit : AggregateRoot<UnitId>
     public UnitLuck Luck { get; private set; }
     public FactionId FactionId { get; private set; }
 
-    public static Result<Unit> Create(
-        string name,
-        string description,
-        int attack,
-        int defense,
-        int health,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange,
-        int morale,
-        int luck,
-        Guid factionId)
+    public static Result<Unit> Create(UnitAttributes attributes)
     {
-        var nameResult = UnitName.Create(value: name);
-        var descriptionResult = UnitDescription.Create(value: description);
-        var statsResult = UnitCombatStats.Create(
-            attack: attack,
-            defense: defense,
-            health: health,
-            minimumDamage: minimumDamage,
-            maximumDamage: maximumDamage,
-            initiative: initiative,
-            speed: speed,
-            shots: shots,
-            rangedAttackRange: rangedAttackRange);
-        var moraleResult = UnitMorale.Create(value: morale);
-        var luckResult = UnitLuck.Create(value: luck);
-        var factionIdResult = FactionId.Create(value: factionId);
+        var nameResult = UnitName.Create(value: attributes.Name);
+        var descriptionResult = UnitDescription.Create(value: attributes.Description);
+        var statsResult = UnitCombatStats.Create(input: attributes.CombatStats);
+        var moraleResult = UnitMorale.Create(value: attributes.Morale);
+        var luckResult = UnitLuck.Create(value: attributes.Luck);
+        var factionIdResult = FactionId.Create(value: attributes.FactionId);
         var validationResult = Result.Combine(
             nameResult,
             descriptionResult,
@@ -100,37 +77,14 @@ public sealed class Unit : AggregateRoot<UnitId>
                     factionId: factionIdResult.Value));
     }
 
-    public Result Update(
-        string name,
-        string description,
-        int attack,
-        int defense,
-        int health,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange,
-        int morale,
-        int luck,
-        Guid factionId)
+    public Result Update(UnitAttributes attributes)
     {
-        var nameResult = UnitName.Create(value: name);
-        var descriptionResult = UnitDescription.Create(value: description);
-        var statsResult = UnitCombatStats.Create(
-            attack: attack,
-            defense: defense,
-            health: health,
-            minimumDamage: minimumDamage,
-            maximumDamage: maximumDamage,
-            initiative: initiative,
-            speed: speed,
-            shots: shots,
-            rangedAttackRange: rangedAttackRange);
-        var moraleResult = UnitMorale.Create(value: morale);
-        var luckResult = UnitLuck.Create(value: luck);
-        var factionIdResult = FactionId.Create(value: factionId);
+        var nameResult = UnitName.Create(value: attributes.Name);
+        var descriptionResult = UnitDescription.Create(value: attributes.Description);
+        var statsResult = UnitCombatStats.Create(input: attributes.CombatStats);
+        var moraleResult = UnitMorale.Create(value: attributes.Morale);
+        var luckResult = UnitLuck.Create(value: attributes.Luck);
+        var factionIdResult = FactionId.Create(value: attributes.FactionId);
         var validationResult = Result.Combine(
             nameResult,
             descriptionResult,

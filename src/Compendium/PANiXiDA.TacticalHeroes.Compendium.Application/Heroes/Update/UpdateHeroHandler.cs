@@ -2,6 +2,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Update;
 
@@ -48,17 +49,19 @@ public sealed class UpdateHeroHandler(
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        var updateResult = hero.Update(
-            name: command.Name,
-            description: command.Description,
-            attack: command.Attack,
-            defense: command.Defense,
-            minimumDamage: command.MinimumDamage,
-            maximumDamage: command.MaximumDamage,
-            initiative: command.Initiative,
-            morale: command.Morale,
-            luck: command.Luck,
-            factionId: command.FactionId);
+        var updateResult = hero.Update(new HeroAttributes
+        {
+            Name = command.Name,
+            Description = command.Description,
+            Attack = command.Attack,
+            Defense = command.Defense,
+            MinimumDamage = command.MinimumDamage,
+            MaximumDamage = command.MaximumDamage,
+            Initiative = command.Initiative,
+            Morale = command.Morale,
+            Luck = command.Luck,
+            FactionId = command.FactionId
+        });
 
         if (updateResult.IsFailure)
         {

@@ -13,21 +13,7 @@ public sealed class CreateUnitHandler(
         CreateUnitCommand command,
         CancellationToken cancellationToken)
     {
-        var unitResult = Unit.Create(
-            name: command.Name,
-            description: command.Description,
-            attack: command.Attack,
-            defense: command.Defense,
-            health: command.Health,
-            minimumDamage: command.MinimumDamage,
-            maximumDamage: command.MaximumDamage,
-            initiative: command.Initiative,
-            speed: command.Speed,
-            shots: command.Shots,
-            rangedAttackRange: command.RangedAttackRange,
-            morale: command.Morale,
-            luck: command.Luck,
-            factionId: command.FactionId);
+        var unitResult = Unit.Create(command.ToUnitAttributes());
 
         if (unitResult.IsFailure)
         {

@@ -224,7 +224,7 @@ public sealed class DomainTypeLocationConventionTests
         ];
     }
 
-    private static IEnumerable<string> GetEntityLocationViolations(
+    private static List<string> GetEntityLocationViolations(
         string repositoryRoot,
         Type entity,
         IReadOnlyCollection<Type> owners)
@@ -274,7 +274,7 @@ public sealed class DomainTypeLocationConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetOwnedTypeLocationViolations(
+    private static List<string> GetOwnedTypeLocationViolations(
         string repositoryRoot,
         Type ownedType,
         IReadOnlyCollection<Type> owners,
@@ -319,7 +319,7 @@ public sealed class DomainTypeLocationConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetLocationViolations(
+    private static List<string> GetLocationViolations(
         string repositoryRoot,
         Type type,
         string expectedNamespace,
@@ -345,7 +345,7 @@ public sealed class DomainTypeLocationConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetIdentifierViolations(
+    private static List<string> GetIdentifierViolations(
         string repositoryRoot,
         Type owner,
         Type identifier)

@@ -290,7 +290,7 @@ public sealed class RepositoryImplementationConventionTests
             ];
     }
 
-    private static IEnumerable<string> GetLocationViolations(
+    private static List<string> GetLocationViolations(
         RepositoryAdapter repository,
         string accessMode)
     {
@@ -303,18 +303,21 @@ public sealed class RepositoryImplementationConventionTests
             ];
         }
 
-        return InfrastructurePersistenceConvention.GetLocationViolations(
-            repository.Type,
-            "Persistence",
-            "Features",
-            repository.FeatureName,
-            accessMode);
+        return
+        [
+            .. InfrastructurePersistenceConvention.GetLocationViolations(
+                repository.Type,
+                "Persistence",
+                "Features",
+                repository.FeatureName,
+                accessMode)
+        ];
     }
 
     private static string FormatTypes(
-        IReadOnlyCollection<Type> types)
+        Type[] types)
     {
-        return types.Count == 0
+        return types.Length == 0
             ? "<none>"
             : string.Join(
                 ", ",

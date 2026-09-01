@@ -2,86 +2,59 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
 public sealed class UnitCombatStats : ValueObject
 {
-    private UnitCombatStats(
-        int attack,
-        int defense,
-        int health,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange)
+    private UnitCombatStats()
     {
-        Attack = attack;
-        Defense = defense;
-        Health = health;
-        MinimumDamage = minimumDamage;
-        MaximumDamage = maximumDamage;
-        Initiative = initiative;
-        Speed = speed;
-        Shots = shots;
-        RangedAttackRange = rangedAttackRange;
     }
 
-    public int Attack { get; }
-    public int Defense { get; }
-    public int Health { get; }
-    public int MinimumDamage { get; }
-    public int MaximumDamage { get; }
-    public double Initiative { get; }
-    public int Speed { get; }
-    public int? Shots { get; }
-    public int? RangedAttackRange { get; }
+    public int Attack { get; private set; }
+    public int Defense { get; private set; }
+    public int Health { get; private set; }
+    public int MinimumDamage { get; private set; }
+    public int MaximumDamage { get; private set; }
+    public double Initiative { get; private set; }
+    public int Speed { get; private set; }
+    public int? Shots { get; private set; }
+    public int? RangedAttackRange { get; private set; }
 
-    public static Result<UnitCombatStats> Create(
-        int attack,
-        int defense,
-        int health,
-        int minimumDamage,
-        int maximumDamage,
-        double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange)
+    public static Result<UnitCombatStats> Create(UnitCombatStatsInput input)
     {
         var attackResult = ValidateNonNegative(
-            value: attack,
+            value: input.Attack,
             field: nameof(Attack),
             message: "Unit attack cannot be negative.");
         var defenseResult = ValidateNonNegative(
-            value: defense,
+            value: input.Defense,
             field: nameof(Defense),
             message: "Unit defense cannot be negative.");
         var healthResult = ValidatePositive(
-            value: health,
+            value: input.Health,
             field: nameof(Health),
             message: "Unit health must be greater than zero.");
         var minimumDamageResult = ValidateNonNegative(
-            value: minimumDamage,
+            value: input.MinimumDamage,
             field: nameof(MinimumDamage),
             message: "Unit minimum damage cannot be negative.");
         var maximumDamageResult = ValidateNonNegative(
-            value: maximumDamage,
+            value: input.MaximumDamage,
             field: nameof(MaximumDamage),
             message: "Unit maximum damage cannot be negative.");
-        var damageRangeResult = maximumDamage >= minimumDamage
+        var damageRangeResult = input.MaximumDamage >= input.MinimumDamage
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(
                         message: "Unit maximum damage cannot be less than minimum damage.")
                     .WithField(nameof(MaximumDamage)));
         var initiativeResult = ValidateNonNegativeFinite(
-            value: initiative,
+            value: input.Initiative,
             field: nameof(Initiative),
             message: "Unit initiative must be a finite non-negative number.");
         var speedResult = ValidateNonNegative(
-            value: speed,
+            value: input.Speed,
             field: nameof(Speed),
             message: "Unit speed cannot be negative.");
         var rangedAttackResult = ValidateRangedAttack(
-            shots: shots,
-            rangedAttackRange: rangedAttackRange);
+            shots: input.Shots,
+            rangedAttackRange: input.RangedAttackRange);
         var validationResult = Result.Combine(
             attackResult,
             defenseResult,
@@ -96,16 +69,18 @@ public sealed class UnitCombatStats : ValueObject
         return validationResult.IsFailure
             ? Result.Failure<UnitCombatStats>(errors: validationResult.Errors)
             : Result.Success(
-                value: new UnitCombatStats(
-                    attack: attack,
-                    defense: defense,
-                    health: health,
-                    minimumDamage: minimumDamage,
-                    maximumDamage: maximumDamage,
-                    initiative: initiative,
-                    speed: speed,
-                    shots: shots,
-                    rangedAttackRange: rangedAttackRange));
+                value: new UnitCombatStats
+                {
+                    Attack = input.Attack,
+                    Defense = input.Defense,
+                    Health = input.Health,
+                    MinimumDamage = input.MinimumDamage,
+                    MaximumDamage = input.MaximumDamage,
+                    Initiative = input.Initiative,
+                    Speed = input.Speed,
+                    Shots = input.Shots,
+                    RangedAttackRange = input.RangedAttackRange
+                });
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()

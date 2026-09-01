@@ -33,7 +33,7 @@ public sealed class ProjectReferenceDependencyTests
             string.Join(Environment.NewLine, violations));
     }
 
-    private static IReadOnlyDictionary<string, string> GetProjectPaths(
+    private static Dictionary<string, string> GetProjectPaths(
         string repositoryRoot)
     {
         var sourceRoot = Path.Combine(

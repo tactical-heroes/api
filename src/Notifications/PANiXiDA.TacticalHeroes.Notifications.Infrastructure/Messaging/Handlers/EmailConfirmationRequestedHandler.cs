@@ -3,9 +3,9 @@ using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.EmailC
 
 namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.Handlers;
 
-public sealed class EmailConfirmationRequestedHandler
+public static class EmailConfirmationRequestedHandler
 {
-    public DomainEvent Handle(IntegrationEvent integrationEvent)
+    public static DomainEvent Handle(IntegrationEvent integrationEvent)
     {
         return new DomainEvent(
             IntegrationEventId: integrationEvent.Id,

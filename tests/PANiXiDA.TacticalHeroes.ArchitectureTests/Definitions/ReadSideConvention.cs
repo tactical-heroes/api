@@ -48,7 +48,7 @@ internal static class ReadSideConvention
                    new HashSet<Type>()) &&
                readModelTypes.Count > 0 &&
                readModelTypes.All(type =>
-                   typeof(ReadModel).IsAssignableFrom(type));
+                   typeof(IReadModel).IsAssignableFrom(type));
     }
 
     private static bool IsAllowedReadInput(
@@ -61,7 +61,7 @@ internal static class ReadSideConvention
         }
 
         if (IsDomainType(type) ||
-            typeof(ReadModel).IsAssignableFrom(type))
+            typeof(IReadModel).IsAssignableFrom(type))
         {
             return false;
         }
@@ -128,7 +128,7 @@ internal static class ReadSideConvention
             return true;
         }
 
-        if (typeof(ReadModel).IsAssignableFrom(type))
+        if (typeof(IReadModel).IsAssignableFrom(type))
         {
             readModelTypes.Add(type);
 

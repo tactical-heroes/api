@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claim
 
 internal static class IdentityClaimsFactory
 {
-    private static readonly string SecurityStampClaimType =
+    private static readonly string DefaultSecurityStampClaimType =
         new IdentityOptions().ClaimsIdentity.SecurityStampClaimType;
 
     internal static IReadOnlyCollection<Claim> Create(
@@ -17,56 +17,54 @@ internal static class IdentityClaimsFactory
         IdentityOptions identityOptions)
     {
         return Create(
-            id: user.Id,
-            userName: user.UserName,
-            email: user.Email,
-            securityStamp: user.SecurityStamp,
-            securityStampClaimType: identityOptions.ClaimsIdentity.SecurityStampClaimType,
-            userClaims: user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
-            roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
-            roleClaims: user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+            new ClaimsData
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                SecurityStamp = user.SecurityStamp,
+                SecurityStampClaimType = identityOptions.ClaimsIdentity.SecurityStampClaimType,
+                UserClaims = user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
+                RoleNames = user.Roles.Select(userRole => userRole.Role?.Name),
+                RoleClaims = user.Roles.SelectMany(userRole =>
+                    userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? [])
+            });
     }
 
     internal static IReadOnlyCollection<Claim> Create(UserReadDbModel user)
     {
         return Create(
-            id: user.Id,
-            userName: user.UserName,
-            email: user.Email,
-            securityStamp: user.SecurityStamp,
-            securityStampClaimType: SecurityStampClaimType,
-            userClaims: user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
-            roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
-            roleClaims: user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+            new ClaimsData
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                SecurityStamp = user.SecurityStamp,
+                SecurityStampClaimType = DefaultSecurityStampClaimType,
+                UserClaims = user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
+                RoleNames = user.Roles.Select(userRole => userRole.Role?.Name),
+                RoleClaims = user.Roles.SelectMany(userRole =>
+                    userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? [])
+            });
     }
 
-    private static IReadOnlyCollection<Claim> Create(
-        Guid id,
-        string? userName,
-        string? email,
-        string? securityStamp,
-        string securityStampClaimType,
-        IEnumerable<(string? Type, string? Value)> userClaims,
-        IEnumerable<string?> roleNames,
-        IEnumerable<(string? Type, string? Value)> roleClaims)
+    private static IReadOnlyCollection<Claim> Create(ClaimsData data)
     {
         var claims = new List<Claim>
         {
-            new(type: OpenIddictConstants.Claims.Subject, value: id.ToString())
+            new(type: OpenIddictConstants.Claims.Subject, value: data.Id.ToString())
         };
 
-        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Name, value: userName);
-        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Email, value: email);
-        AddIfPresent(claims: claims, type: securityStampClaimType, value: securityStamp);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Name, value: data.UserName);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Email, value: data.Email);
+        AddIfPresent(claims: claims, type: data.SecurityStampClaimType, value: data.SecurityStamp);
 
         claims.AddRange(
-            roleNames
+            data.RoleNames
                 .Where(roleName => !string.IsNullOrWhiteSpace(roleName))
                 .Select(roleName => new Claim(type: OpenIddictConstants.Claims.Role, value: roleName!)));
-        claims.AddRange(ToClaims(claims: userClaims));
-        claims.AddRange(ToClaims(claims: roleClaims));
+        claims.AddRange(ToClaims(claims: data.UserClaims));
+        claims.AddRange(ToClaims(claims: data.RoleClaims));
 
         return [.. claims.Distinct(IdentityClaimComparer.Instance)];
     }
@@ -90,5 +88,17 @@ internal static class IdentityClaimsFactory
         {
             claims.Add(new Claim(type: type, value: value));
         }
+    }
+
+    private sealed record ClaimsData
+    {
+        public required Guid Id { get; init; }
+        public required string? UserName { get; init; }
+        public required string? Email { get; init; }
+        public required string? SecurityStamp { get; init; }
+        public required string SecurityStampClaimType { get; init; }
+        public required IEnumerable<(string? Type, string? Value)> UserClaims { get; init; }
+        public required IEnumerable<string?> RoleNames { get; init; }
+        public required IEnumerable<(string? Type, string? Value)> RoleClaims { get; init; }
     }
 }

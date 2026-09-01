@@ -3,6 +3,9 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.OpenApi;
+
+using Microsoft.OpenApi;
 
 using OpenIddict.Server.AspNetCore;
 
@@ -18,6 +21,7 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
     {
         builder.MapGet(HandleGetAsync)
             .AllowAnonymous()
+            .AddOpenApiOperationTransformer(AddLogoutQueryParametersAsync)
             .Produces(StatusCodes.Status302Found);
 
         builder.MapPost(HandlePostAsync)
@@ -27,11 +31,41 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
             .Produces(StatusCodes.Status302Found);
     }
 
-    private static Task<IResult> HandleGetAsync(
-        [AsParameters] LogoutRequest request,
-        HttpContext httpContext)
+    private static Task<IResult> HandleGetAsync(HttpContext httpContext)
     {
         return HandleAsync(httpContext);
+    }
+
+    private static async Task AddLogoutQueryParametersAsync(
+        OpenApiOperation operation,
+        OpenApiOperationTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        OpenApiSchema stringSchema = await context.GetOrCreateSchemaAsync(
+            type: typeof(string),
+            parameterDescription: null,
+            cancellationToken: cancellationToken);
+
+        operation.Parameters =
+        [
+            CreateQueryParameter(OpenIddictConstants.Parameters.ClientId, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.IdTokenHint, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.PostLogoutRedirectUri, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.State, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.UiLocales, stringSchema)
+        ];
+    }
+
+    private static OpenApiParameter CreateQueryParameter(
+        string name,
+        OpenApiSchema schema)
+    {
+        return new OpenApiParameter
+        {
+            Name = name,
+            In = ParameterLocation.Query,
+            Schema = schema
+        };
     }
 
     private static Task<IResult> HandlePostAsync(HttpContext httpContext)
