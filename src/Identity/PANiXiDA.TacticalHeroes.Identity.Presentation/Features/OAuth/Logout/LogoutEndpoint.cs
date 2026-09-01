@@ -42,7 +42,7 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         CancellationToken cancellationToken)
     {
         OpenApiSchema stringSchema = await context.GetOrCreateSchemaAsync(
-            typeof(string),
+            type: typeof(string),
             parameterDescription: null,
             cancellationToken: cancellationToken);
 
