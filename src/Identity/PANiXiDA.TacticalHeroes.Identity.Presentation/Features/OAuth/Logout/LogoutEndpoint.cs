@@ -27,7 +27,9 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
             .Produces(StatusCodes.Status302Found);
     }
 
-    private static Task<IResult> HandleGetAsync(HttpContext httpContext)
+    private static Task<IResult> HandleGetAsync(
+        [AsParameters] LogoutRequest _,
+        HttpContext httpContext)
     {
         return HandleAsync(httpContext);
     }
