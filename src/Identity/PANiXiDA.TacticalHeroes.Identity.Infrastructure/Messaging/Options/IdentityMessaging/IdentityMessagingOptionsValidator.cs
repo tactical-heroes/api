@@ -52,12 +52,12 @@ internal sealed class IdentityMessagingOptionsValidator
 
         if (!Uri.TryCreate(
             uriString: sampleUrl,
-            uriKind: UriKind.RelativeOrAbsolute,
+            uriKind: UriKind.Absolute,
             result: out var uri) ||
-            uri.IsAbsoluteUri && !IsHttpScheme(uri: uri) ||
-            !uri.IsAbsoluteUri && !sampleUrl.StartsWith("/", StringComparison.Ordinal))
+            !IsHttpScheme(uri: uri) ||
+            string.IsNullOrWhiteSpace(uri.Host))
         {
-            failures.Add($"{path} must be a root-relative or absolute HTTP/HTTPS URL template.");
+            failures.Add($"{path} must be an absolute HTTP/HTTPS URL template with a host.");
         }
     }
 
