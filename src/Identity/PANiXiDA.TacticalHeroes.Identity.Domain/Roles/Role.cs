@@ -45,7 +45,9 @@ public sealed class Role : AggregateRoot<RoleId>
         _claims.Add(claim);
     }
 
-    public void RevokeClaim(ClaimType type, ClaimValue value)
+    public void RevokeClaim(
+        ClaimType type,
+        ClaimValue value)
     {
         _claims.RemoveAll(claim => claim.Type == type && claim.Value == value);
     }

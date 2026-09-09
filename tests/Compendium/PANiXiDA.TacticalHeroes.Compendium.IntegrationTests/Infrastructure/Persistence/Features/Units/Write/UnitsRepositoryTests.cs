@@ -104,7 +104,9 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
     [Theory(DisplayName = "UpdateAsync should persist unit changes when unit exists")]
     [InlineData(16, 10)]
     [InlineData(null, null)]
-    public async Task UpdateAsync_Should_PersistChanges_When_UnitExists(int? shots, int? rangedAttackRange)
+    public async Task UpdateAsync_Should_PersistChanges_When_UnitExists(
+        int? shots,
+        int? rangedAttackRange)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();

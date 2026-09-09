@@ -32,7 +32,9 @@ public sealed class User : AggregateRoot<UserId>
     public IReadOnlyCollection<RoleId> RoleIds => _roleIds;
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
-    public static User Register(Email email, UserName userName)
+    public static User Register(
+        Email email,
+        UserName userName)
     {
         return new User(
             id: UserId.New(),

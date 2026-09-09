@@ -2,7 +2,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 public sealed class UserActionToken : ValueObject
 {
-    private UserActionToken(string value, DateTimeOffset expiresAtUtc)
+    private UserActionToken(
+        string value,
+        DateTimeOffset expiresAtUtc)
     {
         Value = value;
         ExpiresAtUtc = expiresAtUtc;
@@ -11,7 +13,9 @@ public sealed class UserActionToken : ValueObject
     public string Value { get; }
     public DateTimeOffset ExpiresAtUtc { get; }
 
-    public static Result<UserActionToken> Create(string value, DateTimeOffset expiresAtUtc)
+    public static Result<UserActionToken> Create(
+        string value,
+        DateTimeOffset expiresAtUtc)
     {
         return string.IsNullOrWhiteSpace(value)
             ? Result.Failure<UserActionToken>(

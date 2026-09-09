@@ -8,7 +8,9 @@ public sealed class UnitRangedAttackTests
     [InlineData(null, null)]
     [InlineData(1, 1)]
     [InlineData(12, 8)]
-    public void Create_Should_ReturnRangedAttack_When_ValuesAreValid(int? shots, int? rangedAttackRange)
+    public void Create_Should_ReturnRangedAttack_When_ValuesAreValid(
+        int? shots,
+        int? rangedAttackRange)
     {
         var result = UnitRangedAttack.Create(shots, rangedAttackRange);
 

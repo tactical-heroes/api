@@ -2,7 +2,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
 public sealed class UnitRangedAttack : ValueObject
 {
-    private UnitRangedAttack(int? shots, int? rangedAttackRange)
+    private UnitRangedAttack(
+        int? shots,
+        int? rangedAttackRange)
     {
         Shots = shots;
         RangedAttackRange = rangedAttackRange;
@@ -11,7 +13,9 @@ public sealed class UnitRangedAttack : ValueObject
     public int? Shots { get; }
     public int? RangedAttackRange { get; }
 
-    public static Result<UnitRangedAttack> Create(int? shots, int? rangedAttackRange)
+    public static Result<UnitRangedAttack> Create(
+        int? shots,
+        int? rangedAttackRange)
     {
         var pairResult = shots.HasValue == rangedAttackRange.HasValue
             ? Result.Success()
