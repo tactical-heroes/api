@@ -6,7 +6,8 @@ namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjecti
 
 public static class HostBuilderExtensions
 {
-    public static IHostBuilder UseInfrastructure(this IHostBuilder hostBuilder)
+    public static IHostBuilder UseInfrastructure(
+        this IHostBuilder hostBuilder)
     {
         return hostBuilder.UseMessaging();
     }
