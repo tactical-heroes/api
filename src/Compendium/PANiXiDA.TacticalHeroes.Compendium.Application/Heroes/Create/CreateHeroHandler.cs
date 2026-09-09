@@ -39,16 +39,8 @@ public sealed class CreateHeroHandler(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var hero = Hero.Create(
-            name: nameResult.Value,
-            description: descriptionResult.Value,
-            stats: statsResult.Value,
-            morale: moraleResult.Value,
-            luck: luckResult.Value,
-            factionId: factionIdResult.Value);
-
         var faction = await factionsRepository.GetByIdAsync(
-            id: hero.FactionId,
+            id: factionIdResult.Value,
             cancellationToken: cancellationToken);
 
         if (faction is null)
@@ -56,6 +48,14 @@ public sealed class CreateHeroHandler(
             return Result.Failure<Guid>(
                 error: Error.NotFound(message: "Faction was not found."));
         }
+
+        var hero = Hero.Create(
+            name: nameResult.Value,
+            description: descriptionResult.Value,
+            stats: statsResult.Value,
+            morale: moraleResult.Value,
+            luck: luckResult.Value,
+            factionId: factionIdResult.Value);
 
         await heroesRepository.AddAsync(
             aggregateRoot: hero,

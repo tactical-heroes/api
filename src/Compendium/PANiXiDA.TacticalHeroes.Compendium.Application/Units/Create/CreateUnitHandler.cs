@@ -45,6 +45,16 @@ public sealed class CreateUnitHandler(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
+        var faction = await factionsRepository.GetByIdAsync(
+            id: factionIdResult.Value,
+            cancellationToken: cancellationToken);
+
+        if (faction is null)
+        {
+            return Result.Failure<Guid>(
+                error: Error.NotFound(message: "Faction was not found."));
+        }
+
         var unit = Unit.Create(
             name: nameResult.Value,
             description: descriptionResult.Value,
@@ -53,16 +63,6 @@ public sealed class CreateUnitHandler(
             morale: moraleResult.Value,
             luck: luckResult.Value,
             factionId: factionIdResult.Value);
-
-        var faction = await factionsRepository.GetByIdAsync(
-            id: unit.FactionId,
-            cancellationToken: cancellationToken);
-
-        if (faction is null)
-        {
-            return Result.Failure<Guid>(
-                error: Error.NotFound(message: "Faction was not found."));
-        }
 
         await unitsRepository.AddAsync(
             aggregateRoot: unit,
