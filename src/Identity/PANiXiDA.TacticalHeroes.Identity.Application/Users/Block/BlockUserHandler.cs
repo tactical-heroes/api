@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Block;
 
-public sealed class BlockUserHandler(IUsersWriteRepository usersRepository)
+public sealed class BlockUserHandler(IUsersRepository usersRepository)
     : ICommandHandler<BlockUserCommand, Result>
 {
     public Task<Result> HandleAsync(

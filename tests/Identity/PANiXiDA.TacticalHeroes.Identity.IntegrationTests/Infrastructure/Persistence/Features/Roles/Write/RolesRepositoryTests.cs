@@ -3,10 +3,10 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Roles;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Write;
 
@@ -44,8 +44,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
 
         await using (var scope = Fixture.CreateScope())
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
-            (await repository.UpdateAsync(RoleMapper.ToDomain(id: roleId, name: "manager", claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value))).Value, cancellationToken)).IsSuccess.ShouldBeTrue();
+            var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+            (await repository.UpdateAsync(IntegrationTestData.CreateRole(id: roleId, name: "manager", claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value))), cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -68,7 +68,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
 
         await using (var scope = Fixture.CreateScope())
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
+            var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
             (await repository.DeleteAsync(roleId, cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
@@ -84,11 +84,11 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     public async Task AddAsync_Should_ReturnConflict_When_RoleNameAlreadyExists()
     {
         await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        (await repository.AddAsync(RoleMapper.ToDomain(id: Guid.CreateVersion7(), name: "admin", claims: Array.Empty<(string Type, string Value)>()).Value, cancellationToken)).IsSuccess.ShouldBeTrue();
-        var result = await repository.AddAsync(RoleMapper.ToDomain(id: Guid.CreateVersion7(), name: "ADMIN", claims: Array.Empty<(string Type, string Value)>()).Value, cancellationToken);
+        (await repository.AddAsync(IntegrationTestData.CreateRole(id: Guid.CreateVersion7(), name: "admin", claims: Array.Empty<(string Type, string Value)>()), cancellationToken)).IsSuccess.ShouldBeTrue();
+        var result = await repository.AddAsync(IntegrationTestData.CreateRole(id: Guid.CreateVersion7(), name: "ADMIN", claims: Array.Empty<(string Type, string Value)>()), cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
     }
@@ -99,8 +99,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
-        var result = await repository.AddAsync(RoleMapper.ToDomain(id: Guid.CreateVersion7(), name: name, claims: claims.Select(claim => (claim.Type, claim.Value))).Value, cancellationToken);
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var result = await repository.AddAsync(IntegrationTestData.CreateRole(id: Guid.CreateVersion7(), name: name, claims: claims.Select(claim => (claim.Type, claim.Value))), cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

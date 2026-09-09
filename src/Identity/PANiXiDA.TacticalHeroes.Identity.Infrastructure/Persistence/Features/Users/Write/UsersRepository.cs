@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
@@ -13,13 +13,13 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
-public sealed class UsersWriteRepository(
+public sealed class UsersRepository(
     IdentityWriteDbContext dbContext,
     UserManager<ApplicationUser> userManager,
     IOpenIddictTokenManager tokenManager,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
-    : IUsersWriteRepository
+    : IUsersRepository
 {
     public async Task<Result<Guid>> AddAsync(
         User user,

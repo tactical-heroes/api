@@ -1,6 +1,7 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -68,12 +69,51 @@ internal static class ApplicationUserMapper
 
     public static Result<User> ToDomain(ApplicationUser user)
     {
-        return UserMapper.ToDomain(
-            id: user.Id,
-            email: user.Email!,
-            isConfirmed: user.EmailConfirmed,
-            roleIds: user.Roles.Select(role => role.RoleId),
-            claims: user.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
+        var idResult = UserId.Create(value: user.Id);
+        var emailResult = Email.Create(value: user.Email!);
+        var validationResult = Result.Combine(idResult, emailResult);
+
+        if (validationResult.IsFailure)
+        {
+            return Result.Failure<User>(errors: validationResult.Errors);
+        }
+
+        var domainRoleIds = new List<RoleId>();
+
+        foreach (var roleId in user.Roles.Select(role => role.RoleId))
+        {
+            var roleIdResult = RoleId.Create(value: roleId);
+
+            if (roleIdResult.IsFailure)
+            {
+                return Result.Failure<User>(errors: roleIdResult.Errors);
+            }
+
+            domainRoleIds.Add(roleIdResult.Value);
+        }
+
+        var domainClaims = new List<UserClaim>();
+
+        foreach (var claim in user.Claims)
+        {
+            var typeResult = ClaimType.Create(value: claim.ClaimType!);
+            var valueResult = ClaimValue.Create(value: claim.ClaimValue!);
+            var claimResult = Result.Combine(typeResult, valueResult);
+
+            if (claimResult.IsFailure)
+            {
+                return Result.Failure<User>(errors: claimResult.Errors);
+            }
+
+            domainClaims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
+        }
+
+        return Result.Success(value: User.Create(
+            id: idResult.Value,
+            email: emailResult.Value,
+            confirmationStatus: UserConfirmationStatus.From(isConfirmed: user.EmailConfirmed),
+            roleIds: domainRoleIds,
+            claims: domainClaims));
     }
 
     private static List<ApplicationUserRole> ToRoleDbModels(User user)

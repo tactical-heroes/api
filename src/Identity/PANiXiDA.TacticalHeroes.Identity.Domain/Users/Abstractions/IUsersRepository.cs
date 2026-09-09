@@ -1,10 +1,9 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
-public interface IUsersWriteRepository
+public interface IUsersRepository
 {
     Task<Result<Guid>> AddAsync(
         User user,

@@ -1,8 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
-
-public interface IRolesWriteRepository
+public interface IRolesRepository
 {
     Task<Result<Guid>> AddAsync(
         Role role,

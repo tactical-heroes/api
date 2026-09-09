@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
@@ -15,7 +15,7 @@ public sealed class RolesRepository(
     RoleManager<ApplicationRole> roleManager,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
-    : IRolesWriteRepository
+    : IRolesRepository
 {
     public async Task<Result<Guid>> AddAsync(
         Role role,
