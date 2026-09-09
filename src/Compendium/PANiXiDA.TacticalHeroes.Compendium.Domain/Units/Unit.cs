@@ -17,6 +17,7 @@ public sealed class Unit : AggregateRoot<UnitId>
         Name = name;
         Description = description;
         Stats = null!;
+        RangedAttack = null!;
         Morale = morale;
         Luck = luck;
         FactionId = factionId;
@@ -27,6 +28,7 @@ public sealed class Unit : AggregateRoot<UnitId>
         UnitName name,
         UnitDescription description,
         UnitCombatStats stats,
+        UnitRangedAttack rangedAttack,
         UnitMorale morale,
         UnitLuck luck,
         FactionId factionId)
@@ -39,11 +41,13 @@ public sealed class Unit : AggregateRoot<UnitId>
             factionId: factionId)
     {
         Stats = stats;
+        RangedAttack = rangedAttack;
     }
 
     public UnitName Name { get; private set; }
     public UnitDescription Description { get; private set; }
     public UnitCombatStats Stats { get; private set; }
+    public UnitRangedAttack RangedAttack { get; private set; }
     public UnitMorale Morale { get; private set; }
     public UnitLuck Luck { get; private set; }
     public FactionId FactionId { get; private set; }
@@ -52,6 +56,7 @@ public sealed class Unit : AggregateRoot<UnitId>
         UnitName name,
         UnitDescription description,
         UnitCombatStats stats,
+        UnitRangedAttack rangedAttack,
         UnitMorale morale,
         UnitLuck luck,
         FactionId factionId)
@@ -61,6 +66,7 @@ public sealed class Unit : AggregateRoot<UnitId>
             name: name,
             description: description,
             stats: stats,
+            rangedAttack: rangedAttack,
             morale: morale,
             luck: luck,
             factionId: factionId);
@@ -70,6 +76,7 @@ public sealed class Unit : AggregateRoot<UnitId>
         UnitName name,
         UnitDescription description,
         UnitCombatStats stats,
+        UnitRangedAttack rangedAttack,
         UnitMorale morale,
         UnitLuck luck,
         FactionId factionId)
@@ -77,6 +84,7 @@ public sealed class Unit : AggregateRoot<UnitId>
         Name = name;
         Description = description;
         Stats = stats;
+        RangedAttack = rangedAttack;
         Morale = morale;
         Luck = luck;
         FactionId = factionId;

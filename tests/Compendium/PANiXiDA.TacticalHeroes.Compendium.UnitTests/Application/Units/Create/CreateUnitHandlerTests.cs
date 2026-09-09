@@ -34,7 +34,7 @@ public sealed class CreateUnitHandlerTests
                 unit.Id.Value == result.Value &&
                 unit.Name.Value == "Archer" &&
                 unit.Stats.Attack == 8 &&
-                unit.Stats.Shots == 12 &&
+                unit.RangedAttack.Shots == 12 &&
                 unit.FactionId == faction.Id),
             cancellationToken);
     }
@@ -78,12 +78,14 @@ public sealed class CreateUnitHandlerTests
                 Attack = -1,
                 MinimumDamage = 10,
                 MaximumDamage = 1,
-                Initiative = double.NaN
+                Initiative = double.NaN,
+                Shots = 0,
+                RangedAttackRange = null
             },
             TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
-        result.Errors.Count.ShouldBeGreaterThanOrEqualTo(5);
+        result.Errors.Count.ShouldBeGreaterThanOrEqualTo(7);
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         await repository.DidNotReceiveWithAnyArgs()
             .AddAsync(null!, TestContext.Current.CancellationToken);

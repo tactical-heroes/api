@@ -17,7 +17,17 @@ public sealed class CreateUnitHandler(
     {
         var nameResult = UnitName.Create(value: command.Name);
         var descriptionResult = UnitDescription.Create(value: command.Description);
-        var statsResult = command.ToCombatStats();
+        var statsResult = UnitCombatStats.Create(
+            attack: command.Attack,
+            defense: command.Defense,
+            health: command.Health,
+            minimumDamage: command.MinimumDamage,
+            maximumDamage: command.MaximumDamage,
+            initiative: command.Initiative,
+            speed: command.Speed);
+        var rangedAttackResult = UnitRangedAttack.Create(
+            shots: command.Shots,
+            rangedAttackRange: command.RangedAttackRange);
         var moraleResult = UnitMorale.Create(value: command.Morale);
         var luckResult = UnitLuck.Create(value: command.Luck);
         var factionIdResult = FactionId.Create(value: command.FactionId);
@@ -25,6 +35,7 @@ public sealed class CreateUnitHandler(
             nameResult,
             descriptionResult,
             statsResult,
+            rangedAttackResult,
             moraleResult,
             luckResult,
             factionIdResult);
@@ -38,6 +49,7 @@ public sealed class CreateUnitHandler(
             name: nameResult.Value,
             description: descriptionResult.Value,
             stats: statsResult.Value,
+            rangedAttack: rangedAttackResult.Value,
             morale: moraleResult.Value,
             luck: luckResult.Value,
             factionId: factionIdResult.Value);

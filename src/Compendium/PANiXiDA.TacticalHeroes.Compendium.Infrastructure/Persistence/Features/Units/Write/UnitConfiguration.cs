@@ -55,10 +55,13 @@ internal sealed class UnitConfiguration : AuditableEntityConfiguration<Unit>
 
             stats.Property(value => value.Speed)
                 .IsRequired();
+        });
 
-            stats.Property(value => value.Shots);
+        builder.ComplexProperty(unit => unit.RangedAttack, rangedAttack =>
+        {
+            rangedAttack.Property(value => value.Shots);
 
-            stats.Property(value => value.RangedAttackRange);
+            rangedAttack.Property(value => value.RangedAttackRange);
         });
 
         builder.Property(unit => unit.Morale)

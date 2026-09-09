@@ -14,18 +14,17 @@ public sealed class UnitTests
         var result = Unit.Create(
             name: UnitName.Create(value: "  Archer  ").Value,
             description: UnitDescription.Create(value: "  A disciplined ranged unit.  ").Value,
-            stats: UnitCombatStats.Create(new UnitCombatStatsInput
-            {
-                Attack = 8,
-                Defense = 4,
-                Health = 12,
-                MinimumDamage = 3,
-                MaximumDamage = 5,
-                Initiative = 10.5,
-                Speed = 6,
-                Shots = 12,
-                RangedAttackRange = 8
-            }).Value,
+            stats: UnitCombatStats.Create(
+                attack: 8,
+                defense: 4,
+                health: 12,
+                minimumDamage: 3,
+                maximumDamage: 5,
+                initiative: 10.5,
+                speed: 6).Value,
+            rangedAttack: UnitRangedAttack.Create(
+                shots: 12,
+                rangedAttackRange: 8).Value,
             morale: UnitMorale.Create(value: 2).Value,
             luck: UnitLuck.Create(value: 1).Value,
             factionId: faction.Id);
@@ -40,8 +39,8 @@ public sealed class UnitTests
         result.Stats.MaximumDamage.ShouldBe(5);
         result.Stats.Initiative.ShouldBe(10.5);
         result.Stats.Speed.ShouldBe(6);
-        result.Stats.Shots.ShouldBe(12);
-        result.Stats.RangedAttackRange.ShouldBe(8);
+        result.RangedAttack.Shots.ShouldBe(12);
+        result.RangedAttack.RangedAttackRange.ShouldBe(8);
         result.Morale.Value.ShouldBe(2);
         result.Luck.Value.ShouldBe(1);
         result.FactionId.ShouldBe(faction.Id);
@@ -55,24 +54,23 @@ public sealed class UnitTests
         var result = Unit.Create(
             name: UnitName.Create(value: "Swordsman").Value,
             description: UnitDescription.Create(value: "A disciplined melee unit.").Value,
-            stats: UnitCombatStats.Create(new UnitCombatStatsInput
-            {
-                Attack = 6,
-                Defense = 7,
-                Health = 18,
-                MinimumDamage = 2,
-                MaximumDamage = 4,
-                Initiative = 8,
-                Speed = 5,
-                Shots = null,
-                RangedAttackRange = null
-            }).Value,
+            stats: UnitCombatStats.Create(
+                attack: 6,
+                defense: 7,
+                health: 18,
+                minimumDamage: 2,
+                maximumDamage: 4,
+                initiative: 8,
+                speed: 5).Value,
+            rangedAttack: UnitRangedAttack.Create(
+                shots: null,
+                rangedAttackRange: null).Value,
             morale: UnitMorale.Create(value: 1).Value,
             luck: UnitLuck.Create(value: 0).Value,
             factionId: faction.Id);
 
-        result.Stats.Shots.ShouldBeNull();
-        result.Stats.RangedAttackRange.ShouldBeNull();
+        result.RangedAttack.Shots.ShouldBeNull();
+        result.RangedAttack.RangedAttackRange.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Unit should update all details when values are valid")]
@@ -84,18 +82,17 @@ public sealed class UnitTests
         unit.Update(
             name: UnitName.Create(value: "Marksman").Value,
             description: UnitDescription.Create(value: "An elite ranged unit.").Value,
-            stats: UnitCombatStats.Create(new UnitCombatStatsInput
-            {
-                Attack = 10,
-                Defense = 5,
-                Health = 14,
-                MinimumDamage = 4,
-                MaximumDamage = 7,
-                Initiative = 11.5,
-                Speed = 7,
-                Shots = 16,
-                RangedAttackRange = 10
-            }).Value,
+            stats: UnitCombatStats.Create(
+                attack: 10,
+                defense: 5,
+                health: 14,
+                minimumDamage: 4,
+                maximumDamage: 7,
+                initiative: 11.5,
+                speed: 7).Value,
+            rangedAttack: UnitRangedAttack.Create(
+                shots: 16,
+                rangedAttackRange: 10).Value,
             morale: UnitMorale.Create(value: 3).Value,
             luck: UnitLuck.Create(value: 2).Value,
             factionId: faction.Id);
@@ -103,7 +100,7 @@ public sealed class UnitTests
         unit.Name.Value.ShouldBe("Marksman");
         unit.Stats.Attack.ShouldBe(10);
         unit.Stats.MaximumDamage.ShouldBe(7);
-        unit.Stats.Shots.ShouldBe(16);
+        unit.RangedAttack.Shots.ShouldBe(16);
         unit.Morale.Value.ShouldBe(3);
         unit.Luck.Value.ShouldBe(2);
     }

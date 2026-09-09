@@ -1,5 +1,3 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Abstractions;
-
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 
 public sealed record UpdateUnitCommand(
@@ -17,4 +15,4 @@ public sealed record UpdateUnitCommand(
     int? RangedAttackRange,
     int Morale,
     int Luck,
-    Guid FactionId) : ICommand<Result>, IUnitAttributesCommand;
+    Guid FactionId) : ICommand<Result>;

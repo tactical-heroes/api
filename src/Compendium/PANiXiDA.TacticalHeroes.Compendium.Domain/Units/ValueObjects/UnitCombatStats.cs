@@ -2,21 +2,22 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
 public sealed class UnitCombatStats : ValueObject
 {
-    private UnitCombatStats()
+    private UnitCombatStats(
+        int attack,
+        int defense,
+        int health,
+        int minimumDamage,
+        int maximumDamage,
+        double initiative,
+        int speed)
     {
-    }
-
-    private UnitCombatStats(UnitCombatStatsInput input)
-    {
-        Attack = input.Attack;
-        Defense = input.Defense;
-        Health = input.Health;
-        MinimumDamage = input.MinimumDamage;
-        MaximumDamage = input.MaximumDamage;
-        Initiative = input.Initiative;
-        Speed = input.Speed;
-        Shots = input.Shots;
-        RangedAttackRange = input.RangedAttackRange;
+        Attack = attack;
+        Defense = defense;
+        Health = health;
+        MinimumDamage = minimumDamage;
+        MaximumDamage = maximumDamage;
+        Initiative = initiative;
+        Speed = speed;
     }
 
     public int Attack { get; }
@@ -26,48 +27,50 @@ public sealed class UnitCombatStats : ValueObject
     public int MaximumDamage { get; }
     public double Initiative { get; }
     public int Speed { get; }
-    public int? Shots { get; }
-    public int? RangedAttackRange { get; }
 
-    public static Result<UnitCombatStats> Create(UnitCombatStatsInput input)
+    public static Result<UnitCombatStats> Create(
+        int attack,
+        int defense,
+        int health,
+        int minimumDamage,
+        int maximumDamage,
+        double initiative,
+        int speed)
     {
         var attackResult = ValidateNonNegative(
-            value: input.Attack,
+            value: attack,
             field: nameof(Attack),
             message: "Unit attack cannot be negative.");
         var defenseResult = ValidateNonNegative(
-            value: input.Defense,
+            value: defense,
             field: nameof(Defense),
             message: "Unit defense cannot be negative.");
         var healthResult = ValidatePositive(
-            value: input.Health,
+            value: health,
             field: nameof(Health),
             message: "Unit health must be greater than zero.");
         var minimumDamageResult = ValidateNonNegative(
-            value: input.MinimumDamage,
+            value: minimumDamage,
             field: nameof(MinimumDamage),
             message: "Unit minimum damage cannot be negative.");
         var maximumDamageResult = ValidateNonNegative(
-            value: input.MaximumDamage,
+            value: maximumDamage,
             field: nameof(MaximumDamage),
             message: "Unit maximum damage cannot be negative.");
-        var damageRangeResult = input.MaximumDamage >= input.MinimumDamage
+        var damageRangeResult = maximumDamage >= minimumDamage
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(
                         message: "Unit maximum damage cannot be less than minimum damage.")
                     .WithField(nameof(MaximumDamage)));
         var initiativeResult = ValidateNonNegativeFinite(
-            value: input.Initiative,
+            value: initiative,
             field: nameof(Initiative),
             message: "Unit initiative must be a finite non-negative number.");
         var speedResult = ValidateNonNegative(
-            value: input.Speed,
+            value: speed,
             field: nameof(Speed),
             message: "Unit speed cannot be negative.");
-        var rangedAttackResult = ValidateRangedAttack(
-            shots: input.Shots,
-            rangedAttackRange: input.RangedAttackRange);
         var validationResult = Result.Combine(
             attackResult,
             defenseResult,
@@ -76,12 +79,19 @@ public sealed class UnitCombatStats : ValueObject
             maximumDamageResult,
             damageRangeResult,
             initiativeResult,
-            speedResult,
-            rangedAttackResult);
+            speedResult);
 
         return validationResult.IsFailure
             ? Result.Failure<UnitCombatStats>(errors: validationResult.Errors)
-            : Result.Success(value: new UnitCombatStats(input));
+            : Result.Success(
+                value: new UnitCombatStats(
+                    attack: attack,
+                    defense: defense,
+                    health: health,
+                    minimumDamage: minimumDamage,
+                    maximumDamage: maximumDamage,
+                    initiative: initiative,
+                    speed: speed));
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
@@ -93,8 +103,6 @@ public sealed class UnitCombatStats : ValueObject
         yield return MaximumDamage;
         yield return Initiative;
         yield return Speed;
-        yield return Shots;
-        yield return RangedAttackRange;
     }
 
     private static Result ValidateNonNegative(
@@ -131,35 +139,5 @@ public sealed class UnitCombatStats : ValueObject
             : Result.Failure(
                 error: Error.Validation(message: message)
                     .WithField(field));
-    }
-
-    private static Result ValidateRangedAttack(
-        int? shots,
-        int? rangedAttackRange)
-    {
-        var pairResult = shots.HasValue == rangedAttackRange.HasValue
-            ? Result.Success()
-            : Result.Failure(
-                error: Error.Validation(
-                        message: "Unit shots and ranged attack range must both be provided or both be omitted.")
-                    .WithField(nameof(RangedAttackRange)));
-        var shotsResult = !shots.HasValue || shots.Value > 0
-            ? Result.Success()
-            : Result.Failure(
-                error: Error.Validation(
-                        message: "Unit shots must be greater than zero when provided.")
-                    .WithField(nameof(Shots)));
-        var rangedAttackRangeResult = !rangedAttackRange.HasValue ||
-                                      rangedAttackRange.Value > 0
-            ? Result.Success()
-            : Result.Failure(
-                error: Error.Validation(
-                        message: "Unit ranged attack range must be greater than zero when provided.")
-                    .WithField(nameof(RangedAttackRange)));
-
-        return Result.Combine(
-            pairResult,
-            shotsResult,
-            rangedAttackRangeResult);
     }
 }

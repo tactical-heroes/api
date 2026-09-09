@@ -21,18 +21,17 @@ internal static class IntegrationTestData
         return Unit.Create(
             name: UnitName.Create(value: name).Value,
             description: UnitDescription.Create(value: $"{name} description.").Value,
-            stats: UnitCombatStats.Create(new UnitCombatStatsInput
-            {
-                Attack = 8,
-                Defense = 4,
-                Health = 12,
-                MinimumDamage = 3,
-                MaximumDamage = 5,
-                Initiative = 10.5,
-                Speed = 6,
-                Shots = 12,
-                RangedAttackRange = 8
-            }).Value,
+            stats: UnitCombatStats.Create(
+                attack: 8,
+                defense: 4,
+                health: 12,
+                minimumDamage: 3,
+                maximumDamage: 5,
+                initiative: 10.5,
+                speed: 6).Value,
+            rangedAttack: UnitRangedAttack.Create(
+                shots: 12,
+                rangedAttackRange: 8).Value,
             morale: UnitMorale.Create(value: 2).Value,
             luck: UnitLuck.Create(value: 1).Value,
             factionId: faction.Id);
