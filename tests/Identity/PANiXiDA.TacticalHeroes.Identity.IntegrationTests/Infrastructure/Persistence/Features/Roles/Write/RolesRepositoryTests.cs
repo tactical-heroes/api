@@ -87,8 +87,18 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        (await repository.AddAsync(IntegrationTestData.CreateRole(id: Guid.CreateVersion7(), name: "admin", claims: Array.Empty<(string Type, string Value)>()), cancellationToken)).IsSuccess.ShouldBeTrue();
-        var result = await repository.AddAsync(IntegrationTestData.CreateRole(id: Guid.CreateVersion7(), name: "ADMIN", claims: Array.Empty<(string Type, string Value)>()), cancellationToken);
+        (await repository.AddAsync(
+            IntegrationTestData.CreateRole(
+                id: Guid.CreateVersion7(),
+                name: "admin",
+                claims: []),
+            cancellationToken)).IsSuccess.ShouldBeTrue();
+        var result = await repository.AddAsync(
+            IntegrationTestData.CreateRole(
+                id: Guid.CreateVersion7(),
+                name: "ADMIN",
+                claims: []),
+            cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
     }

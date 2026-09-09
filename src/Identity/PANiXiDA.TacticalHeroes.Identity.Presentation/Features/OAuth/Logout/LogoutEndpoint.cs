@@ -31,7 +31,8 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
             .Produces(StatusCodes.Status302Found);
     }
 
-    private static Task<IResult> HandleGetAsync(HttpContext httpContext)
+    private static Task<IResult> HandleGetAsync(
+        HttpContext httpContext)
     {
         return HandleAsync(httpContext);
     }
@@ -68,12 +69,14 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         };
     }
 
-    private static Task<IResult> HandlePostAsync(HttpContext httpContext)
+    private static Task<IResult> HandlePostAsync(
+        HttpContext httpContext)
     {
         return HandleAsync(httpContext);
     }
 
-    private static async Task<IResult> HandleAsync(HttpContext httpContext)
+    private static async Task<IResult> HandleAsync(
+        HttpContext httpContext)
     {
         await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
