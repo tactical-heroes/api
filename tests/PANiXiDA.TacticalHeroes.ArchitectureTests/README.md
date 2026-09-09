@@ -553,6 +553,11 @@ repository и query handler реализуют `IReadModel`; коллекции,
      собирает VO через их доменные фабрики до вызова агрегата; фабрики самих
      VO и идентификаторов продолжают принимать и проверять примитивы.
 
+110. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+     — свойства VO и `Enumeration<>` должны иметь публичный getter. Любые
+     setter и init-accessor запрещены независимо от видимости, включая
+     private. Проверяются также статические и унаследованные свойства.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.

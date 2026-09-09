@@ -6,15 +6,28 @@ public sealed class UnitCombatStats : ValueObject
     {
     }
 
-    public int Attack { get; private set; }
-    public int Defense { get; private set; }
-    public int Health { get; private set; }
-    public int MinimumDamage { get; private set; }
-    public int MaximumDamage { get; private set; }
-    public double Initiative { get; private set; }
-    public int Speed { get; private set; }
-    public int? Shots { get; private set; }
-    public int? RangedAttackRange { get; private set; }
+    private UnitCombatStats(UnitCombatStatsInput input)
+    {
+        Attack = input.Attack;
+        Defense = input.Defense;
+        Health = input.Health;
+        MinimumDamage = input.MinimumDamage;
+        MaximumDamage = input.MaximumDamage;
+        Initiative = input.Initiative;
+        Speed = input.Speed;
+        Shots = input.Shots;
+        RangedAttackRange = input.RangedAttackRange;
+    }
+
+    public int Attack { get; }
+    public int Defense { get; }
+    public int Health { get; }
+    public int MinimumDamage { get; }
+    public int MaximumDamage { get; }
+    public double Initiative { get; }
+    public int Speed { get; }
+    public int? Shots { get; }
+    public int? RangedAttackRange { get; }
 
     public static Result<UnitCombatStats> Create(UnitCombatStatsInput input)
     {
@@ -68,19 +81,7 @@ public sealed class UnitCombatStats : ValueObject
 
         return validationResult.IsFailure
             ? Result.Failure<UnitCombatStats>(errors: validationResult.Errors)
-            : Result.Success(
-                value: new UnitCombatStats
-                {
-                    Attack = input.Attack,
-                    Defense = input.Defense,
-                    Health = input.Health,
-                    MinimumDamage = input.MinimumDamage,
-                    MaximumDamage = input.MaximumDamage,
-                    Initiative = input.Initiative,
-                    Speed = input.Speed,
-                    Shots = input.Shots,
-                    RangedAttackRange = input.RangedAttackRange
-                });
+            : Result.Success(value: new UnitCombatStats(input));
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()

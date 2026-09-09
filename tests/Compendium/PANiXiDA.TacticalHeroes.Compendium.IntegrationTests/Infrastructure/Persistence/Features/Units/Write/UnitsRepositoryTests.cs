@@ -35,10 +35,12 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
 
         persistedUnit.Name.Value.ShouldBe("Archer");
         persistedUnit.Stats.Attack.ShouldBe(8);
+        persistedUnit.Stats.Defense.ShouldBe(4);
         persistedUnit.Stats.Health.ShouldBe(12);
         persistedUnit.Stats.MinimumDamage.ShouldBe(3);
         persistedUnit.Stats.MaximumDamage.ShouldBe(5);
         persistedUnit.Stats.Initiative.ShouldBe(10.5);
+        persistedUnit.Stats.Speed.ShouldBe(6);
         persistedUnit.Stats.Shots.ShouldBe(12);
         persistedUnit.Stats.RangedAttackRange.ShouldBe(8);
         persistedUnit.Morale.Value.ShouldBe(2);
