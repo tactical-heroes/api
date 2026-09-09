@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Clients;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Lockout;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Password;
@@ -28,8 +26,7 @@ public sealed class IdentityProviderOptions
 
     public TimeSpan EmailConfirmationTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 24);
 
-    [ConfigurationKeyName("AccountRecoveryTokenLifetime")]
-    public TimeSpan PasswordResetTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 1);
+    public TimeSpan AccountRecoveryTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 1);
 
     public IdentityProviderUserOptions User { get; init; } = new();
 

@@ -281,7 +281,7 @@ public sealed class UserCredentialsService(
         var resetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
         var tokenResult = UserActionToken.Create(
             value: resetToken,
-            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.PasswordResetTokenLifetime));
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.AccountRecoveryTokenLifetime));
 
         if (tokenResult.IsFailure)
         {
