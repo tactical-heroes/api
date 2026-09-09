@@ -549,5 +549,4 @@ public sealed class ApplicationVerticalSliceConventionTests
         ModuleArchitecture Module,
         Type RequestType,
         string[] RelativeNamespaceSegments);
-
 }

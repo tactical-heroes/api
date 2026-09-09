@@ -226,7 +226,6 @@ internal static class NamedArgumentSourceDiscovery
                    "nameof",
                    StringComparison.Ordinal);
     }
-
 }
 
 internal sealed record NamedArgumentSource(

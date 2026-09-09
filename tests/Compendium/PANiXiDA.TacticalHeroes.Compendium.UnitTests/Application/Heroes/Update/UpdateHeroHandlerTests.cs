@@ -94,6 +94,7 @@ public sealed class UpdateHeroHandlerTests
         await heroesRepository.DidNotReceiveWithAnyArgs()
             .UpdateAsync(null!, TestContext.Current.CancellationToken);
     }
+
     [Fact(DisplayName = "Update hero handler should reject invalid values without saving when command is invalid")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutSaving_When_CommandIsInvalid()
     {
@@ -128,5 +129,4 @@ public sealed class UpdateHeroHandlerTests
         await repository.DidNotReceiveWithAnyArgs()
             .UpdateAsync(null!, TestContext.Current.CancellationToken);
     }
-
 }

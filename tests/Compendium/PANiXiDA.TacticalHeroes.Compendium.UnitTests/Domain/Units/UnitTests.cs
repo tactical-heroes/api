@@ -104,5 +104,4 @@ public sealed class UnitTests
         unit.Morale.Value.ShouldBe(3);
         unit.Luck.Value.ShouldBe(2);
     }
-
 }

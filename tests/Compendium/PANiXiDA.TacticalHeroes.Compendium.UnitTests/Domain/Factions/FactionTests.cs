@@ -31,5 +31,4 @@ public sealed class FactionTests
         faction.Name.Value.ShouldBe("Southern Alliance");
         faction.Description.Value.ShouldBe("Defenders of the south.");
     }
-
 }

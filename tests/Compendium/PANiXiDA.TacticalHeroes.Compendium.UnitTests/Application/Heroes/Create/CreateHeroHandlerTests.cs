@@ -62,6 +62,7 @@ public sealed class CreateHeroHandlerTests
         await heroesRepository.DidNotReceiveWithAnyArgs()
             .AddAsync(null!, TestContext.Current.CancellationToken);
     }
+
     [Fact(DisplayName = "Create hero handler should reject invalid values without saving when command is invalid")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutSaving_When_CommandIsInvalid()
     {
@@ -88,5 +89,4 @@ public sealed class CreateHeroHandlerTests
         await repository.DidNotReceiveWithAnyArgs()
             .AddAsync(null!, TestContext.Current.CancellationToken);
     }
-
 }

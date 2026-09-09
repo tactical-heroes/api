@@ -14,5 +14,4 @@ public sealed class UserClaimTests
         result.Type.Value.ShouldBe("permission");
         result.Value.Value.ShouldBe("heroes.read");
     }
-
 }

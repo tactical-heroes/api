@@ -14,5 +14,4 @@ public sealed class RoleClaimTests
         result.Type.Value.ShouldBe("permission");
         result.Value.Value.ShouldBe("heroes.manage");
     }
-
 }
