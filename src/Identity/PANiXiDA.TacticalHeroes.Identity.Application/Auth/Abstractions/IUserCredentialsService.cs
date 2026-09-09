@@ -1,14 +1,12 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 
 public interface IUserCredentialsService
 {
     Task<Result<Guid>> RegisterAsync(
-        User user,
-        UserName userName,
+        string email,
+        string userName,
         string password,
         CancellationToken cancellationToken);
 

@@ -24,15 +24,25 @@ public sealed class UserCredentialsService(
     : IUserCredentialsService
 {
     public async Task<Result<Guid>> RegisterAsync(
-        User user,
-        UserName userName,
+        string email,
+        string userName,
         string password,
         CancellationToken cancellationToken)
     {
+        var emailResult = Email.Create(value: email);
+        var userNameResult = UserName.Create(value: userName);
+        var validationResult = Result.Combine(emailResult, userNameResult);
+
+        if (validationResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: validationResult.Errors);
+        }
+
+        var user = User.Register(email: emailResult.Value);
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,
-            userName: userName,
+            userName: userNameResult.Value,
             status: UserStatus.Active,
             createdAt: nowUtc,
             updatedAt: nowUtc);

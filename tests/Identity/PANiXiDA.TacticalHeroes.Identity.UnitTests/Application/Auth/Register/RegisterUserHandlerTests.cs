@@ -1,7 +1,5 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Register;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Register;
 
@@ -13,8 +11,8 @@ public sealed class RegisterUserHandlerTests
         var userId = Guid.CreateVersion7();
         var service = Substitute.For<IUserCredentialsService>();
         service.RegisterAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && !user.ConfirmationStatus.IsConfirmed),
-            Arg.Is<UserName>(name => name.Value == "hero"),
+            "hero@example.com",
+            "hero",
             "StrongPassword1!",
             Arg.Any<CancellationToken>())
             .Returns(Result.Success(userId));
@@ -28,15 +26,23 @@ public sealed class RegisterUserHandlerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(userId);
         await service.Received(1).RegisterAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && !user.ConfirmationStatus.IsConfirmed),
-            Arg.Is<UserName>(name => name.Value == "hero"),
+            "hero@example.com",
+            "hero",
             "StrongPassword1!",
             cancellationToken);
     }
-    [Fact(DisplayName = "Register handler should reject invalid values before persistence when credentials are invalid")]
-    public async Task HandleAsync_Should_ReturnValidationFailuresWithoutRegistering_When_CredentialsAreInvalid()
+
+    [Fact(DisplayName = "Register handler should return validation failures when credentials service rejects credentials")]
+    public async Task HandleAsync_Should_ReturnValidationFailures_When_CredentialsServiceRejectsCredentials()
     {
         var service = Substitute.For<IUserCredentialsService>();
+        var failure = Result.Failure<Guid>(error: Error.Validation(message: "Invalid credentials."));
+        service.RegisterAsync(
+                "invalid-email",
+                string.Empty,
+                "StrongPassword1!",
+                Arg.Any<CancellationToken>())
+            .Returns(failure);
         var handler = new RegisterUserHandler(service);
 
         var result = await handler.HandleAsync(
@@ -44,9 +50,6 @@ public sealed class RegisterUserHandlerTests
             TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
-        result.Errors.Count.ShouldBe(2);
-        await service.DidNotReceiveWithAnyArgs().RegisterAsync(
-            null!, null!, string.Empty, TestContext.Current.CancellationToken);
+        result.Errors.ShouldBe(failure.Errors);
     }
-
 }
