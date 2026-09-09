@@ -2,8 +2,10 @@ using System.Security.Claims;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Read;
 
@@ -121,12 +123,10 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
         var result = await repository.AddAsync(
-            email,
-            userName,
+            UserMapper.ToDomain(Guid.CreateVersion7(), email, isConfirmed, [], claims.Select(claim => (claim.Type, claim.Value))).Value,
+            UserName.Create(userName).Value,
             Password,
-            isConfirmed,
-            claims,
-            status,
+            UserStatus.Create(status).Value,
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();

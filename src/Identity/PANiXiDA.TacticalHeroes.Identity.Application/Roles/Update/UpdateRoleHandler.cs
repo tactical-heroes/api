@@ -9,10 +9,15 @@ public sealed class UpdateRoleHandler(IRolesWriteRepository rolesRepository)
         UpdateRoleCommand command,
         CancellationToken cancellationToken)
     {
-        return rolesRepository.UpdateAsync(
+        var roleResult = RoleMapper.ToDomain(
             id: command.Id,
             name: command.Name,
-            claims: command.Claims,
-            cancellationToken: cancellationToken);
+            claims: command.Claims.Select(claim => (claim.Type, claim.Value)));
+
+        return roleResult.IsFailure
+            ? Task.FromResult(Result.Failure(errors: roleResult.Errors))
+            : rolesRepository.UpdateAsync(
+                role: roleResult.Value,
+                cancellationToken: cancellationToken);
     }
 }

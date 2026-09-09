@@ -17,24 +17,11 @@ public sealed class UserClaim : Entity<UserClaimId>
     public ClaimType Type { get; private set; }
     public ClaimValue Value { get; private set; }
 
-    internal static Result<UserClaim> Create(string type, string value)
+    public static UserClaim Create(ClaimType type, ClaimValue value)
     {
-        var typeResult = ClaimType.Create(value: type);
-        var valueResult = ClaimValue.Create(value: value);
-
-        if (typeResult.IsFailure)
-        {
-            return Result.Failure<UserClaim>(errors: typeResult.Errors);
-        }
-
-        if (valueResult.IsFailure)
-        {
-            return Result.Failure<UserClaim>(errors: valueResult.Errors);
-        }
-
-        return Result.Success(value: new UserClaim(
+        return new UserClaim(
             id: UserClaimId.New(),
-            type: typeResult.Value,
-            value: valueResult.Value));
+            type: type,
+            value: value);
     }
 }

@@ -58,6 +58,43 @@ public sealed class DomainStateConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Aggregate roots and entities should accept only domain types when methods are declared")]
+    public void AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared()
+    {
+        var methods = GetDomainTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false } &&
+                           typeof(IEntity).IsAssignableFrom(type))
+            .SelectMany(type => type.GetMethods(
+                BindingFlags.Instance |
+                BindingFlags.Static |
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.DeclaredOnly))
+            .Where(method => !method.IsPrivate && !method.IsSpecialName)
+            .ToArray();
+        var violations = methods
+            .SelectMany(method => method.GetParameters()
+                .Where(parameter =>
+                {
+                    var types = GetStateTypes(parameter.ParameterType);
+                    return types.Length == 0 ||
+                           types.Any(type => !IsAllowedDomainType(type, allowEntities: true));
+                })
+                .Select(parameter =>
+                    $"{method.DeclaringType?.FullName}.{method.Name} parameter " +
+                    $"'{parameter.Name}' has non-domain type '{parameter.ParameterType}'."))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(methods);
+        Assert.True(
+            violations.Length == 0,
+            $"Aggregate and entity methods must accept only value objects, strongly typed " +
+            $"identifiers, enumerations, entities, or collections of these types:" +
+            $"{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     private static Type[] GetDomainTypes()
     {
         return

@@ -49,24 +49,36 @@ public sealed class UpdateHeroHandler(
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        var updateResult = hero.Update(new HeroAttributes
-        {
-            Name = command.Name,
-            Description = command.Description,
-            Attack = command.Attack,
-            Defense = command.Defense,
-            MinimumDamage = command.MinimumDamage,
-            MaximumDamage = command.MaximumDamage,
-            Initiative = command.Initiative,
-            Morale = command.Morale,
-            Luck = command.Luck,
-            FactionId = command.FactionId
-        });
+        var nameResult = HeroName.Create(value: command.Name);
+        var descriptionResult = HeroDescription.Create(value: command.Description);
+        var statsResult = HeroCombatStats.Create(
+            attack: command.Attack,
+            defense: command.Defense,
+            minimumDamage: command.MinimumDamage,
+            maximumDamage: command.MaximumDamage,
+            initiative: command.Initiative);
+        var moraleResult = HeroMorale.Create(value: command.Morale);
+        var luckResult = HeroLuck.Create(value: command.Luck);
+        var validationResult = Result.Combine(
+            nameResult,
+            descriptionResult,
+            statsResult,
+            moraleResult,
+            luckResult,
+            factionIdResult);
 
-        if (updateResult.IsFailure)
+        if (validationResult.IsFailure)
         {
-            return updateResult;
+            return Result.Failure(errors: validationResult.Errors);
         }
+
+        hero.Update(
+            name: nameResult.Value,
+            description: descriptionResult.Value,
+            stats: statsResult.Value,
+            morale: moraleResult.Value,
+            luck: luckResult.Value,
+            factionId: factionIdResult.Value);
 
         await heroesRepository.UpdateAsync(
             aggregateRoot: hero,

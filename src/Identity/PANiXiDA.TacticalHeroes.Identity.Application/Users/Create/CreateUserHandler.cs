@@ -1,4 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 
@@ -9,13 +12,23 @@ public sealed class CreateUserHandler(IUsersWriteRepository usersRepository)
         CreateUserCommand command,
         CancellationToken cancellationToken)
     {
-        return usersRepository.AddAsync(
+        var userResult = UserMapper.ToDomain(
+            id: UserId.New().Value,
             email: command.Email,
-            userName: command.UserName,
-            password: command.Password,
             isConfirmed: command.IsConfirmed,
-            claims: command.Claims,
-            status: command.Status,
-            cancellationToken: cancellationToken);
+            roleIds: [],
+            claims: command.Claims.Select(claim => (claim.Type, claim.Value)));
+        var userNameResult = UserName.Create(value: command.UserName);
+        var statusResult = UserStatus.Create(value: command.Status);
+        var validationResult = Result.Combine(userResult, userNameResult, statusResult);
+
+        return validationResult.IsFailure
+            ? Task.FromResult(Result.Failure<Guid>(errors: validationResult.Errors))
+            : usersRepository.AddAsync(
+                user: userResult.Value,
+                userName: userNameResult.Value,
+                password: command.Password,
+                status: statusResult.Value,
+                cancellationToken: cancellationToken);
     }
 }

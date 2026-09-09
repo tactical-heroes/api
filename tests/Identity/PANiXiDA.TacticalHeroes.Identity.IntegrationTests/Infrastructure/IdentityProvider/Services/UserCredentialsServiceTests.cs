@@ -7,6 +7,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -27,9 +28,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        var result = await service.RegisterAsync(
-            " REGISTER@Example.COM ",
-            " registered-hero ",
+        var result = await service.RegisterAsync(User.Register(Email.Create(value: " REGISTER@Example.COM ").Value),
+            UserName.Create(value: " registered-hero ").Value,
             Password,
             cancellationToken);
 

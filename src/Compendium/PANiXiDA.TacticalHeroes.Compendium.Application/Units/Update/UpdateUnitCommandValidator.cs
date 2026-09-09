@@ -18,8 +18,7 @@ public sealed class UpdateUnitCommandValidator : AbstractValidator<UpdateUnitCom
             .MustBeValidDomainValue(UnitDescription.Create);
 
         RuleFor(command => command)
-            .MustBeValidDomainResult(command => UnitCombatStats.Create(
-                input: command.ToUnitAttributes().CombatStats));
+            .MustBeValidDomainResult(command => command.ToCombatStats());
 
         RuleFor(command => command.Morale)
             .MustBeValidDomainValue(UnitMorale.Create);

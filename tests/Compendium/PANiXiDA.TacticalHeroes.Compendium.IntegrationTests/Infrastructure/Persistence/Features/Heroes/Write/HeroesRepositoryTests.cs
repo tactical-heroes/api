@@ -87,20 +87,18 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             heroToUpdate.ShouldNotBeNull();
-            heroToUpdate.Update(new HeroAttributes
-            {
-                Name = "Elara",
-                Description = "An agile vanguard commander.",
-                Attack = 10,
-                Defense = 7,
-                MinimumDamage = 4,
-                MaximumDamage = 9,
-                Initiative = 12.25,
-                Morale = 5,
-                Luck = 3,
-                FactionId = faction.Id.Value
-            })
-                .IsSuccess.ShouldBeTrue();
+            heroToUpdate.Update(
+            name: HeroName.Create(value: "Elara").Value,
+            description: HeroDescription.Create(value: "An agile vanguard commander.").Value,
+            stats: HeroCombatStats.Create(
+                attack: 10,
+                defense: 7,
+                minimumDamage: 4,
+                maximumDamage: 9,
+                initiative: 12.25).Value,
+            morale: HeroMorale.Create(value: 5).Value,
+            luck: HeroLuck.Create(value: 3).Value,
+            factionId: faction.Id);
 
             await repository.UpdateAsync(heroToUpdate, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);

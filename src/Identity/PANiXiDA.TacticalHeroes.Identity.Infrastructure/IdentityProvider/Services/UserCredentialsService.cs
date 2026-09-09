@@ -24,24 +24,15 @@ public sealed class UserCredentialsService(
     : IUserCredentialsService
 {
     public async Task<Result<Guid>> RegisterAsync(
-        string email,
-        string userName,
+        User user,
+        UserName userName,
         string password,
         CancellationToken cancellationToken)
     {
-        var userResult = User.Register(email: email);
-        var userNameResult = UserName.Create(value: userName);
-        var validationResult = Result.Combine(userResult, userNameResult);
-
-        if (validationResult.IsFailure)
-        {
-            return Result.Failure<Guid>(errors: validationResult.Errors);
-        }
-
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
-            user: userResult.Value,
-            userName: userNameResult.Value,
+            user: user,
+            userName: userName,
             status: UserStatus.Active,
             createdAt: nowUtc,
             updatedAt: nowUtc);
@@ -54,16 +45,23 @@ public sealed class UserCredentialsService(
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
-        var confirmationResult = userResult.Value.RequestEmailConfirmation(
-            confirmationToken,
-            timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+        var tokenResult = UserActionToken.Create(
+            value: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: tokenResult.Errors);
+        }
+
+        var confirmationResult = user.RequestEmailConfirmation(tokenResult.Value);
 
         if (confirmationResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: confirmationResult.Errors);
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(user);
 
         return Result.Success(value: applicationUser.Id);
     }
@@ -231,9 +229,16 @@ public sealed class UserCredentialsService(
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
-        var confirmationResult = userResult.Value.RequestEmailConfirmation(
-            confirmationToken,
-            timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+        var tokenResult = UserActionToken.Create(
+            value: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure(errors: tokenResult.Errors);
+        }
+
+        var confirmationResult = userResult.Value.RequestEmailConfirmation(tokenResult.Value);
 
         if (confirmationResult.IsFailure)
         {
@@ -266,9 +271,16 @@ public sealed class UserCredentialsService(
         }
 
         var resetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
-        var requestResult = userResult.Value.RequestPasswordReset(
-            resetToken,
-            timeProvider.GetUtcNow().Add(options.Value.PasswordResetTokenLifetime));
+        var tokenResult = UserActionToken.Create(
+            value: resetToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.PasswordResetTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure(errors: tokenResult.Errors);
+        }
+
+        var requestResult = userResult.Value.RequestPasswordReset(tokenResult.Value);
 
         if (requestResult.IsFailure)
         {

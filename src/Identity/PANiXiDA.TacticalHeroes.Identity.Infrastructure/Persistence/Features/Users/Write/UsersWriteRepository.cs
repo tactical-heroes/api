@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,34 +22,17 @@ public sealed class UsersWriteRepository(
     : IUsersWriteRepository
 {
     public async Task<Result<Guid>> AddAsync(
-        string email,
-        string userName,
+        User user,
+        UserName userName,
         string password,
-        bool isConfirmed,
-        IReadOnlyCollection<Claim> claims,
-        string status,
+        UserStatus status,
         CancellationToken cancellationToken)
     {
-        var userResult = User.Create(
-            id: UserId.New().Value,
-            email: email,
-            confirmationStatus: isConfirmed,
-            roleIds: [],
-            claims: claims.Select(claim => (claim.Type, claim.Value)));
-        var userNameResult = UserName.Create(value: userName);
-        var statusResult = UserStatus.Create(value: status);
-        var validationResult = Result.Combine(userResult, userNameResult, statusResult);
-
-        if (validationResult.IsFailure)
-        {
-            return Result.Failure<Guid>(errors: validationResult.Errors);
-        }
-
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
-            user: userResult.Value,
-            userName: userNameResult.Value,
-            status: statusResult.Value,
+            user: user,
+            userName: userName,
+            status: status,
             createdAt: nowUtc,
             updatedAt: nowUtc);
 
@@ -62,38 +43,20 @@ public sealed class UsersWriteRepository(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(user);
 
         return Result.Success(value: applicationUser.Id);
     }
 
     public async Task<Result> UpdateAsync(
-        Guid id,
-        string email,
-        string userName,
-        bool isConfirmed,
-        IReadOnlyCollection<Claim> claims,
-        string status,
+        User user,
+        UserName userName,
+        UserStatus status,
         CancellationToken cancellationToken)
     {
-        var userResult = User.Create(
-            id: id,
-            email: email,
-            confirmationStatus: isConfirmed,
-            roleIds: [],
-            claims: claims.Select(claim => (claim.Type, claim.Value)));
-        var userNameResult = UserName.Create(value: userName);
-        var statusResult = UserStatus.Create(value: status);
-        var validationResult = Result.Combine(userResult, userNameResult, statusResult);
-
-        if (validationResult.IsFailure)
-        {
-            return Result.Failure(errors: validationResult.Errors);
-        }
-
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+            .SingleOrDefaultAsync(item => item.Id == user.Id.Value, cancellationToken);
 
         if (applicationUser is null)
         {
@@ -101,18 +64,18 @@ public sealed class UsersWriteRepository(
         }
 
         ApplicationUserMapper.MapToDbModel(
-            user: userResult.Value,
-            userName: userNameResult.Value,
-            status: statusResult.Value,
+            user: user,
+            userName: userName,
+            status: status,
             dbModel: applicationUser,
             updatedAt: timeProvider.GetUtcNow().UtcDateTime);
         SyncClaims(
             applicationUser: applicationUser,
-            user: userResult.Value);
+            user: user);
 
-        if (statusResult.Value.IsBlocked)
+        if (status.IsBlocked)
         {
-            await RevokeAllTokensAsync(id, cancellationToken);
+            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
         }
 
         var identityResult = await userManager.UpdateAsync(applicationUser);
@@ -122,7 +85,7 @@ public sealed class UsersWriteRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(user);
 
         return Result.Success();
     }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Factions.Write;
@@ -71,9 +72,8 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
 
             factionToUpdate.ShouldNotBeNull();
             factionToUpdate.Update(
-                    "Southern Alliance",
-                    "Defenders of the south.")
-                .IsSuccess.ShouldBeTrue();
+            name: FactionName.Create(value: "Southern Alliance").Value,
+            description: FactionDescription.Create(value: "Defenders of the south.").Value);
 
             await repository.UpdateAsync(factionToUpdate, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -124,8 +124,8 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
     private static Faction CreateFaction()
     {
         return Faction.Create(
-            "Northern Alliance",
-            "Defenders of the north.").Value;
+            name: FactionName.Create(value: "Northern Alliance").Value,
+            description: FactionDescription.Create(value: "Defenders of the north.").Value);
     }
 
     private async Task AddFactionAsync(

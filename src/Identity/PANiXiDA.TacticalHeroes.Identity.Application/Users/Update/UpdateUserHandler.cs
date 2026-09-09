@@ -1,4 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 
@@ -9,13 +11,22 @@ public sealed class UpdateUserHandler(IUsersWriteRepository usersRepository)
         UpdateUserCommand command,
         CancellationToken cancellationToken)
     {
-        return usersRepository.UpdateAsync(
+        var userResult = UserMapper.ToDomain(
             id: command.Id,
             email: command.Email,
-            userName: command.UserName,
             isConfirmed: command.IsConfirmed,
-            claims: command.Claims,
-            status: command.Status,
-            cancellationToken: cancellationToken);
+            roleIds: [],
+            claims: command.Claims.Select(claim => (claim.Type, claim.Value)));
+        var userNameResult = UserName.Create(value: command.UserName);
+        var statusResult = UserStatus.Create(value: command.Status);
+        var validationResult = Result.Combine(userResult, userNameResult, statusResult);
+
+        return validationResult.IsFailure
+            ? Task.FromResult(Result.Failure(errors: validationResult.Errors))
+            : usersRepository.UpdateAsync(
+                user: userResult.Value,
+                userName: userNameResult.Value,
+                status: statusResult.Value,
+                cancellationToken: cancellationToken);
     }
 }

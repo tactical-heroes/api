@@ -1,6 +1,7 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Delete;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Delete;
 
@@ -10,8 +11,8 @@ public sealed class DeleteFactionHandlerTests
     public async Task HandleAsync_Should_DeleteFaction_When_FactionExists()
     {
         var faction = Faction.Create(
-            "Northern Alliance",
-            "Defenders of the north.").Value;
+            name: FactionName.Create(value: "Northern Alliance").Value,
+            description: FactionDescription.Create(value: "Defenders of the north.").Value);
         var repository = Substitute.For<IFactionsRepository>();
         repository.GetByIdAsync(faction.Id, Arg.Any<CancellationToken>())
             .Returns(faction);

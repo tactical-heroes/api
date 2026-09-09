@@ -2,6 +2,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
@@ -12,17 +13,16 @@ internal static class UnitTestData
     internal static Faction CreateFaction()
     {
         return Faction.Create(
-            "Northern Alliance",
-            "Defenders of the north.").Value;
+            name: FactionName.Create(value: "Northern Alliance").Value,
+            description: FactionDescription.Create(value: "Defenders of the north.").Value);
     }
 
     internal static Unit CreateUnit(Faction faction)
     {
-        return Unit.Create(new UnitAttributes
-        {
-            Name = "Archer",
-            Description = "A disciplined ranged unit.",
-            CombatStats = new UnitCombatStatsInput
+        return Unit.Create(
+            name: UnitName.Create(value: "Archer").Value,
+            description: UnitDescription.Create(value: "A disciplined ranged unit.").Value,
+            stats: UnitCombatStats.Create(new UnitCombatStatsInput
             {
                 Attack = 8,
                 Defense = 4,
@@ -33,11 +33,10 @@ internal static class UnitTestData
                 Speed = 6,
                 Shots = 12,
                 RangedAttackRange = 8
-            },
-            Morale = 2,
-            Luck = 1,
-            FactionId = faction.Id.Value
-        }).Value;
+            }).Value,
+            morale: UnitMorale.Create(value: 2).Value,
+            luck: UnitLuck.Create(value: 1).Value,
+            factionId: faction.Id);
     }
 
     internal static CreateUnitCommand CreateCommand(Guid factionId)

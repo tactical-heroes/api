@@ -1,4 +1,5 @@
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
@@ -9,19 +10,18 @@ internal static class IntegrationTestData
     internal static Faction CreateFaction()
     {
         return Faction.Create(
-            "Northern Alliance",
-            "Defenders of the north.").Value;
+            name: FactionName.Create(value: "Northern Alliance").Value,
+            description: FactionDescription.Create(value: "Defenders of the north.").Value);
     }
 
     internal static Unit CreateUnit(
         Faction faction,
         string name = "Archer")
     {
-        return Unit.Create(new UnitAttributes
-        {
-            Name = name,
-            Description = $"{name} description.",
-            CombatStats = new UnitCombatStatsInput
+        return Unit.Create(
+            name: UnitName.Create(value: name).Value,
+            description: UnitDescription.Create(value: $"{name} description.").Value,
+            stats: UnitCombatStats.Create(new UnitCombatStatsInput
             {
                 Attack = 8,
                 Defense = 4,
@@ -32,10 +32,9 @@ internal static class IntegrationTestData
                 Speed = 6,
                 Shots = 12,
                 RangedAttackRange = 8
-            },
-            Morale = 2,
-            Luck = 1,
-            FactionId = faction.Id.Value
-        }).Value;
+            }).Value,
+            morale: UnitMorale.Create(value: 2).Value,
+            luck: UnitLuck.Create(value: 1).Value,
+            factionId: faction.Id);
     }
 }

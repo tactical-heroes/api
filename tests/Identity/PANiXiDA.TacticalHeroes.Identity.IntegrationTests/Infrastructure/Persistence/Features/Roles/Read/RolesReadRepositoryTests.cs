@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Read;
@@ -76,7 +77,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
-        var result = await repository.AddAsync(name, [], cancellationToken);
+        var result = await repository.AddAsync(RoleMapper.ToDomain(Guid.CreateVersion7(), name, []).Value, cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

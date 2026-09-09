@@ -48,63 +48,37 @@ public sealed class Unit : AggregateRoot<UnitId>
     public UnitLuck Luck { get; private set; }
     public FactionId FactionId { get; private set; }
 
-    public static Result<Unit> Create(UnitAttributes attributes)
+    public static Unit Create(
+        UnitName name,
+        UnitDescription description,
+        UnitCombatStats stats,
+        UnitMorale morale,
+        UnitLuck luck,
+        FactionId factionId)
     {
-        var nameResult = UnitName.Create(value: attributes.Name);
-        var descriptionResult = UnitDescription.Create(value: attributes.Description);
-        var statsResult = UnitCombatStats.Create(input: attributes.CombatStats);
-        var moraleResult = UnitMorale.Create(value: attributes.Morale);
-        var luckResult = UnitLuck.Create(value: attributes.Luck);
-        var factionIdResult = FactionId.Create(value: attributes.FactionId);
-        var validationResult = Result.Combine(
-            nameResult,
-            descriptionResult,
-            statsResult,
-            moraleResult,
-            luckResult,
-            factionIdResult);
-
-        return validationResult.IsFailure
-            ? Result.Failure<Unit>(errors: validationResult.Errors)
-            : Result.Success(
-                value: new Unit(
-                    id: UnitId.New(),
-                    name: nameResult.Value,
-                    description: descriptionResult.Value,
-                    stats: statsResult.Value,
-                    morale: moraleResult.Value,
-                    luck: luckResult.Value,
-                    factionId: factionIdResult.Value));
+        return new Unit(
+            id: UnitId.New(),
+            name: name,
+            description: description,
+            stats: stats,
+            morale: morale,
+            luck: luck,
+            factionId: factionId);
     }
 
-    public Result Update(UnitAttributes attributes)
+    public void Update(
+        UnitName name,
+        UnitDescription description,
+        UnitCombatStats stats,
+        UnitMorale morale,
+        UnitLuck luck,
+        FactionId factionId)
     {
-        var nameResult = UnitName.Create(value: attributes.Name);
-        var descriptionResult = UnitDescription.Create(value: attributes.Description);
-        var statsResult = UnitCombatStats.Create(input: attributes.CombatStats);
-        var moraleResult = UnitMorale.Create(value: attributes.Morale);
-        var luckResult = UnitLuck.Create(value: attributes.Luck);
-        var factionIdResult = FactionId.Create(value: attributes.FactionId);
-        var validationResult = Result.Combine(
-            nameResult,
-            descriptionResult,
-            statsResult,
-            moraleResult,
-            luckResult,
-            factionIdResult);
-
-        if (validationResult.IsFailure)
-        {
-            return Result.Failure(errors: validationResult.Errors);
-        }
-
-        Name = nameResult.Value;
-        Description = descriptionResult.Value;
-        Stats = statsResult.Value;
-        Morale = moraleResult.Value;
-        Luck = luckResult.Value;
-        FactionId = factionIdResult.Value;
-
-        return Result.Success();
+        Name = name;
+        Description = description;
+        Stats = stats;
+        Morale = morale;
+        Luck = luck;
+        FactionId = factionId;
     }
 }

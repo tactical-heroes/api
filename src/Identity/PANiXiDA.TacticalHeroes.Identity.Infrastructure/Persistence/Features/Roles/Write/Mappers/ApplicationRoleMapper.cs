@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
@@ -50,7 +51,7 @@ internal static class ApplicationRoleMapper
 
     public static Result<Role> ToDomain(ApplicationRole role)
     {
-        return Role.Create(
+        return RoleMapper.ToDomain(
             id: role.Id,
             name: role.Name!,
             claims: role.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));

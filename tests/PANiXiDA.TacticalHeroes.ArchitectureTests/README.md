@@ -546,6 +546,13 @@ repository и query handler реализуют `IReadModel`; коллекции,
      — каждый конфигурационный `<Name>Options` должен располагаться вместе со
      своим validator в выделенной папке `Options/<Name>/`.
 
+109. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
+     — публичные и internal-методы агрегатов и entity, включая фабрики,
+     принимают только VO, strongly typed ID, Enumeration, entity и коллекции
+     этих типов. Примитивы и DTO-контейнеры параметров запрещены. Application
+     собирает VO через их доменные фабрики до вызова агрегата; фабрики самих
+     VO и идентификаторов продолжают принимать и проверять примитивы.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.

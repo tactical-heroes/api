@@ -1,6 +1,7 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Update;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Update;
 
@@ -10,8 +11,8 @@ public sealed class UpdateFactionHandlerTests
     public async Task HandleAsync_Should_UpdateFaction_When_FactionExists()
     {
         var faction = Faction.Create(
-            "Northern Alliance",
-            "Defenders of the north.").Value;
+            name: FactionName.Create(value: "Northern Alliance").Value,
+            description: FactionDescription.Create(value: "Defenders of the north.").Value);
         var repository = Substitute.For<IFactionsRepository>();
         repository.GetByIdAsync(faction.Id, Arg.Any<CancellationToken>())
             .Returns(faction);
@@ -52,4 +53,28 @@ public sealed class UpdateFactionHandlerTests
             ErrorType.NotFound,
             "Faction was not found.");
     }
+    [Fact(DisplayName = "Update faction handler should reject invalid details without saving when command is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailuresWithoutSaving_When_CommandIsInvalid()
+    {
+        var repository = Substitute.For<IFactionsRepository>();
+        var faction = Faction.Create(
+            FactionName.Create("Northern Alliance").Value,
+            FactionDescription.Create("Defenders of the north.").Value);
+        var originalName = faction.Name;
+        var originalDescription = faction.Description;
+        repository.GetByIdAsync(faction.Id, Arg.Any<CancellationToken>()).Returns(faction);
+        var handler = new UpdateFactionHandler(repository);
+
+        var result = await handler.HandleAsync(
+            new UpdateFactionCommand(faction.Id.Value, string.Empty, string.Empty),
+            TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBe(2);
+        faction.Name.ShouldBeSameAs(originalName);
+        faction.Description.ShouldBeSameAs(originalDescription);
+        await repository.DidNotReceiveWithAnyArgs()
+            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+    }
+
 }

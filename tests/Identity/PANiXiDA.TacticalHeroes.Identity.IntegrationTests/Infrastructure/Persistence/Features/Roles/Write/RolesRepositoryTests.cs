@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
@@ -44,11 +45,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
-            (await repository.UpdateAsync(
-                roleId,
-                "manager",
-                [new Claim("permission", "heroes.manage")],
-                cancellationToken)).IsSuccess.ShouldBeTrue();
+            (await repository.UpdateAsync(RoleMapper.ToDomain(id: roleId, name: "manager", claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value))).Value, cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -90,8 +87,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        (await repository.AddAsync("admin", [], cancellationToken)).IsSuccess.ShouldBeTrue();
-        var result = await repository.AddAsync("ADMIN", [], cancellationToken);
+        (await repository.AddAsync(RoleMapper.ToDomain(id: Guid.CreateVersion7(), name: "admin", claims: Array.Empty<(string Type, string Value)>()).Value, cancellationToken)).IsSuccess.ShouldBeTrue();
+        var result = await repository.AddAsync(RoleMapper.ToDomain(id: Guid.CreateVersion7(), name: "ADMIN", claims: Array.Empty<(string Type, string Value)>()).Value, cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
     }
@@ -103,10 +100,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesWriteRepository>();
-        var result = await repository.AddAsync(
-            name,
-            claims,
-            cancellationToken);
+        var result = await repository.AddAsync(RoleMapper.ToDomain(id: Guid.CreateVersion7(), name: name, claims: claims.Select(claim => (claim.Type, claim.Value))).Value, cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
@@ -67,10 +68,10 @@ internal static class ApplicationUserMapper
 
     public static Result<User> ToDomain(ApplicationUser user)
     {
-        return User.Create(
+        return UserMapper.ToDomain(
             id: user.Id,
             email: user.Email!,
-            confirmationStatus: user.EmailConfirmed,
+            isConfirmed: user.EmailConfirmed,
             roleIds: user.Roles.Select(role => role.RoleId),
             claims: user.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)));
     }

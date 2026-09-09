@@ -1,18 +1,15 @@
-using System.Security.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 
 public interface IRolesWriteRepository
 {
     Task<Result<Guid>> AddAsync(
-        string name,
-        IReadOnlyCollection<Claim> claims,
+        Role role,
         CancellationToken cancellationToken);
 
     Task<Result> UpdateAsync(
-        Guid id,
-        string name,
-        IReadOnlyCollection<Claim> claims,
+        Role role,
         CancellationToken cancellationToken);
 
     Task<Result> DeleteAsync(

@@ -90,27 +90,24 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             unitToUpdate.ShouldNotBeNull();
-            unitToUpdate.Update(new UnitAttributes
+            unitToUpdate.Update(
+            name: UnitName.Create(value: "Marksman").Value,
+            description: UnitDescription.Create(value: "An elite ranged unit.").Value,
+            stats: UnitCombatStats.Create(new UnitCombatStatsInput
             {
-                Name = "Marksman",
-                Description = "An elite ranged unit.",
-                CombatStats = new UnitCombatStatsInput
-                {
-                    Attack = 10,
-                    Defense = 5,
-                    Health = 14,
-                    MinimumDamage = 4,
-                    MaximumDamage = 7,
-                    Initiative = 11.5,
-                    Speed = 7,
-                    Shots = 16,
-                    RangedAttackRange = 10
-                },
-                Morale = 3,
-                Luck = 2,
-                FactionId = faction.Id.Value
-            })
-                .IsSuccess.ShouldBeTrue();
+                Attack = 10,
+                Defense = 5,
+                Health = 14,
+                MinimumDamage = 4,
+                MaximumDamage = 7,
+                Initiative = 11.5,
+                Speed = 7,
+                Shots = 16,
+                RangedAttackRange = 10
+            }).Value,
+            morale: UnitMorale.Create(value: 3).Value,
+            luck: UnitLuck.Create(value: 2).Value,
+            factionId: faction.Id);
 
             await repository.UpdateAsync(unitToUpdate, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);

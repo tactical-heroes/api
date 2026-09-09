@@ -1,25 +1,22 @@
-using System.Security.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 public interface IUsersWriteRepository
 {
     Task<Result<Guid>> AddAsync(
-        string email,
-        string userName,
+        User user,
+        UserName userName,
         string password,
-        bool isConfirmed,
-        IReadOnlyCollection<Claim> claims,
-        string status,
+        UserStatus status,
         CancellationToken cancellationToken);
 
     Task<Result> UpdateAsync(
-        Guid id,
-        string email,
-        string userName,
-        bool isConfirmed,
-        IReadOnlyCollection<Claim> claims,
-        string status,
+        User user,
+        UserName userName,
+        UserStatus status,
         CancellationToken cancellationToken);
 
     Task<Result> DeleteAsync(
