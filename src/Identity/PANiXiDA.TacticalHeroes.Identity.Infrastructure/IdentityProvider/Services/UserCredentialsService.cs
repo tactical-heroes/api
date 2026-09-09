@@ -38,12 +38,10 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var user = User.Register(email: emailResult.Value);
+        var user = User.Register(email: emailResult.Value, userName: userNameResult.Value);
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,
-            userName: userNameResult.Value,
-            status: UserStatus.Active,
             createdAt: nowUtc,
             updatedAt: nowUtc);
 

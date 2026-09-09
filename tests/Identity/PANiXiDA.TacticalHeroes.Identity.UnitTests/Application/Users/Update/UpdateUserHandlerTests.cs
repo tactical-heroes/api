@@ -4,7 +4,6 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Update;
 
@@ -17,9 +16,7 @@ public sealed class UpdateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
-            Arg.Is<UserName>(name => name.Value == "hero"),
-            UserStatus.Blocked,
+            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Blocked && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository);
@@ -37,9 +34,7 @@ public sealed class UpdateUserHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
-            Arg.Is<UserName>(name => name.Value == "hero"),
-            UserStatus.Blocked,
+            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Blocked && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             cancellationToken);
     }
 
@@ -65,6 +60,6 @@ public sealed class UpdateUserHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, null!, null!, cancellationToken);
+        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
     }
 }

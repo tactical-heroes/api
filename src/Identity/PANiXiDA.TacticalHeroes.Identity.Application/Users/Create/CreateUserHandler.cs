@@ -43,15 +43,15 @@ public sealed class CreateUserHandler(IUsersRepository usersRepository)
         var user = User.Create(
             id: UserId.New(),
             email: emailResult.Value,
+            userName: userNameResult.Value,
+            status: statusResult.Value,
             confirmationStatus: UserConfirmationStatus.From(isConfirmed: command.IsConfirmed),
             roleIds: [],
             claims: claims);
 
         return usersRepository.AddAsync(
             user: user,
-            userName: userNameResult.Value,
             password: command.Password,
-            status: statusResult.Value,
             cancellationToken: cancellationToken);
     }
 }

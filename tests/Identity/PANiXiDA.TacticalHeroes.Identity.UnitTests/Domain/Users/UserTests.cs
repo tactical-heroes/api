@@ -2,6 +2,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
@@ -12,10 +13,12 @@ public sealed class UserTests
     [Fact(DisplayName = "Register should create an unconfirmed user with normalized email when email is valid")]
     public void Register_Should_CreateUnconfirmedUser_When_EmailIsValid()
     {
-        var result = User.Register(Email.Create(value: " HERO@Example.COM ").Value);
+        var result = User.Register(Email.Create(value: " HERO@Example.COM ").Value, UserName.Create(value: " hero ").Value);
 
         result.Id.Value.ShouldNotBe(Guid.Empty);
         result.Email.Value.ShouldBe("hero@example.com");
+        result.UserName.Value.ShouldBe("hero");
+        result.Status.ShouldBe(UserStatus.Active);
         result.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
         result.RoleIds.ShouldBeEmpty();
         result.Claims.ShouldBeEmpty();
@@ -31,11 +34,15 @@ public sealed class UserTests
         var result = User.Create(
             UserId.Create(id).Value,
             Email.Create("hero@example.com").Value,
+            UserName.Create(" restored-hero ").Value,
+            UserStatus.Blocked,
             UserConfirmationStatus.Confirmed(),
             [RoleId.Create(roleId).Value],
             [UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value)]);
 
         result.Id.Value.ShouldBe(id);
+        result.UserName.Value.ShouldBe("restored-hero");
+        result.Status.ShouldBe(UserStatus.Blocked);
         result.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
         result.RoleIds.Single().Value.ShouldBe(roleId);
         result.Claims.Single().Type.Value.ShouldBe("permission");
@@ -148,6 +155,6 @@ public sealed class UserTests
 
     private static User CreateUser()
     {
-        return User.Register(Email.Create(value: "hero@example.com").Value);
+        return User.Register(Email.Create(value: "hero@example.com").Value, UserName.Create(value: " hero ").Value);
     }
 }

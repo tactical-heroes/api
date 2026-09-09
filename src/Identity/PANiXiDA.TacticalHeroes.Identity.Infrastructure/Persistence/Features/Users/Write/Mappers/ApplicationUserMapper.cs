@@ -12,8 +12,6 @@ internal static class ApplicationUserMapper
 {
     public static ApplicationUser ToDbModel(
         User user,
-        UserName userName,
-        UserStatus status,
         DateTime createdAt,
         DateTime updatedAt)
     {
@@ -30,8 +28,6 @@ internal static class ApplicationUserMapper
 
         MapToDbModel(
             user: user,
-            userName: userName,
-            status: status,
             dbModel: dbModel,
             updatedAt: updatedAt);
 
@@ -40,15 +36,13 @@ internal static class ApplicationUserMapper
 
     public static void MapToDbModel(
         User user,
-        UserName userName,
-        UserStatus status,
         ApplicationUser dbModel,
         DateTime updatedAt)
     {
         dbModel.Email = user.Email.Value;
-        dbModel.UserName = userName.Value;
+        dbModel.UserName = user.UserName.Value;
         dbModel.EmailConfirmed = user.ConfirmationStatus.IsConfirmed;
-        dbModel.Status = status.Name;
+        dbModel.Status = user.Status.Name;
         dbModel.UpdatedAt = updatedAt;
     }
 
@@ -71,7 +65,9 @@ internal static class ApplicationUserMapper
     {
         var idResult = UserId.Create(value: user.Id);
         var emailResult = Email.Create(value: user.Email!);
-        var validationResult = Result.Combine(idResult, emailResult);
+        var userNameResult = UserName.Create(value: user.UserName!);
+        var statusResult = UserStatus.Create(value: user.Status);
+        var validationResult = Result.Combine(idResult, emailResult, userNameResult, statusResult);
 
         if (validationResult.IsFailure)
         {
@@ -111,6 +107,8 @@ internal static class ApplicationUserMapper
         return Result.Success(value: User.Create(
             id: idResult.Value,
             email: emailResult.Value,
+            userName: userNameResult.Value,
+            status: statusResult.Value,
             confirmationStatus: UserConfirmationStatus.From(isConfirmed: user.EmailConfirmed),
             roleIds: domainRoleIds,
             claims: domainClaims));

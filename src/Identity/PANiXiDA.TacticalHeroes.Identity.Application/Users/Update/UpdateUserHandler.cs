@@ -44,14 +44,14 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
         var user = User.Create(
             id: idResult.Value,
             email: emailResult.Value,
+            userName: userNameResult.Value,
+            status: statusResult.Value,
             confirmationStatus: UserConfirmationStatus.From(isConfirmed: command.IsConfirmed),
             roleIds: [],
             claims: claims);
 
         return usersRepository.UpdateAsync(
             user: user,
-            userName: userNameResult.Value,
-            status: statusResult.Value,
             cancellationToken: cancellationToken);
     }
 }

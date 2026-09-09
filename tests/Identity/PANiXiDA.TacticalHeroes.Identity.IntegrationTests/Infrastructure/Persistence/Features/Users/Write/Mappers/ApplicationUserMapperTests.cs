@@ -39,14 +39,34 @@ public sealed class ApplicationUserMapperTests
 
         var result = ApplicationUserMapper.ToDomain(CreateDbModel(
             Guid.CreateVersion7(), " HERO@Example.com ", true,
-            [roleId, roleId], [(" permission ", " heroes.read "), ("permission", "heroes.read")]));
+            [roleId, roleId], [(" permission ", " heroes.read "), ("permission", "heroes.read")],
+            userName: " restored-hero ", status: " Blocked "));
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Email.Value.ShouldBe("hero@example.com");
+        result.Value.UserName.Value.ShouldBe("restored-hero");
+        result.Value.Status.IsBlocked.ShouldBeTrue();
         result.Value.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
         result.Value.RoleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
         result.Value.Claims.ShouldHaveSingleItem().Value.Value.ShouldBe("heroes.read");
         result.Value.GetDomainEvents().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "User mapper should reject invalid profile values when profile is invalid")]
+    [InlineData("", "Active")]
+    [InlineData("hero", "")]
+    [InlineData("hero", "Unknown")]
+    public void ToDomain_Should_ReturnValidationFailure_When_ProfileIsInvalid(
+        string userName,
+        string status)
+    {
+        var dbModel = CreateDbModel(
+            Guid.CreateVersion7(), "hero@example.com", false, [], [], userName, status);
+
+        var result = ApplicationUserMapper.ToDomain(dbModel);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Validation);
     }
 
     private static ApplicationUser CreateDbModel(
@@ -54,12 +74,16 @@ public sealed class ApplicationUserMapperTests
         string email,
         bool isConfirmed,
         IEnumerable<Guid> roleIds,
-        IEnumerable<(string Type, string Value)> claims)
+        IEnumerable<(string Type, string Value)> claims,
+        string userName = "hero",
+        string status = "Active")
     {
         return new ApplicationUser
         {
             Id = id,
             Email = email,
+            UserName = userName,
+            Status = status,
             EmailConfirmed = isConfirmed,
             Roles = roleIds.Select(roleId => new ApplicationUserRole
             {

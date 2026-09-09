@@ -4,7 +4,6 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 
@@ -17,10 +16,8 @@ public sealed class CreateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.read")];
         var repository = Substitute.For<IUsersRepository>();
         repository.AddAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
-            Arg.Is<UserName>(name => name.Value == "hero"),
+            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Active && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
             "StrongPassword1!",
-            UserStatus.Active,
             Arg.Any<CancellationToken>())
             .Returns(Result.Success(userId));
         var handler = new CreateUserHandler(repository);
@@ -39,10 +36,8 @@ public sealed class CreateUserHandlerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(userId);
         await repository.Received(1).AddAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
-            Arg.Is<UserName>(name => name.Value == "hero"),
+            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Active && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
             "StrongPassword1!",
-            UserStatus.Active,
             cancellationToken);
     }
 
@@ -68,6 +63,6 @@ public sealed class CreateUserHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        await repository.DidNotReceiveWithAnyArgs().AddAsync(null!, null!, string.Empty, null!, cancellationToken);
+        await repository.DidNotReceiveWithAnyArgs().AddAsync(null!, string.Empty, cancellationToken);
     }
 }

@@ -46,6 +46,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .ShouldHaveSingleItem()
             .ShouldBeOfType<User>();
         trackedUser.Id.Value.ShouldBe(result.Value);
+        trackedUser.UserName.Value.ShouldBe("registered-hero");
+        trackedUser.Status.ShouldBe(UserStatus.Active);
         var domainEvent = trackedUser.GetDomainEvents()
             .OfType<EmailConfirmationRequested>()
             .ShouldHaveSingleItem();

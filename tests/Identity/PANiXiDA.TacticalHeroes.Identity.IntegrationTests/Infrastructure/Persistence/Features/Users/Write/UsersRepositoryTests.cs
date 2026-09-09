@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
@@ -58,9 +57,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-            var result = await repository.UpdateAsync(IntegrationTestData.CreateUser(id: userId, email: "updated@example.com", isConfirmed: true, roleIds: [], claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value))),
-                UserName.Create(value: "updated-hero").Value,
-                UserStatus.Create(value: UserStatus.Blocked.Name).Value,
+            var result = await repository.UpdateAsync(IntegrationTestData.CreateUser(id: userId, email: "updated@example.com", isConfirmed: true, roleIds: [], claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value)), userName: "updated-hero", status: UserStatus.Blocked),
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -172,10 +169,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-        var result = await repository.AddAsync(IntegrationTestData.CreateUser(id: Guid.CreateVersion7(), email: email, isConfirmed: isConfirmed, roleIds: [], claims: claims.Select(claim => (claim.Type, claim.Value))),
-                UserName.Create(value: userName).Value,
+        var result = await repository.AddAsync(IntegrationTestData.CreateUser(id: Guid.CreateVersion7(), email: email, isConfirmed: isConfirmed, roleIds: [], claims: claims.Select(claim => (claim.Type, claim.Value)), userName: userName, status: UserStatus.Create(value: status).Value),
                 Password,
-                UserStatus.Create(value: status).Value,
                 cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();

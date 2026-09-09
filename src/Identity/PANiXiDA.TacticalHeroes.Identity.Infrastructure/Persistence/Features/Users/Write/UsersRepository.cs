@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -23,16 +22,12 @@ public sealed class UsersRepository(
 {
     public async Task<Result<Guid>> AddAsync(
         User user,
-        UserName userName,
         string password,
-        UserStatus status,
         CancellationToken cancellationToken)
     {
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,
-            userName: userName,
-            status: status,
             createdAt: nowUtc,
             updatedAt: nowUtc);
 
@@ -50,8 +45,6 @@ public sealed class UsersRepository(
 
     public async Task<Result> UpdateAsync(
         User user,
-        UserName userName,
-        UserStatus status,
         CancellationToken cancellationToken)
     {
         var applicationUser = await userManager.Users
@@ -65,15 +58,13 @@ public sealed class UsersRepository(
 
         ApplicationUserMapper.MapToDbModel(
             user: user,
-            userName: userName,
-            status: status,
             dbModel: applicationUser,
             updatedAt: timeProvider.GetUtcNow().UtcDateTime);
         SyncClaims(
             applicationUser: applicationUser,
             user: user);
 
-        if (status.IsBlocked)
+        if (user.Status.IsBlocked)
         {
             await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
         }

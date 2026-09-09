@@ -1,5 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
@@ -12,32 +13,44 @@ public sealed class User : AggregateRoot<UserId>
 
     private User(
         UserId id,
-        Email email)
+        Email email,
+        UserName userName,
+        UserStatus status)
         : base(id)
     {
         Email = email;
+        UserName = userName;
+        Status = status;
         ConfirmationStatus = UserConfirmationStatus.Unconfirmed();
     }
 
     public Email Email { get; private set; }
+    public UserName UserName { get; private set; }
+    public UserStatus Status { get; private set; }
     public UserConfirmationStatus ConfirmationStatus { get; private set; }
 
     public IReadOnlyCollection<RoleId> RoleIds => _roleIds;
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
-    public static User Register(Email email)
+    public static User Register(Email email, UserName userName)
     {
-        return new User(id: UserId.New(), email: email);
+        return new User(
+            id: UserId.New(),
+            email: email,
+            userName: userName,
+            status: UserStatus.Active);
     }
 
     public static User Create(
         UserId id,
         Email email,
+        UserName userName,
+        UserStatus status,
         UserConfirmationStatus confirmationStatus,
         IEnumerable<RoleId> roleIds,
         IEnumerable<UserClaim> claims)
     {
-        var user = new User(id: id, email: email)
+        var user = new User(id: id, email: email, userName: userName, status: status)
         {
             ConfirmationStatus = confirmationStatus
         };
