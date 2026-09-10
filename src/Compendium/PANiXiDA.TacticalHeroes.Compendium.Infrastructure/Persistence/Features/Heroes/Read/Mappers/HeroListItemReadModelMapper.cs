@@ -9,9 +9,15 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features
 internal sealed partial class HeroListItemReadModelMapper
     : IReadModelMapper<Guid, HeroReadDbModel, HeroListItemReadModel>
 {
+    [MapPropertyFromSource(
+        nameof(HeroListItemReadModel.FactionName),
+        Use = nameof(MapFactionName))]
     private static partial HeroListItemReadModel ToReadModel(
         HeroReadDbModel hero);
 
     public static partial IQueryable<HeroListItemReadModel> ProjectTo(
         IQueryable<HeroReadDbModel> query);
+
+    private static string MapFactionName(HeroReadDbModel hero)
+        => hero.Faction != null ? hero.Faction.Name : string.Empty;
 }
