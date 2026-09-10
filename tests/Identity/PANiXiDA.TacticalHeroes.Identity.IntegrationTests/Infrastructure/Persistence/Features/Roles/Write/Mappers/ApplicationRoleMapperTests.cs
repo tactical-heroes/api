@@ -46,11 +46,11 @@ public sealed class ApplicationRoleMapperTests
         {
             Id = id,
             Name = name,
-            Claims = claims.Select(claim => new ApplicationRoleClaim
+            Claims = [.. claims.Select(claim => new ApplicationRoleClaim
             {
                 ClaimType = claim.Type,
                 ClaimValue = claim.Value
-            }).ToList()
+            })]
         };
     }
 }

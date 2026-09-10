@@ -85,17 +85,17 @@ public sealed class ApplicationUserMapperTests
             UserName = userName,
             Status = status,
             EmailConfirmed = isConfirmed,
-            Roles = roleIds.Select(roleId => new ApplicationUserRole
+            Roles = [.. roleIds.Select(roleId => new ApplicationUserRole
             {
                 UserId = id,
                 RoleId = roleId
-            }).ToList(),
-            Claims = claims.Select(claim => new ApplicationUserClaim
+            })],
+            Claims = [.. claims.Select(claim => new ApplicationUserClaim
             {
                 UserId = id,
                 ClaimType = claim.Type,
                 ClaimValue = claim.Value
-            }).ToList()
+            })]
         };
     }
 }
