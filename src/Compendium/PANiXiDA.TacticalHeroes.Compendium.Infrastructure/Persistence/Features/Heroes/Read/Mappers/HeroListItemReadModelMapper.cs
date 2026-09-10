@@ -1,4 +1,5 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;
@@ -9,15 +10,13 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features
 internal sealed partial class HeroListItemReadModelMapper
     : IReadModelMapper<Guid, HeroReadDbModel, HeroListItemReadModel>
 {
-    [MapPropertyFromSource(
+    [MapProperty(
+        $"{nameof(HeroReadDbModel.Faction)}.{nameof(FactionReadDbModel.Name)}",
         nameof(HeroListItemReadModel.FactionName),
-        Use = nameof(MapFactionName))]
+        SuppressNullMismatchDiagnostic = true)]
     private static partial HeroListItemReadModel ToReadModel(
         HeroReadDbModel hero);
 
     public static partial IQueryable<HeroListItemReadModel> ProjectTo(
         IQueryable<HeroReadDbModel> query);
-
-    private static string MapFactionName(HeroReadDbModel hero)
-        => hero.Faction != null ? hero.Faction.Name : string.Empty;
 }
