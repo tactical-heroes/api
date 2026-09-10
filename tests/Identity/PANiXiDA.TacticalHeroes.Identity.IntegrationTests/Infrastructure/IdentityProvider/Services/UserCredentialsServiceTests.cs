@@ -1,6 +1,7 @@
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
@@ -39,6 +40,43 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.Email.ShouldBe("register@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
+
+        var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+        var trackedUser = aggregateTracker.GetAll()
+            .ShouldHaveSingleItem()
+            .ShouldBeOfType<User>();
+        trackedUser.Id.Value.ShouldBe(result.Value);
+        trackedUser.UserName.Value.ShouldBe("registered-hero");
+        trackedUser.Status.ShouldBe(UserStatus.Active);
+        var domainEvent = trackedUser.GetDomainEvents()
+            .OfType<EmailConfirmationRequested>()
+            .ShouldHaveSingleItem();
+        domainEvent.Email.ShouldBe(user.Email);
+        domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Theory(DisplayName = "RegisterAsync should reject invalid credentials without persistence when credentials are invalid")]
+    [InlineData("invalid-email", "hero", 1)]
+    [InlineData("hero@example.com", "", 1)]
+    [InlineData("invalid-email", "", 2)]
+    public async Task RegisterAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CredentialsAreInvalid(
+        string email,
+        string userName,
+        int errorCount)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+
+        var result = await service.RegisterAsync(email, userName, Password, cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBe(errorCount);
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        (await userManager.Users.AnyAsync(cancellationToken)).ShouldBeFalse();
+        aggregateTracker.GetAll().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "LoginAsync should load user and all claims in one read query when credentials are valid")]

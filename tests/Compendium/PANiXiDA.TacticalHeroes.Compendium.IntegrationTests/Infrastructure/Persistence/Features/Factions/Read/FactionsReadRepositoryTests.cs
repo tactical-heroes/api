@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Factions.Read;
@@ -98,7 +99,9 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         string name,
         string description)
     {
-        return Faction.Create(name, description).Value;
+        return Faction.Create(
+            name: FactionName.Create(value: name).Value,
+            description: FactionDescription.Create(value: description).Value);
     }
 
     private async Task AddFactionsAsync(

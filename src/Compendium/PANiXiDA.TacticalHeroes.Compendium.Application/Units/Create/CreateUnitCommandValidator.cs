@@ -21,7 +21,10 @@ public sealed class CreateUnitCommandValidator : AbstractValidator<CreateUnitCom
                 minimumDamage: command.MinimumDamage,
                 maximumDamage: command.MaximumDamage,
                 initiative: command.Initiative,
-                speed: command.Speed,
+                speed: command.Speed));
+
+        RuleFor(command => command)
+            .MustBeValidDomainResult(command => UnitRangedAttack.Create(
                 shots: command.Shots,
                 rangedAttackRange: command.RangedAttackRange));
 

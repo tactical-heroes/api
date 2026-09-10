@@ -3,14 +3,15 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Write;
 
-public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
+public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
     private const string Password = "StrongPassword1!";
@@ -55,14 +56,8 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
 
         await using (var scope = Fixture.CreateScope())
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
-            var result = await repository.UpdateAsync(
-                userId,
-                "updated@example.com",
-                "updated-hero",
-                true,
-                [new Claim("permission", "heroes.manage")],
-                UserStatus.Blocked.Name,
+            var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+            var result = await repository.UpdateAsync(IntegrationTestData.CreateUser(id: userId, email: "updated@example.com", isConfirmed: true, roleIds: [], claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value)), userName: "updated-hero", status: UserStatus.Blocked),
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -97,7 +92,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
 
         await using (var scope = Fixture.CreateScope())
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
+            var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             (await repository.DeleteAsync(userId, cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
@@ -113,7 +108,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
     public async Task DeleteAsync_Should_ReturnNotFound_When_UserDoesNotExist()
     {
         await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
 
         var result = await repository.DeleteAsync(
             Guid.CreateVersion7(),
@@ -136,7 +131,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
 
         await using (var scope = Fixture.CreateScope())
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
+            var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             (await repository.BlockAsync(userId, cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
@@ -157,7 +152,7 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
 
         await using (var scope = Fixture.CreateScope())
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
+            var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             (await repository.UnblockAsync(userId, cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
@@ -173,15 +168,10 @@ public sealed class UsersWriteRepositoryTests(IntegrationTestFixture fixture)
         CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUsersWriteRepository>();
-        var result = await repository.AddAsync(
-            email,
-            userName,
-            Password,
-            isConfirmed,
-            claims,
-            status,
-            cancellationToken);
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var result = await repository.AddAsync(IntegrationTestData.CreateUser(id: Guid.CreateVersion7(), email: email, isConfirmed: isConfirmed, roleIds: [], claims: claims.Select(claim => (claim.Type, claim.Value)), userName: userName, status: UserStatus.Create(value: status).Value),
+                Password,
+                cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

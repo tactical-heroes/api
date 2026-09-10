@@ -12,7 +12,8 @@ internal sealed partial class HeroListItemReadModelMapper
 {
     [MapProperty(
         $"{nameof(HeroReadDbModel.Faction)}.{nameof(FactionReadDbModel.Name)}",
-        nameof(HeroListItemReadModel.FactionName))]
+        nameof(HeroListItemReadModel.FactionName),
+        SuppressNullMismatchDiagnostic = true)]
     private static partial HeroListItemReadModel ToReadModel(
         HeroReadDbModel hero);
 

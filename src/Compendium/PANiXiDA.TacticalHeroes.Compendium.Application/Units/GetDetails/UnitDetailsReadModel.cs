@@ -15,4 +15,4 @@ public sealed record UnitDetailsReadModel(
     int? RangedAttackRange,
     int Morale,
     int Luck,
-    Guid FactionId) : ReadModel;
+    Guid FactionId) : IReadModel;

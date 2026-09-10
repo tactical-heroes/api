@@ -31,10 +31,10 @@ internal sealed partial class UnitDetailsReadModelMapper
         nameof(UnitReadDbModel.StatsSpeed),
         nameof(UnitDetailsReadModel.Speed))]
     [MapProperty(
-        nameof(UnitReadDbModel.StatsShots),
+        nameof(UnitReadDbModel.RangedAttackShots),
         nameof(UnitDetailsReadModel.Shots))]
     [MapProperty(
-        nameof(UnitReadDbModel.StatsRangedAttackRange),
+        nameof(UnitReadDbModel.RangedAttackRangedAttackRange),
         nameof(UnitDetailsReadModel.RangedAttackRange))]
     private static partial UnitDetailsReadModel ToReadModel(
         UnitReadDbModel unit);

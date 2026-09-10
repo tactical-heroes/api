@@ -26,7 +26,7 @@ public sealed class IdentityProviderOptions
 
     public TimeSpan EmailConfirmationTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 24);
 
-    public TimeSpan PasswordResetTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 1);
+    public TimeSpan AccountRecoveryTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 1);
 
     public IdentityProviderUserOptions User { get; init; } = new();
 

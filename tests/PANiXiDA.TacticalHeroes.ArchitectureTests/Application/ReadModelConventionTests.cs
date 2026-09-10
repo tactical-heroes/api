@@ -14,14 +14,14 @@ public sealed class ReadModelConventionTests
         var readModels = GetApplicationTypes()
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(ReadModel).IsAssignableFrom(type))
+                typeof(IReadModel).IsAssignableFrom(type))
             .ToArray();
         var violations = readModels
             .Where(type => !type.Name.EndsWith(
                 ReadModelSuffix,
                 StringComparison.Ordinal))
             .Select(type =>
-                $"{type.FullName} inherits ReadModel and must end with " +
+                $"{type.FullName} implements IReadModel and must end with " +
                 $"'{ReadModelSuffix}'.")
             .ToArray();
 
@@ -32,8 +32,8 @@ public sealed class ReadModelConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Types ending with ReadModel should inherit ReadModel when declared")]
-    public void TypesEndingWithReadModel_Should_InheritReadModel_When_Declared()
+    [Fact(DisplayName = "Types ending with ReadModel should implement IReadModel when declared")]
+    public void TypesEndingWithReadModel_Should_ImplementIReadModel_When_Declared()
     {
         var namedReadModels = GetApplicationTypes()
             .Where(type =>
@@ -43,10 +43,10 @@ public sealed class ReadModelConventionTests
                     StringComparison.Ordinal))
             .ToArray();
         var violations = namedReadModels
-            .Where(type => !typeof(ReadModel).IsAssignableFrom(type))
+            .Where(type => !typeof(IReadModel).IsAssignableFrom(type))
             .Select(type =>
                 $"{type.FullName} ends with '{ReadModelSuffix}' and must " +
-                $"inherit ReadModel.")
+                $"implement IReadModel.")
             .ToArray();
 
         Assert.NotEmpty(namedReadModels);
@@ -75,7 +75,7 @@ public sealed class ReadModelConventionTests
             .Where(handler => !ReadSideConvention.IsReadModelResult(
                 handler.ResultType))
             .Select(handler =>
-                $"{handler.Type.FullName} must return a ReadModel, " +
+                $"{handler.Type.FullName} must return an IReadModel, " +
                 $"optionally wrapped in Task, Result, a collection, or a " +
                 $"pagination model; found '{handler.ResultType}'.")
             .ToArray();

@@ -135,7 +135,7 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
         };
     }
 
-    private static Task SetCreatedAtAsync(
+    private static Task<int> SetCreatedAtAsync(
         IdentityWriteDbContext dbContext,
         ApplicationUser user,
         DateTimeOffset createdAtUtc)

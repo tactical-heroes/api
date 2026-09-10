@@ -1,25 +1,14 @@
-using System.Security.Claims;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-
-public interface IUsersWriteRepository
+public interface IUsersRepository
 {
     Task<Result<Guid>> AddAsync(
-        string email,
-        string userName,
+        User user,
         string password,
-        bool isConfirmed,
-        IReadOnlyCollection<Claim> claims,
-        string status,
         CancellationToken cancellationToken);
 
     Task<Result> UpdateAsync(
-        Guid id,
-        string email,
-        string userName,
-        bool isConfirmed,
-        IReadOnlyCollection<Claim> claims,
-        string status,
+        User user,
         CancellationToken cancellationToken);
 
     Task<Result> DeleteAsync(

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
 
-public sealed class DeleteUserHandler(IUsersWriteRepository usersRepository)
+public sealed class DeleteUserHandler(IUsersRepository usersRepository)
     : ICommandHandler<DeleteUserCommand, Result>
 {
     public Task<Result> HandleAsync(

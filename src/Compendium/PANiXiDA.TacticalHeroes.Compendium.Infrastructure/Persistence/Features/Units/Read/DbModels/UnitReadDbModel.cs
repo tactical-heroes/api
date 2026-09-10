@@ -13,8 +13,8 @@ public sealed class UnitReadDbModel : AuditableReadDbModel<Guid>
     public int StatsMaximumDamage { get; set; }
     public double StatsInitiative { get; set; }
     public int StatsSpeed { get; set; }
-    public int? StatsShots { get; set; }
-    public int? StatsRangedAttackRange { get; set; }
+    public int? RangedAttackShots { get; set; }
+    public int? RangedAttackRangedAttackRange { get; set; }
     public int Morale { get; set; }
     public int Luck { get; set; }
     public Guid FactionId { get; set; }

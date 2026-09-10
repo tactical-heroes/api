@@ -3,20 +3,21 @@ using System.Text.RegularExpressions;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
-public sealed class ApplicationInterfaceIntegrationTestConventionTests
+public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
 {
     private const string IntegrationTestsAssemblySuffix = ".IntegrationTests";
     private const string InfrastructureDirectoryName = "Infrastructure";
     private const string SourceDirectoryName = "src";
     private const string TestsDirectoryName = "tests";
 
-    private static readonly Regex TestMethodPattern = new(
+    [GeneratedRegex(
         @"\[(?:Fact|Theory)(?:Attribute)?(?:\([^\]]*\))?\]" +
         @"(?:\s*\[[^\]]+\])*\s*" +
         @"public\s+(?:async\s+)?" +
         @"(?:void|(?:Task|ValueTask)(?:<[^>]+>)?)\s+" +
         @"(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\(",
-        RegexOptions.CultureInvariant);
+        RegexOptions.CultureInvariant)]
+    private static partial Regex TestMethodPattern();
 
     [Fact(DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files when application interfaces are implemented")]
     public void InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
@@ -86,7 +87,7 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
 
     private static IEnumerable<InfrastructureImplementation> GetInfrastructureImplementations(
         ModuleArchitecture module,
-        IReadOnlyDictionary<string, Assembly> productionAssemblies)
+        Dictionary<string, Assembly> productionAssemblies)
     {
         var applicationAssembly = productionAssemblies[module.ApplicationAssemblyName];
         var infrastructureAssembly = productionAssemblies[module.InfrastructureAssemblyName];
@@ -123,7 +124,7 @@ public sealed class ApplicationInterfaceIntegrationTestConventionTests
             return [];
         }
 
-        var testMethodNames = TestMethodPattern
+        var testMethodNames = TestMethodPattern()
             .Matches(File.ReadAllText(testFilePath))
             .Select(match => match.Groups["name"].Value)
             .ToArray();

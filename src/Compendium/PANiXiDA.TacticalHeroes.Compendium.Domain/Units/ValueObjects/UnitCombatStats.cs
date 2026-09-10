@@ -9,9 +9,7 @@ public sealed class UnitCombatStats : ValueObject
         int minimumDamage,
         int maximumDamage,
         double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange)
+        int speed)
     {
         Attack = attack;
         Defense = defense;
@@ -20,8 +18,6 @@ public sealed class UnitCombatStats : ValueObject
         MaximumDamage = maximumDamage;
         Initiative = initiative;
         Speed = speed;
-        Shots = shots;
-        RangedAttackRange = rangedAttackRange;
     }
 
     public int Attack { get; }
@@ -31,8 +27,6 @@ public sealed class UnitCombatStats : ValueObject
     public int MaximumDamage { get; }
     public double Initiative { get; }
     public int Speed { get; }
-    public int? Shots { get; }
-    public int? RangedAttackRange { get; }
 
     public static Result<UnitCombatStats> Create(
         int attack,
@@ -41,9 +35,7 @@ public sealed class UnitCombatStats : ValueObject
         int minimumDamage,
         int maximumDamage,
         double initiative,
-        int speed,
-        int? shots,
-        int? rangedAttackRange)
+        int speed)
     {
         var attackResult = ValidateNonNegative(
             value: attack,
@@ -79,9 +71,6 @@ public sealed class UnitCombatStats : ValueObject
             value: speed,
             field: nameof(Speed),
             message: "Unit speed cannot be negative.");
-        var rangedAttackResult = ValidateRangedAttack(
-            shots: shots,
-            rangedAttackRange: rangedAttackRange);
         var validationResult = Result.Combine(
             attackResult,
             defenseResult,
@@ -90,8 +79,7 @@ public sealed class UnitCombatStats : ValueObject
             maximumDamageResult,
             damageRangeResult,
             initiativeResult,
-            speedResult,
-            rangedAttackResult);
+            speedResult);
 
         return validationResult.IsFailure
             ? Result.Failure<UnitCombatStats>(errors: validationResult.Errors)
@@ -103,9 +91,7 @@ public sealed class UnitCombatStats : ValueObject
                     minimumDamage: minimumDamage,
                     maximumDamage: maximumDamage,
                     initiative: initiative,
-                    speed: speed,
-                    shots: shots,
-                    rangedAttackRange: rangedAttackRange));
+                    speed: speed));
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
@@ -117,8 +103,6 @@ public sealed class UnitCombatStats : ValueObject
         yield return MaximumDamage;
         yield return Initiative;
         yield return Speed;
-        yield return Shots;
-        yield return RangedAttackRange;
     }
 
     private static Result ValidateNonNegative(
@@ -155,35 +139,5 @@ public sealed class UnitCombatStats : ValueObject
             : Result.Failure(
                 error: Error.Validation(message: message)
                     .WithField(field));
-    }
-
-    private static Result ValidateRangedAttack(
-        int? shots,
-        int? rangedAttackRange)
-    {
-        var pairResult = shots.HasValue == rangedAttackRange.HasValue
-            ? Result.Success()
-            : Result.Failure(
-                error: Error.Validation(
-                        message: "Unit shots and ranged attack range must both be provided or both be omitted.")
-                    .WithField(nameof(RangedAttackRange)));
-        var shotsResult = !shots.HasValue || shots.Value > 0
-            ? Result.Success()
-            : Result.Failure(
-                error: Error.Validation(
-                        message: "Unit shots must be greater than zero when provided.")
-                    .WithField(nameof(Shots)));
-        var rangedAttackRangeResult = !rangedAttackRange.HasValue ||
-                                      rangedAttackRange.Value > 0
-            ? Result.Success()
-            : Result.Failure(
-                error: Error.Validation(
-                        message: "Unit ranged attack range must be greater than zero when provided.")
-                    .WithField(nameof(RangedAttackRange)));
-
-        return Result.Combine(
-            pairResult,
-            shotsResult,
-            rangedAttackRangeResult);
     }
 }

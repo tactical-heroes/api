@@ -190,6 +190,19 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasColumnName("updated_at")
                         .HasColumnOrder(2);
 
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "RangedAttack", "PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit.RangedAttack#UnitRangedAttack", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<int?>("RangedAttackRange")
+                                .HasColumnType("integer")
+                                .HasColumnName("ranged_attack_ranged_attack_range");
+
+                            b1.Property<int?>("Shots")
+                                .HasColumnType("integer")
+                                .HasColumnName("ranged_attack_shots");
+                        });
+
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit.Stats#UnitCombatStats", b1 =>
                         {
                             b1.IsRequired();
@@ -217,14 +230,6 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                             b1.Property<int>("MinimumDamage")
                                 .HasColumnType("integer")
                                 .HasColumnName("stats_minimum_damage");
-
-                            b1.Property<int?>("RangedAttackRange")
-                                .HasColumnType("integer")
-                                .HasColumnName("stats_ranged_attack_range");
-
-                            b1.Property<int?>("Shots")
-                                .HasColumnType("integer")
-                                .HasColumnName("stats_shots");
 
                             b1.Property<int>("Speed")
                                 .HasColumnType("integer")

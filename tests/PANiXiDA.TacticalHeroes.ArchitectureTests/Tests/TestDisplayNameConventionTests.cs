@@ -2,17 +2,19 @@ using System.Text.RegularExpressions;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
-public sealed class TestDisplayNameConventionTests
+public sealed partial class TestDisplayNameConventionTests
 {
-    private static readonly Regex EnglishBehaviorDescriptionPattern = new(
+    [GeneratedRegex(
         @"^[A-Za-z][\x20-\x5B\x5D-\x7E]* should " +
         @"[a-z0-9][\x20-\x5B\x5D-\x7E]* when " +
         @"[a-z0-9][\x20-\x5B\x5D-\x7E]*$",
-        RegexOptions.CultureInvariant);
+        RegexOptions.CultureInvariant)]
+    private static partial Regex EnglishBehaviorDescriptionPattern();
 
-    private static readonly Regex PascalCaseBoundaryPattern = new(
+    [GeneratedRegex(
         @"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])",
-        RegexOptions.CultureInvariant);
+        RegexOptions.CultureInvariant)]
+    private static partial Regex PascalCaseBoundaryPattern();
 
     [Fact(DisplayName = "Fact and Theory tests should declare display names when a test is declared")]
     public void FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared()
@@ -47,7 +49,7 @@ public sealed class TestDisplayNameConventionTests
             })
             .Where(item =>
                 item.ExpectedCondition is null ||
-                !EnglishBehaviorDescriptionPattern.IsMatch(
+                !EnglishBehaviorDescriptionPattern().IsMatch(
                     item.TestMethod.DisplayName!) ||
                 !item.TestMethod.DisplayName!.EndsWith(
                     item.ExpectedCondition,
@@ -78,7 +80,7 @@ public sealed class TestDisplayNameConventionTests
 
         var condition = methodName[
             (separatorIndex + conditionSeparator.Length)..];
-        var words = PascalCaseBoundaryPattern.Split(condition);
+        var words = PascalCaseBoundaryPattern().Split(condition);
 
         return " when " + string.Join(" ", words).ToLowerInvariant();
     }

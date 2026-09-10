@@ -2,6 +2,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Update;
 
@@ -48,22 +49,36 @@ public sealed class UpdateHeroHandler(
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        var updateResult = hero.Update(
-            name: command.Name,
-            description: command.Description,
+        var nameResult = HeroName.Create(value: command.Name);
+        var descriptionResult = HeroDescription.Create(value: command.Description);
+        var statsResult = HeroCombatStats.Create(
             attack: command.Attack,
             defense: command.Defense,
             minimumDamage: command.MinimumDamage,
             maximumDamage: command.MaximumDamage,
-            initiative: command.Initiative,
-            morale: command.Morale,
-            luck: command.Luck,
-            factionId: command.FactionId);
+            initiative: command.Initiative);
+        var moraleResult = HeroMorale.Create(value: command.Morale);
+        var luckResult = HeroLuck.Create(value: command.Luck);
+        var validationResult = Result.Combine(
+            nameResult,
+            descriptionResult,
+            statsResult,
+            moraleResult,
+            luckResult,
+            factionIdResult);
 
-        if (updateResult.IsFailure)
+        if (validationResult.IsFailure)
         {
-            return updateResult;
+            return Result.Failure(errors: validationResult.Errors);
         }
+
+        hero.Update(
+            name: nameResult.Value,
+            description: descriptionResult.Value,
+            stats: statsResult.Value,
+            morale: moraleResult.Value,
+            luck: luckResult.Value,
+            factionId: factionIdResult.Value);
 
         await heroesRepository.UpdateAsync(
             aggregateRoot: hero,

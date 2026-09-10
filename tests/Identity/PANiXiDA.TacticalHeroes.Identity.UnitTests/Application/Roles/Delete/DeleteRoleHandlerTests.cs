@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Delete;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Delete;
 
@@ -9,7 +9,7 @@ public sealed class DeleteRoleHandlerTests
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var roleId = Guid.CreateVersion7();
-        var repository = Substitute.For<IRolesWriteRepository>();
+        var repository = Substitute.For<IRolesRepository>();
         repository.DeleteAsync(roleId, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new DeleteRoleHandler(repository);

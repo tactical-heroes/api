@@ -12,7 +12,8 @@ internal sealed partial class UnitListItemReadModelMapper
 {
     [MapProperty(
         $"{nameof(UnitReadDbModel.Faction)}.{nameof(FactionReadDbModel.Name)}",
-        nameof(UnitListItemReadModel.FactionName))]
+        nameof(UnitListItemReadModel.FactionName),
+        SuppressNullMismatchDiagnostic = true)]
     private static partial UnitListItemReadModel ToReadModel(
         UnitReadDbModel unit);
 

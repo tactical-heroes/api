@@ -189,7 +189,7 @@ public sealed class RepositoryConventionTests
         ];
     }
 
-    private static IEnumerable<string> GetLocationViolations(
+    private static List<string> GetLocationViolations(
         string repositoryRoot,
         Type repository)
     {

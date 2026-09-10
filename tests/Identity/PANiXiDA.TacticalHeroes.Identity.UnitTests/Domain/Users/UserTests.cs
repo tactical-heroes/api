@@ -1,5 +1,10 @@
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users;
 
@@ -8,23 +13,16 @@ public sealed class UserTests
     [Fact(DisplayName = "Register should create an unconfirmed user with normalized email when email is valid")]
     public void Register_Should_CreateUnconfirmedUser_When_EmailIsValid()
     {
-        var result = User.Register(" HERO@Example.COM ");
+        var result = User.Register(Email.Create(value: " HERO@Example.COM ").Value, UserName.Create(value: " hero ").Value);
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Id.Value.ShouldNotBe(Guid.Empty);
-        result.Value.Email.Value.ShouldBe("hero@example.com");
-        result.Value.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
-        result.Value.RoleIds.ShouldBeEmpty();
-        result.Value.Claims.ShouldBeEmpty();
-        result.Value.GetDomainEvents().ShouldBeEmpty();
-    }
-
-    [Fact(DisplayName = "Register should reject an invalid email when email is invalid")]
-    public void Register_Should_ReturnValidationFailure_When_EmailIsInvalid()
-    {
-        var result = User.Register("invalid-email");
-
-        result.ShouldHaveSingleError(ErrorType.Validation, "Email has invalid format.");
+        result.Id.Value.ShouldNotBe(Guid.Empty);
+        result.Email.Value.ShouldBe("hero@example.com");
+        result.UserName.Value.ShouldBe("hero");
+        result.Status.ShouldBe(UserStatus.Active);
+        result.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
+        result.RoleIds.ShouldBeEmpty();
+        result.Claims.ShouldBeEmpty();
+        result.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Create should restore persisted user state when persisted values are valid")]
@@ -34,18 +32,21 @@ public sealed class UserTests
         var roleId = Guid.CreateVersion7();
 
         var result = User.Create(
-            id,
-            "hero@example.com",
-            true,
-            [roleId],
-            [("permission", "heroes.read")]);
+            UserId.Create(id).Value,
+            Email.Create("hero@example.com").Value,
+            UserName.Create(" restored-hero ").Value,
+            UserStatus.Blocked,
+            UserConfirmationStatus.Confirmed(),
+            [RoleId.Create(roleId).Value],
+            [UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value)]);
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Id.Value.ShouldBe(id);
-        result.Value.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
-        result.Value.RoleIds.Single().Value.ShouldBe(roleId);
-        result.Value.Claims.Single().Type.Value.ShouldBe("permission");
-        result.Value.Claims.Single().Value.Value.ShouldBe("heroes.read");
+        result.Id.Value.ShouldBe(id);
+        result.UserName.Value.ShouldBe("restored-hero");
+        result.Status.ShouldBe(UserStatus.Blocked);
+        result.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
+        result.RoleIds.Single().Value.ShouldBe(roleId);
+        result.Claims.Single().Type.Value.ShouldBe("permission");
+        result.Claims.Single().Value.Value.ShouldBe("heroes.read");
     }
 
     [Fact(DisplayName = "Request email confirmation should raise an event for an unconfirmed user when user is unconfirmed")]
@@ -54,7 +55,7 @@ public sealed class UserTests
         var user = CreateUser();
         var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(24);
 
-        var result = user.RequestEmailConfirmation("confirmation-token", expiresAtUtc);
+        var result = user.RequestEmailConfirmation(UserActionToken.Create(value: "confirmation-token", expiresAtUtc: expiresAtUtc).Value);
 
         result.IsSuccess.ShouldBeTrue();
         var domainEvent = user.GetDomainEvents()
@@ -73,9 +74,7 @@ public sealed class UserTests
         user.ConfirmRegistration();
         user.ClearDomainEvents();
 
-        var result = user.RequestEmailConfirmation(
-            "confirmation-token",
-            DateTimeOffset.UtcNow.AddHours(24));
+        var result = user.RequestEmailConfirmation(UserActionToken.Create(value: "confirmation-token", expiresAtUtc: DateTimeOffset.UtcNow.AddHours(24)).Value);
 
         result.IsSuccess.ShouldBeTrue();
         user.GetDomainEvents().ShouldBeEmpty();
@@ -104,9 +103,7 @@ public sealed class UserTests
     {
         var user = CreateUser();
 
-        var result = user.RequestPasswordReset(
-            "password-reset-token",
-            DateTimeOffset.UtcNow.AddHours(1));
+        var result = user.RequestPasswordReset(UserActionToken.Create(value: "password-reset-token", expiresAtUtc: DateTimeOffset.UtcNow.AddHours(1)).Value);
 
         result.ShouldHaveSingleError(
             ErrorType.Conflict,
@@ -122,7 +119,7 @@ public sealed class UserTests
         user.ClearDomainEvents();
         var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(1);
 
-        var result = user.RequestPasswordReset("password-reset-token", expiresAtUtc);
+        var result = user.RequestPasswordReset(UserActionToken.Create(value: "password-reset-token", expiresAtUtc: expiresAtUtc).Value);
 
         result.IsSuccess.ShouldBeTrue();
         var domainEvent = user.GetDomainEvents()
@@ -139,23 +136,10 @@ public sealed class UserTests
         var user = CreateUser();
         var roleId = Guid.CreateVersion7();
 
-        var firstResult = user.AssignRole(roleId);
-        var secondResult = user.AssignRole(roleId);
+        user.AssignRole(RoleId.Create(value: roleId).Value);
+        user.AssignRole(RoleId.Create(value: roleId).Value);
 
-        firstResult.IsSuccess.ShouldBeTrue();
-        secondResult.IsSuccess.ShouldBeTrue();
         user.RoleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
-    }
-
-    [Fact(DisplayName = "Assign role should reject an empty role id when role id is empty")]
-    public void AssignRole_Should_ReturnValidationFailure_When_RoleIdIsEmpty()
-    {
-        var user = CreateUser();
-
-        var result = user.AssignRole(Guid.Empty);
-
-        result.ShouldHaveSingleError(ErrorType.Validation, "Role id cannot be empty.");
-        user.RoleIds.ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Grant claim should add a valid claim only once when claim is valid")]
@@ -163,16 +147,14 @@ public sealed class UserTests
     {
         var user = CreateUser();
 
-        var firstResult = user.GrantClaim("permission", "heroes.read");
-        var secondResult = user.GrantClaim("permission", "heroes.read");
+        user.GrantClaim(UserClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
+        user.GrantClaim(UserClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
 
-        firstResult.IsSuccess.ShouldBeTrue();
-        secondResult.IsSuccess.ShouldBeTrue();
         user.Claims.ShouldHaveSingleItem();
     }
 
     private static User CreateUser()
     {
-        return User.Register("hero@example.com").Value;
+        return User.Register(Email.Create(value: "hero@example.com").Value, UserName.Create(value: " hero ").Value);
     }
 }

@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Block;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Block;
 
@@ -9,7 +9,7 @@ public sealed class BlockUserHandlerTests
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();
-        var repository = Substitute.For<IUsersWriteRepository>();
+        var repository = Substitute.For<IUsersRepository>();
         repository.BlockAsync(userId, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new BlockUserHandler(repository);

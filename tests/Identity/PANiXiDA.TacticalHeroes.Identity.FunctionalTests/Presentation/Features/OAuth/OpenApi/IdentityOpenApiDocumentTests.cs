@@ -2,6 +2,8 @@ using System.Text.Json;
 
 using Microsoft.Extensions.Hosting;
 
+using OpenIddict.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.OpenApi;
 
 public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
@@ -33,5 +35,25 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
         paths.ShouldContain("/connect/revoke");
         paths.ShouldContain("/connect/token");
         paths.ShouldContain("/connect/userinfo");
+
+        var logoutQueryParameters = document.RootElement
+            .GetProperty("paths")
+            .GetProperty("/connect/logout")
+            .GetProperty("get")
+            .GetProperty("parameters")
+            .EnumerateArray()
+            .Where(parameter => parameter.GetProperty("in").GetString() == "query")
+            .Select(parameter => parameter.GetProperty("name").GetString()!)
+            .ToArray();
+
+        logoutQueryParameters.ShouldBe(
+            [
+                OpenIddictConstants.Parameters.ClientId,
+                OpenIddictConstants.Parameters.IdTokenHint,
+                OpenIddictConstants.Parameters.PostLogoutRedirectUri,
+                OpenIddictConstants.Parameters.State,
+                OpenIddictConstants.Parameters.UiLocales
+            ],
+            ignoreOrder: true);
     }
 }

@@ -11,6 +11,42 @@ public sealed class DomainEncapsulationConventionTests
 {
     private const string DomainAssemblySuffix = ".Domain";
 
+    [Fact(DisplayName = "Value objects and enumerations should declare public getters without setters when properties are declared")]
+    public void ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared()
+    {
+        var domainTypes = GetDomainTypes().ToArray();
+        var valueObjects = domainTypes
+            .Where(type => typeof(ValueObject).IsAssignableFrom(type))
+            .ToArray();
+        var enumerations = domainTypes
+            .Where(type => InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                type,
+                typeof(Enumeration<>)) is not null)
+            .ToArray();
+        var violations = valueObjects.Concat(enumerations)
+            .SelectMany(type => type
+                .GetProperties(
+                    BindingFlags.Instance |
+                    BindingFlags.Static |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic)
+                .Where(property =>
+                    property.GetGetMethod(nonPublic: true) is not { IsPublic: true } ||
+                    property.GetSetMethod(nonPublic: true) is not null)
+                .Select(property =>
+                    $"{type.FullName}.{property.Name} must have a public getter " +
+                    $"and no setter or init accessor."))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(valueObjects);
+        Assert.NotEmpty(enumerations);
+        Assert.True(
+            violations.Length == 0,
+            $"Value object and enumeration property violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     [Fact(DisplayName = "Aggregate roots and entities should not declare public setters when domain state is declared")]
     public void AggregateRootsAndEntities_Should_NotDeclarePublicSetters_When_DomainStateIsDeclared()
     {

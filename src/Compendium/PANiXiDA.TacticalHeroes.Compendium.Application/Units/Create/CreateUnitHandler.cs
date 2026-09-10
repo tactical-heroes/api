@@ -1,6 +1,8 @@
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
 
@@ -13,29 +15,38 @@ public sealed class CreateUnitHandler(
         CreateUnitCommand command,
         CancellationToken cancellationToken)
     {
-        var unitResult = Unit.Create(
-            name: command.Name,
-            description: command.Description,
+        var nameResult = UnitName.Create(value: command.Name);
+        var descriptionResult = UnitDescription.Create(value: command.Description);
+        var statsResult = UnitCombatStats.Create(
             attack: command.Attack,
             defense: command.Defense,
             health: command.Health,
             minimumDamage: command.MinimumDamage,
             maximumDamage: command.MaximumDamage,
             initiative: command.Initiative,
-            speed: command.Speed,
+            speed: command.Speed);
+        var rangedAttackResult = UnitRangedAttack.Create(
             shots: command.Shots,
-            rangedAttackRange: command.RangedAttackRange,
-            morale: command.Morale,
-            luck: command.Luck,
-            factionId: command.FactionId);
+            rangedAttackRange: command.RangedAttackRange);
+        var moraleResult = UnitMorale.Create(value: command.Morale);
+        var luckResult = UnitLuck.Create(value: command.Luck);
+        var factionIdResult = FactionId.Create(value: command.FactionId);
+        var validationResult = Result.Combine(
+            nameResult,
+            descriptionResult,
+            statsResult,
+            rangedAttackResult,
+            moraleResult,
+            luckResult,
+            factionIdResult);
 
-        if (unitResult.IsFailure)
+        if (validationResult.IsFailure)
         {
-            return Result.Failure<Guid>(errors: unitResult.Errors);
+            return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
         var faction = await factionsRepository.GetByIdAsync(
-            id: unitResult.Value.FactionId,
+            id: factionIdResult.Value,
             cancellationToken: cancellationToken);
 
         if (faction is null)
@@ -44,10 +55,19 @@ public sealed class CreateUnitHandler(
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
+        var unit = Unit.Create(
+            name: nameResult.Value,
+            description: descriptionResult.Value,
+            stats: statsResult.Value,
+            rangedAttack: rangedAttackResult.Value,
+            morale: moraleResult.Value,
+            luck: luckResult.Value,
+            factionId: factionIdResult.Value);
+
         await unitsRepository.AddAsync(
-            aggregateRoot: unitResult.Value,
+            aggregateRoot: unit,
             cancellationToken: cancellationToken);
 
-        return Result.Success(value: unitResult.Value.Id.Value);
+        return Result.Success(value: unit.Id.Value);
     }
 }
