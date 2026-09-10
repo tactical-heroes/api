@@ -13,7 +13,6 @@ public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
     private const string CurrentPassword = "StrongPassword1!";
-
     private const string NewPassword = "NewStrongPassword1!";
 
     [Fact(DisplayName = "Password reset should persist the new password obtained through the API flow when issued token is valid")]

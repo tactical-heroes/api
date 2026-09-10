@@ -16,9 +16,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize
 internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
 {
     public string Route { get; } = OAuthEndpointRoutes.Authorization;
-
     public string Name { get; } = "Authorize";
-
     public string Summary { get; } = "Start OpenID Connect authorization";
 
     public void Map(EndpointMapBuilder builder)

@@ -21,17 +21,11 @@ public sealed class UnitCombatStats : ValueObject
     }
 
     public int Attack { get; }
-
     public int Defense { get; }
-
     public int Health { get; }
-
     public int MinimumDamage { get; }
-
     public int MaximumDamage { get; }
-
     public double Initiative { get; }
-
     public int Speed { get; }
 
     public static Result<UnitCombatStats> Create(

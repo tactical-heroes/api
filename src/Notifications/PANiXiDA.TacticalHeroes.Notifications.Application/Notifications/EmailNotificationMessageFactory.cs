@@ -9,7 +9,6 @@ namespace PANiXiDA.TacticalHeroes.Notifications.Application.Notifications;
 internal static class EmailNotificationMessageFactory
 {
     private const string EmailConfirmationSubject = "Confirm your Tactical Heroes email";
-
     private const string PasswordResetSubject = "Reset your Tactical Heroes password";
 
     public static EmailMessage Create(

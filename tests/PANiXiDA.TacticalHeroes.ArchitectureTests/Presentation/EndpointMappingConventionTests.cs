@@ -121,7 +121,6 @@ internal static class EndpointMappingSourceDiscovery
         "PANiXiDA.Core.Presentation.Http.Endpoints.EndpointMapBuilder";
 
     private const string EndpointInterfaceName = "IEndpoint";
-
     private const string EndpointGroupInterfaceName = "IEndpointGroup";
 
     private const string EndpointInterfaceNamespace =

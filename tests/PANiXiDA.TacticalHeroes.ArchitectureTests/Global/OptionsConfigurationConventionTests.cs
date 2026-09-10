@@ -10,17 +10,11 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 public sealed class OptionsConfigurationConventionTests
 {
     private const string OptionsSuffix = "Options";
-
     private const string OptionsDirectoryName = "Options";
-
     private const string SectionNameFieldName = "SectionName";
-
     private const string SourceDirectoryName = "src";
-
     private const string ValidateOnStartMethodName = "ValidateOnStart";
-
     private const string ValidateOptionsTypeName = "IValidateOptions";
-
     private const string ValidatorSuffix = "Validator";
 
     private static readonly string[] ServiceRegistrationMethodNames =

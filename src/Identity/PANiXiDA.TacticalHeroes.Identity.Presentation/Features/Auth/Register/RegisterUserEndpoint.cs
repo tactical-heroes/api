@@ -7,9 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
 internal sealed class RegisterUserEndpoint : IEndpoint<AuthEndpoints>
 {
     public string Route { get; } = "/register";
-
     public string Name { get; } = "RegisterUser";
-
     public string Summary { get; } = "Register user";
 
     public void Map(EndpointMapBuilder builder)

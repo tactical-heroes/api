@@ -7,9 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
 {
     public string Route { get; } = "/";
-
     public string Name { get; } = "CreateRole";
-
     public string Summary { get; } = "Create role";
 
     public void Map(EndpointMapBuilder builder)

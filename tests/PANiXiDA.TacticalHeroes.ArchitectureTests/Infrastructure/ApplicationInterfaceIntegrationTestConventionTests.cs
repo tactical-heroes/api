@@ -6,11 +6,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
 {
     private const string IntegrationTestsAssemblySuffix = ".IntegrationTests";
-
     private const string InfrastructureDirectoryName = "Infrastructure";
-
     private const string SourceDirectoryName = "src";
-
     private const string TestsDirectoryName = "tests";
 
     [GeneratedRegex(

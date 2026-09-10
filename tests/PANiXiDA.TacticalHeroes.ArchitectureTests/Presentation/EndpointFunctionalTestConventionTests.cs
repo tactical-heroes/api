@@ -5,11 +5,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 public sealed class EndpointFunctionalTestConventionTests
 {
     private const string PresentationAssemblySuffix = ".Presentation";
-
     private const string FunctionalTestsAssemblySuffix = ".FunctionalTests";
-
     private const string SourceDirectoryName = "src";
-
     private const string TestsDirectoryName = "tests";
 
     [Fact(DisplayName = "Endpoints should have matching functional test files when declared")]

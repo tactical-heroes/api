@@ -18,7 +18,6 @@ internal static class ReadSideConvention
         "PANiXiDA.Core.Application.Querying";
 
     private const string CoreDomainAssemblyName = "PANiXiDA.Core.Domain";
-
     private const string DomainAssemblySuffix = ".Domain";
 
     internal static bool IsPrimitiveValue(Type type)

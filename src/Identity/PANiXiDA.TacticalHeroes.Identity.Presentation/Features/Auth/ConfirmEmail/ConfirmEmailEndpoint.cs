@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ConfirmEma
 internal sealed class ConfirmEmailEndpoint : IEndpoint<AuthEndpoints>
 {
     public string Route { get; } = "/confirm-email";
-
     public string Name { get; } = "ConfirmEmail";
-
     public string Summary { get; } = "Confirm email";
 
     public void Map(EndpointMapBuilder builder)

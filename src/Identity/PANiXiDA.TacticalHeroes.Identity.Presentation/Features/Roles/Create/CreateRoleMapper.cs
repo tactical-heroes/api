@@ -10,6 +10,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 internal static partial class CreateRoleMapper
 {
     internal static partial CreateRoleCommand ToCommand(CreateRoleRequest request);
-
     internal static partial CreateRoleResponse ToResponse(Guid id);
 }

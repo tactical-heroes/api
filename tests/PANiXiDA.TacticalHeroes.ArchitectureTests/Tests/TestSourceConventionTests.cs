@@ -153,7 +153,6 @@ public sealed partial class TestSourceConventionTests
 internal static class TestSourceDiscovery
 {
     private const string SourceDirectoryName = "src";
-
     private const string TestsDirectoryName = "tests";
 
     public static TestMethodSource[] GetTestMethods()

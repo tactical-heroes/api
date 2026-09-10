@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 public sealed class EndpointVerticalSliceConventionTests
 {
     private const string EndpointSuffix = "Endpoint";
-
     private const string EndpointGroupSuffix = "Endpoints";
-
     private const string FeaturesNamespaceSegment = "Features";
 
     [Fact(DisplayName = "Endpoint groups should reside in feature roots and match feature names when declared")]

@@ -13,7 +13,6 @@ public sealed class PostgreSqlTestDatabase : IAsyncDisposable
         "ConnectionStrings__PostgreSqlConnectionString";
 
     private PostgreSqlContainer? _postgreSqlContainer;
-
     private string? _postgreSqlConnectionString;
 
     public string PostgreSqlConnectionString =>

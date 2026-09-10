@@ -13,7 +13,6 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
     private const string CurrentPassword = "StrongPassword1!";
-
     private const string NewPassword = "NewStrongPassword1!";
 
     [Fact(DisplayName = "POST auth change-password should persist the new password for the current user when access token is valid")]

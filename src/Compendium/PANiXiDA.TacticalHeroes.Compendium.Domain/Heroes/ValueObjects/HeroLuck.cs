@@ -3,7 +3,6 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 public sealed class HeroLuck : ValueObject
 {
     public const int Minimum = 0;
-
     public const int Maximum = 5;
 
     private HeroLuck(int value)

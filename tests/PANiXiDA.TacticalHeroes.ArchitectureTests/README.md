@@ -408,29 +408,13 @@ repository и query handler реализуют `IReadModel`; коллекции,
 
 ## Глобальные соглашения
 
-80. `Namespaces_Should_MatchFolderStructure_When_Declared` — namespace каждого
-    объявленного типа в C#-исходниках проектов из `src`, `tests` и `tools`
-    должен в точности совпадать с корневым namespace проекта, дополненным
-    относительным путём к папке файла. Для файла в корне проекта используется
-    только корневой namespace. Исходники из `bin`, `obj` и `Generated` не
-    проверяются.
-
-81. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
+80. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
     аргументы `null`, `default`, `true` и `false`, а также все аргументы вызова
     с тремя и более аргументами в авторских C#-исходниках из `src` должны
     передаваться по имени параметра. Вызовы методов `System.String`, вызовы с
     `params`, `nameof`, EF migrations, `bin`, `obj` и `Generated` не проверяются.
 
-82. `AsynchronousMethods_Should_EndWithAsync_When_Declared` — каждый
-    production-метод, возвращающий `Task`, `ValueTask`, async stream или
-    объявленный через `async`, должен оканчиваться на `Async`. Реализации
-    внешних интерфейсов и overrides не проверяются, поскольку их имена задаются
-    внешним контрактом.
-
-83. `SynchronousMethods_Should_NotEndWithAsync_When_Declared` — синхронные
-    production-методы не должны оканчиваться на `Async`.
-
-84. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
+81. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
     авторских C#-исходниках из `src` должно получаться через
     `TimeProvider.GetUtcNow()`. В явных конструкторах также разрешены
     `DateTime.UtcNow` и `DateTimeOffset.UtcNow` как часть жизненного цикла
@@ -438,24 +422,24 @@ repository и query handler реализуют `IReadModel`; коллекции,
     `DateTimeOffset.Now` и `TimeProvider.GetLocalNow()` запрещены везде. EF
     migrations, `bin`, `obj` и `Generated` не проверяются.
 
-85. `CancellationTokenSentinels_Should_NotBeUsed_When_Declared` — в авторских
+82. `CancellationTokenSentinels_Should_NotBeUsed_When_Declared` — в авторских
     C#-исходниках из `src`, `tests` и `tools` запрещены
     `CancellationToken.None`, `default(CancellationToken)` и `default`, если его
     целевой тип — `CancellationToken`. В том числе токен нельзя объявлять как
     optional-параметр со значением `default`: вызывающий код должен передавать
     фактический токен явно.
 
-86. `CancellationTokenParameters_Should_BeUsed_When_Declared` — объявленный в
+83. `CancellationTokenParameters_Should_BeUsed_When_Declared` — объявленный в
     реализованном методе `CancellationToken` должен использоваться; иначе
     параметр нужно удалить. Overrides и реализации внешних интерфейсов не
     проверяются на использование, поскольку удалить параметр из их сигнатуры
     нельзя.
 
-87. `CancellationTokens_Should_BeForwarded_When_Available` — если вызываемый
+84. `CancellationTokens_Should_BeForwarded_When_Available` — если вызываемый
     метод объявляет параметр `CancellationToken`, а токен уже доступен в текущей
     области видимости, его нужно передать явно.
 
-88. `CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked`
+85. `CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked`
     — если в production-коде из `src` вызываемый метод поддерживает
     `CancellationToken`, но токен не передан и недоступен в текущей области
     видимости, текущий метод должен получить токен параметром. Токен
@@ -464,96 +448,96 @@ repository и query handler реализуют `IReadModel`; коллекции,
 
 ## Оформление тестов
 
-89. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+86. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
     `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
     `DisplayName`, заданный строковым литералом.
 
-90. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+87. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
     `DisplayName` записывается на английском по схеме
     `<subject> should <behavior> when <condition>`. Часть после `when` должна
     соответствовать условию из имени тестового метода после `_When_`.
 
-91. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+88. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
     каждого тестового метода должно соответствовать шаблону
     `MethodName_Should_DoSomething_When_Condition`.
 
-92. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+89. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
     должен иметь block body, как минимум две логические секции, разделённые
     пустой строкой, и assertion в последней секции.
 
 ## Дополнительные архитектурные гарантии
 
-93. `DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories`
+90. `DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories`
     — конкретные `IEntity` и `ValueObject` должны объявлять только private
     конструкторы и предоставлять создание через фабричные методы.
 
-94. `InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared`
+91. `InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared`
     — каждая реализация абстракции Domain или Application из Infrastructure
     должна присутствовать в итоговом `IServiceCollection` модуля.
 
-95. `DatabaseContexts_Should_BeRegistered_When_Declared` — каждый конкретный
+92. `DatabaseContexts_Should_BeRegistered_When_Declared` — каждый конкретный
     `DbContext` должен присутствовать в итоговом `IServiceCollection` модуля.
 
-96. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
+93. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
     route endpoint должен явно вызвать `RequireAuthorization()` или
     `AllowAnonymous()`, либо наследовать такое решение от своей endpoint group.
 
-97. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
+94. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
     включая явно заданные через `WithName`, должны быть уникальны.
 
-98. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
+95. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
     method и полного route endpoint group + endpoint должно быть уникально.
 
-99. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
+96. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
      production-коде запрещены блокирующие вызовы `Task.Wait()`, `Task.Result`
      и `GetAwaiter().GetResult()`.
 
-100. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
+97. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
      методы, local functions и lambdas в production-коде не должны быть
      `async void`.
 
-101. `NullForgivingAssignments_Should_TargetOnlyComplexValueObjects_When_UsedInDomainState`
+98. `NullForgivingAssignments_Should_TargetOnlyComplexValueObjects_When_UsedInDomainState`
      — присваивание `null!` в состоянии aggregate root и entity разрешено
      только для комплексного value object с несколькими значениями.
 
-102. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
+99. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
      — command validator не должен повторять бизнес-инварианты через встроенные
      сравнения, диапазоны или произвольные предикаты FluentValidation; проверки
      должны делегироваться доменным фабрикам.
 
-103. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
+100. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
      — `HasMaxLength` в entity configuration должен ссылаться на публичную
      доменную константу `MaxLength`, а не дублировать числовое ограничение.
 
-104. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
+101. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
      — внешний ключ на aggregate read model из того же модуля требует nullable
      reference navigation у зависимой модели и collection navigation у главной.
 
-105. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
+102. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
      — endpoint не должен повторять тот же `RequireAuthorization` или
      `AllowAnonymous`, который уже объявлен его endpoint group.
 
-106. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
+103. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
      — каждый конфигурационный `<Name>Options` с константой `SectionName`
      должен иметь зарегистрированный `<Name>OptionsValidator`, реализующий
      `IValidateOptions<TOptions>` и расположенный рядом с options-классом.
 
-107. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
+104. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
      конфигурационный options-класс должен регистрироваться через
      `AddOptions<TOptions>()` с последующим вызовом `ValidateOnStart()`.
 
-108. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
+105. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
      — каждый конфигурационный `<Name>Options` должен располагаться вместе со
      своим validator в выделенной папке `Options/<Name>/`.
 
-109. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
+106. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
      — публичные и internal-методы агрегатов и entity, включая фабрики,
      принимают только VO, strongly typed ID, Enumeration, entity и коллекции
      этих типов. Примитивы и DTO-контейнеры параметров запрещены. Application
      собирает VO через их доменные фабрики до вызова агрегата; фабрики самих
      VO и идентификаторов продолжают принимать и проверять примитивы.
 
-110. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+107. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
      — свойства VO и `Enumeration<>` должны иметь публичный getter. Любые
      setter и init-accessor запрещены независимо от видимости, включая
      private. Проверяются также статические и унаследованные свойства.

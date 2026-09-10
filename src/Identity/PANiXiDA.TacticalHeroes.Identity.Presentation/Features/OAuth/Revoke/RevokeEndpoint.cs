@@ -8,9 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Revoke;
 internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
 {
     public string Route { get; } = OAuthEndpointRoutes.Revocation;
-
     public string Name { get; } = "RevokeToken";
-
     public string Summary { get; } = "Revoke access or refresh token";
 
     public void Map(EndpointMapBuilder builder)

@@ -8,7 +8,6 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 public sealed class AggregatePersistenceConventionTests
 {
     private const string RepositorySuffix = "Repository";
-
     private const string WriteDbContextSuffix = "WriteDbContext";
 
     [Fact(DisplayName = "Aggregate roots should have registered repositories when declared")]

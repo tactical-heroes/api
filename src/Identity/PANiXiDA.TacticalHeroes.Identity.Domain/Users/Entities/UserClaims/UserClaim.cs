@@ -15,7 +15,6 @@ public sealed class UserClaim : Entity<UserClaimId>
     }
 
     public ClaimType Type { get; private set; }
-
     public ClaimValue Value { get; private set; }
 
     public static UserClaim Create(

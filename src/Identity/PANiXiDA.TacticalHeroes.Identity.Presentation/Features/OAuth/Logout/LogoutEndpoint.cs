@@ -14,9 +14,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Logout;
 internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 {
     public string Route { get; } = OAuthEndpointRoutes.EndSession;
-
     public string Name { get; } = "Logout";
-
     public string Summary { get; } = "Log out user from OpenID Connect";
 
     public void Map(EndpointMapBuilder builder)

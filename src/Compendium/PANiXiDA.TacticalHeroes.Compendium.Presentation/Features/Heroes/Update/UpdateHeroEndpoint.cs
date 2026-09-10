@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Update
 internal sealed class UpdateHeroEndpoint : IEndpoint<HeroesEndpoints>
 {
     public string Route { get; } = HeroesEndpoints.IdRoute;
-
     public string Name { get; } = "UpdateHero";
-
     public string Summary { get; } = "Update hero";
 
     public void Map(EndpointMapBuilder builder)

@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResendConf
 internal sealed class ResendConfirmationEmailEndpoint : IEndpoint<AuthEndpoints>
 {
     public string Route { get; } = "/resend-confirmation-email";
-
     public string Name { get; } = "ResendConfirmationEmail";
-
     public string Summary { get; } = "Resend email confirmation email";
 
     public void Map(EndpointMapBuilder builder)

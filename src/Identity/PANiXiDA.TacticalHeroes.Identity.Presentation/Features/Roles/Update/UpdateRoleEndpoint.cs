@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
 {
     public string Route { get; } = RolesEndpoints.IdRoute;
-
     public string Name { get; } = "UpdateRole";
-
     public string Summary { get; } = "Update role";
 
     public void Map(EndpointMapBuilder builder)

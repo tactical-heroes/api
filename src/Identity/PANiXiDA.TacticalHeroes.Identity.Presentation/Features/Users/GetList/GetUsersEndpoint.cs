@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetList;
 internal sealed class GetUsersEndpoint : IEndpoint<UsersEndpoints>
 {
     public string Route { get; } = "/";
-
     public string Name { get; } = "GetUsers";
-
     public string Summary { get; } = "Get users";
 
     public void Map(EndpointMapBuilder builder)

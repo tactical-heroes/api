@@ -13,17 +13,11 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 internal static class OAuthAuthorizationRequestTestHelper
 {
     internal const string ClientId = "tactical-heroes-web";
-
     internal const string CodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
-
     internal const string CodeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
-
     internal const string ParPath = "/connect/par";
-
     internal const string RedirectUri = "https://localhost:5173/oauth/callback";
-
     private const string LoginPath = "/api/v1/auth/login";
-
     private const string TokenPath = "/connect/token";
 
     internal static HttpClient CreateOAuthClient(FunctionalTestFixture fixture)

@@ -15,7 +15,6 @@ public sealed class RoleClaim : Entity<RoleClaimId>
     }
 
     public ClaimType Type { get; private set; }
-
     public ClaimValue Value { get; private set; }
 
     public static RoleClaim Create(

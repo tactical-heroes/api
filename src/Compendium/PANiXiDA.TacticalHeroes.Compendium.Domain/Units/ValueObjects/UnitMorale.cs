@@ -3,7 +3,6 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 public sealed class UnitMorale : ValueObject
 {
     public const int Minimum = 0;
-
     public const int Maximum = 5;
 
     private UnitMorale(int value)

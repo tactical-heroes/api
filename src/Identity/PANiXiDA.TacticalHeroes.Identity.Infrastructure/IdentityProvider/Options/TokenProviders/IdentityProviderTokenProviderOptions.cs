@@ -3,6 +3,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Optio
 public sealed class IdentityProviderTokenProviderOptions
 {
     public string EmailConfirmation { get; init; } = "email_confirmation";
-
     public string PasswordReset { get; init; } = "password_reset";
 }

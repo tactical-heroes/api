@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetD
 internal sealed class GetFactionDetailsEndpoint : IEndpoint<FactionsEndpoints>
 {
     public string Route { get; } = FactionsEndpoints.IdRoute;
-
     public string Name { get; } = "GetFactionDetails";
-
     public string Summary { get; } = "Get faction";
 
     public void Map(EndpointMapBuilder builder)

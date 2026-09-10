@@ -9,11 +9,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Conventions;
 public sealed class TypeSealingConventionTests
 {
     private const string ApplicationAssemblySuffix = ".Application";
-
     private const string DomainAssemblySuffix = ".Domain";
-
     private const string InfrastructureAssemblySuffix = ".Infrastructure";
-
     private const string PresentationAssemblySuffix = ".Presentation";
 
     private static readonly Type[] HandlerInterfaceDefinitions =

@@ -7,9 +7,7 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 public sealed class RepositoryImplementationConventionTests
 {
     private const string ReadDbModelSuffix = "ReadDbModel";
-
     private const string ReadRepositorySuffix = "ReadRepository";
-
     private const string RepositorySuffix = "Repository";
 
     [Fact(DisplayName = "Repository interfaces should have exactly one implementation when declared")]

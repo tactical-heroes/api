@@ -6,7 +6,6 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 public sealed class ReadModelConventionTests
 {
     private const string ApplicationAssemblySuffix = ".Application";
-
     private const string ReadModelSuffix = "ReadModel";
 
     [Fact(DisplayName = "Read models should end with ReadModel when declared")]

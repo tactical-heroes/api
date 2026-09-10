@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
 {
     public string Route { get; } = UsersEndpoints.IdRoute;
-
     public string Name { get; } = "UpdateUser";
-
     public string Summary { get; } = "Update user";
 
     public void Map(EndpointMapBuilder builder)

@@ -5,9 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Upda
 internal sealed class UpdateFactionEndpoint : IEndpoint<FactionsEndpoints>
 {
     public string Route { get; } = FactionsEndpoints.IdRoute;
-
     public string Name { get; } = "UpdateFaction";
-
     public string Summary { get; } = "Update faction";
 
     public void Map(EndpointMapBuilder builder)

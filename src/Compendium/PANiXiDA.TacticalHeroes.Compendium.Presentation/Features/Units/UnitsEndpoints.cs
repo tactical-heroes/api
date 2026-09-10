@@ -9,9 +9,7 @@ internal sealed class UnitsEndpoints : IEndpointGroup
     internal const string IdRoute = "/{id:guid}";
 
     public string Route { get; } = "units";
-
     public string Name { get; } = "Units";
-
     public ApiVersion ApiVersion { get; } = new(majorVersion: 1, minorVersion: 0);
 
     public void Map(IEndpointRouteBuilder endpoints)

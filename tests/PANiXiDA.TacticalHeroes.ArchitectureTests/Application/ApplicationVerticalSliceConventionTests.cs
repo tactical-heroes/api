@@ -8,19 +8,12 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 public sealed class ApplicationVerticalSliceConventionTests
 {
     private const string AbstractionsNamespaceSegment = "Abstractions";
-
     private const string ApplicationAssemblySuffix = ".Application";
-
     private const string CommandSuffix = "Command";
-
     private const string DomainAssemblySuffix = ".Domain";
-
     private const string HandlerSuffix = "Handler";
-
     private const string QuerySuffix = "Query";
-
     private const string SourceDirectoryName = "src";
-
     private const string ValidatorSuffix = "Validator";
 
     private static readonly Type[] HandlerInterfaceDefinitions =

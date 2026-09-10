@@ -7,6 +7,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.U
 public sealed class ApplicationUserRole : IdentityUserRole<Guid>
 {
     public ApplicationUser? User { get; set; }
-
     public ApplicationRole? Role { get; set; }
 }

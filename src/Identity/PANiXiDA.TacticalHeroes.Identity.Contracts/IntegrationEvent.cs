@@ -9,6 +9,5 @@ public abstract record IntegrationEvent
     }
 
     public Guid Id { get; init; }
-
     public DateTimeOffset OccurredOnUtc { get; init; }
 }
