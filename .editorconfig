@@ -138,11 +138,15 @@ dotnet_diagnostic.IDE0005.severity = error
 dotnet_diagnostic.IDE2002.severity = warning
 
 [*.cs]
+dotnet_analyzer_diagnostic.category-roslynator.severity = none
 dotnet_diagnostic.RCS0007.severity = warning
 dotnet_diagnostic.RCS0010.severity = warning
 dotnet_diagnostic.RCS0012.severity = warning
 dotnet_diagnostic.RCS0013.severity = warning
 dotnet_diagnostic.RCS0063.severity = warning
+dotnet_diagnostic.RCS1205.severity = warning
+dotnet_diagnostic.RCS1210.severity = warning
+dotnet_diagnostic.RCS1229.severity = warning
 
 [**/Migrations/**.cs]
 generated_code = true
