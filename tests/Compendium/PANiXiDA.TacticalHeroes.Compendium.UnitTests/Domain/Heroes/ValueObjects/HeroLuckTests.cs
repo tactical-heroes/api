@@ -25,8 +25,8 @@ public sealed class HeroLuckTests
         var result = HeroLuck.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Hero luck must be between {HeroLuck.Minimum} and {HeroLuck.Maximum}.")
+            ErrorType.Validation,
+            $"Hero luck must be between {HeroLuck.Minimum} and {HeroLuck.Maximum}.")
             .ShouldHaveField(nameof(HeroLuck));
     }
 

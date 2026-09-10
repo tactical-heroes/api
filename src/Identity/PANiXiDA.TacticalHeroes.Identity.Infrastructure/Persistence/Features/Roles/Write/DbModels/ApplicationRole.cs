@@ -8,6 +8,7 @@ public sealed class ApplicationRole : IdentityRole<Guid>
 {
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
     public ICollection<ApplicationUserRole> Users { get; set; } = [];
     public ICollection<ApplicationRoleClaim> Claims { get; set; } = [];
 }

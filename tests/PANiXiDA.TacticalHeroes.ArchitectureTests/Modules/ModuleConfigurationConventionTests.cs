@@ -79,8 +79,8 @@ public sealed class ModuleConfigurationConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

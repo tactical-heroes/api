@@ -31,8 +31,8 @@ public sealed class ClaimTypeTests
         var result = ClaimType.Create(new string('a', ClaimType.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Claim type cannot be longer than {ClaimType.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Claim type cannot be longer than {ClaimType.MaxLength} characters.")
             .ShouldHaveField(nameof(ClaimType));
     }
 

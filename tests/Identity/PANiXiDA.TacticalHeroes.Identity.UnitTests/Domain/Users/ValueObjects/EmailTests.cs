@@ -43,8 +43,8 @@ public sealed class EmailTests
         var result = Email.Create($"{new string('a', Email.MaxLength)}@example.com");
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Email cannot be longer than {Email.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Email cannot be longer than {Email.MaxLength} characters.")
             .ShouldHaveField(nameof(Email));
     }
 

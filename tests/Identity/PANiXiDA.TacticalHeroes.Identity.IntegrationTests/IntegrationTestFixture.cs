@@ -18,6 +18,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests;
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {
     private readonly PostgreSqlTestDatabase _database = new();
+
     private ServiceProvider _serviceProvider = null!;
 
     private static string PostgreSqlConnectionStringConfigurationKey =>
@@ -27,6 +28,7 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
             StringComparison.Ordinal);
 
     public string ConnectionString => _database.PostgreSqlConnectionString;
+
     public CommandCounterInterceptor CommandCounter { get; } = new();
 
     public async ValueTask InitializeAsync()

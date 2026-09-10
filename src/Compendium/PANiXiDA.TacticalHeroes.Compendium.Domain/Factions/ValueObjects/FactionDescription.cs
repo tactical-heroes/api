@@ -26,7 +26,7 @@ public sealed class FactionDescription : ValueObject
             ? Result.Success(value: new FactionDescription(value: normalizedValue))
             : Result.Failure<FactionDescription>(
                 error: Error.Validation(
-                        message: $"Faction description cannot be longer than {MaxLength} characters.")
+                    message: $"Faction description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(FactionDescription)));
     }
 

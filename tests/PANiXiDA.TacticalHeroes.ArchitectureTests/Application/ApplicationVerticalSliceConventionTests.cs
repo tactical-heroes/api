@@ -161,8 +161,8 @@ public sealed class ApplicationVerticalSliceConventionTests
         var expectedRequestSuffix = GetRequestSuffix(useCase.RequestType);
 
         if (!useCase.RequestType.Name.EndsWith(
-                expectedRequestSuffix,
-                StringComparison.Ordinal))
+            expectedRequestSuffix,
+            StringComparison.Ordinal))
         {
             violations.Add(
                 $"{useCase.RequestType.FullName} must end with " +
@@ -292,8 +292,8 @@ public sealed class ApplicationVerticalSliceConventionTests
                         {
                             var relativeNamespaceSegments =
                                 GetRelativeNamespace(
-                                        requestType,
-                                        module.ApplicationAssemblyName)
+                                    requestType,
+                                    module.ApplicationAssemblyName)
                                     .Split(
                                         '.',
                                         StringSplitOptions.RemoveEmptyEntries);
@@ -324,7 +324,7 @@ public sealed class ApplicationVerticalSliceConventionTests
         [
             .. ArchitectureDefinition.Modules
                 .SelectMany(module => productionAssemblies[
-                        module.ApplicationAssemblyName]
+                    module.ApplicationAssemblyName]
                     .GetTypes()
                     .Where(type => type.Namespace is not null)
                     .Select(type => new ApplicationType(module, type)))
@@ -428,32 +428,32 @@ public sealed class ApplicationVerticalSliceConventionTests
         [
             .. ArchitectureDefinition.Modules
                 .SelectMany(module => new[]
-                {
-                    module.DomainAssemblyName,
-                    module.ApplicationAssemblyName
-                }
-                .SelectMany(assemblyName =>
-                {
-                    var moduleDirectoryName =
-                        module.Name[(module.Name.LastIndexOf('.') + 1)..];
-                    var projectDirectory = Path.Combine(
-                        repositoryRoot,
-                        SourceDirectoryName,
-                        moduleDirectoryName,
-                        assemblyName);
+                    {
+                        module.DomainAssemblyName,
+                        module.ApplicationAssemblyName
+                    }
+                    .SelectMany(assemblyName =>
+                    {
+                        var moduleDirectoryName =
+                            module.Name[(module.Name.LastIndexOf('.') + 1)..];
+                        var projectDirectory = Path.Combine(
+                            repositoryRoot,
+                            SourceDirectoryName,
+                            moduleDirectoryName,
+                            assemblyName);
 
-                    return Directory
-                        .EnumerateFiles(
-                            projectDirectory,
-                            "*.cs",
-                            SearchOption.AllDirectories)
-                        .Where(path =>
-                            HasPathSegment(
-                                path,
-                                AbstractionsNamespaceSegment) &&
-                            !HasPathSegment(path, "bin") &&
-                            !HasPathSegment(path, "obj"));
-                }))
+                        return Directory
+                            .EnumerateFiles(
+                                projectDirectory,
+                                "*.cs",
+                                SearchOption.AllDirectories)
+                            .Where(path =>
+                                HasPathSegment(
+                                    path,
+                                    AbstractionsNamespaceSegment) &&
+                                !HasPathSegment(path, "bin") &&
+                                !HasPathSegment(path, "obj"));
+                    }))
                 .Order(StringComparer.OrdinalIgnoreCase)
         ];
     }
@@ -499,8 +499,8 @@ public sealed class ApplicationVerticalSliceConventionTests
         var namespacePrefix = assemblyName + ".";
 
         if (!typeNamespace.StartsWith(
-                namespacePrefix,
-                StringComparison.Ordinal))
+            namespacePrefix,
+            StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
                 $"Type '{type.FullName}' namespace must start with " +
@@ -529,8 +529,8 @@ public sealed class ApplicationVerticalSliceConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

@@ -19,6 +19,7 @@ public sealed class UserReadDbModel : ReadDbModel<Guid>
     public DateTimeOffset? LockoutEnd { get; set; }
     public bool LockoutEnabled { get; set; }
     public int AccessFailedCount { get; set; }
+
     public ICollection<UserRoleReadDbModel> Roles { get; set; } = [];
     public ICollection<UserClaimReadDbModel> Claims { get; set; } = [];
     public ICollection<UserLoginReadDbModel> Logins { get; set; } = [];

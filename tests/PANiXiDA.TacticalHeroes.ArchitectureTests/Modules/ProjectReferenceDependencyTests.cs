@@ -15,7 +15,7 @@ public sealed class ProjectReferenceDependencyTests
         var violations = modules
             .SelectMany(module => GetModuleAssemblyNames(module)
                 .SelectMany(sourceAssemblyName => GetProjectReferences(
-                        projectPaths[sourceAssemblyName])
+                    projectPaths[sourceAssemblyName])
                     .Where(targetAssemblyName => !IsAllowedDependency(
                         module,
                         sourceAssemblyName,
@@ -45,14 +45,15 @@ public sealed class ProjectReferenceDependencyTests
                 sourceRoot,
                 "*.csproj",
                 SearchOption.AllDirectories)
-            .Select(projectPath => new
-            {
-                Name = Path.GetFileNameWithoutExtension(projectPath)
-                    ?? throw new InvalidOperationException(
-                        $"Could not determine project name for " +
-                        $"'{projectPath}'."),
-                Path = projectPath
-            })
+            .Select(
+                projectPath => new
+                {
+                    Name = Path.GetFileNameWithoutExtension(projectPath)
+                            ?? throw new InvalidOperationException(
+                                $"Could not determine project name for " +
+                                $"'{projectPath}'."),
+                    Path = projectPath
+                })
             .ToDictionary(
                 project => project.Name,
                 project => project.Path,
@@ -95,8 +96,8 @@ public sealed class ProjectReferenceDependencyTests
         string targetAssemblyName)
     {
         if (targetAssemblyName.EndsWith(
-                ".Contracts",
-                StringComparison.Ordinal))
+            ".Contracts",
+            StringComparison.Ordinal))
         {
             return sourceAssemblyName != module.ContractsAssemblyName &&
                    sourceAssemblyName != module.DomainAssemblyName;
@@ -141,8 +142,8 @@ public sealed class ProjectReferenceDependencyTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

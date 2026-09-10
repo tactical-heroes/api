@@ -10,5 +10,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 internal static partial class CreateUserMapper
 {
     internal static partial CreateUserCommand ToCommand(CreateUserRequest request);
+
     internal static partial CreateUserResponse ToResponse(Guid id);
 }

@@ -31,8 +31,8 @@ public sealed class RoleNameTests
         var result = RoleName.Create(new string('a', RoleName.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Role name cannot be longer than {RoleName.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Role name cannot be longer than {RoleName.MaxLength} characters.")
             .ShouldHaveField(nameof(RoleName));
     }
 

@@ -103,13 +103,14 @@ public sealed class ReadRepositoryConventionTests
     {
         var readRepositories = GetReadRepositories();
         var violations = readRepositories
-            .Select(repository => new
-            {
-                repository.Type,
-                ActualFeatureName = GetFeatureName(repository.Type),
-                ExpectedFeatureNames = GetAggregateFeatureNames(
-                    GetModule(repository.Type))
-            })
+            .Select(
+                repository => new
+                {
+                    repository.Type,
+                    ActualFeatureName = GetFeatureName(repository.Type),
+                    ExpectedFeatureNames = GetAggregateFeatureNames(
+                        GetModule(repository.Type))
+                })
             .Where(repository =>
                 !repository.ExpectedFeatureNames.Contains(
                     repository.ActualFeatureName,
@@ -163,13 +164,14 @@ public sealed class ReadRepositoryConventionTests
         Assert.NotEmpty(repositoryParameters);
 
         var violations = repositoryParameters
-            .Select(candidate => new
-            {
-                candidate.DeclaringType,
-                candidate.Parameter,
-                ExpectedName = GetExpectedParameterName(
-                    candidate.Parameter.ParameterType)
-            })
+            .Select(
+                candidate => new
+                {
+                    candidate.DeclaringType,
+                    candidate.Parameter,
+                    ExpectedName = GetExpectedParameterName(
+                        candidate.Parameter.ParameterType)
+                })
             .Where(candidate => !string.Equals(
                 candidate.Parameter.Name,
                 candidate.ExpectedName,
@@ -193,11 +195,12 @@ public sealed class ReadRepositoryConventionTests
             .. ArchitectureDefinition.ProductionAssemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsInterface)
-                .Select(type => new
-                {
-                    Type = type,
-                    Contract = GetClosedReadRepositoryContract(type)
-                })
+                .Select(
+                    type => new
+                    {
+                        Type = type,
+                        Contract = GetClosedReadRepositoryContract(type)
+                    })
                 .Where(repository => repository.Contract is not null)
                 .Select(repository => new ReadRepository(
                     repository.Type,
@@ -216,8 +219,8 @@ public sealed class ReadRepositoryConventionTests
         var assemblyName = GetAssemblyName(readRepository);
 
         if (!assemblyName.EndsWith(
-                ApplicationAssemblySuffix,
-                StringComparison.Ordinal))
+            ApplicationAssemblySuffix,
+            StringComparison.Ordinal))
         {
             violations.Add(
                 $"{readRepository.FullName} inherits IReadRepository<> and " +
@@ -225,8 +228,8 @@ public sealed class ReadRepositoryConventionTests
         }
 
         if (!HasNamespaceSegment(
-                readRepository,
-                AbstractionsNamespaceSegment))
+            readRepository,
+            AbstractionsNamespaceSegment))
         {
             violations.Add(
                 $"{readRepository.FullName} must be declared in an " +
@@ -431,8 +434,8 @@ public sealed class ReadRepositoryConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

@@ -61,7 +61,7 @@ public sealed class UnitCombatStats : ValueObject
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(
-                        message: "Unit maximum damage cannot be less than minimum damage.")
+                    message: "Unit maximum damage cannot be less than minimum damage.")
                     .WithField(nameof(MaximumDamage)));
         var initiativeResult = ValidateNonNegativeFinite(
             value: initiative,

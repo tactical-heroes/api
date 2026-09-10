@@ -8,5 +8,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
 internal static partial class RegisterUserMapper
 {
     internal static partial RegisterUserCommand ToCommand(RegisterUserRequest request);
+
     internal static partial RegisterUserResponse ToResponse(Guid id);
 }

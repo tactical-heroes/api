@@ -26,7 +26,7 @@ public sealed class HeroDescription : ValueObject
             ? Result.Success(value: new HeroDescription(value: normalizedValue))
             : Result.Failure<HeroDescription>(
                 error: Error.Validation(
-                        message: $"Hero description cannot be longer than {MaxLength} characters.")
+                    message: $"Hero description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(HeroDescription)));
     }
 

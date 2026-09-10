@@ -13,8 +13,8 @@ public sealed class GetHeroDetailsHandlerTests
             Guid.CreateVersion7());
         var repository = Substitute.For<IHeroesReadRepository>();
         repository.GetDetailsByIdAsync(
-                readModel.Id,
-                Arg.Any<CancellationToken>())
+            readModel.Id,
+            Arg.Any<CancellationToken>())
             .Returns(readModel);
         var handler = new GetHeroDetailsHandler(repository);
 
@@ -31,8 +31,8 @@ public sealed class GetHeroDetailsHandlerTests
     {
         var repository = Substitute.For<IHeroesReadRepository>();
         repository.GetDetailsByIdAsync(
-                Arg.Any<Guid>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<Guid>(),
+            Arg.Any<CancellationToken>())
             .Returns((HeroDetailsReadModel?)null);
         var handler = new GetHeroDetailsHandler(repository);
 

@@ -182,8 +182,8 @@ internal static class InfrastructurePersistenceConvention
         var violations = new List<string>();
 
         if (!expectedNamespaces.Contains(
-                type.Namespace,
-                StringComparer.Ordinal))
+            type.Namespace,
+            StringComparer.Ordinal))
         {
             violations.Add(
                 $"{type.FullName} must reside in one of these namespaces: " +
@@ -291,8 +291,8 @@ internal static class InfrastructurePersistenceConvention
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

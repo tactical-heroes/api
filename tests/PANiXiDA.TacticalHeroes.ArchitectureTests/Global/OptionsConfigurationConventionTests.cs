@@ -152,14 +152,14 @@ public sealed class OptionsConfigurationConventionTests
         }
 
         if (!validatorRegistrations.Any(registration =>
-                string.Equals(
-                    registration.OptionsTypeName,
-                    optionsType.Name,
-                    StringComparison.Ordinal) &&
-                string.Equals(
-                    registration.ValidatorTypeName,
-                    validatorType.Name,
-                    StringComparison.Ordinal)))
+            string.Equals(
+                registration.OptionsTypeName,
+                optionsType.Name,
+                StringComparison.Ordinal) &&
+            string.Equals(
+                registration.ValidatorTypeName,
+                validatorType.Name,
+                StringComparison.Ordinal)))
         {
             yield return $"{validatorType.FullName} must be registered for " +
                          $"IValidateOptions<{optionsType.Name}>.";
@@ -224,7 +224,7 @@ public sealed class OptionsConfigurationConventionTests
         }
 
         foreach (var registration in optionsRegistrations
-                     .Where(registration => !registration.UsesValidateOnStart))
+            .Where(registration => !registration.UsesValidateOnStart))
         {
             yield return $"{optionsType.FullName} registration at " +
                          $"'{registration.SourceLocation}' must call " +
@@ -263,9 +263,9 @@ public sealed class OptionsConfigurationConventionTests
         var expectedDirectoryName = optionsType.Name[..^OptionsSuffix.Length];
 
         if (!string.Equals(
-                optionsDirectory.Name,
-                expectedDirectoryName,
-                StringComparison.Ordinal) ||
+            optionsDirectory.Name,
+            expectedDirectoryName,
+            StringComparison.Ordinal) ||
             !string.Equals(
                 optionsDirectory.Parent?.Name,
                 OptionsDirectoryName,
@@ -288,8 +288,8 @@ public sealed class OptionsConfigurationConventionTests
             .GetRoot();
 
         foreach (var invocation in syntaxRoot
-                     .DescendantNodes()
-                     .OfType<InvocationExpressionSyntax>())
+            .DescendantNodes()
+            .OfType<InvocationExpressionSyntax>())
         {
             var genericName = GetInvokedGenericName(invocation);
 
@@ -332,11 +332,12 @@ public sealed class OptionsConfigurationConventionTests
         return syntaxRoot
             .DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
-            .Select(invocation => new
-            {
-                Invocation = invocation,
-                GenericName = GetInvokedGenericName(invocation)
-            })
+            .Select(
+                invocation => new
+                {
+                    Invocation = invocation,
+                    GenericName = GetInvokedGenericName(invocation)
+                })
             .Where(candidate =>
                 candidate.GenericName is not null &&
                 string.Equals(
@@ -369,9 +370,9 @@ public sealed class OptionsConfigurationConventionTests
             })
         {
             if (string.Equals(
-                    GetInvokedMethodName(chainedInvocation),
-                    methodName,
-                    StringComparison.Ordinal))
+                GetInvokedMethodName(chainedInvocation),
+                methodName,
+                StringComparison.Ordinal))
             {
                 return true;
             }
@@ -535,8 +536,8 @@ public sealed class OptionsConfigurationConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

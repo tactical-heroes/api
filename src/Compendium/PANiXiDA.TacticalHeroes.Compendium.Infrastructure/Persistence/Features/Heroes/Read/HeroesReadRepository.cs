@@ -8,8 +8,9 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Her
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read;
 
 public sealed class HeroesReadRepository(CompendiumReadDbContext dbContext)
-    : EfReadRepository<CompendiumReadDbContext, Guid, HeroReadDbModel>(dbContext),
-    IHeroesReadRepository
+    :
+        EfReadRepository<CompendiumReadDbContext, Guid, HeroReadDbModel>(dbContext),
+        IHeroesReadRepository
 {
     private static readonly SortParameters Sort = new(
         Field: nameof(HeroReadDbModel.Name),

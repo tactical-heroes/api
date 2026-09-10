@@ -39,8 +39,8 @@ internal sealed class HeroesApiTestClient(FunctionalTestFixture fixture)
         response.Headers.Location.ShouldNotBeNull();
 
         return await response.Content.ReadFromJsonAsync<CreateHeroResponse>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("Created hero was not returned.");
     }
 
@@ -56,8 +56,8 @@ internal sealed class HeroesApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<GetHeroDetailsResponse>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("Hero details were not returned.");
     }
 
@@ -72,7 +72,7 @@ internal sealed class HeroesApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<
-                PaginationResult<HeroListItemResponse>>(
+            PaginationResult<HeroListItemResponse>>(
                 TestJsonSerializerOptions.Web,
                 cancellationToken)
             ?? throw new InvalidOperationException("Hero page was not returned.");

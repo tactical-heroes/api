@@ -11,10 +11,10 @@ public sealed class ResetPasswordHandlerTests
         var userId = Guid.CreateVersion7();
         var service = Substitute.For<IUserCredentialsService>();
         service.ResetPasswordAsync(
-                userId,
-                "password-reset-token",
-                "NewPassword1!",
-                Arg.Any<CancellationToken>())
+            userId,
+            "password-reset-token",
+            "NewPassword1!",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new ResetPasswordHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -26,7 +26,7 @@ public sealed class UnitName : ValueObject
             ? Result.Success(value: new UnitName(value: normalizedValue))
             : Result.Failure<UnitName>(
                 error: Error.Validation(
-                        message: $"Unit name cannot be longer than {MaxLength} characters.")
+                    message: $"Unit name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UnitName)));
     }
 

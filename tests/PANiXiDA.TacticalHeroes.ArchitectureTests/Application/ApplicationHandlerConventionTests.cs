@@ -93,11 +93,12 @@ public sealed class ApplicationHandlerConventionTests
         var violations = handlers
             .SelectMany(handler => handler.HandlerInterfaces
                 .Where(IsRequestHandlerInterface)
-                .Select(handlerInterface => new
-                {
-                    Handler = handler.Type,
-                    Request = handlerInterface.GetGenericArguments()[0]
-                }))
+                .Select(
+                    handlerInterface => new
+                    {
+                        Handler = handler.Type,
+                        Request = handlerInterface.GetGenericArguments()[0]
+                    }))
             .Where(target => !validators.Any(validator =>
                 validator.ValidatedTypes.Contains(target.Request)))
             .Select(target =>
@@ -121,14 +122,15 @@ public sealed class ApplicationHandlerConventionTests
         Assert.NotEmpty(validators);
 
         var violations = validators
-            .Select(validator => new
-            {
-                validator.Type,
-                ExpectedTestFilePath = GetExpectedTestFilePath(
-                    repositoryRoot,
-                    validator.Module,
-                    validator.Type)
-            })
+            .Select(
+                validator => new
+                {
+                    validator.Type,
+                    ExpectedTestFilePath = GetExpectedTestFilePath(
+                        repositoryRoot,
+                        validator.Module,
+                        validator.Type)
+                })
             .Where(validator =>
                 !File.Exists(validator.ExpectedTestFilePath) ||
                 !testMethods.Any(testMethod => HasPath(
@@ -239,15 +241,16 @@ public sealed class ApplicationHandlerConventionTests
             .GroupBy(method => method.Name, StringComparer.Ordinal);
 
         return handlerMethods
-            .Select(methods => new
-            {
-                MethodName = methods.Key,
-                RequiredTestCount = methods.Count(),
-                ActualTestCount = testMethodNames.Count(testMethodName =>
-                    testMethodName.StartsWith(
-                        methods.Key + "_Should_",
-                        StringComparison.Ordinal))
-            })
+            .Select(
+                methods => new
+                {
+                    MethodName = methods.Key,
+                    RequiredTestCount = methods.Count(),
+                    ActualTestCount = testMethodNames.Count(testMethodName =>
+                        testMethodName.StartsWith(
+                            methods.Key + "_Should_",
+                            StringComparison.Ordinal))
+                })
             .Where(coverage =>
                 coverage.ActualTestCount < coverage.RequiredTestCount)
             .Select(coverage =>
@@ -297,16 +300,16 @@ public sealed class ApplicationHandlerConventionTests
         var applicationNamespacePrefix = applicationAssemblyName + ".";
 
         if (string.Equals(
-                typeNamespace,
-                applicationAssemblyName,
-                StringComparison.Ordinal))
+            typeNamespace,
+            applicationAssemblyName,
+            StringComparison.Ordinal))
         {
             return string.Empty;
         }
 
         if (typeNamespace.StartsWith(
-                applicationNamespacePrefix,
-                StringComparison.Ordinal))
+            applicationNamespacePrefix,
+            StringComparison.Ordinal))
         {
             return typeNamespace[applicationNamespacePrefix.Length..];
         }
@@ -361,8 +364,8 @@ public sealed class ApplicationHandlerConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)) &&
+                directory.FullName,
+                SourceDirectoryName)) &&
                 Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))

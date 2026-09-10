@@ -14,6 +14,7 @@ public sealed class UserStatus : Enumeration<UserStatus>
     public const int MaxNameLength = 50;
 
     public string DisplayName { get; }
+
     public bool IsBlocked => this == Blocked;
 
     public static Result<UserStatus> Create(string value)

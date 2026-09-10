@@ -26,7 +26,7 @@ public sealed class UnitDescription : ValueObject
             ? Result.Success(value: new UnitDescription(value: normalizedValue))
             : Result.Failure<UnitDescription>(
                 error: Error.Validation(
-                        message: $"Unit description cannot be longer than {MaxLength} characters.")
+                    message: $"Unit description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UnitDescription)));
     }
 

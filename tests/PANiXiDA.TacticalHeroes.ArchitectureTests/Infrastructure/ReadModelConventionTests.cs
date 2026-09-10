@@ -184,10 +184,10 @@ public sealed class ReadModelConventionTests
             .ToHashSet(StringComparer.Ordinal);
 
         foreach (var foreignKey in dependentReadDbModel
-                     .GetProperties()
-                     .Where(property =>
-                         property.Name.Length > "Id".Length &&
-                         property.Name.EndsWith("Id", StringComparison.Ordinal)))
+            .GetProperties()
+            .Where(property =>
+                property.Name.Length > "Id".Length &&
+                property.Name.EndsWith("Id", StringComparison.Ordinal)))
         {
             var aggregateName = foreignKey.Name[..^"Id".Length];
 
@@ -235,10 +235,10 @@ public sealed class ReadModelConventionTests
             }
 
             if (!principalReadDbModel
-                    .GetProperties()
-                    .Any(property => IsCollectionOf(
-                        property.PropertyType,
-                        dependentReadDbModel)))
+                .GetProperties()
+                .Any(property => IsCollectionOf(
+                    property.PropertyType,
+                    dependentReadDbModel)))
             {
                 yield return
                     $"{principalReadDbModel.FullName} must have a collection " +

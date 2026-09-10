@@ -46,9 +46,9 @@ internal static class ReadSideConvention
         var readModelTypes = new List<Type>();
 
         return TryCollectReadModelTypes(
-                   type,
-                   readModelTypes,
-                   new HashSet<Type>()) &&
+            type,
+            readModelTypes,
+            new HashSet<Type>()) &&
                readModelTypes.Count > 0 &&
                readModelTypes.All(type =>
                    typeof(IReadModel).IsAssignableFrom(type));
@@ -178,9 +178,9 @@ internal static class ReadSideConvention
         var assemblyName = type.Assembly.GetName().Name;
 
         return string.Equals(
-                   assemblyName,
-                   CoreDomainAssemblyName,
-                   StringComparison.Ordinal) ||
+            assemblyName,
+            CoreDomainAssemblyName,
+            StringComparison.Ordinal) ||
                assemblyName?.EndsWith(
                    DomainAssemblySuffix,
                    StringComparison.Ordinal) == true;
@@ -191,21 +191,21 @@ internal static class ReadSideConvention
         var assemblyName = type.Assembly.GetName().Name;
 
         return assemblyName?.EndsWith(
-                   ApplicationAssemblySuffix,
-                   StringComparison.Ordinal) == true ||
+            ApplicationAssemblySuffix,
+            StringComparison.Ordinal) == true ||
                IsCoreApplicationQueryingType(type);
     }
 
     private static bool IsCoreApplicationQueryingType(Type type)
     {
         return string.Equals(
-                   type.Assembly.GetName().Name,
-                   CoreApplicationAssemblyName,
-                   StringComparison.Ordinal) &&
+            type.Assembly.GetName().Name,
+            CoreApplicationAssemblyName,
+            StringComparison.Ordinal) &&
                (string.Equals(
-                    type.Namespace,
-                    CoreApplicationQueryingNamespace,
-                    StringComparison.Ordinal) ||
+                   type.Namespace,
+                   CoreApplicationQueryingNamespace,
+                   StringComparison.Ordinal) ||
                 type.Namespace?.StartsWith(
                     CoreApplicationQueryingNamespace + ".",
                     StringComparison.Ordinal) == true);

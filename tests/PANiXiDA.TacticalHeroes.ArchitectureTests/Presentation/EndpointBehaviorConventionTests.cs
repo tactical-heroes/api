@@ -152,16 +152,14 @@ internal static class MediatorSourceDiscovery
         var documents = await ProductionSourceDocumentDiscovery
             .GetItemsAsync(GetDocumentAnalysisAsync);
 
-        return new MediatorAnalysis(
-            MediatorCalls:
-            [
-                .. documents
-                    .SelectMany(document => document.MediatorCalls)
-                    .OrderBy(
-                        call => call.RelativePath,
-                        StringComparer.Ordinal)
-                    .ThenBy(call => call.Position)
-            ]);
+        return new MediatorAnalysis(MediatorCalls: [
+            .. documents
+                .SelectMany(document => document.MediatorCalls)
+                .OrderBy(
+                    call => call.RelativePath,
+                    StringComparer.Ordinal)
+                .ThenBy(call => call.Position)
+        ]);
     }
 
     private static async Task<MediatorDocumentAnalysis[]>
@@ -172,8 +170,8 @@ internal static class MediatorSourceDiscovery
         var presentationAssemblyName = document.Project.AssemblyName;
 
         if (presentationAssemblyName?.EndsWith(
-                PresentationAssemblySuffix,
-                StringComparison.Ordinal) != true)
+            PresentationAssemblySuffix,
+            StringComparison.Ordinal) != true)
         {
             return [];
         }
@@ -214,18 +212,19 @@ internal static class MediatorSourceDiscovery
             .. root
                 .DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
-                .Select(invocation => new
-                {
-                    Invocation = invocation,
-                    Operation = semanticModel.GetOperation(invocation) as
-                        IInvocationOperation,
-                    Endpoint = invocation.Ancestors()
-                        .OfType<TypeDeclarationSyntax>()
-                        .Select(declaration =>
-                            semanticModel.GetDeclaredSymbol(declaration))
-                        .OfType<INamedTypeSymbol>()
-                        .FirstOrDefault(IsEndpoint)
-                })
+                .Select(
+                    invocation => new
+                    {
+                        Invocation = invocation,
+                        Operation = semanticModel.GetOperation(invocation) as
+                            IInvocationOperation,
+                        Endpoint = invocation.Ancestors()
+                            .OfType<TypeDeclarationSyntax>()
+                            .Select(declaration =>
+                                semanticModel.GetDeclaredSymbol(declaration))
+                            .OfType<INamedTypeSymbol>()
+                            .FirstOrDefault(IsEndpoint)
+                    })
                 .Where(target =>
                     target.Operation is not null &&
                     target.Endpoint is not null &&

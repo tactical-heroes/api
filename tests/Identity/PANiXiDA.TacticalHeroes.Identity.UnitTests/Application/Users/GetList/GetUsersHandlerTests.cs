@@ -22,9 +22,9 @@ public sealed class GetUsersHandlerTests
             1);
         var usersReadRepository = Substitute.For<IUsersReadRepository>();
         usersReadRepository.GetPageAsync(
-                "hero@example.com",
-                pagination,
-                Arg.Any<CancellationToken>())
+            "hero@example.com",
+            pagination,
+            Arg.Any<CancellationToken>())
             .Returns(page);
         var handler = new GetUsersHandler(usersReadRepository);
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -144,14 +144,15 @@ public sealed class EntityConfigurationConventionTests
 
         return ArchitectureDefinition.Modules
             .SelectMany(module => productionAssemblies[
-                    module.DomainAssemblyName]
+                module.DomainAssemblyName]
                 .GetTypes())
-            .Where(type => type.GetField(MaximumLengthMemberName) is
-            {
-                IsLiteral: true,
-                IsStatic: true,
-                IsPublic: true
-            })
+            .Where(
+                type => type.GetField(MaximumLengthMemberName) is
+                {
+                    IsLiteral: true,
+                    IsStatic: true,
+                    IsPublic: true
+                })
             .Select(type => type.Name)
             .ToHashSet(StringComparer.Ordinal);
     }
@@ -212,7 +213,8 @@ public sealed class EntityConfigurationConventionTests
             .DescendantNodesAndSelf()
             .OfType<SimpleNameSyntax>()
             .LastOrDefault()
-            ?.Identifier.ValueText;
+            ?.Identifier
+            .ValueText;
 
         return ownerName is not null &&
                domainTypesWithMaximumLength.Contains(ownerName);
@@ -239,11 +241,12 @@ public sealed class EntityConfigurationConventionTests
                     .SelectMany(declaration => declaration
                         .DescendantNodes()
                         .OfType<InvocationExpressionSyntax>())
-                    .Select(invocation => new
-                    {
-                        Invocation = invocation,
-                        MethodName = GetInvokedMethodName(invocation)
-                    })
+                    .Select(
+                        invocation => new
+                        {
+                            Invocation = invocation,
+                            MethodName = GetInvokedMethodName(invocation)
+                        })
                     .Where(candidate =>
                         candidate.MethodName is not null &&
                         ExplicitStoreNamingMethods.Contains(

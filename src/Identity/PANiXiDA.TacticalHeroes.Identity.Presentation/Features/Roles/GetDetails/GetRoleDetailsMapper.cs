@@ -10,5 +10,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetail
 internal static partial class GetRoleDetailsMapper
 {
     internal static partial GetRoleDetailsQuery ToQuery(Guid id);
+
     internal static partial GetRoleDetailsResponse ToResponse(RoleDetailsReadModel role);
 }

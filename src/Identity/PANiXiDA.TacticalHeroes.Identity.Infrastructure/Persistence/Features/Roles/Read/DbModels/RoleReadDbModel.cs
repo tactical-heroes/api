@@ -9,6 +9,7 @@ public sealed class RoleReadDbModel : ReadDbModel<Guid>
     public string? Name { get; set; }
     public string? NormalizedName { get; set; }
     public string? ConcurrencyStamp { get; set; }
+
     public ICollection<UserRoleReadDbModel> Users { get; set; } = [];
     public ICollection<RoleClaimReadDbModel> Claims { get; set; } = [];
 }

@@ -184,13 +184,14 @@ internal static class TestSourceDiscovery
         return root
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
-            .Select(method => new
-            {
-                Method = method,
-                TestAttribute = method.AttributeLists
-                    .SelectMany(attributeList => attributeList.Attributes)
-                    .FirstOrDefault(IsTestAttribute)
-            })
+            .Select(
+                method => new
+                {
+                    Method = method,
+                    TestAttribute = method.AttributeLists
+                        .SelectMany(attributeList => attributeList.Attributes)
+                        .FirstOrDefault(IsTestAttribute)
+                })
             .Where(item => item.TestAttribute is not null)
             .Select(item => new TestMethodSource(
                 RelativePath: Path.GetRelativePath(repositoryRoot, path),
@@ -230,8 +231,8 @@ internal static class TestSourceDiscovery
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)) &&
+                directory.FullName,
+                SourceDirectoryName)) &&
                 Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))

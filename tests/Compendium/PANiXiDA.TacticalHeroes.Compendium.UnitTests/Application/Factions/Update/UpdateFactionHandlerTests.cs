@@ -37,8 +37,8 @@ public sealed class UpdateFactionHandlerTests
     {
         var repository = Substitute.For<IFactionsRepository>();
         repository.GetByIdAsync(
-                Arg.Any<FactionId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<FactionId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new UpdateFactionHandler(repository);
 

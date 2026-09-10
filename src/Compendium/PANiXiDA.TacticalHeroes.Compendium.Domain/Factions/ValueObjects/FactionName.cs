@@ -26,7 +26,7 @@ public sealed class FactionName : ValueObject
             ? Result.Success(value: new FactionName(value: normalizedValue))
             : Result.Failure<FactionName>(
                 error: Error.Validation(
-                        message: $"Faction name cannot be longer than {MaxLength} characters.")
+                    message: $"Faction name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(FactionName)));
     }
 

@@ -191,7 +191,7 @@ internal static class NamedArgumentSourceDiscovery
         var unwrappedExpression = UnwrapExpression(expression);
 
         return unwrappedExpression.IsKind(
-                   SyntaxKind.NullLiteralExpression) ||
+            SyntaxKind.NullLiteralExpression) ||
                unwrappedExpression.IsKind(
                    SyntaxKind.DefaultLiteralExpression) ||
                unwrappedExpression.IsKind(

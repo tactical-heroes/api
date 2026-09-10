@@ -16,8 +16,8 @@ public sealed class CreateUnitHandlerTests
         var unitsRepository = Substitute.For<IUnitsRepository>();
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-                faction.Id,
-                Arg.Any<CancellationToken>())
+            faction.Id,
+            Arg.Any<CancellationToken>())
             .Returns(faction);
         var handler = new CreateUnitHandler(
             unitsRepository,
@@ -45,8 +45,8 @@ public sealed class CreateUnitHandlerTests
         var unitsRepository = Substitute.For<IUnitsRepository>();
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-                Arg.Any<FactionId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<FactionId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new CreateUnitHandler(
             unitsRepository,

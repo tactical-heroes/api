@@ -24,7 +24,8 @@ internal sealed class MailKitEmailSender(
             {
                 TextBody = message.TextBody,
                 HtmlBody = message.HtmlBody
-            }.ToMessageBody()
+            }
+                .ToMessageBody()
         };
 
         email.From.Add(new MailboxAddress(

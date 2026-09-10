@@ -221,8 +221,8 @@ internal static class EndpointMappingSourceDiscovery
             Document document)
     {
         if (document.Project.AssemblyName?.EndsWith(
-                PresentationAssemblySuffix,
-                StringComparison.Ordinal) != true)
+            PresentationAssemblySuffix,
+            StringComparison.Ordinal) != true)
         {
             return [];
         }
@@ -244,12 +244,13 @@ internal static class EndpointMappingSourceDiscovery
         var typeDeclarations = root
             .DescendantNodes()
             .OfType<TypeDeclarationSyntax>()
-            .Select(declaration => new
-            {
-                Declaration = declaration,
-                Symbol = semanticModel.GetDeclaredSymbol(declaration) as
-                    INamedTypeSymbol
-            })
+            .Select(
+                declaration => new
+                {
+                    Declaration = declaration,
+                    Symbol = semanticModel.GetDeclaredSymbol(declaration) as
+                            INamedTypeSymbol
+                })
             .Where(target => target.Symbol is not null)
             .ToArray();
         var mappings = typeDeclarations
@@ -293,12 +294,13 @@ internal static class EndpointMappingSourceDiscovery
         return declaration
             .DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
-            .Select(invocation => new
-            {
-                Invocation = invocation,
-                Operation = semanticModel.GetOperation(invocation) as
-                    IInvocationOperation
-            })
+            .Select(
+                invocation => new
+                {
+                    Invocation = invocation,
+                    Operation = semanticModel.GetOperation(invocation) as
+                            IInvocationOperation
+                })
             .Where(target =>
                 target.Operation is not null &&
                 target.Operation.TargetMethod.ContainingType
@@ -361,12 +363,13 @@ internal static class EndpointMappingSourceDiscovery
         return GetMappingStatement(mappingInvocation)
             .DescendantNodesAndSelf()
             .OfType<InvocationExpressionSyntax>()
-            .Select(invocation => new
-            {
-                Invocation = invocation,
-                Operation = semanticModel.GetOperation(invocation) as
-                    IInvocationOperation
-            })
+            .Select(
+                invocation => new
+                {
+                    Invocation = invocation,
+                    Operation = semanticModel.GetOperation(invocation) as
+                            IInvocationOperation
+                })
             .Where(target =>
                 target.Operation?.TargetMethod.Name == "WithName" &&
                 target.Invocation != mappingInvocation &&
@@ -386,8 +389,8 @@ internal static class EndpointMappingSourceDiscovery
         SyntaxNode node)
     {
         return GetAuthorizationDeclarations(
-                semanticModel,
-                node)
+            semanticModel,
+            node)
             .Length > 0;
     }
 
@@ -398,26 +401,27 @@ internal static class EndpointMappingSourceDiscovery
         return
         [
             .. node
-            .DescendantNodesAndSelf()
-            .OfType<InvocationExpressionSyntax>()
-            .Select(invocation => new
-            {
-                Invocation = invocation,
-                Operation = semanticModel.GetOperation(invocation) as
-                    IInvocationOperation
-            })
-            .Where(target => target.Operation?.TargetMethod.Name is
-                "RequireAuthorization" or "AllowAnonymous")
-            .Select(target =>
-                $"{target.Operation!.TargetMethod.Name}(" +
-                string.Join(
-                    ",",
-                    target.Invocation.ArgumentList.Arguments.Select(argument =>
-                        argument.Expression
-                            .NormalizeWhitespace()
-                            .ToFullString())) +
-                ")")
-            .Distinct(StringComparer.Ordinal)
+                .DescendantNodesAndSelf()
+                .OfType<InvocationExpressionSyntax>()
+                .Select(
+                    invocation => new
+                    {
+                        Invocation = invocation,
+                        Operation = semanticModel.GetOperation(invocation) as
+                            IInvocationOperation
+                    })
+                .Where(target => target.Operation?.TargetMethod.Name is
+                    "RequireAuthorization" or "AllowAnonymous")
+                .Select(target =>
+                    $"{target.Operation!.TargetMethod.Name}(" +
+                    string.Join(
+                        ",",
+                        target.Invocation.ArgumentList.Arguments.Select(argument =>
+                            argument.Expression
+                                .NormalizeWhitespace()
+                                .ToFullString())) +
+                    ")")
+                .Distinct(StringComparer.Ordinal)
         ];
     }
 

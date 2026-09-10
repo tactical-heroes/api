@@ -62,13 +62,14 @@ public sealed class DomainNullForgivingConventionTests
                         SyntaxKind.SuppressNullableWarningExpression) &&
                     expression.Operand.IsKind(
                         SyntaxKind.NullLiteralExpression))
-                .Select(expression => new
-                {
-                    Expression = expression,
-                    Target = GetTargetSymbol(
-                        semanticModel,
-                        expression)
-                })
+                .Select(
+                    expression => new
+                    {
+                        Expression = expression,
+                        Target = GetTargetSymbol(
+                            semanticModel,
+                            expression)
+                    })
                 .Where(item =>
                     item.Target is not null &&
                     IsDomainEntity(item.Target.ContainingType))
@@ -157,9 +158,9 @@ public sealed class DomainNullForgivingConventionTests
              currentType = currentType.BaseType)
         {
             if (string.Equals(
-                    currentType.ToDisplayString(),
-                    ValueObjectTypeName,
-                    StringComparison.Ordinal))
+                currentType.ToDisplayString(),
+                ValueObjectTypeName,
+                StringComparison.Ordinal))
             {
                 return true;
             }

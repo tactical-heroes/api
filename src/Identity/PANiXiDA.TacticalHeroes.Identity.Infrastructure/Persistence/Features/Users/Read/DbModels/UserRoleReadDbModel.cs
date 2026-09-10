@@ -6,6 +6,7 @@ public sealed class UserRoleReadDbModel
 {
     public Guid UserId { get; set; }
     public Guid RoleId { get; set; }
+
     public UserReadDbModel? User { get; set; }
     public RoleReadDbModel? Role { get; set; }
 }

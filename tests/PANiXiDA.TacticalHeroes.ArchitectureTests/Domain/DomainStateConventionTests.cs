@@ -63,7 +63,7 @@ public sealed class DomainStateConventionTests
     {
         var methods = GetDomainTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } &&
-                           typeof(IEntity).IsAssignableFrom(type))
+                typeof(IEntity).IsAssignableFrom(type))
             .SelectMany(type => type.GetMethods(
                 BindingFlags.Instance |
                 BindingFlags.Static |
@@ -121,17 +121,18 @@ public sealed class DomainStateConventionTests
                         BindingFlags.Public |
                         BindingFlags.NonPublic |
                         BindingFlags.DeclaredOnly)
-                    .Select(field => new
-                    {
-                        DomainType = type,
-                        Field = field,
-                        StateTypes = GetStateTypes(field.FieldType)
-                    }))
+                    .Select(
+                        field => new
+                        {
+                            DomainType = type,
+                            Field = field,
+                            StateTypes = GetStateTypes(field.FieldType)
+                        }))
                 .Where(state => state.StateTypes.Length == 0 ||
-                                state.StateTypes.Any(type =>
-                                    !IsAllowedDomainType(
-                                        type,
-                                        allowEntities)))
+                    state.StateTypes.Any(type =>
+                        !IsAllowedDomainType(
+                            type,
+                            allowEntities)))
                 .Select(state =>
                     $"{state.DomainType.FullName}.{state.Field.Name} has type " +
                     $"'{state.Field.FieldType}'.")

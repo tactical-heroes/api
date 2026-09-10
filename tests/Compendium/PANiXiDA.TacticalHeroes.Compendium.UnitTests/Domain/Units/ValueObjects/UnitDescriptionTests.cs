@@ -23,8 +23,8 @@ public sealed class UnitDescriptionTests
         var result = UnitDescription.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                "Unit description cannot be empty.")
+            ErrorType.Validation,
+            "Unit description cannot be empty.")
             .ShouldHaveField(nameof(UnitDescription));
     }
 
@@ -35,8 +35,8 @@ public sealed class UnitDescriptionTests
             new string('a', UnitDescription.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Unit description cannot be longer than {UnitDescription.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Unit description cannot be longer than {UnitDescription.MaxLength} characters.")
             .ShouldHaveField(nameof(UnitDescription));
     }
 

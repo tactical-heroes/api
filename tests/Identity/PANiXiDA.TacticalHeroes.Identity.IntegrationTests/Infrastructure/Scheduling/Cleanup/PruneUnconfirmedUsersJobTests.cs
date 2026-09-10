@@ -88,7 +88,9 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
 
             (await userManager.CreateAsync(
                 user: staleUnconfirmedUser,
-                password: Password)).Succeeded.ShouldBeTrue();
+                password: Password))
+                .Succeeded
+                .ShouldBeTrue();
             await SetCreatedAtAsync(
                 dbContext: dbContext,
                 user: staleUnconfirmedUser,

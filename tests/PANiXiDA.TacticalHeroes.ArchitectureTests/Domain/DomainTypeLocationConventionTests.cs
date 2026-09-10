@@ -172,11 +172,12 @@ public sealed class DomainTypeLocationConventionTests
                 typeof(IStronglyTypedId).IsAssignableFrom(type))
             .ToArray();
         var ownerIdentifiers = owners
-            .Select(owner => new
-            {
-                Owner = owner,
-                Identifier = GetIdentifierType(owner)
-            })
+            .Select(
+                owner => new
+                {
+                    Owner = owner,
+                    Identifier = GetIdentifierType(owner)
+                })
             .ToArray();
         var violations = ownerIdentifiers
             .SelectMany(target => GetIdentifierViolations(
@@ -328,9 +329,9 @@ public sealed class DomainTypeLocationConventionTests
         var violations = new List<string>();
 
         if (!string.Equals(
-                type.Namespace,
-                expectedNamespace,
-                StringComparison.Ordinal))
+            type.Namespace,
+            expectedNamespace,
+            StringComparison.Ordinal))
         {
             violations.Add(
                 $"{namespaceViolation} Expected namespace " +
@@ -354,9 +355,9 @@ public sealed class DomainTypeLocationConventionTests
         var violations = new List<string>();
 
         if (!string.Equals(
-                identifier.Name,
-                expectedIdentifierName,
-                StringComparison.Ordinal))
+            identifier.Name,
+            expectedIdentifierName,
+            StringComparison.Ordinal))
         {
             violations.Add(
                 $"{owner.FullName} identifier must be named " +
@@ -371,9 +372,9 @@ public sealed class DomainTypeLocationConventionTests
         }
 
         if (!string.Equals(
-                identifier.Namespace,
-                owner.Namespace,
-                StringComparison.Ordinal))
+            identifier.Namespace,
+            owner.Namespace,
+            StringComparison.Ordinal))
         {
             violations.Add(
                 $"{identifier.FullName} must reside next to its owner " +
@@ -495,8 +496,8 @@ public sealed class DomainTypeLocationConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

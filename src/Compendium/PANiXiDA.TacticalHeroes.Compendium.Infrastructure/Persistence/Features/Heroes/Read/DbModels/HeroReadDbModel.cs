@@ -14,5 +14,6 @@ public sealed class HeroReadDbModel : AuditableReadDbModel<Guid>
     public int Morale { get; set; }
     public int Luck { get; set; }
     public Guid FactionId { get; set; }
+
     public FactionReadDbModel? Faction { get; set; }
 }

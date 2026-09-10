@@ -65,9 +65,9 @@ public sealed class DbContextConventionTests
         var violations = new List<string>();
 
         if (!string.Equals(
-                context.Name,
-                expectedName,
-                StringComparison.Ordinal))
+            context.Name,
+            expectedName,
+            StringComparison.Ordinal))
         {
             violations.Add(
                 $"{context.FullName} must be named '{expectedName}'.");
