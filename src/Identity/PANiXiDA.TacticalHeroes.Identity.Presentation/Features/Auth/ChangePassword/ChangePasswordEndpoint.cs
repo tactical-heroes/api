@@ -7,7 +7,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePass
 internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
 {
     public string Route { get; } = "/change-password";
+
     public string Name { get; } = "ChangePassword";
+
     public string Summary { get; } = "Change current user password";
 
     public void Map(EndpointMapBuilder builder)

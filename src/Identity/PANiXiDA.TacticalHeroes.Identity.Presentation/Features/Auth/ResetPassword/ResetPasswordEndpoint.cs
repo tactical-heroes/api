@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassw
 internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
 {
     public string Route { get; } = "/reset-password";
+
     public string Name { get; } = "ResetPassword";
+
     public string Summary { get; } = "Reset password";
 
     public void Map(EndpointMapBuilder builder)

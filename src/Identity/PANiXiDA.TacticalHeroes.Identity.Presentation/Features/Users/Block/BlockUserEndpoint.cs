@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Block;
 internal sealed class BlockUserEndpoint : IEndpoint<UsersEndpoints>
 {
     public string Route { get; } = $"{UsersEndpoints.IdRoute}/block";
+
     public string Name { get; } = "BlockUser";
+
     public string Summary { get; } = "Block user";
 
     public void Map(EndpointMapBuilder builder)

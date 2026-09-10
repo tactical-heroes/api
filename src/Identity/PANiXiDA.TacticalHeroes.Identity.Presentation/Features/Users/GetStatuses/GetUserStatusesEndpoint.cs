@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetStatus
 internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
 {
     public string Route { get; } = "/statuses";
+
     public string Name { get; } = "GetUserStatuses";
+
     public string Summary { get; } = "Get user statuses";
 
     public void Map(EndpointMapBuilder builder)

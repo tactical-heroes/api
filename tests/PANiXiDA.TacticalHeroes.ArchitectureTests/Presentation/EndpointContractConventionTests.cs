@@ -5,8 +5,11 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 public sealed class EndpointContractConventionTests
 {
     private const string EndpointSuffix = "Endpoint";
+
     private const string MapperSuffix = "Mapper";
+
     private const string RequestSuffix = "Request";
+
     private const string ResponseSuffix = "Response";
 
     [Fact(DisplayName = "Mapperly mappers should end with Mapper when declared")]

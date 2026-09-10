@@ -15,6 +15,7 @@ public sealed class Faction : AggregateRoot<FactionId>
     }
 
     public FactionName Name { get; private set; }
+
     public FactionDescription Description { get; private set; }
 
     public static Faction Create(

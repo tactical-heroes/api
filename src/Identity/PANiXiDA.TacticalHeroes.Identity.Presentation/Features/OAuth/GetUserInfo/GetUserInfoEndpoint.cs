@@ -12,7 +12,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserIn
 internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 {
     public string Route { get; } = OAuthEndpointRoutes.UserInfo;
+
     public string Name { get; } = "GetUserInfo";
+
     public string Summary { get; } = "Get OpenID Connect user information";
 
     public void Map(EndpointMapBuilder builder)

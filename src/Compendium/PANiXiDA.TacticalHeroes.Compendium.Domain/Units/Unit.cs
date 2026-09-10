@@ -45,11 +45,17 @@ public sealed class Unit : AggregateRoot<UnitId>
     }
 
     public UnitName Name { get; private set; }
+
     public UnitDescription Description { get; private set; }
+
     public UnitCombatStats Stats { get; private set; }
+
     public UnitRangedAttack RangedAttack { get; private set; }
+
     public UnitMorale Morale { get; private set; }
+
     public UnitLuck Luck { get; private set; }
+
     public FactionId FactionId { get; private set; }
 
     public static Unit Create(

@@ -5,6 +5,7 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 public sealed class DbContextConventionTests
 {
     private const string ReadDbContextSuffix = "ReadDbContext";
+
     private const string WriteDbContextSuffix = "WriteDbContext";
 
     [Fact(DisplayName = "Read database contexts should match module names and reside in Persistence Core when declared")]

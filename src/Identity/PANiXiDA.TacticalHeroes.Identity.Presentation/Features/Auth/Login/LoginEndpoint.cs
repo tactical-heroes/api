@@ -11,7 +11,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 {
     public string Route { get; } = "/login";
+
     public string Name { get; } = "Login";
+
     public string Summary { get; } = "Log in user";
 
     public void Map(EndpointMapBuilder builder)

@@ -42,10 +42,15 @@ public sealed class Hero : AggregateRoot<HeroId>
     }
 
     public HeroName Name { get; private set; }
+
     public HeroDescription Description { get; private set; }
+
     public HeroCombatStats Stats { get; private set; }
+
     public HeroMorale Morale { get; private set; }
+
     public HeroLuck Luck { get; private set; }
+
     public FactionId FactionId { get; private set; }
 
     public static Hero Create(

@@ -35,6 +35,7 @@
         <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.15.1" />
         <PackageVersion Include="Respawn" Version="7.0.0" />
         <PackageVersion Include="Riok.Mapperly" Version="5.0.0-next.2" />
+        <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="5.0.0" />
         <PackageVersion Include="Shouldly" Version="4.3.0" />
         <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
         <PackageVersion Include="Testcontainers" Version="4.14.0" />

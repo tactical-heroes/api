@@ -7,7 +7,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.Create;
 internal sealed class CreateUnitEndpoint : IEndpoint<UnitsEndpoints>
 {
     public string Route { get; } = "/";
+
     public string Name { get; } = "CreateUnit";
+
     public string Summary { get; } = "Create unit";
 
     public void Map(EndpointMapBuilder builder)

@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetList;
 internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
 {
     public string Route { get; } = "/";
+
     public string Name { get; } = "GetRoles";
+
     public string Summary { get; } = "Get roles";
 
     public void Map(EndpointMapBuilder builder)

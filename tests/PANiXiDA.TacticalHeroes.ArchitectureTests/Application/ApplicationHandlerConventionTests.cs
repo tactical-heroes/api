@@ -10,8 +10,11 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 public sealed class ApplicationHandlerConventionTests
 {
     private const string ApplicationDirectoryName = "Application";
+
     private const string SourceDirectoryName = "src";
+
     private const string TestsDirectoryName = "tests";
+
     private const string UnitTestsAssemblySuffix = ".UnitTests";
 
     private static readonly Type[] HandlerInterfaceDefinitions =

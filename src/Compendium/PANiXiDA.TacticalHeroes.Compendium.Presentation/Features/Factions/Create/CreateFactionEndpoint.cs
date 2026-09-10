@@ -7,7 +7,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Crea
 internal sealed class CreateFactionEndpoint : IEndpoint<FactionsEndpoints>
 {
     public string Route { get; } = "/";
+
     public string Name { get; } = "CreateFaction";
+
     public string Summary { get; } = "Create faction";
 
     public void Map(EndpointMapBuilder builder)

@@ -17,9 +17,13 @@ public sealed class HeroCombatStats : ValueObject
     }
 
     public int Attack { get; }
+
     public int Defense { get; }
+
     public int MinimumDamage { get; }
+
     public int MaximumDamage { get; }
+
     public double Initiative { get; }
 
     public static Result<HeroCombatStats> Create(

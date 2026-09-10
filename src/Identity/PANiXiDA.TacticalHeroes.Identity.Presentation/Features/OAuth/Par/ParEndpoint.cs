@@ -8,7 +8,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Par;
 internal sealed class ParEndpoint : IEndpoint<OAuthEndpoints>
 {
     public string Route { get; } = OAuthEndpointRoutes.PushedAuthorization;
+
     public string Name { get; } = "PushAuthorizationRequest";
+
     public string Summary { get; } = "Create pushed authorization request";
 
     public void Map(EndpointMapBuilder builder)

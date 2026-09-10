@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.GetLis
 internal sealed class GetHeroesEndpoint : IEndpoint<HeroesEndpoints>
 {
     public string Route { get; } = "/";
+
     public string Name { get; } = "GetHeroes";
+
     public string Summary { get; } = "Get heroes";
 
     public void Map(EndpointMapBuilder builder)

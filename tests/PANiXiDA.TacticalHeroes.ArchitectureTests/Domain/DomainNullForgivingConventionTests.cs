@@ -10,6 +10,7 @@ public sealed class DomainNullForgivingConventionTests
 {
     private const string EntityInterfaceName =
         "PANiXiDA.Core.Domain.Entities.IEntity";
+
     private const string ValueObjectTypeName =
         "PANiXiDA.Core.Domain.ValueObject";
 

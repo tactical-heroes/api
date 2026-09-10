@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.Update;
 internal sealed class UpdateUnitEndpoint : IEndpoint<UnitsEndpoints>
 {
     public string Route { get; } = UnitsEndpoints.IdRoute;
+
     public string Name { get; } = "UpdateUnit";
+
     public string Summary { get; } = "Update unit";
 
     public void Map(EndpointMapBuilder builder)

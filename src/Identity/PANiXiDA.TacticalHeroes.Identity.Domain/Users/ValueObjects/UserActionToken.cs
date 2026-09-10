@@ -11,6 +11,7 @@ public sealed class UserActionToken : ValueObject
     }
 
     public string Value { get; }
+
     public DateTimeOffset ExpiresAtUtc { get; }
 
     public static Result<UserActionToken> Create(

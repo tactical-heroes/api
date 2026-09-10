@@ -3,6 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 public sealed class UnitLuck : ValueObject
 {
     public const int Minimum = 0;
+
     public const int Maximum = 5;
 
     private UnitLuck(int value)

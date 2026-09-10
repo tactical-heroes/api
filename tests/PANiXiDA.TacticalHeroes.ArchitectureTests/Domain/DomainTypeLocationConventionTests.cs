@@ -9,10 +9,15 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 public sealed class DomainTypeLocationConventionTests
 {
     private const string DomainAssemblySuffix = ".Domain";
+
     private const string EntitiesDirectoryName = "Entities";
+
     private const string EnumerationsDirectoryName = "Enumerations";
+
     private const string EventsDirectoryName = "Events";
+
     private const string SourceDirectoryName = "src";
+
     private const string ValueObjectsDirectoryName = "ValueObjects";
 
     [Fact(DisplayName = "Aggregate roots should have singular names and plural directories when declared")]

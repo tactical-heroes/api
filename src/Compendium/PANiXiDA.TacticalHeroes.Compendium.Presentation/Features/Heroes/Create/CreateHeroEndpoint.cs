@@ -7,7 +7,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Create
 internal sealed class CreateHeroEndpoint : IEndpoint<HeroesEndpoints>
 {
     public string Route { get; } = "/";
+
     public string Name { get; } = "CreateHero";
+
     public string Summary { get; } = "Create hero";
 
     public void Map(EndpointMapBuilder builder)

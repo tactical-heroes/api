@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Delete;
 internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
 {
     public string Route { get; } = RolesEndpoints.IdRoute;
+
     public string Name { get; } = "DeleteRole";
+
     public string Summary { get; } = "Delete role";
 
     public void Map(EndpointMapBuilder builder)

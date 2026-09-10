@@ -13,8 +13,11 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 public sealed class DomainTypeUnitTestConventionTests
 {
     private const string DomainDirectoryName = "Domain";
+
     private const string SourceDirectoryName = "src";
+
     private const string TestsDirectoryName = "tests";
+
     private const string UnitTestsAssemblySuffix = ".UnitTests";
 
     [Fact(DisplayName = "Domain types should have matching unit test files when domain types are declared")]

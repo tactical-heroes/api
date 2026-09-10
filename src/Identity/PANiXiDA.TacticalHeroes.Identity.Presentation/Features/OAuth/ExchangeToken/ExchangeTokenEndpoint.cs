@@ -17,7 +17,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.ExchangeT
 internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 {
     public string Route { get; } = OAuthEndpointRoutes.Token;
+
     public string Name { get; } = "ExchangeToken";
+
     public string Summary { get; } = "Exchange authorization code or refresh token for tokens";
 
     public void Map(EndpointMapBuilder builder)

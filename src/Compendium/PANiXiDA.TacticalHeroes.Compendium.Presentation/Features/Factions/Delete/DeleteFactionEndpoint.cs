@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Dele
 internal sealed class DeleteFactionEndpoint : IEndpoint<FactionsEndpoints>
 {
     public string Route { get; } = FactionsEndpoints.IdRoute;
+
     public string Name { get; } = "DeleteFaction";
+
     public string Summary { get; } = "Delete faction";
 
     public void Map(EndpointMapBuilder builder)

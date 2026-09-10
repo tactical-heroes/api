@@ -6,8 +6,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features
 public sealed class FactionReadDbModel : AuditableReadDbModel<Guid>
 {
     public string Name { get; set; } = string.Empty;
+
     public string Description { get; set; } = string.Empty;
 
     public ICollection<HeroReadDbModel> Heroes { get; set; } = [];
+
     public ICollection<UnitReadDbModel> Units { get; set; } = [];
 }

@@ -8,6 +8,7 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 public sealed class ReadModelConventionTests
 {
     private const string ReadDbModelSuffix = "ReadDbModel";
+
     private const string ReadModelMapperSuffix = "ReadModelMapper";
 
     [Fact(DisplayName = "Read model mappers should end with ReadModelMapper when declared")]

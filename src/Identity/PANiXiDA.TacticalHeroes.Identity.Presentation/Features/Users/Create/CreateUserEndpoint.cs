@@ -7,7 +7,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 internal sealed class CreateUserEndpoint : IEndpoint<UsersEndpoints>
 {
     public string Route { get; } = "/";
+
     public string Name { get; } = "CreateUser";
+
     public string Summary { get; } = "Create user";
 
     public void Map(EndpointMapBuilder builder)

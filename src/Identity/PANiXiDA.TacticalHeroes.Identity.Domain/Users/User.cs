@@ -9,6 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 public sealed class User : AggregateRoot<UserId>
 {
     private readonly List<RoleId> _roleIds = [];
+
     private readonly List<UserClaim> _claims = [];
 
     private User(
@@ -25,11 +26,15 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     public Email Email { get; private set; }
+
     public UserName UserName { get; private set; }
+
     public UserStatus Status { get; private set; }
+
     public UserConfirmationStatus ConfirmationStatus { get; private set; }
 
     public IReadOnlyCollection<RoleId> RoleIds => _roleIds;
+
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
     public static User Register(

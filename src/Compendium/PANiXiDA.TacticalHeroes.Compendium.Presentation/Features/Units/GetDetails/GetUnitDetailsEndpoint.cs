@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.GetDeta
 internal sealed class GetUnitDetailsEndpoint : IEndpoint<UnitsEndpoints>
 {
     public string Route { get; } = UnitsEndpoints.IdRoute;
+
     public string Name { get; } = "GetUnitDetails";
+
     public string Summary { get; } = "Get unit";
 
     public void Map(EndpointMapBuilder builder)

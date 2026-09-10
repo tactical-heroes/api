@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ForgotPass
 internal sealed class ForgotPasswordEndpoint : IEndpoint<AuthEndpoints>
 {
     public string Route { get; } = "/forgot-password";
+
     public string Name { get; } = "ForgotPassword";
+
     public string Summary { get; } = "Request password reset";
 
     public void Map(EndpointMapBuilder builder)

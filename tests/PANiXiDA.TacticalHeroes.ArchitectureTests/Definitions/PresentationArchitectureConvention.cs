@@ -12,6 +12,7 @@ internal static class PresentationArchitectureConvention
 {
     private const string MapperAttributeFullName =
         "Riok.Mapperly.Abstractions.MapperAttribute";
+
     private const string SourceDirectoryName = "src";
 
     private static readonly ConcurrentDictionary<string, string[]>

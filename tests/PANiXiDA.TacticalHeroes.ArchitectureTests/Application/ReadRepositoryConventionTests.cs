@@ -8,8 +8,11 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 public sealed class ReadRepositoryConventionTests
 {
     private const string AbstractionsNamespaceSegment = "Abstractions";
+
     private const string ApplicationAssemblySuffix = ".Application";
+
     private const string ReadRepositorySuffix = "ReadRepository";
+
     private const string SourceDirectoryName = "src";
 
     [Fact(DisplayName = "Read repositories should reside in Application abstractions when declared")]

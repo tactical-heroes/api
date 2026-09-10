@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Unblock;
 internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
 {
     public string Route { get; } = $"{UsersEndpoints.IdRoute}/unblock";
+
     public string Name { get; } = "UnblockUser";
+
     public string Summary { get; } = "Unblock user";
 
     public void Map(EndpointMapBuilder builder)

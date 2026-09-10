@@ -119,10 +119,14 @@ internal static class EndpointMappingSourceDiscovery
 {
     private const string EndpointMapBuilderTypeName =
         "PANiXiDA.Core.Presentation.Http.Endpoints.EndpointMapBuilder";
+
     private const string EndpointInterfaceName = "IEndpoint";
+
     private const string EndpointGroupInterfaceName = "IEndpointGroup";
+
     private const string EndpointInterfaceNamespace =
         "PANiXiDA.Core.Presentation.Http.Endpoints";
+
     private const string PresentationAssemblySuffix = ".Presentation";
 
     private static readonly Lazy<Task<EndpointMapping[]>> Mappings =

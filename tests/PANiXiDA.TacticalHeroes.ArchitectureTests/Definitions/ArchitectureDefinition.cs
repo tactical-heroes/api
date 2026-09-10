@@ -14,10 +14,15 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 internal static class ArchitectureDefinition
 {
     private const string ContractsLayerSuffix = ".Contracts";
+
     private const string DomainLayerSuffix = ".Domain";
+
     private const string ApplicationLayerSuffix = ".Application";
+
     private const string InfrastructureLayerSuffix = ".Infrastructure";
+
     private const string PresentationLayerSuffix = ".Presentation";
+
     private const string HostLayerSuffix = ".Host";
 
     internal static readonly IReadOnlyCollection<ReflectionAssembly> ProductionAssemblies =

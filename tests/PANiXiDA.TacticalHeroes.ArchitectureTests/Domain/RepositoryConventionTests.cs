@@ -10,9 +10,13 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 public sealed class RepositoryConventionTests
 {
     private const string AbstractionsNamespaceSegment = "Abstractions";
+
     private const string ApplicationAssemblySuffix = ".Application";
+
     private const string DomainAssemblySuffix = ".Domain";
+
     private const string RepositorySuffix = "Repository";
+
     private const string SourceDirectoryName = "src";
 
     [Fact(DisplayName = "Repositories should reside in Domain abstractions when declared")]

@@ -16,6 +16,7 @@ namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.
 public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
 {
     private const ushort MailpitHttpPort = 8025;
+
     private const ushort MailpitSmtpPort = 1025;
 
     private readonly IContainer _mailpitContainer = new ContainerBuilder("axllent/mailpit:v1.30.4")
@@ -29,6 +30,7 @@ public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
         .Build();
 
     private HttpClient _mailpitClient = null!;
+
     private IHost _host = null!;
 
     public IMessageBus MessageBus => _host.Services.GetRequiredService<IMessageBus>();

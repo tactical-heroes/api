@@ -5,7 +5,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Delete
 internal sealed class DeleteHeroEndpoint : IEndpoint<HeroesEndpoints>
 {
     public string Route { get; } = HeroesEndpoints.IdRoute;
+
     public string Name { get; } = "DeleteHero";
+
     public string Summary { get; } = "Delete hero";
 
     public void Map(EndpointMapBuilder builder)

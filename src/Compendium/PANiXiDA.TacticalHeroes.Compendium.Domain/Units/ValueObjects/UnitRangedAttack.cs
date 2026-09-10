@@ -11,6 +11,7 @@ public sealed class UnitRangedAttack : ValueObject
     }
 
     public int? Shots { get; }
+
     public int? RangedAttackRange { get; }
 
     public static Result<UnitRangedAttack> Create(
