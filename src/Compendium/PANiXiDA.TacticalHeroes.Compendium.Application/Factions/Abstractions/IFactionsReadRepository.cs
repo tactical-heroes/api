@@ -1,10 +1,16 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 
 public interface IFactionsReadRepository : IReadRepository<Guid>
 {
+    Task<IReadOnlyList<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
+        string? search,
+        int limit,
+        CancellationToken cancellationToken);
+
     Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken);

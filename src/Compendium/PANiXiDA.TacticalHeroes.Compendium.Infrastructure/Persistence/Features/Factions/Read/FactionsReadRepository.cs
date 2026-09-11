@@ -1,6 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.Mappers;
@@ -14,6 +17,28 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
     private static readonly SortParameters Sort = new(
         Field: nameof(FactionReadDbModel.Name),
         Order: SortOrder.Ascending);
+
+    public async Task<IReadOnlyList<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
+        string? search,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var query = Query;
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(faction =>
+                EF.Functions.ILike(
+                    matchExpression: faction.Name,
+                    pattern: $"%{search.Trim()}%"));
+        }
+
+        query = query.OrderBy(faction => faction.Name)
+            .ThenBy(faction => faction.Id)
+            .Take(limit);
+
+        return await FactionSelectOptionReadModelMapper.ProjectTo(query)
+            .ToArrayAsync(cancellationToken);
+    }
 
     public Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
