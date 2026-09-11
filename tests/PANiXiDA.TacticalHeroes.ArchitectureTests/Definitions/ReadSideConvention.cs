@@ -10,10 +10,13 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 internal static class ReadSideConvention
 {
     private const string ApplicationAssemblySuffix = ".Application";
+
     private const string CoreApplicationAssemblyName =
         "PANiXiDA.Core.Application";
+
     private const string CoreApplicationQueryingNamespace =
         "PANiXiDA.Core.Application.Querying";
+
     private const string CoreDomainAssemblyName = "PANiXiDA.Core.Domain";
     private const string DomainAssemblySuffix = ".Domain";
 

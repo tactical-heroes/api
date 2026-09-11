@@ -124,9 +124,12 @@ internal static class MediatorSourceDiscovery
 {
     private const string EndpointInterfaceNamespace =
         "PANiXiDA.Core.Presentation.Http.Endpoints";
+
     private const string MapperSuffix = "Mapper";
+
     private const string MediatorTypeName =
         "PANiXiDA.Core.Application.Messaging.Mediator.IMediator";
+
     private const string PresentationAssemblySuffix = ".Presentation";
 
     private static readonly string[] MediatorMethodNames =
