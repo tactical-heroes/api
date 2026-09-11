@@ -31,7 +31,7 @@ internal static class OAuthAuthorizationRequestTestHelper
             });
     }
 
-    internal static async Task<CreateUserResponse> CreateConfirmedUserAsync(
+    internal static Task<CreateUserResponse> CreateConfirmedUserAsync(
         FunctionalTestFixture fixture,
         string email,
         string userName,
@@ -40,7 +40,7 @@ internal static class OAuthAuthorizationRequestTestHelper
     {
         var api = new UserApiTestClient(fixture);
 
-        return await api.CreateAsync(
+        return api.CreateAsync(
             cancellationToken,
             UserApiTestClient.CreateDefaultRequest(
                 email,
