@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.Core.Application.Querying.Limiting;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
@@ -11,6 +13,76 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Theory(DisplayName = "GetSelectOptionsAsync should filter and limit sorted options when search is provided")]
+    [InlineData(" aLLianCe ")]
+    [InlineData("ALLIANCE")]
+    public async Task GetSelectOptionsAsync_Should_FilterAndLimitSortedOptions_When_SearchIsProvided(string search)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var northern = CreateFaction("Northern Alliance", "North.");
+        await AddFactionsAsync(cancellationToken,
+            CreateFaction("Southern Alliance", "South."), northern,
+            CreateFaction("Empire", "Alliance appears only in description."));
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(search), new LimitParameters(1), cancellationToken);
+
+        options.ShouldHaveSingleItem();
+        options[0].Id.ShouldBe(northern.Id.Value);
+        options[0].Name.ShouldBe("Northern Alliance");
+    }
+
+    [Theory(DisplayName = "GetSelectOptionsAsync should return sorted options when search is blank")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task GetSelectOptionsAsync_Should_ReturnSortedOptions_When_SearchIsBlank(string? search)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddFactionsAsync(cancellationToken,
+            CreateFaction("Southern Alliance", "South."),
+            CreateFaction("Northern Alliance", "North."));
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(search), new LimitParameters(20), cancellationToken);
+
+        options.Select(option => option.Name).ShouldBe(["Northern Alliance", "Southern Alliance"]);
+    }
+
+    [Fact(DisplayName = "GetSelectOptionsAsync should sort by descending ID when faction names are equal")]
+    public async Task GetSelectOptionsAsync_Should_SortByDescendingId_When_FactionNamesAreEqual()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var factions = new[]
+        {
+            CreateFaction("Northern Alliance", "First."),
+            CreateFaction("Northern Alliance", "Second.")
+        }.OrderBy(faction => faction.Id.Value).ToArray();
+        await AddFactionsAsync(cancellationToken, factions);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(), new LimitParameters(1), cancellationToken);
+
+        options.ShouldHaveSingleItem();
+        options[0].Id.ShouldBe(factions[1].Id.Value);
+    }
+
+    [Fact(DisplayName = "GetSelectOptionsAsync should return empty options when no name matches")]
+    public async Task GetSelectOptionsAsync_Should_ReturnEmptyOptions_When_NoNameMatches()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddFactionsAsync(cancellationToken, CreateFaction("Empire", "Northern Alliance"));
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter("Northern"), new LimitParameters(20), cancellationToken);
+
+        options.ShouldBeEmpty();
+    }
+
     [Fact(DisplayName = "GetDetailsByIdAsync should return faction details when faction exists")]
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_FactionExists()
     {
