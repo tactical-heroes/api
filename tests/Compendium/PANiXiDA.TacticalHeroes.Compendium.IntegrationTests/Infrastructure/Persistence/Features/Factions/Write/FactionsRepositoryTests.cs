@@ -72,8 +72,8 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
 
             factionToUpdate.ShouldNotBeNull();
             factionToUpdate.Update(
-                name: FactionName.Create(value: "Southern Alliance").Value,
-                description: FactionDescription.Create(value: "Defenders of the south.").Value);
+            name: FactionName.Create(value: "Southern Alliance").Value,
+            description: FactionDescription.Create(value: "Defenders of the south.").Value);
 
             await repository.UpdateAsync(factionToUpdate, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);

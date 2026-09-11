@@ -24,10 +24,8 @@ using var host = Host.CreateDefaultBuilder(args)
         services.AddDbContext<IdentityWriteDbContext>(options =>
         {
             options
-                .UseNpgsql(
-                    connectionString,
-                    npgsqlOptions =>
-                        npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
+                .UseNpgsql(connectionString, npgsqlOptions =>
+                    npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });

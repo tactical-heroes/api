@@ -113,8 +113,8 @@ public sealed class RolesRepository(
         foreach (var currentClaim in applicationRole.Claims.ToArray())
         {
             if (targetClaims.Any(targetClaim =>
-                string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
-                string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
+                    string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -125,8 +125,8 @@ public sealed class RolesRepository(
         foreach (var targetClaim in targetClaims)
         {
             if (applicationRole.Claims.Any(currentClaim =>
-                string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
-                string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
+                    string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
+                    string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }

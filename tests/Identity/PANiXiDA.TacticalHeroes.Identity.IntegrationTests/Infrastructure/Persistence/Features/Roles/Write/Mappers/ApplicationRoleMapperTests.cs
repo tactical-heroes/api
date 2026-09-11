@@ -27,8 +27,7 @@ public sealed class ApplicationRoleMapperTests
     public void ToDomain_Should_NormalizeAndDeduplicateClaims_When_ValuesAreValid()
     {
         var result = ApplicationRoleMapper.ToDomain(CreateDbModel(
-            Guid.CreateVersion7(),
-            " ADMIN ",
+            Guid.CreateVersion7(), " ADMIN ",
             [(" permission ", " heroes.manage "), ("permission", "heroes.manage")]));
 
         result.IsSuccess.ShouldBeTrue();

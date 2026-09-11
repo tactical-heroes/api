@@ -16,13 +16,13 @@ public sealed class ModuleDependencyTests
         foreach (var sourceModule in modules)
         {
             foreach (var targetModule in modules.Where(module =>
-                module != sourceModule))
+                         module != sourceModule))
             {
                 foreach (var sourceAssemblyName in GetInternalAssemblyNames(
-                    sourceModule))
+                             sourceModule))
                 {
                     foreach (var targetAssemblyName in GetInternalAssemblyNames(
-                        targetModule))
+                                 targetModule))
                     {
                         TypesShouldNotDependOn(
                             sourceAssemblyName,

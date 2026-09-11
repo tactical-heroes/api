@@ -88,17 +88,17 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
 
             heroToUpdate.ShouldNotBeNull();
             heroToUpdate.Update(
-                name: HeroName.Create(value: "Elara").Value,
-                description: HeroDescription.Create(value: "An agile vanguard commander.").Value,
-                stats: HeroCombatStats.Create(
-                    attack: 10,
-                    defense: 7,
-                    minimumDamage: 4,
-                    maximumDamage: 9,
-                    initiative: 12.25).Value,
-                morale: HeroMorale.Create(value: 5).Value,
-                luck: HeroLuck.Create(value: 3).Value,
-                factionId: faction.Id);
+            name: HeroName.Create(value: "Elara").Value,
+            description: HeroDescription.Create(value: "An agile vanguard commander.").Value,
+            stats: HeroCombatStats.Create(
+                attack: 10,
+                defense: 7,
+                minimumDamage: 4,
+                maximumDamage: 9,
+                initiative: 12.25).Value,
+            morale: HeroMorale.Create(value: 5).Value,
+            luck: HeroLuck.Create(value: 3).Value,
+            factionId: faction.Id);
 
             await repository.UpdateAsync(heroToUpdate, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -147,8 +147,8 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
         var verificationRepository = verificationScope.ServiceProvider
             .GetRequiredService<IHeroesRepository>();
         (await verificationRepository.GetByIdAsync(
-            hero.Id,
-            cancellationToken))
+                hero.Id,
+                cancellationToken))
             .ShouldBeNull();
     }
 

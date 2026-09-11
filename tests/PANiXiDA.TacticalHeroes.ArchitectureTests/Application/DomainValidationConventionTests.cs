@@ -71,12 +71,11 @@ public sealed class DomainValidationConventionTests
         return syntaxRoot
             .DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
-            .Select(
-                invocation => new
-                {
-                    Invocation = invocation,
-                    MethodName = GetInvokedMethodName(invocation)
-                })
+            .Select(invocation => new
+            {
+                Invocation = invocation,
+                MethodName = GetInvokedMethodName(invocation)
+            })
             .Where(candidate =>
                 candidate.MethodName is not null &&
                 DirectDomainConstraintMethods.Contains(
@@ -123,8 +122,8 @@ public sealed class DomainValidationConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                directory.FullName,
-                SourceDirectoryName)))
+                    directory.FullName,
+                    SourceDirectoryName)))
             {
                 return directory.FullName;
             }

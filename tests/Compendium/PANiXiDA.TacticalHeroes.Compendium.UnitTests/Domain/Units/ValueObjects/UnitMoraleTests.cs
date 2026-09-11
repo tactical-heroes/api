@@ -25,8 +25,8 @@ public sealed class UnitMoraleTests
         var result = UnitMorale.Create(value);
 
         result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            $"Unit morale must be between {UnitMorale.Minimum} and {UnitMorale.Maximum}.")
+                ErrorType.Validation,
+                $"Unit morale must be between {UnitMorale.Minimum} and {UnitMorale.Maximum}.")
             .ShouldHaveField(nameof(UnitMorale));
     }
 

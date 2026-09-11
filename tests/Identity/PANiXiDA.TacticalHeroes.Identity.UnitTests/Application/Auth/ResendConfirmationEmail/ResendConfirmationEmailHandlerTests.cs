@@ -10,8 +10,8 @@ public sealed class ResendConfirmationEmailHandlerTests
     {
         var service = Substitute.For<IUserCredentialsService>();
         service.ResendConfirmationEmailAsync(
-            "hero@example.com",
-            Arg.Any<CancellationToken>())
+                "hero@example.com",
+                Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new ResendConfirmationEmailHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

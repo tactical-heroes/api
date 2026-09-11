@@ -33,25 +33,23 @@ internal sealed class HeroConfiguration : AuditableEntityConfiguration<Hero>
             .HasMaxLength(HeroDescription.MaxLength)
             .IsRequired();
 
-        builder.ComplexProperty(
-            hero => hero.Stats,
-            stats =>
-            {
-                stats.Property(value => value.Attack)
-                    .IsRequired();
+        builder.ComplexProperty(hero => hero.Stats, stats =>
+        {
+            stats.Property(value => value.Attack)
+                .IsRequired();
 
-                stats.Property(value => value.Defense)
-                    .IsRequired();
+            stats.Property(value => value.Defense)
+                .IsRequired();
 
-                stats.Property(value => value.MinimumDamage)
-                    .IsRequired();
+            stats.Property(value => value.MinimumDamage)
+                .IsRequired();
 
-                stats.Property(value => value.MaximumDamage)
-                    .IsRequired();
+            stats.Property(value => value.MaximumDamage)
+                .IsRequired();
 
-                stats.Property(value => value.Initiative)
-                    .IsRequired();
-            });
+            stats.Property(value => value.Initiative)
+                .IsRequired();
+        });
 
         builder.Property(hero => hero.Morale)
             .HasConversion(

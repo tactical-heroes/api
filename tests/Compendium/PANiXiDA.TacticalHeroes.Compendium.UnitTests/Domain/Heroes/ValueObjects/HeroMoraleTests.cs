@@ -25,8 +25,8 @@ public sealed class HeroMoraleTests
         var result = HeroMorale.Create(value);
 
         result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            $"Hero morale must be between {HeroMorale.Minimum} and {HeroMorale.Maximum}.")
+                ErrorType.Validation,
+                $"Hero morale must be between {HeroMorale.Minimum} and {HeroMorale.Maximum}.")
             .ShouldHaveField(nameof(HeroMorale));
     }
 

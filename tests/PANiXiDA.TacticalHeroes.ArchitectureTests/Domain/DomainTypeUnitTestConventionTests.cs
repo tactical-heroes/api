@@ -27,17 +27,16 @@ public sealed class DomainTypeUnitTestConventionTests
         Assert.NotEmpty(domainTypes);
 
         var violations = domainTypes
-            .Select(
-                domainType => new
-                {
-                    DomainType = domainType,
-                    TestMethods = testMethods
-                        .Where(testMethod => HasPath(
-                            repositoryRoot,
-                            testMethod,
-                            domainType.ExpectedTestFilePath))
-                        .ToArray()
-                })
+            .Select(domainType => new
+            {
+                DomainType = domainType,
+                TestMethods = testMethods
+                    .Where(testMethod => HasPath(
+                        repositoryRoot,
+                        testMethod,
+                        domainType.ExpectedTestFilePath))
+                    .ToArray()
+            })
             .Where(target =>
                 !File.Exists(target.DomainType.ExpectedTestFilePath) ||
                 target.TestMethods.Length == 0)
@@ -172,16 +171,16 @@ public sealed class DomainTypeUnitTestConventionTests
         var domainNamespacePrefix = domainAssemblyName + ".";
 
         if (string.Equals(
-            typeNamespace,
-            domainAssemblyName,
-            StringComparison.Ordinal))
+                typeNamespace,
+                domainAssemblyName,
+                StringComparison.Ordinal))
         {
             return string.Empty;
         }
 
         if (typeNamespace.StartsWith(
-            domainNamespacePrefix,
-            StringComparison.Ordinal))
+                domainNamespacePrefix,
+                StringComparison.Ordinal))
         {
             return typeNamespace[domainNamespacePrefix.Length..];
         }
@@ -215,16 +214,15 @@ public sealed class DomainTypeUnitTestConventionTests
             .GroupBy(method => method.Name, StringComparer.Ordinal);
 
         return domainMethods
-            .Select(
-                methods => new
-                {
-                    MethodName = methods.Key,
-                    RequiredTestCount = methods.Count(),
-                    ActualTestCount = testMethodNames.Count(testMethodName =>
-                        testMethodName.StartsWith(
-                            methods.Key + "_Should_",
-                            StringComparison.Ordinal))
-                })
+            .Select(methods => new
+            {
+                MethodName = methods.Key,
+                RequiredTestCount = methods.Count(),
+                ActualTestCount = testMethodNames.Count(testMethodName =>
+                    testMethodName.StartsWith(
+                        methods.Key + "_Should_",
+                        StringComparison.Ordinal))
+            })
             .Where(coverage =>
                 coverage.ActualTestCount < coverage.RequiredTestCount)
             .Select(coverage =>
@@ -269,8 +267,8 @@ public sealed class DomainTypeUnitTestConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                directory.FullName,
-                SourceDirectoryName)) &&
+                    directory.FullName,
+                    SourceDirectoryName)) &&
                 Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))

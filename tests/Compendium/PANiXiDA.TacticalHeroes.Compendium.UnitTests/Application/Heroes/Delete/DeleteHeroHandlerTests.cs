@@ -31,8 +31,8 @@ public sealed class DeleteHeroHandlerTests
     {
         var repository = Substitute.For<IHeroesRepository>();
         repository.GetByIdAsync(
-            Arg.Any<HeroId>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<HeroId>(),
+                Arg.Any<CancellationToken>())
             .Returns((Hero?)null);
         var handler = new DeleteHeroHandler(repository);
 

@@ -91,10 +91,10 @@ internal static class PresentationArchitectureConvention
     internal static bool IsMapperlyMapper(Type type)
     {
         return type.CustomAttributes.Any(attribute =>
-            string.Equals(
-                attribute.AttributeType.FullName,
-                MapperAttributeFullName,
-                StringComparison.Ordinal)) ||
+                   string.Equals(
+                       attribute.AttributeType.FullName,
+                       MapperAttributeFullName,
+                       StringComparison.Ordinal)) ||
                GetSourceSyntax(type)
                    .SelectMany(source => source.Root
                        .DescendantNodes()
@@ -138,8 +138,8 @@ internal static class PresentationArchitectureConvention
         var namespacePrefix = assemblyName + ".";
 
         if (!typeNamespace.StartsWith(
-            namespacePrefix,
-            StringComparison.Ordinal))
+                namespacePrefix,
+                StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
                 $"Type '{type.FullName}' namespace must start with " +
@@ -164,9 +164,9 @@ internal static class PresentationArchitectureConvention
         var violations = new List<string>();
 
         if (!string.Equals(
-            type.Namespace,
-            expectedNamespace,
-            StringComparison.Ordinal))
+                type.Namespace,
+                expectedNamespace,
+                StringComparison.Ordinal))
         {
             violations.Add(
                 $"{type.FullName} must reside in namespace " +
@@ -332,8 +332,8 @@ internal static class PresentationArchitectureConvention
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                directory.FullName,
-                SourceDirectoryName)))
+                    directory.FullName,
+                    SourceDirectoryName)))
             {
                 return directory.FullName;
             }

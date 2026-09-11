@@ -42,12 +42,11 @@ public sealed partial class TestDisplayNameConventionTests
     {
         var violations = TestSourceDiscovery.GetTestMethods()
             .Where(testMethod => testMethod.DisplayName is not null)
-            .Select(
-                testMethod => new
-                {
-                    TestMethod = testMethod,
-                    ExpectedCondition = GetExpectedCondition(testMethod.Name)
-                })
+            .Select(testMethod => new
+            {
+                TestMethod = testMethod,
+                ExpectedCondition = GetExpectedCondition(testMethod.Name)
+            })
             .Where(item =>
                 item.ExpectedCondition is null ||
                 !EnglishBehaviorDescriptionPattern().IsMatch(

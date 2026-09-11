@@ -31,8 +31,8 @@ public sealed class DeleteUnitHandlerTests
     {
         var repository = Substitute.For<IUnitsRepository>();
         repository.GetByIdAsync(
-            Arg.Any<UnitId>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<UnitId>(),
+                Arg.Any<CancellationToken>())
             .Returns((Unit?)null);
         var handler = new DeleteUnitHandler(repository);
 

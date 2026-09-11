@@ -33,10 +33,8 @@ internal static class ServiceCollectionExtensions
                     message: $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
 
             options
-                .UseNpgsql(
-                    connectionString,
-                    npgsqlOptions =>
-                        npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
+                .UseNpgsql(connectionString, npgsqlOptions =>
+                    npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });

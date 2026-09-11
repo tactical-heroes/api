@@ -8,9 +8,8 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Uni
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read;
 
 public sealed class UnitsReadRepository(CompendiumReadDbContext dbContext)
-    :
-        EfReadRepository<CompendiumReadDbContext, Guid, UnitReadDbModel>(dbContext),
-        IUnitsReadRepository
+    : EfReadRepository<CompendiumReadDbContext, Guid, UnitReadDbModel>(dbContext),
+    IUnitsReadRepository
 {
     private static readonly SortParameters Sort = new(
         Field: nameof(UnitReadDbModel.Name),

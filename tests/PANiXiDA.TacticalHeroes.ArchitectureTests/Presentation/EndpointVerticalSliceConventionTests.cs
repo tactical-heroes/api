@@ -94,9 +94,9 @@ public sealed class EndpointVerticalSliceConventionTests
         var violations = new List<string>();
 
         if (!string.Equals(
-            endpointGroup.Name,
-            expectedTypeName,
-            StringComparison.Ordinal))
+                endpointGroup.Name,
+                expectedTypeName,
+                StringComparison.Ordinal))
         {
             violations.Add(
                 $"{endpointGroup.FullName} must be named " +
@@ -104,9 +104,9 @@ public sealed class EndpointVerticalSliceConventionTests
         }
 
         if (!string.Equals(
-            groupName,
-            featureName,
-            StringComparison.Ordinal))
+                groupName,
+                featureName,
+                StringComparison.Ordinal))
         {
             violations.Add(
                 $"{endpointGroup.FullName}.Name must be " +
@@ -137,8 +137,8 @@ public sealed class EndpointVerticalSliceConventionTests
         var expectedNamespacePrefix = groupNamespace + ".";
 
         if (!endpointNamespace.StartsWith(
-            expectedNamespacePrefix,
-            StringComparison.Ordinal))
+                expectedNamespacePrefix,
+                StringComparison.Ordinal))
         {
             return
             [

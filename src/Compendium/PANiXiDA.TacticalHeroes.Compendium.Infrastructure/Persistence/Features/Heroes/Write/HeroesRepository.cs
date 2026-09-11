@@ -7,8 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features
 public sealed class HeroesRepository(
     CompendiumWriteDbContext dbContext,
     IAggregateTracker aggregateTracker)
-    :
-        EfRepository<CompendiumWriteDbContext, HeroId, Hero>(
-            dbContext,
-            aggregateTracker),
-        IHeroesRepository;
+    : EfRepository<CompendiumWriteDbContext, HeroId, Hero>(
+        dbContext,
+        aggregateTracker),
+    IHeroesRepository;

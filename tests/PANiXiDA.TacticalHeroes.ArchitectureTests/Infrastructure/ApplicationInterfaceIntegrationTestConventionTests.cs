@@ -28,15 +28,14 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         Assert.NotEmpty(implementations);
 
         var missingTestFiles = implementations
-            .Select(
-                target => new
-                {
-                    target.Implementation,
-                    ExpectedPath = GetExpectedTestFilePath(
-                        repositoryRoot,
-                        target.Module,
-                        target.Implementation)
-                })
+            .Select(target => new
+            {
+                target.Implementation,
+                ExpectedPath = GetExpectedTestFilePath(
+                    repositoryRoot,
+                    target.Module,
+                    target.Implementation)
+            })
             .Where(target => !File.Exists(target.ExpectedPath))
             .Select(target =>
                 $"{target.Implementation.FullName}: " +
@@ -138,16 +137,15 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
             .GroupBy(method => method.Name, StringComparer.Ordinal);
 
         return contractMethods
-            .Select(
-                methods => new
-                {
-                    MethodName = methods.Key,
-                    RequiredTestCount = methods.Count(),
-                    ActualTestCount = testMethodNames.Count(testMethodName =>
-                        testMethodName.StartsWith(
-                            methods.Key + "_Should_",
-                            StringComparison.Ordinal))
-                })
+            .Select(methods => new
+            {
+                MethodName = methods.Key,
+                RequiredTestCount = methods.Count(),
+                ActualTestCount = testMethodNames.Count(testMethodName =>
+                    testMethodName.StartsWith(
+                        methods.Key + "_Should_",
+                        StringComparison.Ordinal))
+            })
             .Where(coverage => coverage.ActualTestCount < coverage.RequiredTestCount)
             .Select(coverage =>
                 $"{target.Implementation.FullName}.{coverage.MethodName}: expected " +
@@ -169,15 +167,15 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         string relativeNamespace;
 
         if (string.Equals(
-            implementationNamespace,
-            infrastructureNamespace,
-            StringComparison.Ordinal))
+                implementationNamespace,
+                infrastructureNamespace,
+                StringComparison.Ordinal))
         {
             relativeNamespace = string.Empty;
         }
         else if (implementationNamespace.StartsWith(
-            infrastructureNamespacePrefix,
-            StringComparison.Ordinal))
+                     infrastructureNamespacePrefix,
+                     StringComparison.Ordinal))
         {
             relativeNamespace =
                 implementationNamespace[infrastructureNamespacePrefix.Length..];
@@ -214,8 +212,8 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                directory.FullName,
-                SourceDirectoryName)) &&
+                    directory.FullName,
+                    SourceDirectoryName)) &&
                 Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))

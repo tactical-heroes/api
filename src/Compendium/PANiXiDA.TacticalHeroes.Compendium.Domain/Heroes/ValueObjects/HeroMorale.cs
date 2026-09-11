@@ -18,7 +18,7 @@ public sealed class HeroMorale : ValueObject
             ? Result.Success(value: new HeroMorale(value: value))
             : Result.Failure<HeroMorale>(
                 error: Error.Validation(
-                    message: $"Hero morale must be between {Minimum} and {Maximum}.")
+                        message: $"Hero morale must be between {Minimum} and {Maximum}.")
                     .WithField(nameof(HeroMorale)));
     }
 

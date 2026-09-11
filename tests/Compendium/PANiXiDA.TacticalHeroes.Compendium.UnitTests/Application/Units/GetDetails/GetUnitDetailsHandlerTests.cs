@@ -13,8 +13,8 @@ public sealed class GetUnitDetailsHandlerTests
             Guid.CreateVersion7());
         var repository = Substitute.For<IUnitsReadRepository>();
         repository.GetDetailsByIdAsync(
-            readModel.Id,
-            Arg.Any<CancellationToken>())
+                readModel.Id,
+                Arg.Any<CancellationToken>())
             .Returns(readModel);
         var handler = new GetUnitDetailsHandler(repository);
 
@@ -31,8 +31,8 @@ public sealed class GetUnitDetailsHandlerTests
     {
         var repository = Substitute.For<IUnitsReadRepository>();
         repository.GetDetailsByIdAsync(
-            Arg.Any<Guid>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<Guid>(),
+                Arg.Any<CancellationToken>())
             .Returns((UnitDetailsReadModel?)null);
         var handler = new GetUnitDetailsHandler(repository);
 

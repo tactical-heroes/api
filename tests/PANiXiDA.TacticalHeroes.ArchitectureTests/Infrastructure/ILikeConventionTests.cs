@@ -172,10 +172,10 @@ internal static class ILikeSourceDiscovery
             comparison.IsKind(SyntaxKind.NotEqualsExpression))
         {
             return IsNullComparison(
-                comparison.Left,
-                comparison.Right,
-                matchExpressionSymbol,
-                semanticModel) ||
+                       comparison.Left,
+                       comparison.Right,
+                       matchExpressionSymbol,
+                       semanticModel) ||
                    IsNullComparison(
                        comparison.Right,
                        comparison.Left,
@@ -262,9 +262,9 @@ internal static class ILikeSourceDiscovery
         }
 
         return string.Equals(
-            prefix.TextToken.ValueText,
-            "%",
-            StringComparison.Ordinal) &&
+                   prefix.TextToken.ValueText,
+                   "%",
+                   StringComparison.Ordinal) &&
                string.Equals(
                    suffix.TextToken.ValueText,
                    "%",

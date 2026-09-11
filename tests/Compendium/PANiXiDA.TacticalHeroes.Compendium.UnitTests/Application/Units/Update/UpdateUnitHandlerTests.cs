@@ -19,8 +19,8 @@ public sealed class UpdateUnitHandlerTests
             .Returns(unit);
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-            faction.Id,
-            Arg.Any<CancellationToken>())
+                faction.Id,
+                Arg.Any<CancellationToken>())
             .Returns(faction);
         var handler = new UpdateUnitHandler(
             unitsRepository,
@@ -46,8 +46,8 @@ public sealed class UpdateUnitHandlerTests
     {
         var unitsRepository = Substitute.For<IUnitsRepository>();
         unitsRepository.GetByIdAsync(
-            Arg.Any<UnitId>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<UnitId>(),
+                Arg.Any<CancellationToken>())
             .Returns((Unit?)null);
         var handler = new UpdateUnitHandler(
             unitsRepository,
@@ -74,8 +74,8 @@ public sealed class UpdateUnitHandlerTests
             .Returns(unit);
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-            Arg.Any<FactionId>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<FactionId>(),
+                Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new UpdateUnitHandler(
             unitsRepository,

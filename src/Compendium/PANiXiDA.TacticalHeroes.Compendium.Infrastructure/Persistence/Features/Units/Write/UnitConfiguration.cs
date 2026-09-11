@@ -33,40 +33,36 @@ internal sealed class UnitConfiguration : AuditableEntityConfiguration<Unit>
             .HasMaxLength(UnitDescription.MaxLength)
             .IsRequired();
 
-        builder.ComplexProperty(
-            unit => unit.Stats,
-            stats =>
-            {
-                stats.Property(value => value.Attack)
-                    .IsRequired();
+        builder.ComplexProperty(unit => unit.Stats, stats =>
+        {
+            stats.Property(value => value.Attack)
+                .IsRequired();
 
-                stats.Property(value => value.Defense)
-                    .IsRequired();
+            stats.Property(value => value.Defense)
+                .IsRequired();
 
-                stats.Property(value => value.Health)
-                    .IsRequired();
+            stats.Property(value => value.Health)
+                .IsRequired();
 
-                stats.Property(value => value.MinimumDamage)
-                    .IsRequired();
+            stats.Property(value => value.MinimumDamage)
+                .IsRequired();
 
-                stats.Property(value => value.MaximumDamage)
-                    .IsRequired();
+            stats.Property(value => value.MaximumDamage)
+                .IsRequired();
 
-                stats.Property(value => value.Initiative)
-                    .IsRequired();
+            stats.Property(value => value.Initiative)
+                .IsRequired();
 
-                stats.Property(value => value.Speed)
-                    .IsRequired();
-            });
+            stats.Property(value => value.Speed)
+                .IsRequired();
+        });
 
-        builder.ComplexProperty(
-            unit => unit.RangedAttack,
-            rangedAttack =>
-            {
-                rangedAttack.Property(value => value.Shots);
+        builder.ComplexProperty(unit => unit.RangedAttack, rangedAttack =>
+        {
+            rangedAttack.Property(value => value.Shots);
 
-                rangedAttack.Property(value => value.RangedAttackRange);
-            });
+            rangedAttack.Property(value => value.RangedAttackRange);
+        });
 
         builder.Property(unit => unit.Morale)
             .HasConversion(

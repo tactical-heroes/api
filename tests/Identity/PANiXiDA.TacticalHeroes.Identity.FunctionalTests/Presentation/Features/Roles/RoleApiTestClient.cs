@@ -29,8 +29,8 @@ internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
         response.Headers.Location.ShouldNotBeNull();
 
         return await response.Content.ReadFromJsonAsync<CreateRoleResponse>(
-            TestJsonSerializerOptions.Web,
-            cancellationToken)
+                TestJsonSerializerOptions.Web,
+                cancellationToken)
             ?? throw new InvalidOperationException("Created role was not returned.");
     }
 
@@ -48,8 +48,8 @@ internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<GetRoleDetailsResponse>(
-            TestJsonSerializerOptions.Web,
-            cancellationToken)
+                TestJsonSerializerOptions.Web,
+                cancellationToken)
             ?? throw new InvalidOperationException("Role details were not returned.");
     }
 
@@ -68,8 +68,8 @@ internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<PaginationResult<RoleListItemResponse>>(
-            TestJsonSerializerOptions.Web,
-            cancellationToken)
+                TestJsonSerializerOptions.Web,
+                cancellationToken)
             ?? throw new InvalidOperationException("Role page was not returned.");
     }
 

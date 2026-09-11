@@ -25,8 +25,8 @@ public sealed class UnitLuckTests
         var result = UnitLuck.Create(value);
 
         result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            $"Unit luck must be between {UnitLuck.Minimum} and {UnitLuck.Maximum}.")
+                ErrorType.Validation,
+                $"Unit luck must be between {UnitLuck.Minimum} and {UnitLuck.Maximum}.")
             .ShouldHaveField(nameof(UnitLuck));
     }
 

@@ -56,8 +56,8 @@ public sealed class EndpointFunctionalTestConventionTests
             presentationAssemblyName + ".";
 
         if (!endpointNamespace.StartsWith(
-            presentationNamespacePrefix,
-            StringComparison.Ordinal))
+                presentationNamespacePrefix,
+                StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
                 $"Endpoint namespace '{endpointNamespace}' must start with " +
@@ -86,8 +86,8 @@ public sealed class EndpointFunctionalTestConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                directory.FullName,
-                SourceDirectoryName)) &&
+                    directory.FullName,
+                    SourceDirectoryName)) &&
                 Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))

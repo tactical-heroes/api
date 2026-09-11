@@ -19,8 +19,8 @@ public sealed class UpdateHeroHandlerTests
             .Returns(hero);
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-            faction.Id,
-            Arg.Any<CancellationToken>())
+                faction.Id,
+                Arg.Any<CancellationToken>())
             .Returns(faction);
         var handler = new UpdateHeroHandler(
             heroesRepository,
@@ -46,8 +46,8 @@ public sealed class UpdateHeroHandlerTests
     {
         var heroesRepository = Substitute.For<IHeroesRepository>();
         heroesRepository.GetByIdAsync(
-            Arg.Any<HeroId>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<HeroId>(),
+                Arg.Any<CancellationToken>())
             .Returns((Hero?)null);
         var handler = new UpdateHeroHandler(
             heroesRepository,
@@ -74,8 +74,8 @@ public sealed class UpdateHeroHandlerTests
             .Returns(hero);
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-            Arg.Any<FactionId>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<FactionId>(),
+                Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new UpdateHeroHandler(
             heroesRepository,

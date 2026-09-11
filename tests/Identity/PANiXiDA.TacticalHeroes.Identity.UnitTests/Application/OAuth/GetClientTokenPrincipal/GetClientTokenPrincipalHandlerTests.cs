@@ -11,8 +11,8 @@ public sealed class GetClientTokenPrincipalHandlerTests
         var readModel = new OAuthClientTokenPrincipalReadModel([]);
         var repository = Substitute.For<IOAuthClientsRepository>();
         repository.GetTokenPrincipalByClientIdAsync(
-            "tactical-heroes-service",
-            Arg.Any<CancellationToken>())
+                "tactical-heroes-service",
+                Arg.Any<CancellationToken>())
             .Returns(Result.Success(readModel));
         var handler = new GetClientTokenPrincipalHandler(repository);
         var cancellationToken = TestContext.Current.CancellationToken;

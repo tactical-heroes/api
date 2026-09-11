@@ -146,8 +146,8 @@ internal static class ProductionSourceDocumentDiscovery
         return sourceRootDirectoryNames.Any(sourceRootDirectoryName =>
         {
             var sourceRoot = Path.Combine(
-                repositoryRoot,
-                sourceRootDirectoryName)
+                    repositoryRoot,
+                    sourceRootDirectoryName)
                 + Path.DirectorySeparatorChar;
 
             return fullPath.StartsWith(
@@ -163,12 +163,12 @@ internal static class ProductionSourceDocumentDiscovery
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                directory.FullName,
-                SourceRootDirectoryName)) &&
-                Directory.EnumerateFiles(
                     directory.FullName,
-                    "*.slnx",
-                    SearchOption.TopDirectoryOnly)
+                    SourceRootDirectoryName)) &&
+                Directory.EnumerateFiles(
+                        directory.FullName,
+                        "*.slnx",
+                        SearchOption.TopDirectoryOnly)
                     .Any())
             {
                 return directory.FullName;

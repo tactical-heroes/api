@@ -15,8 +15,8 @@ public sealed class GetFactionDetailsHandlerTests
             "Defenders of the north.");
         var factionsReadRepository = Substitute.For<IFactionsReadRepository>();
         factionsReadRepository.GetDetailsByIdAsync(
-            factionId,
-            Arg.Any<CancellationToken>())
+                factionId,
+                Arg.Any<CancellationToken>())
             .Returns(readModel);
         var handler = new GetFactionDetailsHandler(factionsReadRepository);
 
@@ -33,8 +33,8 @@ public sealed class GetFactionDetailsHandlerTests
     {
         var factionsReadRepository = Substitute.For<IFactionsReadRepository>();
         factionsReadRepository.GetDetailsByIdAsync(
-            Arg.Any<Guid>(),
-            Arg.Any<CancellationToken>())
+                Arg.Any<Guid>(),
+                Arg.Any<CancellationToken>())
             .Returns((FactionDetailsReadModel?)null);
         var handler = new GetFactionDetailsHandler(factionsReadRepository);
 

@@ -43,13 +43,12 @@ public sealed partial class EndpointMetadataConventionTests
                 StringComparison.Ordinal) == true)
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => type is { IsClass: true, IsAbstract: false })
-            .Select(
-                type => new
-                {
-                    Type = type,
-                    IsEndpoint = typeof(IEndpoint).IsAssignableFrom(type),
-                    IsEndpointGroup = typeof(IEndpointGroup).IsAssignableFrom(type)
-                })
+            .Select(type => new
+            {
+                Type = type,
+                IsEndpoint = typeof(IEndpoint).IsAssignableFrom(type),
+                IsEndpointGroup = typeof(IEndpointGroup).IsAssignableFrom(type)
+            })
             .Where(metadata => metadata.IsEndpoint || metadata.IsEndpointGroup)
             .OrderBy(metadata => metadata.Type.FullName, StringComparer.Ordinal)
             .ToArray();
@@ -100,15 +99,14 @@ public sealed partial class EndpointMetadataConventionTests
             PresentationArchitectureConvention.GetEndpointGroups();
         var violations = endpointGroups
             .SelectMany(endpointGroup =>
-                EndpointGroupMetadataPropertyNames.Select(
-                    propertyName => new
-                    {
-                        EndpointGroup = endpointGroup,
-                        Property = endpointGroup.GetProperty(
-                            propertyName,
-                            BindingFlags.Instance | BindingFlags.Public),
-                        PropertyName = propertyName
-                    }))
+                EndpointGroupMetadataPropertyNames.Select(propertyName => new
+                {
+                    EndpointGroup = endpointGroup,
+                    Property = endpointGroup.GetProperty(
+                        propertyName,
+                        BindingFlags.Instance | BindingFlags.Public),
+                    PropertyName = propertyName
+                }))
             .Where(candidate =>
                 candidate.Property is null ||
                 !candidate.Property.CanRead ||

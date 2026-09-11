@@ -20,9 +20,9 @@ internal static class InfrastructureServiceCollectionFactory
                 var parameters = method.GetParameters();
 
                 return string.Equals(
-                    method.Name,
-                    "AddInfrastructure",
-                    StringComparison.Ordinal) &&
+                           method.Name,
+                           "AddInfrastructure",
+                           StringComparison.Ordinal) &&
                        parameters.Length >= 2 &&
                        parameters[0].ParameterType ==
                        typeof(IServiceCollection) &&

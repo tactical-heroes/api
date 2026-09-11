@@ -38,10 +38,10 @@ public sealed class RegisterUserHandlerTests
         var service = Substitute.For<IUserCredentialsService>();
         var failure = Result.Failure<Guid>(error: Error.Validation(message: "Invalid credentials."));
         service.RegisterAsync(
-            "invalid-email",
-            string.Empty,
-            "StrongPassword1!",
-            Arg.Any<CancellationToken>())
+                "invalid-email",
+                string.Empty,
+                "StrongPassword1!",
+                Arg.Any<CancellationToken>())
             .Returns(failure);
         var handler = new RegisterUserHandler(service);
 

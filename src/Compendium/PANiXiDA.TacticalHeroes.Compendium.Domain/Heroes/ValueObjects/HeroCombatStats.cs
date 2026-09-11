@@ -49,13 +49,13 @@ public sealed class HeroCombatStats : ValueObject
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(
-                    message: "Hero maximum damage cannot be less than minimum damage.")
+                        message: "Hero maximum damage cannot be less than minimum damage.")
                     .WithField(nameof(MaximumDamage)));
         var initiativeResult = double.IsFinite(initiative) && initiative >= 0
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(
-                    message: "Hero initiative must be a finite non-negative number.")
+                        message: "Hero initiative must be a finite non-negative number.")
                     .WithField(nameof(Initiative)));
         var validationResult = Result.Combine(
             attackResult,
