@@ -9,8 +9,6 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features
 internal sealed partial class FactionSelectOptionReadModelMapper
     : IReadModelMapper<Guid, FactionReadDbModel, FactionSelectOptionReadModel>
 {
-    private static partial FactionSelectOptionReadModel ToReadModel(FactionReadDbModel faction);
-
     public static partial IQueryable<FactionSelectOptionReadModel> ProjectTo(
         IQueryable<FactionReadDbModel> query);
 }
