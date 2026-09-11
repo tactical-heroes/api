@@ -1,5 +1,9 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
 using PANiXiDA.Core.Application.Querying;
+using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 
@@ -7,6 +11,45 @@ public sealed class ReadModelConventionTests
 {
     private const string ApplicationAssemblySuffix = ".Application";
     private const string ReadModelSuffix = "ReadModel";
+
+    [Fact(DisplayName = "Read models should be records when declared")]
+    public async Task ReadModels_Should_BeRecords_When_Declared()
+    {
+        var readModels = await ProductionSourceDocumentDiscovery.GetItemsAsync(async (_, document) =>
+        {
+            if (document.Project.AssemblyName?.EndsWith(ApplicationAssemblySuffix, StringComparison.Ordinal) != true)
+            {
+                return Array.Empty<INamedTypeSymbol>();
+            }
+
+            var syntaxRoot = await document.GetSyntaxRootAsync();
+            var semanticModel = await document.GetSemanticModelAsync();
+            var readModelContract = semanticModel?.Compilation.GetTypeByMetadataName(
+                "PANiXiDA.Core.Application.Querying.IReadModel");
+
+            return syntaxRoot is null || semanticModel is null
+                ? []
+                : syntaxRoot.DescendantNodes()
+                    .OfType<TypeDeclarationSyntax>()
+                    .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
+                    .OfType<INamedTypeSymbol>()
+                    .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct &&
+                        (type.Name.EndsWith(ReadModelSuffix, StringComparison.Ordinal) ||
+                         type.AllInterfaces.Any(contract =>
+                             SymbolEqualityComparer.Default.Equals(contract, readModelContract))))
+                    .ToArray();
+        });
+        var violations = readModels
+            .Where(type => !type.IsRecord)
+            .Select(type => $"{type.ToDisplayString()} must be a record.")
+            .ToArray();
+
+        Assert.NotEmpty(readModels);
+        Assert.True(
+            violations.Length == 0,
+            $"Read model record violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
 
     [Fact(DisplayName = "Read models should end with ReadModel when declared")]
     public void ReadModels_Should_EndWithReadModel_When_Declared()

@@ -223,6 +223,11 @@ repository и query handler реализуют `IReadModel`; коллекции,
     каждого `IQueryHandler<,>` должен реализовывать `IReadModel`. Допускаются
     обёртки `Task`, `Result`, коллекции и модели пагинации.
 
+`ReadModels_Should_BeRecords_When_Declared` — каждый класс или структура слоя
+Application с суффиксом `ReadModel` или реализацией `IReadModel` должен быть
+`record`. Проверка использует семантическую модель Roslyn и учитывает
+унаследованные интерфейсы.
+
 39. `ReadRepositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
     наследующий `IReadRepository<>`, должен называться
     `I<AggregatePlural>ReadRepository` и находиться в одноимённой
