@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.Core.Application.Querying.Limiting;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
@@ -21,11 +22,11 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
 
     public Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
         FactionsFilter filter,
-        int limit,
+        LimitParameters limit,
         CancellationToken cancellationToken)
     {
         var query = ApplyFilter(Query, filter);
-        query = ApplySort(query, Sort).Take(limit);
+        query = ApplySort(query, Sort).Take(limit.Limit);
 
         return FactionSelectOptionReadModelMapper.ProjectTo(query)
             .ToListAsync(cancellationToken);

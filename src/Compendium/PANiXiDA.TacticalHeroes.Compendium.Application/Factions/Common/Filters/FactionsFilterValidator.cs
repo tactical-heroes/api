@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
 
 public sealed class FactionsFilterValidator : AbstractValidator<FactionsFilter>
 {

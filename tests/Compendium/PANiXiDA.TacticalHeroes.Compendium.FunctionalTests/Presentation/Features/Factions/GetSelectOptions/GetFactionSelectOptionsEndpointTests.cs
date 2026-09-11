@@ -50,7 +50,7 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
     [Theory(DisplayName = "GetFactionSelectOptions should return validation problem when limit is invalid")]
     [InlineData(0)]
     [InlineData(-1)]
-    [InlineData(101)]
+    [InlineData(201)]
     public async Task GetFactionSelectOptions_Should_ReturnValidationProblem_When_LimitIsInvalid(int limit)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -90,5 +90,20 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         problem.GetProperty("errors").EnumerateObject().ShouldNotBeEmpty();
+    }
+
+    [Fact(DisplayName = "GetFactionSelectOptions should accept maximum limit when limit is two hundred")]
+    public async Task GetFactionSelectOptions_Should_AcceptMaximumLimit_When_LimitIsTwoHundred()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new FactionsApiTestClient(Fixture);
+        var faction = await client.CreateAsync(cancellationToken, new CreateFactionRequest("Northern Alliance", "North."));
+
+        using var response = await Fixture.Client.GetAsync("/api/v1/factions/select-options?limit=200", cancellationToken);
+        var options = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        options.GetArrayLength().ShouldBe(1);
+        options[0].GetProperty("id").GetGuid().ShouldBe(faction.Id);
     }
 }

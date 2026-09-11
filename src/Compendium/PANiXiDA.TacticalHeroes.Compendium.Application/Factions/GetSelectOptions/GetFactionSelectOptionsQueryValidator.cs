@@ -1,4 +1,5 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
+using PANiXiDA.Core.Application.Querying.Limiting;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 
@@ -7,7 +8,8 @@ public sealed class GetFactionSelectOptionsQueryValidator : AbstractValidator<Ge
     public GetFactionSelectOptionsQueryValidator()
     {
         RuleFor(query => query.Limit)
-            .InclusiveBetween(1, 100);
+            .NotNull()
+            .SetValidator(new LimitParametersValidator());
 
         RuleFor(query => query.Filter)
             .NotNull()

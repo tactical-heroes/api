@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Common.Filters;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
@@ -60,7 +61,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersReadRepository>();
         var page = await repository.GetPageAsync(
-            "IRST",
+            new UsersFilter("IRST"),
             new PaginationParameters(1, 20),
             cancellationToken);
 

@@ -1,4 +1,5 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
+using PANiXiDA.Core.Application.Querying.Limiting;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
@@ -9,7 +10,7 @@ public interface IFactionsReadRepository : IReadRepository<Guid>
 {
     Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
         FactionsFilter filter,
-        int limit,
+        LimitParameters limit,
         CancellationToken cancellationToken);
 
     Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
