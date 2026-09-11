@@ -115,9 +115,9 @@ internal static class IdentityProviderServiceCollectionExtensions
                         OpenIddictConstants.Scopes.Profile,
                         OpenIddictConstants.Scopes.Roles
                     }
-                        .Concat(identityProviderOptions.Clients.SelectMany(client => client.Scopes))
-                        .Where(scope => !string.IsNullOrWhiteSpace(scope))
-                        .Distinct(StringComparer.Ordinal)
+                    .Concat(identityProviderOptions.Clients.SelectMany(client => client.Scopes))
+                    .Where(scope => !string.IsNullOrWhiteSpace(scope))
+                    .Distinct(StringComparer.Ordinal)
                 ]);
                 options.SetAccessTokenLifetime(identityProviderOptions.AccessTokenLifetime);
                 options.SetRefreshTokenLifetime(identityProviderOptions.RefreshTokenLifetime);

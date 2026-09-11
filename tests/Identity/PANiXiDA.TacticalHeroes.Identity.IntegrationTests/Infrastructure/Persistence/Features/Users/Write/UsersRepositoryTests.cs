@@ -100,7 +100,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var dbContext =
             verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         (await dbContext.Set<ApplicationUser>()
-            .AnyAsync(item => item.Id == userId, cancellationToken))
+                .AnyAsync(item => item.Id == userId, cancellationToken))
             .ShouldBeFalse();
     }
 

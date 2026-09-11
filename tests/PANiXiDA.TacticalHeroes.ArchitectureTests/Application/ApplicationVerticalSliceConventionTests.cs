@@ -432,28 +432,28 @@ public sealed class ApplicationVerticalSliceConventionTests
                     module.DomainAssemblyName,
                     module.ApplicationAssemblyName
                 }
-                    .SelectMany(assemblyName =>
-                        {
-                            var moduleDirectoryName =
-                                module.Name[(module.Name.LastIndexOf('.') + 1)..];
-                            var projectDirectory = Path.Combine(
-                                repositoryRoot,
-                                SourceDirectoryName,
-                                moduleDirectoryName,
-                                assemblyName);
+                .SelectMany(assemblyName =>
+                {
+                    var moduleDirectoryName =
+                        module.Name[(module.Name.LastIndexOf('.') + 1)..];
+                    var projectDirectory = Path.Combine(
+                        repositoryRoot,
+                        SourceDirectoryName,
+                        moduleDirectoryName,
+                        assemblyName);
 
-                            return Directory
-                                .EnumerateFiles(
-                                    projectDirectory,
-                                    "*.cs",
-                                    SearchOption.AllDirectories)
-                                .Where(path =>
-                                    HasPathSegment(
-                                        path,
-                                        AbstractionsNamespaceSegment) &&
-                                    !HasPathSegment(path, "bin") &&
-                                    !HasPathSegment(path, "obj"));
-                        }))
+                    return Directory
+                        .EnumerateFiles(
+                            projectDirectory,
+                            "*.cs",
+                            SearchOption.AllDirectories)
+                        .Where(path =>
+                            HasPathSegment(
+                                path,
+                                AbstractionsNamespaceSegment) &&
+                            !HasPathSegment(path, "bin") &&
+                            !HasPathSegment(path, "obj"));
+                }))
                 .Order(StringComparer.OrdinalIgnoreCase)
         ];
     }

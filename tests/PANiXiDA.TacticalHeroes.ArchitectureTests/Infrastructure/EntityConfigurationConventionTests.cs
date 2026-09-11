@@ -212,8 +212,7 @@ public sealed class EntityConfigurationConventionTests
             .DescendantNodesAndSelf()
             .OfType<SimpleNameSyntax>()
             .LastOrDefault()
-            ?.Identifier
-            .ValueText;
+            ?.Identifier.ValueText;
 
         return ownerName is not null &&
                domainTypesWithMaximumLength.Contains(ownerName);

@@ -54,24 +54,24 @@ internal static class ProductionSourceDocumentDiscovery
         var items = new List<T>();
 
         foreach (var project in context.Solution.Projects
-            .Where(project =>
-                IsSourceProject(
-                    context.RepositoryRoot,
-                    project.FilePath,
-                    sourceRootDirectoryNames))
-            .OrderBy(
-                project => project.FilePath,
-                StringComparer.Ordinal))
+                     .Where(project =>
+                         IsSourceProject(
+                             context.RepositoryRoot,
+                             project.FilePath,
+                             sourceRootDirectoryNames))
+                     .OrderBy(
+                         project => project.FilePath,
+                         StringComparer.Ordinal))
         {
             foreach (var document in project.Documents
-                .Where(document =>
-                    IsSourceFile(
-                        context.RepositoryRoot,
-                        document.FilePath,
-                        sourceRootDirectoryNames))
-                .OrderBy(
-                    document => document.FilePath,
-                    StringComparer.Ordinal))
+                         .Where(document =>
+                             IsSourceFile(
+                                 context.RepositoryRoot,
+                                 document.FilePath,
+                                 sourceRootDirectoryNames))
+                         .OrderBy(
+                             document => document.FilePath,
+                             StringComparer.Ordinal))
             {
                 items.AddRange(
                     await getDocumentItemsAsync(

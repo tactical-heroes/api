@@ -133,8 +133,7 @@ public sealed class IdentityWriteDbContext(
                 claim.UserId,
                 claim.ClaimType,
                 claim.ClaimValue
-            })
-                .IsUnique();
+            }).IsUnique();
         });
 
         modelBuilder.Entity<ApplicationRoleClaim>(builder =>
@@ -151,8 +150,7 @@ public sealed class IdentityWriteDbContext(
                 claim.RoleId,
                 claim.ClaimType,
                 claim.ClaimValue
-            })
-                .IsUnique();
+            }).IsUnique();
         });
 
         modelBuilder.Entity<ApplicationUserLogin>(builder =>

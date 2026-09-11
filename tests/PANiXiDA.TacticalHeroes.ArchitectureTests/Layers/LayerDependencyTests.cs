@@ -104,8 +104,7 @@ public sealed class LayerDependencyTests
         IObjectProvider<IType> forbiddenDependency)
     {
         Types().That().Are(source)
-            .Should()
-            .NotDependOnAny(forbiddenDependency)
+            .Should().NotDependOnAny(forbiddenDependency)
             .WithoutRequiringPositiveResults()
             .Check(ArchitectureDefinition.Architecture);
     }

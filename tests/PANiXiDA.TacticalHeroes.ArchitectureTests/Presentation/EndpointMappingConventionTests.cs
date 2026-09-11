@@ -398,26 +398,26 @@ internal static class EndpointMappingSourceDiscovery
         return
         [
             .. node
-                .DescendantNodesAndSelf()
-                .OfType<InvocationExpressionSyntax>()
-                .Select(invocation => new
-                    {
-                        Invocation = invocation,
-                        Operation = semanticModel.GetOperation(invocation) as
-                            IInvocationOperation
-                    })
-                .Where(target => target.Operation?.TargetMethod.Name is
-                    "RequireAuthorization" or "AllowAnonymous")
-                .Select(target =>
-                    $"{target.Operation!.TargetMethod.Name}(" +
-                    string.Join(
-                        ",",
-                        target.Invocation.ArgumentList.Arguments.Select(argument =>
-                            argument.Expression
-                                .NormalizeWhitespace()
-                                .ToFullString())) +
-                    ")")
-                .Distinct(StringComparer.Ordinal)
+            .DescendantNodesAndSelf()
+            .OfType<InvocationExpressionSyntax>()
+            .Select(invocation => new
+            {
+                Invocation = invocation,
+                Operation = semanticModel.GetOperation(invocation) as
+                    IInvocationOperation
+            })
+            .Where(target => target.Operation?.TargetMethod.Name is
+                "RequireAuthorization" or "AllowAnonymous")
+            .Select(target =>
+                $"{target.Operation!.TargetMethod.Name}(" +
+                string.Join(
+                    ",",
+                    target.Invocation.ArgumentList.Arguments.Select(argument =>
+                        argument.Expression
+                            .NormalizeWhitespace()
+                            .ToFullString())) +
+                ")")
+            .Distinct(StringComparer.Ordinal)
         ];
     }
 

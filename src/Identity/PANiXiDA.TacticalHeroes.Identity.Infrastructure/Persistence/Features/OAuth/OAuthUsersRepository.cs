@@ -17,8 +17,8 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         .AsNoTracking()
         .Include(user => user.Claims)
         .Include(user => user.Roles)
-        .ThenInclude(userRole => userRole.Role)
-        .ThenInclude(role => role!.Claims)
+            .ThenInclude(userRole => userRole.Role)
+                .ThenInclude(role => role!.Claims)
         .AsSingleQuery();
 
     public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(

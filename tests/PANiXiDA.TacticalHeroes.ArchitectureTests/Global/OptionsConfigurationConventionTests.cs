@@ -224,7 +224,7 @@ public sealed class OptionsConfigurationConventionTests
         }
 
         foreach (var registration in optionsRegistrations
-            .Where(registration => !registration.UsesValidateOnStart))
+                     .Where(registration => !registration.UsesValidateOnStart))
         {
             yield return $"{optionsType.FullName} registration at " +
                          $"'{registration.SourceLocation}' must call " +
@@ -288,8 +288,8 @@ public sealed class OptionsConfigurationConventionTests
             .GetRoot();
 
         foreach (var invocation in syntaxRoot
-            .DescendantNodes()
-            .OfType<InvocationExpressionSyntax>())
+                     .DescendantNodes()
+                     .OfType<InvocationExpressionSyntax>())
         {
             var genericName = GetInvokedGenericName(invocation);
 
