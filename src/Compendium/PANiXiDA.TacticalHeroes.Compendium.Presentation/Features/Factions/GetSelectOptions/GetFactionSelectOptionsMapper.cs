@@ -1,5 +1,4 @@
 using PANiXiDA.Core.Application.Querying.Limiting;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 
 using Riok.Mapperly.Abstractions;
@@ -16,6 +15,4 @@ internal static partial class GetFactionSelectOptionsMapper
 
     internal static partial IReadOnlyList<FactionSelectOptionResponse> ToResponse(
         IReadOnlyList<FactionSelectOptionReadModel> options);
-
-    private static partial FactionsFilter ToFilter(GetFactionSelectOptionsRequest request);
 }

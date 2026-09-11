@@ -1,4 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Common.Filters;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
 using Riok.Mapperly.Abstractions;
@@ -12,8 +11,6 @@ internal static partial class GetUsersMapper
     internal static partial GetUsersQuery ToQuery(
         GetUsersRequest request,
         PaginationParameters pagination);
-
-    private static partial UsersFilter ToFilter(GetUsersRequest request);
 
     internal static partial PaginationResult<UserListItemResponse> ToResponse(
         PaginationResult<UserListItemReadModel> page);
