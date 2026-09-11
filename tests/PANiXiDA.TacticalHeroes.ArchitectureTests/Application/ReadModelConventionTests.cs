@@ -15,11 +15,11 @@ public sealed class ReadModelConventionTests
     [Fact(DisplayName = "Read models should use sealed record declarations without class or struct when declared")]
     public async Task ReadModels_Should_UseSealedRecordDeclarations_When_Declared()
     {
-        var readModels = await ProductionSourceDocumentDiscovery.GetItemsAsync(async (_, document) =>
+        var readModels = await ProductionSourceDocumentDiscovery.GetItemsAsync<INamedTypeSymbol>(async (_, document) =>
         {
             if (document.Project.AssemblyName?.EndsWith(ApplicationAssemblySuffix, StringComparison.Ordinal) != true)
             {
-                return Array.Empty<INamedTypeSymbol>();
+                return [];
             }
 
             var syntaxRoot = await document.GetSyntaxRootAsync();
@@ -29,15 +29,14 @@ public sealed class ReadModelConventionTests
 
             return syntaxRoot is null || semanticModel is null
                 ? []
-                : syntaxRoot.DescendantNodes()
+                : [.. syntaxRoot.DescendantNodes()
                     .OfType<TypeDeclarationSyntax>()
                     .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
                     .OfType<INamedTypeSymbol>()
                     .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct &&
                         (type.Name.EndsWith(ReadModelSuffix, StringComparison.Ordinal) ||
                          type.AllInterfaces.Any(contract =>
-                             SymbolEqualityComparer.Default.Equals(contract, readModelContract))))
-                    .ToArray();
+                             SymbolEqualityComparer.Default.Equals(contract, readModelContract))))];
         });
         var violations = readModels
             .Where(type => !type.IsRecord || type.TypeKind != TypeKind.Class || !type.IsSealed ||
