@@ -4,7 +4,7 @@ using Riok.Mapperly.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetSelectOptions;
 
-[Mapper(IncludedConstructors = MemberVisibility.All)]
+[Mapper]
 internal static partial class GetFactionSelectOptionsMapper
 {
     internal static partial GetFactionSelectOptionsQuery ToQuery(GetFactionSelectOptionsRequest request);

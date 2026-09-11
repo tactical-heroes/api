@@ -7,7 +7,8 @@ public sealed class GetFactionSelectOptionsQueryValidator : AbstractValidator<Ge
         RuleFor(query => query.Limit)
             .InclusiveBetween(1, 100);
 
-        RuleFor(query => query.Search)
-            .MaximumLength(128);
+        RuleFor(query => query.Search == null ? null : query.Search.Trim())
+            .Length(3, 128)
+            .OverridePropertyName(nameof(GetFactionSelectOptionsQuery.Search));
     }
 }

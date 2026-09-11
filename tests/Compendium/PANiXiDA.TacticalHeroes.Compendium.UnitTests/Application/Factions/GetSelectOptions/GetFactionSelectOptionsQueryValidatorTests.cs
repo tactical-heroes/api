@@ -29,7 +29,7 @@ public sealed class GetFactionSelectOptionsQueryValidatorTests
 
     [Theory(DisplayName = "Validate should accept query when parameters are valid")]
     [InlineData(null, 1)]
-    [InlineData("", 100)]
+    [InlineData("nor", 100)]
     [InlineData(" north ", 20)]
     public void Validate_Should_AcceptQuery_When_ParametersAreValid(string? search, int limit)
     {
@@ -38,5 +38,20 @@ public sealed class GetFactionSelectOptionsQueryValidatorTests
         var result = validator.Validate(new GetFactionSelectOptionsQuery(search, limit));
 
         result.IsValid.ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "Validate should reject search when trimmed search is shorter than three characters")]
+    [InlineData("")]
+    [InlineData("n")]
+    [InlineData("no")]
+    [InlineData("   ")]
+    [InlineData(" no ")]
+    public void Validate_Should_RejectSearch_When_TrimmedSearchIsShorterThanThreeCharacters(string search)
+    {
+        var validator = new GetFactionSelectOptionsQueryValidator();
+
+        var result = validator.Validate(new GetFactionSelectOptionsQuery(search, 20));
+
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(GetFactionSelectOptionsQuery.Search));
     }
 }

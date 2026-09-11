@@ -7,8 +7,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GetFactionSelectOptions should return matching options when search and limit are supplied")]
-    public async Task GetFactionSelectOptions_Should_ReturnMatchingOptions_When_SearchAndLimitAreSupplied()
+    [Theory(DisplayName = "GetFactionSelectOptions should return matching options when search and limit are supplied")]
+    [InlineData(" ALLiance ")]
+    [InlineData("nor")]
+    public async Task GetFactionSelectOptions_Should_ReturnMatchingOptions_When_SearchAndLimitAreSupplied(string search)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
@@ -16,7 +18,7 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var northern = await client.CreateAsync(cancellationToken, new CreateFactionRequest("Northern Alliance", "North."));
         await client.CreateAsync(cancellationToken, new CreateFactionRequest("Empire", "An alliance."));
 
-        using var response = await Fixture.Client.GetAsync("/api/v1/factions/select-options?search=%20ALLiance%20&limit=1", cancellationToken);
+        using var response = await Fixture.Client.GetAsync($"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}&limit=1", cancellationToken);
         var options = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -54,6 +56,23 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var cancellationToken = TestContext.Current.CancellationToken;
 
         using var response = await Fixture.Client.GetAsync($"/api/v1/factions/select-options?limit={limit}", cancellationToken);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        problem.GetProperty("errors").EnumerateObject().ShouldNotBeEmpty();
+    }
+
+    [Theory(DisplayName = "GetFactionSelectOptions should return validation problem when trimmed search is shorter than three characters")]
+    [InlineData("")]
+    [InlineData("n")]
+    [InlineData("no")]
+    [InlineData("   ")]
+    [InlineData(" no ")]
+    public async Task GetFactionSelectOptions_Should_ReturnValidationProblem_When_TrimmedSearchIsShorterThanThreeCharacters(string search)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        using var response = await Fixture.Client.GetAsync($"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}", cancellationToken);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
