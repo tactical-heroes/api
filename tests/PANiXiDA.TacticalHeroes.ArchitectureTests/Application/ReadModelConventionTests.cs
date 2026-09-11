@@ -12,8 +12,8 @@ public sealed class ReadModelConventionTests
     private const string ApplicationAssemblySuffix = ".Application";
     private const string ReadModelSuffix = "ReadModel";
 
-    [Fact(DisplayName = "Read models should be records when declared")]
-    public async Task ReadModels_Should_BeRecords_When_Declared()
+    [Fact(DisplayName = "Read models should use sealed record declarations without class or struct when declared")]
+    public async Task ReadModels_Should_UseSealedRecordDeclarations_When_Declared()
     {
         var readModels = await ProductionSourceDocumentDiscovery.GetItemsAsync(async (_, document) =>
         {
@@ -40,8 +40,11 @@ public sealed class ReadModelConventionTests
                     .ToArray();
         });
         var violations = readModels
-            .Where(type => !type.IsRecord)
-            .Select(type => $"{type.ToDisplayString()} must be a record.")
+            .Where(type => !type.IsRecord || type.TypeKind != TypeKind.Class || !type.IsSealed ||
+                type.DeclaringSyntaxReferences.Any(reference =>
+                    reference.GetSyntax() is RecordDeclarationSyntax declaration &&
+                    declaration.ClassOrStructKeyword.RawKind != 0))
+            .Select(type => $"{type.ToDisplayString()} must use 'sealed record' without 'class' or 'struct'.")
             .ToArray();
 
         Assert.NotEmpty(readModels);

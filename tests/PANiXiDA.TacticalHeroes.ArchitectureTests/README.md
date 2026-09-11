@@ -223,10 +223,14 @@ repository и query handler реализуют `IReadModel`; коллекции,
     каждого `IQueryHandler<,>` должен реализовывать `IReadModel`. Допускаются
     обёртки `Task`, `Result`, коллекции и модели пагинации.
 
-`ReadModels_Should_BeRecords_When_Declared` — каждый класс или структура слоя
+`ReadModels_Should_UseSealedRecordDeclarations_When_Declared` — каждый класс или структура слоя
 Application с суффиксом `ReadModel` или реализацией `IReadModel` должен быть
-`record`. Проверка использует семантическую модель Roslyn и учитывает
-унаследованные интерфейсы.
+объявлен как `sealed record`, без явного `class` и без `struct`. Проверка
+использует семантическую модель Roslyn и учитывает унаследованные интерфейсы.
+
+`Filters_Should_UseSealedRecordDeclarations_When_Declared` — то же правило для
+всех Application-типов с суффиксом `Filter` или реализацией `IFilter`, включая
+фильтры вне стандартных папок агрегатов.
 
 39. `ReadRepositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
     наследующий `IReadRepository<>`, должен называться

@@ -7,6 +7,30 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 
 public sealed class AggregateFilterConventionTests
 {
+    [Fact(DisplayName = "Filters should use sealed record declarations without class or struct when declared")]
+    public async Task Filters_Should_UseSealedRecordDeclarations_When_Declared()
+    {
+        var sourceTypes = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetApplicationTypesAsync);
+        var filters = sourceTypes
+            .Select(source => source.Type)
+            .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct &&
+                (type.Name.EndsWith("Filter", StringComparison.Ordinal) ||
+                 type.AllInterfaces.Any(contract =>
+                     contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Filtering.IFilter" &&
+                     contract.ContainingAssembly.Name == "PANiXiDA.Core.Application")))
+            .ToArray();
+        var violations = filters
+            .Where(type => !type.IsRecord || type.TypeKind != TypeKind.Class || !type.IsSealed ||
+                type.DeclaringSyntaxReferences.Any(reference =>
+                    reference.GetSyntax() is RecordDeclarationSyntax declaration &&
+                    declaration.ClassOrStructKeyword.RawKind != 0))
+            .Select(type => $"{type.ToDisplayString()} must use 'sealed record' without 'class' or 'struct'.")
+            .ToArray();
+
+        Assert.NotEmpty(filters);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
     [Fact(DisplayName = "Aggregate roots should have common filter records and validators when declared")]
     public async Task AggregateRoots_Should_HaveCommonFilterRecordsAndValidators_When_Declared()
     {
