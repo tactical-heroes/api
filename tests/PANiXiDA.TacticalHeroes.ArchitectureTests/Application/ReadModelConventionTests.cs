@@ -1,5 +1,9 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
 using PANiXiDA.Core.Application.Querying;
+using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 
@@ -7,6 +11,47 @@ public sealed class ReadModelConventionTests
 {
     private const string ApplicationAssemblySuffix = ".Application";
     private const string ReadModelSuffix = "ReadModel";
+
+    [Fact(DisplayName = "Read models should use sealed record declarations without class or struct when declared")]
+    public async Task ReadModels_Should_UseSealedRecordDeclarations_When_Declared()
+    {
+        var readModels = await ProductionSourceDocumentDiscovery.GetItemsAsync<INamedTypeSymbol>(async (_, document) =>
+        {
+            if (document.Project.AssemblyName?.EndsWith(ApplicationAssemblySuffix, StringComparison.Ordinal) != true)
+            {
+                return [];
+            }
+
+            var syntaxRoot = await document.GetSyntaxRootAsync();
+            var semanticModel = await document.GetSemanticModelAsync();
+            var readModelContract = semanticModel?.Compilation.GetTypeByMetadataName(
+                "PANiXiDA.Core.Application.Querying.IReadModel");
+
+            return syntaxRoot is null || semanticModel is null
+                ? []
+                : [.. syntaxRoot.DescendantNodes()
+                    .OfType<TypeDeclarationSyntax>()
+                    .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
+                    .OfType<INamedTypeSymbol>()
+                    .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct &&
+                        (type.Name.EndsWith(ReadModelSuffix, StringComparison.Ordinal) ||
+                         type.AllInterfaces.Any(contract =>
+                             SymbolEqualityComparer.Default.Equals(contract, readModelContract))))];
+        });
+        var violations = readModels
+            .Where(type => !type.IsRecord || type.TypeKind != TypeKind.Class || !type.IsSealed ||
+                type.DeclaringSyntaxReferences.Any(reference =>
+                    reference.GetSyntax() is RecordDeclarationSyntax declaration &&
+                    declaration.ClassOrStructKeyword.RawKind != 0))
+            .Select(type => $"{type.ToDisplayString()} must use 'sealed record' without 'class' or 'struct'.")
+            .ToArray();
+
+        Assert.NotEmpty(readModels);
+        Assert.True(
+            violations.Length == 0,
+            $"Read model record violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
 
     [Fact(DisplayName = "Read models should end with ReadModel when declared")]
     public void ReadModels_Should_EndWithReadModel_When_Declared()
