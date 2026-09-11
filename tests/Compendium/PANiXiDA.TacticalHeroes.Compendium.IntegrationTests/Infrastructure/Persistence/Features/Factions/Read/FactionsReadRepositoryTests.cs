@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
@@ -24,7 +25,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
-        var options = await repository.GetSelectOptionsAsync(search, 1, cancellationToken);
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(search), 1, cancellationToken);
 
         options.ShouldHaveSingleItem();
         options[0].Id.ShouldBe(northern.Id.Value);
@@ -44,7 +45,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
-        var options = await repository.GetSelectOptionsAsync(search, 20, cancellationToken);
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(search), 20, cancellationToken);
 
         options.Select(option => option.Name).ShouldBe(["Northern Alliance", "Southern Alliance"]);
     }
@@ -57,7 +58,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
-        var options = await repository.GetSelectOptionsAsync("Northern", 20, cancellationToken);
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter("Northern"), 20, cancellationToken);
 
         options.ShouldBeEmpty();
     }

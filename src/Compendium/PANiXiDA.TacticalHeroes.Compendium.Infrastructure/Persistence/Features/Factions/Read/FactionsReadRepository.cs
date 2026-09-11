@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
@@ -19,20 +20,12 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         Order: SortOrder.Ascending);
 
     public Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
-        string? search,
+        FactionsFilter filter,
         int limit,
         CancellationToken cancellationToken)
     {
-        var query = Query;
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(faction =>
-                EF.Functions.ILike(
-                    matchExpression: faction.Name,
-                    pattern: $"%{search.Trim()}%"));
-        }
-
-        query = query.OrderBy(faction => faction.Name)
+        var query = ApplyFilter(Query, filter)
+            .OrderBy(faction => faction.Name)
             .ThenBy(faction => faction.Id)
             .Take(limit);
 
@@ -58,5 +51,20 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         return GetByIdAsync<FactionDetailsReadModel, FactionDetailsReadModelMapper>(
             id: id,
             cancellationToken: cancellationToken);
+    }
+
+    private static IQueryable<FactionReadDbModel> ApplyFilter(
+        IQueryable<FactionReadDbModel> query,
+        FactionsFilter filter)
+    {
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            query = query.Where(faction =>
+                EF.Functions.ILike(
+                    matchExpression: faction.Name,
+                    pattern: $"%{filter.Search.Trim()}%"));
+        }
+
+        return query;
     }
 }

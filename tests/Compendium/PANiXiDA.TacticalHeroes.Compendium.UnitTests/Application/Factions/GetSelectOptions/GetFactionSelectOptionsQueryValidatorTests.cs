@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetSelectOptions;
@@ -12,19 +13,29 @@ public sealed class GetFactionSelectOptionsQueryValidatorTests
     {
         var validator = new GetFactionSelectOptionsQueryValidator();
 
-        var result = validator.Validate(new GetFactionSelectOptionsQuery(null, limit));
+        var result = validator.Validate(new GetFactionSelectOptionsQuery(new FactionsFilter(), limit));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(GetFactionSelectOptionsQuery.Limit));
     }
 
-    [Fact(DisplayName = "Validate should reject search when search exceeds maximum length")]
-    public void Validate_Should_RejectSearch_When_SearchExceedsMaximumLength()
+    [Fact(DisplayName = "Validate should reject filter when filter is null")]
+    public void Validate_Should_RejectFilter_When_FilterIsNull()
     {
         var validator = new GetFactionSelectOptionsQueryValidator();
 
-        var result = validator.Validate(new GetFactionSelectOptionsQuery(new string('a', 129), 20));
+        var result = validator.Validate(new GetFactionSelectOptionsQuery(null!, 20));
 
-        result.Errors.ShouldContain(error => error.PropertyName == nameof(GetFactionSelectOptionsQuery.Search));
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(GetFactionSelectOptionsQuery.Filter));
+    }
+
+    [Fact(DisplayName = "Validate should apply filter rules when search is invalid")]
+    public void Validate_Should_ApplyFilterRules_When_SearchIsInvalid()
+    {
+        var validator = new GetFactionSelectOptionsQueryValidator();
+
+        var result = validator.Validate(new GetFactionSelectOptionsQuery(new FactionsFilter(" no "), 20));
+
+        result.Errors.ShouldContain(error => error.PropertyName == "Filter.Search");
     }
 
     [Theory(DisplayName = "Validate should accept query when parameters are valid")]
@@ -35,23 +46,8 @@ public sealed class GetFactionSelectOptionsQueryValidatorTests
     {
         var validator = new GetFactionSelectOptionsQueryValidator();
 
-        var result = validator.Validate(new GetFactionSelectOptionsQuery(search, limit));
+        var result = validator.Validate(new GetFactionSelectOptionsQuery(new FactionsFilter(search), limit));
 
         result.IsValid.ShouldBeTrue();
-    }
-
-    [Theory(DisplayName = "Validate should reject search when trimmed search is shorter than three characters")]
-    [InlineData("")]
-    [InlineData("n")]
-    [InlineData("no")]
-    [InlineData("   ")]
-    [InlineData(" no ")]
-    public void Validate_Should_RejectSearch_When_TrimmedSearchIsShorterThanThreeCharacters(string search)
-    {
-        var validator = new GetFactionSelectOptionsQueryValidator();
-
-        var result = validator.Validate(new GetFactionSelectOptionsQuery(search, 20));
-
-        result.Errors.ShouldContain(error => error.PropertyName == nameof(GetFactionSelectOptionsQuery.Search));
     }
 }

@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Filters;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 
 using Riok.Mapperly.Abstractions;
@@ -7,7 +8,12 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetS
 [Mapper]
 internal static partial class GetFactionSelectOptionsMapper
 {
-    internal static partial GetFactionSelectOptionsQuery ToQuery(GetFactionSelectOptionsRequest request);
+    internal static GetFactionSelectOptionsQuery ToQuery(GetFactionSelectOptionsRequest request)
+    {
+        return new GetFactionSelectOptionsQuery(
+            new FactionsFilter(request.Search),
+            request.Limit);
+    }
 
     internal static partial IReadOnlyList<FactionSelectOptionResponse> ToResponse(
         IReadOnlyList<FactionSelectOptionReadModel> options);

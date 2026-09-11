@@ -10,7 +10,7 @@ public sealed class GetFactionSelectOptionsHandler(IFactionsReadRepository facti
         CancellationToken cancellationToken)
     {
         IReadOnlyList<FactionSelectOptionReadModel> options = await factionsReadRepository.GetSelectOptionsAsync(
-            search: query.Search,
+            filter: query.Filter,
             limit: query.Limit,
             cancellationToken: cancellationToken);
 
