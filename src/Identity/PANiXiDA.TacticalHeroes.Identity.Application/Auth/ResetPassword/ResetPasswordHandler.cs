@@ -10,9 +10,9 @@ public sealed class ResetPasswordHandler(IUserCredentialsService userCredentials
         CancellationToken cancellationToken)
     {
         return userCredentialsService.ResetPasswordAsync(
-            command.UserId,
-            command.PasswordResetToken,
-            command.NewPassword,
-            cancellationToken);
+            userId: command.UserId,
+            passwordResetToken: command.PasswordResetToken,
+            newPassword: command.NewPassword,
+            cancellationToken: cancellationToken);
     }
 }

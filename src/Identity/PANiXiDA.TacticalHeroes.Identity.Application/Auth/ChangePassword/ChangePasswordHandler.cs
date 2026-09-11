@@ -10,9 +10,9 @@ public sealed class ChangePasswordHandler(IUserCredentialsService userCredential
         CancellationToken cancellationToken)
     {
         return userCredentialsService.ChangePasswordAsync(
-            command.UserId,
-            command.CurrentPassword,
-            command.NewPassword,
-            cancellationToken);
+            userId: command.UserId,
+            currentPassword: command.CurrentPassword,
+            newPassword: command.NewPassword,
+            cancellationToken: cancellationToken);
     }
 }

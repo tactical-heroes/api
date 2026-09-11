@@ -5,8 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
 using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
 using Wolverine;
 
@@ -31,6 +32,8 @@ public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
     private IHost _host = null!;
 
     public IMessageBus MessageBus => _host.Services.GetRequiredService<IMessageBus>();
+
+    public IEmailSender EmailSender => _host.Services.GetRequiredService<IEmailSender>();
 
     public async ValueTask InitializeAsync()
     {
@@ -61,7 +64,7 @@ public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
             .CreateDefaultBuilder()
             .ConfigureServices(services => services.AddInfrastructure(configuration))
             .UseWolverine();
-        hostBuilder.UseInfrastructure(configuration);
+        hostBuilder.UseInfrastructure();
 
         _host = hostBuilder.Build();
         await _host.StartAsync(TestContext.Current.CancellationToken);

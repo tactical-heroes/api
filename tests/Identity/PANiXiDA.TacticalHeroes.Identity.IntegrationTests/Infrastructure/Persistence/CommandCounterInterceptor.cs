@@ -29,7 +29,7 @@ public sealed class CommandCounterInterceptor : DbCommandInterceptor
         DbCommand command,
         CommandEventData eventData,
         InterceptionResult<DbDataReader> result,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref _count);
 

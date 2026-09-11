@@ -5,8 +5,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetStatus
 
 public sealed class GetUserStatusesHandlerTests
 {
-    [Fact(DisplayName = "HandleAsync should return all user statuses")]
-    public async Task HandleAsync_Should_ReturnAllUserStatuses()
+    [Fact(DisplayName = "HandleAsync should return all user statuses when query is handled")]
+    public async Task HandleAsync_Should_ReturnAllUserStatuses_When_QueryIsHandled()
     {
         var handler = new GetUserStatusesHandler();
 

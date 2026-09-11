@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class UnblockUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST user unblock should persist active status")]
+    [Fact(DisplayName = "POST user unblock should persist active status when user is blocked")]
     public async Task UnblockUser_Should_PersistActiveStatus_When_UserIsBlocked()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

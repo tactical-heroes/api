@@ -12,14 +12,14 @@ using Wolverine;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
-internal sealed class FunctionalTestWebApplicationFactory
+internal sealed class FunctionalTestWebApplicationFactory(string environmentName = "Test")
     : WebApplicationFactory<Program>
 {
     public CapturingEventBus EventBus { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Test");
+        builder.UseEnvironment(environmentName);
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
         {

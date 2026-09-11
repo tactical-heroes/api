@@ -1,10 +1,8 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
@@ -17,26 +15,15 @@ public sealed class RolesRepository(
     RoleManager<ApplicationRole> roleManager,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
-    : IRolesWriteRepository
+    : IRolesRepository
 {
     public async Task<Result<Guid>> AddAsync(
-        string name,
-        IReadOnlyCollection<Claim> claims,
+        Role role,
         CancellationToken cancellationToken)
     {
-        var roleResult = Role.Create(
-            id: Guid.NewGuid(),
-            name: name,
-            claims: claims.Select(claim => (claim.Type, claim.Value)));
-
-        if (roleResult.IsFailure)
-        {
-            return Result.Failure<Guid>(errors: roleResult.Errors);
-        }
-
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationRole = ApplicationRoleMapper.ToDbModel(
-            role: roleResult.Value,
+            role: role,
             createdAt: nowUtc,
             updatedAt: nowUtc);
 
@@ -47,30 +34,18 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        aggregateTracker.Track(roleResult.Value);
+        aggregateTracker.Track(role);
 
         return Result.Success(value: applicationRole.Id);
     }
 
     public async Task<Result> UpdateAsync(
-        Guid id,
-        string name,
-        IReadOnlyCollection<Claim> claims,
+        Role role,
         CancellationToken cancellationToken)
     {
-        var roleResult = Role.Create(
-            id: id,
-            name: name,
-            claims: claims.Select(claim => (claim.Type, claim.Value)));
-
-        if (roleResult.IsFailure)
-        {
-            return Result.Failure(errors: roleResult.Errors);
-        }
-
         var applicationRole = await roleManager.Roles
-            .Include(role => role.Claims)
-            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
+            .Include(item => item.Claims)
+            .SingleOrDefaultAsync(item => item.Id == role.Id.Value, cancellationToken);
 
         if (applicationRole is null)
         {
@@ -78,12 +53,12 @@ public sealed class RolesRepository(
         }
 
         ApplicationRoleMapper.MapToDbModel(
-            role: roleResult.Value,
+            role: role,
             dbModel: applicationRole,
             updatedAt: timeProvider.GetUtcNow().UtcDateTime);
         SyncClaims(
             applicationRole: applicationRole,
-            role: roleResult.Value);
+            role: role);
 
         var identityResult = await roleManager.UpdateAsync(applicationRole);
 
@@ -92,7 +67,7 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(roleResult.Value);
+        aggregateTracker.Track(role);
 
         return Result.Success();
     }

@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Login;
 
 public sealed class LoginCommandValidatorTests
 {
-    [Fact(DisplayName = "Login validator should accept valid input")]
+    [Fact(DisplayName = "Login validator should accept valid input when command is valid")]
     public void Validate_Should_ReturnValidResult_When_CommandIsValid()
     {
         var validator = new LoginCommandValidator();
@@ -14,7 +14,7 @@ public sealed class LoginCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Login validator should reject invalid input")]
+    [Fact(DisplayName = "Login validator should reject invalid input when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new LoginCommandValidator();

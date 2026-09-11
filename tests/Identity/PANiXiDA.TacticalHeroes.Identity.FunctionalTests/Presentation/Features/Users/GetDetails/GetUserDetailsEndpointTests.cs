@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetUserDetailsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET user details should return persisted user state")]
+    [Fact(DisplayName = "GET user details should return persisted user state when user exists")]
     public async Task GetUserDetails_Should_ReturnUser_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

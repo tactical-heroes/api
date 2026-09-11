@@ -18,6 +18,7 @@
         <Using Include="PANiXiDA.Core.Domain.AggregateRoots" />
         <Using Include="PANiXiDA.Core.Domain.DomainEvents" />
         <Using Include="PANiXiDA.Core.Domain.Entities" />
+        <Using Include="PANiXiDA.Core.Domain.Identifiers" />
 
         <Using Include="PANiXiDA.Core.SpecificationPattern.Abstractions" />
         <Using Include="PANiXiDA.Core.SpecificationPattern.Core" />

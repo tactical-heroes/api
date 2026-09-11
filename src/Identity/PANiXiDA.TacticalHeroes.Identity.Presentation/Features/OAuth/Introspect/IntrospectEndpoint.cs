@@ -24,10 +24,10 @@ internal sealed class IntrospectEndpoint : IEndpoint<OAuthEndpoints>
     private static ProblemHttpResult Handle()
     {
         return TypedResults.Problem(
-            title: "OpenIddict introspection endpoint was not handled.",
             detail: $"The {OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Introspection)} " +
                 "route must be intercepted by the OpenIddict server pipeline. " +
                 "If this fallback endpoint is executed, OpenIddict introspection endpoint configuration is broken.",
-            statusCode: StatusCodes.Status500InternalServerError);
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "OpenIddict introspection endpoint was not handled.");
     }
 }

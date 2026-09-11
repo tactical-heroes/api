@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ForgotPass
 
 public sealed class ForgotPasswordHandlerTests
 {
-    [Fact(DisplayName = "Forgot password handler should delegate reset request to credentials service")]
+    [Fact(DisplayName = "Forgot password handler should delegate reset request to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var service = Substitute.For<IUserCredentialsService>();

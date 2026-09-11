@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Login;
 
 public sealed class LoginHandlerTests
 {
-    [Fact(DisplayName = "Login handler should delegate authentication to credentials service")]
+    [Fact(DisplayName = "Login handler should delegate authentication to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnAuthenticatedUser_When_CredentialsServiceSucceeds()
     {
         var authenticatedUser = new AuthenticatedUserReadModel(

@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetDetail
 
 public sealed class GetRoleDetailsQueryValidatorTests
 {
-    [Fact(DisplayName = "Role details validator should reject an empty role id")]
+    [Fact(DisplayName = "Role details validator should reject an empty role id when role id is empty")]
     public void Validate_Should_ReturnError_When_RoleIdIsEmpty()
     {
         var validator = new GetRoleDetailsQueryValidator();

@@ -10,9 +10,9 @@ public sealed class RegisterUserHandler(IUserCredentialsService userCredentialsS
         CancellationToken cancellationToken)
     {
         return userCredentialsService.RegisterAsync(
-            command.Email,
-            command.UserName,
-            command.Password,
-            cancellationToken);
+            email: command.Email,
+            userName: command.UserName,
+            password: command.Password,
+            cancellationToken: cancellationToken);
     }
 }

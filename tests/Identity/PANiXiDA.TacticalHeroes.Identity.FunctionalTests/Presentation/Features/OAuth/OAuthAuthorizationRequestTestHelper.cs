@@ -31,7 +31,7 @@ internal static class OAuthAuthorizationRequestTestHelper
             });
     }
 
-    internal static async Task<CreateUserResponse> CreateConfirmedUserAsync(
+    internal static Task<CreateUserResponse> CreateConfirmedUserAsync(
         FunctionalTestFixture fixture,
         string email,
         string userName,
@@ -40,7 +40,7 @@ internal static class OAuthAuthorizationRequestTestHelper
     {
         var api = new UserApiTestClient(fixture);
 
-        return await api.CreateAsync(
+        return api.CreateAsync(
             cancellationToken,
             UserApiTestClient.CreateDefaultRequest(
                 email,
@@ -54,12 +54,14 @@ internal static class OAuthAuthorizationRequestTestHelper
     internal static async Task<string> BuildAuthorizePathFromParAsync(
         HttpClient client,
         IReadOnlyCollection<string> scopes,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string redirectUri = RedirectUri)
     {
         var requestUri = await PushAuthorizationRequestAsync(
             client,
             scopes,
-            cancellationToken);
+            cancellationToken,
+            redirectUri);
 
         return BuildAuthorizePath(requestUri);
     }
@@ -67,7 +69,8 @@ internal static class OAuthAuthorizationRequestTestHelper
     internal static async Task<string> PushAuthorizationRequestAsync(
         HttpClient client,
         IReadOnlyCollection<string> scopes,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string redirectUri = RedirectUri)
     {
         using var response = await client.PostAsync(
             ParPath,
@@ -76,7 +79,7 @@ internal static class OAuthAuthorizationRequestTestHelper
                 {
                     [OpenIddictConstants.Parameters.ResponseType] = OpenIddictConstants.ResponseTypes.Code,
                     [OpenIddictConstants.Parameters.ClientId] = ClientId,
-                    [OpenIddictConstants.Parameters.RedirectUri] = RedirectUri,
+                    [OpenIddictConstants.Parameters.RedirectUri] = redirectUri,
                     [OpenIddictConstants.Parameters.Scope] = string.Join(' ', scopes),
                     [OpenIddictConstants.Parameters.State] = "functional-test-state",
                     [OpenIddictConstants.Parameters.CodeChallenge] = CodeChallenge,

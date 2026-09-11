@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class IntrospectEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST OAuth introspect should report a persisted access token as active")]
+    [Fact(DisplayName = "POST OAuth introspect should report a persisted access token as active when access token is valid")]
     public async Task PostIntrospect_Should_ReturnActiveToken_When_AccessTokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

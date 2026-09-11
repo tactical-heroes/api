@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <IncludeTestAssembly>false</IncludeTestAssembly>
+  <ExcludeAssembliesWithoutSources>MissingAll</ExcludeAssembliesWithoutSources>
+  <CodeCoverage>
+    <ModulePaths>
+      <Exclude>
+        <ModulePath>.*[\\/]PANiXiDA\.TacticalHeroes\..*Tests\.dll$</ModulePath>
+        <ModulePath>.*[\\/]PANiXiDA\.TacticalHeroes\.Testing\.dll$</ModulePath>
+      </Exclude>
+    </ModulePaths>
+    <Sources>
+      <Exclude>
+        <Source>.*[\\/]obj[\\/].*</Source>
+        <Source>.*[\\/]Internal[\\/]Generated[\\/].*</Source>
+        <Source>.*[\\/]Migrations[\\/].*</Source>
+      </Exclude>
+    </Sources>
+    <Attributes>
+      <Exclude>
+        <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+      </Exclude>
+    </Attributes>
+  </CodeCoverage>
+</Configuration>

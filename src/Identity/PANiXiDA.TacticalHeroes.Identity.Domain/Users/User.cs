@@ -1,5 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
@@ -12,84 +13,65 @@ public sealed class User : AggregateRoot<UserId>
 
     private User(
         UserId id,
-        Email email)
+        Email email,
+        UserName userName,
+        UserStatus status)
         : base(id)
     {
         Email = email;
+        UserName = userName;
+        Status = status;
         ConfirmationStatus = UserConfirmationStatus.Unconfirmed();
     }
 
     public Email Email { get; private set; }
+    public UserName UserName { get; private set; }
+    public UserStatus Status { get; private set; }
     public UserConfirmationStatus ConfirmationStatus { get; private set; }
 
     public IReadOnlyCollection<RoleId> RoleIds => _roleIds;
     public IReadOnlyCollection<UserClaim> Claims => _claims;
 
-    public static Result<User> Register(string email)
+    public static User Register(
+        Email email,
+        UserName userName)
     {
-        var emailResult = Email.Create(value: email);
-
-        if (emailResult.IsFailure)
-        {
-            return Result.Failure<User>(errors: emailResult.Errors);
-        }
-
-        var user = new User(
+        return new User(
             id: UserId.New(),
-            email: emailResult.Value);
-
-        return Result.Success(value: user);
+            email: email,
+            userName: userName,
+            status: UserStatus.Active);
     }
 
-    internal static Result<User> Create(
-        Guid id,
-        string email,
-        bool confirmationStatus,
-        IEnumerable<Guid> roleIds,
-        IEnumerable<(string Type, string Value)> claims)
+    public static User Create(
+        UserId id,
+        Email email,
+        UserName userName,
+        UserStatus status,
+        UserConfirmationStatus confirmationStatus,
+        IEnumerable<RoleId> roleIds,
+        IEnumerable<UserClaim> claims)
     {
-        var idResult = UserId.Create(value: id);
-        var emailResult = Email.Create(value: email);
-        var validationResult = Result.Combine(idResult, emailResult);
-
-        if (validationResult.IsFailure)
+        var user = new User(id: id, email: email, userName: userName, status: status)
         {
-            return Result.Failure<User>(errors: validationResult.Errors);
-        }
-
-        var user = new User(
-            id: idResult.Value,
-            email: emailResult.Value)
-        {
-            ConfirmationStatus = UserConfirmationStatus.From(isConfirmed: confirmationStatus)
+            ConfirmationStatus = confirmationStatus
         };
 
         foreach (var roleId in roleIds)
         {
-            var assignRoleResult = user.AssignRole(roleId);
-
-            if (assignRoleResult.IsFailure)
-            {
-                return Result.Failure<User>(errors: assignRoleResult.Errors);
-            }
+            user.AssignRole(roleId);
         }
 
         foreach (var claim in claims)
         {
-            var grantClaimResult = user.GrantClaim(claim.Type, claim.Value);
-
-            if (grantClaimResult.IsFailure)
-            {
-                return Result.Failure<User>(errors: grantClaimResult.Errors);
-            }
+            user.GrantClaim(claim);
         }
 
-        return Result.Success(value: user);
+        return user;
     }
 
     public Result RequestEmailConfirmation(
-        string confirmationToken,
-        DateTimeOffset expiresAtUtc)
+        UserActionToken confirmationToken)
     {
         if (ConfirmationStatus.IsConfirmed)
         {
@@ -100,8 +82,8 @@ public sealed class User : AggregateRoot<UserId>
             new EmailConfirmationRequested(
                 UserId: Id.Value,
                 Email: Email.Value,
-                ConfirmationToken: confirmationToken,
-                ExpiresAtUtc: expiresAtUtc));
+                ConfirmationToken: confirmationToken.Value,
+                ExpiresAtUtc: confirmationToken.ExpiresAtUtc));
 
         return Result.Success();
     }
@@ -124,8 +106,7 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     public Result RequestPasswordReset(
-        string passwordResetToken,
-        DateTimeOffset expiresAtUtc)
+        UserActionToken passwordResetToken)
     {
         if (!ConfirmationStatus.IsConfirmed)
         {
@@ -137,49 +118,27 @@ public sealed class User : AggregateRoot<UserId>
             new PasswordResetRequested(
                 UserId: Id.Value,
                 Email: Email.Value,
-                PasswordResetToken: passwordResetToken,
-                ExpiresAtUtc: expiresAtUtc));
+                PasswordResetToken: passwordResetToken.Value,
+                ExpiresAtUtc: passwordResetToken.ExpiresAtUtc));
 
         return Result.Success();
     }
 
-    public Result AssignRole(Guid roleId)
+    public void AssignRole(RoleId roleId)
     {
-        var roleIdResult = RoleId.Create(value: roleId);
-
-        if (roleIdResult.IsFailure)
+        if (!_roleIds.Contains(roleId))
         {
-            return Result.Failure(errors: roleIdResult.Errors);
+            _roleIds.Add(roleId);
         }
-
-        if (_roleIds.Contains(roleIdResult.Value))
-        {
-            return Result.Success();
-        }
-
-        _roleIds.Add(roleIdResult.Value);
-
-        return Result.Success();
     }
 
-    public Result GrantClaim(string type, string value)
+    public void GrantClaim(UserClaim claim)
     {
-        var claimResult = UserClaim.Create(type: type, value: value);
-
-        if (claimResult.IsFailure)
+        if (_claims.Any(existing => existing.Type == claim.Type && existing.Value == claim.Value))
         {
-            return Result.Failure(errors: claimResult.Errors);
+            return;
         }
 
-        if (_claims.Any(claim =>
-                claim.Type == claimResult.Value.Type &&
-                claim.Value == claimResult.Value.Value))
-        {
-            return Result.Success();
-        }
-
-        _claims.Add(claimResult.Value);
-
-        return Result.Success();
+        _claims.Add(claim);
     }
 }

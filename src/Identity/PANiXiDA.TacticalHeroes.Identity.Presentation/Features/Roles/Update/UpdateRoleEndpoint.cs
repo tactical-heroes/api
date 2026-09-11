@@ -10,7 +10,7 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPut(Handle)
+        builder.MapPut(HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -18,7 +18,7 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
             .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         Guid id,
         UpdateRoleRequest request,
         IMediator mediator,

@@ -5,13 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
 
@@ -22,7 +22,8 @@ internal static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         serviceCollection.TryAddScoped<IAggregateTracker, AggregateTracker>();
-        serviceCollection.TryAddScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>();
+        serviceCollection.TryAddKeyedScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>(
+            typeof(IdentityWriteDbContext));
 
         serviceCollection.AddDbContext<IdentityWriteDbContext>(options =>
         {
@@ -37,8 +38,8 @@ internal static class ServiceCollectionExtensions
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });
-        serviceCollection.AddScoped<IUsersWriteRepository, UsersWriteRepository>();
-        serviceCollection.AddScoped<IRolesWriteRepository, RolesRepository>();
+        serviceCollection.AddScoped<IUsersRepository, UsersRepository>();
+        serviceCollection.AddScoped<IRolesRepository, RolesRepository>();
 
         return serviceCollection;
     }

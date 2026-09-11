@@ -2,14 +2,14 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 
-public sealed class GetUserDetailsHandler(IUsersReadRepository usersRepository)
+public sealed class GetUserDetailsHandler(IUsersReadRepository usersReadRepository)
     : IQueryHandler<GetUserDetailsQuery, Result<UserDetailsReadModel>>
 {
     public async Task<Result<UserDetailsReadModel>> HandleAsync(
         GetUserDetailsQuery query,
         CancellationToken cancellationToken)
     {
-        var user = await usersRepository.GetDetailsByIdAsync(
+        var user = await usersReadRepository.GetDetailsByIdAsync(
             id: query.Id,
             cancellationToken: cancellationToken);
 

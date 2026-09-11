@@ -23,10 +23,10 @@ internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
     private static ProblemHttpResult Handle()
     {
         return TypedResults.Problem(
-            title: "OpenIddict revoke endpoint was not handled.",
             detail: $"The {OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.Revocation)} " +
                 "route must be intercepted by the OpenIddict server pipeline. " +
                 "If this fallback endpoint is executed, OpenIddict revocation endpoint configuration is broken.",
-            statusCode: StatusCodes.Status500InternalServerError);
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "OpenIddict revoke endpoint was not handled.");
     }
 }

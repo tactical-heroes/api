@@ -3,7 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class BlockUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST user block should persist blocked status")]
+    [Fact(DisplayName = "POST user block should persist blocked status when user exists")]
     public async Task BlockUser_Should_PersistBlockedStatus_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

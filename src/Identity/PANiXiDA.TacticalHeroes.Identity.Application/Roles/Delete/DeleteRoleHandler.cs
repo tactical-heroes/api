@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Delete;
 
-public sealed class DeleteRoleHandler(IRolesWriteRepository rolesRepository)
+public sealed class DeleteRoleHandler(IRolesRepository rolesRepository)
     : ICommandHandler<DeleteRoleCommand, Result>
 {
     public Task<Result> HandleAsync(

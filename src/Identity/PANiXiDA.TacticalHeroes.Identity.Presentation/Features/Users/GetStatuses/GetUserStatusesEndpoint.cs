@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetStatuses;
 
 internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
@@ -12,17 +10,17 @@ internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .Produces<IReadOnlyCollection<UserStatusResponse>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetUserStatusesQuery(),
+            GetUserStatusesMapper.ToQuery(),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: statuses =>

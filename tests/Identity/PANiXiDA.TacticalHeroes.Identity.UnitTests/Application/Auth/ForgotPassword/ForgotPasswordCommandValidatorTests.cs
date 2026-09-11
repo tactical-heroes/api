@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ForgotPass
 
 public sealed class ForgotPasswordCommandValidatorTests
 {
-    [Fact(DisplayName = "Forgot password validator should accept a valid email")]
+    [Fact(DisplayName = "Forgot password validator should accept a valid email when email is valid")]
     public void Validate_Should_ReturnValidResult_When_EmailIsValid()
     {
         var validator = new ForgotPasswordCommandValidator();
@@ -14,7 +14,7 @@ public sealed class ForgotPasswordCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Forgot password validator should reject an invalid email")]
+    [Fact(DisplayName = "Forgot password validator should reject an invalid email when email is invalid")]
     public void Validate_Should_ReturnError_When_EmailIsInvalid()
     {
         var validator = new ForgotPasswordCommandValidator();

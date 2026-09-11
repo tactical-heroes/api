@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.ExchangeT
 
 public sealed class ExchangeTokenHandlerTests
 {
-    [Fact(DisplayName = "Exchange token handler should query the OAuth users repository")]
+    [Fact(DisplayName = "Exchange token handler should query the OAuth users repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnTokenModel_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();

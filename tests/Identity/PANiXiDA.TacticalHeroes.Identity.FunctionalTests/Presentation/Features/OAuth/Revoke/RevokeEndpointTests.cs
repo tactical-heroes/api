@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST OAuth revoke should invalidate a persisted access token")]
+    [Fact(DisplayName = "POST OAuth revoke should invalidate a persisted access token when user info is requested")]
     public async Task PostRevoke_Should_RejectRevokedToken_When_UserInfoIsRequested()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

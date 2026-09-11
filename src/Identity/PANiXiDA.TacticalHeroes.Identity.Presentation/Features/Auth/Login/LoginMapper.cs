@@ -2,9 +2,9 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 
-using Riok.Mapperly.Abstractions;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+
+using Riok.Mapperly.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 

@@ -7,11 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine" />
         <PackageReference Include="PANiXiDA.Core.Observability" />
         <PackageReference Include="PANiXiDA.Core.Presentation.Http" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Application\PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
+        <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Contracts\PANiXiDA.TacticalHeroes.Compendium.Contracts.csproj" />
+        <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
+        <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
+        <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Presentation\PANiXiDA.TacticalHeroes.Compendium.Presentation.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />

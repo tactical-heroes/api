@@ -1,0 +1,19 @@
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
+
+public sealed class GetFactionSelectOptionsHandler(IFactionsReadRepository factionsReadRepository)
+    : IQueryHandler<GetFactionSelectOptionsQuery, Result<IReadOnlyList<FactionSelectOptionReadModel>>>
+{
+    public async Task<Result<IReadOnlyList<FactionSelectOptionReadModel>>> HandleAsync(
+        GetFactionSelectOptionsQuery query,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<FactionSelectOptionReadModel> options = await factionsReadRepository.GetSelectOptionsAsync(
+            filter: query.Filter,
+            limit: query.Limit,
+            cancellationToken: cancellationToken);
+
+        return Result.Success(value: options);
+    }
+}

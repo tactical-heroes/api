@@ -7,7 +7,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Scheduling.Cleanup;
 
@@ -25,8 +25,8 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
         second: 0,
         offset: TimeSpan.Zero);
 
-    [Fact(DisplayName = "Prune unconfirmed users should delete only stale unconfirmed users")]
-    public async Task PruneUnconfirmedUsersJob_Should_DeleteOnlyStaleUnconfirmedUsers()
+    [Fact(DisplayName = "Prune unconfirmed users should delete only stale unconfirmed users when cleanup is enabled")]
+    public async Task PruneUnconfirmedUsersJob_Should_DeleteOnlyStaleUnconfirmedUsers_When_CleanupIsEnabled()
     {
         var staleUnconfirmedUser = CreateUser(email: "stale-unconfirmed@example.com");
         var recentUnconfirmedUser = CreateUser(email: "recent-unconfirmed@example.com");
@@ -77,7 +77,7 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
     }
 
     [Fact(DisplayName = "Prune unconfirmed users should not delete users when cleanup is disabled")]
-    public async Task PruneUnconfirmedUsersJob_Should_NotDeleteUsers_WhenCleanupIsDisabled()
+    public async Task PruneUnconfirmedUsersJob_Should_NotDeleteUsers_When_CleanupIsDisabled()
     {
         var staleUnconfirmedUser = CreateUser(email: "disabled-cleanup@example.com");
 
@@ -135,7 +135,7 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
         };
     }
 
-    private static Task SetCreatedAtAsync(
+    private static Task<int> SetCreatedAtAsync(
         IdentityWriteDbContext dbContext,
         ApplicationUser user,
         DateTimeOffset createdAtUtc)

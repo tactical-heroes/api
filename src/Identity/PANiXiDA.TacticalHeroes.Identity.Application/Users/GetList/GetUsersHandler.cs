@@ -2,15 +2,15 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
-public sealed class GetUsersHandler(IUsersReadRepository usersRepository)
+public sealed class GetUsersHandler(IUsersReadRepository usersReadRepository)
     : IQueryHandler<GetUsersQuery, Result<PaginationResult<UserListItemReadModel>>>
 {
     public async Task<Result<PaginationResult<UserListItemReadModel>>> HandleAsync(
         GetUsersQuery query,
         CancellationToken cancellationToken)
     {
-        var users = await usersRepository.GetPagedAsync(
-            email: query.Email,
+        var users = await usersReadRepository.GetPageAsync(
+            filter: query.Filter,
             pagination: query.Pagination,
             cancellationToken: cancellationToken);
 

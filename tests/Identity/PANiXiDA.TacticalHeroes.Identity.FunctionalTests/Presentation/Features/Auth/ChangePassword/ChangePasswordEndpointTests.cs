@@ -15,7 +15,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
 
-    [Fact(DisplayName = "POST auth change-password should persist the new password for the current user")]
+    [Fact(DisplayName = "POST auth change-password should persist the new password for the current user when access token is valid")]
     public async Task PostChangePassword_Should_ReplaceCurrentUserPassword_When_AccessTokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

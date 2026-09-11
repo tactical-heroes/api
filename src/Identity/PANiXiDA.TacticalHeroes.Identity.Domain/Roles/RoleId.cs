@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 
-public readonly record struct RoleId(Guid Value)
+public readonly record struct RoleId(Guid Value) : IStronglyTypedId
 {
     public static RoleId New()
     {

@@ -18,8 +18,8 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query")]
-    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery()
+    [Fact(DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query when user exists")]
+    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var role = new ApplicationRole
@@ -76,7 +76,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
-    [Fact(DisplayName = "Get user info should return identity state from PostgreSQL")]
+    [Fact(DisplayName = "Get user info should return identity state from PostgreSQL when user is available")]
     public async Task GetUserInfoByUserIdAsync_Should_ReturnIdentityState_When_UserIsAvailable()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -110,7 +110,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         result.Value.Roles.ShouldContain("operator");
     }
 
-    [Fact(DisplayName = "Get user info should reject a blocked user")]
+    [Fact(DisplayName = "Get user info should reject a blocked user when user is blocked")]
     public async Task GetUserInfoByUserIdAsync_Should_ReturnForbidden_When_UserIsBlocked()
     {
         var role = new ApplicationRole

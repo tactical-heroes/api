@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Unblock;
 
 internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
@@ -12,20 +10,20 @@ internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         Guid id,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            new UnblockUserCommand(Id: id),
+            UnblockUserMapper.ToCommand(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);

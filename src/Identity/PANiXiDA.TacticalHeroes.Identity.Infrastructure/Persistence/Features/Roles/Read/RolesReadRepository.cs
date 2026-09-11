@@ -15,7 +15,7 @@ public sealed class RolesReadRepository(IdentityReadDbContext dbContext) :
         Field: nameof(RoleReadDbModel.Name),
         Order: SortOrder.Ascending);
 
-    public Task<PaginationResult<RoleListItemReadModel>> GetPagedAsync(
+    public Task<PaginationResult<RoleListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken)
     {

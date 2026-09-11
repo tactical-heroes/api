@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Enumerations;
 
 public sealed class UserStatusTests
 {
-    [Theory(DisplayName = "User status should resolve a known name")]
+    [Theory(DisplayName = "User status should resolve a known name when name is known")]
     [InlineData("Active", false)]
     [InlineData("Blocked", true)]
     public void Create_Should_ReturnStatus_When_NameIsKnown(
@@ -17,7 +17,7 @@ public sealed class UserStatusTests
         result.Value.IsBlocked.ShouldBe(isBlocked);
     }
 
-    [Fact(DisplayName = "User status should trim a known name")]
+    [Fact(DisplayName = "User status should trim a known name when name is known")]
     public void Create_Should_TrimValue_When_NameIsKnown()
     {
         var result = UserStatus.Create("  Active  ");
@@ -26,7 +26,7 @@ public sealed class UserStatusTests
         result.Value.ShouldBe(UserStatus.Active);
     }
 
-    [Fact(DisplayName = "User status should reject an empty value")]
+    [Fact(DisplayName = "User status should reject an empty value when value is empty")]
     public void Create_Should_ReturnValidationFailure_When_ValueIsEmpty()
     {
         var result = UserStatus.Create("   ");
@@ -35,7 +35,7 @@ public sealed class UserStatusTests
             .ShouldHaveField(nameof(UserStatus));
     }
 
-    [Fact(DisplayName = "User status should reject an unknown value")]
+    [Fact(DisplayName = "User status should reject an unknown value when value is unknown")]
     public void Create_Should_ReturnValidationFailure_When_ValueIsUnknown()
     {
         var result = UserStatus.Create("Deleted");

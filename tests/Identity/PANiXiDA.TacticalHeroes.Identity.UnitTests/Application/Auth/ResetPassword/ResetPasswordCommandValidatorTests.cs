@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResetPassw
 
 public sealed class ResetPasswordCommandValidatorTests
 {
-    [Fact(DisplayName = "Reset password validator should accept valid input")]
+    [Fact(DisplayName = "Reset password validator should accept valid input when command is valid")]
     public void Validate_Should_ReturnValidResult_When_CommandIsValid()
     {
         var validator = new ResetPasswordCommandValidator();
@@ -15,7 +15,7 @@ public sealed class ResetPasswordCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Reset password validator should reject invalid input")]
+    [Fact(DisplayName = "Reset password validator should reject invalid input when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new ResetPasswordCommandValidator();

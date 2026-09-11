@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
@@ -18,7 +17,7 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapMethods([HttpMethods.Get, HttpMethods.Post], Handle)
+        builder.MapMethods([HttpMethods.Get, HttpMethods.Post], HandleAsync)
             .RequireAuthorization(
                 new AuthorizeAttribute
                 {
@@ -28,7 +27,7 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         ClaimsPrincipal user,
         IMediator mediator,
         CancellationToken cancellationToken)
@@ -41,7 +40,7 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var result = await mediator.QueryAsync(
-            new GetUserInfoQuery(UserId: userIdResult.Value),
+            GetUserInfoMapper.ToQuery(userId: userIdResult.Value),
             cancellationToken);
 
         if (result.IsFailure)

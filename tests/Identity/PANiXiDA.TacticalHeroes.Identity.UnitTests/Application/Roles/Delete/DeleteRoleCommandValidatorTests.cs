@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Delete;
 
 public sealed class DeleteRoleCommandValidatorTests
 {
-    [Fact(DisplayName = "Delete role validator should reject an empty role id")]
+    [Fact(DisplayName = "Delete role validator should reject an empty role id when role id is empty")]
     public void Validate_Should_ReturnError_When_RoleIdIsEmpty()
     {
         var validator = new DeleteRoleCommandValidator();

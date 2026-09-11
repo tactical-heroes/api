@@ -11,7 +11,7 @@ internal static class AllowedRedirectUrlValidator
         string fieldName)
     {
         if (string.IsNullOrWhiteSpace(url) ||
-            !IsValid(url, httpContext, allowedPath))
+            !IsValid(url: url, httpContext: httpContext, allowedPath: allowedPath))
         {
             return Result.Failure(
                 error: Error.Validation(message: "Return URL is invalid.")

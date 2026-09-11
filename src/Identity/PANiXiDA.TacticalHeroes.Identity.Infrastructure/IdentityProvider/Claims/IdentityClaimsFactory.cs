@@ -9,37 +9,44 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claim
 
 internal static class IdentityClaimsFactory
 {
-    private static readonly string SecurityStampClaimType =
+    private static readonly string DefaultSecurityStampClaimType =
         new IdentityOptions().ClaimsIdentity.SecurityStampClaimType;
 
     internal static IReadOnlyCollection<Claim> Create(
         ApplicationUser user,
         IdentityOptions identityOptions)
     {
+        var additionalClaims = user.Claims
+            .Select(claim => (claim.ClaimType, claim.ClaimValue))
+            .Concat(user.Roles.SelectMany(userRole =>
+                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+
         return Create(
             id: user.Id,
             userName: user.UserName,
             email: user.Email,
             securityStamp: user.SecurityStamp,
             securityStampClaimType: identityOptions.ClaimsIdentity.SecurityStampClaimType,
-            userClaims: user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
-            roleClaims: user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+            additionalClaims: additionalClaims);
     }
 
-    internal static IReadOnlyCollection<Claim> Create(UserReadDbModel user)
+    internal static IReadOnlyCollection<Claim> Create(
+        UserReadDbModel user)
     {
+        var additionalClaims = user.Claims
+            .Select(claim => (claim.ClaimType, claim.ClaimValue))
+            .Concat(user.Roles.SelectMany(userRole =>
+                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+
         return Create(
             id: user.Id,
             userName: user.UserName,
             email: user.Email,
             securityStamp: user.SecurityStamp,
-            securityStampClaimType: SecurityStampClaimType,
-            userClaims: user.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)),
+            securityStampClaimType: DefaultSecurityStampClaimType,
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
-            roleClaims: user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+            additionalClaims: additionalClaims);
     }
 
     private static IReadOnlyCollection<Claim> Create(
@@ -48,25 +55,23 @@ internal static class IdentityClaimsFactory
         string? email,
         string? securityStamp,
         string securityStampClaimType,
-        IEnumerable<(string? Type, string? Value)> userClaims,
         IEnumerable<string?> roleNames,
-        IEnumerable<(string? Type, string? Value)> roleClaims)
+        IEnumerable<(string? Type, string? Value)> additionalClaims)
     {
         var claims = new List<Claim>
         {
             new(type: OpenIddictConstants.Claims.Subject, value: id.ToString())
         };
 
-        AddIfPresent(claims, OpenIddictConstants.Claims.Name, userName);
-        AddIfPresent(claims, OpenIddictConstants.Claims.Email, email);
-        AddIfPresent(claims, securityStampClaimType, securityStamp);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Name, value: userName);
+        AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Email, value: email);
+        AddIfPresent(claims: claims, type: securityStampClaimType, value: securityStamp);
 
         claims.AddRange(
             roleNames
                 .Where(roleName => !string.IsNullOrWhiteSpace(roleName))
                 .Select(roleName => new Claim(type: OpenIddictConstants.Claims.Role, value: roleName!)));
-        claims.AddRange(ToClaims(claims: userClaims));
-        claims.AddRange(ToClaims(claims: roleClaims));
+        claims.AddRange(ToClaims(claims: additionalClaims));
 
         return [.. claims.Distinct(IdentityClaimComparer.Instance)];
     }

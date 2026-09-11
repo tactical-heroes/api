@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ConfirmEma
 
 public sealed class ConfirmEmailCommandValidatorTests
 {
-    [Fact(DisplayName = "Confirm email validator should accept valid input")]
+    [Fact(DisplayName = "Confirm email validator should accept valid input when command is valid")]
     public void Validate_Should_ReturnValidResult_When_CommandIsValid()
     {
         var validator = new ConfirmEmailCommandValidator();
@@ -15,7 +15,7 @@ public sealed class ConfirmEmailCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Confirm email validator should reject invalid input")]
+    [Fact(DisplayName = "Confirm email validator should reject invalid input when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new ConfirmEmailCommandValidator();

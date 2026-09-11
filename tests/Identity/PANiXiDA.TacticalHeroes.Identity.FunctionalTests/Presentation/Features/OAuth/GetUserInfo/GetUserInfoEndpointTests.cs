@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetUserInfoEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET OAuth userinfo should return persisted user claims for an access token")]
+    [Fact(DisplayName = "GET OAuth userinfo should return persisted user claims for an access token when access token is valid")]
     public async Task GetUserInfo_Should_ReturnCurrentUser_When_AccessTokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

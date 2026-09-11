@@ -7,8 +7,9 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthSpa;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthToken;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
 
@@ -20,13 +21,13 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found)
             .Produces(StatusCodes.Status403Forbidden);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         [AsParameters] AuthorizeRequest request,
         HttpContext httpContext,
         IMediator mediator,
@@ -59,7 +60,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var userResult = await mediator.QueryAsync(
-            new GetUserDetailsQuery(Id: userIdResult.Value),
+            AuthorizeMapper.ToQuery(id: userIdResult.Value),
             httpContext.RequestAborted);
 
         if (userResult.IsFailure ||

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetDetails;
 
 internal sealed class GetUserDetailsEndpoint : IEndpoint<UsersEndpoints>
@@ -11,20 +10,20 @@ internal sealed class GetUserDetailsEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .Produces<GetUserDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         Guid id,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetUserDetailsQuery(Id: id),
+            GetUserDetailsMapper.ToQuery(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: user =>

@@ -16,7 +16,7 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
@@ -24,17 +24,17 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
             .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         LoginRequest request,
         HttpContext httpContext,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var returnUrlValidationResult = AllowedRedirectUrlValidator.Validate(
-            request.ReturnUrl,
-            httpContext,
-            GetAuthorizePath(),
-            nameof(LoginRequest.ReturnUrl));
+            url: request.ReturnUrl,
+            httpContext: httpContext,
+            allowedPath: GetAuthorizePath(),
+            fieldName: nameof(LoginRequest.ReturnUrl));
 
         if (returnUrlValidationResult.IsFailure)
         {

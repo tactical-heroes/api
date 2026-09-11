@@ -10,8 +10,8 @@ public sealed class ConfirmEmailHandler(IUserCredentialsService userCredentialsS
         CancellationToken cancellationToken)
     {
         return userCredentialsService.ConfirmEmailAsync(
-            command.UserId,
-            command.EmailConfirmationToken,
-            cancellationToken);
+            userId: command.UserId,
+            emailConfirmationToken: command.EmailConfirmationToken,
+            cancellationToken: cancellationToken);
     }
 }

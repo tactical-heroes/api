@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 
 public interface IRolesReadRepository : IReadRepository<Guid>
 {
-    Task<PaginationResult<RoleListItemReadModel>> GetPagedAsync(
+    Task<PaginationResult<RoleListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
         CancellationToken cancellationToken);
 

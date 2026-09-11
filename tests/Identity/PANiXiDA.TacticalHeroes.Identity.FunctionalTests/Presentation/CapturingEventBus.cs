@@ -1,7 +1,7 @@
+using System.Collections.Concurrent;
+
 using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.Core.Domain.DomainEvents;
-
-using System.Collections.Concurrent;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
@@ -14,6 +14,7 @@ internal sealed class CapturingEventBus : IEventBus
         CancellationToken cancellationToken)
         where TEvent : DomainEvent
     {
+        cancellationToken.ThrowIfCancellationRequested();
         _events.Enqueue(@event!);
 
         return Task.CompletedTask;

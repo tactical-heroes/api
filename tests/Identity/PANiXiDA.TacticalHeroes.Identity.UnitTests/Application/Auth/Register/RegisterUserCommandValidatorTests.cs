@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Register;
 
 public sealed class RegisterUserCommandValidatorTests
 {
-    [Fact(DisplayName = "Register validator should accept valid input")]
+    [Fact(DisplayName = "Register validator should accept valid input when command is valid")]
     public void Validate_Should_ReturnValidResult_When_CommandIsValid()
     {
         var validator = new RegisterUserCommandValidator();
@@ -15,7 +15,7 @@ public sealed class RegisterUserCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Register validator should reject invalid input")]
+    [Fact(DisplayName = "Register validator should reject invalid input when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new RegisterUserCommandValidator();

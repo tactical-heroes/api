@@ -9,7 +9,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
@@ -29,20 +29,19 @@ public sealed class UserCredentialsService(
         string password,
         CancellationToken cancellationToken)
     {
-        var userResult = User.Register(email: email);
+        var emailResult = Email.Create(value: email);
         var userNameResult = UserName.Create(value: userName);
-        var validationResult = Result.Combine(userResult, userNameResult);
+        var validationResult = Result.Combine(emailResult, userNameResult);
 
         if (validationResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
+        var user = User.Register(email: emailResult.Value, userName: userNameResult.Value);
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
-            user: userResult.Value,
-            userName: userNameResult.Value,
-            status: UserStatus.Active,
+            user: user,
             createdAt: nowUtc,
             updatedAt: nowUtc);
 
@@ -54,16 +53,23 @@ public sealed class UserCredentialsService(
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
-        var confirmationResult = userResult.Value.RequestEmailConfirmation(
-            confirmationToken,
-            timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+        var tokenResult = UserActionToken.Create(
+            value: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: tokenResult.Errors);
+        }
+
+        var confirmationResult = user.RequestEmailConfirmation(tokenResult.Value);
 
         if (confirmationResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: confirmationResult.Errors);
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(user);
 
         return Result.Success(value: applicationUser.Id);
     }
@@ -158,9 +164,9 @@ public sealed class UserCredentialsService(
         }
 
         var result = await userManager.ChangePasswordAsync(
-            applicationUser,
-            currentPassword,
-            newPassword);
+            user: applicationUser,
+            currentPassword: currentPassword,
+            newPassword: newPassword);
 
         return IdentityResultMapper.ToResult(result: result);
     }
@@ -231,9 +237,16 @@ public sealed class UserCredentialsService(
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
-        var confirmationResult = userResult.Value.RequestEmailConfirmation(
-            confirmationToken,
-            timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+        var tokenResult = UserActionToken.Create(
+            value: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure(errors: tokenResult.Errors);
+        }
+
+        var confirmationResult = userResult.Value.RequestEmailConfirmation(tokenResult.Value);
 
         if (confirmationResult.IsFailure)
         {
@@ -266,9 +279,16 @@ public sealed class UserCredentialsService(
         }
 
         var resetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
-        var requestResult = userResult.Value.RequestPasswordReset(
-            resetToken,
-            timeProvider.GetUtcNow().Add(options.Value.PasswordResetTokenLifetime));
+        var tokenResult = UserActionToken.Create(
+            value: resetToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.AccountRecoveryTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure(errors: tokenResult.Errors);
+        }
+
+        var requestResult = userResult.Value.RequestPasswordReset(tokenResult.Value);
 
         if (requestResult.IsFailure)
         {
@@ -304,9 +324,9 @@ public sealed class UserCredentialsService(
         }
 
         var result = await userManager.ResetPasswordAsync(
-            applicationUser,
-            passwordResetToken,
-            newPassword);
+            user: applicationUser,
+            token: passwordResetToken,
+            newPassword: newPassword);
 
         return IdentityResultMapper.ToResult(result: result);
     }

@@ -12,7 +12,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(HandleAsync)
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -21,7 +21,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         ChangePasswordRequest request,
         ClaimsPrincipal user,
         IMediator mediator,

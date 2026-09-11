@@ -5,8 +5,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class DiscoveryEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET OpenID configuration should expose the configured Identity endpoints")]
-    public async Task GetOpenIdConfiguration_Should_ReturnConfiguredEndpoints()
+    [Fact(DisplayName = "GET OpenID configuration should expose the configured Identity endpoints when requested")]
+    public async Task GetOpenIdConfiguration_Should_ReturnConfiguredEndpoints_When_Requested()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);

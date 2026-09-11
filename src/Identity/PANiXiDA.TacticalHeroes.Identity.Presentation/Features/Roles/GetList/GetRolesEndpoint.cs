@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetList;
 
 internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
@@ -12,19 +10,19 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(Handle)
+        builder.MapGet(HandleAsync)
             .Produces<PaginationResult<RoleListItemResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<IResult> Handle(
+    private static async Task<IResult> HandleAsync(
         [AsParameters] PaginationParameters pagination,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            new GetRolesQuery(Pagination: pagination),
+            GetRolesMapper.ToQuery(pagination: pagination),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>

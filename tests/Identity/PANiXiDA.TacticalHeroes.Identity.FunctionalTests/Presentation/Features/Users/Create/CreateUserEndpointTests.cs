@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST users should create a user in PostgreSQL")]
+    [Fact(DisplayName = "POST users should create a user in PostgreSQL when request is valid")]
     public async Task PostUsers_Should_PersistUser_When_RequestIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
