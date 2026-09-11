@@ -8,13 +8,12 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetS
 [Mapper]
 internal static partial class GetFactionSelectOptionsMapper
 {
-    internal static GetFactionSelectOptionsQuery ToQuery(GetFactionSelectOptionsRequest request)
-    {
-        return new GetFactionSelectOptionsQuery(
-            new FactionsFilter(request.Search),
-            request.Limit);
-    }
+    [MapPropertyFromSource(nameof(GetFactionSelectOptionsQuery.Filter))]
+    internal static partial GetFactionSelectOptionsQuery ToQuery(GetFactionSelectOptionsRequest request);
 
     internal static partial IReadOnlyList<FactionSelectOptionResponse> ToResponse(
         IReadOnlyList<FactionSelectOptionReadModel> options);
+
+    [MapperIgnoreSource(nameof(GetFactionSelectOptionsRequest.Limit))]
+    private static partial FactionsFilter ToFilter(GetFactionSelectOptionsRequest request);
 }
