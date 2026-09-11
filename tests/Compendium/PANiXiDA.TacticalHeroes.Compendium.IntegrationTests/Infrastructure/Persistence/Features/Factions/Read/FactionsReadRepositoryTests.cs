@@ -50,6 +50,25 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         options.Select(option => option.Name).ShouldBe(["Northern Alliance", "Southern Alliance"]);
     }
 
+    [Fact(DisplayName = "GetSelectOptionsAsync should sort by descending ID when faction names are equal")]
+    public async Task GetSelectOptionsAsync_Should_SortByDescendingId_When_FactionNamesAreEqual()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var factions = new[]
+        {
+            CreateFaction("Northern Alliance", "First."),
+            CreateFaction("Northern Alliance", "Second.")
+        }.OrderBy(faction => faction.Id.Value).ToArray();
+        await AddFactionsAsync(cancellationToken, factions);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(), 1, cancellationToken);
+
+        options.ShouldHaveSingleItem();
+        options[0].Id.ShouldBe(factions[1].Id.Value);
+    }
+
     [Fact(DisplayName = "GetSelectOptionsAsync should return empty options when no name matches")]
     public async Task GetSelectOptionsAsync_Should_ReturnEmptyOptions_When_NoNameMatches()
     {

@@ -24,10 +24,8 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         int limit,
         CancellationToken cancellationToken)
     {
-        var query = ApplyFilter(Query, filter)
-            .OrderBy(faction => faction.Name)
-            .ThenBy(faction => faction.Id)
-            .Take(limit);
+        var query = ApplyFilter(Query, filter);
+        query = ApplySort(query, Sort).Take(limit);
 
         return FactionSelectOptionReadModelMapper.ProjectTo(query)
             .ToListAsync(cancellationToken);
