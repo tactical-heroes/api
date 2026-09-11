@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.Core.Application.Querying.Limiting;
+
 namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetSelectOptions;
 
 internal sealed class GetFactionSelectOptionsEndpoint : IEndpoint<FactionsEndpoints>
@@ -17,11 +19,14 @@ internal sealed class GetFactionSelectOptionsEndpoint : IEndpoint<FactionsEndpoi
 
     private static async Task<IResult> HandleAsync(
         [AsParameters] GetFactionSelectOptionsRequest request,
+        [AsParameters] LimitParameters limit,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetFactionSelectOptionsMapper.ToQuery(request: request),
+            GetFactionSelectOptionsMapper.ToQuery(
+                request: request,
+                limit: limit),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: options =>

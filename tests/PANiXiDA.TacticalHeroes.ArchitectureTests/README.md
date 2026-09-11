@@ -250,7 +250,9 @@ repository и query handler реализуют `IReadModel`; коллекции,
 44. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
     — каждая конкретная реализация `IValidator<T>` в Application должна иметь
     отдельный непустой файл unit-тестов по пути, соответствующему её модулю,
-    namespace и имени.
+    namespace и имени. Это включает валидаторы фильтров: тест располагается в
+    `Application/<Aggregates>/Common/Filters/<Aggregates>FilterValidatorTests.cs`
+    и содержит хотя бы один `[Fact]` или `[Theory]` именно в этом файле.
 
 45. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
     command, query или event handler в сборках `.Application` должен быть
