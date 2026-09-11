@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 
 public interface IFactionsReadRepository : IReadRepository<Guid>
 {
-    Task<IReadOnlyList<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
+    Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
         string? search,
         int limit,
         CancellationToken cancellationToken);

@@ -10,7 +10,7 @@ public sealed class GetFactionSelectOptionsHandlerTests
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var repository = Substitute.For<IFactionsReadRepository>();
-        IReadOnlyList<FactionSelectOptionReadModel> options = [new(Guid.NewGuid(), "Northern Alliance")];
+        List<FactionSelectOptionReadModel> options = [new(Guid.NewGuid(), "Northern Alliance")];
         repository.GetSelectOptionsAsync("north", 10, cancellationToken).Returns(options);
         var handler = new GetFactionSelectOptionsHandler(repository);
 

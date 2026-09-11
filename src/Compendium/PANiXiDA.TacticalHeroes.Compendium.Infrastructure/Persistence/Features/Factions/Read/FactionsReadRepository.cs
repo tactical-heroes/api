@@ -18,7 +18,7 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         Field: nameof(FactionReadDbModel.Name),
         Order: SortOrder.Ascending);
 
-    public async Task<IReadOnlyList<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
+    public Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
         string? search,
         int limit,
         CancellationToken cancellationToken)
@@ -36,8 +36,8 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
             .ThenBy(faction => faction.Id)
             .Take(limit);
 
-        return await FactionSelectOptionReadModelMapper.ProjectTo(query)
-            .ToArrayAsync(cancellationToken);
+        return FactionSelectOptionReadModelMapper.ProjectTo(query)
+            .ToListAsync(cancellationToken);
     }
 
     public Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
