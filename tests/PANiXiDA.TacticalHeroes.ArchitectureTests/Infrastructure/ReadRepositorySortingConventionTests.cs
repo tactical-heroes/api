@@ -47,7 +47,7 @@ public sealed class ReadRepositorySortingConventionTests
             type.GetInterfaces().Any(contract => contract.IsGenericType &&
                 contract.GetGenericTypeDefinition() == typeof(IReadModelSorting<>)));
         var violations = sortingTypes.Where(type =>
-                type.GetProperty(nameof(IReadModelSorting<object>.DefaultSorting), BindingFlags.Public | BindingFlags.Static)
+                type.GetProperty(nameof(IReadModelSorting<>.DefaultSorting), BindingFlags.Public | BindingFlags.Static)
                     ?.GetValue(null) is not SortingParameters { HasSorting: true })
             .Select(type => $"{type.FullName}: DefaultSorting must contain at least one sorting field.")
             .ToArray();

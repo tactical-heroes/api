@@ -566,6 +566,74 @@ repository и query handler реализуют `IReadModel`; коллекции,
      setter и init-accessor запрещены независимо от видимости, включая
      private. Проверяются также статические и унаследованные свойства.
 
+## Пагинация и сортировка
+
+111. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
+     параметры методов типа `PaginationParameters` и `SortingParameters`
+     должны называться `paginationParameters` и `sortingParameters`.
+
+112. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
+     — соответствующие свойства Query должны называться `PaginationParameters`
+     и `SortingParameters`.
+
+113. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
+     — метод с параметром `PaginationParameters` обязан принимать и
+     `SortingParameters`. Требования возвращать `PaginationResult` нет:
+     правило допускает mapper-методы, создающие Query, и endpoints.
+
+114. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
+     — Query со свойством `PaginationParameters` обязана содержать свойство
+     `SortingParameters`.
+
+115. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
+     — у Query должен быть validator, подключающий `PaginationParametersValidator`
+     к свойству пагинации и `<ReadModel>SortingValidator` к свойству сортировки.
+     ReadModel определяется по результату Query; sorting-validator должен
+     наследовать `SortingParametersValidator`. Проверяется фактическое подключение
+     дочерних validators, а не только наличие их классов.
+
+## Применение маппинга и сортировки в read-репозиториях
+
+116. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
+     — публичные экземплярные методы и явные реализации интерфейсов
+     `IReadRepository<>` в Infrastructure, возвращающие коллекции, должны
+     применять `IReadModelSorting<TReadModel>` для типа элемента результата.
+     Учитываются обычные коллекции, массивы, `IAsyncEnumerable<>`, результаты
+     страничной и курсорной пагинации, обёртки `Task`, `ValueTask` и `Result`.
+     Проверяется применение `ApplySorting` либо подходящего sorter через
+     `GetPagedResultAsync` в цепочке возвращаемого результата: неиспользуемого
+     вызова сортировки недостаточно.
+
+117. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
+     реализации `IReadModelSorting<>` должны задавать непустой `DefaultSorting`.
+     Наличие `Id` и сортировка по нему не требуются. Уникальность итогового
+     порядка этот архитектурный тест не доказывает; для стабильной пагинации
+     её нужно обеспечивать подходящими полями конкретной модели и проверять
+     интеграционными тестами.
+
+118. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
+     — методы EF read-репозиториев, возвращающие ReadModel либо коллекцию,
+     должны применять соответствующий `IReadModelMapper<TId, TReadDbModel, TReadModel>`
+     через `ProjectTo`, `GetByIdAsync` или `GetPagedResultAsync`.
+     Проверяется совпадение всех трёх типов с репозиторием и его результатом,
+     а также использование маппинга в цепочке возвращаемого значения.
+     Это требование к проекциям EF read-репозиториев, а не ко всем ReadModel
+     приложения независимо от способа их создания.
+
+Правила 116 и 118 анализируют исходный код и поддерживаемые цепочки операций;
+они не являются доказательством поведения произвольного потока управления.
+Нейминг, `internal sealed` и размещение mapper/sorting описаны в пунктах 56–57.
+
+## Поиск через ILIKE
+
+119. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
+     `ILIKE` должны использовать именованные аргументы `matchExpression`
+     и `pattern`, а шаблон поиска — форму `$"%{value.Trim()}%"`.
+
+120. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
+     не должно быть избыточной явной проверки `matchExpression` на null;
+     используется обработка null в SQL.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
