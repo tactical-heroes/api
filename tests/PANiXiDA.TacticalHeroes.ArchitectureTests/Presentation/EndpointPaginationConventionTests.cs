@@ -49,11 +49,8 @@ public sealed class EndpointPaginationConventionTests
             var handler = invocation.ArgumentList.Arguments
                 .Select(argument => semanticModel.GetSymbolInfo(argument.Expression))
                 .SelectMany(info => info.Symbol is { } symbol ? [symbol] : info.CandidateSymbols)
-                .OfType<IMethodSymbol>().SingleOrDefault();
-            if (handler is null)
-            {
-                throw new InvalidOperationException($"{document.FilePath}: cannot resolve the handler for {invocation}.");
-            }
+                .OfType<IMethodSymbol>().SingleOrDefault()
+                ?? throw new InvalidOperationException($"{document.FilePath}: cannot resolve the handler for {invocation}.");
 
             var hasParameters = handler.Parameters.Any(parameter => parameter.Type.ToDisplayString() ==
                 "PANiXiDA.Core.Application.Querying.Pagination.PaginationParameters");
