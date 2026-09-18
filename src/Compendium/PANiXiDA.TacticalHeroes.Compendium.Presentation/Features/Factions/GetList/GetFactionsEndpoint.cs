@@ -22,7 +22,8 @@ internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetFactionsMapper.ToQuery(paginationParameters: paginationParameters,
+            GetFactionsMapper.ToQuery(
+                paginationParameters: paginationParameters,
                 sortingParameters: sortingParameters),
             cancellationToken);
 

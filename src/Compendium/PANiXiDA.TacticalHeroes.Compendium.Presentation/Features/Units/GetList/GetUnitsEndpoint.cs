@@ -22,7 +22,8 @@ internal sealed class GetUnitsEndpoint : IEndpoint<UnitsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetUnitsMapper.ToQuery(paginationParameters: paginationParameters,
+            GetUnitsMapper.ToQuery(
+                paginationParameters: paginationParameters,
                 sortingParameters: sortingParameters),
             cancellationToken);
 

@@ -22,7 +22,8 @@ internal sealed class GetHeroesEndpoint : IEndpoint<HeroesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetHeroesMapper.ToQuery(paginationParameters: paginationParameters,
+            GetHeroesMapper.ToQuery(
+                paginationParameters: paginationParameters,
                 sortingParameters: sortingParameters),
             cancellationToken);
 
