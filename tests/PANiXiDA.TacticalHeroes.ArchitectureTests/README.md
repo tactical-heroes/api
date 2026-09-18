@@ -630,6 +630,34 @@ repository и query handler реализуют `IReadModel`; коллекции,
      не должно быть избыточной явной проверки `matchExpression` на null;
      используется обработка null в SQL.
 
+## Согласованность входа и результата пагинации
+
+121. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
+     — в контрактах read-репозиториев и их реализациях метод принимает
+     `PaginationParameters` тогда и только тогда, когда возвращает
+     `PaginationResult<T>`. Проверяются публичные экземплярные методы и явные
+     реализации интерфейсов; обёртки `Task`, `ValueTask` и `Result` раскрываются.
+     Mapper-методы в этот охват не входят. Наличие `SortingParameters`
+     проверяется отдельно правилом 113.
+
+122. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
+     Query содержит свойство `PaginationParameters` тогда и только тогда,
+     когда результат её `IQuery<TResult>` — `PaginationResult<T>`, в том числе
+     внутри `Result`. Связь с `SortingParameters` проверяется правилом 114.
+
+123. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
+     — у `IQueryHandler<TQuery, TResult>` наличие `PaginationParameters`
+     во входной Query должно соответствовать `PaginationResult<T>` в результате
+     handler, с раскрытием технических обёрток.
+
+124. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
+     наличие `PaginationParameters` у обработчика, зарегистрированного через
+     `EndpointMapBuilder`, должно совпадать с декларацией
+     `Produces<PaginationResult<TResponse>>` и передачей
+     `PaginationResult<TResponse>` в `TypedResults.Ok` внутри обработчика.
+     Проверяется каждая регистрация маршрута. Это позволяет проверять текущие
+     endpoints с возвращаемым типом `Task<IResult>`, не раскрывающим HTTP body.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.

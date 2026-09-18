@@ -5,14 +5,84 @@ using FluentValidation;
 using FluentValidation.Validators;
 
 using PANiXiDA.Core.Application.Messaging.Mediator.Contracts;
+using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
+using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Querying;
 using PANiXiDA.Core.Application.Querying.Pagination;
 using PANiXiDA.Core.Application.Querying.Sorting;
+using PANiXiDA.Core.ResultPattern;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class PaginationConventionTests
 {
+    [Fact(DisplayName = "Read repositories should pair pagination parameters and results when methods are declared")]
+    public void ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared()
+    {
+        var methods = GetMethods().Where(method => !method.IsStatic &&
+            (method.IsPublic || method.IsPrivate && method.IsFinal) &&
+            method.DeclaringType!.GetInterfaces().Append(method.DeclaringType).Any(type =>
+                type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IReadRepository<>))).ToArray();
+        var violations = methods.Where(method =>
+                method.GetParameters().Any(parameter => parameter.ParameterType == typeof(PaginationParameters)) !=
+                IsPaginationResult(method.ReturnType))
+            .Select(method => $"{method.DeclaringType?.FullName}.{method.Name}: PaginationParameters and PaginationResult<T> must occur together.")
+            .ToArray();
+
+        Assert.NotEmpty(methods);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Queries should pair pagination parameters and results when declared")]
+    public void Queries_Should_PairPaginationParametersAndResults_When_Declared()
+    {
+        var queries = GetQueries().ToArray();
+        var violations = queries.SelectMany(query => query.GetInterfaces()
+                .Where(contract => contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQuery<>))
+                .Where(contract => HasPaginationParameters(query) != IsPaginationResult(contract.GetGenericArguments()[0]))
+                .Select(contract => $"{query.FullName}: PaginationParameters and {contract} must agree on pagination."))
+            .ToArray();
+
+        Assert.NotEmpty(queries);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Query handlers should pair query pagination parameters and results when declared")]
+    public void QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared()
+    {
+        var handlers = ArchitectureDefinition.ProductionAssemblies.SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type is { IsClass: true, IsAbstract: false })
+            .SelectMany(type => type.GetInterfaces()
+                .Where(contract => contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
+                .Select(contract => new { Type = type, Contract = contract })).ToArray();
+        var violations = handlers.Where(handler =>
+                HasPaginationParameters(handler.Contract.GetGenericArguments()[0]) !=
+                IsPaginationResult(handler.Contract.GetGenericArguments()[1]))
+            .Select(handler => $"{handler.Type.FullName}: query PaginationParameters and handler PaginationResult<T> must occur together.")
+            .ToArray();
+
+        Assert.NotEmpty(handlers);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    private static bool HasPaginationParameters(Type type)
+    {
+        return type.GetProperties().Any(property => property.PropertyType == typeof(PaginationParameters));
+    }
+
+    private static bool IsPaginationResult(Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            return false;
+        }
+
+        var definition = type.GetGenericTypeDefinition();
+        return definition == typeof(PaginationResult<>) ||
+            ((definition == typeof(Task<>) || definition == typeof(ValueTask<>) || definition == typeof(Result<>)) &&
+                IsPaginationResult(type.GetGenericArguments()[0]));
+    }
+
     [Theory(DisplayName = "Query validators should attach matching child validators when querying parameters are present")]
     [InlineData(typeof(PaginationParameters))]
     [InlineData(typeof(SortingParameters))]
