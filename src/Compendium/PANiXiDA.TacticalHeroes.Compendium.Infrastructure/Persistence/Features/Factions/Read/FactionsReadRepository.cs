@@ -22,11 +22,10 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         CancellationToken cancellationToken)
     {
         var query = ApplyFilter(Query, filter);
-        query = query
-            .OrderBy(faction => faction.Name)
-            .Take(limit.Limit);
+        var options = FactionSelectOptionReadModelMapper.ProjectTo(query);
 
-        return FactionSelectOptionReadModelMapper.ProjectTo(query)
+        return FactionSelectOptionReadModelSorting.ApplySorting(options, SortingParameters.None)
+            .Take(limit.Limit)
             .ToListAsync(cancellationToken);
     }
 
