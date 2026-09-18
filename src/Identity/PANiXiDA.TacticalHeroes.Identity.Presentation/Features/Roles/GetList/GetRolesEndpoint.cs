@@ -17,12 +17,15 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
     }
 
     private static async Task<IResult> HandleAsync(
-        [AsParameters] PaginationParameters pagination,
+        [AsParameters] PaginationParameters paginationParameters,
+        [AsParameters] SortingParameters sortingParameters,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetRolesMapper.ToQuery(pagination: pagination),
+            GetRolesMapper.ToQuery(
+                paginationParameters: paginationParameters,
+                sortingParameters: sortingParameters),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>

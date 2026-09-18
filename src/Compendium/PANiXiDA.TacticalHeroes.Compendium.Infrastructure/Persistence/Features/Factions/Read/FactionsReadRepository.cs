@@ -8,7 +8,9 @@ using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.Mappers;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read;
 
@@ -16,30 +18,28 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
     : EfReadRepository<CompendiumReadDbContext, Guid, FactionReadDbModel>(dbContext),
     IFactionsReadRepository
 {
-    private static readonly SortParameters Sort = new(
-        Field: nameof(FactionReadDbModel.Name),
-        Order: SortOrder.Ascending);
-
     public Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
         FactionsFilter filter,
         LimitParameters limit,
         CancellationToken cancellationToken)
     {
         var query = ApplyFilter(Query, filter);
-        query = ApplySort(query, Sort).Take(limit.Limit);
+        var options = FactionSelectOptionReadModelMapper.ProjectTo(query);
 
-        return FactionSelectOptionReadModelMapper.ProjectTo(query)
+        return FactionSelectOptionReadModelSorting.ApplySorting(options, SortingParameters.None)
+            .Take(limit.Limit)
             .ToListAsync(cancellationToken);
     }
 
     public Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
-        return GetPagedResultAsync<FactionListItemReadModel, FactionListItemReadModelMapper>(
+        return GetPagedResultAsync<FactionListItemReadModel, FactionListItemReadModelMapper, FactionListItemReadModelSorting>(
             query: Query,
-            paginationParameters: pagination,
-            sortParameters: Sort,
+            paginationParameters: paginationParameters,
+            sortingParameters: sortingParameters,
             cancellationToken: cancellationToken);
     }
 

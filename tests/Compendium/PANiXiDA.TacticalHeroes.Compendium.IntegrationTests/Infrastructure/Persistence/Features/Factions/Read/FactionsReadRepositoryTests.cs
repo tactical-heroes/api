@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Querying.Limiting;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
@@ -122,11 +123,33 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
         var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
+            SortingParameters.Descending(nameof(FactionListItemReadModel.Name)),
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name)
-            .ShouldBe(["Northern Alliance", "Southern Alliance"]);
+            .ShouldBe(["Southern Alliance", "Northern Alliance"]);
+    }
+
+    [Fact(DisplayName = "GetPageAsync should use descending identifiers across pages when faction names are equal")]
+    public async Task GetPageAsync_Should_UseDescendingIdentifiersAcrossPages_When_FactionNamesAreEqual()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var factions = new[]
+        {
+            CreateFaction("Alliance", "First."),
+            CreateFaction("Alliance", "Second.")
+        }.OrderBy(faction => faction.Id.Value).ToArray();
+        await AddFactionsAsync(cancellationToken, factions);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+        var sortingParameters = SortingParameters.Descending(nameof(FactionListItemReadModel.Name));
+
+        var firstPage = await repository.GetPageAsync(new PaginationParameters(1, 1), sortingParameters, cancellationToken);
+        var secondPage = await repository.GetPageAsync(new PaginationParameters(2, 1), sortingParameters, cancellationToken);
+
+        firstPage.Items.ShouldHaveSingleItem().Id.ShouldBe(factions[1].Id.Value);
+        secondPage.Items.ShouldHaveSingleItem().Id.ShouldBe(factions[0].Id.Value);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing faction when faction exists")]

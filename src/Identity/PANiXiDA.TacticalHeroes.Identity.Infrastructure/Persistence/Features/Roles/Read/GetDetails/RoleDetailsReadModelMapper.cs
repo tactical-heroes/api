@@ -3,7 +3,7 @@ using System.Security.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.GetDetails;
 
 internal sealed class RoleDetailsReadModelMapper
     : IReadModelMapper<Guid, RoleReadDbModel, RoleDetailsReadModel>

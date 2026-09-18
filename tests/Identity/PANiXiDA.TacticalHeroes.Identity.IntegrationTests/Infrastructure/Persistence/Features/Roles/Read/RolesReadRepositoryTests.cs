@@ -34,6 +34,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
         var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
+            SortingParameters.None,
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);

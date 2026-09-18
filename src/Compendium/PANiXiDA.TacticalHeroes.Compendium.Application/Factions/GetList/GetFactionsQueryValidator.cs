@@ -4,8 +4,12 @@ public sealed class GetFactionsQueryValidator : AbstractValidator<GetFactionsQue
 {
     public GetFactionsQueryValidator()
     {
-        RuleFor(query => query.Pagination)
+        RuleFor(query => query.PaginationParameters)
             .NotNull()
             .SetValidator(new PaginationParametersValidator());
+
+        RuleFor(query => query.SortingParameters)
+            .NotNull()
+            .SetValidator(new FactionListItemReadModelSortingValidator());
     }
 }

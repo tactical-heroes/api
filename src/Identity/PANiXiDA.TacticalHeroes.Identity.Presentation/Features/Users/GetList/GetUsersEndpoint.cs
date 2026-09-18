@@ -18,14 +18,16 @@ internal sealed class GetUsersEndpoint : IEndpoint<UsersEndpoints>
 
     private static async Task<IResult> HandleAsync(
         [AsParameters] GetUsersRequest request,
-        [AsParameters] PaginationParameters pagination,
+        [AsParameters] PaginationParameters paginationParameters,
+        [AsParameters] SortingParameters sortingParameters,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
             GetUsersMapper.ToQuery(
                 request: request,
-                pagination: pagination),
+                paginationParameters: paginationParameters,
+                sortingParameters: sortingParameters),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>

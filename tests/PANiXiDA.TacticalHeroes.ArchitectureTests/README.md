@@ -308,13 +308,19 @@ repository и query handler реализуют `IReadModel`; коллекции,
     реализация `IReadRepository<>` должна находиться непосредственно в
     `Persistence/Features/<AggregatePlural>/Read`.
 
-56. `ReadModelMappers_Should_EndWithReadModelMapper_When_Declared` — каждая
-    реализация `IReadModelMapper<,,>` должна оканчиваться на
-    `ReadModelMapper`.
+56. `ReadModelComponents_Should_MatchModelNames_When_Declared` — реализации
+    `IReadModelMapper<,,>` и `IReadModelSorting<>` должны называться точно
+    `<ReadModel>Mapper` и `<ReadModel>Sorting` соответственно.
+    `ReadModelComponents_Should_BeInternalSealedClasses_When_Declared` требует
+    для обеих реализаций верхнеуровневый `internal sealed class`.
 
-57. `ReadModelMappers_Should_ResideInAggregateReadMappersDirectories_When_Declared`
-    — реализации `IReadModelMapper<,,>` должны находиться в
-    `Persistence/Features/<AggregatePlural>/Read/Mappers`.
+57. `ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared`
+    — mapper и sorting должны находиться в
+    `Persistence/Features/<AggregatePlural>/Read/<Slice>`, где `<Slice>` —
+    папка соответствующей ReadModel в Application. Проверяются физические
+    пути и namespace. `ReadModelSorting_Should_ShareMapperDirectory_When_Declared`
+    дополнительно требует размещать sorting рядом с mapper той же ReadModel;
+    наличие sorting для одиночной модели не требуется.
 
 58. `ReadDatabaseModels_Should_EndWithReadDbModel_When_Declared` — каждый
     наследник `ReadDbModel<>` или `AuditableReadDbModel<>` должен оканчиваться
@@ -559,6 +565,98 @@ repository и query handler реализуют `IReadModel`; коллекции,
      — свойства VO и `Enumeration<>` должны иметь публичный getter. Любые
      setter и init-accessor запрещены независимо от видимости, включая
      private. Проверяются также статические и унаследованные свойства.
+
+## Пагинация и сортировка
+
+111. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
+     параметры методов типа `PaginationParameters` и `SortingParameters`
+     должны называться `paginationParameters` и `sortingParameters`.
+
+112. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
+     — соответствующие свойства Query должны называться `PaginationParameters`
+     и `SortingParameters`.
+
+113. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
+     — метод с параметром `PaginationParameters` обязан принимать и
+     `SortingParameters`. Требования возвращать `PaginationResult` нет:
+     правило допускает mapper-методы, создающие Query, и endpoints.
+
+114. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
+     — Query со свойством `PaginationParameters` обязана содержать свойство
+     `SortingParameters`.
+
+115. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
+     — у Query должен быть validator, подключающий `PaginationParametersValidator`
+     к свойству пагинации и `<ReadModel>SortingValidator` к свойству сортировки.
+     ReadModel определяется по результату Query; sorting-validator должен
+     наследовать `SortingParametersValidator`. Проверяется фактическое подключение
+     дочерних validators, а не только наличие их классов.
+
+## Применение маппинга и сортировки в read-репозиториях
+
+116. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
+     — публичные экземплярные методы и явные реализации интерфейсов
+     `IReadRepository<>` в Infrastructure, возвращающие коллекции, должны
+     применять `IReadModelSorting<TReadModel>` для типа элемента результата.
+     Учитываются обычные коллекции, массивы, `IAsyncEnumerable<>`, результаты
+     страничной и курсорной пагинации, обёртки `Task`, `ValueTask` и `Result`.
+     Проверяется применение `ApplySorting` либо подходящего sorter через
+     `GetPagedResultAsync` в цепочке возвращаемого результата: неиспользуемого
+     вызова сортировки недостаточно.
+
+117. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
+     реализации `IReadModelSorting<>` должны задавать непустой `DefaultSorting`.
+     Наличие `Id` и сортировка по нему не требуются. Уникальность итогового
+     порядка этот архитектурный тест не доказывает; для стабильной пагинации
+     её нужно обеспечивать подходящими полями конкретной модели и проверять
+     интеграционными тестами.
+
+118. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
+     — методы EF read-репозиториев, возвращающие ReadModel либо коллекцию,
+     должны применять соответствующий `IReadModelMapper<TId, TReadDbModel, TReadModel>`
+     через `ProjectTo`, `GetByIdAsync` или `GetPagedResultAsync`.
+     Проверяется совпадение всех трёх типов с репозиторием и его результатом,
+     а также использование маппинга в цепочке возвращаемого значения.
+     Это требование к проекциям EF read-репозиториев, а не ко всем ReadModel
+     приложения независимо от способа их создания.
+
+## Поиск через ILIKE
+
+119. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
+     `ILIKE` должны использовать именованные аргументы `matchExpression`
+     и `pattern`, а шаблон поиска — форму `$"%{value.Trim()}%"`.
+
+120. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
+     не должно быть избыточной явной проверки `matchExpression` на null;
+     используется обработка null в SQL.
+
+## Согласованность входа и результата пагинации
+
+121. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
+     — в контрактах read-репозиториев и их реализациях метод принимает
+     `PaginationParameters` тогда и только тогда, когда возвращает
+     `PaginationResult<T>`. Проверяются публичные экземплярные методы и явные
+     реализации интерфейсов; обёртки `Task`, `ValueTask` и `Result` раскрываются.
+     Mapper-методы в этот охват не входят. Наличие `SortingParameters`
+     проверяется отдельно правилом 113.
+
+122. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
+     Query содержит свойство `PaginationParameters` тогда и только тогда,
+     когда результат её `IQuery<TResult>` — `PaginationResult<T>`, в том числе
+     внутри `Result`. Связь с `SortingParameters` проверяется правилом 114.
+
+123. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
+     — у `IQueryHandler<TQuery, TResult>` наличие `PaginationParameters`
+     во входной Query должно соответствовать `PaginationResult<T>` в результате
+     handler, с раскрытием технических обёрток.
+
+124. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
+     наличие `PaginationParameters` у обработчика, зарегистрированного через
+     `EndpointMapBuilder`, должно совпадать с декларацией
+     `Produces<PaginationResult<TResponse>>` и передачей
+     `PaginationResult<TResponse>` в `TypedResults.Ok` внутри обработчика.
+     Проверяется каждая регистрация маршрута. Это позволяет проверять текущие
+     endpoints с возвращаемым типом `Task<IResult>`, не раскрывающим HTTP body.
 
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется

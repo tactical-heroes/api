@@ -61,6 +61,7 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
             .GetRequiredService<IHeroesReadRepository>();
         var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
+            SortingParameters.None,
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);

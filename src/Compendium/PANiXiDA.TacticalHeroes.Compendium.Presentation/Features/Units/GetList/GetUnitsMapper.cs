@@ -7,8 +7,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.GetList
 [Mapper(IncludedConstructors = MemberVisibility.All)]
 internal static partial class GetUnitsMapper
 {
+    [MapPropertyFromSource(nameof(GetUnitsQuery.PaginationParameters))]
     internal static partial GetUnitsQuery ToQuery(
-        PaginationParameters pagination);
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters);
 
     internal static partial PaginationResult<UnitListItemResponse> ToResponse(
         PaginationResult<UnitListItemReadModel> page);

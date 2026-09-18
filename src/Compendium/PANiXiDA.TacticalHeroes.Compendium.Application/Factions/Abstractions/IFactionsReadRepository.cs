@@ -14,7 +14,8 @@ public interface IFactionsReadRepository : IReadRepository<Guid>
         CancellationToken cancellationToken);
 
     Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken);
 
     Task<FactionDetailsReadModel?> GetDetailsByIdAsync(

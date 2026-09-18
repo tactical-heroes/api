@@ -10,7 +10,7 @@ public sealed class GetHeroesQueryValidatorTests
         var validator = new GetHeroesQueryValidator();
 
         var result = validator.Validate(
-            new GetHeroesQuery(new PaginationParameters(0, 0)));
+            new GetHeroesQuery(new PaginationParameters(0, 0), SortingParameters.None));
 
         result.Errors.ShouldContain(
             error => error.PropertyName.EndsWith(
@@ -23,15 +23,15 @@ public sealed class GetHeroesQueryValidatorTests
     }
 
     [Theory(DisplayName = "Validate should apply shared pagination rules when page size or offset exceeds bounds")]
-    [InlineData(1, 201, "Pagination.PageSize")]
-    [InlineData(int.MaxValue, 2, "Pagination.PageNumber")]
+    [InlineData(1, 201, "PaginationParameters.PageSize")]
+    [InlineData(int.MaxValue, 2, "PaginationParameters.PageNumber")]
     public void Validate_Should_ApplySharedPaginationRules_When_PageSizeOrOffsetExceedsBounds(
         int pageNumber, int pageSize, string propertyName)
     {
         var validator = new GetHeroesQueryValidator();
 
         var result = validator.Validate(
-            new GetHeroesQuery(new PaginationParameters(pageNumber, pageSize)));
+            new GetHeroesQuery(new PaginationParameters(pageNumber, pageSize), SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(propertyName);
     }
@@ -44,7 +44,7 @@ public sealed class GetHeroesQueryValidatorTests
         var validator = new GetHeroesQueryValidator();
 
         var result = validator.Validate(
-            new GetHeroesQuery(new PaginationParameters(1, pageSize)));
+            new GetHeroesQuery(new PaginationParameters(1, pageSize), SortingParameters.None));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -54,8 +54,8 @@ public sealed class GetHeroesQueryValidatorTests
     {
         var validator = new GetHeroesQueryValidator();
 
-        var result = validator.Validate(new GetHeroesQuery(null!));
+        var result = validator.Validate(new GetHeroesQuery(null!, SortingParameters.None));
 
-        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Pagination");
+        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("PaginationParameters");
     }
 }

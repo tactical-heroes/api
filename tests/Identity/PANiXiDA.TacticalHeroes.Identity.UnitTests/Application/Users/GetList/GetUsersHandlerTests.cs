@@ -11,6 +11,7 @@ public sealed class GetUsersHandlerTests
     {
         var filter = new UsersFilter("hero@example.com");
         var pagination = new PaginationParameters(1, 20);
+        var sorting = SortingParameters.None;
         var page = PaginationResult<UserListItemReadModel>.Create(
             [new UserListItemReadModel(
                 Guid.CreateVersion7(),
@@ -26,13 +27,14 @@ public sealed class GetUsersHandlerTests
         usersReadRepository.GetPageAsync(
                 filter,
                 pagination,
+                sorting,
                 Arg.Any<CancellationToken>())
             .Returns(page);
         var handler = new GetUsersHandler(usersReadRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new GetUsersQuery(filter, pagination),
+            new GetUsersQuery(filter, pagination, sorting),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -40,6 +42,7 @@ public sealed class GetUsersHandlerTests
         await usersReadRepository.Received(1).GetPageAsync(
             filter,
             pagination,
+            sorting,
             cancellationToken);
     }
 }

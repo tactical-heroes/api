@@ -63,6 +63,7 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         var page = await repository.GetPageAsync(
             new UsersFilter("IRST"),
             new PaginationParameters(1, 20),
+            SortingParameters.None,
             cancellationToken);
 
         page.TotalCount.ShouldBe(1);
