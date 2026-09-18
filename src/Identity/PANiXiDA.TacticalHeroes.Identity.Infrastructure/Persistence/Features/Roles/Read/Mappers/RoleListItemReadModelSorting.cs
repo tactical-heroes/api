@@ -6,5 +6,7 @@ internal sealed partial class RoleListItemReadModelSorting
     : IReadModelSorting<RoleListItemReadModel>
 {
     public static SortingParameters DefaultSorting { get; } =
-        SortingParameters.Ascending(nameof(RoleListItemReadModel.Name));
+        SortingParameters.Of(
+            new SortField(nameof(RoleListItemReadModel.Name)),
+            new SortField(nameof(RoleListItemReadModel.Id), SortDirection.Desc));
 }

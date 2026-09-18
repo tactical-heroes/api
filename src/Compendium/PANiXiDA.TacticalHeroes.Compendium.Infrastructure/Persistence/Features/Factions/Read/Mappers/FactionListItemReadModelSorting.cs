@@ -6,5 +6,7 @@ internal sealed partial class FactionListItemReadModelSorting
     : IReadModelSorting<FactionListItemReadModel>
 {
     public static SortingParameters DefaultSorting { get; } =
-        SortingParameters.Ascending(nameof(FactionListItemReadModel.Name));
+        SortingParameters.Of(
+            new SortField(nameof(FactionListItemReadModel.Name)),
+            new SortField(nameof(FactionListItemReadModel.Id), SortDirection.Desc));
 }

@@ -6,5 +6,7 @@ internal sealed partial class UserListItemReadModelSorting
     : IReadModelSorting<UserListItemReadModel>
 {
     public static SortingParameters DefaultSorting { get; } =
-        SortingParameters.Ascending(nameof(UserListItemReadModel.Email));
+        SortingParameters.Of(
+            new SortField(nameof(UserListItemReadModel.Email)),
+            new SortField(nameof(UserListItemReadModel.Id), SortDirection.Desc));
 }

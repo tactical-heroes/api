@@ -131,6 +131,27 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBe(["Southern Alliance", "Northern Alliance"]);
     }
 
+    [Fact(DisplayName = "GetPageAsync should use descending identifiers across pages when faction names are equal")]
+    public async Task GetPageAsync_Should_UseDescendingIdentifiersAcrossPages_When_FactionNamesAreEqual()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var factions = new[]
+        {
+            CreateFaction("Alliance", "First."),
+            CreateFaction("Alliance", "Second.")
+        }.OrderBy(faction => faction.Id.Value).ToArray();
+        await AddFactionsAsync(cancellationToken, factions);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
+        var sortingParameters = SortingParameters.Descending(nameof(FactionListItemReadModel.Name));
+
+        var firstPage = await repository.GetPageAsync(new PaginationParameters(1, 1), sortingParameters, cancellationToken);
+        var secondPage = await repository.GetPageAsync(new PaginationParameters(2, 1), sortingParameters, cancellationToken);
+
+        firstPage.Items.ShouldHaveSingleItem().Id.ShouldBe(factions[1].Id.Value);
+        secondPage.Items.ShouldHaveSingleItem().Id.ShouldBe(factions[0].Id.Value);
+    }
+
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing faction when faction exists")]
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_FactionExists()
     {
