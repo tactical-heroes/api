@@ -1,7 +1,11 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
+using FluentValidation;
+using FluentValidation.Validators;
+
 using PANiXiDA.Core.Application.Messaging.Mediator.Contracts;
+using PANiXiDA.Core.Application.Querying;
 using PANiXiDA.Core.Application.Querying.Pagination;
 using PANiXiDA.Core.Application.Querying.Sorting;
 
@@ -9,6 +13,22 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class PaginationConventionTests
 {
+    [Theory(DisplayName = "Query validators should attach matching child validators when querying parameters are present")]
+    [InlineData(typeof(PaginationParameters))]
+    [InlineData(typeof(SortingParameters))]
+    public void QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent(Type parameterType)
+    {
+        var queries = GetQueries()
+            .Where(type => type.GetProperties().Any(property => property.PropertyType == parameterType))
+            .ToArray();
+        var violations = queries
+            .SelectMany(query => GetChildValidatorViolations(query, parameterType))
+            .ToArray();
+
+        Assert.NotEmpty(queries);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
     [Theory(DisplayName = "Query properties should use type-based names when querying parameters are present")]
     [InlineData(typeof(PaginationParameters))]
     [InlineData(typeof(SortingParameters))]
@@ -87,6 +107,64 @@ public sealed class PaginationConventionTests
 
         Assert.NotEmpty(queries);
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    private static IEnumerable<string> GetChildValidatorViolations(Type query, Type parameterType)
+    {
+        var expectedValidator = typeof(PaginationParametersValidator);
+        if (parameterType == typeof(SortingParameters))
+        {
+            var readModels = query.GetInterfaces()
+                .Where(contract => contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQuery<>))
+                .SelectMany(contract => GetReadModels(contract.GetGenericArguments()[0]))
+                .Distinct()
+                .ToArray();
+            if (readModels.Length != 1)
+            {
+                yield return $"{query.FullName}: sorting requires exactly one result read model.";
+                yield break;
+            }
+
+            var readModel = readModels[0];
+            var sortingValidator = readModel.Assembly.GetType($"{readModel.FullName}SortingValidator");
+            if (sortingValidator is null || !typeof(SortingParametersValidator).IsAssignableFrom(sortingValidator))
+            {
+                yield return $"{query.FullName}: missing {readModel.FullName}SortingValidator.";
+                yield break;
+            }
+
+            expectedValidator = sortingValidator;
+        }
+
+        var contract = typeof(IValidator<>).MakeGenericType(query);
+        var validators = query.Assembly.GetTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false } && contract.IsAssignableFrom(type))
+            .ToArray();
+        if (validators.Length == 0)
+        {
+            yield return $"{query.FullName}: missing IValidator<{query.Name}>.";
+        }
+
+        foreach (var validatorType in validators)
+        {
+            var validator = (IValidator)Activator.CreateInstance(validatorType)!;
+            var descriptor = validator.CreateDescriptor();
+            foreach (var property in query.GetProperties().Where(property => property.PropertyType == parameterType))
+            {
+                if (!descriptor.GetValidatorsForMember(property.Name).Any(component =>
+                        component.Validator is IChildValidatorAdaptor adaptor && adaptor.ValidatorType == expectedValidator))
+                {
+                    yield return $"{validatorType.FullName}: {property.Name} must use {expectedValidator.FullName}.";
+                }
+            }
+        }
+    }
+
+    private static IEnumerable<Type> GetReadModels(Type type)
+    {
+        return typeof(IReadModel).IsAssignableFrom(type)
+            ? [type]
+            : type.GetGenericArguments().SelectMany(GetReadModels);
     }
 
     private static IEnumerable<Type> GetQueries()
