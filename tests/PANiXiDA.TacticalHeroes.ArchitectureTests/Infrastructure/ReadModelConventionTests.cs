@@ -1,6 +1,6 @@
 using System.Reflection;
 
-using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read;
+using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;

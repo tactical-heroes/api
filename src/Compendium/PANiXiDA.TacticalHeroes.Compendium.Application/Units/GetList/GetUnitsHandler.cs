@@ -11,6 +11,7 @@ public sealed class GetUnitsHandler(IUnitsReadRepository unitsReadRepository)
     {
         var units = await unitsReadRepository.GetPageAsync(
             pagination: query.Pagination,
+            sorting: query.Sorting,
             cancellationToken: cancellationToken);
 
         return Result.Success(value: units);

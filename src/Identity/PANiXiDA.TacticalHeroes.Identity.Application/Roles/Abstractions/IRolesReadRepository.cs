@@ -7,6 +7,7 @@ public interface IRolesReadRepository : IReadRepository<Guid>
 {
     Task<PaginationResult<RoleListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken);
 
     Task<RoleDetailsReadModel?> GetDetailsByIdAsync(

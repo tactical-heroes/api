@@ -7,6 +7,7 @@ public interface IHeroesReadRepository : IReadRepository<Guid>
 {
     Task<PaginationResult<HeroListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken);
 
     Task<HeroDetailsReadModel?> GetDetailsByIdAsync(

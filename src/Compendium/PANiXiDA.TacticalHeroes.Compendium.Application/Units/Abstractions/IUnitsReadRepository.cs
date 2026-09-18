@@ -7,6 +7,7 @@ public interface IUnitsReadRepository : IReadRepository<Guid>
 {
     Task<PaginationResult<UnitListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken);
 
     Task<UnitDetailsReadModel?> GetDetailsByIdAsync(

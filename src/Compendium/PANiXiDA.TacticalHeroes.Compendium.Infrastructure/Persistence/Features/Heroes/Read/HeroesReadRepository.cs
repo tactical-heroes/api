@@ -11,18 +11,15 @@ public sealed class HeroesReadRepository(CompendiumReadDbContext dbContext)
     : EfReadRepository<CompendiumReadDbContext, Guid, HeroReadDbModel>(dbContext),
     IHeroesReadRepository
 {
-    private static readonly SortParameters Sort = new(
-        Field: nameof(HeroReadDbModel.Name),
-        Order: SortOrder.Ascending);
-
     public Task<PaginationResult<HeroListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken)
     {
-        return GetPagedResultAsync<HeroListItemReadModel, HeroListItemReadModelMapper>(
+        return GetPagedResultAsync<HeroListItemReadModel, HeroListItemReadModelMapper, HeroListItemReadModelSorting>(
             query: Query,
             paginationParameters: pagination,
-            sortParameters: Sort,
+            sortingParameters: sorting,
             cancellationToken: cancellationToken);
     }
 

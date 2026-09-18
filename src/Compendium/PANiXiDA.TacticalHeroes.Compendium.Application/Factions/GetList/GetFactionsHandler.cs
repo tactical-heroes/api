@@ -11,6 +11,7 @@ public sealed class GetFactionsHandler(IFactionsReadRepository factionsReadRepos
     {
         var factions = await factionsReadRepository.GetPageAsync(
             pagination: query.Pagination,
+            sorting: query.Sorting,
             cancellationToken: cancellationToken);
 
         return Result.Success(value: factions);

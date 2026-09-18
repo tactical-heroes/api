@@ -10,7 +10,7 @@ public sealed class GetHeroesQueryValidatorTests
         var validator = new GetHeroesQueryValidator();
 
         var result = validator.Validate(
-            new GetHeroesQuery(new PaginationParameters(0, 0)));
+            new GetHeroesQuery(new PaginationParameters(0, 0), SortingParameters.None));
 
         result.Errors.ShouldContain(
             error => error.PropertyName.EndsWith(
@@ -31,7 +31,7 @@ public sealed class GetHeroesQueryValidatorTests
         var validator = new GetHeroesQueryValidator();
 
         var result = validator.Validate(
-            new GetHeroesQuery(new PaginationParameters(pageNumber, pageSize)));
+            new GetHeroesQuery(new PaginationParameters(pageNumber, pageSize), SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(propertyName);
     }
@@ -44,7 +44,7 @@ public sealed class GetHeroesQueryValidatorTests
         var validator = new GetHeroesQueryValidator();
 
         var result = validator.Validate(
-            new GetHeroesQuery(new PaginationParameters(1, pageSize)));
+            new GetHeroesQuery(new PaginationParameters(1, pageSize), SortingParameters.None));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -54,7 +54,7 @@ public sealed class GetHeroesQueryValidatorTests
     {
         var validator = new GetHeroesQueryValidator();
 
-        var result = validator.Validate(new GetHeroesQuery(null!));
+        var result = validator.Validate(new GetHeroesQuery(null!, SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Pagination");
     }

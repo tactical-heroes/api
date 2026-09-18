@@ -12,6 +12,7 @@ public sealed class GetUsersHandler(IUsersReadRepository usersReadRepository)
         var users = await usersReadRepository.GetPageAsync(
             filter: query.Filter,
             pagination: query.Pagination,
+            sorting: query.Sorting,
             cancellationToken: cancellationToken);
 
         return Result.Success(value: users);

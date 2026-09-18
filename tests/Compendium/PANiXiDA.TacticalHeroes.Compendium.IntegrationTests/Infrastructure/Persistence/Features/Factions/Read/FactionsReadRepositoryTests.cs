@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Querying.Limiting;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
@@ -122,11 +123,12 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
         var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
+            SortingParameters.Descending(nameof(FactionListItemReadModel.Name)),
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name)
-            .ShouldBe(["Northern Alliance", "Southern Alliance"]);
+            .ShouldBe(["Southern Alliance", "Northern Alliance"]);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing faction when faction exists")]

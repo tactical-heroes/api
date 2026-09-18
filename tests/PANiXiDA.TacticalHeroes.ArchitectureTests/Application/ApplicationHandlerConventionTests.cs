@@ -2,6 +2,7 @@ using FluentValidation;
 
 using PANiXiDA.Core.Application.Messaging.EventBus.Handlers;
 using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
+using PANiXiDA.Core.Application.Querying.Sorting;
 
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
@@ -189,7 +190,9 @@ public sealed class ApplicationHandlerConventionTests
                                 validatorInterface.GetGenericArguments()[0])
                     ],
                     Module: target.Module))
-                .Where(validator => validator.ValidatedTypes.Count > 0)
+                .Where(validator =>
+                    validator.ValidatedTypes.Count > 0 &&
+                    !typeof(SortingParametersValidator).IsAssignableFrom(validator.Type))
                 .OrderBy(validator => validator.Type.FullName, StringComparer.Ordinal)
         ];
     }

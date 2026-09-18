@@ -14,22 +14,19 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
     EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext),
     IUsersReadRepository
 {
-    private static readonly SortParameters Sort = new(
-        Field: nameof(UserReadDbModel.Email),
-        Order: SortOrder.Ascending);
-
     public Task<PaginationResult<UserListItemReadModel>> GetPageAsync(
         UsersFilter filter,
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken)
     {
         var query = ApplyFilter(
             query: Query,
             filter: filter);
-        return GetPagedResultAsync<UserListItemReadModel, UserListItemReadModelMapper>(
+        return GetPagedResultAsync<UserListItemReadModel, UserListItemReadModelMapper, UserListItemReadModelSorting>(
             query: query,
             paginationParameters: pagination,
-            sortParameters: Sort,
+            sortingParameters: sorting,
             cancellationToken: cancellationToken);
     }
 

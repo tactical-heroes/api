@@ -16,17 +16,15 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
     : EfReadRepository<CompendiumReadDbContext, Guid, FactionReadDbModel>(dbContext),
     IFactionsReadRepository
 {
-    private static readonly SortParameters Sort = new(
-        Field: nameof(FactionReadDbModel.Name),
-        Order: SortOrder.Ascending);
-
     public Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
         FactionsFilter filter,
         LimitParameters limit,
         CancellationToken cancellationToken)
     {
         var query = ApplyFilter(Query, filter);
-        query = ApplySort(query, Sort).Take(limit.Limit);
+        query = query
+            .OrderBy(faction => faction.Name)
+            .Take(limit.Limit);
 
         return FactionSelectOptionReadModelMapper.ProjectTo(query)
             .ToListAsync(cancellationToken);
@@ -34,12 +32,13 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
 
     public Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken)
     {
-        return GetPagedResultAsync<FactionListItemReadModel, FactionListItemReadModelMapper>(
+        return GetPagedResultAsync<FactionListItemReadModel, FactionListItemReadModelMapper, FactionListItemReadModelSorting>(
             query: Query,
             paginationParameters: pagination,
-            sortParameters: Sort,
+            sortingParameters: sorting,
             cancellationToken: cancellationToken);
     }
 

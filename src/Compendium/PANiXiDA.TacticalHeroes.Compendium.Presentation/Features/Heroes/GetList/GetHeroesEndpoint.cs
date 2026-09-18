@@ -17,11 +17,13 @@ internal sealed class GetHeroesEndpoint : IEndpoint<HeroesEndpoints>
 
     private static async Task<IResult> HandleAsync(
         [AsParameters] PaginationParameters pagination,
+        [AsParameters] SortingParameters sorting,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetHeroesMapper.ToQuery(pagination: pagination),
+            GetHeroesMapper.ToQuery(pagination: pagination,
+                sorting: sorting),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>

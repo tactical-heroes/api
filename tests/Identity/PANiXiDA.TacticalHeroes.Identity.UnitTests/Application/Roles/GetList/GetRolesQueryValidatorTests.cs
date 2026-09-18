@@ -9,7 +9,7 @@ public sealed class GetRolesQueryValidatorTests
     {
         var validator = new GetRolesQueryValidator();
 
-        var result = validator.Validate(new GetRolesQuery(new PaginationParameters(1, 20)));
+        var result = validator.Validate(new GetRolesQuery(new PaginationParameters(1, 20), SortingParameters.None));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -19,7 +19,7 @@ public sealed class GetRolesQueryValidatorTests
     {
         var validator = new GetRolesQueryValidator();
 
-        var result = validator.Validate(new GetRolesQuery(new PaginationParameters(0, 0)));
+        var result = validator.Validate(new GetRolesQuery(new PaginationParameters(0, 0), SortingParameters.None));
 
         result.Errors.ShouldContain(error => error.PropertyName == "Pagination.PageNumber");
         result.Errors.ShouldContain(error => error.PropertyName == "Pagination.PageSize");
@@ -34,7 +34,7 @@ public sealed class GetRolesQueryValidatorTests
         var validator = new GetRolesQueryValidator();
 
         var result = validator.Validate(
-            new GetRolesQuery(new PaginationParameters(pageNumber, pageSize)));
+            new GetRolesQuery(new PaginationParameters(pageNumber, pageSize), SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(propertyName);
     }
@@ -47,7 +47,7 @@ public sealed class GetRolesQueryValidatorTests
         var validator = new GetRolesQueryValidator();
 
         var result = validator.Validate(
-            new GetRolesQuery(new PaginationParameters(1, pageSize)));
+            new GetRolesQuery(new PaginationParameters(1, pageSize), SortingParameters.None));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -57,7 +57,7 @@ public sealed class GetRolesQueryValidatorTests
     {
         var validator = new GetRolesQueryValidator();
 
-        var result = validator.Validate(new GetRolesQuery(null!));
+        var result = validator.Validate(new GetRolesQuery(null!, SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Pagination");
     }

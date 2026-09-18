@@ -11,18 +11,15 @@ public sealed class UnitsReadRepository(CompendiumReadDbContext dbContext)
     : EfReadRepository<CompendiumReadDbContext, Guid, UnitReadDbModel>(dbContext),
     IUnitsReadRepository
 {
-    private static readonly SortParameters Sort = new(
-        Field: nameof(UnitReadDbModel.Name),
-        Order: SortOrder.Ascending);
-
     public Task<PaginationResult<UnitListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken)
     {
-        return GetPagedResultAsync<UnitListItemReadModel, UnitListItemReadModelMapper>(
+        return GetPagedResultAsync<UnitListItemReadModel, UnitListItemReadModelMapper, UnitListItemReadModelSorting>(
             query: Query,
             paginationParameters: pagination,
-            sortParameters: Sort,
+            sortingParameters: sorting,
             cancellationToken: cancellationToken);
     }
 

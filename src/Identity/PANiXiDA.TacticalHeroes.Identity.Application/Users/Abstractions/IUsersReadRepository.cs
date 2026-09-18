@@ -9,6 +9,7 @@ public interface IUsersReadRepository : IReadRepository<Guid>
     Task<PaginationResult<UserListItemReadModel>> GetPageAsync(
         UsersFilter filter,
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken);
 
     Task<UserDetailsReadModel?> GetDetailsByIdAsync(

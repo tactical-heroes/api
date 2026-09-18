@@ -11,7 +11,7 @@ public sealed class GetUsersQueryValidatorTests
         var validator = new GetUsersQueryValidator();
 
         var result = validator.Validate(
-            new GetUsersQuery(new UsersFilter("hero"), new PaginationParameters(1, 20)));
+            new GetUsersQuery(new UsersFilter("hero"), new PaginationParameters(1, 20), SortingParameters.None));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -22,7 +22,7 @@ public sealed class GetUsersQueryValidatorTests
         var validator = new GetUsersQueryValidator();
 
         var result = validator.Validate(
-            new GetUsersQuery(new UsersFilter("invalid"), new PaginationParameters(0, 0)));
+            new GetUsersQuery(new UsersFilter("invalid"), new PaginationParameters(0, 0), SortingParameters.None));
 
         result.Errors.ShouldNotContain(error => error.PropertyName == "Filter.Email");
         result.Errors.ShouldContain(error => error.PropertyName == "Pagination.PageNumber");
@@ -38,7 +38,7 @@ public sealed class GetUsersQueryValidatorTests
         var validator = new GetUsersQueryValidator();
 
         var result = validator.Validate(
-            new GetUsersQuery(new UsersFilter(), new PaginationParameters(pageNumber, pageSize)));
+            new GetUsersQuery(new UsersFilter(), new PaginationParameters(pageNumber, pageSize), SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(propertyName);
     }
@@ -51,7 +51,7 @@ public sealed class GetUsersQueryValidatorTests
         var validator = new GetUsersQueryValidator();
 
         var result = validator.Validate(
-            new GetUsersQuery(new UsersFilter(), new PaginationParameters(1, pageSize)));
+            new GetUsersQuery(new UsersFilter(), new PaginationParameters(1, pageSize), SortingParameters.None));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -61,7 +61,7 @@ public sealed class GetUsersQueryValidatorTests
     {
         var validator = new GetUsersQueryValidator();
 
-        var result = validator.Validate(new GetUsersQuery(new UsersFilter(), null!));
+        var result = validator.Validate(new GetUsersQuery(new UsersFilter(), null!, SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Pagination");
     }
@@ -71,7 +71,7 @@ public sealed class GetUsersQueryValidatorTests
     {
         var validator = new GetUsersQueryValidator();
 
-        var result = validator.Validate(new GetUsersQuery(null!, new PaginationParameters()));
+        var result = validator.Validate(new GetUsersQuery(null!, new PaginationParameters(), SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Filter");
     }

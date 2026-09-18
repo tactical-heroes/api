@@ -10,7 +10,7 @@ public sealed class GetFactionsQueryValidatorTests
         var validator = new GetFactionsQueryValidator();
 
         var result = validator.Validate(
-            new GetFactionsQuery(new PaginationParameters(0, 0)));
+            new GetFactionsQuery(new PaginationParameters(0, 0), SortingParameters.None));
 
         result.Errors.ShouldContain(
             error => error.PropertyName.EndsWith(
@@ -31,7 +31,7 @@ public sealed class GetFactionsQueryValidatorTests
         var validator = new GetFactionsQueryValidator();
 
         var result = validator.Validate(
-            new GetFactionsQuery(new PaginationParameters(pageNumber, pageSize)));
+            new GetFactionsQuery(new PaginationParameters(pageNumber, pageSize), SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(propertyName);
     }
@@ -44,7 +44,7 @@ public sealed class GetFactionsQueryValidatorTests
         var validator = new GetFactionsQueryValidator();
 
         var result = validator.Validate(
-            new GetFactionsQuery(new PaginationParameters(1, pageSize)));
+            new GetFactionsQuery(new PaginationParameters(1, pageSize), SortingParameters.None));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -54,7 +54,7 @@ public sealed class GetFactionsQueryValidatorTests
     {
         var validator = new GetFactionsQueryValidator();
 
-        var result = validator.Validate(new GetFactionsQuery(null!));
+        var result = validator.Validate(new GetFactionsQuery(null!, SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Pagination");
     }

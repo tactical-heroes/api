@@ -11,18 +11,15 @@ public sealed class RolesReadRepository(IdentityReadDbContext dbContext) :
     EfReadRepository<IdentityReadDbContext, Guid, RoleReadDbModel>(dbContext),
     IRolesReadRepository
 {
-    private static readonly SortParameters Sort = new(
-        Field: nameof(RoleReadDbModel.Name),
-        Order: SortOrder.Ascending);
-
     public Task<PaginationResult<RoleListItemReadModel>> GetPageAsync(
         PaginationParameters pagination,
+        SortingParameters sorting,
         CancellationToken cancellationToken)
     {
-        return GetPagedResultAsync<RoleListItemReadModel, RoleListItemReadModelMapper>(
+        return GetPagedResultAsync<RoleListItemReadModel, RoleListItemReadModelMapper, RoleListItemReadModelSorting>(
             query: Query,
             paginationParameters: pagination,
-            sortParameters: Sort,
+            sortingParameters: sorting,
             cancellationToken: cancellationToken);
     }
 

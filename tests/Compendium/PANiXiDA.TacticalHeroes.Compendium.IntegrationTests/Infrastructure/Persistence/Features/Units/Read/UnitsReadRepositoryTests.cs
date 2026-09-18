@@ -65,6 +65,7 @@ public sealed class UnitsReadRepositoryTests(IntegrationTestFixture fixture)
             .GetRequiredService<IUnitsReadRepository>();
         var page = await repository.GetPageAsync(
             new PaginationParameters(1, 20),
+            SortingParameters.None,
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
