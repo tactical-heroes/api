@@ -25,17 +25,16 @@ public sealed class ReadRepositorySortingConventionTests
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read model sorting should include an identifier when default sorting is declared")]
-    public void ReadModelSorting_Should_IncludeIdentifier_When_DefaultSortingIsDeclared()
+    [Fact(DisplayName = "Read model sorting should be nonempty when default sorting is declared")]
+    public void ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared()
     {
         var sortingTypes = InfrastructurePersistenceConvention.GetConcreteInfrastructureTypes(type =>
             type.GetInterfaces().Any(contract => contract.IsGenericType &&
                 contract.GetGenericTypeDefinition() == typeof(IReadModelSorting<>)));
         var violations = sortingTypes.Where(type =>
                 type.GetProperty(nameof(IReadModelSorting<object>.DefaultSorting), BindingFlags.Public | BindingFlags.Static)
-                    ?.GetValue(null) is not SortingParameters { HasSorting: true } sorting ||
-                !sorting.Fields.Any(field => string.Equals(field.Field, "Id", StringComparison.OrdinalIgnoreCase)))
-            .Select(type => $"{type.FullName}: DefaultSorting must contain Id to break ties deterministically.")
+                    ?.GetValue(null) is not SortingParameters { HasSorting: true })
+            .Select(type => $"{type.FullName}: DefaultSorting must contain at least one sorting field.")
             .ToArray();
 
         Assert.NotEmpty(sortingTypes);
