@@ -308,13 +308,17 @@ repository и query handler реализуют `IReadModel`; коллекции,
     реализация `IReadRepository<>` должна находиться непосредственно в
     `Persistence/Features/<AggregatePlural>/Read`.
 
-56. `ReadModelMappers_Should_EndWithReadModelMapper_When_Declared` — каждая
-    реализация `IReadModelMapper<,,>` должна оканчиваться на
-    `ReadModelMapper`.
+56. `ReadModelComponents_Should_MatchModelNames_When_Declared` — реализации
+    `IReadModelMapper<,,>` и `IReadModelSorting<>` должны называться точно
+    `<ReadModel>Mapper` и `<ReadModel>Sorting` соответственно.
 
-57. `ReadModelMappers_Should_ResideInAggregateReadMappersDirectories_When_Declared`
-    — реализации `IReadModelMapper<,,>` должны находиться в
-    `Persistence/Features/<AggregatePlural>/Read/Mappers`.
+57. `ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared`
+    — mapper и sorting должны находиться в
+    `Persistence/Features/<AggregatePlural>/Read/<Slice>`, где `<Slice>` —
+    папка соответствующей ReadModel в Application. Проверяются физические
+    пути и namespace. `ReadModelSorting_Should_ShareMapperDirectory_When_Declared`
+    дополнительно требует размещать sorting рядом с mapper той же ReadModel;
+    наличие sorting для одиночной модели не требуется.
 
 58. `ReadDatabaseModels_Should_EndWithReadDbModel_When_Declared` — каждый
     наследник `ReadDbModel<>` или `AuditableReadDbModel<>` должен оканчиваться

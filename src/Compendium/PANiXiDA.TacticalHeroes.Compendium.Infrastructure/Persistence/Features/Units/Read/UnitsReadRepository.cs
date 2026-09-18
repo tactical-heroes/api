@@ -3,7 +3,8 @@ using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.Mappers;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read;
 

@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetList;
 
 internal sealed partial class UserListItemReadModelSorting
     : IReadModelSorting<UserListItemReadModel>

@@ -4,7 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetDetails;
 
 internal sealed class UserDetailsReadModelMapper
     : IReadModelMapper<Guid, UserReadDbModel, UserDetailsReadModel>

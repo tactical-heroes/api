@@ -4,7 +4,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Her
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.Mappers;
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetList;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 internal sealed partial class HeroListItemReadModelMapper

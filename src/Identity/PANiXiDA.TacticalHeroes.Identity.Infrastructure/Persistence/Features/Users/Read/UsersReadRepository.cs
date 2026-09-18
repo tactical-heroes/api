@@ -6,7 +6,8 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
 

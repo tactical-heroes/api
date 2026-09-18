@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Her
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.Mappers;
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetDetails;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 internal sealed partial class HeroDetailsReadModelMapper

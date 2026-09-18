@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.Mappers;
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.GetList;
 
 internal sealed partial class UnitListItemReadModelSorting
     : IReadModelSorting<UnitListItemReadModel>

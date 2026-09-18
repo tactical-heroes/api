@@ -4,7 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetList;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 internal sealed partial class UserListItemReadModelMapper

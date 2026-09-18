@@ -1,48 +1,74 @@
 using System.Reflection;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models;
+using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Sorting;
+using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
 public sealed class ReadModelConventionTests
 {
     private const string ReadDbModelSuffix = "ReadDbModel";
-    private const string ReadModelMapperSuffix = "ReadModelMapper";
 
-    [Fact(DisplayName = "Read model mappers should end with ReadModelMapper when declared")]
-    public void ReadModelMappers_Should_EndWithReadModelMapper_When_Declared()
+    [Theory(DisplayName = "Read model components should match model names when declared")]
+    [InlineData(typeof(IReadModelMapper<,,>), "Mapper")]
+    [InlineData(typeof(IReadModelSorting<>), "Sorting")]
+    public void ReadModelComponents_Should_MatchModelNames_When_Declared(Type contractType, string suffix)
     {
-        var mappers = GetReadModelMappers();
-        var violations = mappers
-            .Where(type => !type.Name.EndsWith(
-                ReadModelMapperSuffix,
-                StringComparison.Ordinal))
-            .Select(type =>
-                $"{type.FullName} must end with " +
-                $"'{ReadModelMapperSuffix}'.")
+        var components = GetReadModelComponents(contractType);
+        var violations = components
+            .Where(type => type.Name != GetReadModel(type, contractType).Name + suffix ||
+                InfrastructurePersistenceConvention.FindSourceFiles(type)
+                    .Any(path => Path.GetFileNameWithoutExtension(path) != type.Name))
+            .Select(type => $"{type.FullName} must be named '{GetReadModel(type, contractType).Name + suffix}' " +
+                "and declared in a file with the same name.")
             .ToArray();
 
-        Assert.NotEmpty(mappers);
+        Assert.NotEmpty(components);
         Assert.True(
             violations.Length == 0,
-            $"Read model mapper naming violations:{Environment.NewLine}" +
+            $"Read model component naming violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read model mappers should reside in aggregate Read Mappers directories when declared")]
-    public void ReadModelMappers_Should_ResideInAggregateReadMappersDirectories_When_Declared()
+    [Theory(DisplayName = "Read model components should reside in matching Application slices when declared")]
+    [InlineData(typeof(IReadModelMapper<,,>))]
+    [InlineData(typeof(IReadModelSorting<>))]
+    public async Task ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared(Type contractType)
     {
-        var mappers = GetReadModelMappers();
-        var violations = mappers
-            .SelectMany(GetMapperLocationViolations)
+        var components = GetReadModelComponents(contractType);
+        var sources = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetApplicationModelsAsync);
+        var violations = components
+            .SelectMany(type => GetComponentLocationViolations(type, contractType, sources))
             .ToArray();
 
-        Assert.NotEmpty(mappers);
+        Assert.NotEmpty(components);
         Assert.True(
             violations.Length == 0,
-            $"Read model mapper location violations:{Environment.NewLine}" +
+            $"Read model component location violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Read model sorting should share the mapper directory when declared")]
+    public void ReadModelSorting_Should_ShareMapperDirectory_When_Declared()
+    {
+        var sortingTypes = GetReadModelComponents(typeof(IReadModelSorting<>));
+        var mappers = GetReadModelComponents(typeof(IReadModelMapper<,,>));
+        var violations = sortingTypes.Where(sorting => !mappers.Any(mapper =>
+                GetReadModel(mapper, typeof(IReadModelMapper<,,>)) == GetReadModel(sorting, typeof(IReadModelSorting<>)) &&
+                mapper.Namespace == sorting.Namespace &&
+                InfrastructurePersistenceConvention.FindSourceFiles(mapper).Select(Path.GetDirectoryName)
+                    .Intersect(InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
+                        StringComparer.OrdinalIgnoreCase).Any()))
+            .Select(type => $"{type.FullName} must share its directory and namespace with a mapper for the same read model.")
+            .ToArray();
+
+        Assert.NotEmpty(sortingTypes);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read database models should end with ReadDbModel when declared")]
@@ -101,14 +127,67 @@ public sealed class ReadModelConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    private static Type[] GetReadModelMappers()
+    private static Type[] GetReadModelComponents(Type contractType)
     {
         return InfrastructurePersistenceConvention
             .GetConcreteInfrastructureTypes(type =>
                 InfrastructurePersistenceConvention
                     .GetClosedGenericInterface(
                         type,
-                        typeof(IReadModelMapper<,,>)) is not null);
+                        contractType) is not null);
+    }
+
+    private static Type GetReadModel(Type type, Type contractType)
+    {
+        return InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType)!.GetGenericArguments()[^1];
+    }
+
+    private static async Task<ModelSource[]> GetApplicationModelsAsync(string repositoryRoot, Document document)
+    {
+        if (document.Project.AssemblyName?.EndsWith(".Application", StringComparison.Ordinal) != true)
+        {
+            return [];
+        }
+
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        return root is null || semanticModel is null ? [] :
+            [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()
+                .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
+                .OfType<INamedTypeSymbol>()
+                .Where(type => type.AllInterfaces.Any(contract => contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
+                .Select(type => new ModelSource(type.ToDisplayString(), Path.GetDirectoryName(document.FilePath!)!))];
+    }
+
+    private static IEnumerable<string> GetComponentLocationViolations(Type component, Type contractType, ModelSource[] sources)
+    {
+        var model = GetReadModel(component, contractType);
+        var module = InfrastructurePersistenceConvention.GetModule(component);
+        var modelSources = sources.Where(source => source.Name == model.FullName).ToArray();
+        if (model.Assembly.GetName().Name != module.ApplicationAssemblyName || modelSources.Length == 0)
+        {
+            yield return $"{component.FullName}: read model must be declared in {module.ApplicationAssemblyName}.";
+            yield break;
+        }
+
+        foreach (var source in modelSources)
+        {
+            var slice = Path.GetFileName(source.Directory);
+            var feature = Path.GetFileName(Path.GetDirectoryName(source.Directory));
+            foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
+                         component, "Persistence", "Features", feature!, "Read", slice))
+            {
+                yield return violation;
+            }
+        }
+
+        if (contractType == typeof(IReadModelMapper<,,>))
+        {
+            foreach (var violation in GetMapperLocationViolations(component))
+            {
+                yield return violation;
+            }
+        }
     }
 
     private static Type[] GetReadDatabaseModels()
@@ -169,7 +248,7 @@ public sealed class ReadModelConventionTests
             "Features",
             featureName,
             "Read",
-            "Mappers");
+            GetReadModel(mapper, typeof(IReadModelMapper<,,>)).Namespace!.Split('.')[^1]);
     }
 
     private static IEnumerable<string> GetAggregateNavigationViolations(
@@ -247,6 +326,8 @@ public sealed class ReadModelConventionTests
             }
         }
     }
+
+    private sealed record ModelSource(string Name, string Directory);
 
     private static bool IsCollectionOf(
         Type propertyType,
