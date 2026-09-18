@@ -311,6 +311,8 @@ repository и query handler реализуют `IReadModel`; коллекции,
 56. `ReadModelComponents_Should_MatchModelNames_When_Declared` — реализации
     `IReadModelMapper<,,>` и `IReadModelSorting<>` должны называться точно
     `<ReadModel>Mapper` и `<ReadModel>Sorting` соответственно.
+    `ReadModelComponents_Should_BeInternalSealedClasses_When_Declared` требует
+    для обеих реализаций верхнеуровневый `internal sealed class`.
 
 57. `ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared`
     — mapper и sorting должны находиться в

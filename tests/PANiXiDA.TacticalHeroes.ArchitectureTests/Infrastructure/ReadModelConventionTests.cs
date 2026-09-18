@@ -14,6 +14,26 @@ public sealed class ReadModelConventionTests
 {
     private const string ReadDbModelSuffix = "ReadDbModel";
 
+    [Theory(DisplayName = "Read model components should be internal sealed classes when declared")]
+    [InlineData(typeof(IReadModelMapper<,,>))]
+    [InlineData(typeof(IReadModelSorting<>))]
+    public void ReadModelComponents_Should_BeInternalSealedClasses_When_Declared(Type contractType)
+    {
+        var components = ArchitectureDefinition.ProductionAssemblies
+            .Where(assembly => assembly.GetName().Name?.EndsWith(".Infrastructure", StringComparison.Ordinal) == true)
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => !type.IsInterface &&
+                InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType) is not null)
+            .ToArray();
+        var violations = components
+            .Where(type => type is not { IsClass: true, IsNotPublic: true, IsNested: false, IsSealed: true, IsAbstract: false })
+            .Select(type => $"{type.FullName} must be a top-level internal sealed class.")
+            .ToArray();
+
+        Assert.NotEmpty(components);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
     [Theory(DisplayName = "Read model components should match model names when declared")]
     [InlineData(typeof(IReadModelMapper<,,>), "Mapper")]
     [InlineData(typeof(IReadModelSorting<>), "Sorting")]
