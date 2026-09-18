@@ -4,11 +4,11 @@ public sealed class GetRolesQueryValidator : AbstractValidator<GetRolesQuery>
 {
     public GetRolesQueryValidator()
     {
-        RuleFor(query => query.Pagination)
+        RuleFor(query => query.PaginationParameters)
             .NotNull()
             .SetValidator(new PaginationParametersValidator());
 
-        RuleFor(query => query.Sorting)
+        RuleFor(query => query.SortingParameters)
             .NotNull()
             .SetValidator(new RoleListItemReadModelSortingValidator());
     }

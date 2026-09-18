@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
 
 public sealed record GetHeroesQuery(
-    PaginationParameters Pagination,
-    SortingParameters Sorting)
+    PaginationParameters PaginationParameters,
+    SortingParameters SortingParameters)
     : IQuery<Result<PaginationResult<HeroListItemReadModel>>>;

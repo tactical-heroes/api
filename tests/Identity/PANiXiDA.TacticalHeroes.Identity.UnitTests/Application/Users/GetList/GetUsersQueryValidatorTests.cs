@@ -25,13 +25,13 @@ public sealed class GetUsersQueryValidatorTests
             new GetUsersQuery(new UsersFilter("invalid"), new PaginationParameters(0, 0), SortingParameters.None));
 
         result.Errors.ShouldNotContain(error => error.PropertyName == "Filter.Email");
-        result.Errors.ShouldContain(error => error.PropertyName == "Pagination.PageNumber");
-        result.Errors.ShouldContain(error => error.PropertyName == "Pagination.PageSize");
+        result.Errors.ShouldContain(error => error.PropertyName == "PaginationParameters.PageNumber");
+        result.Errors.ShouldContain(error => error.PropertyName == "PaginationParameters.PageSize");
     }
 
     [Theory(DisplayName = "Validate should apply shared pagination rules when page size or offset exceeds bounds")]
-    [InlineData(1, 201, "Pagination.PageSize")]
-    [InlineData(int.MaxValue, 2, "Pagination.PageNumber")]
+    [InlineData(1, 201, "PaginationParameters.PageSize")]
+    [InlineData(int.MaxValue, 2, "PaginationParameters.PageNumber")]
     public void Validate_Should_ApplySharedPaginationRules_When_PageSizeOrOffsetExceedsBounds(
         int pageNumber, int pageSize, string propertyName)
     {
@@ -63,7 +63,7 @@ public sealed class GetUsersQueryValidatorTests
 
         var result = validator.Validate(new GetUsersQuery(new UsersFilter(), null!, SortingParameters.None));
 
-        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Pagination");
+        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("PaginationParameters");
     }
 
     [Fact(DisplayName = "Validate should reject filter when filter is null")]

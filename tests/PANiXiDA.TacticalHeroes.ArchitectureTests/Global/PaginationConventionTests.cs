@@ -9,6 +9,26 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class PaginationConventionTests
 {
+    [Theory(DisplayName = "Query properties should use type-based names when querying parameters are present")]
+    [InlineData(typeof(PaginationParameters))]
+    [InlineData(typeof(SortingParameters))]
+    public void QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent(Type parameterType)
+    {
+        var properties = GetQueries()
+            .SelectMany(type => type.GetProperties())
+            .Where(property => property.PropertyType == parameterType)
+            .ToArray();
+        var violations = properties
+            .Where(property => property.Name != parameterType.Name)
+            .Select(property =>
+                $"{property.DeclaringType?.FullName}.{property.Name}: " +
+                $"properties of type {parameterType.Name} must be named '{parameterType.Name}'.")
+            .ToArray();
+
+        Assert.NotEmpty(properties);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
     [Theory(DisplayName = "Querying parameters should use type-based names when declared on methods")]
     [InlineData(typeof(PaginationParameters), "paginationParameters")]
     [InlineData(typeof(SortingParameters), "sortingParameters")]
@@ -53,10 +73,7 @@ public sealed class PaginationConventionTests
     [Fact(DisplayName = "Queries should contain sorting parameters when pagination parameters are present")]
     public void Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent()
     {
-        var queries = ArchitectureDefinition.ProductionAssemblies
-            .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => type.GetInterfaces().Any(contract =>
-                contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQuery<>)))
+        var queries = GetQueries()
             .Where(type => type.GetProperties().Any(property =>
                 property.PropertyType == typeof(PaginationParameters)))
             .ToArray();
@@ -70,6 +87,14 @@ public sealed class PaginationConventionTests
 
         Assert.NotEmpty(queries);
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    private static IEnumerable<Type> GetQueries()
+    {
+        return ArchitectureDefinition.ProductionAssemblies
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type.GetInterfaces().Any(contract =>
+                contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQuery<>)));
     }
 
     private static MethodInfo[] GetMethods()

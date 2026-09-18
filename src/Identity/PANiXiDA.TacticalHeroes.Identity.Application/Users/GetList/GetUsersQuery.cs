@@ -4,6 +4,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
 public sealed record GetUsersQuery(
     UsersFilter Filter,
-    PaginationParameters Pagination,
-    SortingParameters Sorting)
+    PaginationParameters PaginationParameters,
+    SortingParameters SortingParameters)
     : IQuery<Result<PaginationResult<UserListItemReadModel>>>;
