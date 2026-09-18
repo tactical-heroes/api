@@ -12,14 +12,14 @@ public sealed class UnitsReadRepository(CompendiumReadDbContext dbContext)
     IUnitsReadRepository
 {
     public Task<PaginationResult<UnitListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
-        SortingParameters sorting,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
         return GetPagedResultAsync<UnitListItemReadModel, UnitListItemReadModelMapper, UnitListItemReadModelSorting>(
             query: Query,
-            paginationParameters: pagination,
-            sortingParameters: sorting,
+            paginationParameters: paginationParameters,
+            sortingParameters: sortingParameters,
             cancellationToken: cancellationToken);
     }
 

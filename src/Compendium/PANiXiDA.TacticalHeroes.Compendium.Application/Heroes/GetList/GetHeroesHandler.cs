@@ -10,8 +10,8 @@ public sealed class GetHeroesHandler(IHeroesReadRepository heroesReadRepository)
         CancellationToken cancellationToken)
     {
         var heroes = await heroesReadRepository.GetPageAsync(
-            pagination: query.Pagination,
-            sorting: query.Sorting,
+            paginationParameters: query.Pagination,
+            sortingParameters: query.Sorting,
             cancellationToken: cancellationToken);
 
         return Result.Success(value: heroes);

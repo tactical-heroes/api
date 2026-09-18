@@ -6,8 +6,8 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Abstractions;
 public interface IHeroesReadRepository : IReadRepository<Guid>
 {
     Task<PaginationResult<HeroListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
-        SortingParameters sorting,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken);
 
     Task<HeroDetailsReadModel?> GetDetailsByIdAsync(

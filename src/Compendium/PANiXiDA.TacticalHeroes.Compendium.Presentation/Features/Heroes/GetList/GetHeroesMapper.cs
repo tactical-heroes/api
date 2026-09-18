@@ -8,10 +8,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.GetLis
 internal static partial class GetHeroesMapper
 {
     internal static GetHeroesQuery ToQuery(
-        PaginationParameters pagination,
-        SortingParameters sorting)
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters)
     {
-        return new GetHeroesQuery(pagination, sorting);
+        return new GetHeroesQuery(paginationParameters, sortingParameters);
     }
 
     internal static partial PaginationResult<HeroListItemResponse> ToResponse(

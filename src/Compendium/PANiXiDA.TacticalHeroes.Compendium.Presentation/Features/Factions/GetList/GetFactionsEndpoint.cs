@@ -16,14 +16,14 @@ internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
     }
 
     private static async Task<IResult> HandleAsync(
-        [AsParameters] PaginationParameters pagination,
-        [AsParameters] SortingParameters sorting,
+        [AsParameters] PaginationParameters paginationParameters,
+        [AsParameters] SortingParameters sortingParameters,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetFactionsMapper.ToQuery(pagination: pagination,
-                sorting: sorting),
+            GetFactionsMapper.ToQuery(paginationParameters: paginationParameters,
+                sortingParameters: sortingParameters),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>

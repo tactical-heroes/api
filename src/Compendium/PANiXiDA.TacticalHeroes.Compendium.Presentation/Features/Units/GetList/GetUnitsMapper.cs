@@ -8,10 +8,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.GetList
 internal static partial class GetUnitsMapper
 {
     internal static GetUnitsQuery ToQuery(
-        PaginationParameters pagination,
-        SortingParameters sorting)
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters)
     {
-        return new GetUnitsQuery(pagination, sorting);
+        return new GetUnitsQuery(paginationParameters, sortingParameters);
     }
 
     internal static partial PaginationResult<UnitListItemResponse> ToResponse(

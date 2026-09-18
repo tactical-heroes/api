@@ -16,8 +16,8 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
 {
     public Task<PaginationResult<UserListItemReadModel>> GetPageAsync(
         UsersFilter filter,
-        PaginationParameters pagination,
-        SortingParameters sorting,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
         var query = ApplyFilter(
@@ -25,8 +25,8 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
             filter: filter);
         return GetPagedResultAsync<UserListItemReadModel, UserListItemReadModelMapper, UserListItemReadModelSorting>(
             query: query,
-            paginationParameters: pagination,
-            sortingParameters: sorting,
+            paginationParameters: paginationParameters,
+            sortingParameters: sortingParameters,
             cancellationToken: cancellationToken);
     }
 

@@ -12,14 +12,14 @@ public sealed class HeroesReadRepository(CompendiumReadDbContext dbContext)
     IHeroesReadRepository
 {
     public Task<PaginationResult<HeroListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
-        SortingParameters sorting,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
         return GetPagedResultAsync<HeroListItemReadModel, HeroListItemReadModelMapper, HeroListItemReadModelSorting>(
             query: Query,
-            paginationParameters: pagination,
-            sortingParameters: sorting,
+            paginationParameters: paginationParameters,
+            sortingParameters: sortingParameters,
             cancellationToken: cancellationToken);
     }
 

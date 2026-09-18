@@ -10,13 +10,13 @@ internal static partial class GetUsersMapper
 {
     internal static GetUsersQuery ToQuery(
         GetUsersRequest request,
-        PaginationParameters pagination,
-        SortingParameters sorting)
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters)
     {
         return new GetUsersQuery(
             Filter: new UsersFilter(request.Email),
-            Pagination: pagination,
-            Sorting: sorting);
+            Pagination: paginationParameters,
+            Sorting: sortingParameters);
     }
 
     internal static partial PaginationResult<UserListItemResponse> ToResponse(

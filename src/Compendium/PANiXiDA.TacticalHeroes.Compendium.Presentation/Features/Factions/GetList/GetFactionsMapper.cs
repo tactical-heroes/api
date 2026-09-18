@@ -8,10 +8,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetL
 internal static partial class GetFactionsMapper
 {
     internal static GetFactionsQuery ToQuery(
-        PaginationParameters pagination,
-        SortingParameters sorting)
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters)
     {
-        return new GetFactionsQuery(pagination, sorting);
+        return new GetFactionsQuery(paginationParameters, sortingParameters);
     }
 
     internal static partial PaginationResult<FactionListItemResponse> ToResponse(

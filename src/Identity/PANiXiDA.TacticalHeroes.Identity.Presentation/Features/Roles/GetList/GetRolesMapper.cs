@@ -8,10 +8,10 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetList;
 internal static partial class GetRolesMapper
 {
     internal static GetRolesQuery ToQuery(
-        PaginationParameters pagination,
-        SortingParameters sorting)
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters)
     {
-        return new GetRolesQuery(pagination, sorting);
+        return new GetRolesQuery(paginationParameters, sortingParameters);
     }
 
     internal static partial PaginationResult<RoleListItemResponse> ToResponse(

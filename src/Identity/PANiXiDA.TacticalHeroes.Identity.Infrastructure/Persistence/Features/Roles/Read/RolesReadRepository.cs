@@ -12,14 +12,14 @@ public sealed class RolesReadRepository(IdentityReadDbContext dbContext) :
     IRolesReadRepository
 {
     public Task<PaginationResult<RoleListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
-        SortingParameters sorting,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
         return GetPagedResultAsync<RoleListItemReadModel, RoleListItemReadModelMapper, RoleListItemReadModelSorting>(
             query: Query,
-            paginationParameters: pagination,
-            sortingParameters: sorting,
+            paginationParameters: paginationParameters,
+            sortingParameters: sortingParameters,
             cancellationToken: cancellationToken);
     }
 

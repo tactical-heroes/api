@@ -30,14 +30,14 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
     }
 
     public Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
-        SortingParameters sorting,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
         return GetPagedResultAsync<FactionListItemReadModel, FactionListItemReadModelMapper, FactionListItemReadModelSorting>(
             query: Query,
-            paginationParameters: pagination,
-            sortingParameters: sorting,
+            paginationParameters: paginationParameters,
+            sortingParameters: sortingParameters,
             cancellationToken: cancellationToken);
     }
 
