@@ -658,6 +658,21 @@ repository и query handler реализуют `IReadModel`; коллекции,
      Проверяется каждая регистрация маршрута. Это позволяет проверять текущие
      endpoints с возвращаемым типом `Task<IResult>`, не раскрывающим HTTP body.
 
+## Создание strongly typed ID
+
+125. `StronglyTypedIds_Should_DeclareOnlyPrivateParameterizedConstructors_When_Declared`
+     — структуры, реализующие `IStronglyTypedId`, должны объявлять только
+     приватные параметризованные конструкторы. Создание из внешнего значения
+     проходит через `Create`, генерация нового идентификатора — через `New`.
+
+126. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+     — свойства strongly typed ID должны иметь публичный getter без setter
+     или init-accessor, чтобы нельзя было обойти фабрику через initializer
+     или выражение `with`.
+
+Эти правила не запрещают `default(TId)` и неявный конструктор структуры без
+параметров: они по-прежнему создают идентификатор с `Guid.Empty`.
+
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
 отдельно средствами code coverage в CI.
