@@ -137,7 +137,10 @@ public sealed class DomainEncapsulationConventionTests
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
                 (typeof(IEntity).IsAssignableFrom(type) ||
-                 typeof(ValueObject).IsAssignableFrom(type)))
+                 typeof(ValueObject).IsAssignableFrom(type) ||
+                 InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                     type,
+                     typeof(Enumeration<>)) is not null))
             .ToArray();
         var violations = domainObjects
             .SelectMany(type => type
@@ -161,8 +164,8 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Strongly typed ids should declare only private parameterized constructors when declared")]
-    public void StronglyTypedIds_Should_DeclareOnlyPrivateParameterizedConstructors_When_Declared()
+    [Fact(DisplayName = "Strongly typed ids should declare only private constructors when declared")]
+    public void StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared()
     {
         var identifiers = GetStronglyTypedIds();
         var violations = identifiers
@@ -172,9 +175,7 @@ public sealed class DomainEncapsulationConventionTests
                     BindingFlags.Public |
                     BindingFlags.NonPublic |
                     BindingFlags.DeclaredOnly)
-                .Where(constructor =>
-                    constructor.GetParameters().Length > 0 &&
-                    !constructor.IsPrivate)
+                .Where(constructor => !constructor.IsPrivate)
                 .Select(constructor =>
                     $"{type.FullName} declares non-private constructor " +
                     $"'{constructor}' and must expose creation through a " +
@@ -220,7 +221,7 @@ public sealed class DomainEncapsulationConventionTests
     {
         return GetDomainTypes()
             .Where(type =>
-                type.IsValueType &&
+                (type.IsClass || type.IsValueType) &&
                 typeof(IStronglyTypedId).IsAssignableFrom(type))
             .ToArray();
     }
