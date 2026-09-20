@@ -1,10 +1,17 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 
-public readonly record struct RoleClaimId(Guid Value) : IStronglyTypedId
+public readonly record struct RoleClaimId : IStronglyTypedId
 {
+    private RoleClaimId(Guid value)
+    {
+        Value = value;
+    }
+
+    public Guid Value { get; }
+
     public static RoleClaimId New()
     {
-        return new RoleClaimId(Value: Guid.CreateVersion7());
+        return new RoleClaimId(value: Guid.CreateVersion7());
     }
 
     public static Result<RoleClaimId> Create(Guid value)
@@ -15,7 +22,7 @@ public readonly record struct RoleClaimId(Guid Value) : IStronglyTypedId
                 error: Error.Validation(message: "Role claim id cannot be empty."));
         }
 
-        return Result.Success(value: new RoleClaimId(Value: value));
+        return Result.Success(value: new RoleClaimId(value: value));
     }
 
     public override string ToString()

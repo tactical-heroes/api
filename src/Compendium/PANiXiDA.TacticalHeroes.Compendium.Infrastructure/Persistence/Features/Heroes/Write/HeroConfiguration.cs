@@ -16,7 +16,7 @@ internal sealed class HeroConfiguration : AuditableEntityConfiguration<Hero>
         builder.Property(hero => hero.Id)
             .HasConversion(
                 id => id.Value,
-                value => new HeroId(value))
+                value => HeroId.Create(value: value).Value)
             .ValueGeneratedNever();
 
         builder.Property(hero => hero.Name)
@@ -66,7 +66,7 @@ internal sealed class HeroConfiguration : AuditableEntityConfiguration<Hero>
         builder.Property(hero => hero.FactionId)
             .HasConversion(
                 id => id.Value,
-                value => new FactionId(value))
+                value => FactionId.Create(value: value).Value)
             .ValueGeneratedNever()
             .IsRequired();
 

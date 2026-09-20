@@ -1,10 +1,17 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 
-public readonly record struct UserClaimId(Guid Value) : IStronglyTypedId
+public readonly record struct UserClaimId : IStronglyTypedId
 {
+    private UserClaimId(Guid value)
+    {
+        Value = value;
+    }
+
+    public Guid Value { get; }
+
     public static UserClaimId New()
     {
-        return new UserClaimId(Value: Guid.CreateVersion7());
+        return new UserClaimId(value: Guid.CreateVersion7());
     }
 
     public static Result<UserClaimId> Create(Guid value)
@@ -15,7 +22,7 @@ public readonly record struct UserClaimId(Guid Value) : IStronglyTypedId
                 error: Error.Validation(message: "User claim id cannot be empty."));
         }
 
-        return Result.Success(value: new UserClaimId(Value: value));
+        return Result.Success(value: new UserClaimId(value: value));
     }
 
     public override string ToString()

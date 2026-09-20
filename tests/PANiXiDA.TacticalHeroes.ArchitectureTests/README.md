@@ -492,8 +492,9 @@ repository и query handler реализуют `IReadModel`; коллекции,
 ## Дополнительные архитектурные гарантии
 
 93. `DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories`
-    — конкретные `IEntity` и `ValueObject` должны объявлять только private
-    конструкторы и предоставлять создание через фабричные методы.
+    — конкретные `IEntity`, `ValueObject` и `Enumeration<>` должны объявлять
+    только private конструкторы. Создание проходит через фабричные методы
+    или предопределённые экземпляры перечислений.
 
 94. `InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared`
     — каждая реализация абстракции Domain или Application из Infrastructure
@@ -657,6 +658,18 @@ repository и query handler реализуют `IReadModel`; коллекции,
      `PaginationResult<TResponse>` в `TypedResults.Ok` внутри обработчика.
      Проверяется каждая регистрация маршрута. Это позволяет проверять текущие
      endpoints с возвращаемым типом `Task<IResult>`, не раскрывающим HTTP body.
+
+## Создание strongly typed ID
+
+125. `StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared`
+     — классы и структуры, реализующие `IStronglyTypedId`, должны объявлять
+     только приватные конструкторы. Создание из внешнего значения
+     проходит через `Create`, генерация нового идентификатора — через `New`.
+
+126. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+     — свойства strongly typed ID должны иметь публичный getter без setter
+     или init-accessor, чтобы нельзя было обойти фабрику через initializer
+     или выражение `with`.
 
 Пункты 12, 42 и 66 проверяют наличие соответствующих тестовых методов по их
 именам, а не факт выполнения production-кода. Фактическое покрытие измеряется

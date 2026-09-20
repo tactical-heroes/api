@@ -1,10 +1,17 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 
-public readonly record struct UnitId(Guid Value) : IStronglyTypedId
+public readonly record struct UnitId : IStronglyTypedId
 {
+    private UnitId(Guid value)
+    {
+        Value = value;
+    }
+
+    public Guid Value { get; }
+
     public static UnitId New()
     {
-        return new UnitId(Value: Guid.CreateVersion7());
+        return new UnitId(value: Guid.CreateVersion7());
     }
 
     public static Result<UnitId> Create(Guid value)
@@ -12,7 +19,7 @@ public readonly record struct UnitId(Guid Value) : IStronglyTypedId
         return value == Guid.Empty
             ? Result.Failure<UnitId>(
                 error: Error.Validation(message: "Unit id cannot be empty."))
-            : Result.Success(value: new UnitId(Value: value));
+            : Result.Success(value: new UnitId(value: value));
     }
 
     public override string ToString()

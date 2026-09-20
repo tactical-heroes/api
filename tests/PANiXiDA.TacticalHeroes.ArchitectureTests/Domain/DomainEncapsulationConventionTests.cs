@@ -4,6 +4,7 @@ using System.Reflection;
 using PANiXiDA.Core.Domain;
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.Entities;
+using PANiXiDA.Core.Domain.Identifiers;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 
@@ -136,7 +137,10 @@ public sealed class DomainEncapsulationConventionTests
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
                 (typeof(IEntity).IsAssignableFrom(type) ||
-                 typeof(ValueObject).IsAssignableFrom(type)))
+                 typeof(ValueObject).IsAssignableFrom(type) ||
+                 InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                     type,
+                     typeof(Enumeration<>)) is not null))
             .ToArray();
         var violations = domainObjects
             .SelectMany(type => type
@@ -158,6 +162,70 @@ public sealed class DomainEncapsulationConventionTests
             violations.Length == 0,
             $"Non-private Domain object constructors:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Strongly typed ids should declare only private constructors when declared")]
+    public void StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared()
+    {
+        var identifiers = GetStronglyTypedIds();
+        var violations = identifiers
+            .SelectMany(type => type
+                .GetConstructors(
+                    BindingFlags.Instance |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.DeclaredOnly)
+                .Where(constructor => !constructor.IsPrivate)
+                .Select(constructor =>
+                    $"{type.FullName} declares non-private constructor " +
+                    $"'{constructor}' and must expose creation through a " +
+                    $"factory method instead."))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(identifiers);
+        Assert.True(
+            violations.Length == 0,
+            $"Non-private strongly typed id constructors:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Strongly typed ids should declare public getters without setters when properties are declared")]
+    public void StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared()
+    {
+        var identifiers = GetStronglyTypedIds();
+        var violations = identifiers
+            .SelectMany(type => type
+                .GetProperties(
+                    BindingFlags.Instance |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.DeclaredOnly)
+                .Where(property =>
+                    property.GetGetMethod(nonPublic: true) is not { IsPublic: true } ||
+                    property.GetSetMethod(nonPublic: true) is not null)
+                .Select(property =>
+                    $"{type.FullName}.{property.Name} must have a public getter " +
+                    $"and no setter or init accessor."))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(identifiers);
+        Assert.True(
+            violations.Length == 0,
+            $"Strongly typed id property violations:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    private static Type[] GetStronglyTypedIds()
+    {
+        return
+        [
+            .. GetDomainTypes()
+                .Where(type =>
+                    (type.IsClass || type.IsValueType) &&
+                    typeof(IStronglyTypedId).IsAssignableFrom(type))
+        ];
     }
 
     private static Type[] GetDomainEntities()
