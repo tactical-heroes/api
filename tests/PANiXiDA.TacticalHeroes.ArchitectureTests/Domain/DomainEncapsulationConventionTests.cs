@@ -219,11 +219,13 @@ public sealed class DomainEncapsulationConventionTests
 
     private static Type[] GetStronglyTypedIds()
     {
-        return GetDomainTypes()
-            .Where(type =>
-                (type.IsClass || type.IsValueType) &&
-                typeof(IStronglyTypedId).IsAssignableFrom(type))
-            .ToArray();
+        return
+        [
+            .. GetDomainTypes()
+                .Where(type =>
+                    (type.IsClass || type.IsValueType) &&
+                    typeof(IStronglyTypedId).IsAssignableFrom(type))
+        ];
     }
 
     private static Type[] GetDomainEntities()
