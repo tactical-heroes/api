@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 
-public sealed class UserStatus : Enumeration<UserStatus>
+public sealed partial class UserStatus : Enumeration<UserStatus>
 {
     public static readonly UserStatus Active = new(id: 1, name: nameof(Active), displayName: "Активный");
     public static readonly UserStatus Blocked = new(id: 2, name: nameof(Blocked), displayName: "Заблокирован");
