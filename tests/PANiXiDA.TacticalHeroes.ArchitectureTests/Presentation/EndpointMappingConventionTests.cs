@@ -301,7 +301,8 @@ internal static class EndpointMappingSourceDiscovery
             })
             .Where(target =>
                 target.Operation is not null &&
-                target.Operation.TargetMethod.ContainingType
+                target.Invocation.Expression is MemberAccessExpressionSyntax memberAccess &&
+                semanticModel.GetTypeInfo(memberAccess.Expression).Type?
                     .ToDisplayString() == EndpointMapBuilderTypeName)
             .Select(target => new EndpointMappingSource(
                 EndpointTypeName: endpointType.ToDisplayString(),
@@ -334,7 +335,7 @@ internal static class EndpointMappingSourceDiscovery
             "MapPatch" => ["PATCH"],
             "MapDelete" => ["DELETE"],
             "MapMethods" => GetConstantStrings(
-                operation.Arguments[0].Value),
+                operation.Arguments.Single(argument => argument.Parameter?.Name == "httpMethods").Value),
             _ => []
         };
     }

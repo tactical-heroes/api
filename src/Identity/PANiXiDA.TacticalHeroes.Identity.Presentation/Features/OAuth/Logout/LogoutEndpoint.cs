@@ -19,12 +19,12 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleGetAsync)
+        builder.MapGet(builder.Route, handler: HandleGetAsync)
             .AllowAnonymous()
             .AddOpenApiOperationTransformer(AddLogoutQueryParametersAsync)
             .Produces(StatusCodes.Status302Found);
 
-        builder.MapPost(HandlePostAsync)
+        builder.MapPost(builder.Route, handler: HandlePostAsync)
             .AllowAnonymous()
             .WithName("PostLogout")
             .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
