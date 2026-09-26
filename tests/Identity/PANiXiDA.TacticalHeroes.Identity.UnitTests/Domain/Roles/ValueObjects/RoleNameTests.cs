@@ -11,7 +11,6 @@ public sealed class RoleNameTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("admin");
-        result.Value.ToString().ShouldBe("admin");
     }
 
     [Theory(DisplayName = "Role name should reject an empty value when role name is empty")]
@@ -36,13 +35,13 @@ public sealed class RoleNameTests
             .ShouldHaveField(nameof(RoleName));
     }
 
-    [Fact(DisplayName = "Role name should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Role name should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var roleName = RoleName.Create("admin").Value;
 
         var result = roleName.ToString();
 
-        result.ShouldBe(roleName.Value);
+        result.ShouldBe("RoleName { Value = admin }");
     }
 }

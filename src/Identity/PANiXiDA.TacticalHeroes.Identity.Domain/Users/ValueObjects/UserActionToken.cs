@@ -23,9 +23,4 @@ public sealed partial class UserActionToken : ValueObject
                     .WithField(nameof(UserActionToken)))
             : Result.Success(value: new UserActionToken(value: value, expiresAtUtc: expiresAtUtc));
     }
-
-    public override string ToString()
-    {
-        return nameof(UserActionToken);
-    }
 }

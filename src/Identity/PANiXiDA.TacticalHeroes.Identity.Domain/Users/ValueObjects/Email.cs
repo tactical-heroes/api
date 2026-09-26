@@ -51,9 +51,4 @@ public sealed partial class Email : ValueObject
 
         return Result.Success(value: new Email(value: normalizedValue));
     }
-
-    public override string ToString()
-    {
-        return Value;
-    }
 }

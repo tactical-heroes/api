@@ -28,9 +28,4 @@ public sealed partial class UserName : ValueObject
                 error: Error.Validation(message: $"User name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UserName)));
     }
-
-    public override string ToString()
-    {
-        return Value;
-    }
 }

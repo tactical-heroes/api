@@ -11,7 +11,6 @@ public sealed class FactionNameTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("Northern Alliance");
-        result.Value.ToString().ShouldBe("Northern Alliance");
     }
 
     [Theory(DisplayName = "Faction name should reject an empty value when name is empty")]
@@ -39,13 +38,13 @@ public sealed class FactionNameTests
             .ShouldHaveField(nameof(FactionName));
     }
 
-    [Fact(DisplayName = "Faction name should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Faction name should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var name = FactionName.Create("Northern Alliance").Value;
 
         var result = name.ToString();
 
-        result.ShouldBe(name.Value);
+        result.ShouldBe("FactionName { Value = Northern Alliance }");
     }
 }

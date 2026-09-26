@@ -29,9 +29,4 @@ public sealed partial class HeroName : ValueObject
                         message: $"Hero name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(HeroName)));
     }
-
-    public override string ToString()
-    {
-        return Value;
-    }
 }

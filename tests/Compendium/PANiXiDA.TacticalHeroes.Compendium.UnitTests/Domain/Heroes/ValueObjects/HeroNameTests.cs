@@ -11,7 +11,6 @@ public sealed class HeroNameTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("Orrin");
-        result.Value.ToString().ShouldBe("Orrin");
     }
 
     [Theory(DisplayName = "Hero name should reject an empty value when name is empty")]
@@ -39,13 +38,13 @@ public sealed class HeroNameTests
             .ShouldHaveField(nameof(HeroName));
     }
 
-    [Fact(DisplayName = "Hero name should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Hero name should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var name = HeroName.Create("Orrin").Value;
 
         var result = name.ToString();
 
-        result.ShouldBe(name.Value);
+        result.ShouldBe("HeroName { Value = Orrin }");
     }
 }

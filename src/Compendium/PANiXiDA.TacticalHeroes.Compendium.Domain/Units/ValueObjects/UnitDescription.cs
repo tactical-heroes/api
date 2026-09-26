@@ -29,9 +29,4 @@ public sealed partial class UnitDescription : ValueObject
                         message: $"Unit description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UnitDescription)));
     }
-
-    public override string ToString()
-    {
-        return Value;
-    }
 }

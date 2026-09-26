@@ -11,7 +11,6 @@ public sealed class ClaimTypeTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("permission");
-        result.Value.ToString().ShouldBe("permission");
     }
 
     [Theory(DisplayName = "User claim type should reject an empty value when claim type is empty")]
@@ -36,13 +35,13 @@ public sealed class ClaimTypeTests
             .ShouldHaveField(nameof(ClaimType));
     }
 
-    [Fact(DisplayName = "User claim type should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "User claim type should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var claimType = ClaimType.Create("permission").Value;
 
         var result = claimType.ToString();
 
-        result.ShouldBe(claimType.Value);
+        result.ShouldBe("ClaimType { Value = permission }");
     }
 }

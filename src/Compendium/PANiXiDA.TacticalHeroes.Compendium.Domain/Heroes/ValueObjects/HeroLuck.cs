@@ -21,9 +21,4 @@ public sealed partial class HeroLuck : ValueObject
                         message: $"Hero luck must be between {Minimum} and {Maximum}.")
                     .WithField(nameof(HeroLuck)));
     }
-
-    public override string ToString()
-    {
-        return Value.ToString();
-    }
 }

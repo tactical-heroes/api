@@ -29,9 +29,4 @@ public sealed partial class FactionDescription : ValueObject
                         message: $"Faction description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(FactionDescription)));
     }
-
-    public override string ToString()
-    {
-        return Value;
-    }
 }

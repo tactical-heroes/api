@@ -4,14 +4,15 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.ValueObjects;
 
 public sealed class UserActionTokenTests
 {
-    [Fact(DisplayName = "User action token should omit its secret value when converted to string")]
-    public void ToString_Should_OmitSecretValue_When_ConvertedToString()
+    [Fact(DisplayName = "User action token should format all components when converted to string")]
+    public void ToString_Should_FormatAllComponents_When_ConvertedToString()
     {
-        var token = UserActionToken.Create("opaque-token+/=", DateTimeOffset.UtcNow).Value;
+        var expiration = new DateTimeOffset(2026, 9, 9, 12, 0, 0, TimeSpan.Zero);
+        var token = UserActionToken.Create("opaque-token+/=", expiration).Value;
 
         var result = token.ToString();
 
-        result.ShouldBe(nameof(UserActionToken));
+        result.ShouldBe("UserActionToken { Value = opaque-token+/=, ExpiresAtUtc = 09/09/2026 12:00:00 +00:00 }");
     }
 
     [Theory(DisplayName = "User action token should compare its value and expiration when values are compared")]

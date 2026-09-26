@@ -31,9 +31,4 @@ public sealed partial class RoleName : ValueObject
 
         return Result.Success(value: new RoleName(value: normalizedValue));
     }
-
-    public override string ToString()
-    {
-        return Value;
-    }
 }

@@ -13,7 +13,6 @@ public sealed class UnitLuckTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe(value);
-        result.Value.ToString().ShouldBe(value.ToString());
     }
 
     [Theory(DisplayName = "Unit luck should reject a value when value is outside range")]
@@ -30,13 +29,13 @@ public sealed class UnitLuckTests
             .ShouldHaveField(nameof(UnitLuck));
     }
 
-    [Fact(DisplayName = "Unit luck should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Unit luck should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var luck = UnitLuck.Create(1).Value;
 
         var result = luck.ToString();
 
-        result.ShouldBe("1");
+        result.ShouldBe("UnitLuck { Value = 1 }");
     }
 }

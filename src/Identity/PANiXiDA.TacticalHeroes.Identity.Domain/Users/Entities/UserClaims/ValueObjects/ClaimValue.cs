@@ -31,9 +31,4 @@ public sealed partial class ClaimValue : ValueObject
 
         return Result.Success(value: new ClaimValue(value: normalizedValue));
     }
-
-    public override string ToString()
-    {
-        return Value;
-    }
 }

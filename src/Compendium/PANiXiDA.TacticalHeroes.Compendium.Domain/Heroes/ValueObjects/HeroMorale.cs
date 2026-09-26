@@ -21,9 +21,4 @@ public sealed partial class HeroMorale : ValueObject
                         message: $"Hero morale must be between {Minimum} and {Maximum}.")
                     .WithField(nameof(HeroMorale)));
     }
-
-    public override string ToString()
-    {
-        return Value.ToString();
-    }
 }

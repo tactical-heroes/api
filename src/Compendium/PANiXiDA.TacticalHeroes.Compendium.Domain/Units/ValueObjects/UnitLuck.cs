@@ -21,9 +21,4 @@ public sealed partial class UnitLuck : ValueObject
                         message: $"Unit luck must be between {Minimum} and {Maximum}.")
                     .WithField(nameof(UnitLuck)));
     }
-
-    public override string ToString()
-    {
-        return Value.ToString();
-    }
 }

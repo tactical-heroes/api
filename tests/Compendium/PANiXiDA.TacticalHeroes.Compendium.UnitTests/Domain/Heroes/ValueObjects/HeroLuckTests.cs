@@ -13,7 +13,6 @@ public sealed class HeroLuckTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe(value);
-        result.Value.ToString().ShouldBe(value.ToString());
     }
 
     [Theory(DisplayName = "Hero luck should reject a value when value is outside range")]
@@ -30,13 +29,13 @@ public sealed class HeroLuckTests
             .ShouldHaveField(nameof(HeroLuck));
     }
 
-    [Fact(DisplayName = "Hero luck should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Hero luck should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var luck = HeroLuck.Create(2).Value;
 
         var result = luck.ToString();
 
-        result.ShouldBe("2");
+        result.ShouldBe("HeroLuck { Value = 2 }");
     }
 }

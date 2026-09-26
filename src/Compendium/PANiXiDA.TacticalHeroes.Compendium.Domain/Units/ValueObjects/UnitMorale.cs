@@ -21,9 +21,4 @@ public sealed partial class UnitMorale : ValueObject
                         message: $"Unit morale must be between {Minimum} and {Maximum}.")
                     .WithField(nameof(UnitMorale)));
     }
-
-    public override string ToString()
-    {
-        return Value.ToString();
-    }
 }
