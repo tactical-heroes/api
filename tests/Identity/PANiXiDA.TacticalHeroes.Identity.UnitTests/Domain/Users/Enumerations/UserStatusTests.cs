@@ -4,24 +4,30 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Enumerations;
 
 public sealed class UserStatusTests
 {
-    [Fact(DisplayName = "User statuses should retain their identifier order when listed")]
+    [Fact(DisplayName = "User statuses should retain their identifier order when called")]
     public void GetAll_Should_ReturnStatusesInIdOrder_When_Called()
     {
-        UserStatus.GetAll().ShouldBe([UserStatus.Active, UserStatus.Blocked]);
+        var statuses = UserStatus.GetAll();
+
+        statuses.ShouldBe([UserStatus.Active, UserStatus.Blocked]);
     }
 
-    [Theory(DisplayName = "User status should resolve a known identifier when identifier is known")]
+    [Theory(DisplayName = "User status should resolve a known identifier when id is known")]
     [InlineData(1, "Active")]
     [InlineData(2, "Blocked")]
     public void FromId_Should_ReturnStatus_When_IdIsKnown(int id, string name)
     {
-        UserStatus.FromId(id).Name.ShouldBe(name);
+        var status = UserStatus.FromId(id);
+
+        status.Name.ShouldBe(name);
     }
 
-    [Fact(DisplayName = "User status should reject an unknown identifier when resolving by identifier")]
+    [Fact(DisplayName = "User status should reject an unknown identifier when id is unknown")]
     public void FromId_Should_Throw_When_IdIsUnknown()
     {
-        Should.Throw<InvalidOperationException>(() => UserStatus.FromId(0));
+        Action action = () => UserStatus.FromId(0);
+
+        action.ShouldThrow<InvalidOperationException>();
     }
 
     [Theory(DisplayName = "User status should resolve a trimmed name when name is known")]
@@ -29,19 +35,23 @@ public sealed class UserStatusTests
     [InlineData("  Blocked  ", 2)]
     public void FromName_Should_ReturnStatus_When_NameIsKnown(string name, int id)
     {
-        UserStatus.FromName(name).Id.ShouldBe(id);
+        var status = UserStatus.FromName(name);
+
+        status.Id.ShouldBe(id);
     }
 
-    [Theory(DisplayName = "User status should reject an invalid name when resolving by name")]
+    [Theory(DisplayName = "User status should reject an invalid name when name is invalid")]
     [InlineData("Deleted")]
     [InlineData("active")]
     [InlineData("   ")]
     public void FromName_Should_Throw_When_NameIsInvalid(string name)
     {
-        Should.Throw<InvalidOperationException>(() => UserStatus.FromName(name));
+        Action action = () => UserStatus.FromName(name);
+
+        action.ShouldThrow<InvalidOperationException>();
     }
 
-    [Theory(DisplayName = "User status lookup should report whether an identifier is known")]
+    [Theory(DisplayName = "User status lookup should report a match when id is provided")]
     [InlineData(1, "Active")]
     [InlineData(2, "Blocked")]
     [InlineData(0, null)]
@@ -53,7 +63,7 @@ public sealed class UserStatusTests
         (status?.Name).ShouldBe(expectedName);
     }
 
-    [Theory(DisplayName = "User status lookup should report whether a trimmed name is known")]
+    [Theory(DisplayName = "User status lookup should report a match when name is provided")]
     [InlineData("Active", 1)]
     [InlineData("  Blocked  ", 2)]
     [InlineData("Deleted", null)]
