@@ -17,7 +17,10 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapMethods(builder.Route, [HttpMethods.Get, HttpMethods.Post], HandleAsync)
+        builder.MapMethods(
+                pattern: builder.Route,
+                httpMethods: [HttpMethods.Get, HttpMethods.Post],
+                handler: HandleAsync)
             .RequireAuthorization(
                 new AuthorizeAttribute
                 {
