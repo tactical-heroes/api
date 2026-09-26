@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-public sealed class UserName : ValueObject
+public sealed partial class UserName : ValueObject
 {
     public const int MaxLength = 256;
 
@@ -27,15 +27,5 @@ public sealed class UserName : ValueObject
             : Result.Failure<UserName>(
                 error: Error.Validation(message: $"User name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UserName)));
-    }
-
-    public override string ToString()
-    {
-        return Value;
-    }
-
-    protected override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
-public sealed class RoleName : ValueObject
+public sealed partial class RoleName : ValueObject
 {
     public const int MaxLength = 128;
 
@@ -30,15 +30,5 @@ public sealed class RoleName : ValueObject
         }
 
         return Result.Success(value: new RoleName(value: normalizedValue));
-    }
-
-    public override string ToString()
-    {
-        return Value;
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

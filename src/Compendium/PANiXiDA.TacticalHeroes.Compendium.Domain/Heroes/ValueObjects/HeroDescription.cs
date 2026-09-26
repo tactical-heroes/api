@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-public sealed class HeroDescription : ValueObject
+public sealed partial class HeroDescription : ValueObject
 {
     public const int MaxLength = 2000;
 
@@ -28,15 +28,5 @@ public sealed class HeroDescription : ValueObject
                 error: Error.Validation(
                         message: $"Hero description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(HeroDescription)));
-    }
-
-    public override string ToString()
-    {
-        return Value;
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

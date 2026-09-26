@@ -11,7 +11,6 @@ public sealed class UnitNameTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("Archer");
-        result.Value.ToString().ShouldBe("Archer");
     }
 
     [Theory(DisplayName = "Unit name should reject an empty value when name is empty")]
@@ -39,13 +38,13 @@ public sealed class UnitNameTests
             .ShouldHaveField(nameof(UnitName));
     }
 
-    [Fact(DisplayName = "Unit name should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Unit name should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var name = UnitName.Create("Archer").Value;
 
         var result = name.ToString();
 
-        result.ShouldBe(name.Value);
+        result.ShouldBe("UnitName { Value = Archer }");
     }
 }

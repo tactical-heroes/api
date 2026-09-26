@@ -21,7 +21,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleAsync)
+        builder.MapGet(builder.Route, HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found)
             .Produces(StatusCodes.Status403Forbidden);

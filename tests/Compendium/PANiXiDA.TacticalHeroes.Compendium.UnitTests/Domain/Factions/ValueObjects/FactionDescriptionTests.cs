@@ -11,7 +11,6 @@ public sealed class FactionDescriptionTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("Defenders of the north.");
-        result.Value.ToString().ShouldBe("Defenders of the north.");
     }
 
     [Theory(DisplayName = "Faction description should reject an empty value when description is empty")]
@@ -40,13 +39,13 @@ public sealed class FactionDescriptionTests
             .ShouldHaveField(nameof(FactionDescription));
     }
 
-    [Fact(DisplayName = "Faction description should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Faction description should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var description = FactionDescription.Create("Defenders of the north.").Value;
 
         var result = description.ToString();
 
-        result.ShouldBe(description.Value);
+        result.ShouldBe("FactionDescription { Value = Defenders of the north. }");
     }
 }

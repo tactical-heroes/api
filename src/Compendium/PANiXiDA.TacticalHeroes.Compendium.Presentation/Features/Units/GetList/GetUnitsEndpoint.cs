@@ -10,7 +10,7 @@ internal sealed class GetUnitsEndpoint : IEndpoint<UnitsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleAsync)
+        builder.MapGet(builder.Route, HandleAsync)
             .Produces<PaginationResult<UnitListItemResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest);
     }

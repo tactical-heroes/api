@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
-public sealed class UnitRangedAttack : ValueObject
+public sealed partial class UnitRangedAttack : ValueObject
 {
     private UnitRangedAttack(
         int? shots,
@@ -40,11 +40,5 @@ public sealed class UnitRangedAttack : ValueObject
         return validationResult.IsFailure
             ? Result.Failure<UnitRangedAttack>(errors: validationResult.Errors)
             : Result.Success(value: new UnitRangedAttack(shots, rangedAttackRange));
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Shots;
-        yield return RangedAttackRange;
     }
 }

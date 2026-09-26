@@ -11,7 +11,6 @@ public sealed class HeroDescriptionTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("A seasoned northern commander.");
-        result.Value.ToString().ShouldBe("A seasoned northern commander.");
     }
 
     [Theory(DisplayName = "Hero description should reject an empty value when description is empty")]
@@ -40,14 +39,14 @@ public sealed class HeroDescriptionTests
             .ShouldHaveField(nameof(HeroDescription));
     }
 
-    [Fact(DisplayName = "Hero description should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Hero description should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var description = HeroDescription.Create(
             "A seasoned northern commander.").Value;
 
         var result = description.ToString();
 
-        result.ShouldBe(description.Value);
+        result.ShouldBe("HeroDescription { Value = A seasoned northern commander. }");
     }
 }

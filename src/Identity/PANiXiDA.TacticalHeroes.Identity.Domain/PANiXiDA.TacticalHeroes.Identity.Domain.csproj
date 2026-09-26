@@ -13,12 +13,13 @@
     <ItemGroup>
         <Using Include="PANiXiDA.Core.ResultPattern" />
 
-        <Using Include="PANiXiDA.Core.Domain" />
         <Using Include="PANiXiDA.Core.Domain.Abstractions" />
         <Using Include="PANiXiDA.Core.Domain.AggregateRoots" />
         <Using Include="PANiXiDA.Core.Domain.DomainEvents" />
         <Using Include="PANiXiDA.Core.Domain.Entities" />
+        <Using Include="PANiXiDA.Core.Domain.Enumerations" />
         <Using Include="PANiXiDA.Core.Domain.Identifiers" />
+        <Using Include="PANiXiDA.Core.Domain.ValueObjects" />
 
         <Using Include="PANiXiDA.Core.SpecificationPattern.Abstractions" />
         <Using Include="PANiXiDA.Core.SpecificationPattern.Core" />

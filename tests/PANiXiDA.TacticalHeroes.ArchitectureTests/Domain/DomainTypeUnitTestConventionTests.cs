@@ -1,10 +1,11 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-using PANiXiDA.Core.Domain;
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.Entities;
+using PANiXiDA.Core.Domain.Enumerations;
 using PANiXiDA.Core.Domain.Identifiers;
+using PANiXiDA.Core.Domain.ValueObjects;
 
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 

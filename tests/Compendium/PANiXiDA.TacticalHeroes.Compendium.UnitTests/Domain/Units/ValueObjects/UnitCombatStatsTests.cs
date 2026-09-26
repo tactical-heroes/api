@@ -4,6 +4,16 @@ namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Units.ValueObjects
 
 public sealed class UnitCombatStatsTests
 {
+    [Fact(DisplayName = "Unit combat stats should format all components when converted to string")]
+    public void ToString_Should_FormatAllComponents_When_ConvertedToString()
+    {
+        var stats = UnitCombatStats.Create(8, 4, 12, 3, 5, 10.5, 6).Value;
+
+        var result = stats.ToString();
+
+        result.ShouldBe("UnitCombatStats { Attack = 8, Defense = 4, Health = 12, MinimumDamage = 3, MaximumDamage = 5, Initiative = 10.5, Speed = 6 }");
+    }
+
     [Fact(DisplayName = "Unit combat stats should create values when values are valid")]
     public void Create_Should_ReturnStats_When_ValuesAreValid()
     {

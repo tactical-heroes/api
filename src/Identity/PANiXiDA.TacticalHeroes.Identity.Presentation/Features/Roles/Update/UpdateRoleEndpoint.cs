@@ -10,7 +10,7 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPut(HandleAsync)
+        builder.MapPut(builder.Route, HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Reflection;
 
-using PANiXiDA.Core.Domain;
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.Entities;
+using PANiXiDA.Core.Domain.Enumerations;
 using PANiXiDA.Core.Domain.Identifiers;
+using PANiXiDA.Core.Domain.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 

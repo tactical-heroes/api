@@ -11,7 +11,6 @@ public sealed class UnitDescriptionTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("A disciplined ranged unit.");
-        result.Value.ToString().ShouldBe("A disciplined ranged unit.");
     }
 
     [Theory(DisplayName = "Unit description should reject an empty value when description is empty")]
@@ -40,13 +39,13 @@ public sealed class UnitDescriptionTests
             .ShouldHaveField(nameof(UnitDescription));
     }
 
-    [Fact(DisplayName = "Unit description should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Unit description should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var description = UnitDescription.Create("A disciplined ranged unit.").Value;
 
         var result = description.ToString();
 
-        result.ShouldBe(description.Value);
+        result.ShouldBe("UnitDescription { Value = A disciplined ranged unit. }");
     }
 }

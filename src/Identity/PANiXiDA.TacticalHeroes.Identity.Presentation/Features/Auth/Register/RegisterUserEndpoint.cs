@@ -12,7 +12,7 @@ internal sealed class RegisterUserEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(HandleAsync)
+        builder.MapPost(builder.Route, HandleAsync)
             .AllowAnonymous()
             .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)

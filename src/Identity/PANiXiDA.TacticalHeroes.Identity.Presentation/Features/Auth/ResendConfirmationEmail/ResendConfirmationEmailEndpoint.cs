@@ -10,7 +10,7 @@ internal sealed class ResendConfirmationEmailEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(HandleAsync)
+        builder.MapPost(builder.Route, HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest);

@@ -11,7 +11,6 @@ public sealed class EmailTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("hero@example.com");
-        result.Value.ToString().ShouldBe("hero@example.com");
     }
 
     [Theory(DisplayName = "Email should reject an empty value when email is empty")]
@@ -48,13 +47,13 @@ public sealed class EmailTests
             .ShouldHaveField(nameof(Email));
     }
 
-    [Fact(DisplayName = "Email should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Email should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var email = Email.Create("hero@example.com").Value;
 
         var result = email.ToString();
 
-        result.ShouldBe(email.Value);
+        result.ShouldBe("Email { Value = hero@example.com }");
     }
 }
