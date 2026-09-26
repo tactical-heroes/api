@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-public sealed class UserActionToken : ValueObject
+public sealed partial class UserActionToken : ValueObject
 {
     private UserActionToken(
         string value,
@@ -24,9 +24,8 @@ public sealed class UserActionToken : ValueObject
             : Result.Success(value: new UserActionToken(value: value, expiresAtUtc: expiresAtUtc));
     }
 
-    protected override IEnumerable<object?> GetEqualityComponents()
+    public override string ToString()
     {
-        yield return Value;
-        yield return ExpiresAtUtc;
+        return nameof(UserActionToken);
     }
 }

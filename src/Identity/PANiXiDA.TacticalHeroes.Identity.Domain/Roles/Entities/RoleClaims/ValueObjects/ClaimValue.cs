@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
 
-public sealed class ClaimValue : ValueObject
+public sealed partial class ClaimValue : ValueObject
 {
     public const int MaxLength = 1024;
 
@@ -35,10 +35,5 @@ public sealed class ClaimValue : ValueObject
     public override string ToString()
     {
         return Value;
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

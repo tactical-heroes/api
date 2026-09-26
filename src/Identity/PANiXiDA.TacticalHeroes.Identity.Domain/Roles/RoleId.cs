@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 
-public readonly record struct RoleId : IStronglyTypedId
+public readonly partial record struct RoleId : IStronglyTypedId
 {
     private RoleId(Guid value)
     {
@@ -23,10 +23,5 @@ public readonly record struct RoleId : IStronglyTypedId
         }
 
         return Result.Success(value: new RoleId(value: value));
-    }
-
-    public override string ToString()
-    {
-        return Value.ToString();
     }
 }

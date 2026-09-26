@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-public sealed class HeroName : ValueObject
+public sealed partial class HeroName : ValueObject
 {
     public const int MaxLength = 128;
 
@@ -33,10 +33,5 @@ public sealed class HeroName : ValueObject
     public override string ToString()
     {
         return Value;
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

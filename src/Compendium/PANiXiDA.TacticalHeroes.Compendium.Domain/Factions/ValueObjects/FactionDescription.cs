@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
-public sealed class FactionDescription : ValueObject
+public sealed partial class FactionDescription : ValueObject
 {
     public const int MaxLength = 2000;
 
@@ -33,10 +33,5 @@ public sealed class FactionDescription : ValueObject
     public override string ToString()
     {
         return Value;
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

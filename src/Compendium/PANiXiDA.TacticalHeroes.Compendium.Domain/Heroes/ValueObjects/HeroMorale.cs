@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-public sealed class HeroMorale : ValueObject
+public sealed partial class HeroMorale : ValueObject
 {
     public const int Minimum = 0;
     public const int Maximum = 5;
@@ -25,10 +25,5 @@ public sealed class HeroMorale : ValueObject
     public override string ToString()
     {
         return Value.ToString();
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }
