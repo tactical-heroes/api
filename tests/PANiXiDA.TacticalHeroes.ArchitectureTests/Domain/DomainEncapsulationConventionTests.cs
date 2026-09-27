@@ -36,6 +36,27 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Value objects should contain only immutable state when declared")]
+    public void ValueObjects_Should_ContainOnlyImmutableState_When_Declared()
+    {
+        var valueObjects = GetDomainTypes()
+            .Where(type =>
+                type is { IsClass: true, IsAbstract: false } &&
+                typeof(ValueObject).IsAssignableFrom(type))
+            .ToArray();
+        var violations = valueObjects
+            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(valueObjects);
+        Assert.True(
+            violations.Length == 0,
+            $"Value objects must contain only immutable state:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     [Fact(DisplayName = "Value objects and enumerations should declare public getters without setters when properties are declared")]
     public void ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared()
     {
