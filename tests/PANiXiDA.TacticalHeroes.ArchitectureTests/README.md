@@ -165,6 +165,12 @@ nullable-обёртки и `CancellationToken` считаются техниче
 
 ## Application
 
+`ApplicationValidators_Should_BePublicAndSealed_When_ValidatorsAreDeclared` —
+все конкретные Application-валидаторы `IValidator<T>`, включая валидаторы
+фильтров и сгенерированные валидаторы сортировки, должны быть `public sealed`.
+Публичность проверяется вместе с доступностью содержащих типов, чтобы
+генератор регистрации Wolverine мог ссылаться на валидаторы из Host.
+
 Read-side не использует типы из Domain. Generic-идентификатор
 `IReadRepository<>` является примитивом. Дополнительные параметры его методов
 могут быть примитивами, коллекциями примитивов или Application-моделями

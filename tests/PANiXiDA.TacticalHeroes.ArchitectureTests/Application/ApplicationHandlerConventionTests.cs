@@ -151,6 +151,30 @@ public sealed class ApplicationHandlerConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Application validators should be public and sealed when validators are declared")]
+    public void ApplicationValidators_Should_BePublicAndSealed_When_ValidatorsAreDeclared()
+    {
+        var validators = GetApplicationTypes()
+            .Select(target => target.Type)
+            .Where(type => type.GetInterfaces().Any(IsValidatorInterface))
+            .OrderBy(type => type.FullName, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(validators);
+
+        var violations = validators
+            .Where(type => !type.IsVisible || !type.IsSealed)
+            .Select(type =>
+                $"{type.FullName} must be public and sealed so generated " +
+                "Wolverine registrations can reference it from the host assembly.")
+            .ToArray();
+
+        Assert.True(
+            violations.Length == 0,
+            $"Invalid Application validator visibility or inheritance:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     private static ApplicationHandler[] GetApplicationHandlers(
         string repositoryRoot)
     {
