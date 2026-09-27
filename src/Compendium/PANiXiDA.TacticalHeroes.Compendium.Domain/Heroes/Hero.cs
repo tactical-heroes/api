@@ -56,6 +56,8 @@ public sealed class Hero : AggregateRoot<HeroId>
         HeroLuck luck,
         FactionId factionId)
     {
+        ArgumentOutOfRangeException.ThrowIfEqual(value: factionId.Value, other: Guid.Empty, paramName: nameof(factionId));
+
         return new Hero(
             id: HeroId.New(),
             name: name,
@@ -74,6 +76,8 @@ public sealed class Hero : AggregateRoot<HeroId>
         HeroLuck luck,
         FactionId factionId)
     {
+        ArgumentOutOfRangeException.ThrowIfEqual(value: factionId.Value, other: Guid.Empty, paramName: nameof(factionId));
+
         Name = name;
         Description = description;
         Stats = stats;

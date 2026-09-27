@@ -52,6 +52,8 @@ public sealed class User : AggregateRoot<UserId>
         IEnumerable<RoleId> roleIds,
         IEnumerable<UserClaim> claims)
     {
+        ArgumentOutOfRangeException.ThrowIfEqual(value: id.Value, other: Guid.Empty, paramName: nameof(id));
+
         var user = new User(id: id, email: email, userName: userName, status: status)
         {
             ConfirmationStatus = confirmationStatus
@@ -126,6 +128,8 @@ public sealed class User : AggregateRoot<UserId>
 
     public void AssignRole(RoleId roleId)
     {
+        ArgumentOutOfRangeException.ThrowIfEqual(value: roleId.Value, other: Guid.Empty, paramName: nameof(roleId));
+
         if (!_roleIds.Contains(roleId))
         {
             _roleIds.Add(roleId);

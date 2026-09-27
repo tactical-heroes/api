@@ -73,6 +73,23 @@ public sealed class UnitTests
         result.RangedAttack.RangedAttackRange.ShouldBeNull();
     }
 
+    [Fact(DisplayName = "Unit should reject an empty faction id when creating with a default id")]
+    public void Create_Should_Throw_When_FactionIdIsDefault()
+    {
+        var unit = UnitTestData.CreateUnit(UnitTestData.CreateFaction());
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => Unit.Create(
+            name: unit.Name,
+            description: unit.Description,
+            stats: unit.Stats,
+            rangedAttack: unit.RangedAttack,
+            morale: unit.Morale,
+            luck: unit.Luck,
+            factionId: default));
+
+        exception.ParamName.ShouldBe("factionId");
+    }
+
     [Fact(DisplayName = "Unit should update all details when values are valid")]
     public void Update_Should_ReplaceDetails_When_ValuesAreValid()
     {
@@ -103,5 +120,33 @@ public sealed class UnitTests
         unit.RangedAttack.Shots.ShouldBe(16);
         unit.Morale.Value.ShouldBe(3);
         unit.Luck.Value.ShouldBe(2);
+    }
+
+    [Fact(DisplayName = "Unit should preserve all details when updating with a default faction id")]
+    public void Update_Should_ThrowWithoutChangingDetails_When_FactionIdIsDefault()
+    {
+        var unit = UnitTestData.CreateUnit(UnitTestData.CreateFaction());
+        var originalState = (unit.Name, unit.Description, unit.Stats, unit.RangedAttack, unit.Morale, unit.Luck, unit.FactionId);
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => unit.Update(
+            name: UnitName.Create(value: "Marksman").Value,
+            description: UnitDescription.Create(value: "An elite ranged unit.").Value,
+            stats: UnitCombatStats.Create(
+                attack: 10,
+                defense: 5,
+                health: 14,
+                minimumDamage: 4,
+                maximumDamage: 7,
+                initiative: 11.5,
+                speed: 7).Value,
+            rangedAttack: UnitRangedAttack.Create(
+                shots: 16,
+                rangedAttackRange: 10).Value,
+            morale: UnitMorale.Create(value: 3).Value,
+            luck: UnitLuck.Create(value: 2).Value,
+            factionId: default));
+
+        exception.ParamName.ShouldBe("factionId");
+        (unit.Name, unit.Description, unit.Stats, unit.RangedAttack, unit.Morale, unit.Luck, unit.FactionId).ShouldBe(originalState);
     }
 }

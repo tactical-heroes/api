@@ -24,6 +24,19 @@ public sealed class RoleTests
         claim.Value.Value.ShouldBe("heroes.manage");
     }
 
+    [Fact(DisplayName = "Create should reject an empty role id when the id is default")]
+    public void Create_Should_Throw_When_IdIsDefault()
+    {
+        var name = RoleName.Create("admin").Value;
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => Role.Create(
+            id: default,
+            name: name,
+            claims: []));
+
+        exception.ParamName.ShouldBe("id");
+    }
+
     [Fact(DisplayName = "Create should isolate collection storage when input collections change")]
     public void Create_Should_IsolateCollectionStorage_When_InputCollectionsChange()
     {

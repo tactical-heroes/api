@@ -37,6 +37,22 @@ public sealed class HeroTests
         result.FactionId.Value.ShouldBe(factionId);
     }
 
+    [Fact(DisplayName = "Hero should reject an empty faction id when creating with a default id")]
+    public void Create_Should_Throw_When_FactionIdIsDefault()
+    {
+        var hero = CreateHero();
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => Hero.Create(
+            name: hero.Name,
+            description: hero.Description,
+            stats: hero.Stats,
+            morale: hero.Morale,
+            luck: hero.Luck,
+            factionId: default));
+
+        exception.ParamName.ShouldBe("factionId");
+    }
+
     [Fact(DisplayName = "Hero should update all details when values are valid")]
     public void Update_Should_ReplaceDetails_When_ValuesAreValid()
     {
@@ -66,6 +82,29 @@ public sealed class HeroTests
         hero.Morale.Value.ShouldBe(5);
         hero.Luck.Value.ShouldBe(3);
         hero.FactionId.Value.ShouldBe(factionId);
+    }
+
+    [Fact(DisplayName = "Hero should preserve all details when updating with a default faction id")]
+    public void Update_Should_ThrowWithoutChangingDetails_When_FactionIdIsDefault()
+    {
+        var hero = CreateHero();
+        var originalState = (hero.Name, hero.Description, hero.Stats, hero.Morale, hero.Luck, hero.FactionId);
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => hero.Update(
+            name: HeroName.Create(value: "Elara").Value,
+            description: HeroDescription.Create(value: "An agile vanguard commander.").Value,
+            stats: HeroCombatStats.Create(
+                attack: 10,
+                defense: 7,
+                minimumDamage: 4,
+                maximumDamage: 9,
+                initiative: 12.25).Value,
+            morale: HeroMorale.Create(value: 5).Value,
+            luck: HeroLuck.Create(value: 3).Value,
+            factionId: default));
+
+        exception.ParamName.ShouldBe("factionId");
+        (hero.Name, hero.Description, hero.Stats, hero.Morale, hero.Luck, hero.FactionId).ShouldBe(originalState);
     }
 
     private static Hero CreateHero()

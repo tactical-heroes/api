@@ -49,6 +49,40 @@ public sealed class UserTests
         result.Claims.Single().Value.Value.ShouldBe("heroes.read");
     }
 
+    [Fact(DisplayName = "Create should reject an empty user id when the id is default")]
+    public void Create_Should_Throw_When_IdIsDefault()
+    {
+        var user = CreateUser();
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => User.Create(
+            id: default,
+            email: user.Email,
+            userName: user.UserName,
+            status: user.Status,
+            confirmationStatus: user.ConfirmationStatus,
+            roleIds: [],
+            claims: []));
+
+        exception.ParamName.ShouldBe("id");
+    }
+
+    [Fact(DisplayName = "Create should reject an empty role id when supplied roles contain a default id")]
+    public void Create_Should_Throw_When_RoleIdsContainDefault()
+    {
+        var user = CreateUser();
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => User.Create(
+            id: user.Id,
+            email: user.Email,
+            userName: user.UserName,
+            status: user.Status,
+            confirmationStatus: user.ConfirmationStatus,
+            roleIds: [RoleId.New(), default],
+            claims: []));
+
+        exception.ParamName.ShouldBe("roleId");
+    }
+
     [Fact(DisplayName = "Create should isolate collection storage when input collections change")]
     public void Create_Should_IsolateCollectionStorage_When_InputCollectionsChange()
     {
@@ -159,6 +193,19 @@ public sealed class UserTests
         user.AssignRole(RoleId.Create(value: roleId).Value);
 
         roleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
+    }
+
+    [Fact(DisplayName = "Assign role should preserve existing roles when the role id is default")]
+    public void AssignRole_Should_ThrowWithoutChangingRoles_When_RoleIdIsDefault()
+    {
+        var user = CreateUser();
+        var roleId = RoleId.New();
+        user.AssignRole(roleId);
+
+        var exception = Should.Throw<ArgumentOutOfRangeException>(() => user.AssignRole(default));
+
+        exception.ParamName.ShouldBe("roleId");
+        user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
     }
 
     [Fact(DisplayName = "Grant claim should add a valid claim only once when claim is valid")]

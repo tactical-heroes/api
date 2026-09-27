@@ -25,6 +25,8 @@ public sealed class Role : AggregateRoot<RoleId>
         RoleName name,
         IEnumerable<RoleClaim> claims)
     {
+        ArgumentOutOfRangeException.ThrowIfEqual(value: id.Value, other: Guid.Empty, paramName: nameof(id));
+
         var role = new Role(id: id, name: name);
 
         foreach (var claim in claims)
