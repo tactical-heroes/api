@@ -61,8 +61,6 @@ public sealed class Unit : AggregateRoot<UnitId>
         UnitLuck luck,
         FactionId factionId)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(value: factionId, other: default);
-
         return new Unit(
             id: UnitId.New(),
             name: name,
@@ -83,8 +81,6 @@ public sealed class Unit : AggregateRoot<UnitId>
         UnitLuck luck,
         FactionId factionId)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(value: factionId, other: default);
-
         Name = name;
         Description = description;
         Stats = stats;

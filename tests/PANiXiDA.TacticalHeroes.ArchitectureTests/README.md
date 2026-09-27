@@ -763,3 +763,16 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      — свойства strongly typed ID должны иметь публичный getter без setter
      или init-accessor, чтобы нельзя было обойти фабрику через initializer
      или выражение `with`.
+
+143. `StronglyTypedIds_Should_AvoidDefaultValues_When_ProductionCodeIsDeclared`
+     — в production-коде запрещены `default` и создание без параметров для
+     `IStronglyTypedId`, включая generic-параметры с этим ограничением.
+     Также запрещены массивы ID без инициализатора (кроме заведомо пустых),
+     `Activator.CreateInstance` для ID, `Nullable<TId>.GetValueOrDefault()`
+     и LINQ-методы `*OrDefault` / `DefaultIfEmpty`
+     без явного запасного значения. `Nullable<TId>`, пустые массивы и прочие типы
+     под этот запрет не попадают. Типы определяются через Roslyn.
+
+144. `IdCreation_Should_DetectDefaultValues_When_SourceExpressionsVary`
+     — проверяет допустимые и запрещённые способы получения ID на тестовых
+     фрагментах кода: aliases, generics, nullable, коллекции и вызовы методов.
