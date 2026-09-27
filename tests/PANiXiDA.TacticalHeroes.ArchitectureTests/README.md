@@ -100,7 +100,8 @@ reflection/unsafe и потокобезопасность не проверяю�
     — публичные поля, свойства и возвращаемые значения методов aggregate root и
     entity должны объявлять коллекции через интерфейсы чтения либо стандартные
     read-only, immutable или frozen-типы .NET. Массивы и изменяемые коллекции,
-    включая списки, словари, множества, очереди и стеки, запрещены. Проверяются
+    включая списки, словари, множества, очереди, стеки, `Span<T>` и `Memory<T>`,
+    запрещены. `ReadOnlySpan<T>` и `ReadOnlyMemory<T>` допустимы. Проверяются
     также коллекции, вложенные в generic-обёртки.
 
 16. `AggregateRootsAndEntities_Should_ReturnProtectedCollections_When_CollectionsAreExposed`
@@ -112,6 +113,8 @@ reflection/unsafe и потокобезопасность не проверяю�
     Проверка охватывает public/internal/protected internal члены и явные
     реализации интерфейсов, прямой возврат коллекции как `object`, кортежи,
     вложенные коллекции и generic-обёртки, например `Task<ReadOnlyCollection<T>>`.
+    `null` и стандартные преобразования в read-only представления памяти
+    разрешены; пользовательские преобразования защитой не считаются.
     Произвольные методы, возвращающие только `IEnumerable` или `IReadOnly...`,
     требуют явной защищённой обёртки. Это проверка формы возврата, а не доказательство
     неизменяемости элементов или потокобезопасности агрегата.
@@ -175,10 +178,11 @@ reflection/unsafe и потокобезопасность не проверяю�
     `ImmutableHashSet`, `ImmutableSortedSet`, `ImmutableDictionary`,
     `ImmutableSortedDictionary`, `ImmutableQueue`, `ImmutableStack`, `FrozenSet`
     и `FrozenDictionary`; их элементы, ключи и значения также проверяются
-    рекурсивно. Массивы, изменяемые коллекции, builders и read-only обёртки
-    запрещены. `AsReadOnly()` отражает изменения исходной коллекции и не создаёт
-    неизменяемый снимок для события. Полиморфное состояние (`object`, интерфейсы,
-    прочие незапечатанные классы) запрещено: один только `IReadOnlyCollection`
+    рекурсивно. Массивы, изменяемые коллекции, builders, read-only обёртки
+    и представления памяти запрещены. `AsReadOnly()` отражает изменения исходной
+    коллекции и не создаёт неизменяемый снимок для события. Полиморфное состояние
+    (`object`, интерфейсы, прочие незапечатанные классы) запрещено:
+    один только `IReadOnlyCollection`
     не гарантирует неизменяемость объекта. Статическое состояние не проверяется.
 
 27. `DomainEvents_Should_RequireImmutableCollectionsAndElements_When_CollectionsAreDeclared`
@@ -238,12 +242,12 @@ reflection/unsafe и потокобезопасность не проверяю�
 37. `CollectionExposure_Should_ValidateProtection_When_MemberShapesVary` —
     тестовые исходники проверяют обнаружение утечек коллекций через свойства,
     методы, internal-члены, интерфейсы, object, Task, кортежи и вложенные
-    коллекции, а также соответствующие защищённые варианты.
+    коллекции и представления памяти, а также соответствующие защищённые варианты.
 
 38. `CollectionReturns_Should_IdentifyProtectedStorage_When_ExpressionsUseDifferentCollectionTypes`
     — проверка классификации выражений возврата: стандартные обёртки,
     immutable/frozen-коллекции, изменяемые коллекции, builders, преобразования
-    и условные выражения.
+    и условные выражения, в том числе ветви с `null`.
 
 ## Application
 

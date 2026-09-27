@@ -9,6 +9,14 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
 internal static class DomainCollectionConvention
 {
+    private static readonly Type[] CollectionViewTypes =
+    [
+        typeof(Span<>),
+        typeof(ReadOnlySpan<>),
+        typeof(Memory<>),
+        typeof(ReadOnlyMemory<>)
+    ];
+
     private static readonly Type[] ImmutableCollectionTypes =
     [
         typeof(ImmutableArray<>),
@@ -28,6 +36,8 @@ internal static class DomainCollectionConvention
         typeof(ReadOnlyCollection<>),
         typeof(ReadOnlyDictionary<,>),
         typeof(ReadOnlySet<>),
+        typeof(ReadOnlySpan<>),
+        typeof(ReadOnlyMemory<>),
         .. ImmutableCollectionTypes
     ];
 
@@ -54,6 +64,13 @@ internal static class DomainCollectionConvention
                 ReadOnlyCollectionInterfaces.Contains(type.GetGenericTypeDefinition()));
     }
 
+    internal static bool IsCollectionType(Type type)
+    {
+        return type != typeof(string) &&
+               (typeof(System.Collections.IEnumerable).IsAssignableFrom(type) ||
+                type.IsGenericType && CollectionViewTypes.Contains(type.GetGenericTypeDefinition()));
+    }
+
     internal static bool IsCollection(ITypeSymbol type, Compilation compilation)
     {
         var enumerable = compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
@@ -61,15 +78,23 @@ internal static class DomainCollectionConvention
         return type.SpecialType != SpecialType.System_String &&
                (SymbolEqualityComparer.Default.Equals(type, enumerable) ||
                 type.AllInterfaces.Any(candidate =>
-                    SymbolEqualityComparer.Default.Equals(candidate, enumerable)));
+                    SymbolEqualityComparer.Default.Equals(candidate, enumerable)) ||
+                type is INamedTypeSymbol namedType && CollectionViewTypes.Any(candidate =>
+                    SymbolEqualityComparer.Default.Equals(
+                        namedType.OriginalDefinition,
+                        compilation.GetTypeByMetadataName(candidate.FullName!))));
     }
 
     internal static bool IsProtectedCollection(IOperation? operation, Compilation compilation)
     {
+        if (operation is { ConstantValue: { HasValue: true, Value: null } })
+        {
+            return true;
+        }
+
         return operation switch
         {
-            IConversionOperation conversion => conversion.OperatorMethod is null &&
-                                               IsProtectedCollection(conversion.Operand, compilation),
+            IConversionOperation conversion => IsProtectedConversion(conversion, compilation),
             IParenthesizedOperation parenthesized => IsProtectedCollection(parenthesized.Operand, compilation),
             IConditionalOperation conditional =>
                 IsProtectedCollection(conditional.WhenTrue, compilation) &&
@@ -84,6 +109,30 @@ internal static class DomainCollectionConvention
             { Type: { } type } => IsProtectedCollectionType(type, compilation),
             _ => false
         };
+    }
+
+    private static bool IsProtectedConversion(IConversionOperation conversion, Compilation compilation)
+    {
+        if (conversion.Type is { } type && IsReadOnlyViewType(type, compilation) &&
+            IsProtectedCollectionType(type, compilation) &&
+            (conversion.OperatorMethod is null || CollectionViewTypes.Any(candidate =>
+                SymbolEqualityComparer.Default.Equals(
+                    conversion.OperatorMethod.ContainingType.OriginalDefinition,
+                    compilation.GetTypeByMetadataName(candidate.FullName!)))))
+        {
+            return true;
+        }
+
+        return conversion.OperatorMethod is null && IsProtectedCollection(conversion.Operand, compilation);
+    }
+
+    private static bool IsReadOnlyViewType(ITypeSymbol type, Compilation compilation)
+    {
+        return type is INamedTypeSymbol namedType &&
+               (SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition,
+                    compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!)) ||
+                SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition,
+                    compilation.GetTypeByMetadataName(typeof(ReadOnlyMemory<>).FullName!)));
     }
 
     internal static bool IsProtectedCollectionType(ITypeSymbol type, Compilation compilation)

@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
@@ -42,6 +43,14 @@ public sealed class DomainCollectionExposureConventionTests
     [InlineData("public (IReadOnlyCollection<int> Items, int Count) GetValues() => (_values.AsReadOnly(), _values.Count);", true)]
     [InlineData("public IReadOnlyCollection<int> Values => GetRaw(); private List<int> GetRaw() => _values;", false)]
     [InlineData("public IReadOnlyCollection<int> Values => GetProtected(); private ReadOnlyCollection<int> GetProtected() => _values.AsReadOnly();", true)]
+    [InlineData("public IReadOnlyCollection<int> Values => _values.Count > 0 ? _values.AsReadOnly() : null;", true)]
+    [InlineData("public Memory<int> Values => new Memory<int>(_values.ToArray());", false)]
+    [InlineData("public Span<int> Values => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_values);", false)]
+    [InlineData("public ReadOnlyMemory<int> Values => new ReadOnlyMemory<int>(_values.ToArray());", true)]
+    [InlineData("public ReadOnlySpan<int> Values => new ReadOnlySpan<int>(_values.ToArray());", true)]
+    [InlineData("public ReadOnlySpan<int> Values => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_values);", true)]
+    [InlineData("public ReadOnlyMemory<int> Values => new Memory<int>(_values.ToArray());", true)]
+    [InlineData("public ReadOnlySpan<int> Values => _values.ToArray();", true)]
     public void CollectionExposure_Should_ValidateProtection_When_MemberShapesVary(string member, bool expected)
     {
         var source = $$"""
@@ -157,6 +166,11 @@ public sealed class DomainCollectionExposureConventionTests
         var entity = semanticModel.Compilation.GetTypeByMetadataName("PANiXiDA.Core.Domain.Entities.IEntity");
 
         var operation = expression is null ? null : semanticModel.GetOperation(expression);
+
+        while (operation?.Parent is IConversionOperation conversion)
+        {
+            operation = conversion;
+        }
 
         if (member is null || !IsExposed(member) ||
             returnType is null ||

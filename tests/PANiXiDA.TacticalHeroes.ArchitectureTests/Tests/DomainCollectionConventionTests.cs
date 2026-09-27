@@ -29,6 +29,12 @@ public sealed class DomainCollectionConventionTests
     [InlineData("new HashSet<int>().ToFrozenSet()", true)]
     [InlineData("new Dictionary<int, int>().ToFrozenDictionary()", true)]
     [InlineData("choice ? new List<int>().AsReadOnly() : Array.AsReadOnly(new int[1])", true)]
+    [InlineData("null", true)]
+    [InlineData("default(IReadOnlyCollection<int>)", true)]
+    [InlineData("choice ? new List<int>().AsReadOnly() : null", true)]
+    [InlineData("choice ? new List<int>() : null", false)]
+    [InlineData("(IReadOnlyCollection<int>)null ?? new List<int>().AsReadOnly()", true)]
+    [InlineData("(IReadOnlyCollection<int>)null ?? new List<int>()", false)]
     public void CollectionReturns_Should_IdentifyProtectedStorage_When_ExpressionsUseDifferentCollectionTypes(
         string expression,
         bool expected)

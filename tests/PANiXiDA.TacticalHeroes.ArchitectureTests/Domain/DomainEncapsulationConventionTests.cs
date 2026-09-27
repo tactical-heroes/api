@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -66,6 +65,8 @@ public sealed class DomainEncapsulationConventionTests
     [InlineData(typeof(ImmutableArray<ImmutableList<MutableCollectionElement>>), false)]
     [InlineData(typeof(ImmutableArray<object>), false)]
     [InlineData(typeof(ImmutableArray<List<int>>), false)]
+    [InlineData(typeof(Memory<int>), false)]
+    [InlineData(typeof(ReadOnlyMemory<int>), false)]
     [InlineData(typeof(ImmutableArray<int>), true)]
     [InlineData(typeof(ImmutableList<int>), true)]
     [InlineData(typeof(ImmutableHashSet<int>), true)]
@@ -452,7 +453,7 @@ public sealed class DomainEncapsulationConventionTests
             yield break;
         }
 
-        if (typeof(IEnumerable).IsAssignableFrom(type))
+        if (DomainCollectionConvention.IsCollectionType(type))
         {
             yield return $"Collection type '{type}' must be a standard immutable " +
                          "or frozen collection; mutable collections, read-only " +
@@ -610,7 +611,7 @@ public sealed class DomainEncapsulationConventionTests
             return false;
         }
 
-        if (typeof(IEnumerable).IsAssignableFrom(type) &&
+        if (DomainCollectionConvention.IsCollectionType(type) &&
             !DomainCollectionConvention.IsReadOnlyCollectionType(type))
         {
             return true;
