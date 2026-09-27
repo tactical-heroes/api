@@ -24,7 +24,7 @@ public sealed class RoleTests
         claim.Value.Value.ShouldBe("heroes.manage");
     }
 
-    [Fact(DisplayName = "Create should reject an empty role id when the id is default")]
+    [Fact(DisplayName = "Create should reject an empty role id when id is default")]
     public void Create_Should_Throw_When_IdIsDefault()
     {
         var name = RoleName.Create("admin").Value;

@@ -73,7 +73,7 @@ public sealed class UnitTests
         result.RangedAttack.RangedAttackRange.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Unit should reject an empty faction id when creating with a default id")]
+    [Fact(DisplayName = "Unit should reject an empty faction id when faction id is default")]
     public void Create_Should_Throw_When_FactionIdIsDefault()
     {
         var unit = UnitTestData.CreateUnit(UnitTestData.CreateFaction());
@@ -122,7 +122,7 @@ public sealed class UnitTests
         unit.Luck.Value.ShouldBe(2);
     }
 
-    [Fact(DisplayName = "Unit should preserve all details when updating with a default faction id")]
+    [Fact(DisplayName = "Unit should preserve all details when faction id is default")]
     public void Update_Should_ThrowWithoutChangingDetails_When_FactionIdIsDefault()
     {
         var unit = UnitTestData.CreateUnit(UnitTestData.CreateFaction());

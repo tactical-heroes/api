@@ -37,7 +37,7 @@ public sealed class HeroTests
         result.FactionId.Value.ShouldBe(factionId);
     }
 
-    [Fact(DisplayName = "Hero should reject an empty faction id when creating with a default id")]
+    [Fact(DisplayName = "Hero should reject an empty faction id when faction id is default")]
     public void Create_Should_Throw_When_FactionIdIsDefault()
     {
         var hero = CreateHero();
@@ -84,7 +84,7 @@ public sealed class HeroTests
         hero.FactionId.Value.ShouldBe(factionId);
     }
 
-    [Fact(DisplayName = "Hero should preserve all details when updating with a default faction id")]
+    [Fact(DisplayName = "Hero should preserve all details when faction id is default")]
     public void Update_Should_ThrowWithoutChangingDetails_When_FactionIdIsDefault()
     {
         var hero = CreateHero();

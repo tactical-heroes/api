@@ -49,7 +49,7 @@ public sealed class UserTests
         result.Claims.Single().Value.Value.ShouldBe("heroes.read");
     }
 
-    [Fact(DisplayName = "Create should reject an empty user id when the id is default")]
+    [Fact(DisplayName = "Create should reject an empty user id when id is default")]
     public void Create_Should_Throw_When_IdIsDefault()
     {
         var user = CreateUser();
@@ -66,7 +66,7 @@ public sealed class UserTests
         exception.ParamName.ShouldBe("id");
     }
 
-    [Fact(DisplayName = "Create should reject an empty role id when supplied roles contain a default id")]
+    [Fact(DisplayName = "Create should reject an empty role id when role ids contain default")]
     public void Create_Should_Throw_When_RoleIdsContainDefault()
     {
         var user = CreateUser();
@@ -195,7 +195,7 @@ public sealed class UserTests
         roleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
     }
 
-    [Fact(DisplayName = "Assign role should preserve existing roles when the role id is default")]
+    [Fact(DisplayName = "Assign role should preserve existing roles when role id is default")]
     public void AssignRole_Should_ThrowWithoutChangingRoles_When_RoleIdIsDefault()
     {
         var user = CreateUser();
