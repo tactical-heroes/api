@@ -58,15 +58,6 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Domain
 
-В папках и пространствах имён `Abstractions` слоя Domain располагаются только
-абстракции. Интерфейс репозитория конкретного агрегата, наследующий
-`IRepository<,>`, является доменным контрактом и должен находиться в
-`Domain/<Aggregates>/Abstractions`. Generic-параметрами являются strongly typed
-ID и aggregate root. Методы такого репозитория работают только с aggregate root,
-value object, `Enumeration<>` и strongly typed ID; примитивы и прочие типы в
-предметных параметрах и результатах запрещены. `Task`, `ValueTask`, коллекции,
-nullable-обёртки и `CancellationToken` считаются техническими типами.
-
 10. `AggregateRoots_Should_ContainOnlyDomainTypes_When_StateIsDeclared` — поля
     aggregate root могут содержать только value object, strongly typed ID,
     `Enumeration<>` или entity. Для коллекций проверяется тип элемента.
@@ -170,13 +161,6 @@ nullable-обёртки и `CancellationToken` считаются техниче
     фильтров и сгенерированные валидаторы сортировки, должны быть `public sealed`.
     Публичность проверяется вместе с доступностью содержащих типов, чтобы
     генератор регистрации Wolverine мог ссылаться на валидаторы из Host.
-
-Read-side не использует типы из Domain. Generic-идентификатор
-`IReadRepository<>` является примитивом. Дополнительные параметры его методов
-могут быть примитивами, коллекциями примитивов или Application-моделями
-параметров, рекурсивно составленными только из таких значений. Результаты read
-repository и query handler реализуют `IReadModel`; коллекции,
-`Result`, `Task` и модели пагинации могут использоваться как обёртки.
 
 30. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
     `ICommand` и `IQuery` должен находиться в папке конкретной фичи ниже хотя бы
@@ -680,7 +664,3 @@ repository и query handler реализуют `IReadModel`; коллекции,
      — свойства strongly typed ID должны иметь публичный getter без setter
      или init-accessor, чтобы нельзя было обойти фабрику через initializer
      или выражение `with`.
-
-Пункты 13, 46 и 73 проверяют наличие соответствующих тестовых методов по их
-именам, а не факт выполнения production-кода. Фактическое покрытие измеряется
-отдельно средствами code coverage в CI.
