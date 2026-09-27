@@ -614,72 +614,81 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      методы, local functions и lambdas в production-коде не должны быть
      `async void`.
 
-117. `NullForgivingAssignments_Should_TargetOnlyComplexValueObjects_When_UsedInDomainState`
-     — присваивание `null!` в состоянии aggregate root и entity разрешено
-     только для комплексного value object с несколькими значениями.
+117. `NullForgivingExpressions_Should_AvoidSuppressedNullValues_When_ProductionCodeIsDeclared`
+     — во всех слоях production-кода запрещены `null!` и `default!`, если
+     значение может быть `null`, включая аргументы, возвраты, инициализаторы
+     и generic-параметры. Разрешена только EF-инициализация: присваивание
+     комплексного VO собственному свойству с private setter в приватном
+     конструкторе entity и инициализатор публичного auto-property `DbSet<T>`
+     в `DbContext`. Обычные nullable-значения без `!` разрешены.
 
-118. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
+118. `NullForgivingExpressions_Should_DetectSuppressedNullValues_When_SourceExpressionsVary`
+     — проверяет запрет подавления `null` и `default` и границы исключений
+     для EF на тестовых фрагментах кода, включая скобки, приведения типов,
+     generic-параметры, вложенные функции и коллекции.
+
+119. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
      — command validator не должен повторять бизнес-инварианты через встроенные
      сравнения, диапазоны или произвольные предикаты FluentValidation; проверки
      должны делегироваться доменным фабрикам.
 
-119. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
+120. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
      — `HasMaxLength` в entity configuration должен ссылаться на публичную
      доменную константу `MaxLength`, а не дублировать числовое ограничение.
 
-120. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
+121. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
      — внешний ключ на aggregate read model из того же модуля требует nullable
      reference navigation у зависимой модели и collection navigation у главной.
 
-121. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
+122. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
      — endpoint не должен повторять тот же `RequireAuthorization` или
      `AllowAnonymous`, который уже объявлен его endpoint group.
 
-122. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
+123. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
      — каждый конфигурационный `<Name>Options` с константой `SectionName`
      должен иметь зарегистрированный `<Name>OptionsValidator`, реализующий
      `IValidateOptions<TOptions>` и расположенный рядом с options-классом.
 
-123. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
+124. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
      конфигурационный options-класс должен регистрироваться через
      `AddOptions<TOptions>()` с последующим вызовом `ValidateOnStart()`.
 
-124. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
+125. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
      — каждый конфигурационный `<Name>Options` должен располагаться вместе со
      своим validator в выделенной папке `Options/<Name>/`.
 
-125. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
+126. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
      — публичные и internal-методы агрегатов и entity, включая фабрики,
      принимают только VO, strongly typed ID, Enumeration, entity и коллекции
      этих типов. Примитивы и DTO-контейнеры параметров запрещены. Application
      собирает VO через их доменные фабрики до вызова агрегата; фабрики самих
      VO и идентификаторов продолжают принимать и проверять примитивы.
 
-126. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+127. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
      — свойства VO и `Enumeration<>` должны иметь публичный getter. Любые
      setter и init-accessor запрещены независимо от видимости, включая
      private. Проверяются также статические и унаследованные свойства.
 
 ## Пагинация и сортировка
 
-127. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
+128. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
      параметры методов типа `PaginationParameters` и `SortingParameters`
      должны называться `paginationParameters` и `sortingParameters`.
 
-128. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
+129. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
      — соответствующие свойства Query должны называться `PaginationParameters`
      и `SortingParameters`.
 
-129. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
+130. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
      — метод с параметром `PaginationParameters` обязан принимать и
      `SortingParameters`. Требования возвращать `PaginationResult` нет:
      правило допускает mapper-методы, создающие Query, и endpoints.
 
-130. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
+131. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
      — Query со свойством `PaginationParameters` обязана содержать свойство
      `SortingParameters`.
 
-131. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
+132. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
      — у Query должен быть validator, подключающий `PaginationParametersValidator`
      к свойству пагинации и `<ReadModel>SortingValidator` к свойству сортировки.
      ReadModel определяется по результату Query; sorting-validator должен
@@ -688,7 +697,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Применение маппинга и сортировки в read-репозиториях
 
-132. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
+133. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
      — публичные экземплярные методы и явные реализации интерфейсов
      `IReadRepository<>` в Infrastructure, возвращающие коллекции, должны
      применять `IReadModelSorting<TReadModel>` для типа элемента результата.
@@ -698,14 +707,14 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      `GetPagedResultAsync` в цепочке возвращаемого результата: неиспользуемого
      вызова сортировки недостаточно.
 
-133. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
+134. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
      реализации `IReadModelSorting<>` должны задавать непустой `DefaultSorting`.
      Наличие `Id` и сортировка по нему не требуются. Уникальность итогового
      порядка этот архитектурный тест не доказывает; для стабильной пагинации
      её нужно обеспечивать подходящими полями конкретной модели и проверять
      интеграционными тестами.
 
-134. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
+135. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
      — методы EF read-репозиториев, возвращающие ReadModel либо коллекцию,
      должны применять соответствующий `IReadModelMapper<TId, TReadDbModel, TReadModel>`
      через `ProjectTo`, `GetByIdAsync` или `GetPagedResultAsync`.
@@ -716,17 +725,17 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Поиск через ILIKE
 
-135. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
+136. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
      `ILIKE` должны использовать именованные аргументы `matchExpression`
      и `pattern`, а шаблон поиска — форму `$"%{value.Trim()}%"`.
 
-136. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
+137. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
      не должно быть избыточной явной проверки `matchExpression` на null;
      используется обработка null в SQL.
 
 ## Согласованность входа и результата пагинации
 
-137. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
+138. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
      — в контрактах read-репозиториев и их реализациях метод принимает
      `PaginationParameters` тогда и только тогда, когда возвращает
      `PaginationResult<T>`. Проверяются публичные экземплярные методы и явные
@@ -734,17 +743,17 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      Mapper-методы в этот охват не входят. Наличие `SortingParameters`
      проверяется отдельно правилом 129.
 
-138. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
+139. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
      Query содержит свойство `PaginationParameters` тогда и только тогда,
      когда результат её `IQuery<TResult>` — `PaginationResult<T>`, в том числе
      внутри `Result`. Связь с `SortingParameters` проверяется правилом 130.
 
-139. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
+140. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
      — у `IQueryHandler<TQuery, TResult>` наличие `PaginationParameters`
      во входной Query должно соответствовать `PaginationResult<T>` в результате
      handler, с раскрытием технических обёрток.
 
-140. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
+141. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
      наличие `PaginationParameters` у обработчика, зарегистрированного через
      `EndpointMapBuilder`, должно совпадать с декларацией
      `Produces<PaginationResult<TResponse>>` и передачей
@@ -754,12 +763,25 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Создание strongly typed ID
 
-141. `StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared`
+142. `StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared`
      — классы и структуры, реализующие `IStronglyTypedId`, должны объявлять
      только приватные конструкторы. Создание из внешнего значения
      проходит через `Create`, генерация нового идентификатора — через `New`.
 
-142. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+143. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
      — свойства strongly typed ID должны иметь публичный getter без setter
      или init-accessor, чтобы нельзя было обойти фабрику через initializer
      или выражение `with`.
+
+144. `StronglyTypedIds_Should_AvoidDefaultValues_When_ProductionCodeIsDeclared`
+     — в production-коде запрещены `default` и создание без параметров для
+     `IStronglyTypedId`, включая generic-параметры с этим ограничением.
+     Также запрещены массивы ID без инициализатора (кроме заведомо пустых),
+     `Activator.CreateInstance` для ID, `Nullable<TId>.GetValueOrDefault()`
+     и LINQ-методы `*OrDefault` / `DefaultIfEmpty`
+     без явного запасного значения. `Nullable<TId>`, пустые массивы и прочие типы
+     под этот запрет не попадают. Типы определяются через Roslyn.
+
+145. `IdCreation_Should_DetectDefaultValues_When_SourceExpressionsVary`
+     — проверяет допустимые и запрещённые способы получения ID на тестовых
+     фрагментах кода: aliases, generics, nullable, коллекции и вызовы методов.
