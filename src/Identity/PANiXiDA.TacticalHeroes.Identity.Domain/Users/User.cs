@@ -52,7 +52,7 @@ public sealed class User : AggregateRoot<UserId>
         IEnumerable<RoleId> roleIds,
         IEnumerable<UserClaim> claims)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(value: id.Value, other: Guid.Empty, paramName: nameof(id));
+        ArgumentOutOfRangeException.ThrowIfEqual(value: id, other: default);
 
         var user = new User(id: id, email: email, userName: userName, status: status)
         {
@@ -128,7 +128,7 @@ public sealed class User : AggregateRoot<UserId>
 
     public void AssignRole(RoleId roleId)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(value: roleId.Value, other: Guid.Empty, paramName: nameof(roleId));
+        ArgumentOutOfRangeException.ThrowIfEqual(value: roleId, other: default);
 
         if (!_roleIds.Contains(roleId))
         {
