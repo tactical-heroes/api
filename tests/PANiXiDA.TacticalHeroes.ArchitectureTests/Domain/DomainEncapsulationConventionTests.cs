@@ -402,25 +402,8 @@ public sealed class DomainEncapsulationConventionTests
             return false;
         }
 
-        if (type.IsArray ||
-            typeof(IList).IsAssignableFrom(type) ||
-            typeof(IDictionary).IsAssignableFrom(type))
-        {
-            return true;
-        }
-
-        var genericTypes = type
-            .GetInterfaces()
-            .Append(type)
-            .Where(candidate => candidate.IsGenericType)
-            .Select(candidate =>
-                candidate.GetGenericTypeDefinition())
-            .ToArray();
-
-        if (genericTypes.Contains(typeof(ICollection<>)) ||
-            genericTypes.Contains(typeof(IList<>)) ||
-            genericTypes.Contains(typeof(IDictionary<,>)) ||
-            genericTypes.Contains(typeof(ISet<>)))
+        if (typeof(IEnumerable).IsAssignableFrom(type) &&
+            !DomainCollectionConvention.IsReadOnlyCollectionType(type))
         {
             return true;
         }

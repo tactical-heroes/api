@@ -28,11 +28,12 @@ public sealed class RoleTests
     public void GrantClaim_Should_AddClaimOnce_When_ClaimIsValid()
     {
         var role = CreateRole();
+        var claims = role.Claims;
 
         role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
         role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
 
-        role.Claims.ShouldHaveSingleItem();
+        claims.ShouldHaveSingleItem();
     }
 
     [Fact(DisplayName = "Revoke claim should remove the matching claim when claim exists")]
@@ -41,11 +42,28 @@ public sealed class RoleTests
         var role = CreateRole();
         role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
         role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
+        var claims = role.Claims;
 
         role.RevokeClaim(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value);
 
-        var claim = role.Claims.ShouldHaveSingleItem();
+        var claim = claims.ShouldHaveSingleItem();
         claim.Value.Value.ShouldBe("heroes.manage");
+    }
+
+    [Fact(DisplayName = "Claims should reject external mutations when a claim is granted")]
+    public void Claims_Should_RejectExternalMutations_When_AClaimIsGranted()
+    {
+        var role = CreateRole();
+        var claim = RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value);
+        role.GrantClaim(claim);
+        var collection = (IList<RoleClaim>)role.Claims;
+
+        collection.IsReadOnly.ShouldBeTrue();
+        Should.Throw<NotSupportedException>(() => collection.Add(claim));
+        Should.Throw<NotSupportedException>(() => collection.Remove(claim));
+        Should.Throw<NotSupportedException>(() => collection.Clear());
+        Should.Throw<NotSupportedException>(() => collection[0] = claim);
+        role.Claims.ShouldHaveSingleItem().ShouldBe(claim);
     }
 
     private static Role CreateRole()

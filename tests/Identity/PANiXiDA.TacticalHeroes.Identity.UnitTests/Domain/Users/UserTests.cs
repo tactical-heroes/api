@@ -135,22 +135,56 @@ public sealed class UserTests
     {
         var user = CreateUser();
         var roleId = Guid.CreateVersion7();
+        var roleIds = user.RoleIds;
 
         user.AssignRole(RoleId.Create(value: roleId).Value);
         user.AssignRole(RoleId.Create(value: roleId).Value);
 
-        user.RoleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
+        roleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
     }
 
     [Fact(DisplayName = "Grant claim should add a valid claim only once when claim is valid")]
     public void GrantClaim_Should_AddClaimOnce_When_ClaimIsValid()
     {
         var user = CreateUser();
+        var claims = user.Claims;
 
         user.GrantClaim(UserClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
         user.GrantClaim(UserClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
 
-        user.Claims.ShouldHaveSingleItem();
+        claims.ShouldHaveSingleItem();
+    }
+
+    [Fact(DisplayName = "Role ids should reject external mutations when a role is assigned")]
+    public void RoleIds_Should_RejectExternalMutations_When_ARoleIsAssigned()
+    {
+        var user = CreateUser();
+        var roleId = RoleId.New();
+        user.AssignRole(roleId);
+        var collection = (IList<RoleId>)user.RoleIds;
+
+        collection.IsReadOnly.ShouldBeTrue();
+        Should.Throw<NotSupportedException>(() => collection.Add(RoleId.New()));
+        Should.Throw<NotSupportedException>(() => collection.Remove(roleId));
+        Should.Throw<NotSupportedException>(() => collection.Clear());
+        Should.Throw<NotSupportedException>(() => collection[0] = RoleId.New());
+        user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
+    }
+
+    [Fact(DisplayName = "Claims should reject external mutations when a claim is granted")]
+    public void Claims_Should_RejectExternalMutations_When_AClaimIsGranted()
+    {
+        var user = CreateUser();
+        var claim = UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value);
+        user.GrantClaim(claim);
+        var collection = (IList<UserClaim>)user.Claims;
+
+        collection.IsReadOnly.ShouldBeTrue();
+        Should.Throw<NotSupportedException>(() => collection.Add(claim));
+        Should.Throw<NotSupportedException>(() => collection.Remove(claim));
+        Should.Throw<NotSupportedException>(() => collection.Clear());
+        Should.Throw<NotSupportedException>(() => collection[0] = claim);
+        user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
     }
 
     private static User CreateUser()
