@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 using PANiXiDA.Core.Domain.AggregateRoots;
+using PANiXiDA.Core.Domain.DomainEvents;
 using PANiXiDA.Core.Domain.Entities;
 using PANiXiDA.Core.Domain.Enumerations;
 using PANiXiDA.Core.Domain.Identifiers;
@@ -12,6 +14,27 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 public sealed class DomainEncapsulationConventionTests
 {
     private const string DomainAssemblySuffix = ".Domain";
+
+    [Fact(DisplayName = "Domain events should contain only immutable state when declared")]
+    public void DomainEvents_Should_ContainOnlyImmutableState_When_Declared()
+    {
+        var domainEvents = GetDomainTypes()
+            .Where(type =>
+                type is { IsClass: true, IsAbstract: false } &&
+                typeof(DomainEvent).IsAssignableFrom(type))
+            .ToArray();
+        var violations = domainEvents
+            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(domainEvents);
+        Assert.True(
+            violations.Length == 0,
+            $"Domain events must contain only immutable state:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
 
     [Fact(DisplayName = "Value objects and enumerations should declare public getters without setters when properties are declared")]
     public void ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared()
@@ -216,6 +239,86 @@ public sealed class DomainEncapsulationConventionTests
             violations.Length == 0,
             $"Strongly typed id property violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
+    }
+
+    private static IEnumerable<string> GetImmutableStateViolations(
+        Type type,
+        ISet<Type> visitedTypes)
+    {
+        type = Nullable.GetUnderlyingType(type) ?? type;
+
+        if (IsImmutableScalar(type) || !visitedTypes.Add(type))
+        {
+            yield break;
+        }
+
+        if (type.IsArray || !type.IsValueType && !type.IsSealed)
+        {
+            yield return $"State type '{type}' must be a scalar, value type, " +
+                         "or sealed class with immutable state; arrays and " +
+                         "polymorphic state are not allowed.";
+            yield break;
+        }
+
+        for (var currentType = type;
+             currentType is not null && currentType != typeof(object);
+             currentType = currentType.BaseType)
+        {
+            foreach (var violation in GetDeclaredImmutableStateViolations(currentType, visitedTypes))
+            {
+                yield return violation;
+            }
+        }
+    }
+
+    private static IEnumerable<string> GetDeclaredImmutableStateViolations(
+        Type type,
+        ISet<Type> visitedTypes)
+    {
+        const BindingFlags flags = BindingFlags.Instance |
+                                   BindingFlags.Public |
+                                   BindingFlags.NonPublic |
+                                   BindingFlags.DeclaredOnly;
+
+        foreach (var property in type.GetProperties(flags))
+        {
+            var setter = property.GetSetMethod(nonPublic: true);
+
+            if (setter is not null &&
+                !setter.ReturnParameter.GetRequiredCustomModifiers()
+                    .Contains(typeof(IsExternalInit)))
+            {
+                yield return $"{type.FullName}.{property.Name} must not " +
+                             "declare a setter; only get or init is allowed.";
+            }
+        }
+
+        foreach (var field in type.GetFields(flags))
+        {
+            if (!field.IsInitOnly)
+            {
+                yield return $"{type.FullName}.{field.Name} must be readonly.";
+            }
+
+            foreach (var violation in GetImmutableStateViolations(field.FieldType, visitedTypes))
+            {
+                yield return $"{type.FullName}.{field.Name}: {violation}";
+            }
+        }
+    }
+
+    private static bool IsImmutableScalar(Type type)
+    {
+        return type.IsPrimitive ||
+               type.IsEnum ||
+               type == typeof(string) ||
+               type == typeof(decimal) ||
+               type == typeof(Guid) ||
+               type == typeof(DateTime) ||
+               type == typeof(DateTimeOffset) ||
+               type == typeof(DateOnly) ||
+               type == typeof(TimeOnly) ||
+               type == typeof(TimeSpan);
     }
 
     private static Type[] GetStronglyTypedIds()
