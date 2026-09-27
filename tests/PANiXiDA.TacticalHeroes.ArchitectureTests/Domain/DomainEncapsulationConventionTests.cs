@@ -1,4 +1,7 @@
 using System.Collections;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -34,6 +37,56 @@ public sealed class DomainEncapsulationConventionTests
             violations.Length == 0,
             $"Domain events must contain only immutable state:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
+    }
+
+    [Theory(DisplayName = "Domain events should require immutable collections and elements when collections are declared")]
+    [InlineData(typeof(int[]), false)]
+    [InlineData(typeof(List<int>), false)]
+    [InlineData(typeof(Dictionary<int, string>), false)]
+    [InlineData(typeof(HashSet<int>), false)]
+    [InlineData(typeof(Queue<int>), false)]
+    [InlineData(typeof(Stack<int>), false)]
+    [InlineData(typeof(IEnumerable<int>), false)]
+    [InlineData(typeof(IReadOnlyCollection<int>), false)]
+    [InlineData(typeof(IReadOnlyDictionary<int, string>), false)]
+    [InlineData(typeof(IImmutableList<int>), false)]
+    [InlineData(typeof(ReadOnlyCollection<int>), false)]
+    [InlineData(typeof(ReadOnlyDictionary<int, string>), false)]
+    [InlineData(typeof(ReadOnlySet<int>), false)]
+    [InlineData(typeof(ImmutableArray<int>.Builder), false)]
+    [InlineData(typeof(ImmutableList<int>.Builder), false)]
+    [InlineData(typeof(ImmutableDictionary<int, string>.Builder), false)]
+    [InlineData(typeof(ImmutableArray<MutableCollectionElement>), false)]
+    [InlineData(typeof(ImmutableList<MutableCollectionElement>), false)]
+    [InlineData(typeof(ImmutableDictionary<MutableCollectionElement, string>), false)]
+    [InlineData(typeof(ImmutableDictionary<string, MutableCollectionElement>), false)]
+    [InlineData(typeof(FrozenSet<MutableCollectionElement>), false)]
+    [InlineData(typeof(FrozenDictionary<string, MutableCollectionElement>), false)]
+    [InlineData(typeof(ImmutableArray<ImmutableList<MutableCollectionElement>>), false)]
+    [InlineData(typeof(ImmutableArray<object>), false)]
+    [InlineData(typeof(ImmutableArray<List<int>>), false)]
+    [InlineData(typeof(ImmutableArray<int>), true)]
+    [InlineData(typeof(ImmutableList<int>), true)]
+    [InlineData(typeof(ImmutableHashSet<int>), true)]
+    [InlineData(typeof(ImmutableSortedSet<int>), true)]
+    [InlineData(typeof(ImmutableDictionary<int, string>), true)]
+    [InlineData(typeof(ImmutableSortedDictionary<int, string>), true)]
+    [InlineData(typeof(ImmutableQueue<int>), true)]
+    [InlineData(typeof(ImmutableStack<int>), true)]
+    [InlineData(typeof(FrozenSet<int>), true)]
+    [InlineData(typeof(FrozenDictionary<int, string>), true)]
+    [InlineData(typeof(ImmutableArray<ImmutableCollectionElement>), true)]
+    [InlineData(typeof(ImmutableArray<ImmutableArray<int>>), true)]
+    [InlineData(typeof(ImmutableDictionary<string, ImmutableArray<ImmutableCollectionElement>>), true)]
+    public void DomainEvents_Should_RequireImmutableCollectionsAndElements_When_CollectionsAreDeclared(
+        Type collectionType,
+        bool expected)
+    {
+        var eventType = typeof(CollectionDomainEvent<>).MakeGenericType(collectionType);
+
+        var violations = GetImmutableStateViolations(eventType, new HashSet<Type>()).ToArray();
+
+        Assert.Equal(expected, violations.Length == 0);
     }
 
     [Fact(DisplayName = "Value objects should contain only immutable state when declared")]
@@ -273,11 +326,32 @@ public sealed class DomainEncapsulationConventionTests
             yield break;
         }
 
-        if (type.IsArray || !type.IsValueType && !type.IsSealed)
+        if (DomainCollectionConvention.IsImmutableCollectionType(type))
+        {
+            foreach (var argument in type.GetGenericArguments())
+            {
+                foreach (var violation in GetImmutableStateViolations(argument, visitedTypes))
+                {
+                    yield return $"{type}: {violation}";
+                }
+            }
+
+            yield break;
+        }
+
+        if (typeof(IEnumerable).IsAssignableFrom(type))
+        {
+            yield return $"Collection type '{type}' must be a standard immutable " +
+                         "or frozen collection; mutable collections, read-only " +
+                         "wrappers and collection interfaces are not allowed.";
+            yield break;
+        }
+
+        if (!type.IsValueType && !type.IsSealed)
         {
             yield return $"State type '{type}' must be a scalar, value type, " +
-                         "or sealed class with immutable state; arrays and " +
-                         "polymorphic state are not allowed.";
+                         "or sealed class with immutable state; polymorphic " +
+                         "state is not allowed.";
             yield break;
         }
 
@@ -468,6 +542,15 @@ public sealed class DomainEncapsulationConventionTests
                 yield return containedType;
             }
         }
+    }
+
+    private sealed record CollectionDomainEvent<T>(T Items) : DomainEvent;
+
+    private sealed record ImmutableCollectionElement(int Value);
+
+    private sealed class MutableCollectionElement
+    {
+        public int Value { get; set; }
     }
 
     private sealed record PublicStateMember(

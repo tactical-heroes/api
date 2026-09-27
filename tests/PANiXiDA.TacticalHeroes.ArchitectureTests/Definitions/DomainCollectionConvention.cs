@@ -9,11 +9,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
 internal static class DomainCollectionConvention
 {
-    private static readonly Type[] ProtectedCollectionTypes =
+    private static readonly Type[] ImmutableCollectionTypes =
     [
-        typeof(ReadOnlyCollection<>),
-        typeof(ReadOnlyDictionary<,>),
-        typeof(ReadOnlySet<>),
         typeof(ImmutableArray<>),
         typeof(ImmutableList<>),
         typeof(ImmutableHashSet<>),
@@ -26,6 +23,14 @@ internal static class DomainCollectionConvention
         typeof(FrozenDictionary<,>)
     ];
 
+    private static readonly Type[] ProtectedCollectionTypes =
+    [
+        typeof(ReadOnlyCollection<>),
+        typeof(ReadOnlyDictionary<,>),
+        typeof(ReadOnlySet<>),
+        .. ImmutableCollectionTypes
+    ];
+
     private static readonly Type[] ReadOnlyCollectionInterfaces =
     [
         typeof(IEnumerable<>),
@@ -34,6 +39,12 @@ internal static class DomainCollectionConvention
         typeof(IReadOnlyDictionary<,>),
         typeof(IReadOnlySet<>)
     ];
+
+    internal static bool IsImmutableCollectionType(Type type)
+    {
+        return type.IsGenericType &&
+               ImmutableCollectionTypes.Contains(type.GetGenericTypeDefinition());
+    }
 
     internal static bool IsReadOnlyCollectionType(Type type)
     {

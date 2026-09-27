@@ -148,10 +148,22 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     setter запрещены при любой видимости; `get` и `init` разрешены. Все поля
     экземпляра должны быть `readonly`, включая приватные поля базовых классов.
     Типы вложенного состояния проверяются рекурсивно: разрешены неизменяемые
-    скаляры, структуры и sealed-классы с такими же ограничениями. Массивы,
-    изменяемые коллекции и полиморфное состояние (`object`, интерфейсы,
-    незапечатанные классы) запрещены: один только `IReadOnlyCollection` не
-    гарантирует неизменяемость объекта. Статическое состояние не проверяется.
+    скаляры, структуры и sealed-классы с такими же ограничениями. Для коллекций
+    разрешены стандартные типы `ImmutableArray`, `ImmutableList`,
+    `ImmutableHashSet`, `ImmutableSortedSet`, `ImmutableDictionary`,
+    `ImmutableSortedDictionary`, `ImmutableQueue`, `ImmutableStack`, `FrozenSet`
+    и `FrozenDictionary`; их элементы, ключи и значения также проверяются
+    рекурсивно. Массивы, изменяемые коллекции, builders и read-only обёртки
+    запрещены. `AsReadOnly()` отражает изменения исходной коллекции и не создаёт
+    неизменяемый снимок для события. Полиморфное состояние (`object`, интерфейсы,
+    прочие незапечатанные классы) запрещено: один только `IReadOnlyCollection`
+    не гарантирует неизменяемость объекта. Статическое состояние не проверяется.
+
+    `DomainEvents_Should_RequireImmutableCollectionsAndElements_When_CollectionsAreDeclared`
+    проверяет допустимые и недопустимые варианты коллекций на тестовых событиях,
+    включая вложенные коллекции и изменяемые элементы, ключи и значения.
+    Поскольку анализ состояния общий, те же ограничения коллекций действуют
+    и для VO.
 
 26. `StronglyTypedIds_Should_MatchOwnerNamesAndLocations_When_Declared` —
     strongly typed ID каждого aggregate root или entity называется
