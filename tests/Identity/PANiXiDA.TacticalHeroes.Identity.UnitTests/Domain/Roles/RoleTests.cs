@@ -24,6 +24,18 @@ public sealed class RoleTests
         claim.Value.Value.ShouldBe("heroes.manage");
     }
 
+    [Fact(DisplayName = "Create should isolate collection storage when input collections change")]
+    public void Create_Should_IsolateCollectionStorage_When_InputCollectionsChange()
+    {
+        var claim = RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value);
+        List<RoleClaim> claims = [claim];
+        var role = Role.Create(RoleId.New(), RoleName.Create("admin").Value, claims);
+
+        claims.Clear();
+
+        role.Claims.ShouldHaveSingleItem().ShouldBe(claim);
+    }
+
     [Fact(DisplayName = "Grant claim should add a valid claim only once when claim is valid")]
     public void GrantClaim_Should_AddClaimOnce_When_ClaimIsValid()
     {

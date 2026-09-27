@@ -49,6 +49,24 @@ public sealed class UserTests
         result.Claims.Single().Value.Value.ShouldBe("heroes.read");
     }
 
+    [Fact(DisplayName = "Create should isolate collection storage when input collections change")]
+    public void Create_Should_IsolateCollectionStorage_When_InputCollectionsChange()
+    {
+        var roleId = RoleId.New();
+        var claim = UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value);
+        List<RoleId> roleIds = [roleId];
+        List<UserClaim> claims = [claim];
+        var user = User.Create(
+            UserId.New(), Email.Create("hero@example.com").Value, UserName.Create("hero").Value,
+            UserStatus.Active, UserConfirmationStatus.Unconfirmed(), roleIds, claims);
+
+        roleIds.Clear();
+        claims.Clear();
+
+        user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
+        user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
+    }
+
     [Fact(DisplayName = "Request email confirmation should raise an event for an unconfirmed user when user is unconfirmed")]
     public void RequestEmailConfirmation_Should_RaiseEvent_When_UserIsUnconfirmed()
     {
