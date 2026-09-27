@@ -29,8 +29,8 @@ public sealed class User : AggregateRoot<UserId>
     public UserStatus Status { get; private set; }
     public UserConfirmationStatus ConfirmationStatus { get; private set; }
 
-    public IReadOnlyCollection<RoleId> RoleIds => _roleIds;
-    public IReadOnlyCollection<UserClaim> Claims => _claims;
+    public IReadOnlyCollection<RoleId> RoleIds => _roleIds.AsReadOnly();
+    public IReadOnlyCollection<UserClaim> Claims => _claims.AsReadOnly();
 
     public static User Register(
         Email email,

@@ -18,7 +18,7 @@ public sealed class Role : AggregateRoot<RoleId>
 
     public RoleName Name { get; private set; }
 
-    public IReadOnlyCollection<RoleClaim> Claims => _claims;
+    public IReadOnlyCollection<RoleClaim> Claims => _claims.AsReadOnly();
 
     public static Role Create(
         RoleId id,
