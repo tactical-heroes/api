@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
@@ -24,6 +25,66 @@ public sealed class DomainCollectionExposureConventionTests
             "immutable collections, or frozen collections. A read-only interface " +
             $"alone does not protect mutable storage:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
+    }
+
+    [Theory(DisplayName = "Collection exposure should validate protection when member shapes vary")]
+    [InlineData("public IReadOnlyCollection<int> Values => _values;", false)]
+    [InlineData("public IReadOnlyCollection<int> Values => _values.AsReadOnly();", true)]
+    [InlineData("internal IReadOnlyCollection<int> Values => _values;", false)]
+    [InlineData("IEnumerable<int> IView.Values => _values;", false)]
+    [InlineData("public object Values => _values;", false)]
+    [InlineData("public object Values => _values.AsReadOnly();", true)]
+    [InlineData("public Task<IReadOnlyCollection<int>> GetValues() => Task.FromResult<IReadOnlyCollection<int>>(_values);", false)]
+    [InlineData("public Task<ReadOnlyCollection<int>> GetValues() => Task.FromResult(_values.AsReadOnly());", true)]
+    [InlineData("public IReadOnlyCollection<IReadOnlyCollection<int>> Values => ImmutableArray.Create<IReadOnlyCollection<int>>(_values);", false)]
+    [InlineData("public IReadOnlyCollection<ReadOnlyCollection<int>> Values => ImmutableArray.Create(_values.AsReadOnly());", true)]
+    [InlineData("public (IReadOnlyCollection<int> Items, int Count) GetValues() => (_values, _values.Count);", false)]
+    [InlineData("public (IReadOnlyCollection<int> Items, int Count) GetValues() => (_values.AsReadOnly(), _values.Count);", true)]
+    [InlineData("public IReadOnlyCollection<int> Values => GetRaw(); private List<int> GetRaw() => _values;", false)]
+    [InlineData("public IReadOnlyCollection<int> Values => GetProtected(); private ReadOnlyCollection<int> GetProtected() => _values.AsReadOnly();", true)]
+    public void CollectionExposure_Should_ValidateProtection_When_MemberShapesVary(string member, bool expected)
+    {
+        var source = $$"""
+                       using System;
+                       using System.Collections.Generic;
+                       using System.Collections.Immutable;
+                       using System.Collections.ObjectModel;
+                       using System.Threading.Tasks;
+
+                       namespace PANiXiDA.Core.Domain.Entities { public interface IEntity { } }
+
+                       public interface IView { IEnumerable<int> Values => Array.Empty<int>(); }
+
+                       public sealed class Sample : PANiXiDA.Core.Domain.Entities.IEntity, IView
+                       {
+                           private readonly List<int> _values = [1];
+                           {{member}}
+                       }
+                       """;
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var repositoryRoot = Path.GetTempPath();
+        var tree = CSharpSyntaxTree.ParseText(
+            source,
+            path: Path.Combine(repositoryRoot, "CollectionExposureProbe.cs"),
+            cancellationToken: cancellationToken);
+        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path));
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "CollectionExposureProbe",
+            syntaxTrees: [tree],
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var semanticModel = compilation.GetSemanticModel(tree);
+
+        var returns = tree.GetRoot(cancellationToken).DescendantNodes()
+            .Select(node => GetCollectionReturn(node, semanticModel, repositoryRoot))
+            .OfType<CollectionReturn>()
+            .ToArray();
+
+        Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.NotEmpty(returns);
+        Assert.Equal(expected, returns.All(result => result.IsProtected));
     }
 
     private static async Task<CollectionReturn[]> GetCollectionReturnsAsync(
@@ -95,9 +156,12 @@ public sealed class DomainCollectionExposureConventionTests
         };
         var entity = semanticModel.Compilation.GetTypeByMetadataName("PANiXiDA.Core.Domain.Entities.IEntity");
 
-        if (member?.DeclaredAccessibility != Accessibility.Public ||
+        var operation = expression is null ? null : semanticModel.GetOperation(expression);
+
+        if (member is null || !IsExposed(member) ||
             returnType is null ||
-            !DomainCollectionConvention.IsCollection(returnType, semanticModel.Compilation) ||
+            !DomainCollectionConvention.ContainsCollection(returnType, semanticModel.Compilation) &&
+            !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation) ||
             !member.ContainingType.AllInterfaces.Any(type =>
                 SymbolEqualityComparer.Default.Equals(type, entity)))
         {
@@ -112,8 +176,16 @@ public sealed class DomainCollectionExposureConventionTests
                          (expression is null
                              ? DomainCollectionConvention.IsProtectedCollectionType(returnType, semanticModel.Compilation)
                              : DomainCollectionConvention.IsProtectedCollection(
-                                 semanticModel.GetOperation(expression),
+                                 operation,
                                  semanticModel.Compilation)));
+    }
+
+    private static bool IsExposed(ISymbol member)
+    {
+        return member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or
+                   Accessibility.ProtectedOrInternal ||
+               member is IPropertySymbol { ExplicitInterfaceImplementations.IsEmpty: false } or
+                   IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false };
     }
 
     private sealed record CollectionReturn(string Location, bool IsProtected);

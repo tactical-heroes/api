@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.DomainEvents;
@@ -110,6 +111,44 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Strongly typed ids should contain only immutable state when declared")]
+    public void StronglyTypedIds_Should_ContainOnlyImmutableState_When_Declared()
+    {
+        var identifiers = GetStronglyTypedIds();
+        var violations = identifiers
+            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(identifiers);
+        Assert.True(
+            violations.Length == 0,
+            $"Strongly typed ids must contain only immutable state:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Enumerations should contain only immutable state when declared")]
+    public void Enumerations_Should_ContainOnlyImmutableState_When_Declared()
+    {
+        var enumerations = GetDomainTypes()
+            .Where(type => !type.IsAbstract &&
+                           InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                               type, typeof(Enumeration<>)) is not null)
+            .ToArray();
+        var violations = enumerations
+            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(enumerations);
+        Assert.True(
+            violations.Length == 0,
+            $"Enumerations must contain only immutable state:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     [Fact(DisplayName = "Value objects and enumerations should declare public getters without setters when properties are declared")]
     public void ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared()
     {
@@ -146,33 +185,61 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Aggregate roots and entities should not declare public setters when domain state is declared")]
-    public void AggregateRootsAndEntities_Should_NotDeclarePublicSetters_When_DomainStateIsDeclared()
+    [Fact(DisplayName = "Aggregate roots and entities should not expose writable state when domain state is declared")]
+    public void AggregateRootsAndEntities_Should_NotExposeWritableState_When_DomainStateIsDeclared()
     {
         var domainEntities = GetDomainEntities();
         var violations = domainEntities
-            .SelectMany(type => type
-                .GetProperties(
-                    BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic |
-                    BindingFlags.DeclaredOnly)
-                .Where(property =>
-                    property.GetSetMethod(nonPublic: true) is
-                    {
-                        IsPublic: true
-                    })
-                .Select(property =>
-                    $"{type.FullName}.{property.Name} must not have a " +
-                    $"public setter."))
+            .SelectMany(GetExternalMutationViolations)
+            .Distinct()
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(domainEntities);
         Assert.True(
             violations.Length == 0,
-            $"Public domain state setters:{Environment.NewLine}" +
+            $"Externally writable domain state:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
+    }
+
+    [Theory(DisplayName = "Domain state should reject external writes when member access varies")]
+    [InlineData(typeof(PublicSetterState), false)]
+    [InlineData(typeof(InternalSetterState), false)]
+    [InlineData(typeof(PublicInitState), false)]
+    [InlineData(typeof(ExplicitSetterState), false)]
+    [InlineData(typeof(PublicFieldState), false)]
+    [InlineData(typeof(InternalFieldState), false)]
+    [InlineData(typeof(WritableReferenceState), false)]
+    [InlineData(typeof(InheritedSetterState), false)]
+    [InlineData(typeof(PrivateSetterState), true)]
+    [InlineData(typeof(ProtectedSetterState), true)]
+    [InlineData(typeof(ReadOnlyFieldState), true)]
+    [InlineData(typeof(ReadOnlyReferenceState), true)]
+    public void DomainState_Should_RejectExternalWrites_When_MemberAccessVaries(Type type, bool expected)
+    {
+        var violations = GetExternalMutationViolations(type).ToArray();
+
+        Assert.Equal(expected, violations.Length == 0);
+    }
+
+    [Theory(DisplayName = "Immutable state should validate fields recursively when state shape varies")]
+    [InlineData(typeof(PublicSetterState), false)]
+    [InlineData(typeof(PrivateSetterState), false)]
+    [InlineData(typeof(PublicFieldState), false)]
+    [InlineData(typeof(ReadOnlyMutableFieldState), false)]
+    [InlineData(typeof(InheritedPrivateFieldState), false)]
+    [InlineData(typeof(MutableStructState), false)]
+    [InlineData(typeof(RecursiveMutableState), false)]
+    [InlineData(typeof(ReadOnlyFieldState), true)]
+    [InlineData(typeof(PublicInitState), true)]
+    [InlineData(typeof(ReadOnlyStructState), true)]
+    [InlineData(typeof(RecursiveImmutableState), true)]
+    [InlineData(typeof(int?), true)]
+    public void ImmutableState_Should_ValidateFieldsRecursively_When_StateShapeVaries(Type type, bool expected)
+    {
+        var violations = GetImmutableStateViolations(type, new HashSet<Type>()).ToArray();
+
+        Assert.Equal(expected, violations.Length == 0);
     }
 
     [Fact(DisplayName = "Aggregate roots and entities should not expose mutable collections when public state is declared")]
@@ -313,6 +380,52 @@ public sealed class DomainEncapsulationConventionTests
             violations.Length == 0,
             $"Strongly typed id property violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
+    }
+
+    private static IEnumerable<string> GetExternalMutationViolations(Type type)
+    {
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
+                                   BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+
+        for (var currentType = type;
+             currentType is not null && currentType != typeof(object);
+             currentType = currentType.BaseType)
+        {
+            foreach (var field in currentType.GetFields(flags).Where(field =>
+                         !field.IsInitOnly && (field.IsPublic || field.IsAssembly || field.IsFamilyOrAssembly)))
+            {
+                yield return $"{currentType.FullName}.{field.Name} must not expose a writable field.";
+            }
+
+            foreach (var violation in currentType.GetMethods(flags)
+                         .Where(IsExternallyAccessible)
+                         .SelectMany(GetExternalMethodMutationViolations))
+            {
+                yield return violation;
+            }
+        }
+    }
+
+    private static IEnumerable<string> GetExternalMethodMutationViolations(MethodInfo method)
+    {
+        if (method.IsSpecialName &&
+            (method.Name.StartsWith("set_", StringComparison.Ordinal) ||
+             method.Name.Contains(".set_", StringComparison.Ordinal)))
+        {
+            yield return $"{method.DeclaringType?.FullName}.{method.Name} must not expose a setter or init accessor.";
+        }
+
+        if (method.ReturnType.IsByRef &&
+            !method.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(InAttribute)))
+        {
+            yield return $"{method.DeclaringType?.FullName}.{method.Name} must not return a writable reference.";
+        }
+    }
+
+    private static bool IsExternallyAccessible(MethodInfo method)
+    {
+        return method.IsPublic || method.IsAssembly || method.IsFamilyOrAssembly ||
+               method is { IsPrivate: true, IsVirtual: true, IsFinal: true };
     }
 
     private static IEnumerable<string> GetImmutableStateViolations(
@@ -545,6 +658,109 @@ public sealed class DomainEncapsulationConventionTests
     }
 
     private sealed record CollectionDomainEvent<T>(T Items) : DomainEvent;
+
+    private interface IWritableState
+    {
+        int Value { get; set; }
+    }
+
+    private sealed class PublicSetterState
+    {
+        public int Value { get; set; }
+    }
+
+    private sealed class InternalSetterState
+    {
+        public int Value { get; internal set; }
+    }
+
+    private sealed class PublicInitState
+    {
+        public int Value { get; init; }
+    }
+
+    private sealed class ExplicitSetterState : IWritableState
+    {
+        int IWritableState.Value { get; set; }
+    }
+
+    private sealed class PublicFieldState
+    {
+        public int Value = 1;
+    }
+
+    private sealed class InternalFieldState
+    {
+        internal int Value = 1;
+    }
+
+    private sealed class WritableReferenceState
+    {
+        private int _value = 1;
+
+        public ref int Value => ref _value;
+    }
+
+    private abstract class SetterStateBase
+    {
+        public int Value { get; set; }
+    }
+
+    private sealed class InheritedSetterState : SetterStateBase;
+
+    private sealed class PrivateSetterState
+    {
+        public int Value { get; private set; }
+    }
+
+    private class ProtectedSetterState
+    {
+        public int Value { get; protected set; }
+    }
+
+    private sealed class ReadOnlyFieldState
+    {
+        public readonly int Value = 1;
+    }
+
+    private sealed class ReadOnlyReferenceState
+    {
+        private readonly int _value = 1;
+
+        public ref readonly int Value => ref _value;
+    }
+
+    private sealed class ReadOnlyMutableFieldState
+    {
+        public readonly MutableCollectionElement Value = new();
+    }
+
+    private abstract class PrivateFieldStateBase
+    {
+        private int _value;
+
+        public int Value => ++_value;
+    }
+
+    private sealed class InheritedPrivateFieldState : PrivateFieldStateBase;
+
+    private struct MutableStructState
+    {
+        public int Value { get; set; }
+    }
+
+    private readonly record struct ReadOnlyStructState(int Value);
+
+    private sealed record RecursiveImmutableState
+    {
+        public RecursiveImmutableState? Next { get; init; }
+    }
+
+    private sealed record RecursiveMutableState
+    {
+        public RecursiveMutableState? Next { get; init; }
+        public int Value { get; set; }
+    }
 
     private sealed record ImmutableCollectionElement(int Value);
 

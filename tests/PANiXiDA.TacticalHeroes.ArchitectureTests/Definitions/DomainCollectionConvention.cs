@@ -79,6 +79,8 @@ internal static class DomainCollectionConvention
                 IsProtectedCollection(coalesce.WhenNull, compilation),
             ISwitchExpressionOperation switchExpression => switchExpression.Arms.All(arm =>
                 IsProtectedCollection(arm.Value, compilation)),
+            ITupleOperation tuple => tuple.Elements.All(element =>
+                !ReturnsCollection(element, compilation) || IsProtectedCollection(element, compilation)),
             { Type: { } type } => IsProtectedCollectionType(type, compilation),
             _ => false
         };
@@ -86,9 +88,46 @@ internal static class DomainCollectionConvention
 
     internal static bool IsProtectedCollectionType(ITypeSymbol type, Compilation compilation)
     {
-        return type is INamedTypeSymbol namedType && ProtectedCollectionTypes.Any(candidate =>
-            SymbolEqualityComparer.Default.Equals(
-                namedType.OriginalDefinition,
-                compilation.GetTypeByMetadataName(candidate.FullName!)));
+        if (type is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        var isCollection = IsCollection(type, compilation);
+        var collectionArguments = namedType.TypeArguments
+            .Where(argument => ContainsCollection(argument, compilation))
+            .ToArray();
+
+        return (isCollection || collectionArguments.Length > 0) &&
+               (!isCollection || ProtectedCollectionTypes.Any(candidate =>
+                   SymbolEqualityComparer.Default.Equals(
+                       namedType.OriginalDefinition,
+                       compilation.GetTypeByMetadataName(candidate.FullName!)))) &&
+               collectionArguments.All(argument => IsProtectedCollectionType(argument, compilation));
+    }
+
+    internal static bool ContainsCollection(ITypeSymbol type, Compilation compilation)
+    {
+        return IsCollection(type, compilation) ||
+               type is INamedTypeSymbol namedType && namedType.TypeArguments.Any(argument =>
+                   ContainsCollection(argument, compilation));
+    }
+
+    internal static bool ReturnsCollection(IOperation? operation, Compilation compilation)
+    {
+        return operation switch
+        {
+            IConversionOperation conversion => ReturnsCollection(conversion.Operand, compilation),
+            IParenthesizedOperation parenthesized => ReturnsCollection(parenthesized.Operand, compilation),
+            IConditionalOperation conditional => ReturnsCollection(conditional.WhenTrue, compilation) ||
+                                                 ReturnsCollection(conditional.WhenFalse, compilation),
+            ICoalesceOperation coalesce => ReturnsCollection(coalesce.Value, compilation) ||
+                                           ReturnsCollection(coalesce.WhenNull, compilation),
+            ISwitchExpressionOperation switchExpression => switchExpression.Arms.Any(arm =>
+                ReturnsCollection(arm.Value, compilation)),
+            ITupleOperation tuple => tuple.Elements.Any(element => ReturnsCollection(element, compilation)),
+            { Type: { } type } => ContainsCollection(type, compilation),
+            _ => false
+        };
     }
 }
