@@ -2,8 +2,6 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.DomainEvents;
@@ -27,7 +25,7 @@ public sealed class DomainEncapsulationConventionTests
                 typeof(DomainEvent).IsAssignableFrom(type))
             .ToArray();
         var violations = domainEvents
-            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .SelectMany(DomainImmutableStateConvention.GetViolations)
             .Distinct()
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -86,7 +84,7 @@ public sealed class DomainEncapsulationConventionTests
     {
         var eventType = typeof(CollectionDomainEvent<>).MakeGenericType(collectionType);
 
-        var violations = GetImmutableStateViolations(eventType, new HashSet<Type>()).ToArray();
+        var violations = DomainImmutableStateConvention.GetViolations(eventType).ToArray();
 
         Assert.Equal(expected, violations.Length == 0);
     }
@@ -100,7 +98,7 @@ public sealed class DomainEncapsulationConventionTests
                 typeof(ValueObject).IsAssignableFrom(type))
             .ToArray();
         var violations = valueObjects
-            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .SelectMany(DomainImmutableStateConvention.GetViolations)
             .Distinct()
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -117,7 +115,7 @@ public sealed class DomainEncapsulationConventionTests
     {
         var identifiers = GetStronglyTypedIds();
         var violations = identifiers
-            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .SelectMany(DomainImmutableStateConvention.GetViolations)
             .Distinct()
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -138,7 +136,7 @@ public sealed class DomainEncapsulationConventionTests
                                type, typeof(Enumeration<>)) is not null)
             .ToArray();
         var violations = enumerations
-            .SelectMany(type => GetImmutableStateViolations(type, new HashSet<Type>()))
+            .SelectMany(DomainImmutableStateConvention.GetViolations)
             .Distinct()
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -231,14 +229,16 @@ public sealed class DomainEncapsulationConventionTests
     [InlineData(typeof(InheritedPrivateFieldState), false)]
     [InlineData(typeof(MutableStructState), false)]
     [InlineData(typeof(RecursiveMutableState), false)]
+    [InlineData(typeof(BorrowedReferenceState), false)]
     [InlineData(typeof(ReadOnlyFieldState), true)]
     [InlineData(typeof(PublicInitState), true)]
     [InlineData(typeof(ReadOnlyStructState), true)]
+    [InlineData(typeof(ReadOnlyReferenceState), true)]
     [InlineData(typeof(RecursiveImmutableState), true)]
     [InlineData(typeof(int?), true)]
     public void ImmutableState_Should_ValidateFieldsRecursively_When_StateShapeVaries(Type type, bool expected)
     {
-        var violations = GetImmutableStateViolations(type, new HashSet<Type>()).ToArray();
+        var violations = DomainImmutableStateConvention.GetViolations(type).ToArray();
 
         Assert.Equal(expected, violations.Length == 0);
     }
@@ -416,8 +416,7 @@ public sealed class DomainEncapsulationConventionTests
             yield return $"{method.DeclaringType?.FullName}.{method.Name} must not expose a setter or init accessor.";
         }
 
-        if (method.ReturnType.IsByRef &&
-            !method.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(InAttribute)))
+        if (DomainImmutableStateConvention.ReturnsWritableReference(method))
         {
             yield return $"{method.DeclaringType?.FullName}.{method.Name} must not return a writable reference.";
         }
@@ -427,107 +426,6 @@ public sealed class DomainEncapsulationConventionTests
     {
         return method.IsPublic || method.IsAssembly || method.IsFamilyOrAssembly ||
                method is { IsPrivate: true, IsVirtual: true, IsFinal: true };
-    }
-
-    private static IEnumerable<string> GetImmutableStateViolations(
-        Type type,
-        ISet<Type> visitedTypes)
-    {
-        type = Nullable.GetUnderlyingType(type) ?? type;
-
-        if (IsImmutableScalar(type) || !visitedTypes.Add(type))
-        {
-            yield break;
-        }
-
-        if (DomainCollectionConvention.IsImmutableCollectionType(type))
-        {
-            foreach (var argument in type.GetGenericArguments())
-            {
-                foreach (var violation in GetImmutableStateViolations(argument, visitedTypes))
-                {
-                    yield return $"{type}: {violation}";
-                }
-            }
-
-            yield break;
-        }
-
-        if (DomainCollectionConvention.IsCollectionType(type))
-        {
-            yield return $"Collection type '{type}' must be a standard immutable " +
-                         "or frozen collection; mutable collections, read-only " +
-                         "wrappers and collection interfaces are not allowed.";
-            yield break;
-        }
-
-        if (!type.IsValueType && !type.IsSealed)
-        {
-            yield return $"State type '{type}' must be a scalar, value type, " +
-                         "or sealed class with immutable state; polymorphic " +
-                         "state is not allowed.";
-            yield break;
-        }
-
-        for (var currentType = type;
-             currentType is not null && currentType != typeof(object);
-             currentType = currentType.BaseType)
-        {
-            foreach (var violation in GetDeclaredImmutableStateViolations(currentType, visitedTypes))
-            {
-                yield return violation;
-            }
-        }
-    }
-
-    private static IEnumerable<string> GetDeclaredImmutableStateViolations(
-        Type type,
-        ISet<Type> visitedTypes)
-    {
-        const BindingFlags flags = BindingFlags.Instance |
-                                   BindingFlags.Public |
-                                   BindingFlags.NonPublic |
-                                   BindingFlags.DeclaredOnly;
-
-        foreach (var property in type.GetProperties(flags))
-        {
-            var setter = property.GetSetMethod(nonPublic: true);
-
-            if (setter is not null &&
-                !setter.ReturnParameter.GetRequiredCustomModifiers()
-                    .Contains(typeof(IsExternalInit)))
-            {
-                yield return $"{type.FullName}.{property.Name} must not " +
-                             "declare a setter; only get or init is allowed.";
-            }
-        }
-
-        foreach (var field in type.GetFields(flags))
-        {
-            if (!field.IsInitOnly)
-            {
-                yield return $"{type.FullName}.{field.Name} must be readonly.";
-            }
-
-            foreach (var violation in GetImmutableStateViolations(field.FieldType, visitedTypes))
-            {
-                yield return $"{type.FullName}.{field.Name}: {violation}";
-            }
-        }
-    }
-
-    private static bool IsImmutableScalar(Type type)
-    {
-        return type.IsPrimitive ||
-               type.IsEnum ||
-               type == typeof(string) ||
-               type == typeof(decimal) ||
-               type == typeof(Guid) ||
-               type == typeof(DateTime) ||
-               type == typeof(DateTimeOffset) ||
-               type == typeof(DateOnly) ||
-               type == typeof(TimeOnly) ||
-               type == typeof(TimeSpan);
     }
 
     private static Type[] GetStronglyTypedIds()
@@ -729,6 +627,18 @@ public sealed class DomainEncapsulationConventionTests
         private readonly int _value = 1;
 
         public ref readonly int Value => ref _value;
+    }
+
+    private sealed class BorrowedReferenceState
+    {
+        private readonly int _index = 1;
+
+        public ref int Value => ref MutableStaticState.Values[_index];
+    }
+
+    private static class MutableStaticState
+    {
+        public static readonly int[] Values = [1, 2];
     }
 
     private sealed class ReadOnlyMutableFieldState

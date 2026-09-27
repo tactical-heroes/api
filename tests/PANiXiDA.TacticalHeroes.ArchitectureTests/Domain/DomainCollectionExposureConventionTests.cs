@@ -51,6 +51,17 @@ public sealed class DomainCollectionExposureConventionTests
     [InlineData("public ReadOnlySpan<int> Values => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_values);", true)]
     [InlineData("public ReadOnlyMemory<int> Values => new Memory<int>(_values.ToArray());", true)]
     [InlineData("public ReadOnlySpan<int> Values => _values.ToArray();", true)]
+    [InlineData("public IEnumerable<IReadOnlyCollection<int>> GetValues() { yield return _values; }", false)]
+    [InlineData("public IEnumerable<object> GetValues() { yield return _values; }", false)]
+    [InlineData("public IEnumerable<IReadOnlyCollection<int>> GetValues() { yield return _values.AsReadOnly(); }", true)]
+    [InlineData("public IEnumerable<int> GetValues() { foreach (var value in _values) yield return value; }", true)]
+    [InlineData("public async IAsyncEnumerable<IReadOnlyCollection<int>> GetValues() { await Task.Yield(); yield return _values; }", false)]
+    [InlineData("public async IAsyncEnumerable<IReadOnlyCollection<int>> GetValues() { await Task.Yield(); yield return _values.AsReadOnly(); }", true)]
+    [InlineData("public IReadOnlyCollection<int> Values => _values.Count > 0 ? _values.AsReadOnly() : throw new InvalidOperationException();", true)]
+    [InlineData("public IReadOnlyCollection<int> Values { get { return _values; } }", false)]
+    [InlineData("public IReadOnlyCollection<int> Values { get { return _values.AsReadOnly(); } }", true)]
+    [InlineData("public IReadOnlyCollection<int> this[int index] => _values;", false)]
+    [InlineData("public IReadOnlyCollection<int> this[int index] => _values.AsReadOnly();", true)]
     public void CollectionExposure_Should_ValidateProtection_When_MemberShapesVary(string member, bool expected)
     {
         var source = $$"""
@@ -130,6 +141,7 @@ public sealed class DomainCollectionExposureConventionTests
         {
             ArrowExpressionClauseSyntax arrow => arrow.Expression,
             ReturnStatementSyntax statement => statement.Expression,
+            YieldStatementSyntax statement => statement.Expression,
             EqualsValueClauseSyntax initializer => initializer.Value,
             _ => null
         };
@@ -182,16 +194,21 @@ public sealed class DomainCollectionExposureConventionTests
             return null;
         }
 
+        var isProtected = expression is null
+            ? DomainCollectionConvention.IsProtectedCollectionType(returnType, semanticModel.Compilation)
+            : DomainCollectionConvention.IsProtectedCollection(operation, semanticModel.Compilation);
+
+        if (node is YieldStatementSyntax &&
+            !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation))
+        {
+            isProtected = true;
+        }
+
         return new CollectionReturn(
             Location: $"{Path.GetRelativePath(repositoryRoot, node.SyntaxTree.FilePath)}:" +
                       $"{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1} " +
                       $"{member.Name}",
-            IsProtected: member is not IFieldSymbol { IsReadOnly: false } &&
-                         (expression is null
-                             ? DomainCollectionConvention.IsProtectedCollectionType(returnType, semanticModel.Compilation)
-                             : DomainCollectionConvention.IsProtectedCollection(
-                                 operation,
-                                 semanticModel.Compilation)));
+            IsProtected: member is not IFieldSymbol { IsReadOnly: false } && isProtected);
     }
 
     private static bool IsExposed(ISymbol member)

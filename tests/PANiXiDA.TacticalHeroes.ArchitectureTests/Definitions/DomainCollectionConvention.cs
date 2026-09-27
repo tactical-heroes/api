@@ -94,6 +94,7 @@ internal static class DomainCollectionConvention
 
         return operation switch
         {
+            IThrowOperation => true,
             IConversionOperation conversion => IsProtectedConversion(conversion, compilation),
             IParenthesizedOperation parenthesized => IsProtectedCollection(parenthesized.Operand, compilation),
             IConditionalOperation conditional =>
