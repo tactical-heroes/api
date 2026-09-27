@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 
-public readonly record struct FactionId : IStronglyTypedId
+public readonly partial record struct FactionId : IStronglyTypedId
 {
     private FactionId(Guid value)
     {
@@ -20,10 +20,5 @@ public readonly record struct FactionId : IStronglyTypedId
             ? Result.Failure<FactionId>(
                 error: Error.Validation(message: "Faction id cannot be empty."))
             : Result.Success(value: new FactionId(value: value));
-    }
-
-    public override string ToString()
-    {
-        return Value.ToString();
     }
 }

@@ -39,8 +39,10 @@ public sealed class EndpointPaginationConventionTests
         var endpoints = new List<EndpointPagination>();
         foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
-            if (semanticModel.GetSymbolInfo(invocation).Symbol is not IMethodSymbol mapping ||
-                mapping.ContainingType.ToDisplayString() != "PANiXiDA.Core.Presentation.Http.Endpoints.EndpointMapBuilder" ||
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess ||
+                semanticModel.GetTypeInfo(memberAccess.Expression).Type?.ToDisplayString() !=
+                    "PANiXiDA.Core.Presentation.Http.Endpoints.EndpointMapBuilder" ||
+                semanticModel.GetSymbolInfo(invocation).Symbol is not IMethodSymbol mapping ||
                 !mapping.Name.StartsWith("Map", StringComparison.Ordinal))
             {
                 continue;

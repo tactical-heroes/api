@@ -13,7 +13,7 @@ internal sealed class IntrospectEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(builder.Route, Handle)
             .AllowAnonymous()
             .Accepts<IntrospectRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<IntrospectResponse>(StatusCodes.Status200OK)

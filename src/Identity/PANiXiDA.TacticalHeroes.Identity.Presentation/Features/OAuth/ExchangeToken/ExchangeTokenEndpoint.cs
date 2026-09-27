@@ -22,7 +22,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(HandleAsync)
+        builder.MapPost(builder.Route, HandleAsync)
             .AllowAnonymous()
             .Accepts<ExchangeTokenRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<ExchangeTokenResponse>(StatusCodes.Status200OK)

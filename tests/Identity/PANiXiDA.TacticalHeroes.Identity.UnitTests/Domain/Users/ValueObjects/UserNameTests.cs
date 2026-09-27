@@ -11,7 +11,6 @@ public sealed class UserNameTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe("tactical-hero");
-        result.Value.ToString().ShouldBe("tactical-hero");
     }
 
     [Theory(DisplayName = "User name should reject an empty value when user name is empty")]
@@ -36,13 +35,13 @@ public sealed class UserNameTests
             .ShouldHaveField(nameof(UserName));
     }
 
-    [Fact(DisplayName = "User name should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "User name should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var userName = UserName.Create("tactical-hero").Value;
 
         var result = userName.ToString();
 
-        result.ShouldBe(userName.Value);
+        result.ShouldBe("UserName { Value = tactical-hero }");
     }
 }

@@ -12,7 +12,7 @@ internal sealed class GetFactionSelectOptionsEndpoint : IEndpoint<FactionsEndpoi
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleAsync)
+        builder.MapGet(builder.Route, HandleAsync)
             .Produces<IReadOnlyList<FactionSelectOptionResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest);
     }

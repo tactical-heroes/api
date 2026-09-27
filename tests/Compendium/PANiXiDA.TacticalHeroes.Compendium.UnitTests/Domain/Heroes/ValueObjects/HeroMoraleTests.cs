@@ -13,7 +13,6 @@ public sealed class HeroMoraleTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe(value);
-        result.Value.ToString().ShouldBe(value.ToString());
     }
 
     [Theory(DisplayName = "Hero morale should reject a value when value is outside range")]
@@ -30,13 +29,13 @@ public sealed class HeroMoraleTests
             .ShouldHaveField(nameof(HeroMorale));
     }
 
-    [Fact(DisplayName = "Hero morale should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Hero morale should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var morale = HeroMorale.Create(4).Value;
 
         var result = morale.ToString();
 
-        result.ShouldBe("4");
+        result.ShouldBe("HeroMorale { Value = 4 }");
     }
 }

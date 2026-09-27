@@ -4,6 +4,18 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.ValueObjects;
 
 public sealed class UserConfirmationStatusTests
 {
+    [Theory(DisplayName = "User confirmation status should format its value when converted to string")]
+    [InlineData(true, "UserConfirmationStatus { IsConfirmed = True }")]
+    [InlineData(false, "UserConfirmationStatus { IsConfirmed = False }")]
+    public void ToString_Should_FormatValue_When_ConvertedToString(bool isConfirmed, string expected)
+    {
+        var status = UserConfirmationStatus.From(isConfirmed);
+
+        var result = status.ToString();
+
+        result.ShouldBe(expected);
+    }
+
     [Fact(DisplayName = "Unconfirmed should create an unconfirmed status when called")]
     public void Unconfirmed_Should_CreateStatus_When_Called()
     {

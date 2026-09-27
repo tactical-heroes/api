@@ -16,7 +16,7 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
         using var client = Fixture.CreateClient(Environments.Development);
 
         using var response = await client.GetAsync(
-            "/openapi/identity.json",
+            "/openapi/identity-v1.json",
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 

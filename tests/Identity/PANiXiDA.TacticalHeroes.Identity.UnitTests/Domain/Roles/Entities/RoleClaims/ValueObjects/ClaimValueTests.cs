@@ -33,13 +33,13 @@ public sealed class ClaimValueTests
             .ShouldHaveField(nameof(ClaimValue));
     }
 
-    [Fact(DisplayName = "Role claim value should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Role claim value should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var claimValue = ClaimValue.Create("heroes.manage").Value;
 
         var result = claimValue.ToString();
 
-        result.ShouldBe(claimValue.Value);
+        result.ShouldBe("ClaimValue { Value = heroes.manage }");
     }
 }

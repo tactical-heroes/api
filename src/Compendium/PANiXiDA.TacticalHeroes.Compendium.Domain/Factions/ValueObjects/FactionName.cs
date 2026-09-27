@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
-public sealed class FactionName : ValueObject
+public sealed partial class FactionName : ValueObject
 {
     public const int MaxLength = 128;
 
@@ -28,15 +28,5 @@ public sealed class FactionName : ValueObject
                 error: Error.Validation(
                         message: $"Faction name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(FactionName)));
-    }
-
-    public override string ToString()
-    {
-        return Value;
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-public sealed class UserActionToken : ValueObject
+public sealed partial class UserActionToken : ValueObject
 {
     private UserActionToken(
         string value,
@@ -22,11 +22,5 @@ public sealed class UserActionToken : ValueObject
                 error: Error.Validation(message: "User action token cannot be empty.")
                     .WithField(nameof(UserActionToken)))
             : Result.Success(value: new UserActionToken(value: value, expiresAtUtc: expiresAtUtc));
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
-        yield return ExpiresAtUtc;
     }
 }

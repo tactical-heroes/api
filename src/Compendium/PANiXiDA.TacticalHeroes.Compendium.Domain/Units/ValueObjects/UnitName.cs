@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
-public sealed class UnitName : ValueObject
+public sealed partial class UnitName : ValueObject
 {
     public const int MaxLength = 128;
 
@@ -28,15 +28,5 @@ public sealed class UnitName : ValueObject
                 error: Error.Validation(
                         message: $"Unit name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UnitName)));
-    }
-
-    public override string ToString()
-    {
-        return Value;
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

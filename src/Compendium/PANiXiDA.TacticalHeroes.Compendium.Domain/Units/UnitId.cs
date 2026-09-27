@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 
-public readonly record struct UnitId : IStronglyTypedId
+public readonly partial record struct UnitId : IStronglyTypedId
 {
     private UnitId(Guid value)
     {
@@ -20,10 +20,5 @@ public readonly record struct UnitId : IStronglyTypedId
             ? Result.Failure<UnitId>(
                 error: Error.Validation(message: "Unit id cannot be empty."))
             : Result.Success(value: new UnitId(value: value));
-    }
-
-    public override string ToString()
-    {
-        return Value.ToString();
     }
 }

@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-public sealed class HeroCombatStats : ValueObject
+public sealed partial class HeroCombatStats : ValueObject
 {
     private HeroCombatStats(
         int attack,
@@ -74,15 +74,6 @@ public sealed class HeroCombatStats : ValueObject
                     minimumDamage: minimumDamage,
                     maximumDamage: maximumDamage,
                     initiative: initiative));
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Attack;
-        yield return Defense;
-        yield return MinimumDamage;
-        yield return MaximumDamage;
-        yield return Initiative;
     }
 
     private static Result ValidateNonNegative(

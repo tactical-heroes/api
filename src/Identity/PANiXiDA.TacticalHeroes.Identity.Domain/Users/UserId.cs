@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
-public readonly record struct UserId : IStronglyTypedId
+public readonly partial record struct UserId : IStronglyTypedId
 {
     private UserId(Guid value)
     {
@@ -23,10 +23,5 @@ public readonly record struct UserId : IStronglyTypedId
         }
 
         return Result.Success(value: new UserId(value: value));
-    }
-
-    public override string ToString()
-    {
-        return Value.ToString();
     }
 }
