@@ -96,7 +96,7 @@ public sealed class IdentityProviderCertificateTests
     public void AddIdentityProvider_Should_RejectMissingCertificates_When_EnvironmentRequiresCertificates(string environment)
     {
         var exception = Should.Throw<InvalidOperationException>(() =>
-            CreateServerOptions(new Dictionary<string, string?>(), environment));
+            CreateServerOptions([], environment));
 
         exception.Message.ShouldContain("SigningCertificates");
         exception.Message.ShouldContain("EncryptionCertificates");
@@ -108,7 +108,7 @@ public sealed class IdentityProviderCertificateTests
     [InlineData(null)]
     public void AddIdentityProvider_Should_UseDevelopmentCertificates_When_LocalConfigurationHasNoCertificates(string? environment)
     {
-        var options = CreateServerOptions(new Dictionary<string, string?>(), environment);
+        var options = CreateServerOptions([], environment);
 
         options.SigningCredentials.ShouldHaveSingleItem().Key.ShouldBeOfType<X509SecurityKey>()
             .Certificate.HasPrivateKey.ShouldBeTrue();
