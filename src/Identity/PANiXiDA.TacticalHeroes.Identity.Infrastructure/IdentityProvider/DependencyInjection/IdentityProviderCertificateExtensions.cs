@@ -25,7 +25,6 @@ internal static class IdentityProviderCertificateExtensions
 
         if (validation.Failed)
         {
-            // Code generation builds the host without resolving runtime credentials.
             builder.Configure(_ => throw new OptionsValidationException(
                 optionsName: Microsoft.Extensions.Options.Options.DefaultName,
                 optionsType: typeof(IdentityProviderOptions),
