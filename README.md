@@ -62,9 +62,9 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 
 ## OpenIddict Certificates
 
-Deployed environments use separate signing and encryption certificates, shared by
-all API replicas in that environment. Store password-protected PFX files as Base64
-and their passwords in OpenBao, never in repository configuration:
+Store separate signing/encryption certificates as Base64 PFX with passwords in OpenBao at
+`secret/applications/tactical-heroes-api/<environment>` (`development` or `production`),
+shared by that environment's API replicas:
 
 ```text
 Identity__Provider__SigningCertificates__0__PfxBase64
@@ -73,29 +73,15 @@ Identity__Provider__EncryptionCertificates__0__PfxBase64
 Identity__Provider__EncryptionCertificates__0__Password
 ```
 
-Use different certificate pairs in `secret/applications/tactical-heroes-api/development`
-and `secret/applications/tactical-heroes-api/production`. The Helm chart extracts
-these fields into `tactical-heroes-api-env` and supplies them through `envFrom`.
-Private keys are loaded into memory without importing them into the host certificate store.
+Never commit PFX data or passwords.
 
-Configured certificates take precedence in every environment, including Development.
-When neither list is configured, local Development, Test, and infrastructure tooling
-without a host environment retain development certificates. Other environments require
-both lists. Partial configuration or invalid PFX data fails startup rather than
-silently generating replacement keys.
-A dedicated `IdentityProviderCertificatesOptionsValidator` validates both collections
-and their required PFX values as part of `IdentityProviderOptions` validation.
-Missing or incomplete settings fail when runtime options are resolved, with
-`ValidateOnStart` enforcing this before the API starts. Wolverine's `codegen write`
-command can build the service graph without starting the API, so image creation
-does not require production certificates or a Development environment override.
+Configured certificates take precedence. Development certificates are a fallback only
+when both lists are empty in Development, Test, or tooling without a host environment.
+Other environments require both lists; partial or invalid configuration fails startup.
 
-For rotation, add the new certificates at the next list index and retain the old ones
-until tokens protected by them expire. OpenIddict selects a currently valid certificate
-with the latest expiration date for new tokens. Refresh the ExternalSecret before
-rolling out the API; changes to environment variables require new pods.
-When first replacing per-pod development certificates, existing tokens may become
-invalid and users may need to sign in again.
+For rotation, add certificates at the next index and retain old ones until their tokens
+expire. Refresh ExternalSecrets and restart pods after changes. The initial switch
+may require users to sign in again.
 
 ## Repository Layout
 

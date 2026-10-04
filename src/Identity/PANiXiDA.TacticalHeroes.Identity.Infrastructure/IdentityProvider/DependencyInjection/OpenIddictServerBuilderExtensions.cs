@@ -12,7 +12,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.I
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
 
-internal static class IdentityProviderCertificateExtensions
+internal static class OpenIddictServerBuilderExtensions
 {
     public static void AddIdentityProviderCertificates(
         this OpenIddictServerBuilder builder,
