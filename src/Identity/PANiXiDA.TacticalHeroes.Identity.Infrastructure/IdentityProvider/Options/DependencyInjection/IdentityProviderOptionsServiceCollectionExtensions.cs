@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Clients;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Lockout;
@@ -33,6 +34,9 @@ internal static class IdentityProviderOptionsServiceCollectionExtensions
         serviceCollection.AddSingleton<
             IValidateOptions<IdentityProviderOptions>,
             IdentityProviderClientsOptionsValidator>();
+        serviceCollection.AddSingleton<
+            IValidateOptions<IdentityProviderOptions>,
+            IdentityProviderCertificatesOptionsValidator>();
 
         return serviceCollection;
     }

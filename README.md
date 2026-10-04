@@ -83,7 +83,9 @@ When neither list is configured, local Development, Test, and infrastructure too
 without a host environment retain development certificates. Other environments require
 both lists. Partial configuration or invalid PFX data fails startup rather than
 silently generating replacement keys.
-Certificate presence is checked when OpenIddict server options are created, with
+A dedicated `IdentityProviderCertificatesOptionsValidator` validates both collections
+and their required PFX values as part of `IdentityProviderOptions` validation.
+Missing or incomplete settings fail when runtime options are resolved, with
 `ValidateOnStart` enforcing this before the API starts. Wolverine's `codegen write`
 command can build the service graph without starting the API, so image creation
 does not require production certificates or a Development environment override.

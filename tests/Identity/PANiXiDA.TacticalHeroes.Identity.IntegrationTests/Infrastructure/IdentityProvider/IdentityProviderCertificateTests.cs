@@ -96,7 +96,7 @@ public sealed class IdentityProviderCertificateTests
     [InlineData("Staging")]
     public void AddIdentityProvider_Should_RejectMissingCertificates_When_EnvironmentRequiresCertificates(string environment)
     {
-        var exception = Should.Throw<InvalidOperationException>(() =>
+        var exception = Should.Throw<OptionsValidationException>(() =>
             CreateServerOptions([], environment));
 
         exception.Message.ShouldContain("SigningCertificates");
@@ -114,7 +114,7 @@ public sealed class IdentityProviderCertificateTests
             options.AddIdentityProviderCertificates(new IdentityProviderOptions(), builder.Environment));
         using var host = builder.Build();
 
-        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+        var exception = await Should.ThrowAsync<OptionsValidationException>(() =>
             host.StartAsync(TestContext.Current.CancellationToken));
 
         exception.Message.ShouldContain("SigningCertificates");
@@ -146,9 +146,9 @@ public sealed class IdentityProviderCertificateTests
         var configuration = new Dictionary<string, string?>();
         AddCertificate(configuration, prefix, certificate);
 
-        var exception = Should.Throw<InvalidOperationException>(() => CreateServerOptions(configuration, "Development"));
+        var exception = Should.Throw<OptionsValidationException>(() => CreateServerOptions(configuration, "Development"));
 
-        exception.Message.ShouldContain("must both be configured");
+        exception.Message.ShouldContain(prefix == SigningPrefix ? "EncryptionCertificates" : "SigningCertificates");
     }
 
     [Theory(DisplayName = "AddIdentityProvider should reject invalid certificate when data or password is invalid")]
