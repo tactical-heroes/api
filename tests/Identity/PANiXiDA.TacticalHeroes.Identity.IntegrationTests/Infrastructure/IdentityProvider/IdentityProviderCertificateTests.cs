@@ -21,7 +21,7 @@ public sealed class IdentityProviderCertificateTests
     private const string SigningPrefix = "Identity:Provider:SigningCertificates:0";
     private const string EncryptionPrefix = "Identity:Provider:EncryptionCertificates:0";
 
-    [Theory(DisplayName = "AddIdentityProvider should use configured certificates in every environment")]
+    [Theory(DisplayName = "AddIdentityProvider should use configured certificates when certificates are provided")]
     [InlineData("Development")]
     [InlineData("Production")]
     [InlineData("Test")]
@@ -41,7 +41,7 @@ public sealed class IdentityProviderCertificateTests
         encryptionKey.Certificate.HasPrivateKey.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "AddIdentityProvider should validate tokens across replicas sharing certificates")]
+    [Fact(DisplayName = "AddIdentityProvider should validate tokens across replicas when certificates are shared")]
     public async Task AddIdentityProvider_Should_ValidateTokensAcrossReplicas_When_CertificatesAreShared()
     {
         using var signing = CreateCertificate(X509KeyUsageFlags.DigitalSignature);
@@ -71,7 +71,7 @@ public sealed class IdentityProviderCertificateTests
         result.ClaimsIdentity.FindFirst("sub")?.Value.ShouldBe("certificate-test-user");
     }
 
-    [Fact(DisplayName = "AddIdentityProvider should retain old certificates during rotation")]
+    [Fact(DisplayName = "AddIdentityProvider should register both certificate pairs when rotating certificates")]
     public void AddIdentityProvider_Should_RegisterBothCertificatePairs_When_RotatingCertificates()
     {
         using var signing = CreateCertificate(X509KeyUsageFlags.DigitalSignature);
@@ -90,7 +90,7 @@ public sealed class IdentityProviderCertificateTests
             .ShouldBe([encryption.Thumbprint, nextEncryption.Thumbprint], ignoreOrder: true);
     }
 
-    [Theory(DisplayName = "AddIdentityProvider should require certificates outside local development and tests")]
+    [Theory(DisplayName = "AddIdentityProvider should reject missing certificates when environment requires certificates")]
     [InlineData("Production")]
     [InlineData("Staging")]
     public void AddIdentityProvider_Should_RejectMissingCertificates_When_EnvironmentRequiresCertificates(string environment)
@@ -102,7 +102,7 @@ public sealed class IdentityProviderCertificateTests
         exception.Message.ShouldContain("EncryptionCertificates");
     }
 
-    [Theory(DisplayName = "AddIdentityProvider should retain local certificate fallback when no certificates are configured")]
+    [Theory(DisplayName = "AddIdentityProvider should use development certificates when local configuration has no certificates")]
     [InlineData("Development")]
     [InlineData("Test")]
     [InlineData(null)]
@@ -116,7 +116,7 @@ public sealed class IdentityProviderCertificateTests
             .Certificate.HasPrivateKey.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "AddIdentityProvider should reject incomplete certificates even in development")]
+    [Theory(DisplayName = "AddIdentityProvider should reject partial configuration when one certificate is missing")]
     [InlineData(SigningPrefix)]
     [InlineData(EncryptionPrefix)]
     public void AddIdentityProvider_Should_RejectPartialConfiguration_When_OneCertificateIsMissing(string prefix)
@@ -125,10 +125,12 @@ public sealed class IdentityProviderCertificateTests
         var configuration = new Dictionary<string, string?>();
         AddCertificate(configuration, prefix, certificate);
 
-        Should.Throw<InvalidOperationException>(() => CreateServerOptions(configuration, "Development"));
+        var exception = Should.Throw<InvalidOperationException>(() => CreateServerOptions(configuration, "Development"));
+
+        exception.Message.ShouldContain("must both be configured");
     }
 
-    [Theory(DisplayName = "AddIdentityProvider should reject invalid certificate data without exposing values")]
+    [Theory(DisplayName = "AddIdentityProvider should reject invalid certificate when data or password is invalid")]
     [InlineData("PfxBase64", "invalid-pfx-sensitive-value")]
     [InlineData("Password", "incorrect-sensitive-password")]
     public void AddIdentityProvider_Should_RejectInvalidCertificate_When_DataOrPasswordIsInvalid(string property, string value)
@@ -144,7 +146,7 @@ public sealed class IdentityProviderCertificateTests
         exception.ToString().ShouldNotContain(value);
     }
 
-    [Fact(DisplayName = "AddIdentityProvider should reject signing certificates without private keys")]
+    [Fact(DisplayName = "AddIdentityProvider should reject public only certificate when private key is missing")]
     public void AddIdentityProvider_Should_RejectPublicOnlyCertificate_When_PrivateKeyIsMissing()
     {
         using var signing = CreateCertificate(X509KeyUsageFlags.DigitalSignature);
@@ -152,7 +154,9 @@ public sealed class IdentityProviderCertificateTests
         using var encryption = CreateCertificate(X509KeyUsageFlags.KeyEncipherment);
         var configuration = CreateConfiguration(publicSigning, encryption);
 
-        Should.Throw<InvalidOperationException>(() => CreateServerOptions(configuration, "Production"));
+        var exception = Should.Throw<InvalidOperationException>(() => CreateServerOptions(configuration, "Production"));
+
+        exception.Message.ShouldContain("private key");
     }
 
     private static Dictionary<string, string?> CreateConfiguration(X509Certificate2 signing, X509Certificate2 encryption)

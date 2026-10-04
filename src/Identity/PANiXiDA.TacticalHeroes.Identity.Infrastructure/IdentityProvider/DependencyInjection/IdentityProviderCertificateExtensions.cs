@@ -52,9 +52,9 @@ internal static class IdentityProviderCertificateExtensions
         try
         {
             return X509CertificateLoader.LoadPkcs12(
-                Convert.FromBase64String(options.PfxBase64),
-                options.Password,
-                X509KeyStorageFlags.EphemeralKeySet);
+                data: Convert.FromBase64String(options.PfxBase64),
+                password: options.Password,
+                keyStorageFlags: X509KeyStorageFlags.EphemeralKeySet);
         }
         catch (Exception exception) when (exception is FormatException or CryptographicException)
         {
