@@ -10,13 +10,13 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features
 internal sealed partial class UnitListItemReadModelMapper
     : IReadModelMapper<Guid, UnitReadDbModel, UnitListItemReadModel>
 {
+    public static partial IQueryable<UnitListItemReadModel> ProjectTo(
+        IQueryable<UnitReadDbModel> query);
+
     [MapProperty(
         $"{nameof(UnitReadDbModel.Faction)}.{nameof(FactionReadDbModel.Name)}",
         nameof(UnitListItemReadModel.FactionName),
         SuppressNullMismatchDiagnostic = true)]
     private static partial UnitListItemReadModel ToReadModel(
         UnitReadDbModel unit);
-
-    public static partial IQueryable<UnitListItemReadModel> ProjectTo(
-        IQueryable<UnitReadDbModel> query);
 }

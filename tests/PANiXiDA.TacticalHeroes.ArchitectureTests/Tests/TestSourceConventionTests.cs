@@ -9,11 +9,6 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
 public sealed partial class TestSourceConventionTests
 {
-    [GeneratedRegex(
-        @"^[A-Z][A-Za-z0-9]*_Should_[A-Z][A-Za-z0-9]*_When_[A-Z][A-Za-z0-9]*$",
-        RegexOptions.CultureInvariant)]
-    private static partial Regex TestMethodNamePattern();
-
     [Fact(DisplayName = "Test methods should use MethodName Should Behavior When Condition naming when a test is declared")]
     public void TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared()
     {
@@ -46,6 +41,11 @@ public sealed partial class TestSourceConventionTests
             $"assertion section with a blank line:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
+
+    [GeneratedRegex(
+        @"^[A-Z][A-Za-z0-9]*_Should_[A-Z][A-Za-z0-9]*_When_[A-Z][A-Za-z0-9]*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex TestMethodNamePattern();
 
     private static string? GetArrangeActAssertViolation(
         TestMethodSource testMethod)

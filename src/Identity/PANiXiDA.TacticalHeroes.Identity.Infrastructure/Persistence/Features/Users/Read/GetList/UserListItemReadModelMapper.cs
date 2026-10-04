@@ -10,6 +10,9 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.U
 internal sealed partial class UserListItemReadModelMapper
     : IReadModelMapper<Guid, UserReadDbModel, UserListItemReadModel>
 {
+    public static partial IQueryable<UserListItemReadModel> ProjectTo(
+        IQueryable<UserReadDbModel> query);
+
     [MapProperty(
         nameof(UserReadDbModel.UserName),
         nameof(UserListItemReadModel.UserName),
@@ -22,9 +25,6 @@ internal sealed partial class UserListItemReadModelMapper
         nameof(UserListItemReadModel.StatusDisplayName),
         Use = nameof(ToStatusDisplayName))]
     private static partial UserListItemReadModel ToReadModel(UserReadDbModel user);
-
-    public static partial IQueryable<UserListItemReadModel> ProjectTo(
-        IQueryable<UserReadDbModel> query);
 
     [UserMapping(Default = false)]
     private static string ToStatusDisplayName(string status) =>

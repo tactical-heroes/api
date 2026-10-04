@@ -1,0 +1,7 @@
+{
+    "settings": {
+        "orderingRules": {
+            "elementOrder": [ "kind", "constant", "accessibility" ]
+        }
+    }
+}

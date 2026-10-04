@@ -67,6 +67,25 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         return client;
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var client in _clients)
+        {
+            client.Dispose();
+        }
+
+        foreach (var factory in _factories)
+        {
+            await factory.DisposeAsync();
+        }
+
+        await _database.DisposeAsync();
+
+        Environment.SetEnvironmentVariable(
+            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
+            _previousConnectionString);
+    }
+
     private void CreateCurrentClient()
     {
         _factory = new FunctionalTestWebApplicationFactory();
@@ -92,24 +111,5 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await using var dbContext = new IdentityWriteDbContext(options, []);
 
         await dbContext.Database.MigrateAsync(cancellationToken);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        foreach (var client in _clients)
-        {
-            client.Dispose();
-        }
-
-        foreach (var factory in _factories)
-        {
-            await factory.DisposeAsync();
-        }
-
-        await _database.DisposeAsync();
-
-        Environment.SetEnvironmentVariable(
-            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
-            _previousConnectionString);
     }
 }

@@ -20,6 +20,21 @@ Restore packages:
 dotnet restore PANiXiDA.TacticalHeroes.slnx
 ```
 
+Format code, or check formatting without changing files:
+
+```bash
+dotnet format --severity warn --no-restore
+dotnet format --verify-no-changes --severity warn --no-restore
+```
+
+StyleCop SA1202 orders adjacent members of the same kind by accessibility:
+`public`, `internal`, `protected internal`, `protected`, `private protected`, `private`.
+Constants remain a separate group before other fields.
+Other StyleCop rules are disabled. SA1202 warnings fail the build because
+`TreatWarningsAsErrors` is enabled; CI also checks formatting.
+The published StyleCop package does not expose an automatic fix for SA1202,
+so reported access-order violations must be corrected manually.
+
 Build the solution:
 
 ```bash

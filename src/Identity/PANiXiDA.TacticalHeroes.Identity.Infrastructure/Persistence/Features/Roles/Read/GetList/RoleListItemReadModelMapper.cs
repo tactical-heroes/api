@@ -9,12 +9,12 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.R
 internal sealed partial class RoleListItemReadModelMapper
     : IReadModelMapper<Guid, RoleReadDbModel, RoleListItemReadModel>
 {
+    public static partial IQueryable<RoleListItemReadModel> ProjectTo(
+        IQueryable<RoleReadDbModel> query);
+
     [MapProperty(
         nameof(RoleReadDbModel.Name),
         nameof(RoleListItemReadModel.Name),
         SuppressNullMismatchDiagnostic = true)]
     private static partial RoleListItemReadModel ToReadModel(RoleReadDbModel role);
-
-    public static partial IQueryable<RoleListItemReadModel> ProjectTo(
-        IQueryable<RoleReadDbModel> query);
 }

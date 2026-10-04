@@ -10,15 +10,6 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
     private const string SourceDirectoryName = "src";
     private const string TestsDirectoryName = "tests";
 
-    [GeneratedRegex(
-        @"\[(?:Fact|Theory)(?:Attribute)?(?:\([^\]]*\))?\]" +
-        @"(?:\s*\[[^\]]+\])*\s*" +
-        @"public\s+(?:async\s+)?" +
-        @"(?:void|(?:Task|ValueTask)(?:<[^>]+>)?)\s+" +
-        @"(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\(",
-        RegexOptions.CultureInvariant)]
-    private static partial Regex TestMethodPattern();
-
     [Fact(DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files when application interfaces are implemented")]
     public void InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
     {
@@ -65,6 +56,15 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
             $"Missing integration test methods:{Environment.NewLine}" +
             string.Join(Environment.NewLine, missingTestMethods));
     }
+
+    [GeneratedRegex(
+        @"\[(?:Fact|Theory)(?:Attribute)?(?:\([^\]]*\))?\]" +
+        @"(?:\s*\[[^\]]+\])*\s*" +
+        @"public\s+(?:async\s+)?" +
+        @"(?:void|(?:Task|ValueTask)(?:<[^>]+>)?)\s+" +
+        @"(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\(",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex TestMethodPattern();
 
     private static InfrastructureImplementation[] GetInfrastructureImplementations()
     {

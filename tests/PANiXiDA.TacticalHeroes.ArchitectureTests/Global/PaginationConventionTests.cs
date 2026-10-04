@@ -65,24 +65,6 @@ public sealed class PaginationConventionTests
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
     }
 
-    private static bool HasPaginationParameters(Type type)
-    {
-        return type.GetProperties().Any(property => property.PropertyType == typeof(PaginationParameters));
-    }
-
-    private static bool IsPaginationResult(Type type)
-    {
-        if (!type.IsGenericType)
-        {
-            return false;
-        }
-
-        var definition = type.GetGenericTypeDefinition();
-        return definition == typeof(PaginationResult<>) ||
-            ((definition == typeof(Task<>) || definition == typeof(ValueTask<>) || definition == typeof(Result<>)) &&
-                IsPaginationResult(type.GetGenericArguments()[0]));
-    }
-
     [Theory(DisplayName = "Query validators should attach matching child validators when querying parameters are present")]
     [InlineData(typeof(PaginationParameters))]
     [InlineData(typeof(SortingParameters))]
@@ -177,6 +159,24 @@ public sealed class PaginationConventionTests
 
         Assert.NotEmpty(queries);
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    private static bool HasPaginationParameters(Type type)
+    {
+        return type.GetProperties().Any(property => property.PropertyType == typeof(PaginationParameters));
+    }
+
+    private static bool IsPaginationResult(Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            return false;
+        }
+
+        var definition = type.GetGenericTypeDefinition();
+        return definition == typeof(PaginationResult<>) ||
+            ((definition == typeof(Task<>) || definition == typeof(ValueTask<>) || definition == typeof(Result<>)) &&
+                IsPaginationResult(type.GetGenericArguments()[0]));
     }
 
     private static IEnumerable<string> GetChildValidatorViolations(Type query, Type parameterType)
