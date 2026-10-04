@@ -28,6 +28,8 @@ public sealed class MemberOrderConventionTests
     [InlineData("class C { static C() {} public C() {} ~C() {} public event System.Action E { add {} remove {} } public int P => 0; public int this[int i] => i; public void M() {} public static C operator +(C a, C b) => a; private delegate void D(); }")]
     [InlineData("interface I { void A(); private static void B() {} }")]
     [InlineData("class C : System.IDisposable { public void A() {} void System.IDisposable.Dispose() {} private void B() {} }")]
+    [InlineData("interface I<T> where T : I<T> { static abstract T operator +(T a, T b); } class C : I<C> { static C I<C>.operator +(C a, C b) => a; public static C operator -(C a) => a; }")]
+    [InlineData("interface I<T> where T : I<T> { static abstract explicit operator int(T v); } class C : I<C> { static explicit I<C>.operator int(C v) => 0; public static explicit operator long(C v) => 0; }")]
     [InlineData("record C(int Value) { public int A => Value; private int B => Value; private record Nested { public void A() {} private void B() {} } }")]
     [InlineData("partial class C { private void A() {} } partial class C { public void B() {} }")]
     [InlineData("struct S { public int B() => 0; public readonly int A() => 0; }")]
@@ -160,7 +162,9 @@ internal static class MemberOrderConvention
             member is MethodDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
                 PropertyDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
                 IndexerDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
-                EventDeclarationSyntax { ExplicitInterfaceSpecifier: not null })
+                EventDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
+                OperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
+                ConversionOperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null })
         {
             return 0;
         }
