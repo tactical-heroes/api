@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase _database = new();
+    private readonly PostgreSqlTestDatabase _database = new("identity");
     private readonly List<FunctionalTestWebApplicationFactory> _factories = [];
     private readonly List<HttpClient> _clients = [];
 

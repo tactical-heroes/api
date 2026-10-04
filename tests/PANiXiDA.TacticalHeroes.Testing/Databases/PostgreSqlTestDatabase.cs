@@ -7,7 +7,7 @@ using Testcontainers.PostgreSql;
 
 namespace PANiXiDA.TacticalHeroes.Testing.Databases;
 
-public sealed class PostgreSqlTestDatabase : IAsyncDisposable
+public sealed class PostgreSqlTestDatabase(string schema) : IAsyncDisposable
 {
     public const string PostgreSqlConnectionStringEnvironmentVariable =
         "ConnectionStrings__PostgreSqlConnectionString";
@@ -53,9 +53,11 @@ public sealed class PostgreSqlTestDatabase : IAsyncDisposable
             new RespawnerOptions
             {
                 DbAdapter = DbAdapter.Postgres,
+                SchemasToInclude = [schema],
                 TablesToIgnore =
                 [
-                    new Table("__EFMigrationsHistory")
+                    new Table(schema, "__ef_migrations_history"),
+                    new Table(schema, "__EFMigrationsHistory")
                 ]
             });
 

@@ -17,7 +17,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase _database = new();
+    private readonly PostgreSqlTestDatabase _database = new("identity");
 
     private ServiceProvider _serviceProvider = null!;
 

@@ -29,8 +29,13 @@ dotnet build PANiXiDA.TacticalHeroes.slnx --configuration Release
 Run tests:
 
 ```bash
-dotnet test PANiXiDA.TacticalHeroes.slnx --configuration Release
+dotnet test --solution PANiXiDA.TacticalHeroes.slnx --configuration Release
 ```
+
+Identity and Compendium integration and functional tests run sequentially within
+each assembly (`ParallelMode.None`). CI still runs separate test projects in
+parallel. Database resets clear only the module schema and preserve migration
+history and Wolverine's messaging tables, which remain in use by background workers.
 
 Run the API:
 
