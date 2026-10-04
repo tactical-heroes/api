@@ -60,6 +60,29 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## OpenIddict Certificates
+
+Store separate signing/encryption certificates as Base64 PFX with passwords in OpenBao at
+`secret/applications/tactical-heroes-api/<environment>` (`development` or `production`),
+shared by that environment's API replicas:
+
+```text
+Identity__Provider__SigningCertificates__0__PfxBase64
+Identity__Provider__SigningCertificates__0__Password
+Identity__Provider__EncryptionCertificates__0__PfxBase64
+Identity__Provider__EncryptionCertificates__0__Password
+```
+
+Never commit PFX data or passwords.
+
+Configured certificates take precedence. Development certificates are a fallback only
+when both lists are empty in Development, Test, or tooling without a host environment.
+Other environments require both lists; partial or invalid configuration fails startup.
+
+For rotation, add certificates at the next index and retain old ones until their tokens
+expire. Refresh ExternalSecrets and restart pods after changes. The initial switch
+may require users to sign in again.
+
 ## Repository Layout
 
 - `src/` - application source code.
