@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Clients;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Lockout;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Password;
@@ -13,6 +14,10 @@ public sealed class IdentityProviderOptions
     public Uri? Issuer { get; init; }
 
     public string Audience { get; init; } = string.Empty;
+
+    public List<IdentityProviderCertificateOptions> SigningCertificates { get; init; } = [];
+
+    public List<IdentityProviderCertificateOptions> EncryptionCertificates { get; init; } = [];
 
     public TimeSpan AccessTokenLifetime { get; init; } = TimeSpan.FromMinutes(minutes: 15);
 

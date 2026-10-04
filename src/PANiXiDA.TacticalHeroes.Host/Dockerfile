@@ -29,7 +29,7 @@ RUN dotnet build "./PANiXiDA.TacticalHeroes.Host.csproj" -c $BUILD_CONFIGURATION
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet run --project "./PANiXiDA.TacticalHeroes.Host.csproj" \
+RUN DOTNET_ENVIRONMENT=Development dotnet run --project "./PANiXiDA.TacticalHeroes.Host.csproj" \
     -c $BUILD_CONFIGURATION \
     --no-restore \
     --no-launch-profile \

@@ -60,6 +60,39 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## OpenIddict Certificates
+
+Deployed environments use separate signing and encryption certificates, shared by
+all API replicas in that environment. Store password-protected PFX files as Base64
+and their passwords in OpenBao, never in repository configuration:
+
+```text
+Identity__Provider__SigningCertificates__0__PfxBase64
+Identity__Provider__SigningCertificates__0__Password
+Identity__Provider__EncryptionCertificates__0__PfxBase64
+Identity__Provider__EncryptionCertificates__0__Password
+```
+
+Use different certificate pairs in `secret/applications/tactical-heroes-api/development`
+and `secret/applications/tactical-heroes-api/production`. The Helm chart extracts
+these fields into `tactical-heroes-api-env` and supplies them through `envFrom`.
+Private keys are loaded into memory without importing them into the host certificate store.
+
+Configured certificates take precedence in every environment, including Development.
+When neither list is configured, local Development, Test, and infrastructure tooling
+without a host environment retain development certificates. Other environments require
+both lists. Partial configuration or invalid PFX data fails startup rather than
+silently generating replacement keys.
+The Docker build uses Development only for the intermediate Wolverine code-generation
+step, so production certificates are not needed or embedded during image creation.
+
+For rotation, add the new certificates at the next list index and retain the old ones
+until tokens protected by them expire. OpenIddict selects a currently valid certificate
+with the latest expiration date for new tokens. Refresh the ExternalSecret before
+rolling out the API; changes to environment variables require new pods.
+When first replacing per-pod development certificates, existing tokens may become
+invalid and users may need to sign in again.
+
 ## Repository Layout
 
 - `src/` - application source code.
