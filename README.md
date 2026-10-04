@@ -38,6 +38,17 @@ Run the API:
 dotnet run --project src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj
 ```
 
+In the `Development` environment, open `/scalar` to explore the Identity and
+Compendium APIs. For protected endpoints, enter an access token in the Bearer
+authentication field without the `Bearer` prefix; Scalar adds the authorization
+header automatically.
+
+The host's `ScalarConfiguration:BearerAuthenticationSchemes` setting maps
+`OpenIddict.Validation.AspNetCore` (protected API endpoints) and
+`OpenIddict.Server.AspNetCore` (UserInfo) to Bearer authentication in OpenAPI.
+This setting describes authentication in the documentation; endpoint access rules
+remain unchanged.
+
 Run the EF migrator:
 
 ```bash
