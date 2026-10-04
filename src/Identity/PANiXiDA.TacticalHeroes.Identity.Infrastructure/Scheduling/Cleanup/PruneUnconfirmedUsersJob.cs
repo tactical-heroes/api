@@ -18,7 +18,7 @@ internal sealed class PruneUnconfirmedUsersJob(
 {
     public static readonly JobKey Key = new(name: nameof(PruneUnconfirmedUsersJob));
 
-    public ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken)
+    ValueTask IJob.Execute(IJobExecutionContext context, CancellationToken cancellationToken)
     {
         return new ValueTask(ExecuteAsync(cancellationToken));
     }
