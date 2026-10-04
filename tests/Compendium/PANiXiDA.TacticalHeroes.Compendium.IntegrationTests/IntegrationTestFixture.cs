@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase database = new();
+    private readonly PostgreSqlTestDatabase database = new("compendium");
 
     private ServiceProvider? serviceProvider;
 

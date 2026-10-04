@@ -6,6 +6,25 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class CompendiumWriteDbContextMigrationTests(
     IntegrationTestFixture fixture)
 {
+    [Fact(DisplayName = "Database reset should preserve Compendium migration history when migrations have been applied")]
+    public async Task ResetDatabase_Should_PreserveCompendiumMigrationHistory_When_MigrationsHaveBeenApplied()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = new NpgsqlConnection(fixture.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT count(*) FROM compendium."__EFMigrationsHistory"
+            """,
+            connection);
+        var migrationCount = (long)(await command.ExecuteScalarAsync(cancellationToken))!;
+
+        await fixture.ResetDatabaseAsync(cancellationToken);
+
+        migrationCount.ShouldBeGreaterThan(0);
+        (await command.ExecuteScalarAsync(cancellationToken)).ShouldBe(migrationCount);
+    }
+
     [Fact(DisplayName = "Migrations should use the Compendium schema and history table when model is built")]
     public async Task Migrations_Should_UseCompendiumSchemaAndHistoryTable_When_ModelIsBuilt()
     {
