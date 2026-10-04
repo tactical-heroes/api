@@ -9,6 +9,9 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
+using Quartz;
+using Quartz.Extensibility;
+
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Scheduling.Cleanup;
 
 public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture)
@@ -60,7 +63,9 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
                     UnconfirmedUserRetention = TimeSpan.FromDays(days: 7)
                 }));
 
-            await job.ExecuteAsync(TestContext.Current.CancellationToken);
+            await ((IJob)job).Execute(
+                JobExecutionContextBuilder.For(job).Build(),
+                TestContext.Current.CancellationToken);
         }
 
         await using (var scope = Fixture.CreateScope())
@@ -106,7 +111,9 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
                     UnconfirmedUserRetention = TimeSpan.FromDays(days: 7)
                 }));
 
-            await job.ExecuteAsync(TestContext.Current.CancellationToken);
+            await ((IJob)job).Execute(
+                JobExecutionContextBuilder.For(job).Build(),
+                TestContext.Current.CancellationToken);
         }
 
         await using (var scope = Fixture.CreateScope())
