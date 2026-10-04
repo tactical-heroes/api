@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class OpenApiSecurityDocumentTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "GET OpenAPI document should describe Bearer authentication for protected endpoints")]
+    [Theory(DisplayName = "GET OpenAPI document should describe Bearer authentication when endpoint requires token")]
     [InlineData("identity-v1", "/api/v1/users", "get")]
     [InlineData("identity-v1", "/connect/userinfo", "get")]
     [InlineData("identity-v1", "/connect/userinfo", "post")]
@@ -43,7 +43,7 @@ public sealed class OpenApiSecurityDocumentTests(FunctionalTestFixture fixture)
             requirement.GetProperty("Bearer").GetArrayLength() == 0);
     }
 
-    [Theory(DisplayName = "GET Identity OpenAPI document should not require Bearer authentication for anonymous endpoints")]
+    [Theory(DisplayName = "GET Identity OpenAPI document should not require Bearer authentication when endpoint allows anonymous")]
     [InlineData("/connect/authorize", "get")]
     [InlineData("/connect/token", "post")]
     public async Task GetIdentityOpenApiDocument_Should_NotRequireBearerAuthentication_When_EndpointAllowsAnonymous(
