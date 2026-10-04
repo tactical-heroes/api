@@ -4,6 +4,8 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using OpenIddict.Server;
+
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Common;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
@@ -17,6 +19,8 @@ internal static class IdentityProviderCertificateExtensions
         IdentityProviderOptions options,
         IHostEnvironment? environment)
     {
+        builder.Services.AddOptions<OpenIddictServerOptions>().ValidateOnStart();
+
         if (options.SigningCertificates.Count == 0 && options.EncryptionCertificates.Count == 0 &&
             (environment is null || environment.IsDevelopment() || environment.IsEnvironment(EnvironmentConstants.Test)))
         {
@@ -25,12 +29,15 @@ internal static class IdentityProviderCertificateExtensions
             return;
         }
 
-        if (options.SigningCertificates.Count == 0 || options.EncryptionCertificates.Count == 0)
+        builder.Configure(_ =>
         {
-            throw new InvalidOperationException(
-                $"{IdentityProviderOptions.SectionName}:SigningCertificates and " +
-                $"{IdentityProviderOptions.SectionName}:EncryptionCertificates must both be configured.");
-        }
+            if (options.SigningCertificates.Count == 0 || options.EncryptionCertificates.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    $"{IdentityProviderOptions.SectionName}:SigningCertificates and " +
+                    $"{IdentityProviderOptions.SectionName}:EncryptionCertificates must both be configured.");
+            }
+        });
 
         for (var index = 0; index < options.SigningCertificates.Count; index++)
         {

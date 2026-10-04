@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Server;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.IdentityProvider;
 
@@ -102,6 +103,24 @@ public sealed class IdentityProviderCertificateTests
         exception.Message.ShouldContain("EncryptionCertificates");
     }
 
+    [Fact(DisplayName = "StartAsync should reject missing certificates when production host starts")]
+    public async Task StartAsync_Should_RejectMissingCertificates_When_ProductionHostStarts()
+    {
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            EnvironmentName = "Production"
+        });
+        builder.Services.AddOpenIddict().AddServer(options =>
+            options.AddIdentityProviderCertificates(new IdentityProviderOptions(), builder.Environment));
+        using var host = builder.Build();
+
+        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+            host.StartAsync(TestContext.Current.CancellationToken));
+
+        exception.Message.ShouldContain("SigningCertificates");
+        exception.Message.ShouldContain("EncryptionCertificates");
+    }
+
     [Theory(DisplayName = "AddIdentityProvider should use development certificates when local configuration has no certificates")]
     [InlineData("Development")]
     [InlineData("Test")]
@@ -121,7 +140,9 @@ public sealed class IdentityProviderCertificateTests
     [InlineData(EncryptionPrefix)]
     public void AddIdentityProvider_Should_RejectPartialConfiguration_When_OneCertificateIsMissing(string prefix)
     {
-        using var certificate = CreateCertificate(X509KeyUsageFlags.DigitalSignature);
+        using var certificate = CreateCertificate(prefix == SigningPrefix
+            ? X509KeyUsageFlags.DigitalSignature
+            : X509KeyUsageFlags.KeyEncipherment);
         var configuration = new Dictionary<string, string?>();
         AddCertificate(configuration, prefix, certificate);
 

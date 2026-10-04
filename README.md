@@ -83,8 +83,10 @@ When neither list is configured, local Development, Test, and infrastructure too
 without a host environment retain development certificates. Other environments require
 both lists. Partial configuration or invalid PFX data fails startup rather than
 silently generating replacement keys.
-The Docker build uses Development only for the intermediate Wolverine code-generation
-step, so production certificates are not needed or embedded during image creation.
+Certificate presence is checked when OpenIddict server options are created, with
+`ValidateOnStart` enforcing this before the API starts. Wolverine's `codegen write`
+command can build the service graph without starting the API, so image creation
+does not require production certificates or a Development environment override.
 
 For rotation, add the new certificates at the next list index and retain the old ones
 until tokens protected by them expire. OpenIddict selects a currently valid certificate
