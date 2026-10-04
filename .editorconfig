@@ -150,17 +150,6 @@ dotnet_diagnostic.RCS1205.severity = warning
 dotnet_diagnostic.RCS1229.severity = warning
 dotnet_diagnostic.RCS1261.severity = warning
 
-# Enable only access ordering from StyleCop.
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
-dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = none
-dotnet_diagnostic.SA1202.severity = warning
-
 [src/**/*.cs]
 dotnet_diagnostic.RCS1046.severity = warning
 dotnet_diagnostic.RCS1047.severity = warning

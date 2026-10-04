@@ -17,9 +17,17 @@ internal static class OAuthAuthorizationRequestTestHelper
     internal const string CodeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
     internal const string ParPath = "/connect/par";
     internal const string RedirectUri = "https://localhost:5173/oauth/callback";
-
     private const string LoginPath = "/api/v1/auth/login";
     private const string TokenPath = "/connect/token";
+
+    internal static IReadOnlyCollection<string> DefaultScopes { get; } =
+    [
+        OpenIddictConstants.Scopes.OpenId,
+        OpenIddictConstants.Scopes.OfflineAccess,
+        OpenIddictConstants.Scopes.Profile,
+        OpenIddictConstants.Scopes.Email,
+        OpenIddictConstants.Scopes.Roles
+    ];
 
     internal static HttpClient CreateOAuthClient(FunctionalTestFixture fixture)
     {
@@ -183,15 +191,6 @@ internal static class OAuthAuthorizationRequestTestHelper
 
         throw new InvalidOperationException($"Query parameter '{name}' was not found.");
     }
-
-    internal static IReadOnlyCollection<string> DefaultScopes { get; } =
-    [
-        OpenIddictConstants.Scopes.OpenId,
-        OpenIddictConstants.Scopes.OfflineAccess,
-        OpenIddictConstants.Scopes.Profile,
-        OpenIddictConstants.Scopes.Email,
-        OpenIddictConstants.Scopes.Roles
-    ];
 }
 
 internal sealed record OAuthTokenResponse(

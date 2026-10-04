@@ -347,8 +347,6 @@ public sealed class ReadModelConventionTests
         }
     }
 
-    private sealed record ModelSource(string Name, string Directory);
-
     private static bool IsCollectionOf(
         Type propertyType,
         Type elementType)
@@ -361,4 +359,6 @@ public sealed class ReadModelConventionTests
                 type.GetGenericTypeDefinition() == typeof(ICollection<>) &&
                 type.GenericTypeArguments[0] == elementType);
     }
+
+    private sealed record ModelSource(string Name, string Directory);
 }

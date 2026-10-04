@@ -7,26 +7,6 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 
 public sealed partial class EndpointMetadataConventionTests
 {
-    [GeneratedRegex(
-        "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
-        RegexOptions.CultureInvariant)]
-    private static partial Regex RouteSegmentPattern();
-
-    [GeneratedRegex(
-        "^\\{[a-z][a-z0-9]*(?::[a-z][a-z0-9]*)?\\}$",
-        RegexOptions.CultureInvariant)]
-    private static partial Regex RouteParameterPattern();
-
-    [GeneratedRegex(
-        "^[A-Z][A-Za-z0-9]*$",
-        RegexOptions.CultureInvariant)]
-    private static partial Regex NamePattern();
-
-    [GeneratedRegex(
-        "^[A-Z][A-Za-z0-9]*(?: [A-Za-z0-9]+)*$",
-        RegexOptions.CultureInvariant)]
-    private static partial Regex SummaryPattern();
-
     private static readonly string[] EndpointGroupMetadataPropertyNames =
     [
         "ApiVersion",
@@ -124,6 +104,26 @@ public sealed partial class EndpointMetadataConventionTests
             $"{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
+
+    [GeneratedRegex(
+        "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex RouteSegmentPattern();
+
+    [GeneratedRegex(
+        "^\\{[a-z][a-z0-9]*(?::[a-z][a-z0-9]*)?\\}$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex RouteParameterPattern();
+
+    [GeneratedRegex(
+        "^[A-Z][A-Za-z0-9]*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex NamePattern();
+
+    [GeneratedRegex(
+        "^[A-Z][A-Za-z0-9]*(?: [A-Za-z0-9]+)*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex SummaryPattern();
 
     private static string GetMetadata(object instance, string propertyName)
     {

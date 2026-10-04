@@ -27,13 +27,23 @@ dotnet format --severity warn --no-restore
 dotnet format --verify-no-changes --severity warn --no-restore
 ```
 
-StyleCop SA1202 orders adjacent members of the same kind by accessibility:
-`public`, `internal`, `protected internal`, `protected`, `private protected`, `private`.
-Constants remain a separate group before other fields.
-Other StyleCop rules are disabled. SA1202 warnings fail the build because
-`TreatWarningsAsErrors` is enabled; CI also checks formatting.
-The published StyleCop package does not expose an automatic fix for SA1202,
-so reported access-order violations must be corrected manually.
+Architecture tests check member ordering in authored `src`, `tests`, and `tools` code:
+constants, fields, constructors, finalizers, events, properties, indexers, methods,
+operators, nested types. Within each group, accessibility comes first
+(`public`, `internal`, `protected internal`, `protected`, `private protected`, `private`),
+then static before instance members, then readonly before mutable fields.
+Members with equal ordering keys retain their logical order; no alphabetical sort
+is required. Partial declarations are checked separately. Explicit interface
+implementations are grouped with public members.
+
+This convention runs with the architecture tests, independently of `dotnet format`:
+
+```bash
+dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHeroes.ArchitectureTests.csproj
+```
+
+When reordering initialized fields or properties, preserve their initialization
+dependencies; move dependent initialization into the appropriate constructor if needed.
 
 Build the solution:
 

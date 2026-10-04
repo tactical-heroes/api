@@ -20,31 +20,59 @@ internal static class ArchitectureDefinition
     private const string PresentationLayerSuffix = ".Presentation";
     private const string HostLayerSuffix = ".Host";
 
-    internal static readonly IReadOnlyCollection<ReflectionAssembly> ProductionAssemblies =
-        LoadProductionAssemblies();
+    internal static readonly IReadOnlyCollection<ReflectionAssembly> ProductionAssemblies;
 
-    private static readonly IReadOnlyCollection<string> ProductionAssemblyNames =
-        [.. ProductionAssemblies
+    internal static readonly Architecture Architecture;
+
+    internal static readonly IReadOnlyCollection<ModuleArchitecture> Modules;
+
+    internal static readonly IReadOnlyCollection<string> ModuleDiscoveryErrors;
+
+    internal static readonly IObjectProvider<IType> DomainLayer;
+
+    internal static readonly IObjectProvider<IType> ContractsLayer;
+
+    internal static readonly IObjectProvider<IType> ApplicationLayer;
+
+    internal static readonly IObjectProvider<IType> InfrastructureLayer;
+
+    internal static readonly IObjectProvider<IType> PresentationLayer;
+
+    internal static readonly IObjectProvider<IType> HostLayer;
+
+    private static readonly IReadOnlyCollection<string> ProductionAssemblyNames;
+
+    private static readonly ModuleDiscoveryResult ModuleDiscoveryResult;
+
+    static ArchitectureDefinition()
+    {
+        ProductionAssemblies = LoadProductionAssemblies();
+
+        ProductionAssemblyNames = [.. ProductionAssemblies
             .Select(assembly => assembly.GetName().Name)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Cast<string>()];
 
-    private static readonly ModuleDiscoveryResult ModuleDiscoveryResult =
-        DiscoverModules(ProductionAssemblyNames);
+        ModuleDiscoveryResult = DiscoverModules(ProductionAssemblyNames);
 
-    internal static string IncludeNamespaceSegment(string namespaceSegment)
-    {
-        return $".*\\.{Regex.Escape(namespaceSegment)}(\\..*)?$";
+        Architecture = new ArchLoader().LoadAssemblies([.. ProductionAssemblies]).Build();
+
+        Modules = ModuleDiscoveryResult.Modules;
+
+        ModuleDiscoveryErrors = ModuleDiscoveryResult.Errors;
+
+        DomainLayer = Types().That().ResideInAssemblyMatching(DomainAssemblyNamePattern).As("Domain layer");
+
+        ContractsLayer = Types().That().ResideInAssemblyMatching(ContractsAssemblyNamePattern).As("Contracts layer");
+
+        ApplicationLayer = Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern).As("Application layer");
+
+        InfrastructureLayer = Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern).As("Infrastructure layer");
+
+        PresentationLayer = Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern).As("Presentation layer");
+
+        HostLayer = Types().That().ResideInAssemblyMatching(AssemblyNamePattern(HostLayerSuffix)).As("Host layer");
     }
-
-    internal static readonly Architecture Architecture =
-        new ArchLoader().LoadAssemblies([.. ProductionAssemblies]).Build();
-
-    internal static readonly IReadOnlyCollection<ModuleArchitecture> Modules =
-        ModuleDiscoveryResult.Modules;
-
-    internal static readonly IReadOnlyCollection<string> ModuleDiscoveryErrors =
-        ModuleDiscoveryResult.Errors;
 
     internal static string DomainAssemblyNamePattern =>
         AssemblyNamePattern(DomainLayerSuffix);
@@ -61,23 +89,10 @@ internal static class ArchitectureDefinition
     internal static string PresentationAssemblyNamePattern =>
         AssemblyNamePattern(PresentationLayerSuffix);
 
-    internal static readonly IObjectProvider<IType> DomainLayer =
-        Types().That().ResideInAssemblyMatching(DomainAssemblyNamePattern).As("Domain layer");
-
-    internal static readonly IObjectProvider<IType> ContractsLayer =
-        Types().That().ResideInAssemblyMatching(ContractsAssemblyNamePattern).As("Contracts layer");
-
-    internal static readonly IObjectProvider<IType> ApplicationLayer =
-        Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern).As("Application layer");
-
-    internal static readonly IObjectProvider<IType> InfrastructureLayer =
-        Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern).As("Infrastructure layer");
-
-    internal static readonly IObjectProvider<IType> PresentationLayer =
-        Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern).As("Presentation layer");
-
-    internal static readonly IObjectProvider<IType> HostLayer =
-        Types().That().ResideInAssemblyMatching(AssemblyNamePattern(HostLayerSuffix)).As("Host layer");
+    internal static string IncludeNamespaceSegment(string namespaceSegment)
+    {
+        return $".*\\.{Regex.Escape(namespaceSegment)}(\\..*)?$";
+    }
 
     internal static IObjectProvider<IType> TypesInAssembly(string assemblyName)
     {

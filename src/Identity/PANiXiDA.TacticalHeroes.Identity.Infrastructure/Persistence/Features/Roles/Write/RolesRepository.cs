@@ -104,6 +104,11 @@ public sealed class RolesRepository(
         return Result.Success();
     }
 
+    private static Result RoleNotFound()
+    {
+        return Result.Failure(error: Error.NotFound(message: "Role was not found."));
+    }
+
     private void SyncClaims(
         ApplicationRole applicationRole,
         Role role)
@@ -133,10 +138,5 @@ public sealed class RolesRepository(
 
             applicationRole.Claims.Add(item: targetClaim);
         }
-    }
-
-    private static Result RoleNotFound()
-    {
-        return Result.Failure(error: Error.NotFound(message: "Role was not found."));
     }
 }

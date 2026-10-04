@@ -128,6 +128,11 @@ public sealed class UsersRepository(
         return UpdateStatusAsync(id: id, status: UserStatus.Active, cancellationToken: cancellationToken);
     }
 
+    private static Result UserNotFound()
+    {
+        return Result.Failure(error: Error.NotFound(message: "User was not found."));
+    }
+
     private async Task<Result> UpdateStatusAsync(
         Guid id,
         UserStatus status,
@@ -190,10 +195,5 @@ public sealed class UsersRepository(
 
             applicationUser.Claims.Add(item: targetClaim);
         }
-    }
-
-    private static Result UserNotFound()
-    {
-        return Result.Failure(error: Error.NotFound(message: "User was not found."));
     }
 }
