@@ -11,7 +11,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Messa
 
 public sealed class IdentityMessagingConfigurationTests
 {
-    [Theory(DisplayName = "Validate should reject invalid email links at startup when URL templates are invalid")]
+    [Theory(DisplayName = "Validate should reject invalid email links at startup when url templates are invalid")]
     [InlineData("")]
     [InlineData("/api/v1/auth/reset-password?userId={userId}&token={token}")]
     [InlineData("//example.test/reset-password?userId={userId}&token={token}")]
