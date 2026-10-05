@@ -385,20 +385,20 @@ public sealed class DomainEncapsulationConventionTests
 
     private static IEnumerable<string> GetExternalMutationViolations(Type type)
     {
-        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
+        const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public |
                                    BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 
         for (var currentType = type;
              currentType is not null && currentType != typeof(object);
              currentType = currentType.BaseType)
         {
-            foreach (var field in currentType.GetFields(flags).Where(field =>
+            foreach (var field in currentType.GetFields(Flags).Where(field =>
                          !field.IsInitOnly && (field.IsPublic || field.IsAssembly || field.IsFamilyOrAssembly)))
             {
                 yield return $"{currentType.FullName}.{field.Name} must not expose a writable field.";
             }
 
-            foreach (var violation in currentType.GetMethods(flags)
+            foreach (var violation in currentType.GetMethods(Flags)
                          .Where(IsExternallyAccessible)
                          .SelectMany(GetExternalMethodMutationViolations))
             {
@@ -453,7 +453,7 @@ public sealed class DomainEncapsulationConventionTests
 
     private static IEnumerable<Type> GetDomainTypes()
     {
-        return ArchitectureDefinition.ProductionAssemblies
+        return ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(
                 DomainAssemblySuffix,
                 StringComparison.Ordinal) == true)
@@ -595,7 +595,7 @@ public sealed class DomainEncapsulationConventionTests
 
     private sealed class InternalFieldState
     {
-        internal int Value = 1;
+        internal int _value = 1;
     }
 
     private sealed class WritableReferenceState

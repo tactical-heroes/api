@@ -204,23 +204,23 @@ public sealed class RepositoryImplementationConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module =>
                 {
                     var domainAssembly =
-                        ArchitectureDefinition.ProductionAssemblies.Single(
+                        ArchitectureDefinition.s_productionAssemblies.Single(
                             assembly => string.Equals(
                                 assembly.GetName().Name,
                                 module.DomainAssemblyName,
                                 StringComparison.Ordinal));
                     var applicationAssembly =
-                        ArchitectureDefinition.ProductionAssemblies.Single(
+                        ArchitectureDefinition.s_productionAssemblies.Single(
                             assembly => string.Equals(
                                 assembly.GetName().Name,
                                 module.ApplicationAssemblyName,
                                 StringComparison.Ordinal));
                     var infrastructureAssembly =
-                        ArchitectureDefinition.ProductionAssemblies.Single(
+                        ArchitectureDefinition.s_productionAssemblies.Single(
                             assembly => string.Equals(
                                 assembly.GetName().Name,
                                 module.InfrastructureAssemblyName,

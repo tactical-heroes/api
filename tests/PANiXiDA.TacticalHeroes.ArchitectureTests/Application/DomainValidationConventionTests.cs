@@ -7,7 +7,7 @@ public sealed class DomainValidationConventionTests
 {
     private const string SourceDirectoryName = "src";
 
-    private static readonly string[] DirectDomainConstraintMethods =
+    private static readonly string[] s_directDomainConstraintMethods =
     [
         "CreditCard",
         "Custom",
@@ -78,7 +78,7 @@ public sealed class DomainValidationConventionTests
             })
             .Where(candidate =>
                 candidate.MethodName is not null &&
-                DirectDomainConstraintMethods.Contains(
+                s_directDomainConstraintMethods.Contains(
                     candidate.MethodName,
                     StringComparer.Ordinal))
             .Select(candidate =>

@@ -58,13 +58,13 @@ public sealed partial class TestSourceConventionTests
         }
 
         var sections = GetSections(body);
-        const int minimumSectionCount = 2;
+        const int MinimumSectionCount = 2;
 
-        if (sections.Count < minimumSectionCount)
+        if (sections.Count < MinimumSectionCount)
         {
             return $"{testMethod.Location}: {testMethod.Name} has " +
                 $"{sections.Count} logical section(s), expected at least " +
-                $"{minimumSectionCount}.";
+                $"{MinimumSectionCount}.";
         }
 
         if (!sections[^1].Any(ContainsAssertion))

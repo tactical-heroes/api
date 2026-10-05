@@ -35,7 +35,7 @@ public sealed class AggregateFilterConventionTests
     public async Task AggregateRoots_Should_HaveCommonFilterRecordsAndValidators_When_Declared()
     {
         var sourceTypes = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetApplicationTypesAsync);
-        var aggregates = ArchitectureDefinition.Modules
+        var aggregates = ArchitectureDefinition.s_modules
             .SelectMany(module => InfrastructurePersistenceConvention.GetAggregateRootTypes(module)
                 .Select(aggregate => (Module: module, Aggregate: aggregate)))
             .ToArray();

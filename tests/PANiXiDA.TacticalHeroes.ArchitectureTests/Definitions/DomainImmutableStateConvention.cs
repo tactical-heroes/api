@@ -68,10 +68,10 @@ internal static class DomainImmutableStateConvention
 
     private static IEnumerable<string> GetDeclaredViolations(Type type, ISet<Type> visitedTypes)
     {
-        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
+        const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public |
                                    BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 
-        foreach (var property in type.GetProperties(flags))
+        foreach (var property in type.GetProperties(Flags))
         {
             var setter = property.GetSetMethod(nonPublic: true);
 
@@ -83,12 +83,12 @@ internal static class DomainImmutableStateConvention
             }
         }
 
-        foreach (var method in type.GetMethods(flags).Where(ReturnsWritableReference))
+        foreach (var method in type.GetMethods(Flags).Where(ReturnsWritableReference))
         {
             yield return $"{type.FullName}.{method.Name} must not return a writable reference.";
         }
 
-        foreach (var field in type.GetFields(flags))
+        foreach (var field in type.GetFields(Flags))
         {
             if (!field.IsInitOnly)
             {

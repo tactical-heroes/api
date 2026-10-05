@@ -46,12 +46,12 @@ public sealed class AsyncSafetyConventionTests
 
 internal static class AsyncSafetySourceDiscovery
 {
-    private static readonly Lazy<Task<AsyncSafetyAnalysis>> Analysis =
+    private static readonly Lazy<Task<AsyncSafetyAnalysis>> s_analysis =
         new(CreateAnalysisAsync);
 
     internal static Task<AsyncSafetyAnalysis> GetAnalysisAsync()
     {
-        return Analysis.Value;
+        return s_analysis.Value;
     }
 
     private static async Task<AsyncSafetyAnalysis> CreateAnalysisAsync()

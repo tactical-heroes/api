@@ -19,7 +19,7 @@ public sealed class ReadModelConventionTests
     [InlineData(typeof(IReadModelSorting<>))]
     public void ReadModelComponents_Should_BeInternalSealedClasses_When_Declared(Type contractType)
     {
-        var components = ArchitectureDefinition.ProductionAssemblies
+        var components = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(".Infrastructure", StringComparison.Ordinal) == true)
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => !type.IsInterface &&

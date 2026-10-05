@@ -17,7 +17,7 @@ public sealed class OptionsConfigurationConventionTests
     private const string ValidateOptionsTypeName = "IValidateOptions";
     private const string ValidatorSuffix = "Validator";
 
-    private static readonly string[] ServiceRegistrationMethodNames =
+    private static readonly string[] s_serviceRegistrationMethodNames =
     [
         "AddScoped",
         "AddSingleton",
@@ -101,7 +101,7 @@ public sealed class OptionsConfigurationConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(IsConfigurationOptionsType)
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
@@ -294,7 +294,7 @@ public sealed class OptionsConfigurationConventionTests
             var genericName = GetInvokedGenericName(invocation);
 
             if (genericName is null ||
-                !ServiceRegistrationMethodNames.Contains(
+                !s_serviceRegistrationMethodNames.Contains(
                     genericName.Identifier.ValueText,
                     StringComparer.Ordinal))
             {

@@ -7,7 +7,7 @@ public sealed class ModuleDependencyTests
     [Fact(DisplayName = "Module layers should not depend on other module internals when validated")]
     public void ModuleLayers_Should_NotDependOnOtherModuleInternals_When_Validated()
     {
-        var modules = ArchitectureDefinition.Modules;
+        var modules = ArchitectureDefinition.s_modules;
 
         Assert.True(
             modules.Count > 1,
@@ -56,6 +56,6 @@ public sealed class ModuleDependencyTests
             .NotDependOnAny(
                 ArchitectureDefinition.TypesInAssembly(targetAssemblyName))
             .WithoutRequiringPositiveResults()
-            .Check(ArchitectureDefinition.Architecture);
+            .Check(ArchitectureDefinition.s_architecture);
     }
 }

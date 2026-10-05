@@ -7,22 +7,22 @@ internal static class ProductionSourceDocumentDiscovery
 {
     private const string SourceRootDirectoryName = "src";
 
-    private static readonly string[] AuthorSourceRootDirectoryNames =
+    private static readonly string[] s_authorSourceRootDirectoryNames =
     [
         SourceRootDirectoryName,
         "tests",
         "tools"
     ];
 
-    private static readonly Lazy<Task<ProductionSourceContext>> Context =
+    private static readonly Lazy<Task<ProductionSourceContext>> s_context =
         new(CreateContextAsync);
 
-    private static readonly string[] ProductionSourceRootDirectoryNames =
+    private static readonly string[] s_productionSourceRootDirectoryNames =
     [
         SourceRootDirectoryName
     ];
 
-    private static readonly string[] ExcludedDirectoryNames =
+    private static readonly string[] s_excludedDirectoryNames =
     [
         "bin",
         "obj",
@@ -35,7 +35,7 @@ internal static class ProductionSourceDocumentDiscovery
     {
         return GetItemsAsync(
             getDocumentItemsAsync,
-            AuthorSourceRootDirectoryNames);
+            s_authorSourceRootDirectoryNames);
     }
 
     internal static Task<T[]> GetItemsAsync<T>(
@@ -43,14 +43,14 @@ internal static class ProductionSourceDocumentDiscovery
     {
         return GetItemsAsync(
             getDocumentItemsAsync,
-            ProductionSourceRootDirectoryNames);
+            s_productionSourceRootDirectoryNames);
     }
 
     private static async Task<T[]> GetItemsAsync<T>(
         Func<string, Document, Task<T[]>> getDocumentItemsAsync,
         IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
-        var context = await Context.Value;
+        var context = await s_context.Value;
         var items = new List<T>();
 
         foreach (var project in context.Solution.Projects
@@ -131,7 +131,7 @@ internal static class ProductionSourceDocumentDiscovery
                        ],
                        StringSplitOptions.RemoveEmptyEntries)
                    .Any(segment =>
-                       ExcludedDirectoryNames.Contains(
+                       s_excludedDirectoryNames.Contains(
                            segment,
                            StringComparer.OrdinalIgnoreCase));
     }

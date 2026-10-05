@@ -68,9 +68,9 @@ public sealed partial class TestDisplayNameConventionTests
 
     private static string? GetExpectedCondition(string methodName)
     {
-        const string conditionSeparator = "_When_";
+        const string ConditionSeparator = "_When_";
         var separatorIndex = methodName.IndexOf(
-            conditionSeparator,
+            ConditionSeparator,
             StringComparison.Ordinal);
 
         if (separatorIndex < 0)
@@ -79,7 +79,7 @@ public sealed partial class TestDisplayNameConventionTests
         }
 
         var condition = methodName[
-            (separatorIndex + conditionSeparator.Length)..];
+            (separatorIndex + ConditionSeparator.Length)..];
         var words = PascalCaseBoundaryPattern().Split(condition);
 
         return " when " + string.Join(" ", words).ToLowerInvariant();

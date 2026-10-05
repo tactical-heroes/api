@@ -14,9 +14,9 @@ internal static class InfrastructurePersistenceConvention
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .Select(module =>
-                    ArchitectureDefinition.ProductionAssemblies.Single(
+                    ArchitectureDefinition.s_productionAssemblies.Single(
                         assembly => string.Equals(
                             assembly.GetName().Name,
                             module.InfrastructureAssemblyName,
@@ -66,7 +66,7 @@ internal static class InfrastructurePersistenceConvention
                 $"Could not determine assembly for " +
                 $"'{infrastructureType.FullName}'.");
 
-        return ArchitectureDefinition.Modules.Single(module =>
+        return ArchitectureDefinition.s_modules.Single(module =>
             string.Equals(
                 module.InfrastructureAssemblyName,
                 assemblyName,
@@ -93,7 +93,7 @@ internal static class InfrastructurePersistenceConvention
     internal static Type[] GetAggregateRootTypes(
         ModuleArchitecture module)
     {
-        var domainAssembly = ArchitectureDefinition.ProductionAssemblies
+        var domainAssembly = ArchitectureDefinition.s_productionAssemblies
             .Single(assembly => string.Equals(
                 assembly.GetName().Name,
                 module.DomainAssemblyName,

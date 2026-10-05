@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 
 public sealed partial class EndpointMetadataConventionTests
 {
-    private static readonly string[] EndpointGroupMetadataPropertyNames =
+    private static readonly string[] s_endpointGroupMetadataPropertyNames =
     [
         "ApiVersion",
         "Name",
@@ -17,7 +17,7 @@ public sealed partial class EndpointMetadataConventionTests
     [Fact(DisplayName = "Endpoint metadata should follow HTTP naming conventions when endpoint is declared")]
     public void EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared()
     {
-        var metadataTypes = ArchitectureDefinition.ProductionAssemblies
+        var metadataTypes = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(
                 ".Presentation",
                 StringComparison.Ordinal) == true)
@@ -79,7 +79,7 @@ public sealed partial class EndpointMetadataConventionTests
             PresentationArchitectureConvention.GetEndpointGroups();
         var violations = endpointGroups
             .SelectMany(endpointGroup =>
-                EndpointGroupMetadataPropertyNames.Select(propertyName => new
+                s_endpointGroupMetadataPropertyNames.Select(propertyName => new
                 {
                     EndpointGroup = endpointGroup,
                     Property = endpointGroup.GetProperty(

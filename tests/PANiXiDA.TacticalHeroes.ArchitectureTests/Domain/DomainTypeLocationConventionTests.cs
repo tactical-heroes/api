@@ -205,7 +205,7 @@ public sealed class DomainTypeLocationConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .Where(assembly => assembly.GetName().Name?.EndsWith(
                     DomainAssemblySuffix,
                     StringComparison.Ordinal) == true)
@@ -416,7 +416,7 @@ public sealed class DomainTypeLocationConventionTests
         string expectedNamespace)
     {
         var assemblyName = GetAssemblyName(type);
-        var module = ArchitectureDefinition.Modules.Single(candidate =>
+        var module = ArchitectureDefinition.s_modules.Single(candidate =>
             candidate.DomainAssemblyName == assemblyName);
         var moduleDirectoryName =
             module.Name[(module.Name.LastIndexOf('.') + 1)..];

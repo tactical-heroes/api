@@ -29,14 +29,14 @@ public sealed class CurrentTimeConventionTests
 
 internal static class CurrentTimeSourceDiscovery
 {
-    private static readonly string[] DateTimeProperties =
+    private static readonly string[] s_dateTimeProperties =
     [
         "Now",
         "Today",
         "UtcNow"
     ];
 
-    private static readonly string[] TimeProviderMethods =
+    private static readonly string[] s_timeProviderMethods =
     [
         "GetLocalNow",
         "GetUtcNow"
@@ -118,7 +118,7 @@ internal static class CurrentTimeSourceDiscovery
     {
         if (semanticModel.GetSymbolInfo(memberAccess).Symbol is not
             IPropertySymbol property ||
-            !DateTimeProperties.Contains(
+            !s_dateTimeProperties.Contains(
                 property.Name,
                 StringComparer.Ordinal) ||
             !IsDateTimeType(property.ContainingType))
@@ -146,7 +146,7 @@ internal static class CurrentTimeSourceDiscovery
     {
         if (semanticModel.GetSymbolInfo(invocation).Symbol is not
             IMethodSymbol method ||
-            !TimeProviderMethods.Contains(
+            !s_timeProviderMethods.Contains(
                 method.Name,
                 StringComparer.Ordinal) ||
             !IsType(

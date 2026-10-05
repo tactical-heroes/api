@@ -13,14 +13,14 @@ public sealed class TypeSealingConventionTests
     private const string InfrastructureAssemblySuffix = ".Infrastructure";
     private const string PresentationAssemblySuffix = ".Presentation";
 
-    private static readonly Type[] HandlerInterfaceDefinitions =
+    private static readonly Type[] s_handlerInterfaceDefinitions =
     [
         typeof(ICommandHandler<,>),
         typeof(IQueryHandler<,>),
         typeof(IEventHandler<>)
     ];
 
-    private static readonly Type[] RepositoryInterfaceDefinitions =
+    private static readonly Type[] s_repositoryInterfaceDefinitions =
     [
         typeof(IReadRepository<>),
         typeof(IRepository<,>)
@@ -87,7 +87,7 @@ public sealed class TypeSealingConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .Where(assembly => assembly.GetName().Name?.EndsWith(
                     assemblySuffix,
                     StringComparison.Ordinal) == true)
@@ -100,14 +100,14 @@ public sealed class TypeSealingConventionTests
     private static bool IsHandlerInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               HandlerInterfaceDefinitions.Contains(
+               s_handlerInterfaceDefinitions.Contains(
                    interfaceType.GetGenericTypeDefinition());
     }
 
     private static bool IsRepositoryInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               RepositoryInterfaceDefinitions.Contains(
+               s_repositoryInterfaceDefinitions.Contains(
                    interfaceType.GetGenericTypeDefinition());
     }
 

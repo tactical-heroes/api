@@ -16,13 +16,13 @@ public sealed class ApplicationVerticalSliceConventionTests
     private const string SourceDirectoryName = "src";
     private const string ValidatorSuffix = "Validator";
 
-    private static readonly Type[] HandlerInterfaceDefinitions =
+    private static readonly Type[] s_handlerInterfaceDefinitions =
     [
         typeof(ICommandHandler<,>),
         typeof(IQueryHandler<,>)
     ];
 
-    private static readonly Type[] RequestInterfaceDefinitions =
+    private static readonly Type[] s_requestInterfaceDefinitions =
     [
         typeof(ICommand<>),
         typeof(IQuery<>)
@@ -91,7 +91,7 @@ public sealed class ApplicationVerticalSliceConventionTests
     public void AbstractionsNamespaces_Should_ContainOnlyAbstractions_When_Declared()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var abstractionTypes = ArchitectureDefinition.ProductionAssemblies
+        var abstractionTypes = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly =>
                 IsLayerAssembly(assembly, DomainAssemblySuffix) ||
                 IsLayerAssembly(assembly, ApplicationAssemblySuffix))
@@ -275,11 +275,11 @@ public sealed class ApplicationVerticalSliceConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module =>
                 {
                     var applicationAssembly =
-                        ArchitectureDefinition.ProductionAssemblies.Single(
+                        ArchitectureDefinition.s_productionAssemblies.Single(
                             assembly => string.Equals(
                                 assembly.GetName().Name,
                                 module.ApplicationAssemblyName,
@@ -312,7 +312,7 @@ public sealed class ApplicationVerticalSliceConventionTests
 
     private static ApplicationType[] GetApplicationTypes()
     {
-        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
+        var productionAssemblies = ArchitectureDefinition.s_productionAssemblies
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
@@ -322,7 +322,7 @@ public sealed class ApplicationVerticalSliceConventionTests
 
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module => productionAssemblies[
                         module.ApplicationAssemblyName]
                     .GetTypes()
@@ -338,7 +338,7 @@ public sealed class ApplicationVerticalSliceConventionTests
             .. type.GetInterfaces()
                 .Where(candidate =>
                     candidate.IsGenericType &&
-                    HandlerInterfaceDefinitions.Contains(
+                    s_handlerInterfaceDefinitions.Contains(
                         candidate.GetGenericTypeDefinition()))
                 .Select(candidate => candidate.GetGenericArguments()[0])
         ];
@@ -365,7 +365,7 @@ public sealed class ApplicationVerticalSliceConventionTests
     {
         return type.GetInterfaces().Any(candidate =>
             candidate.IsGenericType &&
-            RequestInterfaceDefinitions.Contains(
+            s_requestInterfaceDefinitions.Contains(
                 candidate.GetGenericTypeDefinition()));
     }
 
@@ -426,7 +426,7 @@ public sealed class ApplicationVerticalSliceConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module => new[]
                 {
                     module.DomainAssemblyName,
@@ -464,7 +464,7 @@ public sealed class ApplicationVerticalSliceConventionTests
             ?? throw new InvalidOperationException(
                 $"Could not determine assembly for '{type.FullName}'.");
 
-        return ArchitectureDefinition.Modules.Single(module =>
+        return ArchitectureDefinition.s_modules.Single(module =>
             string.Equals(
                 module.DomainAssemblyName,
                 assemblyName,
