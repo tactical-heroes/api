@@ -46,11 +46,11 @@ public sealed class AggregatePersistenceConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module =>
                 {
                     var infrastructureAssembly =
-                        ArchitectureDefinition.ProductionAssemblies.Single(
+                        ArchitectureDefinition.s_productionAssemblies.Single(
                             assembly => string.Equals(
                                 assembly.GetName().Name,
                                 module.InfrastructureAssemblyName,
@@ -276,9 +276,9 @@ public sealed class AggregatePersistenceConventionTests
     }
 
     private static string FormatTypes(
-        IReadOnlyCollection<Type> types)
+        Type[] types)
     {
-        return types.Count == 0
+        return types.Length == 0
             ? "<none>"
             : string.Join(
                 ", ",

@@ -36,7 +36,7 @@ public sealed class UpdateUnitHandlerTests
         result.IsSuccess.ShouldBeTrue();
         unit.Name.Value.ShouldBe("Marksman");
         unit.Stats.Attack.ShouldBe(10);
-        unit.Stats.Shots.ShouldBe(16);
+        unit.RangedAttack.Shots.ShouldBe(16);
         unit.Morale.Value.ShouldBe(3);
         await unitsRepository.Received(1).UpdateAsync(unit, cancellationToken);
     }
@@ -92,6 +92,45 @@ public sealed class UpdateUnitHandlerTests
             "Faction was not found.");
         unit.Name.Value.ShouldBe("Archer");
         await unitsRepository.DidNotReceiveWithAnyArgs()
+            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+    }
+
+    [Fact(DisplayName = "Update unit handler should reject invalid values without saving when command is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailuresWithoutSaving_When_CommandIsInvalid()
+    {
+        var faction = UnitTestData.CreateFaction();
+        var repository = Substitute.For<IUnitsRepository>();
+        var factionsRepository = Substitute.For<IFactionsRepository>();
+        var unit = UnitTestData.CreateUnit(faction);
+        var originalName = unit.Name;
+        var originalStats = unit.Stats;
+        var originalRangedAttack = unit.RangedAttack;
+        repository.GetByIdAsync(unit.Id, Arg.Any<CancellationToken>()).Returns(unit);
+        factionsRepository.GetByIdAsync(faction.Id, Arg.Any<CancellationToken>()).Returns(faction);
+        var handler = new UpdateUnitHandler(repository, factionsRepository);
+
+        var result = await handler.HandleAsync(
+            UnitTestData.CreateUpdateCommand(unit.Id.Value, faction.Id.Value) with
+            {
+                Name = string.Empty,
+                Description = string.Empty,
+                Attack = -1,
+                MinimumDamage = 10,
+                MaximumDamage = 1,
+                Initiative = double.NaN,
+                Shots = 0,
+                RangedAttackRange = null
+            },
+            TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBeGreaterThanOrEqualTo(7);
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        unit.Name.ShouldBeSameAs(originalName);
+        unit.Stats.ShouldBeSameAs(originalStats);
+        unit.RangedAttack.ShouldBeSameAs(originalRangedAttack);
+        unit.FactionId.ShouldBe(faction.Id);
+        await repository.DidNotReceiveWithAnyArgs()
             .UpdateAsync(null!, TestContext.Current.CancellationToken);
     }
 }

@@ -10,7 +10,7 @@ internal sealed class GetUserDetailsEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleAsync)
+        builder.MapGet(builder.Route, HandleAsync)
             .Produces<GetUserDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

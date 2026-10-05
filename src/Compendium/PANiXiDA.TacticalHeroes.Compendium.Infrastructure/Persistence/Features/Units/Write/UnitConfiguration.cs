@@ -16,7 +16,7 @@ internal sealed class UnitConfiguration : AuditableEntityConfiguration<Unit>
         builder.Property(unit => unit.Id)
             .HasConversion(
                 id => id.Value,
-                value => new UnitId(value))
+                value => UnitId.Create(value: value).Value)
             .ValueGeneratedNever();
 
         builder.Property(unit => unit.Name)
@@ -55,10 +55,13 @@ internal sealed class UnitConfiguration : AuditableEntityConfiguration<Unit>
 
             stats.Property(value => value.Speed)
                 .IsRequired();
+        });
 
-            stats.Property(value => value.Shots);
+        builder.ComplexProperty(unit => unit.RangedAttack, rangedAttack =>
+        {
+            rangedAttack.Property(value => value.Shots);
 
-            stats.Property(value => value.RangedAttackRange);
+            rangedAttack.Property(value => value.RangedAttackRange);
         });
 
         builder.Property(unit => unit.Morale)
@@ -76,7 +79,7 @@ internal sealed class UnitConfiguration : AuditableEntityConfiguration<Unit>
         builder.Property(unit => unit.FactionId)
             .HasConversion(
                 id => id.Value,
-                value => new FactionId(value))
+                value => FactionId.Create(value: value).Value)
             .ValueGeneratedNever()
             .IsRequired();
 

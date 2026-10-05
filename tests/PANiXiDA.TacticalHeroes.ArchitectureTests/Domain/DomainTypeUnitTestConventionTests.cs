@@ -1,10 +1,11 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-using PANiXiDA.Core.Domain;
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.Entities;
+using PANiXiDA.Core.Domain.Enumerations;
 using PANiXiDA.Core.Domain.Identifiers;
+using PANiXiDA.Core.Domain.ValueObjects;
 
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
@@ -80,7 +81,7 @@ public sealed class DomainTypeUnitTestConventionTests
 
     private static DomainType[] GetDomainTypes(string repositoryRoot)
     {
-        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
+        var productionAssemblies = ArchitectureDefinition.s_productionAssemblies
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
@@ -89,7 +90,7 @@ public sealed class DomainTypeUnitTestConventionTests
 
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module => GetDomainTypes(
                     repositoryRoot,
                     module,

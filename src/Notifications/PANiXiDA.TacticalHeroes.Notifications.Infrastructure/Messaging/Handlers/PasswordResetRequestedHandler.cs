@@ -3,9 +3,9 @@ using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.Passwo
 
 namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.Handlers;
 
-public sealed class PasswordResetRequestedHandler
+public static class PasswordResetRequestedHandler
 {
-    public DomainEvent Handle(IntegrationEvent integrationEvent)
+    public static DomainEvent Handle(IntegrationEvent integrationEvent)
     {
         return new DomainEvent(
             IntegrationEventId: integrationEvent.Id,

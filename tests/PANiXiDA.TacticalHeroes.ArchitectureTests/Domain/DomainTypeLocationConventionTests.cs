@@ -1,8 +1,9 @@
-using PANiXiDA.Core.Domain;
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.DomainEvents;
 using PANiXiDA.Core.Domain.Entities;
+using PANiXiDA.Core.Domain.Enumerations;
 using PANiXiDA.Core.Domain.Identifiers;
+using PANiXiDA.Core.Domain.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 
@@ -204,7 +205,7 @@ public sealed class DomainTypeLocationConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .Where(assembly => assembly.GetName().Name?.EndsWith(
                     DomainAssemblySuffix,
                     StringComparison.Ordinal) == true)
@@ -224,7 +225,7 @@ public sealed class DomainTypeLocationConventionTests
         ];
     }
 
-    private static IEnumerable<string> GetEntityLocationViolations(
+    private static List<string> GetEntityLocationViolations(
         string repositoryRoot,
         Type entity,
         IReadOnlyCollection<Type> owners)
@@ -274,7 +275,7 @@ public sealed class DomainTypeLocationConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetOwnedTypeLocationViolations(
+    private static List<string> GetOwnedTypeLocationViolations(
         string repositoryRoot,
         Type ownedType,
         IReadOnlyCollection<Type> owners,
@@ -319,7 +320,7 @@ public sealed class DomainTypeLocationConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetLocationViolations(
+    private static List<string> GetLocationViolations(
         string repositoryRoot,
         Type type,
         string expectedNamespace,
@@ -345,7 +346,7 @@ public sealed class DomainTypeLocationConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetIdentifierViolations(
+    private static List<string> GetIdentifierViolations(
         string repositoryRoot,
         Type owner,
         Type identifier)
@@ -415,7 +416,7 @@ public sealed class DomainTypeLocationConventionTests
         string expectedNamespace)
     {
         var assemblyName = GetAssemblyName(type);
-        var module = ArchitectureDefinition.Modules.Single(candidate =>
+        var module = ArchitectureDefinition.s_modules.Single(candidate =>
             candidate.DomainAssemblyName == assemblyName);
         var moduleDirectoryName =
             module.Name[(module.Name.LastIndexOf('.') + 1)..];

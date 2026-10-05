@@ -62,8 +62,8 @@ internal sealed class IdentityProviderOptionsValidator
             path: $"{IdentityProviderOptions.SectionName}:EmailConfirmationTokenLifetime",
             failures: failures);
         ValidatePositive(
-            value: options.PasswordResetTokenLifetime,
-            path: $"{IdentityProviderOptions.SectionName}:PasswordResetTokenLifetime",
+            value: options.AccountRecoveryTokenLifetime,
+            path: $"{IdentityProviderOptions.SectionName}:AccountRecoveryTokenLifetime",
             failures: failures);
     }
 

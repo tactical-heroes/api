@@ -3,6 +3,9 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.OpenApi;
+
+using Microsoft.OpenApi;
 
 using OpenIddict.Server.AspNetCore;
 
@@ -16,11 +19,12 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(HandleGetAsync)
+        builder.MapGet(builder.Route, handler: HandleGetAsync)
             .AllowAnonymous()
+            .AddOpenApiOperationTransformer(AddLogoutQueryParametersAsync)
             .Produces(StatusCodes.Status302Found);
 
-        builder.MapPost(HandlePostAsync)
+        builder.MapPost(builder.Route, handler: HandlePostAsync)
             .AllowAnonymous()
             .WithName("PostLogout")
             .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
@@ -28,18 +32,51 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
     }
 
     private static Task<IResult> HandleGetAsync(
-        [AsParameters] LogoutRequest request,
         HttpContext httpContext)
     {
         return HandleAsync(httpContext);
     }
 
-    private static Task<IResult> HandlePostAsync(HttpContext httpContext)
+    private static async Task AddLogoutQueryParametersAsync(
+        OpenApiOperation operation,
+        OpenApiOperationTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        OpenApiSchema stringSchema = await context.GetOrCreateSchemaAsync(
+            type: typeof(string),
+            parameterDescription: null,
+            cancellationToken: cancellationToken);
+
+        operation.Parameters =
+        [
+            CreateQueryParameter(OpenIddictConstants.Parameters.ClientId, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.IdTokenHint, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.PostLogoutRedirectUri, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.State, stringSchema),
+            CreateQueryParameter(OpenIddictConstants.Parameters.UiLocales, stringSchema)
+        ];
+    }
+
+    private static OpenApiParameter CreateQueryParameter(
+        string name,
+        OpenApiSchema schema)
+    {
+        return new OpenApiParameter
+        {
+            Name = name,
+            In = ParameterLocation.Query,
+            Schema = schema
+        };
+    }
+
+    private static Task<IResult> HandlePostAsync(
+        HttpContext httpContext)
     {
         return HandleAsync(httpContext);
     }
 
-    private static async Task<IResult> HandleAsync(HttpContext httpContext)
+    private static async Task<IResult> HandleAsync(
+        HttpContext httpContext)
     {
         await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 

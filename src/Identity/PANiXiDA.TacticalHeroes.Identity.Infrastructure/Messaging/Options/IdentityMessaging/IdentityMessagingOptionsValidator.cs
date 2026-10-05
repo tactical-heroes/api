@@ -28,7 +28,7 @@ internal sealed class IdentityMessagingOptionsValidator
     private static void ValidateTemplate(
         string template,
         string path,
-        ICollection<string> failures)
+        List<string> failures)
     {
         if (string.IsNullOrWhiteSpace(template))
         {

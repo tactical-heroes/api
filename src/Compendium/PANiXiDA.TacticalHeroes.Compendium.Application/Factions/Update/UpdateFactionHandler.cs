@@ -1,5 +1,6 @@
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Update;
 
@@ -27,14 +28,20 @@ public sealed class UpdateFactionHandler(IFactionsRepository factionsRepository)
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        var updateResult = faction.Update(
-            name: command.Name,
-            description: command.Description);
+        var nameResult = FactionName.Create(value: command.Name);
+        var descriptionResult = FactionDescription.Create(value: command.Description);
+        var validationResult = Result.Combine(
+            nameResult,
+            descriptionResult);
 
-        if (updateResult.IsFailure)
+        if (validationResult.IsFailure)
         {
-            return updateResult;
+            return Result.Failure(errors: validationResult.Errors);
         }
+
+        faction.Update(
+            name: nameResult.Value,
+            description: descriptionResult.Value);
 
         await factionsRepository.UpdateAsync(
             aggregateRoot: faction,

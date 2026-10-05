@@ -11,17 +11,17 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
-            ArchitectureDefinition.ContractsLayer,
-            ArchitectureDefinition.ApplicationLayer,
-            ArchitectureDefinition.InfrastructureLayer,
-            ArchitectureDefinition.PresentationLayer,
-            ArchitectureDefinition.HostLayer
+            ArchitectureDefinition.s_contractsLayer,
+            ArchitectureDefinition.s_applicationLayer,
+            ArchitectureDefinition.s_infrastructureLayer,
+            ArchitectureDefinition.s_presentationLayer,
+            ArchitectureDefinition.s_hostLayer
         };
 
         foreach (var forbiddenDependency in forbiddenDependencies)
         {
             TypesShouldNotDependOn(
-                ArchitectureDefinition.DomainLayer,
+                ArchitectureDefinition.s_domainLayer,
                 forbiddenDependency);
         }
     }
@@ -31,17 +31,17 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
-            ArchitectureDefinition.DomainLayer,
-            ArchitectureDefinition.ApplicationLayer,
-            ArchitectureDefinition.InfrastructureLayer,
-            ArchitectureDefinition.PresentationLayer,
-            ArchitectureDefinition.HostLayer
+            ArchitectureDefinition.s_domainLayer,
+            ArchitectureDefinition.s_applicationLayer,
+            ArchitectureDefinition.s_infrastructureLayer,
+            ArchitectureDefinition.s_presentationLayer,
+            ArchitectureDefinition.s_hostLayer
         };
 
         foreach (var forbiddenDependency in forbiddenDependencies)
         {
             TypesShouldNotDependOn(
-                ArchitectureDefinition.ContractsLayer,
+                ArchitectureDefinition.s_contractsLayer,
                 forbiddenDependency);
         }
     }
@@ -51,15 +51,15 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
-            ArchitectureDefinition.InfrastructureLayer,
-            ArchitectureDefinition.PresentationLayer,
-            ArchitectureDefinition.HostLayer
+            ArchitectureDefinition.s_infrastructureLayer,
+            ArchitectureDefinition.s_presentationLayer,
+            ArchitectureDefinition.s_hostLayer
         };
 
         foreach (var forbiddenDependency in forbiddenDependencies)
         {
             TypesShouldNotDependOn(
-                ArchitectureDefinition.ApplicationLayer,
+                ArchitectureDefinition.s_applicationLayer,
                 forbiddenDependency);
         }
     }
@@ -69,14 +69,14 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
-            ArchitectureDefinition.PresentationLayer,
-            ArchitectureDefinition.HostLayer
+            ArchitectureDefinition.s_presentationLayer,
+            ArchitectureDefinition.s_hostLayer
         };
 
         foreach (var forbiddenDependency in forbiddenDependencies)
         {
             TypesShouldNotDependOn(
-                ArchitectureDefinition.InfrastructureLayer,
+                ArchitectureDefinition.s_infrastructureLayer,
                 forbiddenDependency);
         }
     }
@@ -86,15 +86,15 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
-            ArchitectureDefinition.DomainLayer,
-            ArchitectureDefinition.InfrastructureLayer,
-            ArchitectureDefinition.HostLayer
+            ArchitectureDefinition.s_domainLayer,
+            ArchitectureDefinition.s_infrastructureLayer,
+            ArchitectureDefinition.s_hostLayer
         };
 
         foreach (var forbiddenDependency in forbiddenDependencies)
         {
             TypesShouldNotDependOn(
-                ArchitectureDefinition.PresentationLayer,
+                ArchitectureDefinition.s_presentationLayer,
                 forbiddenDependency);
         }
     }
@@ -106,6 +106,6 @@ public sealed class LayerDependencyTests
         Types().That().Are(source)
             .Should().NotDependOnAny(forbiddenDependency)
             .WithoutRequiringPositiveResults()
-            .Check(ArchitectureDefinition.Architecture);
+            .Check(ArchitectureDefinition.s_architecture);
     }
 }

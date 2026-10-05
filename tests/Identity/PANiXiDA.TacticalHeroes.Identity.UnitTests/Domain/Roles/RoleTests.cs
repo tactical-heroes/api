@@ -1,4 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles;
 
@@ -10,67 +13,73 @@ public sealed class RoleTests
         var id = Guid.CreateVersion7();
 
         var result = Role.Create(
-            id,
-            " ADMIN ",
-            [("permission", "heroes.manage")]);
+            RoleId.Create(id).Value,
+            RoleName.Create(" ADMIN ").Value,
+            [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)]);
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Id.Value.ShouldBe(id);
-        result.Value.Name.Value.ShouldBe("admin");
-        var claim = result.Value.Claims.ShouldHaveSingleItem();
+        result.Id.Value.ShouldBe(id);
+        result.Name.Value.ShouldBe("admin");
+        var claim = result.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");
     }
 
-    [Fact(DisplayName = "Create should reject invalid persisted state when persisted state is invalid")]
-    public void Create_Should_ReturnValidationFailures_When_PersistedStateIsInvalid()
+    [Fact(DisplayName = "Create should isolate collection storage when input collections change")]
+    public void Create_Should_IsolateCollectionStorage_When_InputCollectionsChange()
     {
-        var result = Role.Create(Guid.Empty, "", []);
+        var claim = RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value);
+        List<RoleClaim> claims = [claim];
+        var role = Role.Create(RoleId.New(), RoleName.Create("admin").Value, claims);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.Count.ShouldBe(2);
+        claims.Clear();
+
+        role.Claims.ShouldHaveSingleItem().ShouldBe(claim);
     }
 
     [Fact(DisplayName = "Grant claim should add a valid claim only once when claim is valid")]
     public void GrantClaim_Should_AddClaimOnce_When_ClaimIsValid()
     {
         var role = CreateRole();
+        var claims = role.Claims;
 
-        var firstResult = role.GrantClaim("permission", "heroes.manage");
-        var secondResult = role.GrantClaim("permission", "heroes.manage");
+        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
+        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
 
-        firstResult.IsSuccess.ShouldBeTrue();
-        secondResult.IsSuccess.ShouldBeTrue();
-        role.Claims.ShouldHaveSingleItem();
-    }
-
-    [Fact(DisplayName = "Grant claim should reject an invalid claim when claim is invalid")]
-    public void GrantClaim_Should_ReturnValidationFailure_When_ClaimIsInvalid()
-    {
-        var role = CreateRole();
-
-        var result = role.GrantClaim("", "heroes.manage");
-
-        result.ShouldHaveSingleError(ErrorType.Validation, "Claim type cannot be empty.");
-        role.Claims.ShouldBeEmpty();
+        claims.ShouldHaveSingleItem();
     }
 
     [Fact(DisplayName = "Revoke claim should remove the matching claim when claim exists")]
     public void RevokeClaim_Should_RemoveClaim_When_ClaimExists()
     {
         var role = CreateRole();
-        role.GrantClaim("permission", "heroes.read");
-        role.GrantClaim("permission", "heroes.manage");
+        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
+        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
+        var claims = role.Claims;
 
-        var result = role.RevokeClaim("permission", "heroes.read");
+        role.RevokeClaim(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value);
 
-        result.IsSuccess.ShouldBeTrue();
-        var claim = role.Claims.ShouldHaveSingleItem();
+        var claim = claims.ShouldHaveSingleItem();
         claim.Value.Value.ShouldBe("heroes.manage");
+    }
+
+    [Fact(DisplayName = "Claims should reject external mutations when a claim is granted")]
+    public void Claims_Should_RejectExternalMutations_When_AClaimIsGranted()
+    {
+        var role = CreateRole();
+        var claim = RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value);
+        role.GrantClaim(claim);
+        var collection = (IList<RoleClaim>)role.Claims;
+
+        collection.IsReadOnly.ShouldBeTrue();
+        Should.Throw<NotSupportedException>(() => collection.Add(claim));
+        Should.Throw<NotSupportedException>(() => collection.Remove(claim));
+        Should.Throw<NotSupportedException>(() => collection.Clear());
+        Should.Throw<NotSupportedException>(() => collection[0] = claim);
+        role.Claims.ShouldHaveSingleItem().ShouldBe(claim);
     }
 
     private static Role CreateRole()
     {
-        return Role.Create(Guid.CreateVersion7(), "admin", []).Value;
+        return Role.Create(RoleId.New(), RoleName.Create("admin").Value, []);
     }
 }

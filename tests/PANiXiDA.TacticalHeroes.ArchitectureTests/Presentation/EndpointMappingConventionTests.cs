@@ -119,18 +119,21 @@ internal static class EndpointMappingSourceDiscovery
 {
     private const string EndpointMapBuilderTypeName =
         "PANiXiDA.Core.Presentation.Http.Endpoints.EndpointMapBuilder";
+
     private const string EndpointInterfaceName = "IEndpoint";
     private const string EndpointGroupInterfaceName = "IEndpointGroup";
+
     private const string EndpointInterfaceNamespace =
         "PANiXiDA.Core.Presentation.Http.Endpoints";
+
     private const string PresentationAssemblySuffix = ".Presentation";
 
-    private static readonly Lazy<Task<EndpointMapping[]>> Mappings =
+    private static readonly Lazy<Task<EndpointMapping[]>> s_mappings =
         new(CreateMappingsAsync);
 
     internal static Task<EndpointMapping[]> GetMappingsAsync()
     {
-        return Mappings.Value;
+        return s_mappings.Value;
     }
 
     private static async Task<EndpointMapping[]> CreateMappingsAsync()
@@ -168,7 +171,7 @@ internal static class EndpointMappingSourceDiscovery
 
     private static EndpointMapping CreateMapping(
         EndpointMappingSource source,
-        IReadOnlyDictionary<string, Type> endpointTypes,
+        Dictionary<string, Type> endpointTypes,
         IReadOnlyDictionary<string, EndpointGroupAuthorization>
             groupAuthorization)
     {
@@ -298,7 +301,8 @@ internal static class EndpointMappingSourceDiscovery
             })
             .Where(target =>
                 target.Operation is not null &&
-                target.Operation.TargetMethod.ContainingType
+                target.Invocation.Expression is MemberAccessExpressionSyntax memberAccess &&
+                semanticModel.GetTypeInfo(memberAccess.Expression).Type?
                     .ToDisplayString() == EndpointMapBuilderTypeName)
             .Select(target => new EndpointMappingSource(
                 EndpointTypeName: endpointType.ToDisplayString(),
@@ -331,7 +335,7 @@ internal static class EndpointMappingSourceDiscovery
             "MapPatch" => ["PATCH"],
             "MapDelete" => ["DELETE"],
             "MapMethods" => GetConstantStrings(
-                operation.Arguments[0].Value),
+                operation.Arguments.Single(argument => argument.Parameter?.Name == "httpMethods").Value),
             _ => []
         };
     }

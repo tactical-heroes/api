@@ -47,6 +47,8 @@
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants" />
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.DbContexts" />
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Sorting" />
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models" />
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Write" />
 

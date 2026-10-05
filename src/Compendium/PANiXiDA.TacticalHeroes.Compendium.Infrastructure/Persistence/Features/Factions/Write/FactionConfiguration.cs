@@ -14,7 +14,7 @@ internal sealed class FactionConfiguration : AuditableEntityConfiguration<Factio
         builder.Property(faction => faction.Id)
             .HasConversion(
                 id => id.Value,
-                value => new FactionId(value))
+                value => FactionId.Create(value: value).Value)
             .ValueGeneratedNever();
 
         builder.Property(faction => faction.Name)

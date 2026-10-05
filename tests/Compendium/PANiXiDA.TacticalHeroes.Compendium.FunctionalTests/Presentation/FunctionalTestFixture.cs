@@ -10,32 +10,48 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase database = new();
+    private readonly PostgreSqlTestDatabase _database = new("compendium");
 
-    private FunctionalTestWebApplicationFactory? factory;
-    private string? previousConnectionString;
+    private FunctionalTestWebApplicationFactory? _factory;
+    private string? _previousConnectionString;
 
     public HttpClient Client { get; private set; } = null!;
 
     public async ValueTask InitializeAsync()
     {
-        await database.InitializeAsync(TestContext.Current.CancellationToken);
+        await _database.InitializeAsync(TestContext.Current.CancellationToken);
 
-        previousConnectionString = Environment.GetEnvironmentVariable(
+        _previousConnectionString = Environment.GetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable);
         Environment.SetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
-            database.PostgreSqlConnectionString);
+            _database.PostgreSqlConnectionString);
 
         await MigrateDatabaseAsync(TestContext.Current.CancellationToken);
 
-        factory = new FunctionalTestWebApplicationFactory();
-        Client = factory.CreateClient();
+        _factory = new FunctionalTestWebApplicationFactory();
+        Client = _factory.CreateClient();
     }
 
     public Task ResetDatabaseAsync(CancellationToken cancellationToken)
     {
-        return database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+        return _database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Client?.Dispose();
+
+        if (_factory is not null)
+        {
+            await _factory.DisposeAsync();
+        }
+
+        await _database.DisposeAsync();
+
+        Environment.SetEnvironmentVariable(
+            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
+            _previousConnectionString);
     }
 
     private async Task MigrateDatabaseAsync(CancellationToken cancellationToken)
@@ -48,7 +64,7 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                [connectionStringKey] = database.PostgreSqlConnectionString
+                [connectionStringKey] = _database.PostgreSqlConnectionString
             })
             .Build();
         var services = new ServiceCollection();
@@ -59,21 +75,5 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
             scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
 
         await dbContext.Database.MigrateAsync(cancellationToken);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        Client?.Dispose();
-
-        if (factory is not null)
-        {
-            await factory.DisposeAsync();
-        }
-
-        await database.DisposeAsync();
-
-        Environment.SetEnvironmentVariable(
-            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
-            previousConnectionString);
     }
 }

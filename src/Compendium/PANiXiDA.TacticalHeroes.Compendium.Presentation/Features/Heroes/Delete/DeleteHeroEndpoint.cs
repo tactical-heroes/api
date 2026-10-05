@@ -10,7 +10,7 @@ internal sealed class DeleteHeroEndpoint : IEndpoint<HeroesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapDelete(HandleAsync)
+        builder.MapDelete(builder.Route, HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

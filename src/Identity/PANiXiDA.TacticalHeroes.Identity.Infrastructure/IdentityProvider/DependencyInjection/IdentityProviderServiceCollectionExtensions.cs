@@ -126,8 +126,7 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.SetIdentityTokenLifetime(identityProviderOptions.IdentityTokenLifetime);
                 options.UseReferenceAccessTokens();
                 options.UseReferenceRefreshTokens();
-                options.AddDevelopmentEncryptionCertificate();
-                options.AddDevelopmentSigningCertificate();
+                options.AddIdentityProviderCertificates(identityProviderOptions, environment);
 
                 var aspNetCore = options.UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()

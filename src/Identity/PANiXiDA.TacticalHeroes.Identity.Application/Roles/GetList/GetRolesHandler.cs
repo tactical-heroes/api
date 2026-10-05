@@ -10,7 +10,8 @@ public sealed class GetRolesHandler(IRolesReadRepository rolesReadRepository)
         CancellationToken cancellationToken)
     {
         var roles = await rolesReadRepository.GetPageAsync(
-            pagination: query.Pagination,
+            paginationParameters: query.PaginationParameters,
+            sortingParameters: query.SortingParameters,
             cancellationToken: cancellationToken);
 
         return Result.Success(value: roles);

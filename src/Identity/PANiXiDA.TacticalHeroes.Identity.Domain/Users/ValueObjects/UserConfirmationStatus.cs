@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-public sealed class UserConfirmationStatus : ValueObject
+public sealed partial class UserConfirmationStatus : ValueObject
 {
     private UserConfirmationStatus(bool isConfirmed)
     {
@@ -22,10 +22,5 @@ public sealed class UserConfirmationStatus : ValueObject
     public static UserConfirmationStatus From(bool isConfirmed)
     {
         return new UserConfirmationStatus(isConfirmed: isConfirmed);
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return IsConfirmed;
     }
 }

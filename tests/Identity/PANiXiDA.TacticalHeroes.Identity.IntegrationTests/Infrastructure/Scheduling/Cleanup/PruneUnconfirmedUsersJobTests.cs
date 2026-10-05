@@ -9,6 +9,9 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
+using Quartz;
+using Quartz.Extensibility;
+
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Scheduling.Cleanup;
 
 public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture)
@@ -16,7 +19,7 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
 {
     private const string Password = "StrongPassword1!";
 
-    private static readonly DateTimeOffset NowUtc = new(
+    private static readonly DateTimeOffset s_nowUtc = new(
         year: 2026,
         month: 6,
         day: 26,
@@ -43,9 +46,9 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
             (await userManager.CreateAsync(user: recentUnconfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
             (await userManager.CreateAsync(user: staleConfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
 
-            await SetCreatedAtAsync(dbContext, staleUnconfirmedUser, NowUtc.AddDays(-8));
-            await SetCreatedAtAsync(dbContext, recentUnconfirmedUser, NowUtc.AddDays(-1));
-            await SetCreatedAtAsync(dbContext, staleConfirmedUser, NowUtc.AddDays(-8));
+            await SetCreatedAtAsync(dbContext, staleUnconfirmedUser, s_nowUtc.AddDays(-8));
+            await SetCreatedAtAsync(dbContext, recentUnconfirmedUser, s_nowUtc.AddDays(-1));
+            await SetCreatedAtAsync(dbContext, staleConfirmedUser, s_nowUtc.AddDays(-8));
         }
 
         await using (var scope = Fixture.CreateScope())
@@ -53,14 +56,16 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
             var job = new PruneUnconfirmedUsersJob(
                 dbContext: dbContext,
-                timeProvider: new FrozenTimeProvider(utcNow: NowUtc),
+                timeProvider: new FrozenTimeProvider(utcNow: s_nowUtc),
                 options: Options.Create(options: new IdentityCleanupOptions
                 {
                     PruneUnconfirmedUsersEnabled = true,
                     UnconfirmedUserRetention = TimeSpan.FromDays(days: 7)
                 }));
 
-            await job.ExecuteAsync(TestContext.Current.CancellationToken);
+            await ((IJob)job).Execute(
+                JobExecutionContextBuilder.For(job).Build(),
+                TestContext.Current.CancellationToken);
         }
 
         await using (var scope = Fixture.CreateScope())
@@ -92,21 +97,23 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
             await SetCreatedAtAsync(
                 dbContext: dbContext,
                 user: staleUnconfirmedUser,
-                createdAtUtc: NowUtc.AddDays(days: -8));
+                createdAtUtc: s_nowUtc.AddDays(days: -8));
         }
 
         await using (var scope = Fixture.CreateScope())
         {
             var job = new PruneUnconfirmedUsersJob(
                 dbContext: scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>(),
-                timeProvider: new FrozenTimeProvider(utcNow: NowUtc),
+                timeProvider: new FrozenTimeProvider(utcNow: s_nowUtc),
                 options: Options.Create(options: new IdentityCleanupOptions
                 {
                     PruneUnconfirmedUsersEnabled = false,
                     UnconfirmedUserRetention = TimeSpan.FromDays(days: 7)
                 }));
 
-            await job.ExecuteAsync(TestContext.Current.CancellationToken);
+            await ((IJob)job).Execute(
+                JobExecutionContextBuilder.For(job).Build(),
+                TestContext.Current.CancellationToken);
         }
 
         await using (var scope = Fixture.CreateScope())
@@ -135,7 +142,7 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
         };
     }
 
-    private static Task SetCreatedAtAsync(
+    private static Task<int> SetCreatedAtAsync(
         IdentityWriteDbContext dbContext,
         ApplicationUser user,
         DateTimeOffset createdAtUtc)

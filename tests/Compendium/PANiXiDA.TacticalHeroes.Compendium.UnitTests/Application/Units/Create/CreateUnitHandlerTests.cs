@@ -34,7 +34,7 @@ public sealed class CreateUnitHandlerTests
                 unit.Id.Value == result.Value &&
                 unit.Name.Value == "Archer" &&
                 unit.Stats.Attack == 8 &&
-                unit.Stats.Shots == 12 &&
+                unit.RangedAttack.Shots == 12 &&
                 unit.FactionId == faction.Id),
             cancellationToken);
     }
@@ -60,6 +60,35 @@ public sealed class CreateUnitHandlerTests
             ErrorType.NotFound,
             "Faction was not found.");
         await unitsRepository.DidNotReceiveWithAnyArgs()
+            .AddAsync(null!, TestContext.Current.CancellationToken);
+    }
+
+    [Fact(DisplayName = "Create unit handler should reject invalid values without saving when command is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailuresWithoutSaving_When_CommandIsInvalid()
+    {
+        var faction = UnitTestData.CreateFaction();
+        var repository = Substitute.For<IUnitsRepository>();
+        var factionsRepository = Substitute.For<IFactionsRepository>();
+        var handler = new CreateUnitHandler(repository, factionsRepository);
+
+        var result = await handler.HandleAsync(
+            UnitTestData.CreateCommand(faction.Id.Value) with
+            {
+                Name = string.Empty,
+                Description = string.Empty,
+                Attack = -1,
+                MinimumDamage = 10,
+                MaximumDamage = 1,
+                Initiative = double.NaN,
+                Shots = 0,
+                RangedAttackRange = null
+            },
+            TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBeGreaterThanOrEqualTo(7);
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        await repository.DidNotReceiveWithAnyArgs()
             .AddAsync(null!, TestContext.Current.CancellationToken);
     }
 }

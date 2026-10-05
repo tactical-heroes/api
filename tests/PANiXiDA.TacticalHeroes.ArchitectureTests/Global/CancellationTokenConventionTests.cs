@@ -108,12 +108,12 @@ internal static class CancellationTokenSourceDiscovery
     private const string CancellationTokenTypeName =
         "System.Threading.CancellationToken";
 
-    private static readonly Lazy<Task<CancellationTokenAnalysis>> Analysis =
+    private static readonly Lazy<Task<CancellationTokenAnalysis>> s_analysis =
         new(CreateAnalysisAsync);
 
     internal static Task<CancellationTokenAnalysis> GetAnalysisAsync()
     {
-        return Analysis.Value;
+        return s_analysis.Value;
     }
 
     private static async Task<CancellationTokenAnalysis> CreateAnalysisAsync()

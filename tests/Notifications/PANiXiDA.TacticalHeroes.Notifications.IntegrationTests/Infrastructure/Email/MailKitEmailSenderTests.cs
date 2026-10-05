@@ -5,7 +5,7 @@ using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
-[Collection(MailpitIntegrationTestCollection.Name)]
+[Collection(MailpitIntegrationTestCollectionDefinition.Name)]
 public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixture)
 {
     [Fact(DisplayName = "SendAsync should deliver a formatted email through Mailpit when message is valid")]

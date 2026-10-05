@@ -13,7 +13,6 @@ public sealed class UnitMoraleTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.ShouldBe(value);
-        result.Value.ToString().ShouldBe(value.ToString());
     }
 
     [Theory(DisplayName = "Unit morale should reject a value when value is outside range")]
@@ -30,13 +29,13 @@ public sealed class UnitMoraleTests
             .ShouldHaveField(nameof(UnitMorale));
     }
 
-    [Fact(DisplayName = "Unit morale should return its value when converted to string")]
-    public void ToString_Should_ReturnValue_When_ConvertedToString()
+    [Fact(DisplayName = "Unit morale should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var morale = UnitMorale.Create(2).Value;
 
         var result = morale.ToString();
 
-        result.ShouldBe("2");
+        result.ShouldBe("UnitMorale { Value = 2 }");
     }
 }

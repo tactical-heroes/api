@@ -7,8 +7,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.GetLis
 [Mapper(IncludedConstructors = MemberVisibility.All)]
 internal static partial class GetHeroesMapper
 {
+    [MapPropertyFromSource(nameof(GetHeroesQuery.PaginationParameters))]
     internal static partial GetHeroesQuery ToQuery(
-        PaginationParameters pagination);
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters);
 
     internal static partial PaginationResult<HeroListItemResponse> ToResponse(
         PaginationResult<HeroListItemReadModel> page);

@@ -6,4 +6,4 @@ public sealed record UserListItemReadModel(
     string UserName,
     bool IsConfirmed,
     string Status,
-    string StatusDisplayName) : ReadModel;
+    string StatusDisplayName) : IReadModel;

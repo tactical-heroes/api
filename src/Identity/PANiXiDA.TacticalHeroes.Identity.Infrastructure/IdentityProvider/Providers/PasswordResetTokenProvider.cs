@@ -17,6 +17,6 @@ internal sealed class PasswordResetTokenProvider(
         options: Microsoft.Extensions.Options.Options.Create(options: new DataProtectionTokenProviderOptions
         {
             Name = options.Value.TokenProviders.PasswordReset,
-            TokenLifespan = options.Value.PasswordResetTokenLifetime
+            TokenLifespan = options.Value.AccountRecoveryTokenLifetime
         }),
         logger: logger);

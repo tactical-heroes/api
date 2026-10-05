@@ -2,6 +2,7 @@ using FluentValidation;
 
 using PANiXiDA.Core.Application.Messaging.EventBus.Handlers;
 using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
+using PANiXiDA.Core.Application.Querying.Sorting;
 
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
@@ -14,14 +15,14 @@ public sealed class ApplicationHandlerConventionTests
     private const string TestsDirectoryName = "tests";
     private const string UnitTestsAssemblySuffix = ".UnitTests";
 
-    private static readonly Type[] HandlerInterfaceDefinitions =
+    private static readonly Type[] s_handlerInterfaceDefinitions =
     [
         typeof(ICommandHandler<,>),
         typeof(IQueryHandler<,>),
         typeof(IEventHandler<>)
     ];
 
-    private static readonly Type[] RequestHandlerInterfaceDefinitions =
+    private static readonly Type[] s_requestHandlerInterfaceDefinitions =
     [
         typeof(ICommandHandler<,>),
         typeof(IQueryHandler<,>)
@@ -150,6 +151,30 @@ public sealed class ApplicationHandlerConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Application validators should be public and sealed when validators are declared")]
+    public void ApplicationValidators_Should_BePublicAndSealed_When_ValidatorsAreDeclared()
+    {
+        var validators = GetApplicationTypes()
+            .Select(target => target.Type)
+            .Where(type => type.GetInterfaces().Any(IsValidatorInterface))
+            .OrderBy(type => type.FullName, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(validators);
+
+        var violations = validators
+            .Where(type => !type.IsVisible || !type.IsSealed)
+            .Select(type =>
+                $"{type.FullName} must be public and sealed so generated " +
+                "Wolverine registrations can reference it from the host assembly.")
+            .ToArray();
+
+        Assert.True(
+            violations.Length == 0,
+            $"Invalid Application validator visibility or inheritance:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, violations));
+    }
+
     private static ApplicationHandler[] GetApplicationHandlers(
         string repositoryRoot)
     {
@@ -189,21 +214,23 @@ public sealed class ApplicationHandlerConventionTests
                                 validatorInterface.GetGenericArguments()[0])
                     ],
                     Module: target.Module))
-                .Where(validator => validator.ValidatedTypes.Count > 0)
+                .Where(validator =>
+                    validator.ValidatedTypes.Count > 0 &&
+                    !typeof(SortingParametersValidator).IsAssignableFrom(validator.Type))
                 .OrderBy(validator => validator.Type.FullName, StringComparer.Ordinal)
         ];
     }
 
     private static IEnumerable<ApplicationType> GetApplicationTypes()
     {
-        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
+        var productionAssemblies = ArchitectureDefinition.s_productionAssemblies
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
                         $"Could not determine the name of assembly '{assembly.FullName}'."),
                 StringComparer.Ordinal);
 
-        return ArchitectureDefinition.Modules
+        return ArchitectureDefinition.s_modules
             .SelectMany(module => productionAssemblies[module.ApplicationAssemblyName]
                 .GetTypes()
                 .Where(type =>
@@ -320,14 +347,14 @@ public sealed class ApplicationHandlerConventionTests
     private static bool IsHandlerInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               HandlerInterfaceDefinitions.Contains(
+               s_handlerInterfaceDefinitions.Contains(
                    interfaceType.GetGenericTypeDefinition());
     }
 
     private static bool IsRequestHandlerInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               RequestHandlerInterfaceDefinitions.Contains(
+               s_requestHandlerInterfaceDefinitions.Contains(
                    interfaceType.GetGenericTypeDefinition());
     }
 

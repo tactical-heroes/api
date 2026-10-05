@@ -23,6 +23,7 @@
 
         <Using Include="PANiXiDA.Core.Application.Messaging.Mediator" />
         <Using Include="PANiXiDA.Core.Application.Querying.Pagination" />
+        <Using Include="PANiXiDA.Core.Application.Querying.Sorting" />
         <Using Include="Microsoft.AspNetCore.Builder" />
 
         <Using Include="PANiXiDA.Core.Presentation.Http.DependencyInjection" />

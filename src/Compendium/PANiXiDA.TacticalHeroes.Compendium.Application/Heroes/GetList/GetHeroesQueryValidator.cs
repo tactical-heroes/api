@@ -4,16 +4,12 @@ public sealed class GetHeroesQueryValidator : AbstractValidator<GetHeroesQuery>
 {
     public GetHeroesQueryValidator()
     {
-        RuleFor(query => query.Pagination)
-            .NotNull();
+        RuleFor(query => query.PaginationParameters)
+            .NotNull()
+            .SetValidator(new PaginationParametersValidator());
 
-        When(query => query.Pagination is not null, () =>
-        {
-            RuleFor(query => query.Pagination.PageNumber)
-                .GreaterThan(0);
-
-            RuleFor(query => query.Pagination.PageSize)
-                .GreaterThan(0);
-        });
+        RuleFor(query => query.SortingParameters)
+            .NotNull()
+            .SetValidator(new HeroListItemReadModelSortingValidator());
     }
 }

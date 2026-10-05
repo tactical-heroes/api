@@ -46,12 +46,12 @@ public sealed class AsyncSafetyConventionTests
 
 internal static class AsyncSafetySourceDiscovery
 {
-    private static readonly Lazy<Task<AsyncSafetyAnalysis>> Analysis =
+    private static readonly Lazy<Task<AsyncSafetyAnalysis>> s_analysis =
         new(CreateAnalysisAsync);
 
     internal static Task<AsyncSafetyAnalysis> GetAnalysisAsync()
     {
-        return Analysis.Value;
+        return s_analysis.Value;
     }
 
     private static async Task<AsyncSafetyAnalysis> CreateAnalysisAsync()
@@ -203,13 +203,17 @@ internal static class AsyncSafetySourceDiscovery
             MethodDeclarationSyntax method =>
                 method.Modifiers.Any(modifier =>
                     modifier.ValueText == "async") &&
-                (semanticModel.GetDeclaredSymbol(method) as IMethodSymbol)
-                    ?.ReturnsVoid == true,
+                semanticModel.GetDeclaredSymbol(method) is IMethodSymbol
+                {
+                    ReturnsVoid: true
+                },
             LocalFunctionStatementSyntax localFunction =>
                 localFunction.Modifiers.Any(modifier =>
                     modifier.ValueText == "async") &&
-                (semanticModel.GetDeclaredSymbol(localFunction) as
-                    IMethodSymbol)?.ReturnsVoid == true,
+                semanticModel.GetDeclaredSymbol(localFunction) is IMethodSymbol
+                {
+                    ReturnsVoid: true
+                },
             AnonymousFunctionExpressionSyntax anonymousFunction =>
                 anonymousFunction.AsyncKeyword.ValueText == "async" &&
                 semanticModel.GetTypeInfo(anonymousFunction).ConvertedType is

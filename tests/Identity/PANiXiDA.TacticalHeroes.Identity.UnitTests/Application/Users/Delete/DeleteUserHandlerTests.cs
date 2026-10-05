@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Delete;
 
@@ -9,7 +9,7 @@ public sealed class DeleteUserHandlerTests
     public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();
-        var repository = Substitute.For<IUsersWriteRepository>();
+        var repository = Substitute.For<IUsersRepository>();
         repository.DeleteAsync(userId, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new DeleteUserHandler(repository);

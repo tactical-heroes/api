@@ -64,7 +64,7 @@ public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
             .CreateDefaultBuilder()
             .ConfigureServices(services => services.AddInfrastructure(configuration))
             .UseWolverine();
-        hostBuilder.UseInfrastructure(configuration);
+        hostBuilder.UseInfrastructure();
 
         _host = hostBuilder.Build();
         await _host.StartAsync(TestContext.Current.CancellationToken);

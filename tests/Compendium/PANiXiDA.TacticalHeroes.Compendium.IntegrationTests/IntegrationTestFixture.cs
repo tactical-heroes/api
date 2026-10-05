@@ -10,25 +10,25 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase database = new();
+    private readonly PostgreSqlTestDatabase _database = new("compendium");
 
-    private ServiceProvider? serviceProvider;
+    private ServiceProvider? _serviceProvider;
 
-    public string ConnectionString => database.PostgreSqlConnectionString;
+    public string ConnectionString => _database.PostgreSqlConnectionString;
 
     public AsyncServiceScope CreateScope()
     {
-        return serviceProvider!.CreateAsyncScope();
+        return _serviceProvider!.CreateAsyncScope();
     }
 
     public Task ResetDatabaseAsync(CancellationToken cancellationToken)
     {
-        return database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+        return _database.ResetPostgreSqlDatabaseAsync(cancellationToken);
     }
 
     public async ValueTask InitializeAsync()
     {
-        await database.InitializeAsync(TestContext.Current.CancellationToken);
+        await _database.InitializeAsync(TestContext.Current.CancellationToken);
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -43,24 +43,24 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddInfrastructure(configuration);
 
-        serviceProvider = services.BuildServiceProvider(
+        _serviceProvider = services.BuildServiceProvider(
             new ServiceProviderOptions
             {
                 ValidateScopes = true
             });
 
-        await using var scope = serviceProvider.CreateAsyncScope();
+        await using var scope = _serviceProvider.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
         await dbContext.Database.MigrateAsync(TestContext.Current.CancellationToken);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (serviceProvider is not null)
+        if (_serviceProvider is not null)
         {
-            await serviceProvider.DisposeAsync();
+            await _serviceProvider.DisposeAsync();
         }
 
-        await database.DisposeAsync();
+        await _database.DisposeAsync();
     }
 }

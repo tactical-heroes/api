@@ -13,7 +13,7 @@ internal sealed class ParEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(Handle)
+        builder.MapPost(builder.Route, Handle)
             .AllowAnonymous()
             .Accepts<ParRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<ParResponse>(StatusCodes.Status201Created)
@@ -24,10 +24,10 @@ internal sealed class ParEndpoint : IEndpoint<OAuthEndpoints>
     private static ProblemHttpResult Handle()
     {
         return TypedResults.Problem(
-            title: "OpenIddict pushed authorization endpoint was not handled.",
             detail: $"The {OAuthEndpointRoutes.GetPath(endpointRoute: OAuthEndpointRoutes.PushedAuthorization)} " +
                 "route must be intercepted by the OpenIddict server pipeline. " +
                 "If this fallback endpoint is executed, OpenIddict pushed authorization endpoint configuration is broken.",
-            statusCode: StatusCodes.Status500InternalServerError);
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "OpenIddict pushed authorization endpoint was not handled.");
     }
 }

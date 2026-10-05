@@ -3,7 +3,8 @@ using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.Mappers;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read;
 
@@ -11,18 +12,15 @@ public sealed class HeroesReadRepository(CompendiumReadDbContext dbContext)
     : EfReadRepository<CompendiumReadDbContext, Guid, HeroReadDbModel>(dbContext),
     IHeroesReadRepository
 {
-    private static readonly SortParameters Sort = new(
-        Field: nameof(HeroReadDbModel.Name),
-        Order: SortOrder.Ascending);
-
     public Task<PaginationResult<HeroListItemReadModel>> GetPageAsync(
-        PaginationParameters pagination,
+        PaginationParameters paginationParameters,
+        SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
-        return GetPagedResultAsync<HeroListItemReadModel, HeroListItemReadModelMapper>(
+        return GetPagedResultAsync<HeroListItemReadModel, HeroListItemReadModelMapper, HeroListItemReadModelSorting>(
             query: Query,
-            paginationParameters: pagination,
-            sortParameters: Sort,
+            paginationParameters: paginationParameters,
+            sortingParameters: sortingParameters,
             cancellationToken: cancellationToken);
     }
 

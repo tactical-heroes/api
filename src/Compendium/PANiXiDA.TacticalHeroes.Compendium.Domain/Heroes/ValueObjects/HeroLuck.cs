@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-public sealed class HeroLuck : ValueObject
+public sealed partial class HeroLuck : ValueObject
 {
     public const int Minimum = 0;
     public const int Maximum = 5;
@@ -20,15 +20,5 @@ public sealed class HeroLuck : ValueObject
                 error: Error.Validation(
                         message: $"Hero luck must be between {Minimum} and {Maximum}.")
                     .WithField(nameof(HeroLuck)));
-    }
-
-    public override string ToString()
-    {
-        return Value.ToString();
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
     }
 }

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.DependencyInjection;
 
@@ -10,8 +9,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection serviceCollection,
-        IConfiguration configuration,
-        IHostEnvironment? environment = null)
+        IConfiguration configuration)
     {
         serviceCollection.AddEmail(configuration);
 

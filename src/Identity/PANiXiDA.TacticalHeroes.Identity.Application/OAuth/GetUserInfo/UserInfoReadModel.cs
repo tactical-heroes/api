@@ -5,4 +5,4 @@ public sealed record UserInfoReadModel(
     string? Name,
     string? Email,
     bool? EmailVerified,
-    IReadOnlyCollection<string> Roles) : ReadModel;
+    IReadOnlyCollection<string> Roles) : IReadModel;

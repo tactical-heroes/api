@@ -94,4 +94,39 @@ public sealed class UpdateHeroHandlerTests
         await heroesRepository.DidNotReceiveWithAnyArgs()
             .UpdateAsync(null!, TestContext.Current.CancellationToken);
     }
+
+    [Fact(DisplayName = "Update hero handler should reject invalid values without saving when command is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailuresWithoutSaving_When_CommandIsInvalid()
+    {
+        var faction = HeroTestData.CreateFaction();
+        var repository = Substitute.For<IHeroesRepository>();
+        var factionsRepository = Substitute.For<IFactionsRepository>();
+        var hero = HeroTestData.CreateHero(faction);
+        var originalName = hero.Name;
+        var originalStats = hero.Stats;
+        repository.GetByIdAsync(hero.Id, Arg.Any<CancellationToken>()).Returns(hero);
+        factionsRepository.GetByIdAsync(faction.Id, Arg.Any<CancellationToken>()).Returns(faction);
+        var handler = new UpdateHeroHandler(repository, factionsRepository);
+
+        var result = await handler.HandleAsync(
+            HeroTestData.CreateUpdateCommand(hero.Id.Value, faction.Id.Value) with
+            {
+                Name = string.Empty,
+                Description = string.Empty,
+                Attack = -1,
+                MinimumDamage = 10,
+                MaximumDamage = 1,
+                Initiative = double.NaN
+            },
+            TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBeGreaterThanOrEqualTo(5);
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        hero.Name.ShouldBeSameAs(originalName);
+        hero.Stats.ShouldBeSameAs(originalStats);
+        hero.FactionId.ShouldBe(faction.Id);
+        await repository.DidNotReceiveWithAnyArgs()
+            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+    }
 }

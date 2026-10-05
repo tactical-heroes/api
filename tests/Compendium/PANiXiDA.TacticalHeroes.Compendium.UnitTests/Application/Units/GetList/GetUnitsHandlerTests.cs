@@ -9,16 +9,18 @@ public sealed class GetUnitsHandlerTests
     public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
     {
         var pagination = new PaginationParameters(1, 20);
+        var sorting = SortingParameters.None;
         var unitsReadRepository = Substitute.For<IUnitsReadRepository>();
         var handler = new GetUnitsHandler(unitsReadRepository);
 
         var result = await handler.HandleAsync(
-            new GetUnitsQuery(pagination),
+            new GetUnitsQuery(pagination, sorting),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         await unitsReadRepository.Received(1).GetPageAsync(
             pagination,
+            sorting,
             TestContext.Current.CancellationToken);
     }
 }

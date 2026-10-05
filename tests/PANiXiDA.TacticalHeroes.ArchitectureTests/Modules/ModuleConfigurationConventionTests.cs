@@ -5,15 +5,17 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Modules;
 public sealed class ModuleConfigurationConventionTests
 {
     private const string HostAssemblyName = "PANiXiDA.TacticalHeroes.Host";
+
     private const string ModuleConfigurationsNamespace =
         $"{HostAssemblyName}.Configurations.Modules";
+
     private const string SourceDirectoryName = "src";
 
     [Fact(DisplayName = "Modules should have host configurations in modules directory when discovered")]
     public void Modules_Should_HaveHostConfigurationsInModulesDirectory_When_Discovered()
     {
-        var modules = ArchitectureDefinition.Modules;
-        var hostAssembly = ArchitectureDefinition.ProductionAssemblies.Single(
+        var modules = ArchitectureDefinition.s_modules;
+        var hostAssembly = ArchitectureDefinition.s_productionAssemblies.Single(
             assembly => string.Equals(
                 assembly.GetName().Name,
                 HostAssemblyName,

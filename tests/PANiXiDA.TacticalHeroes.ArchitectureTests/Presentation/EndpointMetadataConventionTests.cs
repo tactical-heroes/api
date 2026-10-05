@@ -5,25 +5,9 @@ using PANiXiDA.Core.Presentation.Http.Endpoints;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Presentation;
 
-public sealed class EndpointMetadataConventionTests
+public sealed partial class EndpointMetadataConventionTests
 {
-    private static readonly Regex RouteSegmentPattern = new(
-        "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
-        RegexOptions.CultureInvariant);
-
-    private static readonly Regex RouteParameterPattern = new(
-        "^\\{[a-z][a-z0-9]*(?::[a-z][a-z0-9]*)?\\}$",
-        RegexOptions.CultureInvariant);
-
-    private static readonly Regex NamePattern = new(
-        "^[A-Z][A-Za-z0-9]*$",
-        RegexOptions.CultureInvariant);
-
-    private static readonly Regex SummaryPattern = new(
-        "^[A-Z][A-Za-z0-9]*(?: [A-Za-z0-9]+)*$",
-        RegexOptions.CultureInvariant);
-
-    private static readonly string[] EndpointGroupMetadataPropertyNames =
+    private static readonly string[] s_endpointGroupMetadataPropertyNames =
     [
         "ApiVersion",
         "Name",
@@ -33,7 +17,7 @@ public sealed class EndpointMetadataConventionTests
     [Fact(DisplayName = "Endpoint metadata should follow HTTP naming conventions when endpoint is declared")]
     public void EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared()
     {
-        var metadataTypes = ArchitectureDefinition.ProductionAssemblies
+        var metadataTypes = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(
                 ".Presentation",
                 StringComparison.Ordinal) == true)
@@ -64,7 +48,7 @@ public sealed class EndpointMetadataConventionTests
                     $"{metadata.Type.FullName}.Route must use lowercase English kebab-case: '{route}'.");
             }
 
-            if (!NamePattern.IsMatch(name))
+            if (!NamePattern().IsMatch(name))
             {
                 violations.Add(
                     $"{metadata.Type.FullName}.Name must be one English PascalCase identifier: '{name}'.");
@@ -76,7 +60,7 @@ public sealed class EndpointMetadataConventionTests
             }
 
             var summary = GetMetadata(instance, "Summary");
-            if (!SummaryPattern.IsMatch(summary))
+            if (!SummaryPattern().IsMatch(summary))
             {
                 violations.Add(
                     $"{metadata.Type.FullName}.Summary must be English sentence case with single spaces: '{summary}'.");
@@ -95,7 +79,7 @@ public sealed class EndpointMetadataConventionTests
             PresentationArchitectureConvention.GetEndpointGroups();
         var violations = endpointGroups
             .SelectMany(endpointGroup =>
-                EndpointGroupMetadataPropertyNames.Select(propertyName => new
+                s_endpointGroupMetadataPropertyNames.Select(propertyName => new
                 {
                     EndpointGroup = endpointGroup,
                     Property = endpointGroup.GetProperty(
@@ -121,6 +105,26 @@ public sealed class EndpointMetadataConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [GeneratedRegex(
+        "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex RouteSegmentPattern();
+
+    [GeneratedRegex(
+        "^\\{[a-z][a-z0-9]*(?::[a-z][a-z0-9]*)?\\}$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex RouteParameterPattern();
+
+    [GeneratedRegex(
+        "^[A-Z][A-Za-z0-9]*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex NamePattern();
+
+    [GeneratedRegex(
+        "^[A-Z][A-Za-z0-9]*(?: [A-Za-z0-9]+)*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex SummaryPattern();
+
     private static string GetMetadata(object instance, string propertyName)
     {
         var property = instance.GetType().GetProperty(
@@ -140,7 +144,7 @@ public sealed class EndpointMetadataConventionTests
         return route
             .Split('/', StringSplitOptions.RemoveEmptyEntries)
             .All(segment =>
-                RouteSegmentPattern.IsMatch(segment) ||
-                RouteParameterPattern.IsMatch(segment));
+                RouteSegmentPattern().IsMatch(segment) ||
+                RouteParameterPattern().IsMatch(segment));
     }
 }

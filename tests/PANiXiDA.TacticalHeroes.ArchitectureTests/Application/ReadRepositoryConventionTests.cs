@@ -86,7 +86,7 @@ public sealed class ReadRepositoryConventionTests
                 target.Method.ReturnType))
             .Select(target =>
                 $"{target.Repository.FullName}.{target.Method.Name} must " +
-                $"return a ReadModel, optionally wrapped in Task, a " +
+                $"return an IReadModel, optionally wrapped in Task, a " +
                 $"Result, a collection, or a pagination model; found " +
                 $"'{target.Method.ReturnType}'.")
             .ToArray();
@@ -139,7 +139,7 @@ public sealed class ReadRepositoryConventionTests
     [Fact(DisplayName = "Read repository constructor parameters should follow type-based naming when read repository is injected")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected()
     {
-        var repositoryParameters = ArchitectureDefinition.ProductionAssemblies
+        var repositoryParameters = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(
                 ApplicationAssemblySuffix,
                 StringComparison.Ordinal) == true)
@@ -190,7 +190,7 @@ public sealed class ReadRepositoryConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsInterface)
                 .Select(type => new
@@ -208,7 +208,7 @@ public sealed class ReadRepositoryConventionTests
         ];
     }
 
-    private static IEnumerable<string> GetLocationViolations(
+    private static List<string> GetLocationViolations(
         string repositoryRoot,
         Type readRepository)
     {
@@ -307,7 +307,7 @@ public sealed class ReadRepositoryConventionTests
     private static string[] GetAggregateFeatureNames(
         ModuleArchitecture module)
     {
-        var domainAssembly = ArchitectureDefinition.ProductionAssemblies
+        var domainAssembly = ArchitectureDefinition.s_productionAssemblies
             .Single(assembly => string.Equals(
                 assembly.GetName().Name,
                 module.DomainAssemblyName,
@@ -359,7 +359,7 @@ public sealed class ReadRepositoryConventionTests
         Type readRepository)
     {
         var assemblyName = GetAssemblyName(readRepository);
-        var module = ArchitectureDefinition.Modules.Single(candidate =>
+        var module = ArchitectureDefinition.s_modules.Single(candidate =>
             string.Equals(
                 candidate.ContractsAssemblyName,
                 assemblyName,
@@ -417,7 +417,7 @@ public sealed class ReadRepositoryConventionTests
     {
         var assemblyName = GetAssemblyName(type);
 
-        return ArchitectureDefinition.Modules.Single(candidate =>
+        return ArchitectureDefinition.s_modules.Single(candidate =>
             string.Equals(
                 candidate.ApplicationAssemblyName,
                 assemblyName,

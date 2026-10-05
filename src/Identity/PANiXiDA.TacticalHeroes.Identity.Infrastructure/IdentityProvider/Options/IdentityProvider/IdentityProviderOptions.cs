@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Clients;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Lockout;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Password;
@@ -14,6 +15,10 @@ public sealed class IdentityProviderOptions
 
     public string Audience { get; init; } = string.Empty;
 
+    public List<IdentityProviderCertificateOptions> SigningCertificates { get; init; } = [];
+
+    public List<IdentityProviderCertificateOptions> EncryptionCertificates { get; init; } = [];
+
     public TimeSpan AccessTokenLifetime { get; init; } = TimeSpan.FromMinutes(minutes: 15);
 
     public TimeSpan RefreshTokenLifetime { get; init; } = TimeSpan.FromDays(days: 30);
@@ -26,7 +31,7 @@ public sealed class IdentityProviderOptions
 
     public TimeSpan EmailConfirmationTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 24);
 
-    public TimeSpan PasswordResetTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 1);
+    public TimeSpan AccountRecoveryTokenLifetime { get; init; } = TimeSpan.FromHours(hours: 1);
 
     public IdentityProviderUserOptions User { get; init; } = new();
 

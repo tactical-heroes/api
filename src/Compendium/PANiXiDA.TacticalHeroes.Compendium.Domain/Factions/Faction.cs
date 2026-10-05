@@ -17,39 +17,21 @@ public sealed class Faction : AggregateRoot<FactionId>
     public FactionName Name { get; private set; }
     public FactionDescription Description { get; private set; }
 
-    public static Result<Faction> Create(
-        string name,
-        string description)
+    public static Faction Create(
+        FactionName name,
+        FactionDescription description)
     {
-        var nameResult = FactionName.Create(value: name);
-        var descriptionResult = FactionDescription.Create(value: description);
-        var validationResult = Result.Combine(nameResult, descriptionResult);
-
-        return validationResult.IsFailure
-            ? Result.Failure<Faction>(errors: validationResult.Errors)
-            : Result.Success(
-                value: new Faction(
-                    id: FactionId.New(),
-                    name: nameResult.Value,
-                    description: descriptionResult.Value));
+        return new Faction(
+            id: FactionId.New(),
+            name: name,
+            description: description);
     }
 
-    public Result Update(
-        string name,
-        string description)
+    public void Update(
+        FactionName name,
+        FactionDescription description)
     {
-        var nameResult = FactionName.Create(value: name);
-        var descriptionResult = FactionDescription.Create(value: description);
-        var validationResult = Result.Combine(nameResult, descriptionResult);
-
-        if (validationResult.IsFailure)
-        {
-            return Result.Failure(errors: validationResult.Errors);
-        }
-
-        Name = nameResult.Value;
-        Description = descriptionResult.Value;
-
-        return Result.Success();
+        Name = name;
+        Description = description;
     }
 }

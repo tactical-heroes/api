@@ -11,4 +11,4 @@ public sealed record HeroDetailsReadModel(
     double Initiative,
     int Morale,
     int Luck,
-    Guid FactionId) : ReadModel;
+    Guid FactionId) : IReadModel;

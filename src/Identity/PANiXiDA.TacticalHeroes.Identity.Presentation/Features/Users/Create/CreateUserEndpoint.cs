@@ -12,7 +12,7 @@ internal sealed class CreateUserEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(HandleAsync)
+        builder.MapPost(builder.Route, HandleAsync)
             .Produces<CreateUserResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

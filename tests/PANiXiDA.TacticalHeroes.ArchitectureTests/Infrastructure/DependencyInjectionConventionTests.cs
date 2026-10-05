@@ -52,7 +52,7 @@ public sealed class DependencyInjectionConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module =>
                 {
                     var domainAssembly = GetAssembly(
@@ -106,7 +106,7 @@ public sealed class DependencyInjectionConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module =>
                 {
                     var infrastructureAssembly = GetAssembly(
@@ -143,7 +143,7 @@ public sealed class DependencyInjectionConventionTests
     private static System.Reflection.Assembly GetAssembly(
         string assemblyName)
     {
-        return ArchitectureDefinition.ProductionAssemblies.Single(
+        return ArchitectureDefinition.s_productionAssemblies.Single(
             assembly => string.Equals(
                 assembly.GetName().Name,
                 assemblyName,

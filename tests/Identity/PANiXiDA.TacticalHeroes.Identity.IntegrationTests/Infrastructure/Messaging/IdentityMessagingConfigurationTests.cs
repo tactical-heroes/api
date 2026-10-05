@@ -54,21 +54,21 @@ public sealed class IdentityMessagingConfigurationTests
         services.GetRequiredService<IStartupValidator>().Validate();
         var options = services.GetRequiredService<IOptions<IdentityMessagingOptions>>().Value;
         var userId = Guid.NewGuid();
-        const string token = "token/+==&?% value";
+        const string Token = "token/+==&?% value";
 
-        var confirmationUrl = new Uri(IdentityLinkBuilder.Build(options.EmailConfirmationUrlTemplate, userId, token));
-        var passwordResetUrl = new Uri(IdentityLinkBuilder.Build(options.PasswordResetUrlTemplate, userId, token));
+        var confirmationUrl = new Uri(IdentityLinkBuilder.Build(options.EmailConfirmationUrlTemplate, userId, Token));
+        var passwordResetUrl = new Uri(IdentityLinkBuilder.Build(options.PasswordResetUrlTemplate, userId, Token));
 
         confirmationUrl.GetLeftPart(UriPartial.Authority).ShouldBe(origin);
         confirmationUrl.AbsolutePath.ShouldBe("/confirm-email");
         var confirmationQuery = QueryHelpers.ParseQuery(confirmationUrl.Query);
         confirmationQuery["userId"].ToString().ShouldBe(userId.ToString("D"));
-        confirmationQuery["emailConfirmationToken"].ToString().ShouldBe(token);
+        confirmationQuery["emailConfirmationToken"].ToString().ShouldBe(Token);
         passwordResetUrl.GetLeftPart(UriPartial.Authority).ShouldBe(origin);
         passwordResetUrl.AbsolutePath.ShouldBe("/reset-password");
         var passwordResetQuery = QueryHelpers.ParseQuery(passwordResetUrl.Query);
         passwordResetQuery["userId"].ToString().ShouldBe(userId.ToString("D"));
-        passwordResetQuery["passwordResetToken"].ToString().ShouldBe(token);
+        passwordResetQuery["passwordResetToken"].ToString().ShouldBe(Token);
     }
 
     private static ServiceProvider CreateServices(string? confirmationTemplate, string? passwordResetTemplate)

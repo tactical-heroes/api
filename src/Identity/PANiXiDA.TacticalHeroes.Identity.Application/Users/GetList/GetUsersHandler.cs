@@ -10,8 +10,9 @@ public sealed class GetUsersHandler(IUsersReadRepository usersReadRepository)
         CancellationToken cancellationToken)
     {
         var users = await usersReadRepository.GetPageAsync(
-            email: query.Email,
-            pagination: query.Pagination,
+            filter: query.Filter,
+            paginationParameters: query.PaginationParameters,
+            sortingParameters: query.SortingParameters,
             cancellationToken: cancellationToken);
 
         return Result.Success(value: users);

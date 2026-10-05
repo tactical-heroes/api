@@ -11,6 +11,23 @@ internal sealed class HeroesApiTestClient(FunctionalTestFixture fixture)
 {
     private const string HeroesPath = "/api/v1/heroes";
 
+    internal static CreateHeroRequest CreateRequest(
+        Guid factionId,
+        string name)
+    {
+        return new CreateHeroRequest(
+            Name: name,
+            Description: $"{name} description.",
+            Attack: 8,
+            Defense: 6,
+            MinimumDamage: 3,
+            MaximumDamage: 7,
+            Initiative: 10.5,
+            Morale: 4,
+            Luck: 2,
+            FactionId: factionId);
+    }
+
     internal Task<CreateFactionResponse> CreateFactionAsync(
         CancellationToken cancellationToken,
         CreateFactionRequest? request = null)
@@ -112,22 +129,5 @@ internal sealed class HeroesApiTestClient(FunctionalTestFixture fixture)
         return fixture.Client.GetAsync(
             $"{HeroesPath}/{heroId}",
             cancellationToken);
-    }
-
-    internal static CreateHeroRequest CreateRequest(
-        Guid factionId,
-        string name)
-    {
-        return new CreateHeroRequest(
-            Name: name,
-            Description: $"{name} description.",
-            Attack: 8,
-            Defense: 6,
-            MinimumDamage: 3,
-            MaximumDamage: 7,
-            Initiative: 10.5,
-            Morale: 4,
-            Luck: 2,
-            FactionId: factionId);
     }
 }

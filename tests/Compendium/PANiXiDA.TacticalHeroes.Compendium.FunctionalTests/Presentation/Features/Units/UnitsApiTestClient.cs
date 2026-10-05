@@ -11,6 +11,27 @@ internal sealed class UnitsApiTestClient(FunctionalTestFixture fixture)
 {
     private const string UnitsPath = "/api/v1/units";
 
+    internal static CreateUnitRequest CreateRequest(
+        Guid factionId,
+        string name)
+    {
+        return new CreateUnitRequest(
+            Name: name,
+            Description: $"{name} description.",
+            Attack: 8,
+            Defense: 4,
+            Health: 12,
+            MinimumDamage: 3,
+            MaximumDamage: 5,
+            Initiative: 10.5,
+            Speed: 6,
+            Shots: 12,
+            RangedAttackRange: 8,
+            Morale: 2,
+            Luck: 1,
+            FactionId: factionId);
+    }
+
     internal Task<CreateFactionResponse> CreateFactionAsync(
         CancellationToken cancellationToken,
         CreateFactionRequest? request = null)
@@ -112,26 +133,5 @@ internal sealed class UnitsApiTestClient(FunctionalTestFixture fixture)
         return fixture.Client.GetAsync(
             $"{UnitsPath}/{unitId}",
             cancellationToken);
-    }
-
-    internal static CreateUnitRequest CreateRequest(
-        Guid factionId,
-        string name)
-    {
-        return new CreateUnitRequest(
-            Name: name,
-            Description: $"{name} description.",
-            Attack: 8,
-            Defense: 4,
-            Health: 12,
-            MinimumDamage: 3,
-            MaximumDamage: 5,
-            Initiative: 10.5,
-            Speed: 6,
-            Shots: 12,
-            RangedAttackRange: 8,
-            Morale: 2,
-            Luck: 1,
-            FactionId: factionId);
     }
 }

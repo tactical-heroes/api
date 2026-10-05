@@ -12,7 +12,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(HandleAsync)
+        builder.MapPost(builder.Route, HandleAsync)
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)

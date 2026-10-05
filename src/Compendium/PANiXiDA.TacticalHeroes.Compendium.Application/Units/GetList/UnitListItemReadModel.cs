@@ -4,4 +4,4 @@ public sealed record UnitListItemReadModel(
     Guid Id,
     string Name,
     Guid FactionId,
-    string FactionName) : ReadModel;
+    string FactionName) : IReadModel;
