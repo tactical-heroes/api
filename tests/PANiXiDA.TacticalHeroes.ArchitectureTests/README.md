@@ -614,48 +614,57 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      методы, local functions и lambdas в production-коде не должны быть
      `async void`.
 
-117. `NullForgivingAssignments_Should_TargetOnlyComplexValueObjects_When_UsedInDomainState`
-     — присваивание `null!` в состоянии aggregate root и entity разрешено
-     только для комплексного value object с несколькими значениями.
+117. `NullForgivingExpressions_Should_AvoidSuppressedNullValues_When_ProductionCodeIsDeclared`
+     — во всех слоях production-кода запрещены `null!` и `default!`, если
+     значение может быть `null`, включая аргументы, возвраты, инициализаторы
+     и generic-параметры. Разрешена только EF-инициализация: присваивание
+     комплексного VO собственному свойству с private setter в приватном
+     конструкторе entity и инициализатор публичного auto-property `DbSet<T>`
+     в `DbContext`. Обычные nullable-значения без `!` разрешены.
 
-118. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
+118. `NullForgivingExpressions_Should_DetectSuppressedNullValues_When_SourceExpressionsVary`
+     — проверяет запрет подавления `null` и `default` и границы исключений
+     для EF на тестовых фрагментах кода, включая скобки, приведения типов,
+     generic-параметры, вложенные функции и коллекции.
+
+119. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
      — command validator не должен повторять бизнес-инварианты через встроенные
      сравнения, диапазоны или произвольные предикаты FluentValidation; проверки
      должны делегироваться доменным фабрикам.
 
-119. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
+120. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
      — `HasMaxLength` в entity configuration должен ссылаться на публичную
      доменную константу `MaxLength`, а не дублировать числовое ограничение.
 
-120. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
+121. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
      — внешний ключ на aggregate read model из того же модуля требует nullable
      reference navigation у зависимой модели и collection navigation у главной.
 
-121. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
+122. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
      — endpoint не должен повторять тот же `RequireAuthorization` или
      `AllowAnonymous`, который уже объявлен его endpoint group.
 
-122. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
+123. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
      — каждый конфигурационный `<Name>Options` с константой `SectionName`
      должен иметь зарегистрированный `<Name>OptionsValidator`, реализующий
      `IValidateOptions<TOptions>` и расположенный рядом с options-классом.
 
-123. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
+124. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
      конфигурационный options-класс должен регистрироваться через
      `AddOptions<TOptions>()` с последующим вызовом `ValidateOnStart()`.
 
-124. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
+125. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
      — каждый конфигурационный `<Name>Options` должен располагаться вместе со
      своим validator в выделенной папке `Options/<Name>/`.
 
-125. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
+126. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
      — публичные и internal-методы агрегатов и entity, включая фабрики,
      принимают только VO, strongly typed ID, Enumeration, entity и коллекции
      этих типов. Примитивы и DTO-контейнеры параметров запрещены. Application
      собирает VO через их доменные фабрики до вызова агрегата; фабрики самих
      VO и идентификаторов продолжают принимать и проверять примитивы.
 
-126. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+127. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
      — свойства VO и `Enumeration<>` должны иметь публичный getter. Любые
      setter и init-accessor запрещены независимо от видимости, включая
      private. Проверяются также статические и унаследованные свойства.
@@ -779,3 +788,16 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      — свойства strongly typed ID должны иметь публичный getter без setter
      или init-accessor, чтобы нельзя было обойти фабрику через initializer
      или выражение `with`.
+
+144. `StronglyTypedIds_Should_AvoidDefaultValues_When_ProductionCodeIsDeclared`
+     — в production-коде запрещены `default` и создание без параметров для
+     `IStronglyTypedId`, включая generic-параметры с этим ограничением.
+     Также запрещены массивы ID без инициализатора (кроме заведомо пустых),
+     `Activator.CreateInstance` для ID, `Nullable<TId>.GetValueOrDefault()`
+     и LINQ-методы `*OrDefault` / `DefaultIfEmpty`
+     без явного запасного значения. `Nullable<TId>`, пустые массивы и прочие типы
+     под этот запрет не попадают. Типы определяются через Roslyn.
+
+145. `IdCreation_Should_DetectDefaultValues_When_SourceExpressionsVary`
+     — проверяет допустимые и запрещённые способы получения ID на тестовых
+     фрагментах кода: aliases, generics, nullable, коллекции и вызовы методов.

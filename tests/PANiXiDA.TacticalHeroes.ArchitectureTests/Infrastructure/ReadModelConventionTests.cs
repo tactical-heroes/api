@@ -176,7 +176,7 @@ public sealed class ReadModelConventionTests
                 .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
                 .OfType<INamedTypeSymbol>()
                 .Where(type => type.AllInterfaces.Any(contract => contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
-                .Select(type => new ModelSource(type.ToDisplayString(), Path.GetDirectoryName(document.FilePath!)!))];
+                .Select(type => new ModelSource(type.ToDisplayString(), Path.GetDirectoryName(document.FilePath)!))];
     }
 
     private static IEnumerable<string> GetComponentLocationViolations(Type component, Type contractType, ModelSource[] sources)
