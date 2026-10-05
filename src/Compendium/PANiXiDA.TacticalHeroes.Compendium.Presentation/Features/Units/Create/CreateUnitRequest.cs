@@ -10,8 +10,8 @@ public sealed record CreateUnitRequest(
     int MaximumDamage,
     double Initiative,
     int Speed,
-    int? Shots,
-    int? RangedAttackRange,
     int Morale,
     int Luck,
-    Guid FactionId);
+    Guid FactionId,
+    int? Shots = null,
+    int? RangedAttackRange = null);
