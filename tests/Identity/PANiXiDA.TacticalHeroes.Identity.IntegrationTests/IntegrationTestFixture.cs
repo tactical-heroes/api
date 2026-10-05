@@ -21,15 +21,15 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     private ServiceProvider _serviceProvider = null!;
 
+    public string ConnectionString => _database.PostgreSqlConnectionString;
+
+    public CommandCounterInterceptor CommandCounter { get; } = new();
+
     private static string PostgreSqlConnectionStringConfigurationKey =>
         PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable.Replace(
             "__",
             ConfigurationPath.KeyDelimiter,
             StringComparison.Ordinal);
-
-    public string ConnectionString => _database.PostgreSqlConnectionString;
-
-    public CommandCounterInterceptor CommandCounter { get; } = new();
 
     public async ValueTask InitializeAsync()
     {

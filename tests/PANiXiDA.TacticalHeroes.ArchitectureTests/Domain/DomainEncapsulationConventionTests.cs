@@ -556,6 +556,11 @@ public sealed class DomainEncapsulationConventionTests
         }
     }
 
+    private static class MutableStaticState
+    {
+        public static readonly int[] Values = [1, 2];
+    }
+
     private sealed record CollectionDomainEvent<T>(T Items) : DomainEvent;
 
     private interface IWritableState
@@ -634,11 +639,6 @@ public sealed class DomainEncapsulationConventionTests
         private readonly int _index = 1;
 
         public ref int Value => ref MutableStaticState.Values[_index];
-    }
-
-    private static class MutableStaticState
-    {
-        public static readonly int[] Values = [1, 2];
     }
 
     private sealed class ReadOnlyMutableFieldState

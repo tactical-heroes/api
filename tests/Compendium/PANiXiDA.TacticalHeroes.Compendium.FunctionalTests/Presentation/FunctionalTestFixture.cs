@@ -38,6 +38,22 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         return database.ResetPostgreSqlDatabaseAsync(cancellationToken);
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        Client?.Dispose();
+
+        if (factory is not null)
+        {
+            await factory.DisposeAsync();
+        }
+
+        await database.DisposeAsync();
+
+        Environment.SetEnvironmentVariable(
+            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
+            previousConnectionString);
+    }
+
     private async Task MigrateDatabaseAsync(CancellationToken cancellationToken)
     {
         var connectionStringKey =
@@ -59,21 +75,5 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
             scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
 
         await dbContext.Database.MigrateAsync(cancellationToken);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        Client?.Dispose();
-
-        if (factory is not null)
-        {
-            await factory.DisposeAsync();
-        }
-
-        await database.DisposeAsync();
-
-        Environment.SetEnvironmentVariable(
-            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
-            previousConnectionString);
     }
 }

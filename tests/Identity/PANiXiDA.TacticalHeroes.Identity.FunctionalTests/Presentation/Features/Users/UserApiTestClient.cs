@@ -11,6 +11,20 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
 {
+    internal static CreateUserRequest CreateDefaultRequest(
+        string email = "hero@example.com",
+        string userName = "hero",
+        bool isConfirmed = true)
+    {
+        return new CreateUserRequest(
+            email,
+            userName,
+            "StrongPassword1!",
+            isConfirmed,
+            [],
+            "Active");
+    }
+
     internal async Task<CreateUserResponse> CreateAsync(
         CancellationToken cancellationToken,
         CreateUserRequest? request = null)
@@ -137,20 +151,6 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
             $"{UsersPath}/{userId}/unblock",
             null,
             cancellationToken);
-    }
-
-    internal static CreateUserRequest CreateDefaultRequest(
-        string email = "hero@example.com",
-        string userName = "hero",
-        bool isConfirmed = true)
-    {
-        return new CreateUserRequest(
-            email,
-            userName,
-            "StrongPassword1!",
-            isConfirmed,
-            [],
-            "Active");
     }
 
     private async Task SendWithoutContentAsync(
