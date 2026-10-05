@@ -7,10 +7,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class UpdateUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "PUT unit should update details and faction with omitted or null ranged attack fields")]
+    [Theory(DisplayName = "PUT unit should update details and faction when ranged attack fields are omitted or null")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PutUnit_Should_UpdateDetailsAndFaction_When_RequestIsValid(bool omitFields)
+    public async Task PutUnit_Should_UpdateDetailsAndFaction_When_RangedAttackFieldsAreOmittedOrNull(bool omitFields)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);

@@ -7,10 +7,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "POST units should accept omitted or null ranged attack fields for a melee unit")]
+    [Theory(DisplayName = "POST units should create a melee unit when ranged attack fields are omitted or null")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PostUnits_Should_CreateMeleeUnit_When_RangedAttackFieldsAreOptional(bool omitFields)
+    public async Task PostUnits_Should_CreateMeleeUnit_When_RangedAttackFieldsAreOmittedOrNull(bool omitFields)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);

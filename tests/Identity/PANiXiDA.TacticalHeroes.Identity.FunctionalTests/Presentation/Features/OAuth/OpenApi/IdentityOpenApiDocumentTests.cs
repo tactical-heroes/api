@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET Identity OpenAPI document should require only mandatory PAR fields")]
+    [Fact(DisplayName = "GET Identity OpenAPI document should require only mandatory PAR fields when requested")]
     public async Task GetIdentityOpenApiDocument_Should_RequireOnlyMandatoryParFields_When_Requested()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -39,7 +39,7 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
         scopeTypes.ShouldContain("null");
     }
 
-    [Theory(DisplayName = "GET Compendium OpenAPI document should make ranged attack fields optional")]
+    [Theory(DisplayName = "GET Compendium OpenAPI document should make ranged attack fields optional when requested")]
     [InlineData("CreateUnitRequest")]
     [InlineData("UpdateUnitRequest")]
     public async Task GetCompendiumOpenApiDocument_Should_MakeRangedAttackFieldsOptional_When_Requested(
