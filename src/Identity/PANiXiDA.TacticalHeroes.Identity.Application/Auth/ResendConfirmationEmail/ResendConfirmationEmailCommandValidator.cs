@@ -6,7 +6,7 @@ public sealed class ResendConfirmationEmailCommandValidator : AbstractValidator<
 {
     public ResendConfirmationEmailCommandValidator()
     {
-        RuleFor(command => command.Email)
-            .MustBeValidDomainValue(Email.Create);
+        RuleFor(expression: command => command.Email)
+            .MustBeValidDomainValue(factory: Email.Create);
     }
 }

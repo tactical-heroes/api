@@ -62,7 +62,7 @@ public sealed partial class UnitCombatStats : ValueObject
             : Result.Failure(
                 error: Error.Validation(
                         message: "Unit maximum damage cannot be less than minimum damage.")
-                    .WithField(nameof(MaximumDamage)));
+                    .WithField(@field: nameof(MaximumDamage)));
         var initiativeResult = ValidateNonNegativeFinite(
             value: initiative,
             field: nameof(Initiative),
@@ -103,7 +103,7 @@ public sealed partial class UnitCombatStats : ValueObject
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(message: message)
-                    .WithField(field));
+                    .WithField(@field: field));
     }
 
     private static Result ValidatePositive(
@@ -115,7 +115,7 @@ public sealed partial class UnitCombatStats : ValueObject
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(message: message)
-                    .WithField(field));
+                    .WithField(@field: field));
     }
 
     private static Result ValidateNonNegativeFinite(
@@ -123,10 +123,10 @@ public sealed partial class UnitCombatStats : ValueObject
         string field,
         string message)
     {
-        return double.IsFinite(value) && value >= 0
+        return double.IsFinite(d: value) && value >= 0
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(message: message)
-                    .WithField(field));
+                    .WithField(@field: field));
     }
 }

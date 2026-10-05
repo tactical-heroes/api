@@ -7,7 +7,7 @@ public sealed class GetUnitDetailsQueryValidator
 {
     public GetUnitDetailsQueryValidator()
     {
-        RuleFor(query => query.Id)
-            .MustBeValidDomainValue(UnitId.Create);
+        RuleFor(expression: query => query.Id)
+            .MustBeValidDomainValue(factory: UnitId.Create);
     }
 }

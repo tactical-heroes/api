@@ -21,7 +21,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(builder.Route, HandleAsync)
+        builder.MapGet(pattern: builder.Route, handler: HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found)
             .Produces(StatusCodes.Status403Forbidden);
@@ -38,11 +38,11 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
             ?? throw new InvalidOperationException(message: "OpenIddict server request was not found.");
 
         var authenticationResult = await httpContext.AuthenticateAsync(
-            IdentityConstants.ApplicationScheme);
+            scheme: IdentityConstants.ApplicationScheme);
 
         if (!authenticationResult.Succeeded || authenticationResult.Principal is null)
         {
-            if (openIddictRequest.HasPromptValue(OpenIddictConstants.PromptValues.None))
+            if (openIddictRequest.HasPromptValue(value: OpenIddictConstants.PromptValues.None))
             {
                 return OAuthErrorResults.LoginRequired(description: "User is not authenticated.");
             }
@@ -60,8 +60,8 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var userResult = await mediator.QueryAsync(
-            AuthorizeMapper.ToQuery(id: userIdResult.Value),
-            httpContext.RequestAborted);
+            query: AuthorizeMapper.ToQuery(id: userIdResult.Value),
+            cancellationToken: httpContext.RequestAborted);
 
         if (userResult.IsFailure ||
             userResult.Value.IsBlocked ||

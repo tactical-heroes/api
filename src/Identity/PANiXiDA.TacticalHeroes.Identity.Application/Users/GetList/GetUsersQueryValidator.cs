@@ -6,15 +6,15 @@ public sealed class GetUsersQueryValidator : AbstractValidator<GetUsersQuery>
 {
     public GetUsersQueryValidator()
     {
-        RuleFor(query => query.Filter)
+        RuleFor(expression: query => query.Filter)
             .NotNull()
             .SetValidator(new UsersFilterValidator());
 
-        RuleFor(query => query.PaginationParameters)
+        RuleFor(expression: query => query.PaginationParameters)
             .NotNull()
             .SetValidator(new PaginationParametersValidator());
 
-        RuleFor(query => query.SortingParameters)
+        RuleFor(expression: query => query.SortingParameters)
             .NotNull()
             .SetValidator(new UserListItemReadModelSortingValidator());
     }

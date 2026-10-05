@@ -12,7 +12,7 @@ internal static class HttpConfiguration
     internal static WebApplicationBuilder AddHttp(
         this WebApplicationBuilder builder)
     {
-        builder.WebHost.ConfigureKestrel(options =>
+        builder.WebHost.ConfigureKestrel(options: options =>
         {
             options.Limits.MaxRequestBodySize = FilesConstants.FileRequestSizeLimit;
         });

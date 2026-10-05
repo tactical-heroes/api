@@ -15,10 +15,10 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
 {
     private IQueryable<UserReadDbModel> Query => dbContext.Set<UserReadDbModel>()
         .AsNoTracking()
-        .Include(user => user.Claims)
-        .Include(user => user.Roles)
-            .ThenInclude(userRole => userRole.Role)
-                .ThenInclude(role => role!.Claims)
+        .Include(navigationPropertyPath: user => user.Claims)
+        .Include(navigationPropertyPath: user => user.Roles)
+            .ThenInclude(navigationPropertyPath: userRole => userRole.Role)
+                .ThenInclude(navigationPropertyPath: role => role!.Claims)
         .AsSingleQuery();
 
     public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
@@ -26,7 +26,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         CancellationToken cancellationToken)
     {
         var applicationUser = await Query
-            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
+            .SingleOrDefaultAsync(predicate: user => user.Id == userId, cancellationToken: cancellationToken);
 
         if (applicationUser is null)
         {
@@ -34,7 +34,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 error: Error.NotFound(message: "User was not found."));
         }
 
-        var availabilityResult = EnsureAvailable(applicationUser);
+        var availabilityResult = EnsureAvailable(applicationUser: applicationUser);
 
         return availabilityResult.IsFailure
             ? Result.Failure<ExchangeTokenReadModel>(errors: availabilityResult.Errors)
@@ -48,7 +48,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         CancellationToken cancellationToken)
     {
         var applicationUser = await Query
-            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
+            .SingleOrDefaultAsync(predicate: user => user.Id == userId, cancellationToken: cancellationToken);
 
         if (applicationUser is null)
         {
@@ -56,7 +56,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 error: Error.NotFound(message: "User was not found."));
         }
 
-        var availabilityResult = EnsureAvailable(applicationUser);
+        var availabilityResult = EnsureAvailable(applicationUser: applicationUser);
 
         if (availabilityResult.IsFailure)
         {
@@ -66,10 +66,10 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         IReadOnlyCollection<string> roles =
         [
             .. applicationUser.Roles
-                .Select(userRole => userRole.Role?.Name)
-                .Where(roleName => !string.IsNullOrWhiteSpace(roleName))
-                .Select(roleName => roleName!)
-                .Distinct(StringComparer.Ordinal)
+                .Select(selector: userRole => userRole.Role?.Name)
+                .Where(predicate: roleName => !string.IsNullOrWhiteSpace(roleName))
+                .Select(selector: roleName => roleName!)
+                .Distinct(comparer: StringComparer.Ordinal)
         ];
 
         return Result.Success(

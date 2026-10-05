@@ -16,7 +16,7 @@ public sealed class User : AggregateRoot<UserId>
         Email email,
         UserName userName,
         UserStatus status)
-        : base(id)
+        : base(id: id)
     {
         Email = email;
         UserName = userName;
@@ -59,12 +59,12 @@ public sealed class User : AggregateRoot<UserId>
 
         foreach (var roleId in roleIds)
         {
-            user.AssignRole(roleId);
+            user.AssignRole(roleId: roleId);
         }
 
         foreach (var claim in claims)
         {
-            user.GrantClaim(claim);
+            user.GrantClaim(claim: claim);
         }
 
         return user;
@@ -79,7 +79,7 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         AddDomainEvent(
-            new EmailConfirmationRequested(
+            domainEvent: new EmailConfirmationRequested(
                 UserId: Id.Value,
                 Email: Email.Value,
                 ConfirmationToken: confirmationToken.Value,
@@ -98,7 +98,7 @@ public sealed class User : AggregateRoot<UserId>
         ConfirmationStatus = UserConfirmationStatus.Confirmed();
 
         AddDomainEvent(
-            new UserRegistered(
+            domainEvent: new UserRegistered(
                 UserId: Id.Value,
                 Email: Email.Value));
 
@@ -115,7 +115,7 @@ public sealed class User : AggregateRoot<UserId>
         }
 
         AddDomainEvent(
-            new PasswordResetRequested(
+            domainEvent: new PasswordResetRequested(
                 UserId: Id.Value,
                 Email: Email.Value,
                 PasswordResetToken: passwordResetToken.Value,
@@ -126,19 +126,19 @@ public sealed class User : AggregateRoot<UserId>
 
     public void AssignRole(RoleId roleId)
     {
-        if (!_roleIds.Contains(roleId))
+        if (!_roleIds.Contains(item: roleId))
         {
-            _roleIds.Add(roleId);
+            _roleIds.Add(item: roleId);
         }
     }
 
     public void GrantClaim(UserClaim claim)
     {
-        if (_claims.Any(existing => existing.Type == claim.Type && existing.Value == claim.Value))
+        if (_claims.Any(predicate: existing => existing.Type == claim.Type && existing.Value == claim.Value))
         {
             return;
         }
 
-        _claims.Add(claim);
+        _claims.Add(item: claim);
     }
 }

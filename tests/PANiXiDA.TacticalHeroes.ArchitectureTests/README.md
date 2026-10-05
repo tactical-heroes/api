@@ -525,11 +525,11 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Глобальные соглашения
 
-99. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
-    аргументы `null`, `default`, `true` и `false`, а также все аргументы вызова
-    с тремя и более аргументами в авторских C#-исходниках из `src` должны
-    передаваться по имени параметра. Вызовы методов `System.String`, вызовы с
-    `params`, `nameof`, EF migrations, `bin`, `obj` и `Generated` не проверяются.
+99. `InvocationAndConstructorArguments_Should_BeNamed_When_Declared` —
+    все аргументы вызовов методов и конструкторов в авторских C#-исходниках
+    из `src` должны передаваться по имени параметра. Вызовы методов
+    `System.String`, вызовы с `params`, `nameof`, EF migrations, `bin`, `obj`
+    и `Generated` не проверяются.
 
 100. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
     авторских C#-исходниках из `src` должно получаться через

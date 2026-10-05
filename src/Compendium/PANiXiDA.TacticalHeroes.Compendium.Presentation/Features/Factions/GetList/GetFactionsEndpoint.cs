@@ -10,9 +10,9 @@ internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(builder.Route, HandleAsync)
+        builder.MapGet(pattern: builder.Route, handler: HandleAsync)
             .Produces<PaginationResult<FactionListItemResponse>>(StatusCodes.Status200OK)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest);
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -22,10 +22,10 @@ internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetFactionsMapper.ToQuery(
+            query: GetFactionsMapper.ToQuery(
                 paginationParameters: paginationParameters,
                 sortingParameters: sortingParameters),
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>
             TypedResults.Ok(value: GetFactionsMapper.ToResponse(page: page)));

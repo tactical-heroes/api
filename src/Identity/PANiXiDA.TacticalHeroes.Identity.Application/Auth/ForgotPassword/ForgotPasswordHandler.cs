@@ -10,7 +10,7 @@ public sealed class ForgotPasswordHandler(IUserCredentialsService userCredential
         CancellationToken cancellationToken)
     {
         return userCredentialsService.ForgotPasswordAsync(
-            command.Email,
-            cancellationToken);
+            email: command.Email,
+            cancellationToken: cancellationToken);
     }
 }

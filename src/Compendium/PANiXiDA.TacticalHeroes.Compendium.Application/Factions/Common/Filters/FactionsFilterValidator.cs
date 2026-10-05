@@ -6,8 +6,8 @@ public sealed class FactionsFilterValidator : AbstractValidator<FactionsFilter>
 {
     public FactionsFilterValidator()
     {
-        RuleFor(filter => filter.Search == null ? null : filter.Search.Trim())
-            .Length(3, FactionName.MaxLength)
-            .OverridePropertyName(nameof(FactionsFilter.Search));
+        RuleFor(expression: filter => filter.Search == null ? null : filter.Search.Trim())
+            .Length(min: 3, max: FactionName.MaxLength)
+            .OverridePropertyName(propertyName: nameof(FactionsFilter.Search));
     }
 }

@@ -7,14 +7,14 @@ public sealed class CreateUnitCommandValidator : AbstractValidator<CreateUnitCom
 {
     public CreateUnitCommandValidator()
     {
-        RuleFor(command => command.Name)
-            .MustBeValidDomainValue(UnitName.Create);
+        RuleFor(expression: command => command.Name)
+            .MustBeValidDomainValue(factory: UnitName.Create);
 
-        RuleFor(command => command.Description)
-            .MustBeValidDomainValue(UnitDescription.Create);
+        RuleFor(expression: command => command.Description)
+            .MustBeValidDomainValue(factory: UnitDescription.Create);
 
-        RuleFor(command => command)
-            .MustBeValidDomainResult(command => UnitCombatStats.Create(
+        RuleFor(expression: command => command)
+            .MustBeValidDomainResult(factory: command => UnitCombatStats.Create(
                 attack: command.Attack,
                 defense: command.Defense,
                 health: command.Health,
@@ -23,18 +23,18 @@ public sealed class CreateUnitCommandValidator : AbstractValidator<CreateUnitCom
                 initiative: command.Initiative,
                 speed: command.Speed));
 
-        RuleFor(command => command)
-            .MustBeValidDomainResult(command => UnitRangedAttack.Create(
+        RuleFor(expression: command => command)
+            .MustBeValidDomainResult(factory: command => UnitRangedAttack.Create(
                 shots: command.Shots,
                 rangedAttackRange: command.RangedAttackRange));
 
-        RuleFor(command => command.Morale)
-            .MustBeValidDomainValue(UnitMorale.Create);
+        RuleFor(expression: command => command.Morale)
+            .MustBeValidDomainValue(factory: UnitMorale.Create);
 
-        RuleFor(command => command.Luck)
-            .MustBeValidDomainValue(UnitLuck.Create);
+        RuleFor(expression: command => command.Luck)
+            .MustBeValidDomainValue(factory: UnitLuck.Create);
 
-        RuleFor(command => command.FactionId)
-            .MustBeValidDomainValue(FactionId.Create);
+        RuleFor(expression: command => command.FactionId)
+            .MustBeValidDomainValue(factory: FactionId.Create);
     }
 }

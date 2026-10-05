@@ -19,6 +19,6 @@ public sealed partial class UnitLuck : ValueObject
             : Result.Failure<UnitLuck>(
                 error: Error.Validation(
                         message: $"Unit luck must be between {Minimum} and {Maximum}.")
-                    .WithField(nameof(UnitLuck)));
+                    .WithField(@field: nameof(UnitLuck)));
     }
 }

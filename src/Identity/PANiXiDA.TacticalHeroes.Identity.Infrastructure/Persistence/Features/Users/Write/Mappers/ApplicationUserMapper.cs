@@ -52,7 +52,7 @@ internal static class ApplicationUserMapper
     {
         return
         [
-            .. claims.Select(claim => new ApplicationUserClaim
+            .. claims.Select(selector: claim => new ApplicationUserClaim
             {
                 UserId = userId,
                 ClaimType = claim.Type.Value,
@@ -76,7 +76,7 @@ internal static class ApplicationUserMapper
 
         var domainRoleIds = new List<RoleId>();
 
-        foreach (var roleId in user.Roles.Select(role => role.RoleId))
+        foreach (var roleId in user.Roles.Select(selector: role => role.RoleId))
         {
             var roleIdResult = RoleId.Create(value: roleId);
 
@@ -85,7 +85,7 @@ internal static class ApplicationUserMapper
                 return Result.Failure<User>(errors: roleIdResult.Errors);
             }
 
-            domainRoleIds.Add(roleIdResult.Value);
+            domainRoleIds.Add(item: roleIdResult.Value);
         }
 
         var domainClaims = new List<UserClaim>();
@@ -101,7 +101,7 @@ internal static class ApplicationUserMapper
                 return Result.Failure<User>(errors: claimResult.Errors);
             }
 
-            domainClaims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
+            domainClaims.Add(item: UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
         return Result.Success(value: User.Create(
@@ -118,7 +118,7 @@ internal static class ApplicationUserMapper
     {
         return
         [
-            .. user.RoleIds.Select(roleId => new ApplicationUserRole
+            .. user.RoleIds.Select(selector: roleId => new ApplicationUserRole
             {
                 UserId = user.Id.Value,
                 RoleId = roleId.Value

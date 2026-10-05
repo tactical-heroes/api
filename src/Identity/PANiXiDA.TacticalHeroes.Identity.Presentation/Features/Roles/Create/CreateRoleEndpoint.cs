@@ -12,11 +12,11 @@ internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(builder.Route, HandleAsync)
+        builder.MapPost(pattern: builder.Route, handler: HandleAsync)
             .Produces<CreateRoleResponse>(StatusCodes.Status201Created)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesProblem(statusCode: StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -25,8 +25,8 @@ internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            CreateRoleMapper.ToCommand(request: request),
-            cancellationToken);
+            command: CreateRoleMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(

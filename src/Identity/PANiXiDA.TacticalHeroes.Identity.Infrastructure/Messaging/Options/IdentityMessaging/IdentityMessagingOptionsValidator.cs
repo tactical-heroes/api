@@ -32,22 +32,22 @@ internal sealed class IdentityMessagingOptionsValidator
     {
         if (string.IsNullOrWhiteSpace(template))
         {
-            failures.Add($"{path} must not be empty.");
+            failures.Add(item: $"{path} must not be empty.");
             return;
         }
 
         if (!template.Contains("{userId}", StringComparison.Ordinal))
         {
-            failures.Add($"{path} must contain the '{{userId}}' placeholder.");
+            failures.Add(item: $"{path} must contain the '{{userId}}' placeholder.");
         }
 
         if (!template.Contains("{token}", StringComparison.Ordinal))
         {
-            failures.Add($"{path} must contain the '{{token}}' placeholder.");
+            failures.Add(item: $"{path} must contain the '{{token}}' placeholder.");
         }
 
         var sampleUrl = template
-            .Replace("{userId}", Guid.Empty.ToString("D"), StringComparison.Ordinal)
+            .Replace("{userId}", Guid.Empty.ToString(format: "D"), StringComparison.Ordinal)
             .Replace("{token}", "token", StringComparison.Ordinal);
 
         if (!Uri.TryCreate(
@@ -57,7 +57,7 @@ internal sealed class IdentityMessagingOptionsValidator
             !IsHttpScheme(uri: uri) ||
             string.IsNullOrWhiteSpace(uri.Host))
         {
-            failures.Add($"{path} must be an absolute HTTP/HTTPS URL template with a host.");
+            failures.Add(item: $"{path} must be an absolute HTTP/HTTPS URL template with a host.");
         }
     }
 

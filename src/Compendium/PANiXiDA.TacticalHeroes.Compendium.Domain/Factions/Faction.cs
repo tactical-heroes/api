@@ -8,7 +8,7 @@ public sealed class Faction : AggregateRoot<FactionId>
         FactionId id,
         FactionName name,
         FactionDescription description)
-        : base(id)
+        : base(id: id)
     {
         Name = name;
         Description = description;

@@ -3,7 +3,7 @@ using JasperFx;
 using PANiXiDA.TacticalHeroes.Host.Configurations;
 using PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args: args);
 
 builder.AddObservability();
 builder.AddHttp();
@@ -18,4 +18,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttp();
 
-return await app.RunJasperFxCommands(args);
+return await app.RunJasperFxCommands(args: args);

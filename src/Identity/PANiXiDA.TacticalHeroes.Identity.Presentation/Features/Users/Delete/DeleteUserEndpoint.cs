@@ -10,11 +10,11 @@ internal sealed class DeleteUserEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapDelete(builder.Route, HandleAsync)
+        builder.MapDelete(pattern: builder.Route, handler: HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -23,8 +23,8 @@ internal sealed class DeleteUserEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            DeleteUserMapper.ToCommand(id: id),
-            cancellationToken);
+            command: DeleteUserMapper.ToCommand(id: id),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

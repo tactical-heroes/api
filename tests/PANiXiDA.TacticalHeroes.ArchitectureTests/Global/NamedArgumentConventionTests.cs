@@ -6,8 +6,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class NamedArgumentConventionTests
 {
-    [Fact(DisplayName = "Invocation and constructor arguments should be named when ambiguous")]
-    public async Task InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous()
+    [Fact(DisplayName = "Invocation and constructor arguments should be named when declared")]
+    public async Task InvocationAndConstructorArguments_Should_BeNamed_When_Declared()
     {
         var arguments = await NamedArgumentSourceDiscovery.GetArgumentsAsync();
         var violations = arguments
@@ -15,7 +15,7 @@ public sealed class NamedArgumentConventionTests
             .Select(argument =>
                 $"{argument.RelativePath}:{argument.LineNumber}: argument " +
                 $"'{argument.Argument}' passed to '{argument.Call}' must be " +
-                $"named because {argument.Requirement}.")
+                "named.")
             .ToArray();
 
         Assert.NotEmpty(arguments);
@@ -27,12 +27,45 @@ public sealed class NamedArgumentConventionTests
                     Environment.NewLine,
                     violations.Take(count: 100)));
     }
+
+    [Theory(DisplayName = "Invocation and constructor arguments should require names when source calls vary")]
+    [InlineData("class C { void M(int value) {} void Test() => M(1); }", 1)]
+    [InlineData("class C { void M(int first, int second) {} void Test() => M(1, 2); }", 2)]
+    [InlineData("class C { void M(int first, int second, int third) {} void Test() => M(1, 2, 3); }", 3)]
+    [InlineData("class C { void M(int first, int second) {} void Test() => M(first: 1, 2); }", 1)]
+    [InlineData("class C { void M(int value) {} void Test() => M(value: 1); }", 0)]
+    [InlineData("class C { public C(int value) {} C Test() => new C(1); }", 1)]
+    [InlineData("class C { public C(int value) {} C Test() => new(1); }", 1)]
+    [InlineData("class C { public C(int value) {} C Test() => new(value: 1); }", 0)]
+    [InlineData("class C { C(int value) {} C() : this(1) {} }", 1)]
+    [InlineData("class B { public B(int value) {} } class C : B { C() : base(1) {} }", 1)]
+    [InlineData("class B(int value); class C(int value) : B(value);", 1)]
+    [InlineData("class C { void M(int value, params int[] rest) {} void Test() => M(1, 2, 3); }", 0)]
+    [InlineData("class C { bool Test() => string.Equals(\"first\", \"second\"); }", 0)]
+    [InlineData("class C { string Test() => nameof(C); }", 0)]
+    public void InvocationAndConstructorArguments_Should_RequireNames_When_SourceCallsVary(string source, int expectedViolations)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "NamedArgumentProbe",
+            syntaxTrees: [tree],
+            references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+
+        var arguments = NamedArgumentSourceDiscovery.GetArguments(
+            tree.GetRoot(cancellationToken),
+            compilation.GetSemanticModel(tree),
+            "Sample.cs");
+        var violations = arguments.Count(argument => argument.RequiresName && !argument.IsNamed);
+
+        Assert.Equal(expectedViolations, violations);
+    }
 }
 
 internal static class NamedArgumentSourceDiscovery
 {
-    private const int NamedArgumentsRequiredFromCount = 3;
-
     internal static async Task<NamedArgumentSource[]> GetArgumentsAsync()
     {
         var arguments = await ProductionSourceDocumentDiscovery
@@ -46,6 +79,23 @@ internal static class NamedArgumentSourceDiscovery
                     argument => argument.RelativePath,
                     StringComparer.Ordinal)
                 .ThenBy(argument => argument.Position)
+        ];
+    }
+
+    internal static NamedArgumentSource[] GetArguments(
+        SyntaxNode root,
+        SemanticModel semanticModel,
+        string relativePath)
+    {
+        return
+        [
+            .. root
+                .DescendantNodes()
+                .SelectMany(node =>
+                    GetNodeArguments(
+                        relativePath,
+                        semanticModel,
+                        node))
         ];
     }
 
@@ -69,16 +119,7 @@ internal static class NamedArgumentSourceDiscovery
             repositoryRoot,
             sourceFile);
 
-        return
-        [
-            .. root
-                .DescendantNodes()
-                .SelectMany(node =>
-                    GetNodeArguments(
-                        relativePath,
-                        semanticModel,
-                        node))
-        ];
+        return GetArguments(root, semanticModel, relativePath);
     }
 
     private static IEnumerable<NamedArgumentSource> GetNodeArguments(
@@ -144,20 +185,11 @@ internal static class NamedArgumentSourceDiscovery
         var callIsSystemString =
             method?.ContainingType.SpecialType ==
             SpecialType.System_String;
-        var allArgumentsRequireNames =
-            arguments.Count >= NamedArgumentsRequiredFromCount;
-
         return arguments.Select(argument =>
         {
-            var isAmbiguousLiteral = IsAmbiguousLiteral(
-                argument.Expression);
             var requiresName =
                 !callHasParamsParameter &&
-                !callIsSystemString &&
-                (isAmbiguousLiteral || allArgumentsRequireNames);
-            var requirement = isAmbiguousLiteral
-                ? "null, default and boolean literals are ambiguous"
-                : $"the call declares {arguments.Count} arguments";
+                !callIsSystemString;
 
             return new NamedArgumentSource(
                 RelativePath: relativePath,
@@ -169,8 +201,7 @@ internal static class NamedArgumentSourceDiscovery
                 Call: call,
                 Argument: argument.Expression.ToString(),
                 IsNamed: argument.NameColon is not null,
-                RequiresName: requiresName,
-                Requirement: requirement);
+                RequiresName: requiresName);
         });
     }
 
@@ -184,38 +215,6 @@ internal static class NamedArgumentSourceDiscovery
             ?? symbolInfo.CandidateSymbols
                 .OfType<IMethodSymbol>()
                 .SingleOrDefault();
-    }
-
-    private static bool IsAmbiguousLiteral(ExpressionSyntax expression)
-    {
-        var unwrappedExpression = UnwrapExpression(expression);
-
-        return unwrappedExpression.IsKind(
-                   SyntaxKind.NullLiteralExpression) ||
-               unwrappedExpression.IsKind(
-                   SyntaxKind.DefaultLiteralExpression) ||
-               unwrappedExpression.IsKind(
-                   SyntaxKind.TrueLiteralExpression) ||
-               unwrappedExpression.IsKind(
-                   SyntaxKind.FalseLiteralExpression) ||
-               unwrappedExpression is DefaultExpressionSyntax;
-    }
-
-    private static ExpressionSyntax UnwrapExpression(
-        ExpressionSyntax expression)
-    {
-        return expression switch
-        {
-            ParenthesizedExpressionSyntax parenthesized =>
-                UnwrapExpression(parenthesized.Expression),
-            CastExpressionSyntax cast =>
-                UnwrapExpression(cast.Expression),
-            PostfixUnaryExpressionSyntax postfix
-                when postfix.IsKind(
-                    SyntaxKind.SuppressNullableWarningExpression) =>
-                UnwrapExpression(postfix.Operand),
-            _ => expression
-        };
     }
 
     private static bool IsNameOf(InvocationExpressionSyntax invocation)
@@ -235,5 +234,4 @@ internal sealed record NamedArgumentSource(
     string Call,
     string Argument,
     bool IsNamed,
-    bool RequiresName,
-    string Requirement);
+    bool RequiresName);

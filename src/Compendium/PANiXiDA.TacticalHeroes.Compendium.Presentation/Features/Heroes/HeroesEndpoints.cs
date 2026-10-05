@@ -15,7 +15,7 @@ internal sealed class HeroesEndpoints : IEndpointGroup
     public void Map(IEndpointRouteBuilder endpoints)
     {
         EndpointMapper
-            .MapGroupEndpoints<HeroesEndpoints>(endpoints)
+            .MapGroupEndpoints<HeroesEndpoints>(endpoints: endpoints)
             .RequireAuthorization();
     }
 }

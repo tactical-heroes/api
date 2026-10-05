@@ -11,7 +11,7 @@ public sealed class PasswordResetNotificationRequestedHandler(
         CancellationToken cancellationToken)
     {
         return emailSender.SendAsync(
-            EmailNotificationMessageFactory.Create(domainEvent),
-            cancellationToken);
+            message: EmailNotificationMessageFactory.Create(domainEvent: domainEvent),
+            cancellationToken: cancellationToken);
     }
 }

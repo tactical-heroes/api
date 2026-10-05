@@ -22,7 +22,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
 
         if (validationResult.IsFailure)
         {
-            return Task.FromResult(Result.Failure(errors: validationResult.Errors));
+            return Task.FromResult(result: Result.Failure(errors: validationResult.Errors));
         }
 
         var claims = new List<UserClaim>();
@@ -35,10 +35,10 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
 
             if (claimResult.IsFailure)
             {
-                return Task.FromResult(Result.Failure(errors: claimResult.Errors));
+                return Task.FromResult(result: Result.Failure(errors: claimResult.Errors));
             }
 
-            claims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
+            claims.Add(item: UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
         var user = User.Create(

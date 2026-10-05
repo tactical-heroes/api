@@ -21,7 +21,7 @@ public sealed class CreateUserHandler(IUsersRepository usersRepository)
 
         if (validationResult.IsFailure)
         {
-            return Task.FromResult(Result.Failure<Guid>(errors: validationResult.Errors));
+            return Task.FromResult(result: Result.Failure<Guid>(errors: validationResult.Errors));
         }
 
         var claims = new List<UserClaim>();
@@ -34,10 +34,10 @@ public sealed class CreateUserHandler(IUsersRepository usersRepository)
 
             if (claimResult.IsFailure)
             {
-                return Task.FromResult(Result.Failure<Guid>(errors: claimResult.Errors));
+                return Task.FromResult(result: Result.Failure<Guid>(errors: claimResult.Errors));
             }
 
-            claims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
+            claims.Add(item: UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
         var user = User.Create(

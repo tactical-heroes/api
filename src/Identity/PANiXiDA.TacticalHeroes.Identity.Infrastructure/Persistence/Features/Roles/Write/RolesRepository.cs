@@ -34,7 +34,7 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        aggregateTracker.Track(role);
+        aggregateTracker.Track(aggregateRoot: role);
 
         return Result.Success(value: applicationRole.Id);
     }
@@ -44,8 +44,8 @@ public sealed class RolesRepository(
         CancellationToken cancellationToken)
     {
         var applicationRole = await roleManager.Roles
-            .Include(item => item.Claims)
-            .SingleOrDefaultAsync(item => item.Id == role.Id.Value, cancellationToken);
+            .Include(navigationPropertyPath: item => item.Claims)
+            .SingleOrDefaultAsync(predicate: item => item.Id == role.Id.Value, cancellationToken: cancellationToken);
 
         if (applicationRole is null)
         {
@@ -60,14 +60,14 @@ public sealed class RolesRepository(
             applicationRole: applicationRole,
             role: role);
 
-        var identityResult = await roleManager.UpdateAsync(applicationRole);
+        var identityResult = await roleManager.UpdateAsync(role: applicationRole);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(role);
+        aggregateTracker.Track(aggregateRoot: role);
 
         return Result.Success();
     }
@@ -77,8 +77,8 @@ public sealed class RolesRepository(
         CancellationToken cancellationToken)
     {
         var applicationRole = await roleManager.Roles
-            .Include(role => role.Claims)
-            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
+            .Include(navigationPropertyPath: role => role.Claims)
+            .SingleOrDefaultAsync(predicate: role => role.Id == id, cancellationToken: cancellationToken);
 
         if (applicationRole is null)
         {
@@ -92,14 +92,14 @@ public sealed class RolesRepository(
             return Result.Failure(errors: roleResult.Errors);
         }
 
-        var identityResult = await roleManager.DeleteAsync(applicationRole);
+        var identityResult = await roleManager.DeleteAsync(role: applicationRole);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(roleResult.Value);
+        aggregateTracker.Track(aggregateRoot: roleResult.Value);
 
         return Result.Success();
     }
@@ -117,19 +117,19 @@ public sealed class RolesRepository(
 
         foreach (var currentClaim in applicationRole.Claims.ToArray())
         {
-            if (targetClaims.Any(targetClaim =>
+            if (targetClaims.Any(predicate: targetClaim =>
                     string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
                     string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
 
-            dbContext.Set<ApplicationRoleClaim>().Remove(currentClaim);
+            dbContext.Set<ApplicationRoleClaim>().Remove(entity: currentClaim);
         }
 
         foreach (var targetClaim in targetClaims)
         {
-            if (applicationRole.Claims.Any(currentClaim =>
+            if (applicationRole.Claims.Any(predicate: currentClaim =>
                     string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
                     string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
             {

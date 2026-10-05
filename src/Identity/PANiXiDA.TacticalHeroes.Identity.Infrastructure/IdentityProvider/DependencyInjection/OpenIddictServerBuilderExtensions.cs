@@ -21,11 +21,11 @@ internal static class OpenIddictServerBuilderExtensions
     {
         builder.Services.AddOptions<OpenIddictServerOptions>().ValidateOnStart();
 
-        var validation = new IdentityProviderCertificatesOptionsValidator(environment).Validate(name: null, options: options);
+        var validation = new IdentityProviderCertificatesOptionsValidator(environment: environment).Validate(name: null, options: options);
 
         if (validation.Failed)
         {
-            builder.Configure(_ => throw new OptionsValidationException(
+            builder.Configure(configuration: _ => throw new OptionsValidationException(
                 optionsName: Microsoft.Extensions.Options.Options.DefaultName,
                 optionsType: typeof(IdentityProviderOptions),
                 failureMessages: validation.Failures));
@@ -41,16 +41,16 @@ internal static class OpenIddictServerBuilderExtensions
 
         for (var index = 0; index < options.SigningCertificates.Count; index++)
         {
-            builder.AddSigningCertificate(LoadCertificate(
-                options.SigningCertificates[index],
-                $"{IdentityProviderOptions.SectionName}:SigningCertificates:{index}"));
+            builder.AddSigningCertificate(certificate: LoadCertificate(
+                options: options.SigningCertificates[index],
+                path: $"{IdentityProviderOptions.SectionName}:SigningCertificates:{index}"));
         }
 
         for (var index = 0; index < options.EncryptionCertificates.Count; index++)
         {
-            builder.AddEncryptionCertificate(LoadCertificate(
-                options.EncryptionCertificates[index],
-                $"{IdentityProviderOptions.SectionName}:EncryptionCertificates:{index}"));
+            builder.AddEncryptionCertificate(certificate: LoadCertificate(
+                options: options.EncryptionCertificates[index],
+                path: $"{IdentityProviderOptions.SectionName}:EncryptionCertificates:{index}"));
         }
     }
 
@@ -59,13 +59,13 @@ internal static class OpenIddictServerBuilderExtensions
         try
         {
             return X509CertificateLoader.LoadPkcs12(
-                data: Convert.FromBase64String(options.PfxBase64),
+                data: Convert.FromBase64String(s: options.PfxBase64),
                 password: options.Password,
                 keyStorageFlags: X509KeyStorageFlags.EphemeralKeySet);
         }
         catch (Exception exception) when (exception is FormatException or CryptographicException)
         {
-            throw new InvalidOperationException($"{path} must contain a valid PFX and its password.", exception);
+            throw new InvalidOperationException(message: $"{path} must contain a valid PFX and its password.", innerException: exception);
         }
     }
 }

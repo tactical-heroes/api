@@ -12,9 +12,9 @@ internal sealed class GetFactionSelectOptionsEndpoint : IEndpoint<FactionsEndpoi
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(builder.Route, HandleAsync)
+        builder.MapGet(pattern: builder.Route, handler: HandleAsync)
             .Produces<IReadOnlyList<FactionSelectOptionResponse>>(StatusCodes.Status200OK)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest);
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -24,10 +24,10 @@ internal sealed class GetFactionSelectOptionsEndpoint : IEndpoint<FactionsEndpoi
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetFactionSelectOptionsMapper.ToQuery(
+            query: GetFactionSelectOptionsMapper.ToQuery(
                 request: request,
                 limit: limit),
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: options =>
             TypedResults.Ok(value: GetFactionSelectOptionsMapper.ToResponse(options: options)));

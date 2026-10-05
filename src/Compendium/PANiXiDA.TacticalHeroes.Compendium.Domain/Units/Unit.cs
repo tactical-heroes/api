@@ -12,7 +12,7 @@ public sealed class Unit : AggregateRoot<UnitId>
         UnitMorale morale,
         UnitLuck luck,
         FactionId factionId)
-        : base(id)
+        : base(id: id)
     {
         Name = name;
         Description = description;

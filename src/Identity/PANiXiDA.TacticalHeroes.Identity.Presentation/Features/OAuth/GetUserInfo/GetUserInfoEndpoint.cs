@@ -43,8 +43,8 @@ internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var result = await mediator.QueryAsync(
-            GetUserInfoMapper.ToQuery(userId: userIdResult.Value),
-            cancellationToken);
+            query: GetUserInfoMapper.ToQuery(userId: userIdResult.Value),
+            cancellationToken: cancellationToken);
 
         if (result.IsFailure)
         {

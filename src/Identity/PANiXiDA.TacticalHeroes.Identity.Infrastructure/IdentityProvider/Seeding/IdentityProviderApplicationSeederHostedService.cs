@@ -12,7 +12,7 @@ internal sealed class IdentityProviderApplicationSeederHostedService(
         await using var scope = serviceScopeFactory.CreateAsyncScope();
         var seeder = scope.ServiceProvider.GetRequiredService<IdentityProviderApplicationSeeder>();
 
-        await seeder.SeedAsync(cancellationToken);
+        await seeder.SeedAsync(cancellationToken: cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

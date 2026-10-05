@@ -10,9 +10,9 @@ internal sealed class GetUsersEndpoint : IEndpoint<UsersEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(builder.Route, HandleAsync)
+        builder.MapGet(pattern: builder.Route, handler: HandleAsync)
             .Produces<PaginationResult<UserListItemResponse>>(StatusCodes.Status200OK)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
@@ -24,11 +24,11 @@ internal sealed class GetUsersEndpoint : IEndpoint<UsersEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetUsersMapper.ToQuery(
+            query: GetUsersMapper.ToQuery(
                 request: request,
                 paginationParameters: paginationParameters,
                 sortingParameters: sortingParameters),
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: page =>
             TypedResults.Ok(value: GetUsersMapper.ToResponse(page: page)));

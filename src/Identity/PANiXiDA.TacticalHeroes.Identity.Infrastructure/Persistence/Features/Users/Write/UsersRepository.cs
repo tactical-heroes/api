@@ -38,7 +38,7 @@ public sealed class UsersRepository(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        aggregateTracker.Track(user);
+        aggregateTracker.Track(aggregateRoot: user);
 
         return Result.Success(value: applicationUser.Id);
     }
@@ -49,7 +49,7 @@ public sealed class UsersRepository(
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(item => item.Id == user.Id.Value, cancellationToken);
+            .SingleOrDefaultAsync(predicate: item => item.Id == user.Id.Value, cancellationToken: cancellationToken);
 
         if (applicationUser is null)
         {
@@ -66,17 +66,17 @@ public sealed class UsersRepository(
 
         if (user.Status.IsBlocked)
         {
-            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
+            await RevokeAllTokensAsync(id: user.Id.Value, cancellationToken: cancellationToken);
         }
 
-        var identityResult = await userManager.UpdateAsync(applicationUser);
+        var identityResult = await userManager.UpdateAsync(user: applicationUser);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(user);
+        aggregateTracker.Track(aggregateRoot: user);
 
         return Result.Success();
     }
@@ -87,7 +87,7 @@ public sealed class UsersRepository(
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+            .SingleOrDefaultAsync(predicate: user => user.Id == id, cancellationToken: cancellationToken);
 
         if (applicationUser is null)
         {
@@ -101,15 +101,15 @@ public sealed class UsersRepository(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        await RevokeAllTokensAsync(id, cancellationToken);
-        var identityResult = await userManager.DeleteAsync(applicationUser);
+        await RevokeAllTokensAsync(id: id, cancellationToken: cancellationToken);
+        var identityResult = await userManager.DeleteAsync(user: applicationUser);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success();
     }
@@ -138,7 +138,7 @@ public sealed class UsersRepository(
         UserStatus status,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(id.ToString());
+        var applicationUser = await userManager.FindByIdAsync(userId: id.ToString());
 
         if (applicationUser is null)
         {
@@ -147,12 +147,12 @@ public sealed class UsersRepository(
 
         if (status.IsBlocked)
         {
-            await RevokeAllTokensAsync(id, cancellationToken);
+            await RevokeAllTokensAsync(id: id, cancellationToken: cancellationToken);
         }
 
         applicationUser.Status = status.Name;
         applicationUser.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
-        var identityResult = await userManager.UpdateAsync(applicationUser);
+        var identityResult = await userManager.UpdateAsync(user: applicationUser);
 
         return IdentityResultMapper.ToResult(result: identityResult);
     }
@@ -161,7 +161,7 @@ public sealed class UsersRepository(
         Guid id,
         CancellationToken cancellationToken)
     {
-        await tokenManager.RevokeBySubjectAsync(id.ToString(), cancellationToken);
+        await tokenManager.RevokeBySubjectAsync(subject: id.ToString(), cancellationToken: cancellationToken);
     }
 
     private void SyncClaims(
@@ -174,19 +174,19 @@ public sealed class UsersRepository(
 
         foreach (var currentClaim in applicationUser.Claims.ToArray())
         {
-            if (targetClaims.Any(targetClaim =>
+            if (targetClaims.Any(predicate: targetClaim =>
                     string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
                     string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
 
-            dbContext.Set<ApplicationUserClaim>().Remove(currentClaim);
+            dbContext.Set<ApplicationUserClaim>().Remove(entity: currentClaim);
         }
 
         foreach (var targetClaim in targetClaims)
         {
-            if (applicationUser.Claims.Any(currentClaim =>
+            if (applicationUser.Claims.Any(predicate: currentClaim =>
                     string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
                     string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
             {

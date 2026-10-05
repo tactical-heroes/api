@@ -19,6 +19,6 @@ public sealed partial class UnitMorale : ValueObject
             : Result.Failure<UnitMorale>(
                 error: Error.Validation(
                         message: $"Unit morale must be between {Minimum} and {Maximum}.")
-                    .WithField(nameof(UnitMorale)));
+                    .WithField(@field: nameof(UnitMorale)));
     }
 }

@@ -10,11 +10,11 @@ internal sealed class ConfirmEmailEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(builder.Route, HandleAsync)
+        builder.MapPost(pattern: builder.Route, handler: HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -23,8 +23,8 @@ internal sealed class ConfirmEmailEndpoint : IEndpoint<AuthEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            ConfirmEmailMapper.ToCommand(request: request),
-            cancellationToken);
+            command: ConfirmEmailMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

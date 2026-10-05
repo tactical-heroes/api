@@ -16,12 +16,12 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(builder.Route, HandleAsync)
+        builder.MapPost(pattern: builder.Route, handler: HandleAsync)
             .AllowAnonymous()
             .Produces(StatusCodes.Status302Found)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status403Forbidden);
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
+            .ProducesProblem(statusCode: StatusCodes.Status401Unauthorized)
+            .ProducesProblem(statusCode: StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -42,8 +42,8 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         }
 
         var result = await mediator.SendAsync(
-            LoginMapper.ToCommand(request: request),
-            cancellationToken);
+            command: LoginMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         if (result.IsFailure)
         {
@@ -51,8 +51,8 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
         }
 
         await httpContext.SignInAsync(
-            IdentityConstants.ApplicationScheme,
-            LoginMapper.ToClaimsPrincipal(user: result.Value));
+            scheme: IdentityConstants.ApplicationScheme,
+            principal: LoginMapper.ToClaimsPrincipal(user: result.Value));
 
         return TypedResults.Redirect(url: request.ReturnUrl);
     }

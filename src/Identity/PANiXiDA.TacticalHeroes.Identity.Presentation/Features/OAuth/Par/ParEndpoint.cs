@@ -13,7 +13,7 @@ internal sealed class ParEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(builder.Route, Handle)
+        builder.MapPost(pattern: builder.Route, handler: Handle)
             .AllowAnonymous()
             .Accepts<ParRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<ParResponse>(StatusCodes.Status201Created)

@@ -9,7 +9,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Her
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read;
 
 public sealed class HeroesReadRepository(CompendiumReadDbContext dbContext)
-    : EfReadRepository<CompendiumReadDbContext, Guid, HeroReadDbModel>(dbContext),
+    : EfReadRepository<CompendiumReadDbContext, Guid, HeroReadDbModel>(dbContext: dbContext),
     IHeroesReadRepository
 {
     public Task<PaginationResult<HeroListItemReadModel>> GetPageAsync(

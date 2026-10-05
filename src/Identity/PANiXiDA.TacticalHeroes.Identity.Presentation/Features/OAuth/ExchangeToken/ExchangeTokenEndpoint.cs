@@ -22,7 +22,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(builder.Route, HandleAsync)
+        builder.MapPost(pattern: builder.Route, handler: HandleAsync)
             .AllowAnonymous()
             .Accepts<ExchangeTokenRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces<ExchangeTokenResponse>(StatusCodes.Status200OK)
@@ -91,7 +91,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         CancellationToken cancellationToken)
     {
         var authenticationResult = await httpContext.AuthenticateAsync(
-            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            scheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         var userIdResult = authenticationResult.Principal.GetSubjectId();
 
         if (userIdResult.IsFailure)
@@ -100,8 +100,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principalResult = await mediator.QueryAsync(
-            ExchangeTokenMapper.ToUserQuery(userId: userIdResult.Value),
-            cancellationToken);
+            query: ExchangeTokenMapper.ToUserQuery(userId: userIdResult.Value),
+            cancellationToken: cancellationToken);
 
         return principalResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: invalidGrantDescription)
@@ -124,8 +124,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principalResult = await mediator.QueryAsync(
-            ExchangeTokenMapper.ToClientQuery(clientId: request.ClientId),
-            cancellationToken);
+            query: ExchangeTokenMapper.ToClientQuery(clientId: request.ClientId),
+            cancellationToken: cancellationToken);
 
         return principalResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: "Client is invalid.")
@@ -144,9 +144,9 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         CancellationToken cancellationToken)
     {
         var authenticationResult = await httpContext.AuthenticateAsync(
-            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            scheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         var subject = authenticationResult.Principal?.GetClaim(
-            OpenIddictConstants.Claims.Subject);
+            @type: OpenIddictConstants.Claims.Subject);
 
         if (string.IsNullOrWhiteSpace(subject))
         {
@@ -156,8 +156,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         if (Guid.TryParse(input: subject, result: out var userId))
         {
             var userResult = await mediator.QueryAsync(
-                ExchangeTokenMapper.ToUserQuery(userId: userId),
-                cancellationToken);
+                query: ExchangeTokenMapper.ToUserQuery(userId: userId),
+                cancellationToken: cancellationToken);
 
             return userResult.IsFailure
                 ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
@@ -169,8 +169,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var clientResult = await mediator.QueryAsync(
-            ExchangeTokenMapper.ToClientQuery(clientId: subject),
-            cancellationToken);
+            query: ExchangeTokenMapper.ToClientQuery(clientId: subject),
+            cancellationToken: cancellationToken);
 
         return clientResult.IsFailure
             ? OAuthErrorResults.InvalidGrant(description: "Subject token is invalid.")
@@ -188,8 +188,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         string audience)
     {
         var scopes = OAuthRequestScopes.GetRequestedOrPrincipalScopes(
-            request,
-            sourcePrincipal);
+            request: request,
+            principal: sourcePrincipal);
         var principal = OAuthAuthorizationPrincipalFactory.Create(
             claims: claims,
             scopes: scopes,

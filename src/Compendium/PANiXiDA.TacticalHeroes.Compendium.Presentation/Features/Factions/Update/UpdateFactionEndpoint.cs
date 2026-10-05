@@ -10,11 +10,11 @@ internal sealed class UpdateFactionEndpoint : IEndpoint<FactionsEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPut(builder.Route, HandleAsync)
+        builder.MapPut(pattern: builder.Route, handler: HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -24,8 +24,8 @@ internal sealed class UpdateFactionEndpoint : IEndpoint<FactionsEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            UpdateFactionMapper.ToCommand(request: request, id: id),
-            cancellationToken);
+            command: UpdateFactionMapper.ToCommand(request: request, id: id),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

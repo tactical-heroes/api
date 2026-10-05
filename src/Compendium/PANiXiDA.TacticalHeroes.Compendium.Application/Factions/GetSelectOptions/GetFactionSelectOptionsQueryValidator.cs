@@ -7,11 +7,11 @@ public sealed class GetFactionSelectOptionsQueryValidator : AbstractValidator<Ge
 {
     public GetFactionSelectOptionsQueryValidator()
     {
-        RuleFor(query => query.Limit)
+        RuleFor(expression: query => query.Limit)
             .NotNull()
             .SetValidator(new LimitParametersValidator());
 
-        RuleFor(query => query.Filter)
+        RuleFor(expression: query => query.Filter)
             .NotNull()
             .SetValidator(new FactionsFilterValidator());
     }

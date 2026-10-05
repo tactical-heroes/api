@@ -7,27 +7,27 @@ public sealed class CreateHeroCommandValidator : AbstractValidator<CreateHeroCom
 {
     public CreateHeroCommandValidator()
     {
-        RuleFor(command => command.Name)
-            .MustBeValidDomainValue(HeroName.Create);
+        RuleFor(expression: command => command.Name)
+            .MustBeValidDomainValue(factory: HeroName.Create);
 
-        RuleFor(command => command.Description)
-            .MustBeValidDomainValue(HeroDescription.Create);
+        RuleFor(expression: command => command.Description)
+            .MustBeValidDomainValue(factory: HeroDescription.Create);
 
-        RuleFor(command => command)
-            .MustBeValidDomainResult(command => HeroCombatStats.Create(
+        RuleFor(expression: command => command)
+            .MustBeValidDomainResult(factory: command => HeroCombatStats.Create(
                 attack: command.Attack,
                 defense: command.Defense,
                 minimumDamage: command.MinimumDamage,
                 maximumDamage: command.MaximumDamage,
                 initiative: command.Initiative));
 
-        RuleFor(command => command.Morale)
-            .MustBeValidDomainValue(HeroMorale.Create);
+        RuleFor(expression: command => command.Morale)
+            .MustBeValidDomainValue(factory: HeroMorale.Create);
 
-        RuleFor(command => command.Luck)
-            .MustBeValidDomainValue(HeroLuck.Create);
+        RuleFor(expression: command => command.Luck)
+            .MustBeValidDomainValue(factory: HeroLuck.Create);
 
-        RuleFor(command => command.FactionId)
-            .MustBeValidDomainValue(FactionId.Create);
+        RuleFor(expression: command => command.FactionId)
+            .MustBeValidDomainValue(factory: FactionId.Create);
     }
 }

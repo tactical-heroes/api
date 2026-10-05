@@ -12,7 +12,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
 
 public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
-    EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext),
+    EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext: dbContext),
     IUsersReadRepository
 {
     public Task<PaginationResult<UserListItemReadModel>> GetPageAsync(
@@ -46,7 +46,7 @@ public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
     {
         if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            query = query.Where(user =>
+            query = query.Where(predicate: user =>
                 EF.Functions.ILike(
                     matchExpression: user.Email,
                     pattern: $"%{filter.Email.Trim()}%"));

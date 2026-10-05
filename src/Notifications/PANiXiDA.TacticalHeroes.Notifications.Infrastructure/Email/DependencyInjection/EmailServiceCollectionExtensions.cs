@@ -18,7 +18,7 @@ internal static class EmailServiceCollectionExtensions
             SmtpOptionsValidator>();
         serviceCollection
             .AddOptions<SmtpOptions>()
-            .Bind(configuration.GetSection(SmtpOptions.SectionName))
+            .Bind(config: configuration.GetSection(key: SmtpOptions.SectionName))
             .ValidateOnStart();
 
         serviceCollection.AddTransient<IEmailSender, MailKitEmailSender>();

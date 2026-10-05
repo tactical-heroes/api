@@ -19,14 +19,14 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapGet(builder.Route, handler: HandleGetAsync)
+        builder.MapGet(pattern: builder.Route, handler: HandleGetAsync)
             .AllowAnonymous()
-            .AddOpenApiOperationTransformer(AddLogoutQueryParametersAsync)
+            .AddOpenApiOperationTransformer(transformer: AddLogoutQueryParametersAsync)
             .Produces(StatusCodes.Status302Found);
 
-        builder.MapPost(builder.Route, handler: HandlePostAsync)
+        builder.MapPost(pattern: builder.Route, handler: HandlePostAsync)
             .AllowAnonymous()
-            .WithName("PostLogout")
+            .WithName(endpointName: "PostLogout")
             .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces(StatusCodes.Status302Found);
     }
@@ -34,7 +34,7 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
     private static Task<IResult> HandleGetAsync(
         HttpContext httpContext)
     {
-        return HandleAsync(httpContext);
+        return HandleAsync(httpContext: httpContext);
     }
 
     private static async Task AddLogoutQueryParametersAsync(
@@ -49,11 +49,11 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 
         operation.Parameters =
         [
-            CreateQueryParameter(OpenIddictConstants.Parameters.ClientId, stringSchema),
-            CreateQueryParameter(OpenIddictConstants.Parameters.IdTokenHint, stringSchema),
-            CreateQueryParameter(OpenIddictConstants.Parameters.PostLogoutRedirectUri, stringSchema),
-            CreateQueryParameter(OpenIddictConstants.Parameters.State, stringSchema),
-            CreateQueryParameter(OpenIddictConstants.Parameters.UiLocales, stringSchema)
+            CreateQueryParameter(name: OpenIddictConstants.Parameters.ClientId, schema: stringSchema),
+            CreateQueryParameter(name: OpenIddictConstants.Parameters.IdTokenHint, schema: stringSchema),
+            CreateQueryParameter(name: OpenIddictConstants.Parameters.PostLogoutRedirectUri, schema: stringSchema),
+            CreateQueryParameter(name: OpenIddictConstants.Parameters.State, schema: stringSchema),
+            CreateQueryParameter(name: OpenIddictConstants.Parameters.UiLocales, schema: stringSchema)
         ];
     }
 
@@ -72,13 +72,13 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
     private static Task<IResult> HandlePostAsync(
         HttpContext httpContext)
     {
-        return HandleAsync(httpContext);
+        return HandleAsync(httpContext: httpContext);
     }
 
     private static async Task<IResult> HandleAsync(
         HttpContext httpContext)
     {
-        await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+        await httpContext.SignOutAsync(scheme: IdentityConstants.ApplicationScheme);
 
         return TypedResults.SignOut(
             authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);

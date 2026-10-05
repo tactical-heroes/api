@@ -12,7 +12,7 @@ internal sealed class IdentityProviderCertificatesOptionsValidator(IHostEnvironm
     public ValidateOptionsResult Validate(string? name, IdentityProviderOptions options)
     {
         if (options.SigningCertificates is { Count: 0 } && options.EncryptionCertificates is { Count: 0 } &&
-            (environment is null || environment.IsDevelopment() || environment.IsEnvironment(EnvironmentConstants.Test)))
+            (environment is null || environment.IsDevelopment() || environment.IsEnvironment(environmentName: EnvironmentConstants.Test)))
         {
             return ValidateOptionsResult.Success;
         }
@@ -40,7 +40,7 @@ internal sealed class IdentityProviderCertificatesOptionsValidator(IHostEnvironm
     {
         if (certificates is null || certificates.Count == 0)
         {
-            failures.Add($"{path} must contain at least one certificate.");
+            failures.Add(item: $"{path} must contain at least one certificate.");
             return;
         }
 
@@ -50,11 +50,11 @@ internal sealed class IdentityProviderCertificatesOptionsValidator(IHostEnvironm
 
             if (certificate is null)
             {
-                failures.Add($"{path}:{index} must be configured.");
+                failures.Add(item: $"{path}:{index} must be configured.");
             }
             else if (string.IsNullOrWhiteSpace(certificate.PfxBase64))
             {
-                failures.Add($"{path}:{index}:PfxBase64 must not be empty.");
+                failures.Add(item: $"{path}:{index}:PfxBase64 must not be empty.");
             }
         }
     }

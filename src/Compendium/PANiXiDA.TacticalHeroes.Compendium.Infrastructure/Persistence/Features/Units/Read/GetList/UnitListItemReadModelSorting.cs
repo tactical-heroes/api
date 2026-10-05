@@ -7,6 +7,6 @@ internal sealed partial class UnitListItemReadModelSorting
 {
     public static SortingParameters DefaultSorting { get; } =
         SortingParameters.Of(
-            new SortField(nameof(UnitListItemReadModel.Name)),
-            new SortField(nameof(UnitListItemReadModel.Id), SortDirection.Desc));
+            new SortField(Field: nameof(UnitListItemReadModel.Name)),
+            new SortField(Field: nameof(UnitListItemReadModel.Id), Order: SortDirection.Desc));
 }

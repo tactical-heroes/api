@@ -6,13 +6,13 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
 {
     public RegisterUserCommandValidator()
     {
-        RuleFor(command => command.Email)
-            .MustBeValidDomainValue(Email.Create);
+        RuleFor(expression: command => command.Email)
+            .MustBeValidDomainValue(factory: Email.Create);
 
-        RuleFor(command => command.UserName)
-            .MustBeValidDomainValue(UserName.Create);
+        RuleFor(expression: command => command.UserName)
+            .MustBeValidDomainValue(factory: UserName.Create);
 
-        RuleFor(command => command.Password)
+        RuleFor(expression: command => command.Password)
             .NotEmpty();
     }
 }

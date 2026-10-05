@@ -7,6 +7,6 @@ internal sealed partial class FactionSelectOptionReadModelSorting
 {
     public static SortingParameters DefaultSorting { get; } =
         SortingParameters.Of(
-            new SortField(nameof(FactionSelectOptionReadModel.Name)),
-            new SortField(nameof(FactionSelectOptionReadModel.Id), SortDirection.Desc));
+            new SortField(Field: nameof(FactionSelectOptionReadModel.Name)),
+            new SortField(Field: nameof(FactionSelectOptionReadModel.Id), Order: SortDirection.Desc));
 }

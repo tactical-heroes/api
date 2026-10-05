@@ -11,70 +11,70 @@ internal sealed class HeroConfiguration : AuditableEntityConfiguration<Hero>
 {
     protected override void ConfigureEntity(EntityTypeBuilder<Hero> builder)
     {
-        builder.HasKey(hero => hero.Id);
+        builder.HasKey(keyExpression: hero => hero.Id);
 
-        builder.Property(hero => hero.Id)
+        builder.Property(propertyExpression: hero => hero.Id)
             .HasConversion(
-                id => id.Value,
-                value => HeroId.Create(value: value).Value)
+                convertToProviderExpression: id => id.Value,
+                convertFromProviderExpression: value => HeroId.Create(value: value).Value)
             .ValueGeneratedNever();
 
-        builder.Property(hero => hero.Name)
+        builder.Property(propertyExpression: hero => hero.Name)
             .HasConversion(
-                name => name.Value,
-                value => HeroName.Create(value).Value)
-            .HasMaxLength(HeroName.MaxLength)
+                convertToProviderExpression: name => name.Value,
+                convertFromProviderExpression: value => HeroName.Create(value: value).Value)
+            .HasMaxLength(maxLength: HeroName.MaxLength)
             .IsRequired();
 
-        builder.Property(hero => hero.Description)
+        builder.Property(propertyExpression: hero => hero.Description)
             .HasConversion(
-                description => description.Value,
-                value => HeroDescription.Create(value).Value)
-            .HasMaxLength(HeroDescription.MaxLength)
+                convertToProviderExpression: description => description.Value,
+                convertFromProviderExpression: value => HeroDescription.Create(value: value).Value)
+            .HasMaxLength(maxLength: HeroDescription.MaxLength)
             .IsRequired();
 
-        builder.ComplexProperty(hero => hero.Stats, stats =>
+        builder.ComplexProperty(propertyExpression: hero => hero.Stats, buildAction: stats =>
         {
-            stats.Property(value => value.Attack)
+            stats.Property(propertyExpression: value => value.Attack)
                 .IsRequired();
 
-            stats.Property(value => value.Defense)
+            stats.Property(propertyExpression: value => value.Defense)
                 .IsRequired();
 
-            stats.Property(value => value.MinimumDamage)
+            stats.Property(propertyExpression: value => value.MinimumDamage)
                 .IsRequired();
 
-            stats.Property(value => value.MaximumDamage)
+            stats.Property(propertyExpression: value => value.MaximumDamage)
                 .IsRequired();
 
-            stats.Property(value => value.Initiative)
+            stats.Property(propertyExpression: value => value.Initiative)
                 .IsRequired();
         });
 
-        builder.Property(hero => hero.Morale)
+        builder.Property(propertyExpression: hero => hero.Morale)
             .HasConversion(
-                morale => morale.Value,
-                value => HeroMorale.Create(value).Value)
+                convertToProviderExpression: morale => morale.Value,
+                convertFromProviderExpression: value => HeroMorale.Create(value: value).Value)
             .IsRequired();
 
-        builder.Property(hero => hero.Luck)
+        builder.Property(propertyExpression: hero => hero.Luck)
             .HasConversion(
-                luck => luck.Value,
-                value => HeroLuck.Create(value).Value)
+                convertToProviderExpression: luck => luck.Value,
+                convertFromProviderExpression: value => HeroLuck.Create(value: value).Value)
             .IsRequired();
 
-        builder.Property(hero => hero.FactionId)
+        builder.Property(propertyExpression: hero => hero.FactionId)
             .HasConversion(
-                id => id.Value,
-                value => FactionId.Create(value: value).Value)
+                convertToProviderExpression: id => id.Value,
+                convertFromProviderExpression: value => FactionId.Create(value: value).Value)
             .ValueGeneratedNever()
             .IsRequired();
 
-        builder.HasIndex(hero => hero.FactionId);
+        builder.HasIndex(indexExpression: hero => hero.FactionId);
 
         builder.HasOne<Faction>()
             .WithMany()
-            .HasForeignKey(hero => hero.FactionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasForeignKey(foreignKeyExpression: hero => hero.FactionId)
+            .OnDelete(deleteBehavior: DeleteBehavior.Restrict);
     }
 }

@@ -15,7 +15,7 @@ internal static class AllowedRedirectUrlValidator
         {
             return Result.Failure(
                 error: Error.Validation(message: "Return URL is invalid.")
-                    .WithField(fieldName));
+                    .WithField(@field: fieldName));
         }
 
         return Result.Success();
@@ -29,7 +29,7 @@ internal static class AllowedRedirectUrlValidator
         if (url.StartsWith('/') &&
             !url.StartsWith("//", StringComparison.Ordinal))
         {
-            return GetPath(url).Equals(allowedPath, StringComparison.Ordinal);
+            return GetPath(pathAndQuery: url).Equals(allowedPath, StringComparison.Ordinal);
         }
 
         if (!Uri.TryCreate(uriString: url, uriKind: UriKind.Absolute, result: out var uri))
@@ -41,7 +41,7 @@ internal static class AllowedRedirectUrlValidator
         var requestHost = request.Host.ToUriComponent();
         var redirectHost = uri.IsDefaultPort
             ? uri.Host
-            : uri.GetComponents(UriComponents.HostAndPort, UriFormat.UriEscaped);
+            : uri.GetComponents(components: UriComponents.HostAndPort, format: UriFormat.UriEscaped);
 
         return string.Equals(uri.Scheme, request.Scheme, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(redirectHost, requestHost, StringComparison.OrdinalIgnoreCase) &&

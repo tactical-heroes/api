@@ -13,7 +13,7 @@ internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(builder.Route, Handle)
+        builder.MapPost(pattern: builder.Route, handler: Handle)
             .AllowAnonymous()
             .Accepts<RevokeRequest>(MediaTypeNames.Application.FormUrlEncoded)
             .Produces(StatusCodes.Status200OK)

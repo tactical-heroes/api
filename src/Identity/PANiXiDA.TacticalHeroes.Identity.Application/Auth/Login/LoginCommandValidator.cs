@@ -6,10 +6,10 @@ public sealed class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
-        RuleFor(command => command.Email)
-            .MustBeValidDomainValue(Email.Create);
+        RuleFor(expression: command => command.Email)
+            .MustBeValidDomainValue(factory: Email.Create);
 
-        RuleFor(command => command.Password)
+        RuleFor(expression: command => command.Password)
             .NotEmpty();
     }
 }

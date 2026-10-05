@@ -8,7 +8,7 @@ internal static class OAuthLoginRedirectUrlBuilder
     {
         var builder = new UriBuilder(uri: loginUrl);
         var existingQuery = builder.Query.TrimStart('?');
-        var encodedReturnUrl = Uri.EscapeDataString(returnUrl);
+        var encodedReturnUrl = Uri.EscapeDataString(stringToEscape: returnUrl);
 
         builder.Query = string.IsNullOrWhiteSpace(existingQuery)
             ? $"returnUrl={encodedReturnUrl}"

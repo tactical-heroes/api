@@ -12,7 +12,7 @@ public sealed class Hero : AggregateRoot<HeroId>
         HeroMorale morale,
         HeroLuck luck,
         FactionId factionId)
-        : base(id)
+        : base(id: id)
     {
         Name = name;
         Description = description;

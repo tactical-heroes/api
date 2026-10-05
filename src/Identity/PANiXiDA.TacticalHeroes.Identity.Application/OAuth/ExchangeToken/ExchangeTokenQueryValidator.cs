@@ -6,7 +6,7 @@ public sealed class ExchangeTokenQueryValidator : AbstractValidator<ExchangeToke
 {
     public ExchangeTokenQueryValidator()
     {
-        RuleFor(query => query.UserId)
-            .MustBeValidDomainValue(UserId.Create);
+        RuleFor(expression: query => query.UserId)
+            .MustBeValidDomainValue(factory: UserId.Create);
     }
 }

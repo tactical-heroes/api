@@ -42,7 +42,7 @@ internal static class ApplicationRoleMapper
     {
         return
         [
-            .. claims.Select(claim => new ApplicationRoleClaim
+            .. claims.Select(selector: claim => new ApplicationRoleClaim
             {
                 ClaimType = claim.Type.Value,
                 ClaimValue = claim.Value.Value
@@ -74,7 +74,7 @@ internal static class ApplicationRoleMapper
                 return Result.Failure<Role>(errors: claimResult.Errors);
             }
 
-            domainClaims.Add(RoleClaim.Create(type: typeResult.Value, value: valueResult.Value));
+            domainClaims.Add(item: RoleClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
         return Result.Success(value: Role.Create(

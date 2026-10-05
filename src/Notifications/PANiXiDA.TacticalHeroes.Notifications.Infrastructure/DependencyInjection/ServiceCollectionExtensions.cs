@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddEmail(configuration);
+        serviceCollection.AddEmail(configuration: configuration);
 
         return serviceCollection;
     }

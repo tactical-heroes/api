@@ -8,7 +8,7 @@ internal static class NotificationsModuleConfiguration
     internal static WebApplicationBuilder AddNotificationsModule(
         this WebApplicationBuilder builder)
     {
-        builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddInfrastructure(configuration: builder.Configuration);
         builder.Services.AddPresentation();
         builder.Host.UseInfrastructure();
 

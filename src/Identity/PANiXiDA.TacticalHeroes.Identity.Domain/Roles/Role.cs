@@ -11,7 +11,7 @@ public sealed class Role : AggregateRoot<RoleId>
     private Role(
         RoleId id,
         RoleName name)
-        : base(id)
+        : base(id: id)
     {
         Name = name;
     }
@@ -29,7 +29,7 @@ public sealed class Role : AggregateRoot<RoleId>
 
         foreach (var claim in claims)
         {
-            role.GrantClaim(claim);
+            role.GrantClaim(claim: claim);
         }
 
         return role;
@@ -37,18 +37,18 @@ public sealed class Role : AggregateRoot<RoleId>
 
     public void GrantClaim(RoleClaim claim)
     {
-        if (_claims.Any(existing => existing.Type == claim.Type && existing.Value == claim.Value))
+        if (_claims.Any(predicate: existing => existing.Type == claim.Type && existing.Value == claim.Value))
         {
             return;
         }
 
-        _claims.Add(claim);
+        _claims.Add(item: claim);
     }
 
     public void RevokeClaim(
         ClaimType type,
         ClaimValue value)
     {
-        _claims.RemoveAll(claim => claim.Type == type && claim.Value == value);
+        _claims.RemoveAll(match: claim => claim.Type == type && claim.Value == value);
     }
 }

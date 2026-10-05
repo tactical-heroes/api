@@ -7,7 +7,7 @@ public sealed class GetHeroDetailsQueryValidator
 {
     public GetHeroDetailsQueryValidator()
     {
-        RuleFor(query => query.Id)
-            .MustBeValidDomainValue(HeroId.Create);
+        RuleFor(expression: query => query.Id)
+            .MustBeValidDomainValue(factory: HeroId.Create);
     }
 }

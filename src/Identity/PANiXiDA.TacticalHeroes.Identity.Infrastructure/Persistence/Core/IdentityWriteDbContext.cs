@@ -26,7 +26,7 @@ public sealed class IdentityWriteDbContext(
         ApplicationUserRole,
         ApplicationUserLogin,
         ApplicationRoleClaim,
-        IdentityUserToken<Guid>>(options),
+        IdentityUserToken<Guid>>(options: options),
     IDataProtectionKeyContext
 {
     private const string Schema = "identity";
@@ -39,96 +39,96 @@ public sealed class IdentityWriteDbContext(
     {
         optionsBuilder
             .UseSnakeCaseNamingConvention()
-            .AddInterceptors(_interceptors);
+            .AddInterceptors(interceptors: _interceptors);
 
-        optionsBuilder.UseNpgsql(options =>
-            options.MigrationsHistoryTable("__ef_migrations_history", Schema));
+        optionsBuilder.UseNpgsql(npgsqlOptionsAction: options =>
+            options.MigrationsHistoryTable(tableName: "__ef_migrations_history", schema: Schema));
         optionsBuilder.UseOpenIddict<Guid>();
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.HasDefaultSchema(Schema);
+        builder.HasDefaultSchema(schema: Schema);
 
-        base.OnModelCreating(builder);
+        base.OnModelCreating(builder: builder);
 
         builder.UseOpenIddict<Guid>();
-        ConfigureAspNetIdentity(builder);
-        ConfigureOpenIddict(builder);
+        ConfigureAspNetIdentity(modelBuilder: builder);
+        ConfigureOpenIddict(modelBuilder: builder);
     }
 
     private static void ConfigureAspNetIdentity(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ApplicationUser>(builder =>
+        modelBuilder.Entity<ApplicationUser>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_users", Schema);
+            builder.ToTable(name: "asp_net_users", schema: Schema);
 
-            builder.Property(user => user.Id).ValueGeneratedNever();
-            builder.Property(user => user.Status)
-                .HasMaxLength(UserStatus.MaxNameLength)
-                .HasDefaultValue(UserStatus.Active.Name)
+            builder.Property(propertyExpression: user => user.Id).ValueGeneratedNever();
+            builder.Property(propertyExpression: user => user.Status)
+                .HasMaxLength(maxLength: UserStatus.MaxNameLength)
+                .HasDefaultValue(value: UserStatus.Active.Name)
                 .IsRequired();
-            builder.Property(user => user.Email).HasMaxLength(Email.MaxLength).IsRequired();
-            builder.Property(user => user.NormalizedEmail).HasMaxLength(Email.MaxLength).IsRequired();
-            builder.Property(user => user.UserName).HasMaxLength(UserName.MaxLength).IsRequired();
-            builder.Property(user => user.NormalizedUserName).HasMaxLength(UserName.MaxLength).IsRequired();
-            builder.Property(user => user.PasswordHash).HasMaxLength(1024).IsRequired();
+            builder.Property(propertyExpression: user => user.Email).HasMaxLength(maxLength: Email.MaxLength).IsRequired();
+            builder.Property(propertyExpression: user => user.NormalizedEmail).HasMaxLength(maxLength: Email.MaxLength).IsRequired();
+            builder.Property(propertyExpression: user => user.UserName).HasMaxLength(maxLength: UserName.MaxLength).IsRequired();
+            builder.Property(propertyExpression: user => user.NormalizedUserName).HasMaxLength(maxLength: UserName.MaxLength).IsRequired();
+            builder.Property(propertyExpression: user => user.PasswordHash).HasMaxLength(maxLength: 1024).IsRequired();
 
-            builder.HasMany(user => user.Roles)
-                .WithOne(role => role.User)
-                .HasForeignKey(role => role.UserId)
-                .IsRequired();
-
-            builder.HasMany(user => user.Claims)
-                .WithOne(claim => claim.User)
-                .HasForeignKey(claim => claim.UserId)
+            builder.HasMany(navigationExpression: user => user.Roles)
+                .WithOne(navigationExpression: role => role.User)
+                .HasForeignKey(foreignKeyExpression: role => role.UserId)
                 .IsRequired();
 
-            builder.HasMany(user => user.Logins)
-                .WithOne(login => login.User)
-                .HasForeignKey(login => login.UserId)
+            builder.HasMany(navigationExpression: user => user.Claims)
+                .WithOne(navigationExpression: claim => claim.User)
+                .HasForeignKey(foreignKeyExpression: claim => claim.UserId)
+                .IsRequired();
+
+            builder.HasMany(navigationExpression: user => user.Logins)
+                .WithOne(navigationExpression: login => login.User)
+                .HasForeignKey(foreignKeyExpression: login => login.UserId)
                 .IsRequired();
         });
 
-        modelBuilder.Entity<ApplicationRole>(builder =>
+        modelBuilder.Entity<ApplicationRole>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_roles", Schema);
+            builder.ToTable(name: "asp_net_roles", schema: Schema);
 
-            builder.Property(role => role.Id).ValueGeneratedNever();
-            builder.Property(role => role.Name).HasMaxLength(RoleName.MaxLength).IsRequired();
-            builder.Property(role => role.NormalizedName).HasMaxLength(RoleName.MaxLength).IsRequired();
+            builder.Property(propertyExpression: role => role.Id).ValueGeneratedNever();
+            builder.Property(propertyExpression: role => role.Name).HasMaxLength(maxLength: RoleName.MaxLength).IsRequired();
+            builder.Property(propertyExpression: role => role.NormalizedName).HasMaxLength(maxLength: RoleName.MaxLength).IsRequired();
 
-            builder.HasMany(role => role.Users)
-                .WithOne(user => user.Role)
-                .HasForeignKey(user => user.RoleId)
+            builder.HasMany(navigationExpression: role => role.Users)
+                .WithOne(navigationExpression: user => user.Role)
+                .HasForeignKey(foreignKeyExpression: user => user.RoleId)
                 .IsRequired();
 
-            builder.HasMany(role => role.Claims)
-                .WithOne(claim => claim.Role)
-                .HasForeignKey(claim => claim.RoleId)
+            builder.HasMany(navigationExpression: role => role.Claims)
+                .WithOne(navigationExpression: claim => claim.Role)
+                .HasForeignKey(foreignKeyExpression: claim => claim.RoleId)
                 .IsRequired();
         });
 
-        modelBuilder.Entity<ApplicationUserRole>(builder =>
+        modelBuilder.Entity<ApplicationUserRole>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_roles", Schema);
-            builder.HasKey(userRole => new
+            builder.ToTable(name: "asp_net_user_roles", schema: Schema);
+            builder.HasKey(keyExpression: userRole => new
             {
                 userRole.UserId,
                 userRole.RoleId
             });
         });
 
-        modelBuilder.Entity<ApplicationUserClaim>(builder =>
+        modelBuilder.Entity<ApplicationUserClaim>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_claims", Schema);
-            builder.Property(claim => claim.ClaimType)
-                .HasMaxLength(ClaimType.MaxLength)
+            builder.ToTable(name: "asp_net_user_claims", schema: Schema);
+            builder.Property(propertyExpression: claim => claim.ClaimType)
+                .HasMaxLength(maxLength: ClaimType.MaxLength)
                 .IsRequired();
-            builder.Property(claim => claim.ClaimValue)
-                .HasMaxLength(ClaimValue.MaxLength)
+            builder.Property(propertyExpression: claim => claim.ClaimValue)
+                .HasMaxLength(maxLength: ClaimValue.MaxLength)
                 .IsRequired();
-            builder.HasIndex(claim => new
+            builder.HasIndex(indexExpression: claim => new
             {
                 claim.UserId,
                 claim.ClaimType,
@@ -136,16 +136,16 @@ public sealed class IdentityWriteDbContext(
             }).IsUnique();
         });
 
-        modelBuilder.Entity<ApplicationRoleClaim>(builder =>
+        modelBuilder.Entity<ApplicationRoleClaim>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_role_claims", Schema);
-            builder.Property(claim => claim.ClaimType)
-                .HasMaxLength(ClaimType.MaxLength)
+            builder.ToTable(name: "asp_net_role_claims", schema: Schema);
+            builder.Property(propertyExpression: claim => claim.ClaimType)
+                .HasMaxLength(maxLength: ClaimType.MaxLength)
                 .IsRequired();
-            builder.Property(claim => claim.ClaimValue)
-                .HasMaxLength(ClaimValue.MaxLength)
+            builder.Property(propertyExpression: claim => claim.ClaimValue)
+                .HasMaxLength(maxLength: ClaimValue.MaxLength)
                 .IsRequired();
-            builder.HasIndex(claim => new
+            builder.HasIndex(indexExpression: claim => new
             {
                 claim.RoleId,
                 claim.ClaimType,
@@ -153,29 +153,29 @@ public sealed class IdentityWriteDbContext(
             }).IsUnique();
         });
 
-        modelBuilder.Entity<ApplicationUserLogin>(builder =>
+        modelBuilder.Entity<ApplicationUserLogin>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_logins", Schema);
+            builder.ToTable(name: "asp_net_user_logins", schema: Schema);
         });
 
-        modelBuilder.Entity<IdentityUserToken<Guid>>(builder =>
+        modelBuilder.Entity<IdentityUserToken<Guid>>(buildAction: builder =>
         {
-            builder.ToTable("asp_net_user_tokens", Schema);
+            builder.ToTable(name: "asp_net_user_tokens", schema: Schema);
         });
     }
 
     private static void ConfigureOpenIddict(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<OpenIddictEntityFrameworkCoreApplication<Guid>>()
-            .ToTable("open_iddict_applications", Schema);
+            .ToTable(name: "open_iddict_applications", schema: Schema);
 
         modelBuilder.Entity<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
-            .ToTable("open_iddict_authorizations", Schema);
+            .ToTable(name: "open_iddict_authorizations", schema: Schema);
 
         modelBuilder.Entity<OpenIddictEntityFrameworkCoreScope<Guid>>()
-            .ToTable("open_iddict_scopes", Schema);
+            .ToTable(name: "open_iddict_scopes", schema: Schema);
 
         modelBuilder.Entity<OpenIddictEntityFrameworkCoreToken<Guid>>()
-            .ToTable("open_iddict_tokens", Schema);
+            .ToTable(name: "open_iddict_tokens", schema: Schema);
     }
 }

@@ -17,7 +17,7 @@ public sealed partial class ClaimValue : ValueObject
         {
             return Result.Failure<ClaimValue>(
                 error: Error.Validation(message: "Claim value cannot be empty.")
-                    .WithField(nameof(ClaimValue)));
+                    .WithField(@field: nameof(ClaimValue)));
         }
 
         var normalizedValue = value.Trim();
@@ -26,7 +26,7 @@ public sealed partial class ClaimValue : ValueObject
         {
             return Result.Failure<ClaimValue>(
                 error: Error.Validation(message: $"Claim value cannot be longer than {MaxLength} characters.")
-                    .WithField(nameof(ClaimValue)));
+                    .WithField(@field: nameof(ClaimValue)));
         }
 
         return Result.Success(value: new ClaimValue(value: normalizedValue));

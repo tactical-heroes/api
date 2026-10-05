@@ -6,7 +6,7 @@ public sealed class DeleteHeroCommandValidator : AbstractValidator<DeleteHeroCom
 {
     public DeleteHeroCommandValidator()
     {
-        RuleFor(command => command.Id)
-            .MustBeValidDomainValue(HeroId.Create);
+        RuleFor(expression: command => command.Id)
+            .MustBeValidDomainValue(factory: HeroId.Create);
     }
 }

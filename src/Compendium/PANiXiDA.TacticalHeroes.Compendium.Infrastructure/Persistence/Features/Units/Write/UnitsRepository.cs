@@ -8,6 +8,6 @@ public sealed class UnitsRepository(
     CompendiumWriteDbContext dbContext,
     IAggregateTracker aggregateTracker)
     : EfRepository<CompendiumWriteDbContext, UnitId, Unit>(
-        dbContext,
-        aggregateTracker),
+        dbContext: dbContext,
+        aggregateTracker: aggregateTracker),
     IUnitsRepository;

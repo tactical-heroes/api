@@ -22,23 +22,23 @@ public sealed partial class UnitRangedAttack : ValueObject
             : Result.Failure(
                 error: Error.Validation(
                         message: "Unit shots and ranged attack range must both be provided or both be omitted.")
-                    .WithField(nameof(RangedAttackRange)));
+                    .WithField(@field: nameof(RangedAttackRange)));
         var shotsResult = !shots.HasValue || shots.Value > 0
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(
                         message: "Unit shots must be greater than zero when provided.")
-                    .WithField(nameof(Shots)));
+                    .WithField(@field: nameof(Shots)));
         var rangedAttackRangeResult = !rangedAttackRange.HasValue || rangedAttackRange.Value > 0
             ? Result.Success()
             : Result.Failure(
                 error: Error.Validation(
                         message: "Unit ranged attack range must be greater than zero when provided.")
-                    .WithField(nameof(RangedAttackRange)));
+                    .WithField(@field: nameof(RangedAttackRange)));
         var validationResult = Result.Combine(pairResult, shotsResult, rangedAttackRangeResult);
 
         return validationResult.IsFailure
             ? Result.Failure<UnitRangedAttack>(errors: validationResult.Errors)
-            : Result.Success(value: new UnitRangedAttack(shots, rangedAttackRange));
+            : Result.Success(value: new UnitRangedAttack(shots: shots, rangedAttackRange: rangedAttackRange));
     }
 }

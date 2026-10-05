@@ -15,7 +15,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Fac
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read;
 
 public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
-    : EfReadRepository<CompendiumReadDbContext, Guid, FactionReadDbModel>(dbContext),
+    : EfReadRepository<CompendiumReadDbContext, Guid, FactionReadDbModel>(dbContext: dbContext),
     IFactionsReadRepository
 {
     public Task<List<FactionSelectOptionReadModel>> GetSelectOptionsAsync(
@@ -23,12 +23,12 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         LimitParameters limit,
         CancellationToken cancellationToken)
     {
-        var query = ApplyFilter(Query, filter);
-        var options = FactionSelectOptionReadModelMapper.ProjectTo(query);
+        var query = ApplyFilter(query: Query, filter: filter);
+        var options = FactionSelectOptionReadModelMapper.ProjectTo(query: query);
 
-        return FactionSelectOptionReadModelSorting.ApplySorting(options, SortingParameters.None)
-            .Take(limit.Limit)
-            .ToListAsync(cancellationToken);
+        return FactionSelectOptionReadModelSorting.ApplySorting(query: options, sortingParameters: SortingParameters.None)
+            .Take(count: limit.Limit)
+            .ToListAsync(cancellationToken: cancellationToken);
     }
 
     public Task<PaginationResult<FactionListItemReadModel>> GetPageAsync(
@@ -58,7 +58,7 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
     {
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            query = query.Where(faction =>
+            query = query.Where(predicate: faction =>
                 EF.Functions.ILike(
                     matchExpression: faction.Name,
                     pattern: $"%{filter.Search.Trim()}%"));

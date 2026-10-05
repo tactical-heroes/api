@@ -10,12 +10,12 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPut(builder.Route, HandleAsync)
+        builder.MapPut(pattern: builder.Route, handler: HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesProblem(statusCode: StatusCodes.Status404NotFound)
+            .ProducesProblem(statusCode: StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> HandleAsync(
@@ -25,8 +25,8 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            UpdateRoleMapper.ToCommand(request: request, id: id),
-            cancellationToken);
+            command: UpdateRoleMapper.ToCommand(request: request, id: id),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }

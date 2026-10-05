@@ -8,6 +8,6 @@ public sealed class HeroesRepository(
     CompendiumWriteDbContext dbContext,
     IAggregateTracker aggregateTracker)
     : EfRepository<CompendiumWriteDbContext, HeroId, Hero>(
-        dbContext,
-        aggregateTracker),
+        dbContext: dbContext,
+        aggregateTracker: aggregateTracker),
     IHeroesRepository;

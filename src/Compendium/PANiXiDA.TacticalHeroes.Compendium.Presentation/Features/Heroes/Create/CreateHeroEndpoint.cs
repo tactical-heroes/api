@@ -12,9 +12,9 @@ internal sealed class CreateHeroEndpoint : IEndpoint<HeroesEndpoints>
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapPost(builder.Route, HandleAsync)
+        builder.MapPost(pattern: builder.Route, handler: HandleAsync)
             .Produces<CreateHeroResponse>(StatusCodes.Status201Created)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesValidationProblem(statusCode: StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 
@@ -24,8 +24,8 @@ internal sealed class CreateHeroEndpoint : IEndpoint<HeroesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.SendAsync(
-            CreateHeroMapper.ToCommand(request: request),
-            cancellationToken);
+            command: CreateHeroMapper.ToCommand(request: request),
+            cancellationToken: cancellationToken);
 
         return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(

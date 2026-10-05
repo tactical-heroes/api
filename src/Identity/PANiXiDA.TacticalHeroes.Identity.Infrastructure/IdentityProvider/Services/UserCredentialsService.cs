@@ -52,24 +52,24 @@ public sealed class UserCredentialsService(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user: applicationUser);
         var tokenResult = UserActionToken.Create(
             value: confirmationToken,
-            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+            expiresAtUtc: timeProvider.GetUtcNow().Add(timeSpan: options.Value.EmailConfirmationTokenLifetime));
 
         if (tokenResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: tokenResult.Errors);
         }
 
-        var confirmationResult = user.RequestEmailConfirmation(tokenResult.Value);
+        var confirmationResult = user.RequestEmailConfirmation(confirmationToken: tokenResult.Value);
 
         if (confirmationResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: confirmationResult.Errors);
         }
 
-        aggregateTracker.Track(user);
+        aggregateTracker.Track(aggregateRoot: user);
 
         return Result.Success(value: applicationUser.Id);
     }
@@ -79,33 +79,33 @@ public sealed class UserCredentialsService(
         string password,
         CancellationToken cancellationToken)
     {
-        var normalizedEmail = userManager.NormalizeEmail(email);
+        var normalizedEmail = userManager.NormalizeEmail(email: email);
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
             .SingleOrDefaultAsync(
-                user => user.NormalizedEmail == normalizedEmail,
-                cancellationToken);
+                predicate: user => user.NormalizedEmail == normalizedEmail,
+                cancellationToken: cancellationToken);
 
         if (applicationUser is null)
         {
             return InvalidCredentials();
         }
 
-        if (IsBlocked(applicationUser))
+        if (IsBlocked(applicationUser: applicationUser))
         {
             return Result.Failure<AuthenticatedUserReadModel>(
                 error: Error.Forbidden(message: "User is blocked."));
         }
 
-        if (await userManager.IsLockedOutAsync(applicationUser))
+        if (await userManager.IsLockedOutAsync(user: applicationUser))
         {
             return Result.Failure<AuthenticatedUserReadModel>(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
-        if (!await userManager.CheckPasswordAsync(applicationUser, password))
+        if (!await userManager.CheckPasswordAsync(user: applicationUser, password: password))
         {
-            var failureResult = await userManager.AccessFailedAsync(applicationUser);
+            var failureResult = await userManager.AccessFailedAsync(user: applicationUser);
 
             if (!failureResult.Succeeded)
             {
@@ -115,7 +115,7 @@ public sealed class UserCredentialsService(
             return InvalidCredentials();
         }
 
-        var resetResult = await userManager.ResetAccessFailedCountAsync(applicationUser);
+        var resetResult = await userManager.ResetAccessFailedCountAsync(user: applicationUser);
 
         if (!resetResult.Succeeded)
         {
@@ -146,19 +146,19 @@ public sealed class UserCredentialsService(
         string newPassword,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.FindByIdAsync(userId: userId.ToString());
 
         if (applicationUser is null)
         {
             return UserNotFound();
         }
 
-        if (IsBlocked(applicationUser))
+        if (IsBlocked(applicationUser: applicationUser))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }
 
-        if (await userManager.IsLockedOutAsync(applicationUser))
+        if (await userManager.IsLockedOutAsync(user: applicationUser))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is locked out."));
         }
@@ -176,7 +176,7 @@ public sealed class UserCredentialsService(
         string emailConfirmationToken,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.FindByIdAsync(userId: userId.ToString());
 
         if (applicationUser is null)
         {
@@ -196,8 +196,8 @@ public sealed class UserCredentialsService(
         }
 
         var identityResult = await userManager.ConfirmEmailAsync(
-            applicationUser,
-            emailConfirmationToken);
+            user: applicationUser,
+            token: emailConfirmationToken);
 
         if (!identityResult.Succeeded)
         {
@@ -211,7 +211,7 @@ public sealed class UserCredentialsService(
             return confirmResult;
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success();
     }
@@ -220,11 +220,11 @@ public sealed class UserCredentialsService(
         string email,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByEmailAsync(email);
+        var applicationUser = await userManager.FindByEmailAsync(email: email);
 
         if (applicationUser is null ||
             applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+            IsBlocked(applicationUser: applicationUser))
         {
             return Result.Success();
         }
@@ -236,24 +236,24 @@ public sealed class UserCredentialsService(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user: applicationUser);
         var tokenResult = UserActionToken.Create(
             value: confirmationToken,
-            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+            expiresAtUtc: timeProvider.GetUtcNow().Add(timeSpan: options.Value.EmailConfirmationTokenLifetime));
 
         if (tokenResult.IsFailure)
         {
             return Result.Failure(errors: tokenResult.Errors);
         }
 
-        var confirmationResult = userResult.Value.RequestEmailConfirmation(tokenResult.Value);
+        var confirmationResult = userResult.Value.RequestEmailConfirmation(confirmationToken: tokenResult.Value);
 
         if (confirmationResult.IsFailure)
         {
             return confirmationResult;
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success();
     }
@@ -262,11 +262,11 @@ public sealed class UserCredentialsService(
         string email,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByEmailAsync(email);
+        var applicationUser = await userManager.FindByEmailAsync(email: email);
 
         if (applicationUser is null ||
             !applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+            IsBlocked(applicationUser: applicationUser))
         {
             return Result.Success();
         }
@@ -278,24 +278,24 @@ public sealed class UserCredentialsService(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        var resetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user: applicationUser);
         var tokenResult = UserActionToken.Create(
             value: resetToken,
-            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.AccountRecoveryTokenLifetime));
+            expiresAtUtc: timeProvider.GetUtcNow().Add(timeSpan: options.Value.AccountRecoveryTokenLifetime));
 
         if (tokenResult.IsFailure)
         {
             return Result.Failure(errors: tokenResult.Errors);
         }
 
-        var requestResult = userResult.Value.RequestPasswordReset(tokenResult.Value);
+        var requestResult = userResult.Value.RequestPasswordReset(passwordResetToken: tokenResult.Value);
 
         if (requestResult.IsFailure)
         {
             return requestResult;
         }
 
-        aggregateTracker.Track(userResult.Value);
+        aggregateTracker.Track(aggregateRoot: userResult.Value);
 
         return Result.Success();
     }
@@ -306,7 +306,7 @@ public sealed class UserCredentialsService(
         string newPassword,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.FindByIdAsync(userId: userId.ToString());
 
         if (applicationUser is null)
         {
@@ -318,7 +318,7 @@ public sealed class UserCredentialsService(
             return Result.Failure(error: Error.Forbidden(message: "User is not confirmed."));
         }
 
-        if (IsBlocked(applicationUser))
+        if (IsBlocked(applicationUser: applicationUser))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }

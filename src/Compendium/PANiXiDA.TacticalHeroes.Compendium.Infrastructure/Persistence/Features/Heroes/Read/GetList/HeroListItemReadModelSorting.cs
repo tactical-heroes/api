@@ -7,6 +7,6 @@ internal sealed partial class HeroListItemReadModelSorting
 {
     public static SortingParameters DefaultSorting { get; } =
         SortingParameters.Of(
-            new SortField(nameof(HeroListItemReadModel.Name)),
-            new SortField(nameof(HeroListItemReadModel.Id), SortDirection.Desc));
+            new SortField(Field: nameof(HeroListItemReadModel.Name)),
+            new SortField(Field: nameof(HeroListItemReadModel.Id), Order: SortDirection.Desc));
 }
