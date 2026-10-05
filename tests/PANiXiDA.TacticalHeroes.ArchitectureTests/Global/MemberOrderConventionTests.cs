@@ -33,6 +33,8 @@ public sealed class MemberOrderConventionTests
     [InlineData("record C(int Value) { public int A => Value; private int B => Value; private record Nested { public void A() {} private void B() {} } }")]
     [InlineData("partial class C { private void A() {} } partial class C { public void B() {} }")]
     [InlineData("struct S { public int B() => 0; public readonly int A() => 0; }")]
+    [InlineData("public static class E { public static void A() {} extension(string value) { public int P => value.Length; public static string B() => string.Empty; public int C() => value.Length; private int D() => value.Length; } }")]
+    [InlineData("public static class E { public static void A() {} extension<T>(T value) where T : class { public bool HasValue => value is not null; public T GetValue() => value; } }")]
     public void MemberOrder_Should_AcceptDeclarations_When_OrderIsValid(string source)
     {
         var root = CSharpSyntaxTree.ParseText(
@@ -58,6 +60,10 @@ public sealed class MemberOrderConventionTests
     [InlineData("class C { void A() {} public void B() {} }", "accessibility")]
     [InlineData("interface I { private void A() {} void B(); }", "accessibility")]
     [InlineData("class C { private class Nested { private void A() {} public void B() {} } }", "accessibility")]
+    [InlineData("public static class E { extension(string value) { public int Length() => value.Length; } public static void A() {} }", "member kind")]
+    [InlineData("public static class E { extension(string value) { public int Length() => value.Length; public bool IsEmpty => value.Length == 0; } }", "member kind")]
+    [InlineData("public static class E { extension(string value) { private int A() => value.Length; public int B() => value.Length; } }", "accessibility")]
+    [InlineData("public static class E { extension(string value) { public int A() => value.Length; public static string B() => string.Empty; } }", "static")]
     public void MemberOrder_Should_RejectDeclarations_When_OrderIsInvalid(
         string source,
         string reason)
