@@ -20,58 +20,58 @@ internal static class ArchitectureDefinition
     private const string PresentationLayerSuffix = ".Presentation";
     private const string HostLayerSuffix = ".Host";
 
-    internal static readonly IReadOnlyCollection<ReflectionAssembly> ProductionAssemblies;
+    internal static readonly IReadOnlyCollection<ReflectionAssembly> s_productionAssemblies;
 
-    internal static readonly Architecture Architecture;
+    internal static readonly Architecture s_architecture;
 
-    internal static readonly IReadOnlyCollection<ModuleArchitecture> Modules;
+    internal static readonly IReadOnlyCollection<ModuleArchitecture> s_modules;
 
-    internal static readonly IReadOnlyCollection<string> ModuleDiscoveryErrors;
+    internal static readonly IReadOnlyCollection<string> s_moduleDiscoveryErrors;
 
-    internal static readonly IObjectProvider<IType> DomainLayer;
+    internal static readonly IObjectProvider<IType> s_domainLayer;
 
-    internal static readonly IObjectProvider<IType> ContractsLayer;
+    internal static readonly IObjectProvider<IType> s_contractsLayer;
 
-    internal static readonly IObjectProvider<IType> ApplicationLayer;
+    internal static readonly IObjectProvider<IType> s_applicationLayer;
 
-    internal static readonly IObjectProvider<IType> InfrastructureLayer;
+    internal static readonly IObjectProvider<IType> s_infrastructureLayer;
 
-    internal static readonly IObjectProvider<IType> PresentationLayer;
+    internal static readonly IObjectProvider<IType> s_presentationLayer;
 
-    internal static readonly IObjectProvider<IType> HostLayer;
+    internal static readonly IObjectProvider<IType> s_hostLayer;
 
-    private static readonly IReadOnlyCollection<string> ProductionAssemblyNames;
+    private static readonly IReadOnlyCollection<string> s_productionAssemblyNames;
 
-    private static readonly ModuleDiscoveryResult ModuleDiscoveryResult;
+    private static readonly ModuleDiscoveryResult s_moduleDiscoveryResult;
 
     static ArchitectureDefinition()
     {
-        ProductionAssemblies = LoadProductionAssemblies();
+        s_productionAssemblies = LoadProductionAssemblies();
 
-        ProductionAssemblyNames = [.. ProductionAssemblies
+        s_productionAssemblyNames = [.. s_productionAssemblies
             .Select(assembly => assembly.GetName().Name)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Cast<string>()];
 
-        ModuleDiscoveryResult = DiscoverModules(ProductionAssemblyNames);
+        s_moduleDiscoveryResult = DiscoverModules(s_productionAssemblyNames);
 
-        Architecture = new ArchLoader().LoadAssemblies([.. ProductionAssemblies]).Build();
+        s_architecture = new ArchLoader().LoadAssemblies([.. s_productionAssemblies]).Build();
 
-        Modules = ModuleDiscoveryResult.Modules;
+        s_modules = s_moduleDiscoveryResult.Modules;
 
-        ModuleDiscoveryErrors = ModuleDiscoveryResult.Errors;
+        s_moduleDiscoveryErrors = s_moduleDiscoveryResult.Errors;
 
-        DomainLayer = Types().That().ResideInAssemblyMatching(DomainAssemblyNamePattern).As("Domain layer");
+        s_domainLayer = Types().That().ResideInAssemblyMatching(DomainAssemblyNamePattern).As("Domain layer");
 
-        ContractsLayer = Types().That().ResideInAssemblyMatching(ContractsAssemblyNamePattern).As("Contracts layer");
+        s_contractsLayer = Types().That().ResideInAssemblyMatching(ContractsAssemblyNamePattern).As("Contracts layer");
 
-        ApplicationLayer = Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern).As("Application layer");
+        s_applicationLayer = Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern).As("Application layer");
 
-        InfrastructureLayer = Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern).As("Infrastructure layer");
+        s_infrastructureLayer = Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern).As("Infrastructure layer");
 
-        PresentationLayer = Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern).As("Presentation layer");
+        s_presentationLayer = Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern).As("Presentation layer");
 
-        HostLayer = Types().That().ResideInAssemblyMatching(AssemblyNamePattern(HostLayerSuffix)).As("Host layer");
+        s_hostLayer = Types().That().ResideInAssemblyMatching(AssemblyNamePattern(HostLayerSuffix)).As("Host layer");
     }
 
     internal static string DomainAssemblyNamePattern =>

@@ -13,7 +13,7 @@ public sealed class EndpointFunctionalTestConventionTests
     public void Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var endpoints = ArchitectureDefinition.ProductionAssemblies
+        var endpoints = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(
                 PresentationAssemblySuffix,
                 StringComparison.Ordinal) == true)

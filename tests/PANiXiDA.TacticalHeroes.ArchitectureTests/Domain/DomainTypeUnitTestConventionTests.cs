@@ -81,7 +81,7 @@ public sealed class DomainTypeUnitTestConventionTests
 
     private static DomainType[] GetDomainTypes(string repositoryRoot)
     {
-        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
+        var productionAssemblies = ArchitectureDefinition.s_productionAssemblies
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
@@ -90,7 +90,7 @@ public sealed class DomainTypeUnitTestConventionTests
 
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module => GetDomainTypes(
                     repositoryRoot,
                     module,

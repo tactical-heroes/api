@@ -10,11 +10,11 @@ public sealed class GetUnitsEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);
-        const string factionName = "Northern Alliance";
+        const string FactionName = "Northern Alliance";
         var faction = await client.CreateFactionAsync(
             cancellationToken,
             new CreateFactionRequest(
-                factionName,
+                FactionName,
                 "Defenders of the north."));
         await client.CreateAsync(
             faction.Id,
@@ -35,6 +35,6 @@ public sealed class GetUnitsEndpointTests(FunctionalTestFixture fixture)
         response.Items.Select(unit => unit.Name)
             .ShouldBe(["Archer", "Marksman"]);
         response.Items.ShouldAllBe(unit => unit.FactionId == faction.Id);
-        response.Items.ShouldAllBe(unit => unit.FactionName == factionName);
+        response.Items.ShouldAllBe(unit => unit.FactionName == FactionName);
     }
 }

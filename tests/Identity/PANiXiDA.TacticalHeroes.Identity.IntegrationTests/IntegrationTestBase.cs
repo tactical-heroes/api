@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests;
 
-[Collection(IntegrationTestCollection.Name)]
+[Collection(IntegrationTestCollectionDefinition.Name)]
 public abstract class IntegrationTestBase(IntegrationTestFixture fixture) : IAsyncLifetime
 {
     protected IntegrationTestFixture Fixture { get; } = fixture;

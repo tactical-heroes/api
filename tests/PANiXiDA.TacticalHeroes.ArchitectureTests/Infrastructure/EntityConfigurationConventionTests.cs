@@ -10,7 +10,7 @@ public sealed class EntityConfigurationConventionTests
 {
     private const string MaximumLengthMemberName = "MaxLength";
 
-    private static readonly string[] ExplicitStoreNamingMethods =
+    private static readonly string[] s_explicitStoreNamingMethods =
     [
         "HasColumnName",
         "ToTable",
@@ -134,7 +134,7 @@ public sealed class EntityConfigurationConventionTests
     private static HashSet<string> GetDomainTypesWithMaximumLength()
     {
         var productionAssemblies = ArchitectureDefinition
-            .ProductionAssemblies
+            .s_productionAssemblies
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
@@ -142,7 +142,7 @@ public sealed class EntityConfigurationConventionTests
                         $"'{assembly.FullName}'."),
                 StringComparer.Ordinal);
 
-        return ArchitectureDefinition.Modules
+        return ArchitectureDefinition.s_modules
             .SelectMany(module => productionAssemblies[
                     module.DomainAssemblyName]
                 .GetTypes())
@@ -246,7 +246,7 @@ public sealed class EntityConfigurationConventionTests
                     })
                     .Where(candidate =>
                         candidate.MethodName is not null &&
-                        ExplicitStoreNamingMethods.Contains(
+                        s_explicitStoreNamingMethods.Contains(
                             candidate.MethodName,
                             StringComparer.Ordinal))
                     .Select(candidate =>

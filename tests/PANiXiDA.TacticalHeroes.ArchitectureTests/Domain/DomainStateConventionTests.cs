@@ -100,7 +100,7 @@ public sealed class DomainStateConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .Where(assembly => assembly.GetName().Name?.EndsWith(
                     DomainAssemblySuffix,
                     StringComparison.Ordinal) == true)

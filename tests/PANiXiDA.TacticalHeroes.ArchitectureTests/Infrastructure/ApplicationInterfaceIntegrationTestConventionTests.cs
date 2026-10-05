@@ -68,7 +68,7 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
 
     private static InfrastructureImplementation[] GetInfrastructureImplementations()
     {
-        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
+        var productionAssemblies = ArchitectureDefinition.s_productionAssemblies
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
@@ -77,7 +77,7 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
 
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .SelectMany(module => GetInfrastructureImplementations(
                     module,
                     productionAssemblies))

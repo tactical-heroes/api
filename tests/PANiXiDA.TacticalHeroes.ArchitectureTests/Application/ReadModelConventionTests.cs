@@ -136,7 +136,7 @@ public sealed class ReadModelConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .Where(assembly => assembly.GetName().Name?.EndsWith(
                     ApplicationAssemblySuffix,
                     StringComparison.Ordinal) == true)

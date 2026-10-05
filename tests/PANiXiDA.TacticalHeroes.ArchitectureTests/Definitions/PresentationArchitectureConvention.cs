@@ -16,10 +16,10 @@ internal static class PresentationArchitectureConvention
     private const string SourceDirectoryName = "src";
 
     private static readonly ConcurrentDictionary<string, string[]>
-        ProjectSourceFiles = new(StringComparer.OrdinalIgnoreCase);
+        s_projectSourceFiles = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly ConcurrentDictionary<string, SyntaxNode>
-        SourceRoots = new(StringComparer.OrdinalIgnoreCase);
+        s_sourceRoots = new(StringComparer.OrdinalIgnoreCase);
 
     internal static Type[] GetConcretePresentationTypes(
         Func<Type, bool> predicate)
@@ -34,9 +34,9 @@ internal static class PresentationArchitectureConvention
     {
         return
         [
-            .. ArchitectureDefinition.Modules
+            .. ArchitectureDefinition.s_modules
                 .Select(module =>
-                    ArchitectureDefinition.ProductionAssemblies.Single(
+                    ArchitectureDefinition.s_productionAssemblies.Single(
                         assembly => string.Equals(
                             assembly.GetName().Name,
                             module.PresentationAssemblyName,
@@ -120,7 +120,7 @@ internal static class PresentationArchitectureConvention
                 $"Could not determine assembly for " +
                 $"'{presentationType.FullName}'.");
 
-        return ArchitectureDefinition.Modules.Single(module =>
+        return ArchitectureDefinition.s_modules.Single(module =>
             string.Equals(
                 module.PresentationAssemblyName,
                 assemblyName,
@@ -205,7 +205,7 @@ internal static class PresentationArchitectureConvention
 
         return
         [
-            .. ProjectSourceFiles
+            .. s_projectSourceFiles
                 .GetOrAdd(
                     projectDirectory,
                     static directory =>
@@ -318,7 +318,7 @@ internal static class PresentationArchitectureConvention
 
     private static SyntaxNode GetSourceRoot(string sourceFile)
     {
-        return SourceRoots.GetOrAdd(
+        return s_sourceRoots.GetOrAdd(
             sourceFile,
             static path => CSharpSyntaxTree
                 .ParseText(File.ReadAllText(path))

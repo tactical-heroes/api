@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation;
 
-[Collection(FunctionalTestCollection.Name)]
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public abstract class FunctionalTestBase(FunctionalTestFixture fixture)
     : IAsyncLifetime
 {

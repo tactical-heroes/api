@@ -121,7 +121,7 @@ public sealed class RepositoryConventionTests
     [Fact(DisplayName = "Repository constructor parameters should follow type-based naming when repository is injected")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_RepositoryIsInjected()
     {
-        var repositoryParameters = ArchitectureDefinition.ProductionAssemblies
+        var repositoryParameters = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(
                 ApplicationAssemblySuffix,
                 StringComparison.Ordinal) == true)
@@ -172,7 +172,7 @@ public sealed class RepositoryConventionTests
     {
         return
         [
-            .. ArchitectureDefinition.ProductionAssemblies
+            .. ArchitectureDefinition.s_productionAssemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsInterface)
                 .Select(type => new
@@ -455,7 +455,7 @@ public sealed class RepositoryConventionTests
         Type repository)
     {
         var assemblyName = GetAssemblyName(repository);
-        var module = ArchitectureDefinition.Modules.Single(candidate =>
+        var module = ArchitectureDefinition.s_modules.Single(candidate =>
             string.Equals(
                 candidate.ContractsAssemblyName,
                 assemblyName,

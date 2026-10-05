@@ -50,7 +50,7 @@ public sealed class PaginationConventionTests
     [Fact(DisplayName = "Query handlers should pair query pagination parameters and results when declared")]
     public void QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared()
     {
-        var handlers = ArchitectureDefinition.ProductionAssemblies.SelectMany(assembly => assembly.GetTypes())
+        var handlers = ArchitectureDefinition.s_productionAssemblies.SelectMany(assembly => assembly.GetTypes())
             .Where(type => type is { IsClass: true, IsAbstract: false })
             .SelectMany(type => type.GetInterfaces()
                 .Where(contract => contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
@@ -239,7 +239,7 @@ public sealed class PaginationConventionTests
 
     private static IEnumerable<Type> GetQueries()
     {
-        return ArchitectureDefinition.ProductionAssemblies
+        return ArchitectureDefinition.s_productionAssemblies
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => type.GetInterfaces().Any(contract =>
                 contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQuery<>)));
@@ -247,7 +247,7 @@ public sealed class PaginationConventionTests
 
     private static MethodInfo[] GetMethods()
     {
-        return [.. ArchitectureDefinition.ProductionAssemblies
+        return [.. ArchitectureDefinition.s_productionAssemblies
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => !type.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false))
             .SelectMany(type => type.GetMethods(

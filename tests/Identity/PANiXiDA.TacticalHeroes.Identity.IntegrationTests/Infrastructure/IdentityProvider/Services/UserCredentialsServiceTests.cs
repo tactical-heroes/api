@@ -287,7 +287,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
     [Fact(DisplayName = "ResetPasswordAsync should replace a user's password when token is valid")]
     public async Task ResetPasswordAsync_Should_ReplacePassword_When_TokenIsValid()
     {
-        const string newPassword = "NewStrongPassword1!";
+        const string NewPassword = "NewStrongPassword1!";
         var user = CreateUser(
             "reset@example.com",
             "reset-hero",
@@ -304,12 +304,12 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var result = await service.ResetPasswordAsync(
             user.Id,
             token,
-            newPassword,
+            NewPassword,
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         (await userManager.CheckPasswordAsync(persistedUser, Password)).ShouldBeFalse();
-        (await userManager.CheckPasswordAsync(persistedUser, newPassword)).ShouldBeTrue();
+        (await userManager.CheckPasswordAsync(persistedUser, NewPassword)).ShouldBeTrue();
     }
 
     private static ApplicationUser CreateUser(

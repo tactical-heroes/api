@@ -97,7 +97,7 @@ public sealed class DomainStaticStateConventionTests
             return [];
         }
 
-        var assembly = ArchitectureDefinition.ProductionAssemblies.Single(candidate =>
+        var assembly = ArchitectureDefinition.s_productionAssemblies.Single(candidate =>
             candidate.GetName().Name == document.Project.AssemblyName);
 
         return [.. GetAuthoredStaticMembers(root, semanticModel).Select(member => CheckMember(assembly, member))];

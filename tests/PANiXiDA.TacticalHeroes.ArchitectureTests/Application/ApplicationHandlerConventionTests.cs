@@ -15,14 +15,14 @@ public sealed class ApplicationHandlerConventionTests
     private const string TestsDirectoryName = "tests";
     private const string UnitTestsAssemblySuffix = ".UnitTests";
 
-    private static readonly Type[] HandlerInterfaceDefinitions =
+    private static readonly Type[] s_handlerInterfaceDefinitions =
     [
         typeof(ICommandHandler<,>),
         typeof(IQueryHandler<,>),
         typeof(IEventHandler<>)
     ];
 
-    private static readonly Type[] RequestHandlerInterfaceDefinitions =
+    private static readonly Type[] s_requestHandlerInterfaceDefinitions =
     [
         typeof(ICommandHandler<,>),
         typeof(IQueryHandler<,>)
@@ -223,14 +223,14 @@ public sealed class ApplicationHandlerConventionTests
 
     private static IEnumerable<ApplicationType> GetApplicationTypes()
     {
-        var productionAssemblies = ArchitectureDefinition.ProductionAssemblies
+        var productionAssemblies = ArchitectureDefinition.s_productionAssemblies
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
                         $"Could not determine the name of assembly '{assembly.FullName}'."),
                 StringComparer.Ordinal);
 
-        return ArchitectureDefinition.Modules
+        return ArchitectureDefinition.s_modules
             .SelectMany(module => productionAssemblies[module.ApplicationAssemblyName]
                 .GetTypes()
                 .Where(type =>
@@ -347,14 +347,14 @@ public sealed class ApplicationHandlerConventionTests
     private static bool IsHandlerInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               HandlerInterfaceDefinitions.Contains(
+               s_handlerInterfaceDefinitions.Contains(
                    interfaceType.GetGenericTypeDefinition());
     }
 
     private static bool IsRequestHandlerInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               RequestHandlerInterfaceDefinitions.Contains(
+               s_requestHandlerInterfaceDefinitions.Contains(
                    interfaceType.GetGenericTypeDefinition());
     }
 

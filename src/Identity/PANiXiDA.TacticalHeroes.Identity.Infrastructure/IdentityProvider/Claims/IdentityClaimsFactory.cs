@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claim
 
 internal static class IdentityClaimsFactory
 {
-    private static readonly string DefaultSecurityStampClaimType =
+    private static readonly string s_defaultSecurityStampClaimType =
         new IdentityOptions().ClaimsIdentity.SecurityStampClaimType;
 
     internal static IReadOnlyCollection<Claim> Create(
@@ -44,7 +44,7 @@ internal static class IdentityClaimsFactory
             userName: user.UserName,
             email: user.Email,
             securityStamp: user.SecurityStamp,
-            securityStampClaimType: DefaultSecurityStampClaimType,
+            securityStampClaimType: s_defaultSecurityStampClaimType,
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
             additionalClaims: additionalClaims);
     }

@@ -11,7 +11,7 @@ public sealed class ProjectReferenceDependencyTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var projectPaths = GetProjectPaths(repositoryRoot);
-        var modules = ArchitectureDefinition.Modules;
+        var modules = ArchitectureDefinition.s_modules;
         var violations = modules
             .SelectMany(module => GetModuleAssemblyNames(module)
                 .SelectMany(sourceAssemblyName => GetProjectReferences(

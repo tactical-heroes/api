@@ -128,12 +128,12 @@ internal static class EndpointMappingSourceDiscovery
 
     private const string PresentationAssemblySuffix = ".Presentation";
 
-    private static readonly Lazy<Task<EndpointMapping[]>> Mappings =
+    private static readonly Lazy<Task<EndpointMapping[]>> s_mappings =
         new(CreateMappingsAsync);
 
     internal static Task<EndpointMapping[]> GetMappingsAsync()
     {
-        return Mappings.Value;
+        return s_mappings.Value;
     }
 
     private static async Task<EndpointMapping[]> CreateMappingsAsync()

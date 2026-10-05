@@ -132,18 +132,18 @@ internal static class MediatorSourceDiscovery
 
     private const string PresentationAssemblySuffix = ".Presentation";
 
-    private static readonly string[] MediatorMethodNames =
+    private static readonly string[] s_mediatorMethodNames =
     [
         "QueryAsync",
         "SendAsync"
     ];
 
-    private static readonly Lazy<Task<MediatorAnalysis>> Analysis =
+    private static readonly Lazy<Task<MediatorAnalysis>> s_analysis =
         new(CreateAnalysisAsync);
 
     internal static Task<MediatorAnalysis> GetAnalysisAsync()
     {
-        return Analysis.Value;
+        return s_analysis.Value;
     }
 
     private static async Task<MediatorAnalysis>
@@ -229,7 +229,7 @@ internal static class MediatorSourceDiscovery
                 .Where(target =>
                     target.Operation is not null &&
                     target.Endpoint is not null &&
-                    MediatorMethodNames.Contains(
+                    s_mediatorMethodNames.Contains(
                         target.Operation.TargetMethod.Name,
                         StringComparer.Ordinal) &&
                     string.Equals(
