@@ -17,7 +17,7 @@ internal sealed class OAuthEndpoints : IEndpointGroup
             .WithTags(Name);
 
         EndpointMapper.MapGroupEndpoints<OAuthEndpoints>(
-            @group: group,
+            group: group,
             serviceProvider: endpoints.ServiceProvider);
     }
 }

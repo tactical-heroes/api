@@ -17,7 +17,7 @@ public sealed partial class UnitDescription : ValueObject
         {
             return Result.Failure<UnitDescription>(
                 error: Error.Validation(message: "Unit description cannot be empty.")
-                    .WithField(@field: nameof(UnitDescription)));
+                    .WithField(field: nameof(UnitDescription)));
         }
 
         var normalizedValue = value.Trim();
@@ -27,6 +27,6 @@ public sealed partial class UnitDescription : ValueObject
             : Result.Failure<UnitDescription>(
                 error: Error.Validation(
                         message: $"Unit description cannot be longer than {MaxLength} characters.")
-                    .WithField(@field: nameof(UnitDescription)));
+                    .WithField(field: nameof(UnitDescription)));
     }
 }

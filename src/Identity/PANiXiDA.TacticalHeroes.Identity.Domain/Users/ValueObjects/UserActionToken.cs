@@ -20,7 +20,7 @@ public sealed partial class UserActionToken : ValueObject
         return string.IsNullOrWhiteSpace(value)
             ? Result.Failure<UserActionToken>(
                 error: Error.Validation(message: "User action token cannot be empty.")
-                    .WithField(@field: nameof(UserActionToken)))
+                    .WithField(field: nameof(UserActionToken)))
             : Result.Success(value: new UserActionToken(value: value, expiresAtUtc: expiresAtUtc));
     }
 }

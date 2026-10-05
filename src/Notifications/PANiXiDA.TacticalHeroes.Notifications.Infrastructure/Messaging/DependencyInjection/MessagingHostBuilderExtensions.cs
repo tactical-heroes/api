@@ -17,8 +17,8 @@ internal static class MessagingHostBuilderExtensions
         {
             services.ConfigureWolverine(configure: options =>
             {
-                options.Discovery.IncludeAssembly(@assembly: ApplicationAssembly.Instance);
-                options.Discovery.IncludeAssembly(@assembly: Assembly.GetExecutingAssembly());
+                options.Discovery.IncludeAssembly(assembly: ApplicationAssembly.Instance);
+                options.Discovery.IncludeAssembly(assembly: Assembly.GetExecutingAssembly());
                 options.CodeGeneration.AlwaysUseServiceLocationFor<IEmailSender>();
             });
         });

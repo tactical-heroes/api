@@ -19,7 +19,7 @@ public sealed partial class Email : ValueObject
         {
             return Result.Failure<Email>(
                 error: Error.Validation(message: "Email cannot be empty.")
-                    .WithField(@field: nameof(Email)));
+                    .WithField(field: nameof(Email)));
         }
 
         var normalizedValue = value.Trim().ToLowerInvariant();
@@ -28,7 +28,7 @@ public sealed partial class Email : ValueObject
         {
             return Result.Failure<Email>(
                 error: Error.Validation(message: $"Email cannot be longer than {MaxLength} characters.")
-                    .WithField(@field: nameof(Email)));
+                    .WithField(field: nameof(Email)));
         }
 
         try
@@ -39,14 +39,14 @@ public sealed partial class Email : ValueObject
             {
                 return Result.Failure<Email>(
                     error: Error.Validation(message: "Email has invalid format.")
-                        .WithField(@field: nameof(Email)));
+                        .WithField(field: nameof(Email)));
             }
         }
         catch (FormatException)
         {
             return Result.Failure<Email>(
                 error: Error.Validation(message: "Email has invalid format.")
-                    .WithField(@field: nameof(Email)));
+                    .WithField(field: nameof(Email)));
         }
 
         return Result.Success(value: new Email(value: normalizedValue));

@@ -31,7 +31,7 @@ internal sealed class MailKitEmailSender(
             name: options.Value.SenderName,
             address: options.Value.SenderEmail));
         email.To.Add(address: MailboxAddress.Parse(text: message.RecipientEmail));
-        email.Headers.Add(@field: "X-Correlation-Id", value: message.CorrelationId.ToString(format: "D"));
+        email.Headers.Add(field: "X-Correlation-Id", value: message.CorrelationId.ToString(format: "D"));
 
         using var smtpClient = new SmtpClient();
 

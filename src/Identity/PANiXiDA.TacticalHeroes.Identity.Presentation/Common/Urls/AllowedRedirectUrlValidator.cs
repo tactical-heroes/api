@@ -15,7 +15,7 @@ internal static class AllowedRedirectUrlValidator
         {
             return Result.Failure(
                 error: Error.Validation(message: "Return URL is invalid.")
-                    .WithField(@field: fieldName));
+                    .WithField(field: fieldName));
         }
 
         return Result.Success();

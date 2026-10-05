@@ -17,7 +17,7 @@ public sealed partial class HeroName : ValueObject
         {
             return Result.Failure<HeroName>(
                 error: Error.Validation(message: "Hero name cannot be empty.")
-                    .WithField(@field: nameof(HeroName)));
+                    .WithField(field: nameof(HeroName)));
         }
 
         var normalizedValue = value.Trim();
@@ -27,6 +27,6 @@ public sealed partial class HeroName : ValueObject
             : Result.Failure<HeroName>(
                 error: Error.Validation(
                         message: $"Hero name cannot be longer than {MaxLength} characters.")
-                    .WithField(@field: nameof(HeroName)));
+                    .WithField(field: nameof(HeroName)));
     }
 }

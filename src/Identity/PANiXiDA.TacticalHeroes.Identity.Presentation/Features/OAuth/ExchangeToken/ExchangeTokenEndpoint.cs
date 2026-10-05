@@ -146,7 +146,7 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         var authenticationResult = await httpContext.AuthenticateAsync(
             scheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         var subject = authenticationResult.Principal?.GetClaim(
-            @type: OpenIddictConstants.Claims.Subject);
+            type: OpenIddictConstants.Claims.Subject);
 
         if (string.IsNullOrWhiteSpace(subject))
         {

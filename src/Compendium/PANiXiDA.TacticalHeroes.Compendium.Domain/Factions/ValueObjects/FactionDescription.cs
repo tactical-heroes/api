@@ -17,7 +17,7 @@ public sealed partial class FactionDescription : ValueObject
         {
             return Result.Failure<FactionDescription>(
                 error: Error.Validation(message: "Faction description cannot be empty.")
-                    .WithField(@field: nameof(FactionDescription)));
+                    .WithField(field: nameof(FactionDescription)));
         }
 
         var normalizedValue = value.Trim();
@@ -27,6 +27,6 @@ public sealed partial class FactionDescription : ValueObject
             : Result.Failure<FactionDescription>(
                 error: Error.Validation(
                         message: $"Faction description cannot be longer than {MaxLength} characters.")
-                    .WithField(@field: nameof(FactionDescription)));
+                    .WithField(field: nameof(FactionDescription)));
     }
 }

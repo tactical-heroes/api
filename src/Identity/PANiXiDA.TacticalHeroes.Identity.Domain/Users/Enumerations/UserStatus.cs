@@ -23,7 +23,7 @@ public sealed partial class UserStatus : Enumeration<UserStatus>
         {
             return Result.Failure<UserStatus>(
                 error: Error.Validation(message: "User status is required.")
-                    .WithField(@field: nameof(UserStatus)));
+                    .WithField(field: nameof(UserStatus)));
         }
 
         var normalizedValue = value.Trim();
@@ -32,6 +32,6 @@ public sealed partial class UserStatus : Enumeration<UserStatus>
             ? Result.Success(value: status)
             : Result.Failure<UserStatus>(
                 error: Error.Validation(message: $"User status '{normalizedValue}' is invalid.")
-                    .WithField(@field: nameof(UserStatus)));
+                    .WithField(field: nameof(UserStatus)));
     }
 }

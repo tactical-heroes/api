@@ -27,7 +27,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userIdValue = user.FindFirst(@type: OpenIddictConstants.Claims.Subject)?.Value;
+        var userIdValue = user.FindFirst(type: OpenIddictConstants.Claims.Subject)?.Value;
 
         if (!Guid.TryParse(input: userIdValue, result: out var userId))
         {
