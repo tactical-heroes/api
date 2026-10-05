@@ -660,113 +660,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      setter и init-accessor запрещены независимо от видимости, включая
      private. Проверяются также статические и унаследованные свойства.
 
-## Пагинация и сортировка
-
-127. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
-     параметры методов типа `PaginationParameters` и `SortingParameters`
-     должны называться `paginationParameters` и `sortingParameters`.
-
-128. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
-     — соответствующие свойства Query должны называться `PaginationParameters`
-     и `SortingParameters`.
-
-129. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
-     — метод с параметром `PaginationParameters` обязан принимать и
-     `SortingParameters`. Требования возвращать `PaginationResult` нет:
-     правило допускает mapper-методы, создающие Query, и endpoints.
-
-130. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
-     — Query со свойством `PaginationParameters` обязана содержать свойство
-     `SortingParameters`.
-
-131. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
-     — у Query должен быть validator, подключающий `PaginationParametersValidator`
-     к свойству пагинации и `<ReadModel>SortingValidator` к свойству сортировки.
-     ReadModel определяется по результату Query; sorting-validator должен
-     наследовать `SortingParametersValidator`. Проверяется фактическое подключение
-     дочерних validators, а не только наличие их классов.
-
-## Применение маппинга и сортировки в read-репозиториях
-
-132. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
-     — публичные экземплярные методы и явные реализации интерфейсов
-     `IReadRepository<>` в Infrastructure, возвращающие коллекции, должны
-     применять `IReadModelSorting<TReadModel>` для типа элемента результата.
-     Учитываются обычные коллекции, массивы, `IAsyncEnumerable<>`, результаты
-     страничной и курсорной пагинации, обёртки `Task`, `ValueTask` и `Result`.
-     Проверяется применение `ApplySorting` либо подходящего sorter через
-     `GetPagedResultAsync` в цепочке возвращаемого результата: неиспользуемого
-     вызова сортировки недостаточно.
-
-133. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
-     реализации `IReadModelSorting<>` должны задавать непустой `DefaultSorting`.
-     Наличие `Id` и сортировка по нему не требуются. Уникальность итогового
-     порядка этот архитектурный тест не доказывает; для стабильной пагинации
-     её нужно обеспечивать подходящими полями конкретной модели и проверять
-     интеграционными тестами.
-
-134. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
-     — методы EF read-репозиториев, возвращающие ReadModel либо коллекцию,
-     должны применять соответствующий `IReadModelMapper<TId, TReadDbModel, TReadModel>`
-     через `ProjectTo`, `GetByIdAsync` или `GetPagedResultAsync`.
-     Проверяется совпадение всех трёх типов с репозиторием и его результатом,
-     а также использование маппинга в цепочке возвращаемого значения.
-     Это требование к проекциям EF read-репозиториев, а не ко всем ReadModel
-     приложения независимо от способа их создания.
-
-## Поиск через ILIKE
-
-135. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
-     `ILIKE` должны использовать именованные аргументы `matchExpression`
-     и `pattern`, а шаблон поиска — форму `$"%{value.Trim()}%"`.
-
-136. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
-     не должно быть избыточной явной проверки `matchExpression` на null;
-     используется обработка null в SQL.
-
-## Согласованность входа и результата пагинации
-
-137. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
-     — в контрактах read-репозиториев и их реализациях метод принимает
-     `PaginationParameters` тогда и только тогда, когда возвращает
-     `PaginationResult<T>`. Проверяются публичные экземплярные методы и явные
-     реализации интерфейсов; обёртки `Task`, `ValueTask` и `Result` раскрываются.
-     Mapper-методы в этот охват не входят. Наличие `SortingParameters`
-     проверяется отдельно правилом 129.
-
-138. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
-     Query содержит свойство `PaginationParameters` тогда и только тогда,
-     когда результат её `IQuery<TResult>` — `PaginationResult<T>`, в том числе
-     внутри `Result`. Связь с `SortingParameters` проверяется правилом 130.
-
-139. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
-     — у `IQueryHandler<TQuery, TResult>` наличие `PaginationParameters`
-     во входной Query должно соответствовать `PaginationResult<T>` в результате
-     handler, с раскрытием технических обёрток.
-
-140. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
-     наличие `PaginationParameters` у обработчика, зарегистрированного через
-     `EndpointMapBuilder`, должно совпадать с декларацией
-     `Produces<PaginationResult<TResponse>>` и передачей
-     `PaginationResult<TResponse>` в `TypedResults.Ok` внутри обработчика.
-     Проверяется каждая регистрация маршрута. Это позволяет проверять текущие
-     endpoints с возвращаемым типом `Task<IResult>`, не раскрывающим HTTP body.
-
-## Создание strongly typed ID
-
-141. `StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared`
-     — классы и структуры, реализующие `IStronglyTypedId`, должны объявлять
-     только приватные конструкторы. Создание из внешнего значения
-     проходит через `Create`, генерация нового идентификатора — через `New`.
-
-142. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
-     — свойства strongly typed ID должны иметь публичный getter без setter
-     или init-accessor, чтобы нельзя было обойти фабрику через initializer
-     или выражение `with`.
-
-## Порядок членов типов
-
-143. `TypeMembers_Should_FollowAgreedOrder_When_Declared` — в авторском коде
+127. `TypeMembers_Should_FollowAgreedOrder_When_Declared` — в авторском коде
      `src`, `tests` и `tools` члены типов идут в порядке: константы, поля,
      конструкторы, финализаторы, события, свойства, индексаторы, методы,
      операторы, вложенные типы. Внутри группы сначала учитывается доступность:
@@ -781,3 +675,107 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      При переносе инициализированных полей и свойств необходимо сохранять
      последовательность вычислений; зависимую инициализацию следует переносить
      в соответствующий конструктор.
+
+## Пагинация и сортировка
+
+128. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
+     параметры методов типа `PaginationParameters` и `SortingParameters`
+     должны называться `paginationParameters` и `sortingParameters`.
+
+129. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
+     — соответствующие свойства Query должны называться `PaginationParameters`
+     и `SortingParameters`.
+
+130. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
+     — метод с параметром `PaginationParameters` обязан принимать и
+     `SortingParameters`. Требования возвращать `PaginationResult` нет:
+     правило допускает mapper-методы, создающие Query, и endpoints.
+
+131. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
+     — Query со свойством `PaginationParameters` обязана содержать свойство
+     `SortingParameters`.
+
+132. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
+     — у Query должен быть validator, подключающий `PaginationParametersValidator`
+     к свойству пагинации и `<ReadModel>SortingValidator` к свойству сортировки.
+     ReadModel определяется по результату Query; sorting-validator должен
+     наследовать `SortingParametersValidator`. Проверяется фактическое подключение
+     дочерних validators, а не только наличие их классов.
+
+## Применение маппинга и сортировки в read-репозиториях
+
+133. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
+     — публичные экземплярные методы и явные реализации интерфейсов
+     `IReadRepository<>` в Infrastructure, возвращающие коллекции, должны
+     применять `IReadModelSorting<TReadModel>` для типа элемента результата.
+     Учитываются обычные коллекции, массивы, `IAsyncEnumerable<>`, результаты
+     страничной и курсорной пагинации, обёртки `Task`, `ValueTask` и `Result`.
+     Проверяется применение `ApplySorting` либо подходящего sorter через
+     `GetPagedResultAsync` в цепочке возвращаемого результата: неиспользуемого
+     вызова сортировки недостаточно.
+
+134. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
+     реализации `IReadModelSorting<>` должны задавать непустой `DefaultSorting`.
+     Наличие `Id` и сортировка по нему не требуются. Уникальность итогового
+     порядка этот архитектурный тест не доказывает; для стабильной пагинации
+     её нужно обеспечивать подходящими полями конкретной модели и проверять
+     интеграционными тестами.
+
+135. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
+     — методы EF read-репозиториев, возвращающие ReadModel либо коллекцию,
+     должны применять соответствующий `IReadModelMapper<TId, TReadDbModel, TReadModel>`
+     через `ProjectTo`, `GetByIdAsync` или `GetPagedResultAsync`.
+     Проверяется совпадение всех трёх типов с репозиторием и его результатом,
+     а также использование маппинга в цепочке возвращаемого значения.
+     Это требование к проекциям EF read-репозиториев, а не ко всем ReadModel
+     приложения независимо от способа их создания.
+
+## Поиск через ILIKE
+
+136. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
+     `ILIKE` должны использовать именованные аргументы `matchExpression`
+     и `pattern`, а шаблон поиска — форму `$"%{value.Trim()}%"`.
+
+137. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
+     не должно быть избыточной явной проверки `matchExpression` на null;
+     используется обработка null в SQL.
+
+## Согласованность входа и результата пагинации
+
+138. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
+     — в контрактах read-репозиториев и их реализациях метод принимает
+     `PaginationParameters` тогда и только тогда, когда возвращает
+     `PaginationResult<T>`. Проверяются публичные экземплярные методы и явные
+     реализации интерфейсов; обёртки `Task`, `ValueTask` и `Result` раскрываются.
+     Mapper-методы в этот охват не входят. Наличие `SortingParameters`
+     проверяется отдельно правилом 130.
+
+139. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
+     Query содержит свойство `PaginationParameters` тогда и только тогда,
+     когда результат её `IQuery<TResult>` — `PaginationResult<T>`, в том числе
+     внутри `Result`. Связь с `SortingParameters` проверяется правилом 131.
+
+140. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
+     — у `IQueryHandler<TQuery, TResult>` наличие `PaginationParameters`
+     во входной Query должно соответствовать `PaginationResult<T>` в результате
+     handler, с раскрытием технических обёрток.
+
+141. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
+     наличие `PaginationParameters` у обработчика, зарегистрированного через
+     `EndpointMapBuilder`, должно совпадать с декларацией
+     `Produces<PaginationResult<TResponse>>` и передачей
+     `PaginationResult<TResponse>` в `TypedResults.Ok` внутри обработчика.
+     Проверяется каждая регистрация маршрута. Это позволяет проверять текущие
+     endpoints с возвращаемым типом `Task<IResult>`, не раскрывающим HTTP body.
+
+## Создание strongly typed ID
+
+142. `StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared`
+     — классы и структуры, реализующие `IStronglyTypedId`, должны объявлять
+     только приватные конструкторы. Создание из внешнего значения
+     проходит через `Create`, генерация нового идентификатора — через `New`.
+
+143. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+     — свойства strongly typed ID должны иметь публичный getter без setter
+     или init-accessor, чтобы нельзя было обойти фабрику через initializer
+     или выражение `with`.
