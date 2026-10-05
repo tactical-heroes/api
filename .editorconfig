@@ -233,9 +233,6 @@ dotnet_diagnostic.RCS1261.severity = warning
 dotnet_diagnostic.RCS1046.severity = warning
 dotnet_diagnostic.RCS1047.severity = warning
 
-[tests/**/*TestCollection.cs]
-dotnet_code_quality.CA1711.allowed_suffixes = Collection
-
 [**/Migrations/**.cs]
 generated_code = true
 dotnet_diagnostic.IDE0005.severity = none

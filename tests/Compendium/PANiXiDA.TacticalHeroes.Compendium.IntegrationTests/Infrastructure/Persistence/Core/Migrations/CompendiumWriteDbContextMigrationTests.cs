@@ -2,7 +2,7 @@ using Npgsql;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
 
-[Collection(IntegrationTestCollection.Name)]
+[Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class CompendiumWriteDbContextMigrationTests(
     IntegrationTestFixture fixture)
 {
