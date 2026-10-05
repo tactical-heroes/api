@@ -20,31 +20,6 @@ Restore packages:
 dotnet restore PANiXiDA.TacticalHeroes.slnx
 ```
 
-Format code, or check formatting without changing files:
-
-```bash
-dotnet format --severity warn --no-restore
-dotnet format --verify-no-changes --severity warn --no-restore
-```
-
-Architecture tests check member ordering in authored `src`, `tests`, and `tools` code:
-constants, fields, constructors, finalizers, events, properties, indexers, methods,
-operators, nested types. Within each group, accessibility comes first
-(`public`, `internal`, `protected internal`, `protected`, `private protected`, `private`),
-then static before instance members, then readonly before mutable fields.
-Members with equal ordering keys retain their logical order; no alphabetical sort
-is required. Partial declarations are checked separately. Explicit interface
-implementations are grouped with public members.
-
-This convention runs with the architecture tests, independently of `dotnet format`:
-
-```bash
-dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHeroes.ArchitectureTests.csproj
-```
-
-When reordering initialized fields or properties, preserve their initialization
-dependencies; move dependent initialization into the appropriate constructor if needed.
-
 Build the solution:
 
 ```bash
