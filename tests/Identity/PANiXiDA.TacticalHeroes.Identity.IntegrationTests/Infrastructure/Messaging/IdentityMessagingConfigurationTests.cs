@@ -37,8 +37,13 @@ public sealed class IdentityMessagingConfigurationTests
     {
         using var services = CreateServices(null, null);
 
-        Should.Throw<OptionsValidationException>(() =>
+        var exception = Should.Throw<OptionsValidationException>(() =>
             services.GetRequiredService<IStartupValidator>().Validate());
+
+        exception.Failures.ShouldContain(failure => failure.Contains(
+            "Identity:Messaging:EmailConfirmationUrlTemplate", StringComparison.Ordinal));
+        exception.Failures.ShouldContain(failure => failure.Contains(
+            "Identity:Messaging:PasswordResetUrlTemplate", StringComparison.Ordinal));
     }
 
     [Theory(DisplayName = "Build should preserve query values when configured email links contain encoded tokens")]
