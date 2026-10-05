@@ -55,7 +55,21 @@ csharp_space_around_binary_operators = before_and_after
 [*.{cs,vb}]
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = true
+dotnet_diagnostic.CA1708.severity = warning
+dotnet_diagnostic.CA1710.severity = warning
+dotnet_diagnostic.CA1711.severity = warning
+dotnet_diagnostic.CA1712.severity = warning
+dotnet_diagnostic.CA1725.severity = warning
+dotnet_diagnostic.CA1727.severity = warning
 dotnet_diagnostic.CA1873.severity = none
+
+dotnet_code_quality.CA1708.api_surface = all
+dotnet_code_quality.CA1710.api_surface = all
+dotnet_code_quality.CA1710.exclude_indirect_base_types = false
+dotnet_code_quality.CA1710.additional_required_suffixes = T:FluentValidation.AbstractValidator`1->Validator
+dotnet_code_quality.CA1711.api_surface = all
+dotnet_code_quality.CA1712.enum_values_prefix_trigger = AnyEnumValue
+dotnet_code_quality.CA1725.api_surface = all
 
 #### Naming styles ####
 
@@ -218,6 +232,9 @@ dotnet_diagnostic.RCS1261.severity = warning
 [src/**/*.cs]
 dotnet_diagnostic.RCS1046.severity = warning
 dotnet_diagnostic.RCS1047.severity = warning
+
+[tests/**/*TestCollection.cs]
+dotnet_code_quality.CA1711.allowed_suffixes = Collection
 
 [**/Migrations/**.cs]
 generated_code = true
