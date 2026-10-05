@@ -59,7 +59,6 @@ dotnet_diagnostic.CA1873.severity = none
 
 #### Naming styles ####
 
-# Enforce naming during builds; TreatWarningsAsErrors promotes violations to errors.
 dotnet_diagnostic.IDE1006.severity = warning
 
 # Naming rules
@@ -88,7 +87,6 @@ dotnet_naming_rule.non_public_static_fields_should_be_prefixed.severity = warnin
 dotnet_naming_rule.non_public_static_fields_should_be_prefixed.symbols = non_public_static_fields
 dotnet_naming_rule.non_public_static_fields_should_be_prefixed.style = static_camel_case
 
-# Constants need a more specific rule because they are implicitly static.
 dotnet_naming_rule.non_public_constants_should_be_pascal_case.severity = warning
 dotnet_naming_rule.non_public_constants_should_be_pascal_case.symbols = non_public_constants
 dotnet_naming_rule.non_public_constants_should_be_pascal_case.style = pascal_case
