@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.Create;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Units.Create;
@@ -5,6 +7,56 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
+    [Theory(DisplayName = "POST units should reject a request when required numeric field is omitted")]
+    [InlineData("morale")]
+    [InlineData("luck")]
+    public async Task PostUnits_Should_ReturnBadRequest_When_RequiredNumericFieldIsOmitted(string fieldName)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UnitsApiTestClient(Fixture);
+        var faction = await client.CreateFactionAsync(cancellationToken);
+        var request = UnitsApiTestClient.CreateRequest(faction.Id, "Swordsman");
+        var payload = JsonSerializer.SerializeToNode(request, TestJsonSerializerOptions.Web)!.AsObject();
+        payload.Remove(fieldName);
+
+        using var response = await Fixture.Client.PostAsJsonAsync("/api/v1/units", payload, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
+    }
+
+    [Theory(DisplayName = "POST units should create a melee unit when ranged attack fields are omitted or null")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PostUnits_Should_CreateMeleeUnit_When_RangedAttackFieldsAreOmittedOrNull(bool omitFields)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UnitsApiTestClient(Fixture);
+        var faction = await client.CreateFactionAsync(cancellationToken);
+        var request = UnitsApiTestClient.CreateRequest(faction.Id, "Swordsman") with
+        {
+            Shots = null,
+            RangedAttackRange = null
+        };
+        var payload = JsonSerializer.SerializeToNode(request, TestJsonSerializerOptions.Web)!.AsObject();
+        if (omitFields)
+        {
+            payload.Remove("shots");
+            payload.Remove("rangedAttackRange");
+        }
+
+        using var response = await Fixture.Client.PostAsJsonAsync("/api/v1/units", payload, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created, responseBody);
+        var createdUnit = await response.Content.ReadFromJsonAsync<CreateUnitResponse>(
+            TestJsonSerializerOptions.Web, cancellationToken);
+        createdUnit.ShouldNotBeNull();
+        var unit = await client.GetDetailsAsync(createdUnit.Id, cancellationToken);
+        unit.Shots.ShouldBeNull();
+        unit.RangedAttackRange.ShouldBeNull();
+    }
+
     [Fact(DisplayName = "POST units should create a normalized ranged unit when request is valid")]
     public async Task PostUnits_Should_CreateUnit_When_RequestIsValid()
     {
@@ -25,11 +77,11 @@ public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
                 MaximumDamage: 5,
                 Initiative: 10.5,
                 Speed: 6,
-                Shots: 12,
-                RangedAttackRange: 8,
                 Morale: 2,
                 Luck: 1,
-                FactionId: faction.Id));
+                FactionId: faction.Id,
+                Shots: 12,
+                RangedAttackRange: 8));
         var unit = await client.GetDetailsAsync(
             createdUnit.Id,
             cancellationToken);

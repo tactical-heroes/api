@@ -25,11 +25,11 @@ internal sealed class UnitsApiTestClient(FunctionalTestFixture fixture)
             MaximumDamage: 5,
             Initiative: 10.5,
             Speed: 6,
-            Shots: 12,
-            RangedAttackRange: 8,
             Morale: 2,
             Luck: 1,
-            FactionId: factionId);
+            FactionId: factionId,
+            Shots: 12,
+            RangedAttackRange: 8);
     }
 
     internal Task<CreateFactionResponse> CreateFactionAsync(
