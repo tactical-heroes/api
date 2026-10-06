@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "POST units should reject a request when a required numeric field is omitted")]
+    [Theory(DisplayName = "POST units should reject a request when required numeric field is omitted")]
     [InlineData("morale")]
     [InlineData("luck")]
     public async Task PostUnits_Should_ReturnBadRequest_When_RequiredNumericFieldIsOmitted(string fieldName)
