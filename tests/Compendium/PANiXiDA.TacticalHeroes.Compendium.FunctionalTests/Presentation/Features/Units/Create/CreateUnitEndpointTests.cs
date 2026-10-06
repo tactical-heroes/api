@@ -7,6 +7,24 @@ namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Featur
 public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
+    [Theory(DisplayName = "POST units should reject a request when a required numeric field is omitted")]
+    [InlineData("morale")]
+    [InlineData("luck")]
+    public async Task PostUnits_Should_ReturnBadRequest_When_RequiredNumericFieldIsOmitted(string fieldName)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UnitsApiTestClient(Fixture);
+        var faction = await client.CreateFactionAsync(cancellationToken);
+        var request = UnitsApiTestClient.CreateRequest(faction.Id, "Swordsman");
+        var payload = JsonSerializer.SerializeToNode(request, TestJsonSerializerOptions.Web)!.AsObject();
+        payload.Remove(fieldName);
+
+        using var response = await Fixture.Client.PostAsJsonAsync("/api/v1/units", payload, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
+    }
+
     [Theory(DisplayName = "POST units should create a melee unit when ranged attack fields are omitted or null")]
     [InlineData(false)]
     [InlineData(true)]

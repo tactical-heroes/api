@@ -54,12 +54,6 @@ The host's `ScalarConfiguration:BearerAuthenticationSchemes` setting maps
 This setting describes authentication in the documentation; endpoint access rules
 remain unchanged.
 
-Optional PAR parameters and the unit request fields `shots` and `rangedAttackRange`
-have explicit `null` defaults in their request records. OpenAPI therefore describes
-them as optional and nullable. Unit create and update requests accept both omitted
-fields and explicit `null` values for a melee unit; ranged attack validation still
-requires a valid pair when ranged attack values are supplied.
-
 Run the EF migrator:
 
 ```bash
