@@ -59,7 +59,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var folder = parent.CreateChild(FolderName.Create("Players").Value);
         await SaveNewFolderAsync(parent, cancellationToken);
         await SaveNewFolderAsync(folder, cancellationToken);
@@ -89,7 +90,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         await SaveNewFolderAsync(folder, cancellationToken);
         await using var firstScope = Fixture.CreateScope();
         await using var secondScope = Fixture.CreateScope();
@@ -120,7 +122,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var child = parent.CreateChild(FolderName.Create("Players").Value);
 
         Func<Task> saveOrphan = () => SaveNewFolderAsync(child, cancellationToken);
@@ -139,7 +142,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var child = parent.CreateChild(FolderName.Create("Players").Value);
         await SaveNewFolderAsync(parent, cancellationToken);
         await SaveNewFolderAsync(child, cancellationToken);

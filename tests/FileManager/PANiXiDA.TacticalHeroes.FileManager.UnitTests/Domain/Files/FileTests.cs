@@ -19,7 +19,8 @@ public sealed class FileTests
 
         var file = File.Create(
             name,
-            fileType).Value;
+            fileType,
+            userId: null).Value;
 
         file.Id.Value.Version.ShouldBe(7);
         file.Name.ShouldBe(name);
@@ -90,7 +91,8 @@ public sealed class FileTests
         var file = CreateFile(status);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
 
         var result = file.MoveTo(folder);
 
@@ -106,7 +108,8 @@ public sealed class FileTests
         var file = CreateFile("Ready");
         var originalFolder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var destination = originalFolder.CreateChild(FolderName.Create("Players").Value);
         file.MoveTo(originalFolder);
 
@@ -290,7 +293,8 @@ public sealed class FileTests
     {
         var file = File.Create(
             FileName.Create("avatar.png").Value,
-            FileType.Avatar).Value;
+            FileType.Avatar,
+            userId: null).Value;
 
         if (status == "Ready")
         {

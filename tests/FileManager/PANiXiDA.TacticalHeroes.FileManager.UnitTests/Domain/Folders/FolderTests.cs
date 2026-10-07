@@ -14,7 +14,8 @@ public sealed class FolderTests
 
         var folder = Folder.Create(
             name: name,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
 
         folder.Id.Value.ShouldNotBe(Guid.Empty);
         folder.Name.ShouldBe(name);
@@ -59,7 +60,8 @@ public sealed class FolderTests
     {
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var name = FolderName.Create("Players").Value;
 
         var child = parent.CreateChild(name);
@@ -77,7 +79,8 @@ public sealed class FolderTests
     {
         var root = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var parent = root.CreateChild(FolderName.Create("Players").Value);
 
         var child = parent.CreateChild(FolderName.Create("Warriors").Value);

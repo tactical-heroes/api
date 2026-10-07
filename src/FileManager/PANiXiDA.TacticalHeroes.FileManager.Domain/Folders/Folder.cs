@@ -28,7 +28,7 @@ public sealed class Folder : AggregateRoot<FolderId>
     public static Result<Folder> Create(
         FolderName name,
         FileType allowedFileType,
-        UserId? userId = null)
+        UserId? userId)
     {
         if (allowedFileType == FileType.Personal && userId is null)
         {

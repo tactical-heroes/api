@@ -23,7 +23,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var readRepository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         await repository.AddAsync(folder, cancellationToken);
 
@@ -43,7 +44,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
 
         var before = await readRepository.AnyAsync(cancellationToken);
         await repository.AddAsync(folder, cancellationToken);
@@ -103,7 +105,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var root = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         var child = root.CreateChild(FolderName.Create("Players").Value);
         var grandchild = child.CreateChild(FolderName.Create("Heroes").Value);
         Folder[] folders = [root, child, grandchild];

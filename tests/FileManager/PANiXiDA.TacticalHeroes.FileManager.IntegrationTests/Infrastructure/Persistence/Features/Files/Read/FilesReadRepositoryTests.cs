@@ -106,7 +106,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var otherFile = await AddFileAsync(false, cancellationToken);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar).Value;
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
         await using var scope = Fixture.CreateScope();
         await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
             .AddAsync(folder, cancellationToken);

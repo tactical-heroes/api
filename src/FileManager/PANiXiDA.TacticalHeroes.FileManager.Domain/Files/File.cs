@@ -32,7 +32,7 @@ public sealed class File : AggregateRoot<FileId>
     public static Result<File> Create(
         FileName name,
         FileType type,
-        UserId? userId = null)
+        UserId? userId)
     {
         if (type == FileType.Personal && userId is null)
         {
