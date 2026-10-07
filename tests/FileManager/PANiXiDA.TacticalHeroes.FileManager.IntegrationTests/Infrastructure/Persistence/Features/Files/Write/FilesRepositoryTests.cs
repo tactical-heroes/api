@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -168,7 +169,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         await SaveNewFileAsync(file, cancellationToken);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         await using (var scope = Fixture.CreateScope())
         {
             await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
@@ -196,7 +197,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var file = CreateFile();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         file.MoveTo(folder).IsSuccess.ShouldBeTrue();
 
         Func<Task> saveFile = () => SaveNewFileAsync(file, cancellationToken);

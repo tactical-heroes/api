@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 
@@ -26,7 +26,7 @@ internal sealed class FolderConfiguration : AuditableEntityConfiguration<Folder>
             .HasMaxLength(FolderName.MaxLength)
             .IsRequired();
 
-        builder.Property(folder => folder.Type)
+        builder.Property(folder => folder.AllowedFileType)
             .HasConversion(
                 type => type.Name,
                 value => FileType.Create(value).Value)

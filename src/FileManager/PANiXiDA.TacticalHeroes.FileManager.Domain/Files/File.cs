@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -55,10 +56,10 @@ public sealed class File : AggregateRoot<FileId>
                 Error.Conflict("A file being deleted cannot be moved."));
         }
 
-        if (Type != folder.Type)
+        if (Type != folder.AllowedFileType)
         {
             return Result.Failure(
-                Error.Validation("File and folder types must match.")
+                Error.Validation("File type must match the folder's allowed file type.")
                     .WithField(nameof(FolderId)));
         }
 

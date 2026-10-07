@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files.Enumerations;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Common.Enumerations;
 
 public sealed class FileTypeTests
 {

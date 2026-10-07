@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -98,7 +99,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var otherFile = await AddFileAsync(cancellationToken);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         await using var scope = Fixture.CreateScope();
         await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
             .AddAsync(folder, cancellationToken);

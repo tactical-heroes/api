@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -56,7 +57,7 @@ public sealed class FileTests
         var file = CreateFile(status);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
 
         var result = file.MoveTo(folder);
 
@@ -72,7 +73,7 @@ public sealed class FileTests
         var file = CreateFile("Ready");
         var originalFolder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         var destination = originalFolder.CreateChild(FolderName.Create("Players").Value);
         file.MoveTo(originalFolder);
 

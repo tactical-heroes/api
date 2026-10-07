@@ -1,6 +1,6 @@
 using PANiXiDA.Core.Domain.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 
 public sealed partial class FileType : Enumeration<FileType>
 {

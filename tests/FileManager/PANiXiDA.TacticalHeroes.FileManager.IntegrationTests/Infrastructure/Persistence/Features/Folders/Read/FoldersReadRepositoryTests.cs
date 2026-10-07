@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
@@ -22,7 +22,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var readRepository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         await repository.AddAsync(folder, cancellationToken);
 
@@ -42,7 +42,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
 
         var before = await readRepository.AnyAsync(cancellationToken);
         await repository.AddAsync(folder, cancellationToken);
@@ -60,7 +60,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         await repository.AddAsync(folder, cancellationToken);
@@ -79,7 +79,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
 
         model.Id.ShouldBe(folder.Id.Value);
         model.Name.ShouldBe(folder.Name.Value);
-        model.Type.ShouldBe(folder.Type.Name);
+        model.AllowedFileType.ShouldBe(folder.AllowedFileType.Name);
         model.ParentId.ShouldBe(folder.ParentId?.Value);
         model.CreatedAt.ShouldBe(persisted.GetValue<DateTime>("CreatedAt"));
         model.UpdatedAt.ShouldBe(persisted.GetValue<DateTime>("UpdatedAt"));
@@ -96,7 +96,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var root = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         var child = root.CreateChild(FolderName.Create("Players").Value);
         var grandchild = child.CreateChild(FolderName.Create("Heroes").Value);
         Folder[] folders = [root, child, grandchild];

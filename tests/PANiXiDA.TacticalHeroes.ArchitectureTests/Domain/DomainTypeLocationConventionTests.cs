@@ -99,8 +99,8 @@ public sealed class DomainTypeLocationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Enumerations should reside in owner Enumerations directories when declared")]
-    public void Enumerations_Should_ResideInOwnerEnumerationsDirectories_When_Declared()
+    [Fact(DisplayName = "Enumerations should reside in owner or common Enumerations directories when declared")]
+    public void Enumerations_Should_ResideInOwnerOrCommonEnumerationsDirectories_When_Declared()
     {
         var repositoryRoot = FindRepositoryRoot();
         var owners = GetDomainOwners();
@@ -303,9 +303,12 @@ public sealed class DomainTypeLocationConventionTests
             owner.Namespace,
             ownerNamespace,
             StringComparison.Ordinal));
+        var isCommonEnumeration =
+            categoryDirectoryName == EnumerationsDirectoryName &&
+            ownerNamespace == $"{GetAssemblyName(ownedType)}.Common";
         var violations = new List<string>();
 
-        if (!hasOwner)
+        if (!hasOwner && !isCommonEnumeration)
         {
             violations.Add(
                 $"{ownedType.FullName} must belong to an aggregate root or " +

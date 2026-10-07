@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
@@ -23,7 +23,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         await SaveNewFolderAsync(folder, cancellationToken);
         for (var level = 0; level < depth; level++)
         {
@@ -39,7 +39,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(folder.Id);
         restored.Name.ShouldBe(folder.Name);
-        restored.Type.ShouldBe(FileType.Avatar);
+        restored.AllowedFileType.ShouldBe(FileType.Avatar);
         restored.ParentId.ShouldBe(folder.ParentId);
         scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
             .ChangeTracker.Entries().ShouldBeEmpty();
@@ -51,7 +51,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         var folder = parent.CreateChild(FolderName.Create("Players").Value);
         await SaveNewFolderAsync(parent, cancellationToken);
         await SaveNewFolderAsync(folder, cancellationToken);
@@ -71,7 +71,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
             .GetByIdAsync(folder.Id, cancellationToken);
         saved.ShouldNotBeNull();
         saved.Name.Value.ShouldBe("Heroes");
-        saved.Type.ShouldBe(FileType.Avatar);
+        saved.AllowedFileType.ShouldBe(FileType.Avatar);
         saved.ParentId.ShouldBe(parent.Id);
     }
 
@@ -81,7 +81,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         var child = parent.CreateChild(FolderName.Create("Players").Value);
 
         Func<Task> saveOrphan = () => SaveNewFolderAsync(child, cancellationToken);
@@ -100,7 +100,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            type: FileType.Avatar);
+            allowedFileType: FileType.Avatar);
         var child = parent.CreateChild(FolderName.Create("Players").Value);
         await SaveNewFolderAsync(parent, cancellationToken);
         await SaveNewFolderAsync(child, cancellationToken);
