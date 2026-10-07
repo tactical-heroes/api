@@ -51,7 +51,7 @@ public sealed class ReadDatabaseSchemaConventionTests
                 var expectedColumns = writeTable.Columns.ToDictionary(column => column.Name);
                 var actualColumns = readTable.Columns.ToDictionary(column => column.Name);
                 var columnNames = expectedColumns.Keys.Union(actualColumns.Keys)
-                    .Where(name => name != "xmin")
+                    .Where(name => name is not ("tableoid" or "xmin" or "cmin" or "xmax" or "cmax" or "ctid"))
                     .Order(StringComparer.Ordinal);
                 foreach (var name in columnNames)
                 {

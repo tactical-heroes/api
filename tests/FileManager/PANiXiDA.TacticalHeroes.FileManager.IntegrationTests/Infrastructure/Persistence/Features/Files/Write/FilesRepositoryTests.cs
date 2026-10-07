@@ -1,9 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using Npgsql;
+
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -47,6 +54,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.Id.ShouldBe(file.Id);
         restored.Name.ShouldBe(file.Name);
         restored.Type.ShouldBe(FileType.Avatar);
+        restored.FolderId.ShouldBeNull();
         restored.Status.Name.ShouldBe(status);
         restored.ContentType.ShouldBe(file.ContentType);
         restored.Size.ShouldBe(file.Size);
@@ -153,11 +161,63 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         persistedFile.Size.ShouldBeNull();
     }
 
+    [Fact(DisplayName = "File repository should restore folder placement when a file is assigned after creation")]
+    public async Task UpdateAsync_Should_RestoreFolderPlacement_When_AFileIsAssignedAfterCreation()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var file = CreateFile();
+        await SaveNewFileAsync(file, cancellationToken);
+        var folder = Folder.Create(
+            name: FolderName.Create("Avatars").Value,
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
+        await using (var scope = Fixture.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
+                .AddAsync(folder, cancellationToken);
+            var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+            var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
+            stored!.MoveTo(folder).IsSuccess.ShouldBeTrue();
+
+            await repository.UpdateAsync(stored, cancellationToken);
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var restored = await verificationScope.ServiceProvider.GetRequiredService<IFilesRepository>()
+            .GetByIdAsync(file.Id, cancellationToken);
+        restored.ShouldNotBeNull();
+        restored.FolderId.ShouldBe(folder.Id);
+        restored.Type.ShouldBe(FileType.Avatar);
+        restored.Status.ShouldBe(FileStatus.PendingUpload);
+    }
+
+    [Fact(DisplayName = "File repository should reject a dangling folder reference when folder does not exist")]
+    public async Task AddAsync_Should_RejectDanglingFolderReference_When_FolderDoesNotExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var file = CreateFile();
+        var folder = Folder.Create(
+            name: FolderName.Create("Avatars").Value,
+            allowedFileType: FileType.Avatar,
+            userId: null).Value;
+        file.MoveTo(folder).IsSuccess.ShouldBeTrue();
+
+        Func<Task> saveFile = () => SaveNewFileAsync(file, cancellationToken);
+
+        var exception = await saveFile.ShouldThrowAsync<DbUpdateException>();
+        exception.InnerException.ShouldBeOfType<PostgresException>()
+            .SqlState.ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
+        await using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        (await context.Set<File>().AnyAsync(cancellationToken)).ShouldBeFalse();
+    }
+
     private static File CreateFile()
     {
         return File.Create(
             FileName.Create("avatar.png").Value,
-            FileType.Avatar);
+            FileType.Avatar,
+            userId: null).Value;
     }
 
     private async Task SaveNewFileAsync(File file, CancellationToken cancellationToken)

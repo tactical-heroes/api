@@ -1,12 +1,13 @@
 using PANiXiDA.Core.Domain.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 
 public sealed partial class FileType : Enumeration<FileType>
 {
     public const int MaxLength = 32;
 
-    public static readonly FileType Avatar = new(1, nameof(Avatar));
+    public static readonly FileType Personal = new(1, nameof(Personal));
+    public static readonly FileType Avatar = new(2, nameof(Avatar));
 
     private FileType(int id, string name)
         : base(id, name)

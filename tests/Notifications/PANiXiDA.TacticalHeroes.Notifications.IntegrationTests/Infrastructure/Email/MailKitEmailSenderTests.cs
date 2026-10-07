@@ -50,7 +50,7 @@ public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixtur
             ConfirmationUrl: confirmationUrl,
             ExpiresAtUtc: new DateTimeOffset(2026, 7, 19, 12, 0, 0, TimeSpan.Zero));
 
-        await fixture.MessageBus.PublishAsync(integrationEvent);
+        await fixture.PublishAndWaitAsync(integrationEvent);
 
         await fixture.WaitForMessageAsync(
             "Confirm your Tactical Heroes email",
@@ -84,7 +84,7 @@ public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixtur
             PasswordResetUrl: passwordResetUrl,
             ExpiresAtUtc: new DateTimeOffset(2026, 7, 19, 13, 0, 0, TimeSpan.Zero));
 
-        await fixture.MessageBus.PublishAsync(integrationEvent);
+        await fixture.PublishAndWaitAsync(integrationEvent);
 
         await fixture.WaitForMessageAsync(
             "Reset your Tactical Heroes password",

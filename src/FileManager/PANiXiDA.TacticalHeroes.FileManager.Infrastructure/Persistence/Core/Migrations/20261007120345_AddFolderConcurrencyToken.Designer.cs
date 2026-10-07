@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -10,9 +11,10 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
-    partial class FileManagerWriteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007120345_AddFolderConcurrencyToken")]
+    partial class AddFolderConcurrencyToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,10 +79,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasColumnName("updated_at")
                         .HasColumnOrder(2);
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -95,9 +93,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_files_status");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_files_user_id");
 
                     b.ToTable("files", "file_manager");
                 });
@@ -139,10 +134,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasColumnName("updated_at")
                         .HasColumnOrder(2);
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -154,9 +145,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
 
                     b.HasIndex("ParentId")
                         .HasDatabaseName("ix_folders_parent_id");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_folders_user_id");
 
                     b.ToTable("folders", "file_manager");
                 });
