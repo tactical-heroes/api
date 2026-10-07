@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using var host = Host.CreateDefaultBuilder(args)
@@ -32,8 +33,11 @@ using var host = Host.CreateDefaultBuilder(args)
 
         services.AddPostgreSqlWriteEfRepository<CompendiumWriteDbContext>(
             context.Configuration);
+        services.AddPostgreSqlWriteEfRepository<FileManagerWriteDbContext>(
+            context.Configuration);
     })
     .Build();
 
 await host.RunMigrationsAsync<IdentityWriteDbContext>();
 await host.RunMigrationsAsync<CompendiumWriteDbContext>();
+await host.RunMigrationsAsync<FileManagerWriteDbContext>();
