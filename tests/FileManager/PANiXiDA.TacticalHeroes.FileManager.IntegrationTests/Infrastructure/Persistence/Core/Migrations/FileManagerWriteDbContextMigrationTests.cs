@@ -27,7 +27,7 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
             SELECT attname, NOT attnotnull
             FROM pg_attribute
             WHERE attrelid = 'file_manager.files'::regclass
-              AND (attnum > 0 OR attname = 'xmin')
+              AND attnum > 0
               AND NOT attisdropped;
             """,
             connection);

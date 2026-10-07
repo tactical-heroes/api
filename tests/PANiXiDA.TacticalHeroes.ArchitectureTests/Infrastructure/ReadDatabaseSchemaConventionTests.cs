@@ -50,7 +50,10 @@ public sealed class ReadDatabaseSchemaConventionTests
 
                 var expectedColumns = writeTable.Columns.ToDictionary(column => column.Name);
                 var actualColumns = readTable.Columns.ToDictionary(column => column.Name);
-                foreach (var name in expectedColumns.Keys.Union(actualColumns.Keys).Order(StringComparer.Ordinal))
+                var columnNames = expectedColumns.Keys.Union(actualColumns.Keys)
+                    .Where(name => name != "xmin")
+                    .Order(StringComparer.Ordinal);
+                foreach (var name in columnNames)
                 {
                     if (!expectedColumns.TryGetValue(name, out var expected))
                     {

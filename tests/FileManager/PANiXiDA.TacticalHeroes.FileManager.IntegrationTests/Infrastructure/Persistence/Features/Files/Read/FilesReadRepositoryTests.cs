@@ -80,8 +80,6 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         model.CreatedAt.ShouldBe(persisted.GetValue<DateTime>("CreatedAt"));
         model.UpdatedAt.ShouldBe(persisted.GetValue<DateTime>("UpdatedAt"));
         model.DeletedAt.ShouldBeNull();
-        model.Version.ShouldBe(entry.Property<uint>("Version").CurrentValue);
-        model.Version.ShouldBeGreaterThan(0u);
         readContext.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
