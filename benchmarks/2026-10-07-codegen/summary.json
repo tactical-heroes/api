@@ -1,0 +1,150 @@
+{
+  "commit": "dbeb484bba0d17b2c18c1fe2bf4160d8e4e504d1",
+  "pairs": 20,
+  "method": "Paired percentile bootstrap, 100000 resamples, seed 20261007; no outlier exclusions",
+  "total": {
+    "dynamic_mean": 181.2271756566,
+    "static_mean": 183.144843962,
+    "difference": 1.9176683054000137,
+    "change_percent": 1.0581571436249382,
+    "difference_ci95": [
+      -0.6224120693000259,
+      4.474158664450016
+    ],
+    "change_ci95": [
+      -0.3333000164342348,
+      2.5564747437890167
+    ],
+    "dynamic_median": 193.74455302100003,
+    "static_median": 192.78243809399999,
+    "dynamic_range": [
+      129.44898223399997,
+      207.28959633099998
+    ],
+    "static_range": [
+      137.19136726199997,
+      211.163895541
+    ],
+    "dynamic_stdev": 23.32860971446047,
+    "static_stdev": 20.674200015294502
+  },
+  "tests": {
+    "dynamic_mean": 155.63160581494998,
+    "static_mean": 144.7175446875,
+    "difference": -10.914061127449969,
+    "change_percent": -7.012753656495119,
+    "difference_ci95": [
+      -13.245430918499949,
+      -8.530188833499949
+    ],
+    "change_ci95": [
+      -8.169301639670623,
+      -5.776852780353636
+    ],
+    "dynamic_median": 168.675073931,
+    "static_median": 154.666763381,
+    "dynamic_range": [
+      105.260767348,
+      182.44643018499994
+    ],
+    "static_range": [
+      102.99391382400006,
+      169.66656252200005
+    ],
+    "dynamic_stdev": 23.7175823180231,
+    "static_stdev": 19.730893328141455
+  },
+  "test_counts": {
+    "PANiXiDA.TacticalHeroes.ArchitectureTests_net10.0_x64": {
+      "total": 423,
+      "executed": 423,
+      "passed": 423,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Compendium.FunctionalTests_net10.0_x64": {
+      "total": 36,
+      "executed": 36,
+      "passed": 36,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Compendium.IntegrationTests_net10.0_x64": {
+      "total": 39,
+      "executed": 39,
+      "passed": 39,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Compendium.UnitTests_net10.0_x64": {
+      "total": 175,
+      "executed": 175,
+      "passed": 175,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.FileManager.FunctionalTests_net10.0_x64": {
+      "total": 0,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.FileManager.IntegrationTests_net10.0_x64": {
+      "total": 40,
+      "executed": 40,
+      "passed": 40,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.FileManager.UnitTests_net10.0_x64": {
+      "total": 162,
+      "executed": 162,
+      "passed": 162,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Identity.FunctionalTests_net10.0_x64": {
+      "total": 42,
+      "executed": 42,
+      "passed": 42,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Identity.IntegrationTests_net10.0_x64": {
+      "total": 88,
+      "executed": 88,
+      "passed": 88,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Identity.UnitTests_net10.0_x64": {
+      "total": 200,
+      "executed": 200,
+      "passed": 200,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Notifications.FunctionalTests_net10.0_x64": {
+      "total": 0,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Notifications.IntegrationTests_net10.0_x64": {
+      "total": 3,
+      "executed": 3,
+      "passed": 3,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "PANiXiDA.TacticalHeroes.Notifications.UnitTests_net10.0_x64": {
+      "total": 2,
+      "executed": 2,
+      "passed": 2,
+      "failed": 0,
+      "notExecuted": 0
+    }
+  }
+}

@@ -73,6 +73,12 @@ with Python 3 and Docker, use
 `python scripts/benchmark-codegen.py --pair 0 --output <outside-repository-directory>`.
 It creates and removes its own disposable worktree at the current commit.
 
+[Measured results and raw data](benchmarks/2026-10-07-codegen/README.md):
+test execution improved by 7.01%, but the complete build/codegen/test cycle did
+not show a statistically significant improvement (181.23 s versus 183.14 s).
+Use the static path to validate pregenerated handlers; it is not a demonstrated
+end-to-end test-speed optimization.
+
 Run the API:
 
 ```bash

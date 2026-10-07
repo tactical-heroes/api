@@ -2,15 +2,12 @@ name: Codegen benchmark
 
 on:
   workflow_dispatch:
-  push:
-    branches: [perf/pregenerated-test-handlers]
 
 permissions:
   contents: read
 
 jobs:
   pair:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[benchmark]')
     name: Pair ${{ matrix.pair }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
