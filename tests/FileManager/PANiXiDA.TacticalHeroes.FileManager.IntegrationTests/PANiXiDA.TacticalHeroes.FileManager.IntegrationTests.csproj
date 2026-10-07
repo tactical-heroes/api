@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Shouldly" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+        <PackageReference Include="xunit.v3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Application\PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Domain\PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Presentation\PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
+        <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="PANiXiDA.Core.ResultPattern" />
+        <Using Include="PANiXiDA.Core.Application.Persistence" />
+        <Using Include="PANiXiDA.Core.Application.Querying.Pagination" />
+        <Using Include="PANiXiDA.Core.Application.Querying.Sorting" />
+        <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants" />
+
+        <Using Include="Shouldly" />
+        <Using Include="Xunit" />
+    </ItemGroup>
+</Project>

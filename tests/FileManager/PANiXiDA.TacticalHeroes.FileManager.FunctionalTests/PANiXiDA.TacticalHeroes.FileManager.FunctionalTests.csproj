@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="PANiXiDA.Core.Application" />
+        <PackageReference Include="Shouldly" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+        <PackageReference Include="xunit.v3" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Application\PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Domain\PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Host\PANiXiDA.TacticalHeroes.Host.csproj" />
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Presentation\PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
+        <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="System.Net" />
+        <Using Include="System.Net.Http.Json" />
+
+        <Using Include="Shouldly" />
+        <Using Include="Xunit" />
+
+        <Using Include="PANiXiDA.Core.Application.Querying.Pagination" />
+        <Using Include="PANiXiDA.Core.Application.Querying.Sorting" />
+
+        <Using Include="PANiXiDA.TacticalHeroes.Testing.Json" />
+    </ItemGroup>
+</Project>

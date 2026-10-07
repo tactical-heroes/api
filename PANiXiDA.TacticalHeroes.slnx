@@ -55,6 +55,11 @@
     <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.csproj" />
     <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.UnitTests/PANiXiDA.TacticalHeroes.Compendium.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/tests/FileManager/">
+    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.csproj" />
+    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.csproj" />
+    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.UnitTests/PANiXiDA.TacticalHeroes.FileManager.UnitTests.csproj" />
+  </Folder>
   <Folder Name="/tests/Notifications/">
     <Project Path="tests/Notifications/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests.csproj" />
     <Project Path="tests/Notifications/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.csproj" />
