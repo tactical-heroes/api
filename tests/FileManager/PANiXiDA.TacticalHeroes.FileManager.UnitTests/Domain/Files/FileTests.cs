@@ -1,5 +1,7 @@
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -20,6 +22,7 @@ public sealed class FileTests
         file.Id.Value.Version.ShouldBe(7);
         file.Name.ShouldBe(name);
         file.Type.ShouldBe(fileType);
+        file.FolderId.ShouldBeNull();
         file.Status.ShouldBe(FileStatus.PendingUpload);
         file.ContentType.ShouldBeNull();
         file.Size.ShouldBeNull();
@@ -41,6 +44,44 @@ public sealed class FileTests
         file.Name.Value.ShouldBe(allowed ? "new-avatar.png" : "avatar.png");
         file.Status.Name.ShouldBe(status);
         file.Type.ShouldBe(FileType.Avatar);
+    }
+
+    [Theory(DisplayName = "File should allow placement only before deletion begins when status is provided")]
+    [InlineData("PendingUpload", true)]
+    [InlineData("Ready", true)]
+    [InlineData("Deleting", false)]
+    [InlineData("Deleted", false)]
+    public void MoveTo_Should_RespectLifecycle_When_StatusIsProvided(string status, bool allowed)
+    {
+        var file = CreateFile(status);
+        var folder = Folder.Create(
+            name: FolderName.Create("Avatars").Value,
+            type: FileType.Avatar);
+
+        var result = file.MoveTo(folder);
+
+        result.IsSuccess.ShouldBe(allowed);
+        file.FolderId.ShouldBe(allowed ? folder.Id : null);
+        file.Type.ShouldBe(FileType.Avatar);
+        file.Status.Name.ShouldBe(status);
+    }
+
+    [Fact(DisplayName = "File should replace its folder reference when destination is changed")]
+    public void MoveTo_Should_ReplaceFolderReference_When_DestinationIsChanged()
+    {
+        var file = CreateFile("Ready");
+        var originalFolder = Folder.Create(
+            name: FolderName.Create("Avatars").Value,
+            type: FileType.Avatar);
+        var destination = originalFolder.CreateChild(FolderName.Create("Players").Value);
+        file.MoveTo(originalFolder);
+
+        var result = file.MoveTo(destination);
+
+        result.IsSuccess.ShouldBeTrue();
+        file.FolderId.ShouldBe(destination.Id);
+        file.Type.ShouldBe(FileType.Avatar);
+        file.Status.ShouldBe(FileStatus.Ready);
     }
 
     [Fact(DisplayName = "File should become ready with verified content when upload is pending")]

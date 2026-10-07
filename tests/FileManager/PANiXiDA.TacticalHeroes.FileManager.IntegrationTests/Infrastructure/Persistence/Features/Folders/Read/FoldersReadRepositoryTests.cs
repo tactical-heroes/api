@@ -86,4 +86,39 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         model.DeletedAt.ShouldBeNull();
         readContext.ChangeTracker.Entries().ShouldBeEmpty();
     }
+
+    [Theory(DisplayName = "Folder read model should load parent and direct children without tracking when depth varies")]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task ReadDbModel_Should_LoadParentAndDirectChildrenWithoutTracking_When_DepthVaries(int depth)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var root = Folder.Create(
+            name: FolderName.Create("Avatars").Value,
+            type: FileType.Avatar);
+        var child = root.CreateChild(FolderName.Create("Players").Value);
+        var grandchild = child.CreateChild(FolderName.Create("Heroes").Value);
+        Folder[] folders = [root, child, grandchild];
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        foreach (var folder in folders)
+        {
+            await repository.AddAsync(folder, cancellationToken);
+        }
+
+        var readContext = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
+        var id = folders[depth].Id.Value;
+
+        var model = await readContext.Set<FolderReadDbModel>()
+            .Include(folder => folder.Parent)
+            .Include(folder => folder.Children)
+            .SingleAsync(folder => folder.Id == id, cancellationToken);
+
+        (model.Parent?.Id).ShouldBe(folders[depth].ParentId?.Value);
+        model.Children.Select(folder => folder.Id).ShouldBe(
+            folders.Where(folder => folder.ParentId == folders[depth].Id)
+                .Select(folder => folder.Id.Value));
+        readContext.ChangeTracker.Entries().ShouldBeEmpty();
+    }
 }

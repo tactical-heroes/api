@@ -1,8 +1,10 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -54,9 +56,21 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
                 value => FileSize.Create(value).Value)
             .IsRequired(required: false);
 
+        builder.Property(file => file.FolderId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => FolderId.Create(value).Value)
+            .IsRequired(required: false);
+
         builder.Property<uint>("Version")
             .IsRowVersion();
 
         builder.HasIndex(file => file.Status);
+        builder.HasIndex(file => file.FolderId);
+
+        builder.HasOne<Folder>()
+            .WithMany()
+            .HasForeignKey(file => file.FolderId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

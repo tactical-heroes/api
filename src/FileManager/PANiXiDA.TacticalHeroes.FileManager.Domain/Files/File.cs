@@ -1,5 +1,6 @@
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 
@@ -18,6 +19,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public FileName Name { get; private set; }
     public FileType Type { get; }
+    public FolderId? FolderId { get; private set; }
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
@@ -41,6 +43,26 @@ public sealed class File : AggregateRoot<FileId>
         }
 
         Name = name;
+
+        return Result.Success();
+    }
+
+    public Result MoveTo(Folder folder)
+    {
+        if (Status.IsDeletingOrDeleted)
+        {
+            return Result.Failure(
+                Error.Conflict("A file being deleted cannot be moved."));
+        }
+
+        if (Type != folder.Type)
+        {
+            return Result.Failure(
+                Error.Validation("File and folder types must match.")
+                    .WithField(nameof(FolderId)));
+        }
+
+        FolderId = folder.Id;
 
         return Result.Success();
     }
