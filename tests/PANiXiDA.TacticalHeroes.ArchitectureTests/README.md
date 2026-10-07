@@ -445,8 +445,8 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     того же модуля. Наборы имён колонок, их CLR-типы после преобразования для
     хранения и nullable-признаки должны совпадать. Пропущенные и лишние колонки,
     а также shadow properties на стороне чтения запрещены: колонка представляется
-    явным CLR-свойством ReadDbModel. Системная колонка PostgreSQL `xmin` исключена
-    из сравнения; добавлять `Version` в ReadDbModel не требуется.
+    явным CLR-свойством ReadDbModel. Системные колонки PostgreSQL исключены
+    из сравнения.
 
 78. `AuditableEntityConfigurations_Should_ResideInAggregateWriteRoots_When_Declared`
     — наследники `AuditableEntityConfiguration<>` должны находиться
@@ -500,8 +500,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 89. `AggregateRoots_Should_HaveEndpointGroups_When_Declared` — каждый
     aggregate root должен иметь ровно одну такую группу в
-    `Presentation/Features/<AggregatePlural>` своего модуля. Группа обязательна
-    и до появления отдельных HTTP-операций.
+    `Presentation/Features/<AggregatePlural>` своего модуля.
 
 90. `EndpointGroupMetadataProperties_Should_BeGetOnly_When_GroupIsDeclared` —
     свойства `Route`, `Name` и `ApiVersion` каждого `IEndpointGroup` должны
