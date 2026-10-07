@@ -144,10 +144,12 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     также нарушают правило. Существующий запрет `set` и `init` для свойств VO
     сохраняется. Записываемые ref-возвраты запрещены.
 
-23. `Enumerations_Should_ResideInOwnerEnumerationsDirectories_When_Declared` —
+23. `Enumerations_Should_ResideInOwnerOrCommonEnumerationsDirectories_When_Declared` —
     каждый `Enumeration<>` должен находиться в папке и namespace `Enumerations`
-    непосредственно под владеющим aggregate root или entity. Например,
-    `UserStatus` находится в `Users/Enumerations`.
+    непосредственно под владеющим aggregate root или entity либо в
+    `Common/Enumerations` своего Domain-модуля. Например, `UserStatus` находится
+    в `Users/Enumerations`, а общий для файлов и папок `FileType` — в
+    `Common/Enumerations`.
 
 24. `Enumerations_Should_ContainOnlyImmutableState_When_Declared` — экземпляры
     `Enumeration<>` подчиняются той же рекурсивной проверке состояния, что VO:
@@ -801,3 +803,30 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 145. `IdCreation_Should_DetectDefaultValues_When_SourceExpressionsVary`
      — проверяет допустимые и запрещённые способы получения ID на тестовых
      фрагментах кода: aliases, generics, nullable, коллекции и вызовы методов.
+
+## Обязательная инфраструктура агрегатов
+
+146. `AggregateRoots_Should_HaveRegisteredReadPersistence_When_Declared` —
+     наличие aggregate root требует зарегистрированного `<Module>ReadDbContext`
+     в `Infrastructure/Persistence/Core` и полного набора компонентов чтения:
+     `I<AggregatePlural>ReadRepository` в `Application/<AggregatePlural>/Abstractions`,
+     `<Aggregate>ReadDbModel` в
+     `Infrastructure/Persistence/Features/<AggregatePlural>/Read/DbModels` и
+     `<AggregatePlural>ReadRepository` в корне той же Read feature. Модель должна
+     входить в EF-модель read context, а repository — наследовать
+     `EfReadRepository<,,>` с этим context и моделью, реализовывать Application-интерфейс
+     и разрешаться через него из DI модуля.
+
+147. `ReadDatabaseModels_Should_MatchPersistedTableColumns_When_Declared` —
+     таблицы read context должны иметь соответствующие таблицы в EF-модели write
+     context того же модуля. Наборы имён колонок, их CLR-типы после преобразования
+     для хранения и nullable-признаки должны совпадать. Пропущенные и лишние
+     колонки, а также shadow properties на стороне чтения запрещены: колонка
+     представляется явным CLR-свойством ReadDbModel. Системная колонка PostgreSQL
+     `xmin` исключена из сравнения; добавлять `Version` в ReadDbModel не требуется.
+
+148. `AggregateRoots_Should_HaveEndpointGroups_When_Declared` — каждый
+     aggregate root должен иметь ровно одну группу `IEndpointGroup` с именем
+     `<AggregatePlural>Endpoints` в `Presentation/Features/<AggregatePlural>`
+     своего модуля. Группа обязательна и до появления отдельных HTTP-операций;
+     её расположение и значение `Name` дополнительно проверяются правилом 86.
