@@ -10,6 +10,7 @@ using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
 using Wolverine;
+using Wolverine.Tracking;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
@@ -30,8 +31,6 @@ public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
 
     private HttpClient _mailpitClient = null!;
     private IHost _host = null!;
-
-    public IMessageBus MessageBus => _host.Services.GetRequiredService<IMessageBus>();
 
     public IEmailSender EmailSender => _host.Services.GetRequiredService<IEmailSender>();
 
@@ -68,6 +67,13 @@ public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
 
         _host = hostBuilder.Build();
         await _host.StartAsync(TestContext.Current.CancellationToken);
+    }
+
+    public Task PublishAndWaitAsync(object integrationEvent)
+    {
+        return _host.TrackActivity()
+            .Timeout(TimeSpan.FromSeconds(30))
+            .PublishMessageAndWaitAsync(integrationEvent);
     }
 
     public async Task WaitForMessageAsync(
