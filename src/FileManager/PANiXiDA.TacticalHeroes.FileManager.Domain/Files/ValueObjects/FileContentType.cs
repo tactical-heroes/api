@@ -15,9 +15,7 @@ public sealed partial class FileContentType : ValueObject
 
     public static Result<FileContentType> Create(string value)
     {
-        if (!MediaTypeHeaderValue.TryParse(
-            value,
-            out var contentType))
+        if (!MediaTypeHeaderValue.TryParse(value, out var contentType))
         {
             return Result.Failure<FileContentType>(
                 Error.Validation("File content type must be a concrete media type without parameters.")

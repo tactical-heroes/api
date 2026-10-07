@@ -21,22 +21,16 @@ public sealed class FileNameTests
     {
         var result = FileName.Create(value!);
 
-        result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            "File name cannot be empty.")
+        result.ShouldHaveSingleError(ErrorType.Validation, "File name cannot be empty.")
             .ShouldHaveField(nameof(FileName));
     }
 
     [Theory(DisplayName = "File name should respect the maximum length when name is provided")]
     [InlineData(255, true)]
     [InlineData(256, false)]
-    public void Create_Should_ValidateLength_When_NameIsProvided(
-        int length,
-        bool valid)
+    public void Create_Should_ValidateLength_When_NameIsProvided(int length, bool valid)
     {
-        var value = new string(
-            'a',
-            length);
+        var value = new string('a', length);
 
         var result = FileName.Create(value);
 
@@ -55,9 +49,7 @@ public sealed class FileNameTests
     {
         var result = FileName.Create(value);
 
-        result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            "File name cannot contain paths or control characters.")
+        result.ShouldHaveSingleError(ErrorType.Validation, "File name cannot contain paths or control characters.")
             .ShouldHaveField(nameof(FileName));
     }
 

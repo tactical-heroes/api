@@ -1,5 +1,4 @@
 using System;
-
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -23,51 +22,21 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                 schema: "file_manager",
                 columns: table => new
                 {
-                    created_at = table.Column<DateTime>(
-                        type: "timestamp with time zone",
-                        nullable: false),
-                    updated_at = table.Column<DateTime>(
-                        type: "timestamp with time zone",
-                        nullable: false),
-                    deleted_at = table.Column<DateTime>(
-                        type: "timestamp with time zone",
-                        nullable: true),
-                    id = table.Column<Guid>(
-                        type: "uuid",
-                        nullable: false),
-                    name = table.Column<string>(
-                        type: "character varying(255)",
-                        maxLength: 255,
-                        nullable: false),
-                    purpose = table.Column<string>(
-                        type: "character varying(32)",
-                        maxLength: 32,
-                        nullable: false),
-                    status = table.Column<string>(
-                        type: "character varying(32)",
-                        maxLength: 32,
-                        nullable: false),
-                    xmin = table.Column<uint>(
-                        type: "xid",
-                        rowVersion: true,
-                        nullable: false),
-                    content_content_type = table.Column<string>(
-                        type: "character varying(255)",
-                        maxLength: 255,
-                        nullable: true),
-                    content_sha256 = table.Column<string>(
-                        type: "character varying(64)",
-                        maxLength: 64,
-                        nullable: true),
-                    content_size = table.Column<long>(
-                        type: "bigint",
-                        nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    purpose = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
+                    content_content_type = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    content_sha256 = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    content_size = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey(
-                        "pk_files",
-                        x => x.id);
+                    table.PrimaryKey("pk_files", x => x.id);
                 });
 
             migrationBuilder.CreateIndex(

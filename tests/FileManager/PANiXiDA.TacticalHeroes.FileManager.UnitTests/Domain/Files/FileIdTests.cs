@@ -18,9 +18,7 @@ public sealed class FileIdTests
     {
         var result = FileId.Create(Guid.Empty);
 
-        result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            "File id cannot be empty.");
+        result.ShouldHaveSingleError(ErrorType.Validation, "File id cannot be empty.");
     }
 
     [Fact(DisplayName = "File id should preserve a valid identifier when id is valid")]

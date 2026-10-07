@@ -10,16 +10,12 @@ public sealed class FileContentTests
         var result = FileContent.Create(
             " IMAGE/PNG ",
             1,
-            new string(
-                'A',
-                64));
+            new string('A', 64));
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ContentType.Value.ShouldBe("image/png");
         result.Value.Size.ShouldBe(1);
-        result.Value.Sha256.Value.ShouldBe(new string(
-            'a',
-            64));
+        result.Value.Sha256.Value.ShouldBe(new string('a', 64));
     }
 
     [Theory(DisplayName = "File content should reject nonpositive sizes when size is not positive")]
@@ -30,13 +26,9 @@ public sealed class FileContentTests
         var result = FileContent.Create(
             "image/png",
             size,
-            new string(
-                'a',
-                64));
+            new string('a', 64));
 
-        result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            "File size must be greater than zero.")
+        result.ShouldHaveSingleError(ErrorType.Validation, "File size must be greater than zero.")
             .ShouldHaveField(nameof(FileContent.Size));
     }
 
@@ -57,9 +49,7 @@ public sealed class FileContentTests
         var content = FileContent.Create(
             "image/png",
             128,
-            new string(
-                'a',
-                64)).Value;
+            new string('a', 64)).Value;
 
         var result = content.ToString();
 

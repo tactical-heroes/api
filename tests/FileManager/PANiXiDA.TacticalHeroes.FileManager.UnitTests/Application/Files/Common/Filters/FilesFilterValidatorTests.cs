@@ -24,9 +24,7 @@ public sealed class FilesFilterValidatorTests
     {
         var validator = new FilesFilterValidator();
 
-        var result = validator.Validate(new FilesFilter(new string(
-            'a',
-            256)));
+        var result = validator.Validate(new FilesFilter(new string('a', 256)));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(FilesFilter.Search));
     }
@@ -50,9 +48,7 @@ public sealed class FilesFilterValidatorTests
     public void Validate_Should_AcceptSearch_When_TrimmedLengthIsAtBoundary(int length)
     {
         var validator = new FilesFilterValidator();
-        var search = " " + new string(
-            'a',
-            length) + " ";
+        var search = " " + new string('a', length) + " ";
 
         var result = validator.Validate(new FilesFilter(search));
 

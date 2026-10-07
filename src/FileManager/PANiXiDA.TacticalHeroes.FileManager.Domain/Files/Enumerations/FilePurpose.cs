@@ -6,16 +6,10 @@ public sealed partial class FilePurpose : Enumeration<FilePurpose>
 {
     public const int MaxLength = 32;
 
-    public static readonly FilePurpose Avatar = new(
-        1,
-        nameof(Avatar));
+    public static readonly FilePurpose Avatar = new(1, nameof(Avatar));
 
-    private FilePurpose(
-        int id,
-        string name)
-        : base(
-            id,
-            name)
+    private FilePurpose(int id, string name)
+        : base(id, name)
     {
     }
 
@@ -30,9 +24,7 @@ public sealed partial class FilePurpose : Enumeration<FilePurpose>
 
         var normalizedValue = value.Trim();
 
-        return TryFromName(
-            normalizedValue,
-            out var result) && result is not null
+        return TryFromName(normalizedValue, out var result) && result is not null
             ? Result.Success(result)
             : Result.Failure<FilePurpose>(
                 Error.Validation($"File purpose '{normalizedValue}' is invalid.")

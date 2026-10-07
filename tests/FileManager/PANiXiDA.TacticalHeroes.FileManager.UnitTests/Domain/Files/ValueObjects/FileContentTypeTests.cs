@@ -27,17 +27,14 @@ public sealed class FileContentTypeTests
         var result = FileContentType.Create(value!);
 
         result.ShouldHaveSingleError(
-            ErrorType.Validation,
-            "File content type must be a concrete media type without parameters.")
+                ErrorType.Validation, "File content type must be a concrete media type without parameters.")
             .ShouldHaveField(nameof(FileContentType));
     }
 
     [Fact(DisplayName = "Content type should reject oversized values when value is too long")]
     public void Create_Should_ReturnValidationFailure_When_ValueIsTooLong()
     {
-        var value = "image/" + new string(
-            'a',
-            FileContentType.MaxLength);
+        var value = "image/" + new string('a', FileContentType.MaxLength);
 
         var result = FileContentType.Create(value);
 
