@@ -24,6 +24,13 @@
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Infrastructure/PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Presentation/PANiXiDA.TacticalHeroes.Compendium.Presentation.csproj" />
   </Folder>
+  <Folder Name="/src/FileManager/">
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Application/PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Contracts/PANiXiDA.TacticalHeroes.FileManager.Contracts.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Domain/PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Infrastructure/PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Presentation/PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
+  </Folder>
   <Folder Name="/src/Identity/">
     <Project Path="src/Identity/PANiXiDA.TacticalHeroes.Identity.Application/PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
     <Project Path="src/Identity/PANiXiDA.TacticalHeroes.Identity.Contracts/PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
@@ -47,6 +54,11 @@
     <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.csproj" />
     <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.csproj" />
     <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.UnitTests/PANiXiDA.TacticalHeroes.Compendium.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/FileManager/">
+    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.csproj" />
+    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.csproj" />
+    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.UnitTests/PANiXiDA.TacticalHeroes.FileManager.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/Notifications/">
     <Project Path="tests/Notifications/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests.csproj" />
