@@ -17,6 +17,9 @@ SOLUTION = "PANiXiDA.TacticalHeroes.slnx"
 HOST = Path("src/PANiXiDA.TacticalHeroes.Host")
 HOST_PROJECT = HOST / "PANiXiDA.TacticalHeroes.Host.csproj"
 SEED = 20261007
+NUGET_CONFIG = "nuget.config"
+NO_NODE_REUSE = "/nr:false"
+OTLP_TEST_ENDPOINT = "http://otel-benchmark.invalid:4317"  # NOSONAR: Reserved .invalid test address; no real collector.
 
 
 def command(args, cwd, env, log):
@@ -56,7 +59,7 @@ def run_variant(root, output, env, variant, label):
         generated.resolve().relative_to(root.resolve())
         shutil.rmtree(generated)
     command(["dotnet", "clean", SOLUTION, "-c", "Release", "--nologo", "-v", "quiet",
-             "-m:2", "/nr:false"], root, env, directory / "clean.log")
+             "-m:2", NO_NODE_REUSE], root, env, directory / "clean.log")
 
     phase = {}
     total_start = time.perf_counter()
@@ -64,7 +67,7 @@ def run_variant(root, output, env, variant, label):
     if variant == "static":
         phase["bootstrap_build"] = command(
             ["dotnet", "build", str(HOST_PROJECT), "-c", "Release", "--no-restore",
-             "--nologo", "-v", "quiet", "-m:2", "/nr:false"],
+             "--nologo", "-v", "quiet", "-m:2", NO_NODE_REUSE],
             root, env, directory / "bootstrap-build.log")
         tooling_env = dict(env, DOTNET_ENVIRONMENT="Production",
                            ASPNETCORE_ENVIRONMENT="Production")
@@ -77,7 +80,7 @@ def run_variant(root, output, env, variant, label):
 
     phase["solution_build"] = command(
         ["dotnet", "build", SOLUTION, "-c", "Release", "--no-restore",
-         "--nologo", "-v", "quiet", "-m:2", "/nr:false"],
+         "--nologo", "-v", "quiet", "-m:2", NO_NODE_REUSE],
         root, env, directory / "solution-build.log")
     test_env = dict(env, WOLVERINE_PREGENERATED="1" if variant == "static" else "0")
     reports = directory / "reports"
@@ -93,8 +96,8 @@ def run_variant(root, output, env, variant, label):
         raise RuntimeError(f"Expected {expected} test reports, got {len(test_counts)}")
     if any(item["failed"] for item in test_counts.values()):
         raise RuntimeError("At least one test failed")
-    result = dict(variant=variant, total=total, phases=phase, counts=test_counts,
-                  generated_files=generated_count)
+    result = {"variant": variant, "total": total, "phases": phase, "counts": test_counts,
+              "generated_files": generated_count}
     (directory / "timing.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(f"{label}: {total:.3f}s; tests {phase['tests']:.3f}s", flush=True)
     return result
@@ -110,22 +113,22 @@ def main():
     repository = Path(__file__).resolve().parents[1]
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
     orders = ["dynamic-first"] * 10 + ["static-first"] * 10
-    random.Random(SEED).shuffle(orders)
+    random.Random(SEED).shuffle(orders)  # NOSONAR: Fixed seed for reproducible experimental ordering, not cryptography.
     measured_order = (["dynamic", "static"] if orders[args.pair] == "dynamic-first"
                       else ["static", "dynamic"])
-    environment = os.environ.copy()
     # The test fixtures must create their own isolated containers and databases.
-    for key in list(environment):
-        if key.lower().startswith(("connectionstrings__", "otel_exporter_otlp")):
-            del environment[key]
-    environment.update(OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-benchmark.invalid:4317",
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.lower().startswith(("connectionstrings__", "otel_exporter_otlp"))}
+    environment.update(OTEL_EXPORTER_OTLP_ENDPOINT=OTLP_TEST_ENDPOINT,
                        DOTNET_CLI_TELEMETRY_OPTOUT="1", DOTNET_NOLOGO="1")
-    metadata = dict(pair=args.pair, order=measured_order, seed=SEED, commit=commit,
-                    platform=platform.platform(), cpu_count=os.cpu_count(),
-                    processor=platform.processor(),
-                    sdk=subprocess.check_output(["dotnet", "--version"], text=True).strip(),
-                    runtimes=subprocess.check_output(["dotnet", "--list-runtimes"], text=True).splitlines(),
-                    run_id=os.getenv("GITHUB_RUN_ID"), measured=[], warmup=[])
+    metadata = {
+        "pair": args.pair, "order": measured_order, "seed": SEED, "commit": commit,
+        "platform": platform.platform(), "cpu_count": os.cpu_count(),
+        "processor": platform.processor(),
+        "sdk": subprocess.check_output(["dotnet", "--version"], text=True).strip(),
+        "runtimes": subprocess.check_output(["dotnet", "--list-runtimes"], text=True).splitlines(),
+        "run_id": os.getenv("GITHUB_RUN_ID"), "measured": [], "warmup": [],
+    }
     cpuinfo = Path("/proc/cpuinfo")
     if cpuinfo.exists():
         metadata["processor"] = next(
@@ -137,10 +140,10 @@ def main():
         subprocess.run(["git", "worktree", "add", "--detach", str(workspace), commit],
                        cwd=repository, check=True)
         try:
-            config = repository / "nuget.config"
+            config = repository / NUGET_CONFIG
             restore = ["dotnet", "restore", SOLUTION, "--nologo", "-v", "quiet"]
             if config.exists():
-                shutil.copyfile(config, workspace / "nuget.config")
+                shutil.copyfile(config, workspace / NUGET_CONFIG)
             command(restore, workspace, environment, output / "restore.log")
             # Warm both variants, including test containers, without counting these samples.
             for variant in reversed(measured_order):
@@ -155,7 +158,7 @@ def main():
             (output / "result.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
         finally:
             if config.exists():
-                (workspace / "nuget.config").unlink(missing_ok=True)
+                (workspace / NUGET_CONFIG).unlink(missing_ok=True)
             subprocess.run(["git", "worktree", "remove", str(workspace)],
                            cwd=repository, check=True)
 

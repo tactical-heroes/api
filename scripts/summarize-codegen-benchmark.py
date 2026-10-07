@@ -18,7 +18,7 @@ def summarize(pairs, phase):
               else pair["dynamic"]["phases"][phase] for pair in pairs]
     after = [pair["static"]["total"] if phase == "total"
              else pair["static"]["phases"][phase] for pair in pairs]
-    rng = random.Random(20261007)
+    rng = random.Random(20261007)  # NOSONAR: Reproducible statistical resampling; no security-sensitive randomness.
     changes = []
     differences = []
     for _ in range(100000):
@@ -28,12 +28,14 @@ def summarize(pairs, phase):
         changes.append(100 * (b / a - 1))
         differences.append(b - a)
     a, b = statistics.fmean(before), statistics.fmean(after)
-    return dict(dynamic_mean=a, static_mean=b, difference=b-a,
-                change_percent=100*(b/a-1),
-                difference_ci95=interval(differences), change_ci95=interval(changes),
-                dynamic_median=statistics.median(before), static_median=statistics.median(after),
-                dynamic_range=[min(before), max(before)], static_range=[min(after), max(after)],
-                dynamic_stdev=statistics.stdev(before), static_stdev=statistics.stdev(after))
+    return {
+        "dynamic_mean": a, "static_mean": b, "difference": b-a,
+        "change_percent": 100*(b/a-1),
+        "difference_ci95": interval(differences), "change_ci95": interval(changes),
+        "dynamic_median": statistics.median(before), "static_median": statistics.median(after),
+        "dynamic_range": [min(before), max(before)], "static_range": [min(after), max(after)],
+        "dynamic_stdev": statistics.stdev(before), "static_stdev": statistics.stdev(after),
+    }
 
 
 def main():
@@ -54,10 +56,12 @@ def main():
         pairs.append(pair)
     if any(pair["dynamic"]["counts"] != pairs[0]["dynamic"]["counts"] for pair in pairs):
         raise RuntimeError("Test counts differ across runners")
-    summary = dict(commit=results[0]["commit"], pairs=20,
-                   method="Paired percentile bootstrap, 100000 resamples, seed 20261007; no outlier exclusions",
-                   total=summarize(pairs, "total"), tests=summarize(pairs, "tests"),
-                   test_counts=pairs[0]["dynamic"]["counts"])
+    summary = {
+        "commit": results[0]["commit"], "pairs": 20,
+        "method": "Paired percentile bootstrap, 100000 resamples, seed 20261007; no outlier exclusions",
+        "total": summarize(pairs, "total"), "tests": summarize(pairs, "tests"),
+        "test_counts": pairs[0]["dynamic"]["counts"],
+    }
     (args.directory / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     with (args.directory / "measurements.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
