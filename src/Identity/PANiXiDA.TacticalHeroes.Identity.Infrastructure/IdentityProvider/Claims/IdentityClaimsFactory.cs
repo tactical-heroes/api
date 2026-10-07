@@ -37,7 +37,8 @@ internal static class IdentityClaimsFactory
         var additionalClaims = user.Claims
             .Select(claim => (claim.ClaimType, claim.ClaimValue))
             .Concat(user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
+                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []))
+            .Select(claim => ((string?)claim.ClaimType, (string?)claim.ClaimValue));
 
         return Create(
             id: user.Id,

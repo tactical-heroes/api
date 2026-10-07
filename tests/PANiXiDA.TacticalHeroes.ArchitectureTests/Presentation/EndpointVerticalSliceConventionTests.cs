@@ -8,6 +8,31 @@ public sealed class EndpointVerticalSliceConventionTests
     private const string EndpointGroupSuffix = "Endpoints";
     private const string FeaturesNamespaceSegment = "Features";
 
+    [Fact(DisplayName = "Aggregate roots should have endpoint groups when declared")]
+    public void AggregateRoots_Should_HaveEndpointGroups_When_Declared()
+    {
+        var endpointGroups = PresentationArchitectureConvention.GetEndpointGroups();
+        var aggregates = ArchitectureDefinition.s_modules
+            .SelectMany(module => InfrastructurePersistenceConvention.GetAggregateRootTypes(module)
+                .Select(aggregate => new { Module = module, Aggregate = aggregate }))
+            .ToArray();
+        var violations = aggregates
+            .Select(target =>
+            {
+                var feature = EnglishNamingConvention.Pluralize(target.Aggregate.Name);
+                var expectedName = $"{target.Module.PresentationAssemblyName}.Features.{feature}.{feature}Endpoints";
+
+                return endpointGroups.Count(group => group.FullName == expectedName) == 1
+                    ? null
+                    : $"{target.Aggregate.FullName} must have endpoint group '{expectedName}'.";
+            })
+            .OfType<string>()
+            .ToArray();
+
+        Assert.NotEmpty(aggregates);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
     [Fact(DisplayName = "Endpoint groups should reside in feature roots and match feature names when declared")]
     public void EndpointGroups_Should_ResideInFeatureRootsAndMatchFeatureNames_When_Declared()
     {
