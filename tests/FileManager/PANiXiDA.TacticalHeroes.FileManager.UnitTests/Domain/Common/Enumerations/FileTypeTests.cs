@@ -9,12 +9,12 @@ public sealed class FileTypeTests
     {
         var values = FileType.GetAll();
 
-        values.ShouldBe([FileType.Avatar, FileType.Personal]);
+        values.ShouldBe([FileType.Personal, FileType.Avatar]);
     }
 
     [Theory(DisplayName = "File type should resolve known identifiers when id is known")]
-    [InlineData(1, "Avatar")]
-    [InlineData(2, "Personal")]
+    [InlineData(1, "Personal")]
+    [InlineData(2, "Avatar")]
     public void FromId_Should_ReturnValue_When_IdIsKnown(int id, string name)
     {
         var value = FileType.FromId(id);
