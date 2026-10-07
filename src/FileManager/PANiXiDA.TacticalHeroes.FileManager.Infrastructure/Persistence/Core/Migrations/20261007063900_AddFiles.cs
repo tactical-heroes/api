@@ -27,7 +27,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    purpose = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    type = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     content_type = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),

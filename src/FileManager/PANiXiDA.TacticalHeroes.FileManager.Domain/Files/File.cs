@@ -8,28 +8,28 @@ public sealed class File : AggregateRoot<FileId>
     private File(
         FileId id,
         FileName name,
-        FilePurpose purpose)
+        FileType type)
         : base(id)
     {
         Name = name;
-        Purpose = purpose;
+        Type = type;
         Status = FileStatus.PendingUpload;
     }
 
     public FileName Name { get; private set; }
-    public FilePurpose Purpose { get; }
+    public FileType Type { get; }
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
 
     public static File Create(
         FileName name,
-        FilePurpose purpose)
+        FileType type)
     {
         return new File(
             id: FileId.New(),
             name: name,
-            purpose: purpose);
+            type: type);
     }
 
     public Result Rename(FileName name)

@@ -73,7 +73,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
 
         model.Id.ShouldBe(file.Id.Value);
         model.Name.ShouldBe(file.Name.Value);
-        model.Purpose.ShouldBe(file.Purpose.Name);
+        model.Type.ShouldBe(file.Type.Name);
         model.Status.ShouldBe(completed ? FileStatus.Ready.Name : FileStatus.PendingUpload.Name);
         model.ContentType.ShouldBe(completed ? "image/png" : null);
         model.Size.ShouldBe(completed ? 4096L : null);
@@ -89,7 +89,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     {
         var file = File.Create(
             FileName.Create("avatar.png").Value,
-            FilePurpose.Avatar);
+            FileType.Avatar);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         await repository.AddAsync(file, cancellationToken);

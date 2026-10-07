@@ -46,7 +46,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(file.Id);
         restored.Name.ShouldBe(file.Name);
-        restored.Purpose.ShouldBe(FilePurpose.Avatar);
+        restored.Type.ShouldBe(FileType.Avatar);
         restored.Status.Name.ShouldBe(status);
         restored.ContentType.ShouldBe(file.ContentType);
         restored.Size.ShouldBe(file.Size);
@@ -157,7 +157,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     {
         return File.Create(
             FileName.Create("avatar.png").Value,
-            FilePurpose.Avatar);
+            FileType.Avatar);
     }
 
     private async Task SaveNewFileAsync(File file, CancellationToken cancellationToken)

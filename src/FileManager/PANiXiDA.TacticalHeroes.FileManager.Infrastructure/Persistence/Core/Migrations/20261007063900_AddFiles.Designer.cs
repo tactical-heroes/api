@@ -54,11 +54,11 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("character varying(255)")
                         .HasColumnName("name");
 
-                    b.Property<string>("Purpose")
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)")
-                        .HasColumnName("purpose");
+                        .HasColumnName("type");
 
                     b.Property<long?>("Size")
                         .HasColumnType("bigint")

@@ -27,11 +27,11 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
             .HasMaxLength(FileName.MaxLength)
             .IsRequired();
 
-        builder.Property(file => file.Purpose)
+        builder.Property(file => file.Type)
             .HasConversion(
-                purpose => purpose.Name,
-                value => FilePurpose.Create(value).Value)
-            .HasMaxLength(FilePurpose.MaxLength)
+                type => type.Name,
+                value => FileType.Create(value).Value)
+            .HasMaxLength(FileType.MaxLength)
             .IsRequired();
 
         builder.Property(file => file.Status)

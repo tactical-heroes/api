@@ -7,19 +7,19 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files;
 
 public sealed class FileTests
 {
-    [Fact(DisplayName = "File should begin without content when purpose is known")]
-    public void Create_Should_ReturnPendingUpload_When_PurposeIsKnown()
+    [Fact(DisplayName = "File should begin without content when type is known")]
+    public void Create_Should_ReturnPendingUpload_When_TypeIsKnown()
     {
         var name = FileName.Create("avatar.png").Value;
-        var filePurpose = FilePurpose.Avatar;
+        var fileType = FileType.Avatar;
 
         var file = File.Create(
             name,
-            filePurpose);
+            fileType);
 
         file.Id.Value.Version.ShouldBe(7);
         file.Name.ShouldBe(name);
-        file.Purpose.ShouldBe(filePurpose);
+        file.Type.ShouldBe(fileType);
         file.Status.ShouldBe(FileStatus.PendingUpload);
         file.ContentType.ShouldBeNull();
         file.Size.ShouldBeNull();
@@ -40,7 +40,7 @@ public sealed class FileTests
         result.IsSuccess.ShouldBe(allowed);
         file.Name.Value.ShouldBe(allowed ? "new-avatar.png" : "avatar.png");
         file.Status.Name.ShouldBe(status);
-        file.Purpose.ShouldBe(FilePurpose.Avatar);
+        file.Type.ShouldBe(FileType.Avatar);
     }
 
     [Fact(DisplayName = "File should become ready with verified content when upload is pending")]
@@ -160,7 +160,7 @@ public sealed class FileTests
     {
         var file = File.Create(
             FileName.Create("avatar.png").Value,
-            FilePurpose.Avatar);
+            FileType.Avatar);
 
         if (status == "Ready")
         {
