@@ -36,10 +36,14 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             file.CompleteDeletion();
         }
 
-        await SaveNewFileAsync(file, cancellationToken);
+        await SaveNewFileAsync(
+            file,
+            cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-        var restored = await repository.GetByIdAsync(file.Id, cancellationToken);
+        var restored = await repository.GetByIdAsync(
+            file.Id,
+            cancellationToken);
 
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(file.Id);
@@ -55,21 +59,29 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
         var content = CreateContent();
-        await SaveNewFileAsync(file, cancellationToken);
+        await SaveNewFileAsync(
+            file,
+            cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-            var pendingFile = await repository.GetByIdAsync(file.Id, cancellationToken);
+            var pendingFile = await repository.GetByIdAsync(
+                file.Id,
+                cancellationToken);
             pendingFile!.CompleteUpload(content);
             pendingFile.Rename(FileName.Create("new-avatar.png").Value);
-            await repository.UpdateAsync(pendingFile, cancellationToken);
+            await repository.UpdateAsync(
+                pendingFile,
+                cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
         var restored = await verificationScope.ServiceProvider
             .GetRequiredService<IFilesRepository>()
-            .GetByIdAsync(file.Id, cancellationToken);
+            .GetByIdAsync(
+                file.Id,
+                cancellationToken);
 
         restored.ShouldNotBeNull();
         restored.Status.ShouldBe(FileStatus.Ready);
@@ -83,13 +95,17 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
         file.CompleteUpload(CreateContent());
-        await SaveNewFileAsync(file, cancellationToken);
+        await SaveNewFileAsync(
+            file,
+            cancellationToken);
 
         foreach (var complete in new[] { false, true })
         {
             await using var scope = Fixture.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-            var restored = await repository.GetByIdAsync(file.Id, cancellationToken);
+            var restored = await repository.GetByIdAsync(
+                file.Id,
+                cancellationToken);
             if (complete)
             {
                 restored!.CompleteDeletion();
@@ -99,13 +115,17 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
                 restored!.BeginDeletion();
             }
 
-            await repository.UpdateAsync(restored, cancellationToken);
+            await repository.UpdateAsync(
+                restored,
+                cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
         var deleted = await verificationScope.ServiceProvider
             .GetRequiredService<IFilesRepository>()
-            .GetByIdAsync(file.Id, cancellationToken);
+            .GetByIdAsync(
+                file.Id,
+                cancellationToken);
 
         deleted.ShouldNotBeNull();
         deleted.Status.ShouldBe(FileStatus.Deleted);
@@ -117,24 +137,36 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
-        await SaveNewFileAsync(file, cancellationToken);
+        await SaveNewFileAsync(
+            file,
+            cancellationToken);
         await using var deletionScope = Fixture.CreateScope();
         await using var completionScope = Fixture.CreateScope();
         var deletionRepository = deletionScope.ServiceProvider.GetRequiredService<IFilesRepository>();
         var completionRepository = completionScope.ServiceProvider.GetRequiredService<IFilesRepository>();
-        var deletingFile = await deletionRepository.GetByIdAsync(file.Id, cancellationToken);
-        var completingFile = await completionRepository.GetByIdAsync(file.Id, cancellationToken);
+        var deletingFile = await deletionRepository.GetByIdAsync(
+            file.Id,
+            cancellationToken);
+        var completingFile = await completionRepository.GetByIdAsync(
+            file.Id,
+            cancellationToken);
         deletingFile!.BeginDeletion();
-        await deletionRepository.UpdateAsync(deletingFile, cancellationToken);
+        await deletionRepository.UpdateAsync(
+            deletingFile,
+            cancellationToken);
         completingFile!.CompleteUpload(CreateContent());
 
-        Func<Task> saveStaleFile = () => completionRepository.UpdateAsync(completingFile, cancellationToken);
+        Func<Task> saveStaleFile = () => completionRepository.UpdateAsync(
+            completingFile,
+            cancellationToken);
 
         await saveStaleFile.ShouldThrowAsync<DbUpdateConcurrencyException>();
         await using var verificationScope = Fixture.CreateScope();
         var persistedFile = await verificationScope.ServiceProvider
             .GetRequiredService<IFilesRepository>()
-            .GetByIdAsync(file.Id, cancellationToken);
+            .GetByIdAsync(
+                file.Id,
+                cancellationToken);
         persistedFile.ShouldNotBeNull();
         persistedFile.Status.ShouldBe(FileStatus.Deleting);
         persistedFile.Content.ShouldBeNull();
@@ -142,19 +174,30 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
     private static File CreateFile()
     {
-        return File.Create(FileName.Create("avatar.png").Value, FilePurpose.Avatar);
+        return File.Create(
+            FileName.Create("avatar.png").Value,
+            FilePurpose.Avatar);
     }
 
     private static FileContent CreateContent()
     {
-        return FileContent.Create("image/png", 4096, new string('a', 64)).Value;
+        return FileContent.Create(
+            "image/png",
+            4096,
+            new string(
+                'a',
+                64)).Value;
     }
 
-    private async Task SaveNewFileAsync(File file, CancellationToken cancellationToken)
+    private async Task SaveNewFileAsync(
+        File file,
+        CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
 
-        await repository.AddAsync(file, cancellationToken);
+        await repository.AddAsync(
+            file,
+            cancellationToken);
     }
 }

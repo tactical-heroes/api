@@ -47,9 +47,13 @@ public sealed class FilePurposeTests
     [Theory(DisplayName = "File purpose lookup should report matches when id is provided")]
     [InlineData(1, true)]
     [InlineData(0, false)]
-    public void TryFromId_Should_ReportMatch_When_IdIsProvided(int id, bool expected)
+    public void TryFromId_Should_ReportMatch_When_IdIsProvided(
+        int id,
+        bool expected)
     {
-        var found = FilePurpose.TryFromId(id, out var value);
+        var found = FilePurpose.TryFromId(
+            id,
+            out var value);
 
         found.ShouldBe(expected);
         (value is not null).ShouldBe(expected);
@@ -59,9 +63,13 @@ public sealed class FilePurposeTests
     [InlineData("Avatar", true)]
     [InlineData("Unknown", false)]
     [InlineData("", false)]
-    public void TryFromName_Should_ReportMatch_When_NameIsProvided(string name, bool expected)
+    public void TryFromName_Should_ReportMatch_When_NameIsProvided(
+        string name,
+        bool expected)
     {
-        var found = FilePurpose.TryFromName(name, out var value);
+        var found = FilePurpose.TryFromName(
+            name,
+            out var value);
 
         found.ShouldBe(expected);
         (value is not null).ShouldBe(expected);
@@ -84,7 +92,9 @@ public sealed class FilePurposeTests
     {
         var result = FilePurpose.Create(name!);
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "File purpose is required.")
+        result.ShouldHaveSingleError(
+            ErrorType.Validation,
+            "File purpose is required.")
             .ShouldHaveField(nameof(FilePurpose));
     }
 
@@ -93,7 +103,9 @@ public sealed class FilePurposeTests
     {
         var result = FilePurpose.Create("Unknown");
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "File purpose 'Unknown' is invalid.")
+        result.ShouldHaveSingleError(
+            ErrorType.Validation,
+            "File purpose 'Unknown' is invalid.")
             .ShouldHaveField(nameof(FilePurpose));
     }
 }

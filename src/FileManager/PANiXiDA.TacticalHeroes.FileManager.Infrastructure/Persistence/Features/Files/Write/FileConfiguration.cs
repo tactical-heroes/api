@@ -41,27 +41,29 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
             .HasMaxLength(FileStatus.MaxLength)
             .IsRequired();
 
-        builder.ComplexProperty(file => file.Content, content =>
-        {
-            content.IsRequired(required: false);
+        builder.ComplexProperty(
+            file => file.Content,
+            content =>
+            {
+                content.IsRequired(required: false);
 
-            content.Property(value => value.ContentType)
-                .HasConversion(
-                    contentType => contentType.Value,
-                    value => FileContentType.Create(value).Value)
-                .HasMaxLength(FileContentType.MaxLength)
-                .IsRequired();
+                content.Property(value => value.ContentType)
+                    .HasConversion(
+                        contentType => contentType.Value,
+                        value => FileContentType.Create(value).Value)
+                    .HasMaxLength(FileContentType.MaxLength)
+                    .IsRequired();
 
-            content.Property(value => value.Size)
-                .IsRequired();
+                content.Property(value => value.Size)
+                    .IsRequired();
 
-            content.Property(value => value.Sha256)
-                .HasConversion(
-                    checksum => checksum.Value,
-                    value => FileChecksum.Create(value).Value)
-                .HasMaxLength(FileChecksum.MaxLength)
-                .IsRequired();
-        });
+                content.Property(value => value.Sha256)
+                    .HasConversion(
+                        checksum => checksum.Value,
+                        value => FileChecksum.Create(value).Value)
+                    .HasMaxLength(FileChecksum.MaxLength)
+                    .IsRequired();
+            });
 
         builder.Property<uint>("Version")
             .IsRowVersion();

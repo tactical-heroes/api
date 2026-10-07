@@ -2,7 +2,10 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 public sealed partial class FileContent : ValueObject
 {
-    private FileContent(FileContentType contentType, long size, FileChecksum sha256)
+    private FileContent(
+        FileContentType contentType,
+        long size,
+        FileChecksum sha256)
     {
         ContentType = contentType;
         Size = size;
@@ -13,7 +16,10 @@ public sealed partial class FileContent : ValueObject
     public long Size { get; }
     public FileChecksum Sha256 { get; }
 
-    public static Result<FileContent> Create(string contentType, long size, string sha256)
+    public static Result<FileContent> Create(
+        string contentType,
+        long size,
+        string sha256)
     {
         var contentTypeResult = FileContentType.Create(contentType);
         var sizeResult = size > 0
@@ -22,7 +28,10 @@ public sealed partial class FileContent : ValueObject
                 Error.Validation("File size must be greater than zero.")
                     .WithField(nameof(Size)));
         var checksumResult = FileChecksum.Create(sha256);
-        var validationResult = Result.Combine(contentTypeResult, sizeResult, checksumResult);
+        var validationResult = Result.Combine(
+            contentTypeResult,
+            sizeResult,
+            checksumResult);
 
         return validationResult.IsFailure
             ? Result.Failure<FileContent>(validationResult.Errors)

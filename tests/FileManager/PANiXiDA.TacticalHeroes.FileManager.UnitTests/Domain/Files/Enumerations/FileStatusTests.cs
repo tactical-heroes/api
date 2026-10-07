@@ -17,7 +17,9 @@ public sealed class FileStatusTests
     [InlineData(2, "Ready")]
     [InlineData(3, "Deleting")]
     [InlineData(4, "Deleted")]
-    public void FromId_Should_ReturnValue_When_IdIsKnown(int id, string name)
+    public void FromId_Should_ReturnValue_When_IdIsKnown(
+        int id,
+        string name)
     {
         var value = FileStatus.FromId(id);
 
@@ -51,9 +53,13 @@ public sealed class FileStatusTests
     [Theory(DisplayName = "File status lookup should report matches when id is provided")]
     [InlineData(1, true)]
     [InlineData(0, false)]
-    public void TryFromId_Should_ReportMatch_When_IdIsProvided(int id, bool expected)
+    public void TryFromId_Should_ReportMatch_When_IdIsProvided(
+        int id,
+        bool expected)
     {
-        var found = FileStatus.TryFromId(id, out var value);
+        var found = FileStatus.TryFromId(
+            id,
+            out var value);
 
         found.ShouldBe(expected);
         (value is not null).ShouldBe(expected);
@@ -63,9 +69,13 @@ public sealed class FileStatusTests
     [InlineData("PendingUpload", true)]
     [InlineData("Unknown", false)]
     [InlineData("", false)]
-    public void TryFromName_Should_ReportMatch_When_NameIsProvided(string name, bool expected)
+    public void TryFromName_Should_ReportMatch_When_NameIsProvided(
+        string name,
+        bool expected)
     {
-        var found = FileStatus.TryFromName(name, out var value);
+        var found = FileStatus.TryFromName(
+            name,
+            out var value);
 
         found.ShouldBe(expected);
         (value is not null).ShouldBe(expected);
@@ -88,7 +98,9 @@ public sealed class FileStatusTests
     {
         var result = FileStatus.Create(name!);
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "File status is required.")
+        result.ShouldHaveSingleError(
+            ErrorType.Validation,
+            "File status is required.")
             .ShouldHaveField(nameof(FileStatus));
     }
 
@@ -97,7 +109,9 @@ public sealed class FileStatusTests
     {
         var result = FileStatus.Create("Unknown");
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "File status 'Unknown' is invalid.")
+        result.ShouldHaveSingleError(
+            ErrorType.Validation,
+            "File status 'Unknown' is invalid.")
             .ShouldHaveField(nameof(FileStatus));
     }
 }

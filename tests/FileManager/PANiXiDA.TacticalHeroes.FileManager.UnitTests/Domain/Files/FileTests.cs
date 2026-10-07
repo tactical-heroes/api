@@ -13,7 +13,9 @@ public sealed class FileTests
         var name = FileName.Create("avatar.png").Value;
         var filePurpose = FilePurpose.Avatar;
 
-        var file = File.Create(name, filePurpose);
+        var file = File.Create(
+            name,
+            filePurpose);
 
         file.Id.Value.Version.ShouldBe(7);
         file.Name.ShouldBe(name);
@@ -27,7 +29,9 @@ public sealed class FileTests
     [InlineData("Ready", true)]
     [InlineData("Deleting", false)]
     [InlineData("Deleted", false)]
-    public void Rename_Should_RespectLifecycle_When_StatusIsProvided(string status, bool allowed)
+    public void Rename_Should_RespectLifecycle_When_StatusIsProvided(
+        string status,
+        bool allowed)
     {
         var file = CreateFile(status);
         var name = FileName.Create("new-avatar.png").Value;
@@ -71,15 +75,24 @@ public sealed class FileTests
     [InlineData("image/png", 129, 'a')]
     [InlineData("image/png", 128, 'b')]
     public void CompleteUpload_Should_ReturnConflict_When_ContentDiffers(
-        string contentType, long size, char checksumCharacter)
+        string contentType,
+        long size,
+        char checksumCharacter)
     {
         var file = CreateFile("Ready");
         var originalContent = file.Content;
-        var replacement = FileContent.Create(contentType, size, new string(checksumCharacter, 64)).Value;
+        var replacement = FileContent.Create(
+            contentType,
+            size,
+            new string(
+                checksumCharacter,
+                64)).Value;
 
         var result = file.CompleteUpload(replacement);
 
-        result.ShouldHaveSingleError(ErrorType.Conflict, "File content cannot be replaced after upload.");
+        result.ShouldHaveSingleError(
+            ErrorType.Conflict,
+            "File content cannot be replaced after upload.");
         file.Status.ShouldBe(FileStatus.Ready);
         file.Content.ShouldBeSameAs(originalContent);
     }
@@ -94,7 +107,9 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(content);
 
-        result.ShouldHaveSingleError(ErrorType.Conflict, "Only pending uploads can be completed.");
+        result.ShouldHaveSingleError(
+            ErrorType.Conflict,
+            "Only pending uploads can be completed.");
         file.Status.Name.ShouldBe(status);
         file.Content.ShouldBeNull();
     }
@@ -105,7 +120,8 @@ public sealed class FileTests
     [InlineData("Deleting", "Deleting")]
     [InlineData("Deleted", "Deleted")]
     public void BeginDeletion_Should_RespectLifecycle_When_StatusIsProvided(
-        string status, string expectedStatus)
+        string status,
+        string expectedStatus)
     {
         var file = CreateFile(status);
         var content = file.Content;
@@ -123,7 +139,8 @@ public sealed class FileTests
     [InlineData("Deleting", true)]
     [InlineData("Deleted", true)]
     public void CompleteDeletion_Should_RespectLifecycle_When_StatusIsProvided(
-        string status, bool allowed)
+        string status,
+        bool allowed)
     {
         var file = CreateFile(status);
         var content = file.Content;
@@ -137,7 +154,9 @@ public sealed class FileTests
 
     private static File CreateFile(string status)
     {
-        var file = File.Create(FileName.Create("avatar.png").Value, FilePurpose.Avatar);
+        var file = File.Create(
+            FileName.Create("avatar.png").Value,
+            FilePurpose.Avatar);
 
         if (status == "Ready")
         {
@@ -157,6 +176,11 @@ public sealed class FileTests
 
     private static FileContent CreateContent()
     {
-        return FileContent.Create("image/png", 128, new string('a', 64)).Value;
+        return FileContent.Create(
+            "image/png",
+            128,
+            new string(
+                'a',
+                64)).Value;
     }
 }

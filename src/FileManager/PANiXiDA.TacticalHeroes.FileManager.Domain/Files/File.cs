@@ -5,7 +5,10 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 
 public sealed class File : AggregateRoot<FileId>
 {
-    private File(FileId id, FileName name, FilePurpose purpose)
+    private File(
+        FileId id,
+        FileName name,
+        FilePurpose purpose)
         : base(id)
     {
         Name = name;
@@ -18,9 +21,14 @@ public sealed class File : AggregateRoot<FileId>
     public FileStatus Status { get; private set; }
     public FileContent? Content { get; private set; }
 
-    public static File Create(FileName name, FilePurpose purpose)
+    public static File Create(
+        FileName name,
+        FilePurpose purpose)
     {
-        return new File(id: FileId.New(), name: name, purpose: purpose);
+        return new File(
+            id: FileId.New(),
+            name: name,
+            purpose: purpose);
     }
 
     public Result Rename(FileName name)
