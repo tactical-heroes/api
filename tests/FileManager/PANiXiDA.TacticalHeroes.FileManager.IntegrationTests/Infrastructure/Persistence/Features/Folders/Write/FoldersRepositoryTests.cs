@@ -42,7 +42,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         restored.AllowedFileType.ShouldBe(FileType.Avatar);
         restored.ParentId.ShouldBe(folder.ParentId);
         scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
-            .ChangeTracker.Entries().ShouldBeEmpty();
+            .ChangeTracker.Entries<Folder>().ShouldHaveSingleItem()
+            .Entity.ShouldBeSameAs(restored);
     }
 
     [Fact(DisplayName = "Folder repository should preserve placement when folder is renamed")]
@@ -73,6 +74,37 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         saved.Name.Value.ShouldBe("Heroes");
         saved.AllowedFileType.ShouldBe(FileType.Avatar);
         saved.ParentId.ShouldBe(parent.Id);
+    }
+
+    [Fact(DisplayName = "Folder repository should reject a stale rename when another rename was saved first")]
+    public async Task UpdateAsync_Should_ThrowConcurrencyException_When_AnotherRenameWasSavedFirst()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var folder = Folder.Create(
+            name: FolderName.Create("Avatars").Value,
+            allowedFileType: FileType.Avatar);
+        await SaveNewFolderAsync(folder, cancellationToken);
+        await using var firstScope = Fixture.CreateScope();
+        await using var secondScope = Fixture.CreateScope();
+        var firstRepository = firstScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        var secondRepository = secondScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        var firstFolder = await firstRepository.GetByIdAsync(folder.Id, cancellationToken);
+        var secondFolder = await secondRepository.GetByIdAsync(folder.Id, cancellationToken);
+        firstFolder!.Rename(FolderName.Create("Players").Value);
+        await firstRepository.UpdateAsync(firstFolder, cancellationToken);
+        secondFolder!.Rename(FolderName.Create("Heroes").Value);
+
+        Func<Task> saveStaleFolder = () => secondRepository.UpdateAsync(secondFolder, cancellationToken);
+
+        await saveStaleFolder.ShouldThrowAsync<DbUpdateConcurrencyException>();
+        await using var verificationScope = Fixture.CreateScope();
+        var persistedFolder = await verificationScope.ServiceProvider
+            .GetRequiredService<IFoldersRepository>()
+            .GetByIdAsync(folder.Id, cancellationToken);
+        persistedFolder.ShouldNotBeNull();
+        persistedFolder.Name.Value.ShouldBe("Players");
+        persistedFolder.AllowedFileType.ShouldBe(folder.AllowedFileType);
+        persistedFolder.ParentId.ShouldBe(folder.ParentId);
     }
 
     [Fact(DisplayName = "Folder repository should reject an orphan when parent does not exist")]
