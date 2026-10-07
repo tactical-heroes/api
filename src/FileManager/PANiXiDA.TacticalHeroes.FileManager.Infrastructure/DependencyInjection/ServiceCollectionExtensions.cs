@@ -11,7 +11,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddPostgreSqlWriteEfRepository<FileManagerWriteDbContext>(
+        serviceCollection.AddPostgreSqlEfRepository<
+            FileManagerWriteDbContext,
+            FileManagerReadDbContext>(
             configuration);
 
         return serviceCollection;

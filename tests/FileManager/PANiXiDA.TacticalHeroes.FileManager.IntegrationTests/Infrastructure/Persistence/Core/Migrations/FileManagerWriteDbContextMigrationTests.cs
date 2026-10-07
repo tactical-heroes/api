@@ -10,6 +10,38 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixture fixture)
 {
+    [Fact(DisplayName = "Read database model should match PostgreSQL columns when migrations are applied")]
+    public async Task ReadDbModel_Should_MatchPostgreSqlColumns_When_MigrationsAreApplied()
+    {
+        await using var scope = fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
+        var table = context.Model.GetRelationalModel().FindTable("files", "file_manager")!;
+        var expected = table.Columns
+            .Select(column => (column.Name, column.StoreType, column.IsNullable))
+            .OrderBy(column => column.Name, StringComparer.Ordinal)
+            .ToArray();
+        await using var connection = new NpgsqlConnection(fixture.ConnectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT attname, format_type(atttypid, atttypmod), NOT attnotnull
+            FROM pg_attribute
+            WHERE attrelid = 'file_manager.files'::regclass
+              AND (attnum > 0 OR attname = 'xmin')
+              AND NOT attisdropped;
+            """,
+            connection);
+        var actual = new List<(string Name, string StoreType, bool IsNullable)>();
+
+        await using var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken);
+        while (await reader.ReadAsync(TestContext.Current.CancellationToken))
+        {
+            actual.Add((reader.GetString(0), reader.GetString(1), reader.GetBoolean(2)));
+        }
+
+        actual.OrderBy(column => column.Name, StringComparer.Ordinal).ShouldBe(expected);
+    }
+
     [Fact(DisplayName = "File manager migrations should match the model and be repeatable when migrations are applied again")]
     public async Task MigrateAsync_Should_MatchModel_When_MigrationsAreAppliedAgain()
     {
