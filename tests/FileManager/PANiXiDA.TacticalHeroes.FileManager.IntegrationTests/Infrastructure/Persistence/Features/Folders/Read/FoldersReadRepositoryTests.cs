@@ -14,7 +14,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Folder read repository should find persisted identifiers when a folder exists")]
+    [Fact(DisplayName = "Folder read repository should find persisted identifiers when folder exists")]
     public async Task ExistsByIdAsync_Should_MatchPersistedIdentifiers_When_FolderExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -33,7 +33,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         missing.ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Folder read repository should reflect persisted rows when a folder is added")]
+    [Fact(DisplayName = "Folder read repository should reflect persisted rows when folder is added")]
     public async Task AnyAsync_Should_ReflectPersistedRows_When_FolderIsAdded()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

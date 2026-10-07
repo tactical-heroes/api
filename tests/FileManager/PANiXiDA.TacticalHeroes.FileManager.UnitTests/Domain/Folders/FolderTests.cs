@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Folders;
 
 public sealed class FolderTests
 {
-    [Fact(DisplayName = "Folder should have no parent when created as a root")]
+    [Fact(DisplayName = "Folder should have no parent when type is known")]
     public void Create_Should_ReturnRootFolder_When_TypeIsKnown()
     {
         var name = FolderName.Create("Avatars").Value;
@@ -21,7 +21,7 @@ public sealed class FolderTests
         folder.ParentId.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Child folder should inherit its type when created under a parent")]
+    [Fact(DisplayName = "Child folder should inherit its type when parent exists")]
     public void CreateChild_Should_InheritTypeAndReferenceParent_When_ParentExists()
     {
         var parent = Folder.Create(
@@ -38,7 +38,7 @@ public sealed class FolderTests
         parent.ParentId.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Nested folder should keep the branch type when created below another child")]
+    [Fact(DisplayName = "Nested folder should keep the branch type when parent is nested")]
     public void CreateChild_Should_KeepBranchType_When_ParentIsNested()
     {
         var root = Folder.Create(
@@ -53,7 +53,7 @@ public sealed class FolderTests
         child.Type.ShouldBe(root.Type);
     }
 
-    [Fact(DisplayName = "Rename should preserve folder identity and placement when a nested folder is renamed")]
+    [Fact(DisplayName = "Rename should preserve folder identity and placement when folder is nested")]
     public void Rename_Should_PreserveIdentityTypeAndParent_When_FolderIsNested()
     {
         var parent = Folder.Create(

@@ -14,7 +14,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Folder repository should restore a folder when saved at different depths")]
+    [Theory(DisplayName = "Folder repository should restore a folder when depth varies")]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(3)]
@@ -45,7 +45,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
             .ChangeTracker.Entries().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Folder repository should preserve placement when a detached folder is renamed")]
+    [Fact(DisplayName = "Folder repository should preserve placement when folder is renamed")]
     public async Task UpdateAsync_Should_PersistNameAndPreservePlacement_When_FolderIsRenamed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -75,7 +75,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         saved.ParentId.ShouldBe(parent.Id);
     }
 
-    [Fact(DisplayName = "Folder repository should reject an orphan when the parent has not been saved")]
+    [Fact(DisplayName = "Folder repository should reject an orphan when parent does not exist")]
     public async Task AddAsync_Should_RejectOrphan_When_ParentDoesNotExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -94,7 +94,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         (await context.Set<Folder>().AnyAsync(cancellationToken)).ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Folder foreign key should prevent cascading deletion when a parent has children")]
+    [Fact(DisplayName = "Folder foreign key should prevent cascading deletion when children exist")]
     public async Task ExecuteDeleteAsync_Should_RejectParentDeletion_When_ChildrenExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
