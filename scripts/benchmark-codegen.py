@@ -140,7 +140,7 @@ def main():
             config = repository / "nuget.config"
             restore = ["dotnet", "restore", SOLUTION, "--nologo", "-v", "quiet"]
             if config.exists():
-                restore.extend(["--configfile", str(config)])
+                shutil.copyfile(config, workspace / "nuget.config")
             command(restore, workspace, environment, output / "restore.log")
             # Warm both variants, including test containers, without counting these samples.
             for variant in reversed(measured_order):
@@ -154,6 +154,8 @@ def main():
                 raise RuntimeError("The variants did not execute exactly the same tests")
             (output / "result.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
         finally:
+            if config.exists():
+                (workspace / "nuget.config").unlink(missing_ok=True)
             subprocess.run(["git", "worktree", "remove", str(workspace)],
                            cwd=repository, check=True)
 
