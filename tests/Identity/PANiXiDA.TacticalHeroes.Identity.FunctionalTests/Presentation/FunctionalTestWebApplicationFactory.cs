@@ -1,3 +1,5 @@
+using JasperFx.CodeGeneration;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +39,14 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
             services.AddSingleton<IEventBus>(serviceProvider =>
                 serviceProvider.GetRequiredService<CapturingEventBus>());
             services.RunWolverineInSoloMode();
+            services.ConfigureWolverine(options =>
+            {
+                options.ApplicationAssembly = typeof(Program).Assembly;
+                options.CodeGeneration.TypeLoadMode =
+                    Environment.GetEnvironmentVariable("WOLVERINE_PREGENERATED") == "1"
+                        ? TypeLoadMode.Static
+                        : TypeLoadMode.Auto;
+            });
         });
     }
 }

@@ -1,3 +1,5 @@
+using JasperFx.CodeGeneration;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -44,6 +46,14 @@ internal sealed class FunctionalTestWebApplicationFactory
                     TestAuthenticationHandler.SchemeName,
                     _ => { });
             services.RunWolverineInSoloMode();
+            services.ConfigureWolverine(options =>
+            {
+                options.ApplicationAssembly = typeof(Program).Assembly;
+                options.CodeGeneration.TypeLoadMode =
+                    Environment.GetEnvironmentVariable("WOLVERINE_PREGENERATED") == "1"
+                        ? TypeLoadMode.Static
+                        : TypeLoadMode.Auto;
+            });
         });
     }
 }

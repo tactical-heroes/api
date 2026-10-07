@@ -37,6 +37,42 @@ each assembly (`ParallelMode.None`). CI still runs separate test projects in
 parallel. Database resets clear only the module schema and preserve migration
 history and Wolverine's messaging tables, which remain in use by background workers.
 
+To test the API host with the same pregenerated Wolverine handlers used by the
+container build, run from a clean checkout (PowerShell):
+
+```powershell
+Push-Location src/PANiXiDA.TacticalHeroes.Host
+dotnet run -c Release --no-launch-profile -- codegen write
+Pop-Location
+$env:WOLVERINE_PREGENERATED = '1'
+dotnet test --solution PANiXiDA.TacticalHeroes.slnx -c Release
+Remove-Item Env:WOLVERINE_PREGENERATED
+```
+
+The test build compiles the generated sources into the Host assembly. The Identity
+and Compendium web factories select that assembly explicitly and use strict
+`TypeLoadMode.Static` when `WOLVERINE_PREGENERATED=1`; a missing generated handler
+fails instead of silently compiling it at runtime. Ordinary functional tests keep
+`Auto`. Isolated integration-test hosts keep their own configuration.
+The **Pregenerated handler tests** workflow validates this path in addition to
+the existing CI tests.
+
+The manually dispatched **Codegen benchmark** workflow runs 20 independent runner
+pairs with balanced order and one full warmup of each variant per runner.
+The baseline uses `Auto` without generated sources (dynamic fallback); the
+candidate uses `codegen write` plus `Static`, including its static handler registry.
+Deployed containers currently use `Auto`, so this also validates a stricter mode.
+Each measured run starts with cleaned build outputs. Its total includes the Host
+bootstrap build, `codegen write`, recompilation and all 13 test projects, including
+container startup and shutdown. Both variants exclude package restore, image
+downloads, cleanup and warmups. Assemblies run sequentially without coverage;
+these timings do not represent the latency of the parallel CI matrix.
+The workflow retains raw timings, all test counts, logs and a paired 95% bootstrap
+confidence interval without discarding outliers. To reproduce one pair locally
+with Python 3 and Docker, use
+`python scripts/benchmark-codegen.py --pair 0 --output <outside-repository-directory>`.
+It creates and removes its own disposable worktree at the current commit.
+
 Run the API:
 
 ```bash

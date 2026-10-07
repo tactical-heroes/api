@@ -1,0 +1,72 @@
+name: Codegen benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [perf/pregenerated-test-handlers]
+
+permissions:
+  contents: read
+
+jobs:
+  pair:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[benchmark]')
+    name: Pair ${{ matrix.pair }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        pair: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Create NuGet configuration
+        if: vars.NUGET_CONFIG != ''
+        env:
+          NUGET_CONFIG: ${{ vars.NUGET_CONFIG }}
+          NUGET_PROVIDER: ${{ vars.NUGET_PROVIDER }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: echo "$NUGET_CONFIG" | envsubst > nuget.config
+      - name: Preload test images
+        run: |
+          docker pull postgres:17-alpine
+          docker pull axllent/mailpit:v1.30.4
+          docker pull testcontainers/ryuk:0.14.0
+      - name: Measure complete pair
+        env:
+          PAIR: ${{ matrix.pair }}
+        run: python3 scripts/benchmark-codegen.py --pair "$PAIR" --output "$RUNNER_TEMP/codegen-results"
+      - name: Upload measurements and logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: codegen-pair-${{ matrix.pair }}
+          path: ${{ runner.temp }}/codegen-results
+          retention-days: 30
+  summarize:
+    needs: pair
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: codegen-pair-*
+          path: results
+      - name: Analyze all pairs
+        run: |
+          python3 scripts/summarize-codegen-benchmark.py results
+          cat results/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: codegen-summary
+          path: |
+            results/summary.json
+            results/summary.md
+            results/measurements.csv
+          retention-days: 90

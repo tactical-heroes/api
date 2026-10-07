@@ -1,0 +1,49 @@
+name: Pregenerated handler tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, development]
+    paths-ignore:
+      - deploy/helm/**/images-*.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Create NuGet configuration
+        if: vars.NUGET_CONFIG != ''
+        env:
+          NUGET_CONFIG: ${{ vars.NUGET_CONFIG }}
+          NUGET_PROVIDER: ${{ vars.NUGET_PROVIDER }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: echo "$NUGET_CONFIG" | envsubst > nuget.config
+      - name: Restore
+        run: dotnet restore PANiXiDA.TacticalHeroes.slnx
+      - name: Generate API handlers
+        working-directory: src/PANiXiDA.TacticalHeroes.Host
+        run: dotnet run -c Release --no-restore --no-launch-profile -- codegen write
+      - name: Test with precompiled API handlers and no dynamic fallback
+        env:
+          WOLVERINE_PREGENERATED: '1'
+        run: >-
+          dotnet test --solution PANiXiDA.TacticalHeroes.slnx
+          -c Release --no-restore --max-parallel-test-modules 2
+          --report-trx --results-directory artifacts/codegen-tests
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: pregenerated-handler-test-results
+          path: artifacts/codegen-tests
+          retention-days: 7
