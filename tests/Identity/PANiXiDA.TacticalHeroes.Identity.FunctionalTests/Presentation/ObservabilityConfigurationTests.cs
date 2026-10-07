@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ObservabilityConfigurationTests(FunctionalTestFixture fixture)
 {
-    [Fact(DisplayName = "Test host should not register OpenTelemetry providers")]
+    [Fact(DisplayName = "Host should not register OpenTelemetry providers when environment is test")]
     public void CreateHost_Should_NotRegisterTelemetryProviders_When_EnvironmentIsTest()
     {
         var services = fixture.Services;
@@ -18,7 +18,7 @@ public sealed class ObservabilityConfigurationTests(FunctionalTestFixture fixtur
         services.GetService<MeterProvider>().ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Development host should register OpenTelemetry providers")]
+    [Fact(DisplayName = "Host should register OpenTelemetry providers when environment is development")]
     public async Task CreateHost_Should_RegisterTelemetryProviders_When_EnvironmentIsDevelopment()
     {
         await using var factory = new FunctionalTestWebApplicationFactory(Environments.Development);
