@@ -4,6 +4,20 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files.Enumeration
 
 public sealed class FileStatusTests
 {
+    [Theory(DisplayName = "File status should identify deletion states when status is provided")]
+    [InlineData("PendingUpload", false)]
+    [InlineData("Ready", false)]
+    [InlineData("Deleting", true)]
+    [InlineData("Deleted", true)]
+    public void IsDeletingOrDeleted_Should_ReportDeletionState_When_StatusIsProvided(string status, bool expected)
+    {
+        var fileStatus = FileStatus.FromName(status);
+
+        var result = fileStatus.IsDeletingOrDeleted;
+
+        result.ShouldBe(expected);
+    }
+
     [Fact(DisplayName = "File status should preserve identifier order when called")]
     public void GetAll_Should_ReturnValuesInIdOrder_When_Called()
     {

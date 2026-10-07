@@ -16,6 +16,8 @@ public sealed partial class FileStatus : Enumeration<FileStatus>
     {
     }
 
+    public bool IsDeletingOrDeleted => this == Deleting || this == Deleted;
+
     public static Result<FileStatus> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))

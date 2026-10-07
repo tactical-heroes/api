@@ -21,7 +21,8 @@ public sealed class FileTests
         file.Name.ShouldBe(name);
         file.Purpose.ShouldBe(filePurpose);
         file.Status.ShouldBe(FileStatus.PendingUpload);
-        file.Content.ShouldBeNull();
+        file.ContentType.ShouldBeNull();
+        file.Size.ShouldBeNull();
     }
 
     [Theory(DisplayName = "File should allow renaming only before deletion begins when status is provided")]
@@ -46,47 +47,54 @@ public sealed class FileTests
     public void CompleteUpload_Should_SaveContent_When_UploadIsPending()
     {
         var file = CreateFile("PendingUpload");
-        var content = CreateContent();
+        var contentType = FileContentType.Create("image/png").Value;
+        var size = FileSize.Create(128).Value;
 
-        var result = file.CompleteUpload(content);
+        var result = file.CompleteUpload(
+            contentType,
+            size);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
-        file.Content.ShouldBe(content);
+        file.ContentType.ShouldBe(contentType);
+        file.Size.ShouldBe(size);
     }
 
     [Fact(DisplayName = "File should accept repeated completion when completion is repeated")]
     public void CompleteUpload_Should_Succeed_When_CompletionIsRepeated()
     {
         var file = CreateFile("Ready");
-        var content = CreateContent();
+        var contentType = FileContentType.Create("image/png").Value;
+        var size = FileSize.Create(128).Value;
 
-        var result = file.CompleteUpload(content);
+        var result = file.CompleteUpload(
+            contentType,
+            size);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
-        file.Content.ShouldBe(content);
+        file.ContentType.ShouldBe(contentType);
+        file.Size.ShouldBe(size);
     }
 
     [Theory(DisplayName = "File should preserve uploaded content when content differs")]
-    [InlineData("image/webp", 128, 'a')]
-    [InlineData("image/png", 129, 'a')]
-    [InlineData("image/png", 128, 'b')]
+    [InlineData("image/webp", 128)]
+    [InlineData("image/png", 129)]
     public void CompleteUpload_Should_ReturnConflict_When_ContentDiffers(
-        string contentType, long size, char checksumCharacter)
+        string contentType, long size)
     {
         var file = CreateFile("Ready");
-        var originalContent = file.Content;
-        var replacement = FileContent.Create(
-            contentType,
-            size,
-            new string(checksumCharacter, 64)).Value;
+        var originalContentType = file.ContentType;
+        var originalSize = file.Size;
 
-        var result = file.CompleteUpload(replacement);
+        var result = file.CompleteUpload(
+            FileContentType.Create(contentType).Value,
+            FileSize.Create(size).Value);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "File content cannot be replaced after upload.");
         file.Status.ShouldBe(FileStatus.Ready);
-        file.Content.ShouldBeSameAs(originalContent);
+        file.ContentType.ShouldBeSameAs(originalContentType);
+        file.Size.ShouldBeSameAs(originalSize);
     }
 
     [Theory(DisplayName = "File should reject upload completion when deletion has begun")]
@@ -95,13 +103,17 @@ public sealed class FileTests
     public void CompleteUpload_Should_ReturnConflict_When_DeletionHasBegun(string status)
     {
         var file = CreateFile(status);
-        var content = CreateContent();
+        var contentType = FileContentType.Create("image/png").Value;
+        var size = FileSize.Create(128).Value;
 
-        var result = file.CompleteUpload(content);
+        var result = file.CompleteUpload(
+            contentType,
+            size);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "Only pending uploads can be completed.");
         file.Status.Name.ShouldBe(status);
-        file.Content.ShouldBeNull();
+        file.ContentType.ShouldBeNull();
+        file.Size.ShouldBeNull();
     }
 
     [Theory(DisplayName = "File should begin deletion without restarting a completed deletion when status is provided")]
@@ -113,13 +125,15 @@ public sealed class FileTests
         string status, string expectedStatus)
     {
         var file = CreateFile(status);
-        var content = file.Content;
+        var contentType = file.ContentType;
+        var size = file.Size;
 
         var result = file.BeginDeletion();
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.Name.ShouldBe(expectedStatus);
-        file.Content.ShouldBeSameAs(content);
+        file.ContentType.ShouldBeSameAs(contentType);
+        file.Size.ShouldBeSameAs(size);
     }
 
     [Theory(DisplayName = "File should complete deletion only after deletion has begun when status is provided")]
@@ -131,13 +145,15 @@ public sealed class FileTests
         string status, bool allowed)
     {
         var file = CreateFile(status);
-        var content = file.Content;
+        var contentType = file.ContentType;
+        var size = file.Size;
 
         var result = file.CompleteDeletion();
 
         result.IsSuccess.ShouldBe(allowed);
         file.Status.Name.ShouldBe(allowed ? "Deleted" : status);
-        file.Content.ShouldBeSameAs(content);
+        file.ContentType.ShouldBeSameAs(contentType);
+        file.Size.ShouldBeSameAs(size);
     }
 
     private static File CreateFile(string status)
@@ -148,7 +164,9 @@ public sealed class FileTests
 
         if (status == "Ready")
         {
-            file.CompleteUpload(CreateContent());
+            file.CompleteUpload(
+                FileContentType.Create("image/png").Value,
+                FileSize.Create(128).Value);
         }
         else if (status is "Deleting" or "Deleted")
         {
@@ -160,13 +178,5 @@ public sealed class FileTests
         }
 
         return file;
-    }
-
-    private static FileContent CreateContent()
-    {
-        return FileContent.Create(
-            "image/png",
-            128,
-            new string('a', 64)).Value;
     }
 }

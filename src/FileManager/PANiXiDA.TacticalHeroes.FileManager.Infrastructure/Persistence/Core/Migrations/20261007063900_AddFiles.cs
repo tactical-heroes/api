@@ -30,9 +30,8 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     purpose = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
-                    content_content_type = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    content_sha256 = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    content_size = table.Column<long>(type: "bigint", nullable: true)
+                    content_type = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    size = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -23,7 +23,9 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var file = CreateFile();
         if (status != "PendingUpload")
         {
-            file.CompleteUpload(CreateContent());
+            file.CompleteUpload(
+                FileContentType.Create("image/png").Value,
+                FileSize.Create(4096).Value);
         }
 
         if (status is "Deleting" or "Deleted")
@@ -46,7 +48,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.Name.ShouldBe(file.Name);
         restored.Purpose.ShouldBe(FilePurpose.Avatar);
         restored.Status.Name.ShouldBe(status);
-        restored.Content.ShouldBe(file.Content);
+        restored.ContentType.ShouldBe(file.ContentType);
+        restored.Size.ShouldBe(file.Size);
     }
 
     [Fact(DisplayName = "File repository should persist content completion when upload completes")]
@@ -54,14 +57,17 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
-        var content = CreateContent();
+        var contentType = FileContentType.Create("image/png").Value;
+        var size = FileSize.Create(4096).Value;
         await SaveNewFileAsync(file, cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
             var pendingFile = await repository.GetByIdAsync(file.Id, cancellationToken);
-            pendingFile!.CompleteUpload(content);
+            pendingFile!.CompleteUpload(
+                contentType,
+                size);
             pendingFile.Rename(FileName.Create("new-avatar.png").Value);
             await repository.UpdateAsync(pendingFile, cancellationToken);
         }
@@ -74,7 +80,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Status.ShouldBe(FileStatus.Ready);
         restored.Name.Value.ShouldBe("new-avatar.png");
-        restored.Content.ShouldBe(content);
+        restored.ContentType.ShouldBe(contentType);
+        restored.Size.ShouldBe(size);
     }
 
     [Fact(DisplayName = "File repository should preserve completed deletion and metadata when deletion completes")]
@@ -82,7 +89,9 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
-        file.CompleteUpload(CreateContent());
+        file.CompleteUpload(
+            FileContentType.Create("image/png").Value,
+            FileSize.Create(4096).Value);
         await SaveNewFileAsync(file, cancellationToken);
 
         foreach (var complete in new[] { false, true })
@@ -109,7 +118,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         deleted.ShouldNotBeNull();
         deleted.Status.ShouldBe(FileStatus.Deleted);
-        deleted.Content.ShouldBe(file.Content);
+        deleted.ContentType.ShouldBe(file.ContentType);
+        deleted.Size.ShouldBe(file.Size);
     }
 
     [Fact(DisplayName = "File repository should reject stale completion when deletion was saved first")]
@@ -126,7 +136,9 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var completingFile = await completionRepository.GetByIdAsync(file.Id, cancellationToken);
         deletingFile!.BeginDeletion();
         await deletionRepository.UpdateAsync(deletingFile, cancellationToken);
-        completingFile!.CompleteUpload(CreateContent());
+        completingFile!.CompleteUpload(
+            FileContentType.Create("image/png").Value,
+            FileSize.Create(4096).Value);
 
         Func<Task> saveStaleFile = () => completionRepository.UpdateAsync(completingFile, cancellationToken);
 
@@ -137,7 +149,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             .GetByIdAsync(file.Id, cancellationToken);
         persistedFile.ShouldNotBeNull();
         persistedFile.Status.ShouldBe(FileStatus.Deleting);
-        persistedFile.Content.ShouldBeNull();
+        persistedFile.ContentType.ShouldBeNull();
+        persistedFile.Size.ShouldBeNull();
     }
 
     private static File CreateFile()
@@ -145,14 +158,6 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         return File.Create(
             FileName.Create("avatar.png").Value,
             FilePurpose.Avatar);
-    }
-
-    private static FileContent CreateContent()
-    {
-        return FileContent.Create(
-            "image/png",
-            4096,
-            new string('a', 64)).Value;
     }
 
     private async Task SaveNewFileAsync(File file, CancellationToken cancellationToken)

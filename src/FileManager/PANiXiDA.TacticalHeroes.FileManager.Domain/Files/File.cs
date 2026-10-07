@@ -19,7 +19,8 @@ public sealed class File : AggregateRoot<FileId>
     public FileName Name { get; private set; }
     public FilePurpose Purpose { get; }
     public FileStatus Status { get; private set; }
-    public FileContent? Content { get; private set; }
+    public FileContentType? ContentType { get; private set; }
+    public FileSize? Size { get; private set; }
 
     public static File Create(
         FileName name,
@@ -33,7 +34,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Rename(FileName name)
     {
-        if (Status == FileStatus.Deleting || Status == FileStatus.Deleted)
+        if (Status.IsDeletingOrDeleted)
         {
             return Result.Failure(
                 Error.Conflict("A file being deleted cannot be renamed."));
@@ -44,11 +45,13 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result CompleteUpload(FileContent content)
+    public Result CompleteUpload(
+        FileContentType contentType,
+        FileSize size)
     {
         if (Status == FileStatus.Ready)
         {
-            return Content == content
+            return ContentType == contentType && Size == size
                 ? Result.Success()
                 : Result.Failure(
                     Error.Conflict("File content cannot be replaced after upload."));
@@ -60,7 +63,8 @@ public sealed class File : AggregateRoot<FileId>
                 Error.Conflict("Only pending uploads can be completed."));
         }
 
-        Content = content;
+        ContentType = contentType;
+        Size = size;
         Status = FileStatus.Ready;
 
         return Result.Success();
@@ -68,7 +72,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result BeginDeletion()
     {
-        if (Status == FileStatus.Deleting || Status == FileStatus.Deleted)
+        if (Status.IsDeletingOrDeleted)
         {
             return Result.Success();
         }
