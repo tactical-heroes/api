@@ -10,6 +10,7 @@ builder.AddHttp();
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
 builder.AddCompendiumModule();
+builder.AddFileManagerModule();
 builder.AddMessaging();
 
 var app = builder.Build();

@@ -24,6 +24,13 @@
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Infrastructure/PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Presentation/PANiXiDA.TacticalHeroes.Compendium.Presentation.csproj" />
   </Folder>
+  <Folder Name="/src/FileManager/">
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Application/PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Contracts/PANiXiDA.TacticalHeroes.FileManager.Contracts.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Domain/PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Infrastructure/PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
+    <Project Path="src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Presentation/PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
+  </Folder>
   <Folder Name="/src/Identity/">
     <Project Path="src/Identity/PANiXiDA.TacticalHeroes.Identity.Application/PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
     <Project Path="src/Identity/PANiXiDA.TacticalHeroes.Identity.Contracts/PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />

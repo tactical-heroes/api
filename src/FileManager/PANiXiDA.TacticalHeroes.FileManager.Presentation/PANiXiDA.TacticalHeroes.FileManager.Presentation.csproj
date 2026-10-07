@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.FileManager.Application\PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.FileManager.Contracts\PANiXiDA.TacticalHeroes.FileManager.Contracts.csproj" />
+    </ItemGroup>
+</Project>

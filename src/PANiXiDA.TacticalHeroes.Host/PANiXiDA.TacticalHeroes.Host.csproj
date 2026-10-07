@@ -18,6 +18,11 @@
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Presentation\PANiXiDA.TacticalHeroes.Compendium.Presentation.csproj" />
+        <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Application\PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
+        <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Contracts\PANiXiDA.TacticalHeroes.FileManager.Contracts.csproj" />
+        <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Domain\PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
+        <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
+        <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Presentation\PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
