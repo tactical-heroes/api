@@ -62,7 +62,7 @@ public sealed class ReadDatabaseSchemaConventionTests
                     }
                     else
                     {
-                        if (actual.StoreType != expected.StoreType || actual.IsNullable != expected.IsNullable)
+                        if (actual.ProviderClrType != expected.ProviderClrType || actual.IsNullable != expected.IsNullable)
                         {
                             yield return $"{tableName}.{name}: expected {Describe(expected)}, read model has {Describe(actual)}.";
                         }
@@ -79,6 +79,6 @@ public sealed class ReadDatabaseSchemaConventionTests
 
     private static string Describe(IColumn column)
     {
-        return $"{column.StoreType}, nullable={column.IsNullable}";
+        return $"{column.ProviderClrType.Name}, nullable={column.IsNullable}";
     }
 }

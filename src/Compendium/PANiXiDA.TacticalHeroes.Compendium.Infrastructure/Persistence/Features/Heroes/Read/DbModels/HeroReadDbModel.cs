@@ -1,17 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
 
 public sealed class HeroReadDbModel : AuditableReadDbModel<Guid>
 {
-    [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-
-    [MaxLength(2000)]
     public string Description { get; set; } = string.Empty;
-
     public int StatsAttack { get; set; }
     public int StatsDefense { get; set; }
     public int StatsMinimumDamage { get; set; }

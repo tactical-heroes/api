@@ -1,32 +1,16 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 public sealed class UserReadDbModel : ReadDbModel<Guid>
 {
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-
-    [MaxLength(50)]
     public string Status { get; set; } = string.Empty;
-
-    [MaxLength(256)]
     public string UserName { get; set; } = string.Empty;
-
-    [MaxLength(256)]
     public string NormalizedUserName { get; set; } = string.Empty;
-
-    [MaxLength(320)]
     public string Email { get; set; } = string.Empty;
-
-    [MaxLength(320)]
     public string NormalizedEmail { get; set; } = string.Empty;
-
     public bool EmailConfirmed { get; set; }
-
-    [MaxLength(1024)]
     public string PasswordHash { get; set; } = string.Empty;
-
     public string? SecurityStamp { get; set; }
     public string? ConcurrencyStamp { get; set; }
     public string? PhoneNumber { get; set; }

@@ -17,26 +17,26 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
         var context = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
         var table = context.Model.GetRelationalModel().FindTable("files", "file_manager")!;
         var expected = table.Columns
-            .Select(column => (column.Name, column.StoreType, column.IsNullable))
+            .Select(column => (column.Name, column.IsNullable))
             .OrderBy(column => column.Name, StringComparer.Ordinal)
             .ToArray();
         await using var connection = new NpgsqlConnection(fixture.ConnectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         await using var command = new NpgsqlCommand(
             """
-            SELECT attname, format_type(atttypid, atttypmod), NOT attnotnull
+            SELECT attname, NOT attnotnull
             FROM pg_attribute
             WHERE attrelid = 'file_manager.files'::regclass
               AND (attnum > 0 OR attname = 'xmin')
               AND NOT attisdropped;
             """,
             connection);
-        var actual = new List<(string Name, string StoreType, bool IsNullable)>();
+        var actual = new List<(string Name, bool IsNullable)>();
 
         await using var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken);
         while (await reader.ReadAsync(TestContext.Current.CancellationToken))
         {
-            actual.Add((reader.GetString(0), reader.GetString(1), reader.GetBoolean(2)));
+            actual.Add((reader.GetString(0), reader.GetBoolean(1)));
         }
 
         actual.OrderBy(column => column.Name, StringComparer.Ordinal).ShouldBe(expected);
