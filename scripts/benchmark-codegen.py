@@ -19,7 +19,8 @@ HOST_PROJECT = HOST / "PANiXiDA.TacticalHeroes.Host.csproj"
 SEED = 20261007
 NUGET_CONFIG = "nuget.config"
 NO_NODE_REUSE = "/nr:false"
-OTLP_TEST_ENDPOINT = "http://otel-benchmark.invalid:4317"  # NOSONAR: Reserved .invalid test address; no real collector.
+# The reserved .invalid address deliberately has no real telemetry collector.
+OTLP_TEST_ENDPOINT = "http://otel-benchmark.invalid:4317"  # NOSONAR(S5332)
 
 
 def command(args, cwd, env, log):
@@ -113,7 +114,8 @@ def main():
     repository = Path(__file__).resolve().parents[1]
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
     orders = ["dynamic-first"] * 10 + ["static-first"] * 10
-    random.Random(SEED).shuffle(orders)  # NOSONAR: Fixed seed for reproducible experimental ordering, not cryptography.
+    # A fixed seed makes experimental ordering reproducible; this is not cryptography.
+    random.Random(SEED).shuffle(orders)  # NOSONAR(S2245)
     measured_order = (["dynamic", "static"] if orders[args.pair] == "dynamic-first"
                       else ["static", "dynamic"])
     # The test fixtures must create their own isolated containers and databases.

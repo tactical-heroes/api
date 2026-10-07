@@ -18,11 +18,12 @@ def summarize(pairs, phase):
               else pair["dynamic"]["phases"][phase] for pair in pairs]
     after = [pair["static"]["total"] if phase == "total"
              else pair["static"]["phases"][phase] for pair in pairs]
-    rng = random.Random(20261007)  # NOSONAR: Reproducible statistical resampling; no security-sensitive randomness.
+    rng = random.Random(20261007)
     changes = []
     differences = []
     for _ in range(100000):
-        indices = rng.choices(range(len(pairs)), k=len(pairs))
+        # Reproducible statistical resampling, with no security-sensitive randomness.
+        indices = rng.choices(range(len(pairs)), k=len(pairs))  # NOSONAR(S2245)
         a = statistics.fmean(before[i] for i in indices)
         b = statistics.fmean(after[i] for i in indices)
         changes.append(100 * (b / a - 1))
