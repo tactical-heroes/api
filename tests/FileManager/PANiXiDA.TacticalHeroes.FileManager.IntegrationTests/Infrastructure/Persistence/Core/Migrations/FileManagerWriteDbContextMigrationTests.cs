@@ -10,12 +10,14 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Read database model should match PostgreSQL columns when migrations are applied")]
-    public async Task ReadDbModel_Should_MatchPostgreSqlColumns_When_MigrationsAreApplied()
+    [Theory(DisplayName = "Read database model should match PostgreSQL columns when migrations are applied")]
+    [InlineData("files")]
+    [InlineData("folders")]
+    public async Task ReadDbModel_Should_MatchPostgreSqlColumns_When_MigrationsAreApplied(string tableName)
     {
         await using var scope = fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
-        var table = context.Model.GetRelationalModel().FindTable("files", "file_manager")!;
+        var table = context.Model.GetRelationalModel().FindTable(tableName, "file_manager")!;
         var expected = table.Columns
             .Select(column => (column.Name, column.IsNullable))
             .OrderBy(column => column.Name, StringComparer.Ordinal)
@@ -26,11 +28,12 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
             """
             SELECT attname, NOT attnotnull
             FROM pg_attribute
-            WHERE attrelid = 'file_manager.files'::regclass
+            WHERE attrelid = @table::regclass
               AND attnum > 0
               AND NOT attisdropped;
             """,
             connection);
+        command.Parameters.AddWithValue("table", $"file_manager.{tableName}");
         var actual = new List<(string Name, bool IsNullable)>();
 
         await using var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken);
@@ -78,6 +81,6 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
             tables.Add(reader.GetString(0));
         }
 
-        tables.ShouldBe(["file_manager.__EFMigrationsHistory", "file_manager.files"]);
+        tables.ShouldBe(["file_manager.__EFMigrationsHistory", "file_manager.files", "file_manager.folders"]);
     }
 }
