@@ -9,15 +9,17 @@ public sealed class FileTypeTests
     {
         var values = FileType.GetAll();
 
-        values.ShouldBe([FileType.Avatar]);
+        values.ShouldBe([FileType.Avatar, FileType.Personal]);
     }
 
-    [Fact(DisplayName = "File type should resolve known identifiers when id is known")]
-    public void FromId_Should_ReturnValue_When_IdIsKnown()
+    [Theory(DisplayName = "File type should resolve known identifiers when id is known")]
+    [InlineData(1, "Avatar")]
+    [InlineData(2, "Personal")]
+    public void FromId_Should_ReturnValue_When_IdIsKnown(int id, string name)
     {
-        var value = FileType.FromId(1);
+        var value = FileType.FromId(id);
 
-        value.ShouldBe(FileType.Avatar);
+        value.Name.ShouldBe(name);
     }
 
     [Fact(DisplayName = "File type should reject unknown identifiers when id is unknown")]
@@ -46,6 +48,7 @@ public sealed class FileTypeTests
 
     [Theory(DisplayName = "File type lookup should report matches when id is provided")]
     [InlineData(1, true)]
+    [InlineData(2, true)]
     [InlineData(0, false)]
     public void TryFromId_Should_ReportMatch_When_IdIsProvided(int id, bool expected)
     {
@@ -57,6 +60,7 @@ public sealed class FileTypeTests
 
     [Theory(DisplayName = "File type lookup should report matches when name is provided")]
     [InlineData("Avatar", true)]
+    [InlineData("Personal", true)]
     [InlineData("Unknown", false)]
     [InlineData("", false)]
     public void TryFromName_Should_ReportMatch_When_NameIsProvided(string name, bool expected)
@@ -67,13 +71,15 @@ public sealed class FileTypeTests
         (value is not null).ShouldBe(expected);
     }
 
-    [Fact(DisplayName = "File type should normalize known names when name is known")]
-    public void Create_Should_ReturnValue_When_NameIsKnown()
+    [Theory(DisplayName = "File type should normalize known names when name is known")]
+    [InlineData("Avatar")]
+    [InlineData("Personal")]
+    public void Create_Should_ReturnValue_When_NameIsKnown(string name)
     {
-        var result = FileType.Create("  Avatar  ");
+        var result = FileType.Create($"  {name}  ");
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(FileType.Avatar);
+        result.Value.Name.ShouldBe(name);
     }
 
     [Theory(DisplayName = "File type should reject missing names when name is empty")]

@@ -6,6 +6,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -63,11 +64,18 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
                 value => FolderId.Create(value).Value)
             .IsRequired(required: false);
 
+        builder.Property(file => file.UserId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => UserId.Create(value).Value)
+            .IsRequired(required: false);
+
         builder.Property<uint>("Version")
             .IsRowVersion();
 
         builder.HasIndex(file => file.Status);
         builder.HasIndex(file => file.FolderId);
+        builder.HasIndex(file => file.UserId);
 
         builder.HasOne<Folder>()
             .WithMany()

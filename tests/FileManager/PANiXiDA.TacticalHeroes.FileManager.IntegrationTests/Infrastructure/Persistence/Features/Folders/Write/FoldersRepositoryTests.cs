@@ -7,6 +7,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Persistence.Features.Folders.Write;
@@ -14,16 +15,21 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Folder repository should restore a folder when depth varies")]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(3)]
-    public async Task AddAsync_Should_RestoreFolder_When_DepthVaries(int depth)
+    [Theory(DisplayName = "Folder repository should restore a folder when depth and ownership vary")]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    [InlineData(3, false)]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    [InlineData(3, true)]
+    public async Task AddAsync_Should_RestoreFolder_When_DepthAndOwnershipVary(int depth, bool personal)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        UserId? userId = personal ? UserId.Create(Guid.CreateVersion7()).Value : null;
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: personal ? FileType.Personal : FileType.Avatar,
+            userId: userId).Value;
         await SaveNewFolderAsync(folder, cancellationToken);
         for (var level = 0; level < depth; level++)
         {
@@ -39,7 +45,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(folder.Id);
         restored.Name.ShouldBe(folder.Name);
-        restored.AllowedFileType.ShouldBe(FileType.Avatar);
+        restored.AllowedFileType.ShouldBe(personal ? FileType.Personal : FileType.Avatar);
+        restored.UserId.ShouldBe(userId);
         restored.ParentId.ShouldBe(folder.ParentId);
         scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
             .ChangeTracker.Entries<Folder>().ShouldHaveSingleItem()
@@ -52,7 +59,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         var folder = parent.CreateChild(FolderName.Create("Players").Value);
         await SaveNewFolderAsync(parent, cancellationToken);
         await SaveNewFolderAsync(folder, cancellationToken);
@@ -82,7 +89,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         await SaveNewFolderAsync(folder, cancellationToken);
         await using var firstScope = Fixture.CreateScope();
         await using var secondScope = Fixture.CreateScope();
@@ -113,7 +120,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         var child = parent.CreateChild(FolderName.Create("Players").Value);
 
         Func<Task> saveOrphan = () => SaveNewFolderAsync(child, cancellationToken);
@@ -132,7 +139,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         var child = parent.CreateChild(FolderName.Create("Players").Value);
         await SaveNewFolderAsync(parent, cancellationToken);
         await SaveNewFolderAsync(child, cancellationToken);

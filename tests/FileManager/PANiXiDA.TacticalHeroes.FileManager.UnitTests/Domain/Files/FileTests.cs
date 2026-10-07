@@ -3,6 +3,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -18,15 +19,47 @@ public sealed class FileTests
 
         var file = File.Create(
             name,
-            fileType);
+            fileType).Value;
 
         file.Id.Value.Version.ShouldBe(7);
         file.Name.ShouldBe(name);
         file.Type.ShouldBe(fileType);
+        file.UserId.ShouldBeNull();
         file.FolderId.ShouldBeNull();
         file.Status.ShouldBe(FileStatus.PendingUpload);
         file.ContentType.ShouldBeNull();
         file.Size.ShouldBeNull();
+    }
+
+    [Theory(DisplayName = "File should require a user id only for personal files when ownership varies")]
+    [InlineData("Avatar", false, true)]
+    [InlineData("Avatar", true, false)]
+    [InlineData("Personal", false, false)]
+    [InlineData("Personal", true, true)]
+    public void Create_Should_RequireUserIdOnlyForPersonalFiles_When_OwnershipVaries(
+        string typeName, bool owned, bool valid)
+    {
+        UserId? userId = owned ? UserId.Create(Guid.CreateVersion7()).Value : null;
+
+        var result = File.Create(
+            name: FileName.Create("image.png").Value,
+            type: FileType.FromName(typeName),
+            userId: userId);
+
+        result.IsSuccess.ShouldBe(valid);
+        if (valid)
+        {
+            result.Value.Type.Name.ShouldBe(typeName);
+            result.Value.UserId.ShouldBe(userId);
+            result.Value.FolderId.ShouldBeNull();
+        }
+        else
+        {
+            result.ShouldHaveSingleError(ErrorType.Validation, owned
+                    ? "Only personal files can have a user id."
+                    : "Personal files require a user id.")
+                .ShouldHaveField(nameof(File.UserId));
+        }
     }
 
     [Theory(DisplayName = "File should allow renaming only before deletion begins when status is provided")]
@@ -57,7 +90,7 @@ public sealed class FileTests
         var file = CreateFile(status);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
 
         var result = file.MoveTo(folder);
 
@@ -73,7 +106,7 @@ public sealed class FileTests
         var file = CreateFile("Ready");
         var originalFolder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         var destination = originalFolder.CreateChild(FolderName.Create("Players").Value);
         file.MoveTo(originalFolder);
 
@@ -83,6 +116,61 @@ public sealed class FileTests
         file.FolderId.ShouldBe(destination.Id);
         file.Type.ShouldBe(FileType.Avatar);
         file.Status.ShouldBe(FileStatus.Ready);
+    }
+
+    [Theory(DisplayName = "File should preserve placement for a different owner when destination owner varies")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void MoveTo_Should_RequireMatchingUserId_When_DestinationOwnerVaries(bool sameOwner)
+    {
+        var userId = UserId.Create(Guid.CreateVersion7()).Value;
+        var file = File.Create(
+            name: FileName.Create("personal.png").Value,
+            type: FileType.Personal,
+            userId: userId).Value;
+        var originalFolder = Folder.Create(
+            name: FolderName.Create("Personal").Value,
+            allowedFileType: FileType.Personal,
+            userId: userId).Value;
+        file.MoveTo(originalFolder).IsSuccess.ShouldBeTrue();
+        var destination = Folder.Create(
+            name: FolderName.Create("Documents").Value,
+            allowedFileType: FileType.Personal,
+            userId: sameOwner ? userId : UserId.Create(Guid.CreateVersion7()).Value).Value;
+
+        var result = file.MoveTo(destination);
+
+        result.IsSuccess.ShouldBe(sameOwner);
+        file.FolderId.ShouldBe(sameOwner ? destination.Id : originalFolder.Id);
+        file.UserId.ShouldBe(userId);
+        if (!sameOwner)
+        {
+            result.ShouldHaveSingleError(ErrorType.Validation, "File and folder user ids must match.")
+                .ShouldHaveField(nameof(File.FolderId));
+        }
+    }
+
+    [Theory(DisplayName = "File should reject placement in a different category when file type varies")]
+    [InlineData("Personal", "Avatar")]
+    [InlineData("Avatar", "Personal")]
+    public void MoveTo_Should_RejectDifferentType_When_FileTypeVaries(string fileType, string folderType)
+    {
+        var userId = UserId.Create(Guid.CreateVersion7()).Value;
+        var file = File.Create(
+            name: FileName.Create("image.png").Value,
+            type: FileType.FromName(fileType),
+            userId: fileType == "Personal" ? userId : null).Value;
+        var folder = Folder.Create(
+            name: FolderName.Create("Images").Value,
+            allowedFileType: FileType.FromName(folderType),
+            userId: folderType == "Personal" ? userId : null).Value;
+
+        var result = file.MoveTo(folder);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "File type must match the folder's allowed file type.")
+            .ShouldHaveField(nameof(File.FolderId));
+        file.FolderId.ShouldBeNull();
+        file.UserId.ShouldBe(fileType == "Personal" ? userId : null);
     }
 
     [Fact(DisplayName = "File should become ready with verified content when upload is pending")]
@@ -202,7 +290,7 @@ public sealed class FileTests
     {
         var file = File.Create(
             FileName.Create("avatar.png").Value,
-            FileType.Avatar);
+            FileType.Avatar).Value;
 
         if (status == "Ready")
         {

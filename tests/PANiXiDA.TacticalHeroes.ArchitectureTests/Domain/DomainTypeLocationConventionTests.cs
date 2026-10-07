@@ -187,9 +187,10 @@ public sealed class DomainTypeLocationConventionTests
             .Concat(stronglyTypedIds
                 .Where(identifier => !ownerIdentifiers.Any(target =>
                     target.Identifier == identifier))
-                .Select(identifier =>
-                    $"{identifier.FullName} must be used as the identifier " +
-                    $"of an aggregate root or entity."))
+                .SelectMany(identifier => GetExternalIdentifierViolations(
+                    repositoryRoot,
+                    identifier,
+                    owners)))
             .ToArray();
 
         Assert.NotEmpty(owners);
@@ -390,6 +391,43 @@ public sealed class DomainTypeLocationConventionTests
             owner.Namespace
                 ?? throw new InvalidOperationException(
                     $"Domain owner '{owner.FullName}' has no namespace.")));
+
+        return violations;
+    }
+
+    private static IEnumerable<string> GetExternalIdentifierViolations(
+        string repositoryRoot,
+        Type identifier,
+        IReadOnlyCollection<Type> owners)
+    {
+        var externalOwner = owners.FirstOrDefault(owner =>
+            owner.Assembly != identifier.Assembly &&
+            owner.Name + "Id" == identifier.Name);
+        if (externalOwner is null)
+        {
+            return
+            [
+                $"{identifier.FullName} must identify a local aggregate root or " +
+                $"entity, or reference an owner from another module."
+            ];
+        }
+
+        var expectedNamespace =
+            $"{GetAssemblyName(identifier)}.{EnglishNamingConvention.Pluralize(externalOwner.Name)}";
+        var violations = GetLocationViolations(
+            repositoryRoot,
+            identifier,
+            expectedNamespace,
+            $"External identifier '{identifier.FullName}' must reside in its owner's plural directory.");
+        var isReferenced = owners.Any(owner =>
+            owner.Assembly == identifier.Assembly &&
+            owner.GetProperties().Any(property =>
+                (Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType) == identifier));
+        if (!isReferenced)
+        {
+            violations.Add(
+                $"{identifier.FullName} must be referenced by an aggregate root or entity in its module.");
+        }
 
         return violations;
     }

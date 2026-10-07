@@ -6,6 +6,7 @@ public sealed partial class FileType : Enumeration<FileType>
 {
     public const int MaxLength = 32;
 
+    public static readonly FileType Personal = new(2, nameof(Personal));
     public static readonly FileType Avatar = new(1, nameof(Avatar));
 
     private FileType(int id, string name)

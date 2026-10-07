@@ -6,6 +6,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
 
@@ -22,7 +23,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var readRepository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         await repository.AddAsync(folder, cancellationToken);
 
@@ -42,7 +43,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
 
         var before = await readRepository.AnyAsync(cancellationToken);
         await repository.AddAsync(folder, cancellationToken);
@@ -52,15 +53,20 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         after.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Folder read model should restore all columns without tracking when parent is optional")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task ReadDbModel_Should_RestoreAllColumnsWithoutTracking_When_ParentIsOptional(bool nested)
+    [Theory(DisplayName = "Folder read model should restore all columns without tracking when parent and ownership vary")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ReadDbModel_Should_RestoreAllColumnsWithoutTracking_When_ParentAndOwnershipVary(
+        bool nested, bool personal)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        UserId? userId = personal ? UserId.Create(Guid.CreateVersion7()).Value : null;
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: personal ? FileType.Personal : FileType.Avatar,
+            userId: userId).Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         await repository.AddAsync(folder, cancellationToken);
@@ -80,6 +86,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         model.Id.ShouldBe(folder.Id.Value);
         model.Name.ShouldBe(folder.Name.Value);
         model.AllowedFileType.ShouldBe(folder.AllowedFileType.Name);
+        model.UserId.ShouldBe(userId?.Value);
         model.ParentId.ShouldBe(folder.ParentId?.Value);
         model.CreatedAt.ShouldBe(persisted.GetValue<DateTime>("CreatedAt"));
         model.UpdatedAt.ShouldBe(persisted.GetValue<DateTime>("UpdatedAt"));
@@ -96,7 +103,7 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var root = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         var child = root.CreateChild(FolderName.Create("Players").Value);
         var grandchild = child.CreateChild(FolderName.Create("Heroes").Value);
         Folder[] folders = [root, child, grandchild];

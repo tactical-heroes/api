@@ -188,8 +188,12 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     strongly typed ID каждого aggregate root или entity называется
     `<OwnerName>Id`, реализует `IStronglyTypedId` и лежит в той же папке и
     namespace, что и владелец. Например, `UserId` лежит рядом с `User`, а
-    `UserClaimId` — рядом с `UserClaim`. Неиспользуемые strongly typed ID
-    запрещены.
+    `UserClaimId` — рядом с `UserClaim`. Для ссылки на владельца из другого
+    модуля разрешён локальный ID без своего aggregate root или entity: он
+    называется `<OwnerName>Id`, лежит в `Domain/<OwnerPlural>` и используется
+    свойством aggregate root или entity текущего модуля, в том числе nullable.
+    Например, `FileManager.Domain.Users.UserId` ссылается на пользователя Identity,
+    не требуя локального `User`. Неиспользуемые strongly typed ID запрещены.
 
 29. `StronglyTypedIds_Should_ContainOnlyImmutableState_When_Declared` —
     рекурсивная проверка запрещает изменяемые поля и вложенное состояние ID,

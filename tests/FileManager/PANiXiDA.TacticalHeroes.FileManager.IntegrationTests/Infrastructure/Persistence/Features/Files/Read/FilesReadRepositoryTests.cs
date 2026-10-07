@@ -9,6 +9,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
@@ -24,7 +25,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task ExistsByIdAsync_Should_MatchPersistedIdentifiers_When_FileExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var file = await AddFileAsync(cancellationToken);
+        var file = await AddFileAsync(false, cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
@@ -43,33 +44,38 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var before = await repository.AnyAsync(cancellationToken);
-        await AddFileAsync(cancellationToken);
+        await AddFileAsync(false, cancellationToken);
         var after = await repository.AnyAsync(cancellationToken);
 
         before.ShouldBeFalse();
         after.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Read database model should restore all columns without tracking when upload state varies")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task ReadDbModel_Should_RestoreAllColumnsWithoutTracking_When_UploadStateVaries(bool completed)
+    [Theory(DisplayName = "Read database model should restore all columns without tracking when upload state and ownership vary")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ReadDbModel_Should_RestoreAllColumnsWithoutTracking_When_UploadStateAndOwnershipVary(
+        bool completed, bool personal)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var file = await AddFileAsync(cancellationToken);
+        var file = await AddFileAsync(personal, cancellationToken);
         await using var scope = Fixture.CreateScope();
         var writeContext = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
+        stored.ShouldNotBeNull();
+        stored.UserId.ShouldBe(file.UserId);
         if (completed)
         {
-            stored!.CompleteUpload(
+            stored.CompleteUpload(
                 FileContentType.Create("image/png").Value,
                 FileSize.Create(4096).Value);
             await repository.UpdateAsync(stored, cancellationToken);
         }
 
-        var entry = writeContext.Entry(stored!);
+        var entry = writeContext.Entry(stored);
         var persisted = (await entry.GetDatabaseValuesAsync(cancellationToken))!;
         var readContext = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
 
@@ -79,6 +85,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         model.Id.ShouldBe(file.Id.Value);
         model.Name.ShouldBe(file.Name.Value);
         model.Type.ShouldBe(file.Type.Name);
+        model.UserId.ShouldBe(file.UserId?.Value);
         model.FolderId.ShouldBeNull();
         model.Status.ShouldBe(completed ? FileStatus.Ready.Name : FileStatus.PendingUpload.Name);
         model.ContentType.ShouldBe(completed ? "image/png" : null);
@@ -95,11 +102,11 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task ReadDbModel_Should_LoadFileAndFolderNavigationsWithoutTracking_When_FolderIsOptional(bool assigned)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var file = await AddFileAsync(cancellationToken);
-        var otherFile = await AddFileAsync(cancellationToken);
+        var file = await AddFileAsync(false, cancellationToken);
+        var otherFile = await AddFileAsync(false, cancellationToken);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         await using var scope = Fixture.CreateScope();
         await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
             .AddAsync(folder, cancellationToken);
@@ -127,11 +134,12 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         context.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
-    private async Task<File> AddFileAsync(CancellationToken cancellationToken)
+    private async Task<File> AddFileAsync(bool personal, CancellationToken cancellationToken)
     {
         var file = File.Create(
             FileName.Create("avatar.png").Value,
-            FileType.Avatar);
+            personal ? FileType.Personal : FileType.Avatar,
+            personal ? UserId.Create(Guid.CreateVersion7()).Value : null).Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         await repository.AddAsync(file, cancellationToken);

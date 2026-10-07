@@ -169,7 +169,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         await SaveNewFileAsync(file, cancellationToken);
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         await using (var scope = Fixture.CreateScope())
         {
             await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
@@ -197,7 +197,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var file = CreateFile();
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
-            allowedFileType: FileType.Avatar);
+            allowedFileType: FileType.Avatar).Value;
         file.MoveTo(folder).IsSuccess.ShouldBeTrue();
 
         Func<Task> saveFile = () => SaveNewFileAsync(file, cancellationToken);
@@ -214,7 +214,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     {
         return File.Create(
             FileName.Create("avatar.png").Value,
-            FileType.Avatar);
+            FileType.Avatar).Value;
     }
 
     private async Task SaveNewFileAsync(File file, CancellationToken cancellationToken)

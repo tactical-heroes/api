@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Write;
 
@@ -39,10 +40,17 @@ internal sealed class FolderConfiguration : AuditableEntityConfiguration<Folder>
                 value => FolderId.Create(value).Value)
             .IsRequired(required: false);
 
+        builder.Property(folder => folder.UserId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => UserId.Create(value).Value)
+            .IsRequired(required: false);
+
         builder.Property<uint>("Version")
             .IsRowVersion();
 
         builder.HasIndex(folder => folder.ParentId);
+        builder.HasIndex(folder => folder.UserId);
 
         builder.HasOne<Folder>()
             .WithMany()
