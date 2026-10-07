@@ -20,16 +20,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public static File Create(FileName name, FilePurpose purpose)
     {
-        ArgumentNullException.ThrowIfNull(name);
-        ArgumentNullException.ThrowIfNull(purpose);
-
         return new File(id: FileId.New(), name: name, purpose: purpose);
     }
 
     public Result Rename(FileName name)
     {
-        ArgumentNullException.ThrowIfNull(name);
-
         if (Status == FileStatus.Deleting || Status == FileStatus.Deleted)
         {
             return Result.Failure(
@@ -43,8 +38,6 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result CompleteUpload(FileContent content)
     {
-        ArgumentNullException.ThrowIfNull(content);
-
         if (Status == FileStatus.Ready)
         {
             return Content == content

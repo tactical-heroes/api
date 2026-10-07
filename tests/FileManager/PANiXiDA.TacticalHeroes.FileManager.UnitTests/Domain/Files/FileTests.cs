@@ -7,14 +7,11 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files;
 
 public sealed class FileTests
 {
-    [Theory(DisplayName = "File should begin without content when purpose is known")]
-    [InlineData("UserAvatar")]
-    [InlineData("ClanIcon")]
-    [InlineData("UnitSpriteSheet")]
-    public void Create_Should_ReturnPendingUpload_When_PurposeIsKnown(string purpose)
+    [Fact(DisplayName = "File should begin without content when purpose is known")]
+    public void Create_Should_ReturnPendingUpload_When_PurposeIsKnown()
     {
         var name = FileName.Create("avatar.png").Value;
-        var filePurpose = FilePurpose.FromName(purpose);
+        var filePurpose = FilePurpose.Avatar;
 
         var file = File.Create(name, filePurpose);
 
@@ -23,20 +20,6 @@ public sealed class FileTests
         file.Purpose.ShouldBe(filePurpose);
         file.Status.ShouldBe(FileStatus.PendingUpload);
         file.Content.ShouldBeNull();
-    }
-
-    [Theory(DisplayName = "File should reject missing values when required value is null")]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void Create_Should_Throw_When_RequiredValueIsNull(bool missingName)
-    {
-        var name = FileName.Create("avatar.png").Value;
-
-        Action action = () => File.Create(
-            missingName ? null! : name,
-            missingName ? FilePurpose.UserAvatar : null!);
-
-        action.ShouldThrow<ArgumentNullException>();
     }
 
     [Theory(DisplayName = "File should allow renaming only before deletion begins when status is provided")]
@@ -54,7 +37,7 @@ public sealed class FileTests
         result.IsSuccess.ShouldBe(allowed);
         file.Name.Value.ShouldBe(allowed ? "new-avatar.png" : "avatar.png");
         file.Status.Name.ShouldBe(status);
-        file.Purpose.ShouldBe(FilePurpose.UserAvatar);
+        file.Purpose.ShouldBe(FilePurpose.Avatar);
     }
 
     [Fact(DisplayName = "File should become ready with verified content when upload is pending")]
@@ -154,7 +137,7 @@ public sealed class FileTests
 
     private static File CreateFile(string status)
     {
-        var file = File.Create(FileName.Create("avatar.png").Value, FilePurpose.UserAvatar);
+        var file = File.Create(FileName.Create("avatar.png").Value, FilePurpose.Avatar);
 
         if (status == "Ready")
         {

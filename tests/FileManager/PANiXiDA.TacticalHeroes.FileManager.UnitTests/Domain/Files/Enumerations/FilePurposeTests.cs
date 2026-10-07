@@ -9,18 +9,15 @@ public sealed class FilePurposeTests
     {
         var values = FilePurpose.GetAll();
 
-        values.ShouldBe([FilePurpose.UserAvatar, FilePurpose.ClanIcon, FilePurpose.UnitSpriteSheet]);
+        values.ShouldBe([FilePurpose.Avatar]);
     }
 
-    [Theory(DisplayName = "File purpose should resolve known identifiers when id is known")]
-    [InlineData(1, "UserAvatar")]
-    [InlineData(2, "ClanIcon")]
-    [InlineData(3, "UnitSpriteSheet")]
-    public void FromId_Should_ReturnValue_When_IdIsKnown(int id, string name)
+    [Fact(DisplayName = "File purpose should resolve known identifiers when id is known")]
+    public void FromId_Should_ReturnValue_When_IdIsKnown()
     {
-        var value = FilePurpose.FromId(id);
+        var value = FilePurpose.FromId(1);
 
-        value.Name.ShouldBe(name);
+        value.ShouldBe(FilePurpose.Avatar);
     }
 
     [Fact(DisplayName = "File purpose should reject unknown identifiers when id is unknown")]
@@ -34,9 +31,9 @@ public sealed class FilePurposeTests
     [Fact(DisplayName = "File purpose should resolve trimmed names when name is known")]
     public void FromName_Should_ReturnValue_When_NameIsKnown()
     {
-        var value = FilePurpose.FromName("  UserAvatar  ");
+        var value = FilePurpose.FromName("  Avatar  ");
 
-        value.ShouldBe(FilePurpose.UserAvatar);
+        value.ShouldBe(FilePurpose.Avatar);
     }
 
     [Fact(DisplayName = "File purpose should reject unknown names when name is unknown")]
@@ -59,7 +56,7 @@ public sealed class FilePurposeTests
     }
 
     [Theory(DisplayName = "File purpose lookup should report matches when name is provided")]
-    [InlineData("UserAvatar", true)]
+    [InlineData("Avatar", true)]
     [InlineData("Unknown", false)]
     [InlineData("", false)]
     public void TryFromName_Should_ReportMatch_When_NameIsProvided(string name, bool expected)
@@ -73,10 +70,10 @@ public sealed class FilePurposeTests
     [Fact(DisplayName = "File purpose should normalize known names when name is known")]
     public void Create_Should_ReturnValue_When_NameIsKnown()
     {
-        var result = FilePurpose.Create("  UserAvatar  ");
+        var result = FilePurpose.Create("  Avatar  ");
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(FilePurpose.UserAvatar);
+        result.Value.ShouldBe(FilePurpose.Avatar);
     }
 
     [Theory(DisplayName = "File purpose should reject missing names when name is empty")]

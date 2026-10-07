@@ -6,9 +6,7 @@ public sealed partial class FilePurpose : Enumeration<FilePurpose>
 {
     public const int MaxLength = 32;
 
-    public static readonly FilePurpose UserAvatar = new(1, nameof(UserAvatar));
-    public static readonly FilePurpose ClanIcon = new(2, nameof(ClanIcon));
-    public static readonly FilePurpose UnitSpriteSheet = new(3, nameof(UnitSpriteSheet));
+    public static readonly FilePurpose Avatar = new(1, nameof(Avatar));
 
     private FilePurpose(int id, string name)
         : base(id, name)

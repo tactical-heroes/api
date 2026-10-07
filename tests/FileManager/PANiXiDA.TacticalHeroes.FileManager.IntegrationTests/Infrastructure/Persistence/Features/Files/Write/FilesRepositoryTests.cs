@@ -44,7 +44,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(file.Id);
         restored.Name.ShouldBe(file.Name);
-        restored.Purpose.ShouldBe(FilePurpose.UnitSpriteSheet);
+        restored.Purpose.ShouldBe(FilePurpose.Avatar);
         restored.Status.Name.ShouldBe(status);
         restored.Content.ShouldBe(file.Content);
     }
@@ -62,7 +62,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
             var pendingFile = await repository.GetByIdAsync(file.Id, cancellationToken);
             pendingFile!.CompleteUpload(content);
-            pendingFile.Rename(FileName.Create("archer.png").Value);
+            pendingFile.Rename(FileName.Create("new-avatar.png").Value);
             await repository.UpdateAsync(pendingFile, cancellationToken);
         }
 
@@ -73,7 +73,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         restored.ShouldNotBeNull();
         restored.Status.ShouldBe(FileStatus.Ready);
-        restored.Name.Value.ShouldBe("archer.png");
+        restored.Name.Value.ShouldBe("new-avatar.png");
         restored.Content.ShouldBe(content);
     }
 
@@ -142,7 +142,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
     private static File CreateFile()
     {
-        return File.Create(FileName.Create("unit.png").Value, FilePurpose.UnitSpriteSheet);
+        return File.Create(FileName.Create("avatar.png").Value, FilePurpose.Avatar);
     }
 
     private static FileContent CreateContent()
