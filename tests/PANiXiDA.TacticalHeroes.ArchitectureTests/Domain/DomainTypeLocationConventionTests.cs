@@ -395,7 +395,7 @@ public sealed class DomainTypeLocationConventionTests
         return violations;
     }
 
-    private static IEnumerable<string> GetExternalIdentifierViolations(
+    private static List<string> GetExternalIdentifierViolations(
         string repositoryRoot,
         Type identifier,
         IReadOnlyCollection<Type> owners)
