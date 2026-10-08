@@ -81,8 +81,12 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     — aggregate root и entity не должны предоставлять публичные, internal или
     protected internal setter/init-accessor, изменяемые поля и записываемые
     ref-возвраты. Проверяются также базовые классы и явные реализации интерфейсов.
-    Private/protected setter, `readonly` поля и `ref readonly` разрешены;
-    состояние меняется через доменные методы.
+    Автосвойства и свойства с setter, объявленные в Domain-модуле, включая
+    собственные базовые классы, должны иметь публичный `get` и явный `private set`.
+    Getter-only автосвойства, `init` и protected setter запрещены. Вычисляемые
+    свойства без setter, включая защищённые представления коллекций, допускаются.
+    Новый setter не требуется у свойств, унаследованных из внешней библиотеки.
+    `readonly` поля и `ref readonly` разрешены; состояние меняется через доменные методы.
 
 15. `AggregateRootsAndEntities_Should_NotExposeMutableCollections_When_PublicStateIsDeclared`
     — публичные поля, свойства и возвращаемые значения методов aggregate root и
@@ -231,11 +235,12 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     начальной `I` и с маленькой первой буквы: `IFactionsRepository`
     превращается в `factionsRepository`.
 
-36. `DomainState_Should_RejectExternalWrites_When_MemberAccessVaries` —
+36. `DomainState_Should_EnforceEncapsulation_When_MemberAccessVaries` —
     проверка самого правила инкапсуляции на тестовых типах: setter/init,
     публичные и internal поля, интерфейсы, наследование и ref-возвраты.
-    Допустимые private/protected setter, readonly-поля и ref readonly тоже
-    проверяются, чтобы правило не запрещало их по ошибке.
+    Проверяются запреты getter-only автосвойств, private init, непубличного getter
+    и protected setter. Допустимые private setter, вычисляемые свойства,
+    защищённые представления коллекций, readonly-поля и ref readonly тоже проверяются.
 
 37. `ImmutableState_Should_ValidateFieldsRecursively_When_StateShapeVaries` —
     проверка рекурсивного анализа на изменяемых полях, readonly-ссылках на

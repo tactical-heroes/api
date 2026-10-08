@@ -22,8 +22,8 @@ public sealed class File : AggregateRoot<FileId>
     }
 
     public FileName Name { get; private set; }
-    public FileType Type { get; }
-    public UserId? UserId { get; }
+    public FileType Type { get; private set; }
+    public UserId? UserId { get; private set; }
     public FolderId? FolderId { get; private set; }
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
