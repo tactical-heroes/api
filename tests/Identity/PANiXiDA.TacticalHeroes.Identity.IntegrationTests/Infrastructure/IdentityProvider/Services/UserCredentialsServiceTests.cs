@@ -4,11 +4,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using OpenIddict.Abstractions;
+using OpenIddict.EntityFrameworkCore.Models;
+
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
@@ -310,6 +314,112 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         result.IsSuccess.ShouldBeTrue();
         (await userManager.CheckPasswordAsync(persistedUser, Password)).ShouldBeFalse();
         (await userManager.CheckPasswordAsync(persistedUser, NewPassword)).ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "ResetPasswordAsync should revoke only the user's tokens when reset succeeds")]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Valid)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Valid)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Redeemed)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, OpenIddictConstants.Statuses.Valid)]
+    public async Task ResetPasswordAsync_Should_RevokeOnlyUserTokens_When_ResetSucceeds(
+        string tokenType,
+        string tokenStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var user = CreateUser("revoke@example.com", "revoke-hero", isConfirmed: true);
+        var otherUserId = Guid.CreateVersion7();
+        await AddUserAsync(user);
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+            var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+            var persistedUser = await userManager.FindByIdAsync(user.Id.ToString());
+            persistedUser.ShouldNotBeNull();
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(persistedUser);
+
+            foreach (var subject in new[] { user.Id, user.Id, otherUserId })
+            {
+                await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
+                {
+                    Subject = subject.ToString(),
+                    Type = tokenType,
+                    Status = subject == user.Id ? tokenStatus : OpenIddictConstants.Statuses.Valid
+                }, cancellationToken);
+            }
+
+            var result = await service.ResetPasswordAsync(
+                user.Id,
+                resetToken,
+                "NewStrongPassword1!",
+                cancellationToken);
+
+            result.IsSuccess.ShouldBeTrue();
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var tokens = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        tokens.Where(token => token.Subject == user.Id.ToString())
+            .Select(token => token.Status)
+            .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
+        tokens.Single(token => token.Subject == otherUserId.ToString())
+            .Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+    }
+
+    [Theory(DisplayName = "ResetPasswordAsync should preserve tokens and password when reset fails")]
+    [InlineData("invalid-token", "NewStrongPassword1!")]
+    [InlineData(null, "weak")]
+    public async Task ResetPasswordAsync_Should_PreserveTokensAndPassword_When_ResetFails(
+        string? invalidToken,
+        string newPassword)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var user = CreateUser("failed-reset@example.com", "failed-reset-hero", isConfirmed: true);
+        await AddUserAsync(user);
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+            var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+            var persistedUser = await userManager.FindByIdAsync(user.Id.ToString());
+            persistedUser.ShouldNotBeNull();
+            var resetToken = invalidToken ?? await userManager.GeneratePasswordResetTokenAsync(persistedUser);
+
+            foreach (var tokenType in new[]
+            {
+                OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode
+            })
+            {
+                await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
+                {
+                    Subject = user.Id.ToString(),
+                    Type = tokenType,
+                    Status = OpenIddictConstants.Statuses.Valid
+                }, cancellationToken);
+            }
+
+            var result = await service.ResetPasswordAsync(user.Id, resetToken, newPassword, cancellationToken);
+
+            result.IsFailure.ShouldBeTrue();
+            (await userManager.CheckPasswordAsync(persistedUser, Password)).ShouldBeTrue();
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var statuses = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .Select(token => token.Status)
+            .ToListAsync(cancellationToken);
+
+        statuses.Count.ShouldBe(3);
+        statuses.ShouldAllBe(status => status == OpenIddictConstants.Statuses.Valid);
     }
 
     private static ApplicationUser CreateUser(
