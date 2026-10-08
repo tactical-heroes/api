@@ -135,7 +135,7 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
         public override ValueTask<int> SavedChangesAsync(
             SaveChangesCompletedEventData eventData,
             int result,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             var context = eventData.Context;
             var user = context?.ChangeTracker.Entries<ApplicationUser>()
