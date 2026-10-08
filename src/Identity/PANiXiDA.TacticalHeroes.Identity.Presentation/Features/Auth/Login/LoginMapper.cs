@@ -1,7 +1,3 @@
-using System.Security.Claims;
-
-using Microsoft.AspNetCore.Identity;
-
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 
 using Riok.Mapperly.Abstractions;
@@ -13,27 +9,4 @@ internal static partial class LoginMapper
 {
     [MapperIgnoreSource(nameof(LoginRequest.ReturnUrl))]
     internal static partial LoginCommand ToCommand(LoginRequest request);
-
-    internal static ClaimsPrincipal ToClaimsPrincipal(AuthenticatedUserReadModel user)
-    {
-        var claims = new List<Claim>
-        {
-            new(type: OpenIddictConstants.Claims.Subject, value: user.Id.ToString()),
-            new(type: OpenIddictConstants.Claims.Name, value: user.UserName),
-            new(type: OpenIddictConstants.Claims.Email, value: user.Email)
-        };
-        claims.AddRange(
-            user.Claims.Where(claim =>
-                claim.Type != OpenIddictConstants.Claims.Subject &&
-                claim.Type != OpenIddictConstants.Claims.Name &&
-                claim.Type != OpenIddictConstants.Claims.Email));
-
-        var identity = new ClaimsIdentity(
-            claims: claims,
-            authenticationType: IdentityConstants.ApplicationScheme,
-            nameType: OpenIddictConstants.Claims.Name,
-            roleType: OpenIddictConstants.Claims.Role);
-
-        return new ClaimsPrincipal(identity: identity);
-    }
 }

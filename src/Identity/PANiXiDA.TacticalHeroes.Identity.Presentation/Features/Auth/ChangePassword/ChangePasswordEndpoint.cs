@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
 
@@ -59,9 +59,9 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
             string.Equals(cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject), userIdValue, StringComparison.Ordinal))
         {
             await httpContext.SignInAsync(
-                IdentityConstants.ApplicationScheme,
-                LoginMapper.ToClaimsPrincipal(result.Value),
-                cookie.Properties);
+                scheme: IdentityConstants.ApplicationScheme,
+                principal: AuthenticatedUserPrincipalFactory.Create(result.Value),
+                properties: cookie.Properties);
         }
 
         return TypedResults.NoContent();

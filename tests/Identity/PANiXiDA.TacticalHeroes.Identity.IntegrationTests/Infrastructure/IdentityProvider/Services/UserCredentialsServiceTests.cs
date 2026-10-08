@@ -218,7 +218,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         loginResult.Value.Id.ShouldBe(user.Id);
     }
 
-    [Theory(DisplayName = "Password change should revoke other authorizations and tokens while preserving the current family")]
+    [Theory(DisplayName = "Password change should revoke other authorizations and tokens when current session is valid")]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Valid)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Valid)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Redeemed)]
@@ -275,7 +275,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Status.ShouldBe(OpenIddictConstants.Statuses.Revoked);
     }
 
-    [Theory(DisplayName = "Password change should reject a session owned by another user or already revoked")]
+    [Theory(DisplayName = "Password change should preserve the password when current authorization is invalid")]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ChangePasswordAsync_Should_PreservePassword_When_CurrentAuthorizationIsInvalid(bool foreignSubject)
@@ -301,22 +301,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
         var login = await service.LoginAsync(user.Email!, Password, cancellationToken);
         login.IsSuccess.ShouldBeTrue();
-    }
-
-    private static async Task<string> CreateAuthorizationAsync(
-        IOpenIddictAuthorizationManager manager,
-        string subject,
-        CancellationToken cancellationToken)
-    {
-        var authorization = await manager.CreateAsync(new OpenIddictAuthorizationDescriptor
-        {
-            Subject = subject,
-            Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
-            Status = OpenIddictConstants.Statuses.Valid
-        }, cancellationToken);
-        var identifier = await manager.GetIdAsync(authorization, cancellationToken);
-        identifier.ShouldNotBeNull();
-        return identifier;
     }
 
     [Fact(DisplayName = "ConfirmEmailAsync should confirm an unconfirmed user when token is valid")]
@@ -532,6 +516,22 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
 
         statuses.Count.ShouldBe(3);
         statuses.ShouldAllBe(status => status == OpenIddictConstants.Statuses.Valid);
+    }
+
+    private static async Task<string> CreateAuthorizationAsync(
+        IOpenIddictAuthorizationManager manager,
+        string subject,
+        CancellationToken cancellationToken)
+    {
+        var authorization = await manager.CreateAsync(new OpenIddictAuthorizationDescriptor
+        {
+            Subject = subject,
+            Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+            Status = OpenIddictConstants.Statuses.Valid
+        }, cancellationToken);
+        var identifier = await manager.GetIdAsync(authorization, cancellationToken);
+        identifier.ShouldNotBeNull();
+        return identifier;
     }
 
     private static ApplicationUser CreateUser(

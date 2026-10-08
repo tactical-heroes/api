@@ -22,7 +22,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
 
-    [Fact(DisplayName = "Password change should preserve the current session and reject other tokens and cookies")]
+    [Fact(DisplayName = "Password change should preserve the current session and reject other sessions when current password is valid")]
     public async Task PostChangePassword_Should_RevokeOtherSessions_When_CurrentPasswordIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -110,7 +110,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         await AssertPasswordAsync(user.Id, CurrentPassword, NewPassword);
     }
 
-    [Fact(DisplayName = "Password change should preserve a bearer-only session without creating a login cookie")]
+    [Fact(DisplayName = "Password change should preserve refresh without creating a login cookie when cookie is absent")]
     public async Task PostChangePassword_Should_PreserveRefresh_When_CookieIsAbsent()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -130,7 +130,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    [Fact(DisplayName = "Token exchange should keep the source session so password change can revoke its descendants")]
+    [Fact(DisplayName = "Password change should revoke exchanged tokens when another session changes password")]
     public async Task PostChangePassword_Should_RevokeExchangedToken_When_AnotherSessionChangesPassword()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -188,7 +188,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         await AssertAccessAsync(other, exchangedAccess, user.Id, HttpStatusCode.Unauthorized, cancellationToken);
     }
 
-    [Fact(DisplayName = "Password change should roll back password and revocations when canceled after revoking another session")]
+    [Fact(DisplayName = "Password change should roll back password and revocations when revocation is canceled")]
     public async Task PostChangePassword_Should_RollBackAndAllowRetry_When_RevocationIsCanceled()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -229,31 +229,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         await AssertAccessAsync(other, otherTokens.AccessToken, user.Id, HttpStatusCode.Unauthorized, cancellationToken);
     }
 
-    private sealed class CancelAfterRevocationInterceptor(
-        string subject,
-        CancellationTokenSource requestCancellation) : SaveChangesInterceptor
-    {
-        public bool RevocationSavedInTransaction { get; private set; }
-
-        public override ValueTask<int> SavedChangesAsync(
-            SaveChangesCompletedEventData eventData,
-            int result,
-            CancellationToken cancellationToken)
-        {
-            var context = eventData.Context;
-            if (context?.ChangeTracker.Entries<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
-                .Any(entry => entry.Entity.Subject == subject &&
-                    entry.Entity.Status == OpenIddictConstants.Statuses.Revoked) == true)
-            {
-                RevocationSavedInTransaction = context.Database.CurrentTransaction is not null;
-                requestCancellation.Cancel();
-            }
-
-            return ValueTask.FromResult(result);
-        }
-    }
-
-    [Fact(DisplayName = "Authorization code should be rejected when a cookie was validated before a concurrent password change")]
+    [Fact(DisplayName = "Token endpoint should reject the code when old cookie authorization finishes after password change")]
     public async Task PostToken_Should_RejectCode_When_OldCookieAuthorizationFinishesAfterPasswordChange()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -394,5 +370,29 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         user.ShouldNotBeNull();
         (await userManager.CheckPasswordAsync(user, acceptedPassword)).ShouldBeTrue();
         (await userManager.CheckPasswordAsync(user, rejectedPassword)).ShouldBeFalse();
+    }
+
+    private sealed class CancelAfterRevocationInterceptor(
+        string subject,
+        CancellationTokenSource requestCancellation) : SaveChangesInterceptor
+    {
+        public bool RevocationSavedInTransaction { get; private set; }
+
+        public override ValueTask<int> SavedChangesAsync(
+            SaveChangesCompletedEventData eventData,
+            int result,
+            CancellationToken cancellationToken)
+        {
+            var context = eventData.Context;
+            if (context?.ChangeTracker.Entries<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+                .Any(entry => entry.Entity.Subject == subject &&
+                    entry.Entity.Status == OpenIddictConstants.Statuses.Revoked) == true)
+            {
+                RevocationSavedInTransaction = context.Database.CurrentTransaction is not null;
+                requestCancellation.Cancel();
+            }
+
+            return ValueTask.FromResult(result);
+        }
     }
 }
