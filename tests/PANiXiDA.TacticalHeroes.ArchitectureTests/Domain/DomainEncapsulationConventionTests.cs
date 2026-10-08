@@ -680,7 +680,9 @@ public sealed class DomainEncapsulationConventionTests
 
     private sealed class ComputedState
     {
-        public int Value => 1;
+        private readonly int _value = 1;
+
+        public int Value => _value + 1;
     }
 
     private sealed class ReadOnlyCollectionState
