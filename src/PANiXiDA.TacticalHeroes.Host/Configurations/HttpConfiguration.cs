@@ -2,8 +2,6 @@ using PANiXiDA.Core.Presentation.Http.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Host.Common;
 
-using Scalar.AspNetCore;
-
 using CompendiumPresentationAssembly = PANiXiDA.TacticalHeroes.Compendium.Presentation.PresentationAssembly;
 using FileManagerPresentationAssembly = PANiXiDA.TacticalHeroes.FileManager.Presentation.PresentationAssembly;
 using IdentityPresentationAssembly = PANiXiDA.TacticalHeroes.Identity.Presentation.PresentationAssembly;
@@ -26,15 +24,12 @@ internal static class HttpConfiguration
             CompendiumPresentationAssembly.Instance,
             FileManagerPresentationAssembly.Instance);
 
-        builder.Services.Configure<ScalarOptions>(options => options.WithFavicon("/favicon.ico"));
-
         return builder;
     }
 
     internal static WebApplication UseHttp(this WebApplication app)
     {
         ServiceCollectionExtensions.UseHttp(app);
-        app.MapStaticAssets();
 
         return app;
     }
