@@ -9,8 +9,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class ScalarFaviconTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "Scalar should use and serve the host favicon in Development")]
-    public async Task GetScalar_Should_UseAndServeHostFavicon_When_Development()
+    [Fact(DisplayName = "Scalar should use and serve the host favicon when environment is development")]
+    public async Task GetScalar_Should_UseAndServeHostFavicon_When_EnvironmentIsDevelopment()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         using var client = Fixture.CreateClient(Environments.Development);
@@ -30,17 +30,17 @@ public sealed class ScalarFaviconTests(FunctionalTestFixture fixture)
         favicon.ShouldBe(expectedFavicon);
     }
 
-    [Theory(DisplayName = "Scalar and its favicon should not be mapped outside Development")]
+    [Theory(DisplayName = "Scalar and its favicon should not be mapped when environment is not development")]
     [InlineData("/scalar")]
     [InlineData("/favicon.ico")]
-    public async Task GetScalarResource_Should_ReturnNotFound_When_NotDevelopment(string path)
+    public async Task GetScalarResource_Should_ReturnNotFound_When_EnvironmentIsNotDevelopment(string path)
     {
         using var response = await Client.GetAsync(path, TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "Short-circuited favicon should preserve HTTPS redirection, forwarded headers and API authorization")]
+    [Fact(DisplayName = "Favicon should preserve HTTPS redirection, forwarded headers and API authorization when short circuited")]
     public async Task GetFavicon_Should_PreserveHttpsAndApiAuthorization_When_ShortCircuited()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
