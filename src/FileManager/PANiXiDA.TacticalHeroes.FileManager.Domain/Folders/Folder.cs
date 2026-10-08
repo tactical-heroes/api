@@ -21,9 +21,9 @@ public sealed class Folder : AggregateRoot<FolderId>
     }
 
     public FolderName Name { get; private set; }
-    public FileType AllowedFileType { get; }
-    public UserId? UserId { get; }
-    public FolderId? ParentId { get; }
+    public FileType AllowedFileType { get; private set; }
+    public UserId? UserId { get; private set; }
+    public FolderId? ParentId { get; private set; }
 
     public static Result<Folder> Create(
         FolderName name,
