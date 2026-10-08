@@ -9,6 +9,9 @@ public sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePas
         RuleFor(command => command.UserId)
             .MustBeValidDomainValue(UserId.Create);
 
+        RuleFor(command => command.AuthorizationId)
+            .NotEmpty();
+
         RuleFor(command => command.CurrentPassword)
             .NotEmpty();
 

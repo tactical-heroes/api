@@ -15,8 +15,9 @@ public interface IUserCredentialsService
         string password,
         CancellationToken cancellationToken);
 
-    Task<Result> ChangePasswordAsync(
+    Task<Result<AuthenticatedUserReadModel>> ChangePasswordAsync(
         Guid userId,
+        string authorizationId,
         string currentPassword,
         string newPassword,
         CancellationToken cancellationToken);
