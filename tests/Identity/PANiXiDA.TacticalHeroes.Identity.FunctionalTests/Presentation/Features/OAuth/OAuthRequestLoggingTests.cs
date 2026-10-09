@@ -8,7 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "OAuth body read failures are handled and logged once by the HTTP pipeline")]
+    [Theory(DisplayName = "OAuth requests should log handled failures once when request body read fails")]
     [InlineData("/connect/token", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]
     [InlineData("/connect/par", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]
     [InlineData("/connect/introspect", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]
@@ -78,7 +78,7 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
 
     private sealed class FailingRequestBodyStream(Exception exception) : MemoryStream
     {
-        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
         {
             return ValueTask.FromException<int>(exception);
         }
