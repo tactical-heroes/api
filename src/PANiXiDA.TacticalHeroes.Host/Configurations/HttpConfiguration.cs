@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.Host.Common;
 
 using CompendiumPresentationAssembly = PANiXiDA.TacticalHeroes.Compendium.Presentation.PresentationAssembly;
 using FileManagerPresentationAssembly = PANiXiDA.TacticalHeroes.FileManager.Presentation.PresentationAssembly;
+using HttpServiceCollectionExtensions = PANiXiDA.Core.Presentation.Http.DependencyInjection.ServiceCollectionExtensions;
 using IdentityPresentationAssembly = PANiXiDA.TacticalHeroes.Identity.Presentation.PresentationAssembly;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations;
@@ -29,7 +30,7 @@ internal static class HttpConfiguration
 
     internal static WebApplication UseHttp(this WebApplication app)
     {
-        ServiceCollectionExtensions.UseHttp(app);
+        HttpServiceCollectionExtensions.UseHttp(app);
 
         return app;
     }

@@ -90,6 +90,13 @@ FileManager generates and persists each file's storage key at creation:
 does not change its key. Folder hierarchy and display names remain database metadata;
 the storage adapter adds the environment prefix separately.
 
+FileManager registers `PANiXiDA.Core.Infrastructure.Storage.S3` as `IFileStorage`.
+The host's `appsettings.json` contains the complete mock configuration under
+`FileManager:AWS` and `FileManager:S3Storage`. Replace the endpoint, bucket, region,
+and credentials before using storage. Credentials can be overridden with
+`FileManager__S3Storage__AccessKey` and `FileManager__S3Storage__SecretKey`.
+The base prefix is `production`; `appsettings.Development.json` sets `development`.
+
 ## Repository Layout
 
 - `src/` - application source code.

@@ -34,7 +34,8 @@ internal static class InfrastructureServiceCollectionFactory
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:PostgreSqlConnectionString"] =
-                    "Host=localhost;Database=architecture-tests"
+                    "Host=localhost;Database=architecture-tests",
+                ["FileManager:S3Storage:BucketName"] = "architecture-tests"
             })
             .Build();
         var arguments = addInfrastructureMethod
