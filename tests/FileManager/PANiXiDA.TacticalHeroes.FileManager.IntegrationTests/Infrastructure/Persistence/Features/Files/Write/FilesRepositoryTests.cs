@@ -19,6 +19,29 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Fact(DisplayName = "File repository should restore the persisted key when key uses an older format")]
+    public async Task GetByIdAsync_Should_RestorePersistedKey_When_KeyUsesAnOlderFormat()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var file = CreateFile();
+        await SaveNewFileAsync(file, cancellationToken);
+        const string StoredKey = "legacy/Original-File.png";
+        await using (var scope = Fixture.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            await context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET storage_key = {StoredKey} WHERE id = {file.Id.Value}",
+                cancellationToken);
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var restored = await verificationScope.ServiceProvider.GetRequiredService<IFilesRepository>()
+            .GetByIdAsync(file.Id, cancellationToken);
+
+        restored.ShouldNotBeNull();
+        restored.StorageKey.Value.ShouldBe(StoredKey);
+    }
+
     [Theory(DisplayName = "File repository should restore metadata and lifecycle when lifecycle state is saved")]
     [InlineData("PendingUpload")]
     [InlineData("Ready")]
@@ -53,6 +76,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(file.Id);
         restored.Name.ShouldBe(file.Name);
+        restored.StorageKey.ShouldBe(file.StorageKey);
         restored.Type.ShouldBe(FileType.Avatar);
         restored.FolderId.ShouldBeNull();
         restored.Status.Name.ShouldBe(status);
@@ -88,6 +112,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Status.ShouldBe(FileStatus.Ready);
         restored.Name.Value.ShouldBe("new-avatar.png");
+        restored.StorageKey.ShouldBe(file.StorageKey);
         restored.ContentType.ShouldBe(contentType);
         restored.Size.ShouldBe(size);
     }
@@ -126,6 +151,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         deleted.ShouldNotBeNull();
         deleted.Status.ShouldBe(FileStatus.Deleted);
+        deleted.StorageKey.ShouldBe(file.StorageKey);
         deleted.ContentType.ShouldBe(file.ContentType);
         deleted.Size.ShouldBe(file.Size);
     }
@@ -187,6 +213,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             .GetByIdAsync(file.Id, cancellationToken);
         restored.ShouldNotBeNull();
         restored.FolderId.ShouldBe(folder.Id);
+        restored.StorageKey.ShouldBe(file.StorageKey);
         restored.Type.ShouldBe(FileType.Avatar);
         restored.Status.ShouldBe(FileStatus.PendingUpload);
     }

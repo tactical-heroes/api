@@ -38,6 +38,13 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
             .HasMaxLength(FileType.MaxLength)
             .IsRequired();
 
+        builder.Property(file => file.StorageKey)
+            .HasConversion(
+                key => key.Value,
+                value => FileStorageKey.Create(value).Value)
+            .HasMaxLength(FileStorageKey.MaxLength)
+            .IsRequired();
+
         builder.Property(file => file.Status)
             .HasConversion(
                 status => status.Name,
@@ -74,6 +81,7 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
             .IsRowVersion();
 
         builder.HasIndex(file => file.Status);
+        builder.HasIndex(file => file.StorageKey).IsUnique();
         builder.HasIndex(file => file.FolderId);
         builder.HasIndex(file => file.UserId);
 

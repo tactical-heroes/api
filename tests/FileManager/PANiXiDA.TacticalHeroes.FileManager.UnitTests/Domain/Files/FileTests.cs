@@ -11,6 +11,62 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files;
 
 public sealed class FileTests
 {
+    [Theory(DisplayName = "File should generate a unique storage key when type and owner are provided")]
+    [InlineData("Avatar")]
+    [InlineData("Personal")]
+    public void Create_Should_GenerateUniqueStorageKey_When_TypeAndOwnerAreProvided(string typeName)
+    {
+        var type = FileType.FromName(typeName);
+        UserId? userId = type == FileType.Personal ? UserId.Create(Guid.CreateVersion7()).Value : null;
+        var name = FileName.Create("same-name.png").Value;
+
+        var file = File.Create(
+            name,
+            type,
+            userId).Value;
+        var other = File.Create(
+            name,
+            type,
+            userId).Value;
+
+        var expected = type == FileType.Personal
+            ? $"personal/{userId!.Value.Value:D}/{file.Id.Value:D}"
+            : $"avatar/{file.Id.Value:D}";
+        file.StorageKey.Value.ShouldBe(expected);
+        file.StorageKey.ShouldNotBe(other.StorageKey);
+        file.FolderId.ShouldBeNull();
+    }
+
+    [Theory(DisplayName = "File should retain its storage key when metadata and lifecycle change")]
+    [InlineData("Avatar")]
+    [InlineData("Personal")]
+    public void Rename_Should_PreserveStorageKey_When_MetadataAndLifecycleChange(string typeName)
+    {
+        var type = FileType.FromName(typeName);
+        UserId? userId = type == FileType.Personal ? UserId.Create(Guid.CreateVersion7()).Value : null;
+        var file = File.Create(
+            FileName.Create("file.png").Value,
+            type,
+            userId).Value;
+        var key = file.StorageKey;
+        var folder = Folder.Create(
+            FolderName.Create("Original").Value,
+            type,
+            userId).Value;
+        var destination = folder.CreateChild(FolderName.Create("Destination").Value);
+
+        file.Rename(FileName.Create("renamed.webp").Value).IsSuccess.ShouldBeTrue();
+        file.MoveTo(folder).IsSuccess.ShouldBeTrue();
+        file.MoveTo(destination).IsSuccess.ShouldBeTrue();
+        file.CompleteUpload(
+            FileContentType.Create("image/png").Value,
+            FileSize.Create(128).Value).IsSuccess.ShouldBeTrue();
+        file.BeginDeletion().IsSuccess.ShouldBeTrue();
+        file.CompleteDeletion().IsSuccess.ShouldBeTrue();
+
+        file.StorageKey.ShouldBeSameAs(key);
+    }
+
     [Fact(DisplayName = "File should begin without content when type is known")]
     public void Create_Should_ReturnPendingUpload_When_TypeIsKnown()
     {
