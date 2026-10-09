@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -10,9 +11,10 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
-    partial class FileManagerWriteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261009050032_AddFileStorageKey")]
+    partial class AddFileStorageKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -67,6 +67,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
         stored.ShouldNotBeNull();
         stored.UserId.ShouldBe(file.UserId);
+        stored.StorageKey.ShouldBe(file.StorageKey);
         if (completed)
         {
             stored.CompleteUpload(
@@ -84,6 +85,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
 
         model.Id.ShouldBe(file.Id.Value);
         model.Name.ShouldBe(file.Name.Value);
+        model.StorageKey.ShouldBe(file.StorageKey.Value);
         model.Type.ShouldBe(file.Type.Name);
         model.UserId.ShouldBe(file.UserId?.Value);
         model.FolderId.ShouldBeNull();

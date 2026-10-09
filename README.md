@@ -83,6 +83,13 @@ For rotation, add certificates at the next index and retain old ones until their
 expire. Refresh ExternalSecrets and restart pods after changes. The initial switch
 may require users to sign in again.
 
+## File Storage Keys
+
+FileManager generates and persists each file's storage key at creation:
+`avatar/{fileId}` or `personal/{userId}/{fileId}`. Renaming or moving a file
+does not change its key. Folder hierarchy and display names remain database metadata;
+the storage adapter adds the environment prefix separately.
+
 ## Repository Layout
 
 - `src/` - application source code.
