@@ -14,26 +14,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                 table: "files",
                 type: "character varying(1024)",
                 maxLength: 1024,
-                nullable: true);
-
-            migrationBuilder.Sql(
-                """
-                UPDATE file_manager.files
-                SET storage_key = lower(type) || '/' ||
-                    CASE WHEN type = 'Personal' THEN user_id::text || '/' ELSE '' END || id::text;
-                """);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "storage_key",
-                schema: "file_manager",
-                table: "files",
-                type: "character varying(1024)",
-                maxLength: 1024,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(1024)",
-                oldMaxLength: 1024,
-                oldNullable: true);
+                nullable: false);
 
             migrationBuilder.CreateIndex(
                 name: "ix_files_storage_key",

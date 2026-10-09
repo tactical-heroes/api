@@ -18,8 +18,8 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Storage key migration should populate unique domain keys when files already exist")]
-    public async Task MigrateAsync_Should_BackfillStorageKeys_When_FilesAlreadyExist()
+    [Fact(DisplayName = "Storage key migration should add required unique keys when files table is empty")]
+    public async Task MigrateAsync_Should_AddRequiredUniqueKeys_When_FilesTableIsEmpty()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
@@ -41,18 +41,18 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
         await migrator.MigrateAsync("20261007121833_AddPersonalFileOwnership", cancellationToken);
         try
         {
+            await migrator.MigrateAsync(cancellationToken: cancellationToken);
             foreach (var file in files)
             {
                 await context.Database.ExecuteSqlInterpolatedAsync(
                     $"""
-                    INSERT INTO file_manager.files (id, name, type, user_id, status, created_at, updated_at)
+                    INSERT INTO file_manager.files (id, name, type, user_id, storage_key, status, created_at, updated_at)
                     VALUES ({file.Id.Value}, {file.Name.Value}, {file.Type.Name}, {file.UserId?.Value},
-                        'PendingUpload', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        {file.StorageKey.Value}, 'PendingUpload', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                     """,
                     cancellationToken);
             }
 
-            await migrator.MigrateAsync(cancellationToken: cancellationToken);
             var readContext = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
             var rows = await readContext.Set<FileReadDbModel>().ToListAsync(cancellationToken);
 
@@ -67,6 +67,12 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
                 cancellationToken);
             var exception = await duplicateKey.ShouldThrowAsync<PostgresException>();
             exception.SqlState.ShouldBe(PostgresErrorCodes.UniqueViolation);
+
+            Func<Task> nullKey = () => context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET storage_key = NULL WHERE id = {files[0].Id.Value}",
+                cancellationToken);
+            var nullKeyException = await nullKey.ShouldThrowAsync<PostgresException>();
+            nullKeyException.SqlState.ShouldBe(PostgresErrorCodes.NotNullViolation);
         }
         finally
         {
