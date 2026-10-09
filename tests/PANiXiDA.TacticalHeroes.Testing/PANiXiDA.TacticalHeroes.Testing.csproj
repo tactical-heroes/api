@@ -3,9 +3,11 @@
         <PackageReference Include="Npgsql" />
         <PackageReference Include="PANiXiDA.Core.Application" />
         <PackageReference Include="PANiXiDA.Core.ResultPattern" />
+        <PackageReference Include="PANiXiDA.Core.Infrastructure.Storage.S3" />
         <PackageReference Include="Respawn" />
         <PackageReference Include="Shouldly" />
         <PackageReference Include="Testcontainers.PostgreSql" />
+        <PackageReference Include="Testcontainers" />
     </ItemGroup>
 
     <ItemGroup>
