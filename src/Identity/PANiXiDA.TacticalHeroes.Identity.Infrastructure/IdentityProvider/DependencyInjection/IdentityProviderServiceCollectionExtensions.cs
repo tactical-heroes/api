@@ -48,6 +48,7 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.User.RequireUniqueEmail = identityProviderOptions.User.RequireUniqueEmail;
                 options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
                 options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
+                options.ClaimsIdentity.EmailClaimType = OpenIddictConstants.Claims.Email;
                 options.ClaimsIdentity.RoleClaimType = OpenIddictConstants.Claims.Role;
                 options.Password.RequiredLength = identityProviderOptions.Password.RequiredLength;
                 options.Password.RequiredUniqueChars = identityProviderOptions.Password.RequiredUniqueChars;
@@ -67,6 +68,9 @@ internal static class IdentityProviderServiceCollectionExtensions
             .AddTokenProvider<EmailConfirmationTokenProvider>(identityProviderOptions.TokenProviders.EmailConfirmation)
             .AddTokenProvider<PasswordResetTokenProvider>(identityProviderOptions.TokenProviders.PasswordReset)
             .AddDefaultTokenProviders();
+
+        serviceCollection.Configure<SecurityStampValidatorOptions>(options =>
+            options.ValidationInterval = TimeSpan.Zero);
 
         serviceCollection.AddOpenIddict()
             .AddCore(options =>
@@ -147,6 +151,7 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.UseLocalServer();
                 options.UseAspNetCore();
                 options.EnableTokenEntryValidation();
+                options.EnableAuthorizationEntryValidation();
             });
 
         serviceCollection

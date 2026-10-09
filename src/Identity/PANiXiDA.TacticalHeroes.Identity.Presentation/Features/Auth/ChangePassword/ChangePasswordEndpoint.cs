@@ -1,6 +1,10 @@
 using System.Security.Claims;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
 
@@ -24,20 +28,42 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
     private static async Task<IResult> HandleAsync(
         ChangePasswordRequest request,
         ClaimsPrincipal user,
+        HttpContext httpContext,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var userIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
 
-        if (!Guid.TryParse(input: userIdValue, result: out var userId))
+        var authorizationId = user.GetAuthorizationId();
+
+        if (!Guid.TryParse(input: userIdValue, result: out var userId) ||
+            string.IsNullOrWhiteSpace(authorizationId))
         {
             return TypedResults.Unauthorized();
         }
 
+        var cookie = await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
         var result = await mediator.SendAsync(
-            ChangePasswordMapper.ToCommand(request: request, userId: userId),
+            ChangePasswordMapper.ToCommand(
+                request: request,
+                userId: userId,
+                authorizationId: authorizationId),
             cancellationToken);
 
-        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
+        if (result.IsFailure)
+        {
+            return result.ToHttpProblem();
+        }
+
+        if (cookie.Succeeded &&
+            string.Equals(cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject), userIdValue, StringComparison.Ordinal))
+        {
+            await httpContext.SignInAsync(
+                scheme: IdentityConstants.ApplicationScheme,
+                principal: AuthenticatedUserPrincipalFactory.Create(result.Value),
+                properties: cookie.Properties);
+        }
+
+        return TypedResults.NoContent();
     }
 }

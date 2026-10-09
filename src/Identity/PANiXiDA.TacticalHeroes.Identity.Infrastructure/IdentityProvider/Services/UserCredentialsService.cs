@@ -19,6 +19,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Servi
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
     IOpenIddictTokenManager tokenManager,
+    IOpenIddictAuthorizationManager authorizationManager,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
@@ -141,27 +142,48 @@ public sealed class UserCredentialsService(
                 Claims: claims));
     }
 
-    public async Task<Result> ChangePasswordAsync(
+    public async Task<Result<AuthenticatedUserReadModel>> ChangePasswordAsync(
         Guid userId,
+        string authorizationId,
         string currentPassword,
         string newPassword,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.Users
+            .WithAuthorizationGraph()
+            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
         if (applicationUser is null)
         {
-            return UserNotFound();
+            return Result.Failure<AuthenticatedUserReadModel>(
+                error: Error.NotFound(message: "User was not found."));
         }
 
         if (IsBlocked(applicationUser))
         {
-            return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
+            return Result.Failure<AuthenticatedUserReadModel>(
+                error: Error.Forbidden(message: "User is blocked."));
         }
 
         if (await userManager.IsLockedOutAsync(applicationUser))
         {
-            return Result.Failure(error: Error.Forbidden(message: "User is locked out."));
+            return Result.Failure<AuthenticatedUserReadModel>(
+                error: Error.Forbidden(message: "User is locked out."));
+        }
+
+        var authorization = await authorizationManager.FindByIdAsync(authorizationId, cancellationToken);
+        if (authorization is null ||
+            !await authorizationManager.HasStatusAsync(
+                authorization: authorization,
+                status: OpenIddictConstants.Statuses.Valid,
+                cancellationToken: cancellationToken) ||
+            !string.Equals(
+                await authorizationManager.GetSubjectAsync(authorization, cancellationToken),
+                userId.ToString(),
+                StringComparison.Ordinal))
+        {
+            return Result.Failure<AuthenticatedUserReadModel>(
+                error: Error.Unauthorized(message: "Current session is invalid."));
         }
 
         var result = await userManager.ChangePasswordAsync(
@@ -169,7 +191,22 @@ public sealed class UserCredentialsService(
             currentPassword: currentPassword,
             newPassword: newPassword);
 
-        return IdentityResultMapper.ToResult(result: result);
+        if (!result.Succeeded)
+        {
+            return IdentityResultMapper.ToResult<AuthenticatedUserReadModel>(result);
+        }
+
+        await RevokeOtherSessionsAsync(
+            userId: userId,
+            authorizationId: authorizationId,
+            cancellationToken: cancellationToken);
+
+        return Result.Success(
+            value: new AuthenticatedUserReadModel(
+                Id: applicationUser.Id,
+                Email: applicationUser.Email!,
+                UserName: applicationUser.UserName!,
+                Claims: IdentityClaimsFactory.Create(applicationUser, userManager.Options)));
     }
 
     public async Task<Result> ConfirmEmailAsync(
@@ -354,5 +391,39 @@ public sealed class UserCredentialsService(
     private static Result UserNotFound()
     {
         return Result.Failure(error: Error.NotFound(message: "User was not found."));
+    }
+
+    private async Task RevokeOtherSessionsAsync(
+        Guid userId,
+        string authorizationId,
+        CancellationToken cancellationToken)
+    {
+        var authorizations = await authorizationManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
+            .ToListAsync(cancellationToken);
+        foreach (var authorization in authorizations)
+        {
+            if (!string.Equals(
+                    await authorizationManager.GetIdAsync(authorization, cancellationToken),
+                    authorizationId,
+                    StringComparison.Ordinal) &&
+                !await authorizationManager.TryRevokeAsync(authorization, cancellationToken))
+            {
+                throw new InvalidOperationException("Failed to revoke a user authorization.");
+            }
+        }
+
+        var tokens = await tokenManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
+            .ToListAsync(cancellationToken);
+        foreach (var token in tokens)
+        {
+            if (!string.Equals(
+                    await tokenManager.GetAuthorizationIdAsync(token, cancellationToken),
+                    authorizationId,
+                    StringComparison.Ordinal) &&
+                !await tokenManager.TryRevokeAsync(token, cancellationToken))
+            {
+                throw new InvalidOperationException("Failed to revoke a user token.");
+            }
+        }
     }
 }

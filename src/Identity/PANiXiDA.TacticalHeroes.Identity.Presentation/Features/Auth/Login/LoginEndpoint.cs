@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common.Urls;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
 
@@ -52,7 +53,7 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 
         await httpContext.SignInAsync(
             IdentityConstants.ApplicationScheme,
-            LoginMapper.ToClaimsPrincipal(user: result.Value));
+            AuthenticatedUserPrincipalFactory.Create(user: result.Value));
 
         return TypedResults.Redirect(url: request.ReturnUrl);
     }

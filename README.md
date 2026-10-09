@@ -60,6 +60,33 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Password changes and sessions
+
+`POST /api/v1/auth/change-password` requires a user access token and the current
+password. The request and `204` response are unchanged. The current session is
+identified by the validated token's OpenIddict authorization ID, never by a
+client-supplied session ID. Access tokens without an authorization are rejected.
+
+A successful change revokes the user's other authorizations and tokens, including
+unredeemed authorization codes. Code exchange also rejects a stale security stamp,
+including codes created by authorization requests that started before the change.
+The current authorization remains usable: clients
+can immediately rotate their access/refresh pair through `/connect/token` with
+`grant_type=refresh_token`, without asking the user to log in. The change-password
+response itself does not contain OAuth tokens. Clients must store the refresh
+response as usual; a server-side client keeps these tokens in its own session.
+
+When the request includes this user's Identity login cookie, the response renews
+it with the new security stamp and preserves its authentication properties.
+Other Identity cookies fail validation on their next request. Cookie and
+OAuth authorization validation now check their persisted state on every request.
+A bearer-only call preserves its OAuth session but cannot renew a browser cookie
+that was not included in the request. A separate browser/client authorization,
+even on the same physical device, is treated as another session.
+
+Failed password checks leave passwords and sessions unchanged. Password recovery
+(`reset-password`) continues to revoke all of the user's OAuth tokens.
+
 ## OpenIddict Certificates
 
 Store separate signing/encryption certificates as Base64 PFX with passwords in OpenBao at
