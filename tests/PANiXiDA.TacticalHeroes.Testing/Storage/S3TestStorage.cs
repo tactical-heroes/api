@@ -80,7 +80,7 @@ public sealed class S3TestStorage : IAsyncDisposable
             var deleted = await client.DeleteObjectsAsync(new DeleteObjectsRequest
             {
                 BucketName = BucketName,
-                Objects = objects.Select(item => new KeyVersion { Key = item.Key }).ToList()
+                Objects = [.. objects.Select(item => new KeyVersion { Key = item.Key })]
             }, cancellationToken);
             (deleted.DeleteErrors?.Count ?? 0).ShouldBe(0);
         }
