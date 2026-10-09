@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
             FileManagerWriteDbContext,
             FileManagerReadDbContext>(
             configuration);
-        serviceCollection.AddS3FileStorage(configuration.GetRequiredSection("FileManager"));
+        serviceCollection.AddS3FileStorage(configuration.GetRequiredSection(nameof(FileManager)));
 
         return serviceCollection;
     }
