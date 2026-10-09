@@ -24,7 +24,7 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
 {
     private const string Route = "/api/v1/files/personal";
 
-    [Theory(DisplayName = "Create personal file endpoint should persist metadata and upload bytes to S3")]
+    [Theory(DisplayName = "Create personal file endpoint should persist metadata and upload bytes when request is valid")]
     [InlineData(32, false)]
     [InlineData(32, true)]
     [InlineData(17 * 1024 * 1024, false)]
@@ -40,7 +40,7 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
 
         using var response = await Fixture.Client.SendAsync(request, cancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+        response.StatusCode.ShouldBe(HttpStatusCode.Created, await response.Content.ReadAsStringAsync(cancellationToken));
         var body = await response.Content.ReadFromJsonAsync<CreatePersonalFileResponse>(cancellationToken);
         body.ShouldNotBeNull();
         await using var scope = Fixture.CreateScope();
@@ -71,7 +71,7 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         metadata.Headers.ContentType.ShouldBe(file.ContentType);
     }
 
-    [Theory(DisplayName = "Create personal file endpoint should reject missing or invalid authentication")]
+    [Theory(DisplayName = "Create personal file endpoint should reject authentication when subject is unavailable")]
     [InlineData(null)]
     [InlineData("invalid-subject")]
     [InlineData("00000000-0000-0000-0000-000000000000")]
@@ -85,7 +85,7 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         await AssertNoFilesAsync();
     }
 
-    [Theory(DisplayName = "Create personal file endpoint should reject invalid file metadata")]
+    [Theory(DisplayName = "Create personal file endpoint should reject invalid metadata when file is invalid")]
     [InlineData("../file.txt", "text/plain", 1)]
     [InlineData("file.txt", "text/*", 1)]
     [InlineData("file.txt", "text/plain", 0)]
@@ -99,7 +99,7 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         await AssertNoFilesAsync();
     }
 
-    [Fact(DisplayName = "Create personal file endpoint should reject a missing multipart file")]
+    [Fact(DisplayName = "Create personal file endpoint should reject the request when file is missing")]
     public async Task HandleAsync_Should_ReturnBadRequest_When_FileIsMissing()
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, Route);
@@ -115,7 +115,7 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         await AssertNoFilesAsync();
     }
 
-    [Theory(DisplayName = "Create personal file endpoint should reject unavailable folders")]
+    [Theory(DisplayName = "Create personal file endpoint should reject the request when folder cannot be used")]
     [InlineData("missing")]
     [InlineData("foreign")]
     [InlineData("avatar")]
@@ -135,6 +135,31 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
 
         response.StatusCode.ShouldBe(folderKind == "empty" ? HttpStatusCode.BadRequest : HttpStatusCode.NotFound);
         await AssertNoFilesAsync();
+    }
+
+    private static HttpRequestMessage CreateRequest(
+        string? subject,
+        byte[] bytes,
+        string name,
+        string contentType,
+        Guid? folderId)
+    {
+        var multipart = new MultipartFormDataContent();
+        var file = new ByteArrayContent(bytes);
+        file.Headers.TryAddWithoutValidation("Content-Type", contentType);
+        multipart.Add(file, "File", name);
+        if (folderId is { } id)
+        {
+            multipart.Add(new StringContent(id.ToString()), "FolderId");
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Post, Route) { Content = multipart };
+        if (subject is not null)
+        {
+            request.Headers.Add(TestAuthenticationHandler.UserIdHeader, subject);
+        }
+
+        return request;
     }
 
     private async Task<Guid> CreateFolderAsync(Guid? userId)
@@ -161,30 +186,5 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
             new ListObjectsV2Request { BucketName = S3TestStorage.BucketName },
             cancellationToken);
         (response.S3Objects?.Count ?? 0).ShouldBe(0);
-    }
-
-    private static HttpRequestMessage CreateRequest(
-        string? subject,
-        byte[] bytes,
-        string name,
-        string contentType,
-        Guid? folderId)
-    {
-        var multipart = new MultipartFormDataContent();
-        var file = new ByteArrayContent(bytes);
-        file.Headers.TryAddWithoutValidation("Content-Type", contentType);
-        multipart.Add(file, "File", name);
-        if (folderId is { } id)
-        {
-            multipart.Add(new StringContent(id.ToString()), "FolderId");
-        }
-
-        var request = new HttpRequestMessage(HttpMethod.Post, Route) { Content = multipart };
-        if (subject is not null)
-        {
-            request.Headers.Add(TestAuthenticationHandler.UserIdHeader, subject);
-        }
-
-        return request;
     }
 }

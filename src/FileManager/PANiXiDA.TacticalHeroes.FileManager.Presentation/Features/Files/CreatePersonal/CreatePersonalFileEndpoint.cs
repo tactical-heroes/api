@@ -1,7 +1,6 @@
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 using OpenIddict.Abstractions;
 
@@ -24,7 +23,7 @@ internal sealed class CreatePersonalFileEndpoint : IEndpoint<FilesEndpoints>
     }
 
     private static async Task<IResult> HandleAsync(
-        [FromForm] CreatePersonalFileRequest request,
+        [AsParameters] CreatePersonalFileRequest request,
         ClaimsPrincipal user,
         IMediator mediator,
         CancellationToken cancellationToken)
@@ -33,14 +32,6 @@ internal sealed class CreatePersonalFileEndpoint : IEndpoint<FilesEndpoints>
         if (!Guid.TryParse(subject, out var userId) || userId == Guid.Empty)
         {
             return TypedResults.Unauthorized();
-        }
-
-        if (request.File is null)
-        {
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
-            {
-                [nameof(request.File)] = ["File is required."]
-            });
         }
 
         await using var content = request.File.OpenReadStream();

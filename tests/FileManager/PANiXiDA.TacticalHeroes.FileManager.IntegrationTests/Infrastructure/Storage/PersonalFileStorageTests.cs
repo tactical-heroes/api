@@ -18,7 +18,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.St
 public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Personal file upload should save ready metadata and actual S3 content")]
+    [Fact(DisplayName = "Personal file upload should save ready metadata and content when s3 upload succeeds")]
     public async Task HandleAsync_Should_SaveReadyFile_When_S3UploadSucceeds()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -46,7 +46,7 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         bytes.ToArray().ShouldBe(content.ToArray());
     }
 
-    [Fact(DisplayName = "Personal file upload should preserve committed pending metadata when S3 fails")]
+    [Fact(DisplayName = "Personal file upload should preserve committed pending metadata when bucket is missing")]
     public async Task HandleAsync_Should_KeepPendingRecord_When_BucketIsMissing()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

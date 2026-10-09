@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Create
 
 public sealed class CreatePersonalFileCommandValidatorTests
 {
-    [Fact(DisplayName = "Create personal file validator should reject invalid metadata and content")]
+    [Fact(DisplayName = "Create personal file validator should reject invalid metadata when command is invalid")]
     public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
     {
         var validator = new CreatePersonalFileCommandValidator();
@@ -20,7 +20,7 @@ public sealed class CreatePersonalFileCommandValidatorTests
         result.Errors.Select(error => error.PropertyName).ShouldContain(nameof(command.FolderId));
     }
 
-    [Theory(DisplayName = "Create personal file validator should accept an optional folder")]
+    [Theory(DisplayName = "Create personal file validator should accept an optional folder when command is valid")]
     [InlineData(false)]
     [InlineData(true)]
     public void Validate_Should_Succeed_When_CommandIsValid(bool hasFolder)
@@ -35,7 +35,7 @@ public sealed class CreatePersonalFileCommandValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Create personal file validator should reject missing content")]
+    [Fact(DisplayName = "Create personal file validator should reject missing content when stream is missing")]
     public void Validate_Should_ReturnContentError_When_StreamIsMissing()
     {
         var command = new CreatePersonalFileCommand(
