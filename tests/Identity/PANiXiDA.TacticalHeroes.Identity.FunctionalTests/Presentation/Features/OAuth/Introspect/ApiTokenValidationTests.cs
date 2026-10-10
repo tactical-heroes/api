@@ -43,7 +43,7 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         testFactory.IntrospectionRequestCount.ShouldBe(1);
     }
 
-    [Fact(DisplayName = "Existing service client should retain token grants when reused for introspection")]
+    [Fact(DisplayName = "Existing service client should retain token grants when client credentials flow is requested")]
     public async Task PostToken_Should_UseExistingServiceClient_When_ClientCredentialsFlowIsRequested()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -76,7 +76,7 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
             .ShouldNotBeNullOrWhiteSpace();
     }
 
-    [Fact(DisplayName = "Service client should receive user claims when introspecting a web client token")]
+    [Fact(DisplayName = "Introspection should return user claims when service client introspects web token")]
     public async Task PostIntrospect_Should_ReturnUserClaims_When_ServiceClientIntrospectsWebToken()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
