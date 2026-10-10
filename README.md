@@ -60,6 +60,17 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Request Validation
+
+Request DTO constructors and nullable annotations define the JSON contract and
+OpenAPI required fields. Optional constructor parameters must have explicit defaults.
+FluentValidation and domain factories validate field values; request DTOs do not
+use DataAnnotations validation attributes.
+
+User creation and updates require a non-null `status`. The domain factory rejects
+blank or unknown statuses. OpenAPI does not automatically export FluentValidation
+rules, including status restrictions, as schema constraints.
+
 ## Token Validation
 
 Protected API endpoints validate Bearer tokens through HTTP introspection using
