@@ -13,7 +13,10 @@ internal sealed class SendIntrospectionHttpRequestHandler : IOpenIddictValidatio
         using var client = context.Transaction.GetHttpClient()
             ?? throw new InvalidOperationException("The introspection HTTP client was not initialized.");
 
-        var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead, context.CancellationToken);
+        var response = await client.SendAsync(
+            request: request,
+            completionOption: HttpCompletionOption.ResponseContentRead,
+            cancellationToken: context.CancellationToken);
 
         context.Transaction.SetProperty(typeof(HttpResponseMessage).FullName!, response);
     }
