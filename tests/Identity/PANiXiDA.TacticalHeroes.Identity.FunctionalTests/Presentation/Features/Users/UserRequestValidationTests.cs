@@ -38,7 +38,7 @@ public sealed class UserRequestValidationTests(FunctionalTestFixture fixture)
         errors.ShouldBe([expectedMessage]);
     }
 
-    [Theory(DisplayName = "User requests should reject missing or null status through the JSON contract")]
+    [Theory(DisplayName = "User requests should return bad request when status is missing or null")]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -62,7 +62,7 @@ public sealed class UserRequestValidationTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
     }
 
-    [Theory(DisplayName = "User OpenAPI schemas should preserve required fields without validation attributes")]
+    [Theory(DisplayName = "User OpenAPI schemas should preserve required fields without validation attributes when requested")]
     [InlineData("CreateUserRequest", true)]
     [InlineData("UpdateUserRequest", false)]
     public async Task GetOpenApiDocument_Should_PreserveUserJsonContract_When_Requested(
