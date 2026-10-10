@@ -16,7 +16,5 @@ builder.AddMessaging();
 var app = builder.Build();
 
 app.UseHttp();
-app.UseAuthentication();
-app.UseAuthorization();
 
 return await app.RunJasperFxCommands(args);

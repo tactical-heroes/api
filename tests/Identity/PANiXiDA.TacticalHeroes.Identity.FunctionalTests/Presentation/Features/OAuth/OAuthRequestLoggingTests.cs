@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Net.Http.Headers;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +9,45 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
+    [Fact(DisplayName = "OAuth requests should retain user and endpoint in the completion log when bearer token is valid")]
+    public async Task GetUserInfo_Should_LogAuthenticatedUser_When_BearerTokenIsValid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var createdUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture,
+            "request-logging@example.test",
+            "request-logging-hero",
+            "StrongPassword1!",
+            cancellationToken);
+        using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            oauthClient,
+            "request-logging@example.test",
+            "StrongPassword1!",
+            cancellationToken);
+        using var loggerProvider = new CapturingLoggerProvider();
+        await using var factory = new FunctionalTestWebApplicationFactory()
+            .WithWebHostBuilder(builder => builder.ConfigureLogging(logging => logging.AddProvider(loggerProvider)));
+        using var client = factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/connect/userinfo");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+
+        using var response = await client.SendAsync(request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        await loggerProvider.RequestCompleted.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
+        var completion = loggerProvider.Records
+            .Where(record => record.Message == "HTTP request finished")
+            .ShouldHaveSingleItem();
+        completion.Level.ShouldBe(LogLevel.Information);
+        completion.Attributes["enduser.id"].ShouldBe(createdUser.Id.ToString());
+        completion.Attributes["http.route"].ShouldBe("/connect/userinfo");
+        completion.Attributes["aspnetcore.endpoint.display_name"].ShouldBeOfType<string>().ShouldNotBeNullOrWhiteSpace();
+        completion.Attributes["http.response.status_code"].ShouldBe(StatusCodes.Status200OK);
+        completion.Exception.ShouldBeNull();
+    }
+
     [Theory(DisplayName = "OAuth requests should log handled failures once when request body read fails")]
     [InlineData("/connect/token", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]
     [InlineData("/connect/par", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]

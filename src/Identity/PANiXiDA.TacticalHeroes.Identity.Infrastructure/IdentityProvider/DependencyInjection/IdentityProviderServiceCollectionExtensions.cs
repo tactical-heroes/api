@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -149,10 +150,9 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.EnableTokenEntryValidation();
             });
 
-        serviceCollection
-            .AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
-            .AddIdentityCookies();
-        serviceCollection.AddAuthorization();
+        serviceCollection.Configure<AuthenticationOptions>(options =>
+            options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+        new AuthenticationBuilder(serviceCollection).AddIdentityCookies();
 
         return serviceCollection;
     }
