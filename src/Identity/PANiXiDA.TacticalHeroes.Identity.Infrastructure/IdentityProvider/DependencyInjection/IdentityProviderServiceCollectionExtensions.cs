@@ -141,18 +141,11 @@ internal static class IdentityProviderServiceCollectionExtensions
                 {
                     aspNetCore.DisableTransportSecurityRequirement();
                 }
-            })
-            .AddValidation(options =>
-            {
-                options.UseLocalServer();
-                options.UseAspNetCore();
-                options.EnableTokenEntryValidation();
             });
 
         serviceCollection
             .AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
             .AddIdentityCookies();
-        serviceCollection.AddAuthorization();
 
         return serviceCollection;
     }
