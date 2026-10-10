@@ -1,11 +1,6 @@
-using OpenIddict.Validation.SystemNetHttp;
-
 using PANiXiDA.Core.Presentation.Http.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Host.Common;
-using PANiXiDA.TacticalHeroes.Host.Configurations.Authentication;
-
-using static OpenIddict.Validation.OpenIddictValidationEvents;
 
 using CompendiumPresentationAssembly = PANiXiDA.TacticalHeroes.Compendium.Presentation.PresentationAssembly;
 using FileManagerPresentationAssembly = PANiXiDA.TacticalHeroes.FileManager.Presentation.PresentationAssembly;
@@ -29,16 +24,6 @@ internal static class HttpConfiguration
             IdentityPresentationAssembly.Instance,
             CompendiumPresentationAssembly.Instance,
             FileManagerPresentationAssembly.Instance);
-
-        builder.Services.AddOpenIddict().AddValidation(options =>
-        {
-            var descriptor = OpenIddictValidationSystemNetHttpHandlers.SendHttpRequest<ApplyIntrospectionRequestContext>.Descriptor;
-            options.RemoveEventHandler(descriptor);
-            options.AddEventHandler<ApplyIntrospectionRequestContext>(handler => handler
-                .AddFilter<OpenIddictValidationSystemNetHttpHandlerFilters.RequireHttpUri>()
-                .UseSingletonHandler<SendIntrospectionHttpRequestHandler>()
-                .SetOrder(descriptor.Order));
-        });
 
         return builder;
     }

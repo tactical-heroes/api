@@ -84,9 +84,10 @@ Secrets. Each protected API request
 contacts Identity, so token revocation takes effect on the next request and Identity
 must be reachable.
 
-The host replaces OpenIddict's introspection HTTP send handler so transport exceptions
-reach the shared HTTP middleware. Client cancellation stays 499/Warning; independent
-network failures stay 500/Error instead of losing their exception details.
+Introspection uses OpenIddict's standard HTTP handlers. In OpenIddict 7.7.1, cancellation
+during an outgoing introspection request can produce 500/Error; the
+[upstream fix](https://github.com/openiddict/openiddict-core/commit/77d82cd7e65959ee6486c3288a2beb8a090f6b5e)
+is pending a stable release.
 
 ## OpenIddict Certificates
 

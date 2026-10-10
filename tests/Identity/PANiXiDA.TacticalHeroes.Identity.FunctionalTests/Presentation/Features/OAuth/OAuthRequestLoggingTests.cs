@@ -11,29 +11,20 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "Protected API should preserve cancellation and error status when introspection transport fails")]
-    [InlineData(IntrospectionFailureKind.ClientCancellation, StatusCodes.Status499ClientClosedRequest, LogLevel.Warning)]
-    [InlineData(IntrospectionFailureKind.Timeout, StatusCodes.Status500InternalServerError, LogLevel.Error)]
-    [InlineData(IntrospectionFailureKind.NetworkFailure, StatusCodes.Status500InternalServerError, LogLevel.Error)]
-    [InlineData(IntrospectionFailureKind.NetworkFailureAfterCancellation, StatusCodes.Status499ClientClosedRequest, LogLevel.Warning)]
-    [InlineData(IntrospectionFailureKind.ServerFailureAfterCancellation, StatusCodes.Status500InternalServerError, LogLevel.Error)]
-    public async Task GetUsers_Should_PreserveCancellationAndErrorStatus_When_IntrospectionTransportFails(
-        IntrospectionFailureKind failureKind,
-        int expectedStatus,
-        LogLevel expectedLevel)
+    [Theory(DisplayName = "Protected API should log server error when introspection transport fails")]
+    [InlineData(IntrospectionFailureKind.Timeout)]
+    [InlineData(IntrospectionFailureKind.NetworkFailure)]
+    [InlineData(IntrospectionFailureKind.ServerFailureAfterCancellation)]
+    public async Task GetUsers_Should_LogServerError_When_IntrospectionTransportFails(IntrospectionFailureKind failureKind)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var accessToken = await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken);
         using var requestAborted = new CancellationTokenSource();
-        var abortRequest = failureKind is IntrospectionFailureKind.ClientCancellation
-            or IntrospectionFailureKind.NetworkFailureAfterCancellation
-            or IntrospectionFailureKind.ServerFailureAfterCancellation;
+        var abortRequest = failureKind == IntrospectionFailureKind.ServerFailureAfterCancellation;
         Exception exception = failureKind switch
         {
-            IntrospectionFailureKind.ClientCancellation => new TaskCanceledException("Client aborted during introspection", null, requestAborted.Token),
             IntrospectionFailureKind.Timeout => new TaskCanceledException("Introspection timed out", new TimeoutException()),
-            IntrospectionFailureKind.NetworkFailure or IntrospectionFailureKind.NetworkFailureAfterCancellation =>
-                new HttpRequestException("Identity server is unavailable"),
+            IntrospectionFailureKind.NetworkFailure => new HttpRequestException("Identity server is unavailable"),
             _ => new InvalidOperationException("Independent introspection failure")
         };
         using var loggerProvider = new CapturingLoggerProvider();
@@ -58,21 +49,13 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         await loggerProvider.RequestCompleted.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
 
         requestAborted.IsCancellationRequested.ShouldBe(abortRequest);
-        response.Response.StatusCode.ShouldBe(expectedStatus);
+        response.Response.StatusCode.ShouldBe(StatusCodes.Status500InternalServerError);
         var completion = loggerProvider.Records
             .Where(record => record.Message == "HTTP request finished")
             .ShouldHaveSingleItem();
-        completion.Level.ShouldBe(expectedLevel);
-        completion.Attributes["http.response.status_code"].ShouldBe(expectedStatus);
-        loggerProvider.Records.Count(record => record.Level >= LogLevel.Error).ShouldBe(expectedLevel == LogLevel.Error ? 1 : 0);
-        if (expectedLevel == LogLevel.Warning)
-        {
-            completion.Exception.ShouldBeNull();
-        }
-        else
-        {
-            completion.Exception.ShouldBeSameAs(exception);
-        }
+        completion.Level.ShouldBe(LogLevel.Error);
+        completion.Attributes["http.response.status_code"].ShouldBe(StatusCodes.Status500InternalServerError);
+        loggerProvider.Records.ShouldContain(record => record.Level == LogLevel.Error && ReferenceEquals(record.Exception, exception));
     }
 
     [Theory(DisplayName = "Authenticated requests should retain user and endpoint in the completion log when bearer token is valid")]
@@ -190,10 +173,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
 
     public enum IntrospectionFailureKind
     {
-        ClientCancellation,
         Timeout,
         NetworkFailure,
-        NetworkFailureAfterCancellation,
         ServerFailureAfterCancellation
     }
 
