@@ -15,12 +15,6 @@ builder.AddMessaging();
 
 var app = builder.Build();
 
-app.UseForwardedHeaders();
-app.UseExceptionHandler();
-app.UseHttpsRedirection();
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseHttp();
 
 return await app.RunJasperFxCommands(args);

@@ -1,15 +1,85 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixture fixture)
 {
+    [Fact(DisplayName = "Storage key migration should add required unique keys when files table is empty")]
+    public async Task MigrateAsync_Should_AddRequiredUniqueKeys_When_FilesTableIsEmpty()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(cancellationToken);
+        await using var scope = fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var migrator = context.GetService<IMigrator>();
+        var files = new[]
+        {
+            File.Create(
+                FileName.Create("same-name.png").Value,
+                FileType.Avatar,
+                userId: null).Value,
+            File.Create(
+                FileName.Create("same-name.png").Value,
+                FileType.Personal,
+                UserId.Create(Guid.CreateVersion7()).Value).Value
+        };
+
+        await migrator.MigrateAsync("20261007121833_AddPersonalFileOwnership", cancellationToken);
+        try
+        {
+            await migrator.MigrateAsync(cancellationToken: cancellationToken);
+            foreach (var file in files)
+            {
+                await context.Database.ExecuteSqlInterpolatedAsync(
+                    $"""
+                    INSERT INTO file_manager.files (id, name, type, user_id, storage_key, status, created_at, updated_at)
+                    VALUES ({file.Id.Value}, {file.Name.Value}, {file.Type.Name}, {file.UserId?.Value},
+                        {file.StorageKey.Value}, 'PendingUpload', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    """,
+                    cancellationToken);
+            }
+
+            var readContext = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
+            var rows = await readContext.Set<FileReadDbModel>().ToListAsync(cancellationToken);
+
+            rows.Count.ShouldBe(files.Length);
+            foreach (var file in files)
+            {
+                rows.Single(row => row.Id == file.Id.Value).StorageKey.ShouldBe(file.StorageKey.Value);
+            }
+
+            Func<Task> duplicateKey = () => context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET storage_key = {files[0].StorageKey.Value} WHERE id = {files[1].Id.Value}",
+                cancellationToken);
+            var exception = await duplicateKey.ShouldThrowAsync<PostgresException>();
+            exception.SqlState.ShouldBe(PostgresErrorCodes.UniqueViolation);
+
+            Func<Task> nullKey = () => context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET storage_key = NULL WHERE id = {files[0].Id.Value}",
+                cancellationToken);
+            var nullKeyException = await nullKey.ShouldThrowAsync<PostgresException>();
+            nullKeyException.SqlState.ShouldBe(PostgresErrorCodes.NotNullViolation);
+        }
+        finally
+        {
+            await migrator.MigrateAsync(cancellationToken: cancellationToken);
+        }
+    }
+
     [Theory(DisplayName = "Read database model should match PostgreSQL columns when migrations are applied")]
     [InlineData("files")]
     [InlineData("folders")]

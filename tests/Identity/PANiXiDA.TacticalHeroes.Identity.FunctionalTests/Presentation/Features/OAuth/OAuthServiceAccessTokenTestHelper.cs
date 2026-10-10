@@ -26,7 +26,7 @@ internal static class OAuthServiceAccessTokenTestHelper
         return await fixture.Client.SendAsync(request, cancellationToken);
     }
 
-    private static async Task<string> IssueAccessTokenAsync(
+    internal static async Task<string> IssueAccessTokenAsync(
         FunctionalTestFixture fixture,
         CancellationToken cancellationToken)
     {

@@ -12,18 +12,21 @@ public sealed class File : AggregateRoot<FileId>
         FileId id,
         FileName name,
         FileType type,
-        UserId? userId)
+        UserId? userId,
+        FileStorageKey storageKey)
         : base(id)
     {
         Name = name;
         Type = type;
         UserId = userId;
+        StorageKey = storageKey;
         Status = FileStatus.PendingUpload;
     }
 
     public FileName Name { get; private set; }
-    public FileType Type { get; }
-    public UserId? UserId { get; }
+    public FileStorageKey StorageKey { get; private set; }
+    public FileType Type { get; private set; }
+    public UserId? UserId { get; private set; }
     public FolderId? FolderId { get; private set; }
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
@@ -48,11 +51,21 @@ public sealed class File : AggregateRoot<FileId>
                     .WithField(nameof(UserId)));
         }
 
+        var id = FileId.New();
+        var prefix = type.Name.ToLowerInvariant();
+        if (userId is { } ownerId)
+        {
+            prefix = $"{prefix}/{ownerId.Value:D}";
+        }
+
+        var storageKey = FileStorageKey.Create($"{prefix}/{id.Value:D}").Value;
+
         return Result.Success(new File(
-            id: FileId.New(),
+            id: id,
             name: name,
             type: type,
-            userId: userId));
+            userId: userId,
+            storageKey: storageKey));
     }
 
     public Result Rename(FileName name)

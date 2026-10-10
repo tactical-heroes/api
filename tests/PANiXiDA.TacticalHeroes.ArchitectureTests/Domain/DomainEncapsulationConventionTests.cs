@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.DomainEvents;
@@ -189,7 +190,7 @@ public sealed class DomainEncapsulationConventionTests
     {
         var domainEntities = GetDomainEntities();
         var violations = domainEntities
-            .SelectMany(GetExternalMutationViolations)
+            .SelectMany(GetEncapsulationViolations)
             .Distinct()
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -197,11 +198,11 @@ public sealed class DomainEncapsulationConventionTests
         Assert.NotEmpty(domainEntities);
         Assert.True(
             violations.Length == 0,
-            $"Externally writable domain state:{Environment.NewLine}" +
+            $"Domain encapsulation violations:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
 
-    [Theory(DisplayName = "Domain state should reject external writes when member access varies")]
+    [Theory(DisplayName = "Domain state should enforce encapsulation when member access varies")]
     [InlineData(typeof(PublicSetterState), false)]
     [InlineData(typeof(InternalSetterState), false)]
     [InlineData(typeof(PublicInitState), false)]
@@ -210,13 +211,19 @@ public sealed class DomainEncapsulationConventionTests
     [InlineData(typeof(InternalFieldState), false)]
     [InlineData(typeof(WritableReferenceState), false)]
     [InlineData(typeof(InheritedSetterState), false)]
+    [InlineData(typeof(GetterOnlyState), false)]
+    [InlineData(typeof(InheritedGetterOnlyState), false)]
+    [InlineData(typeof(PrivateInitState), false)]
+    [InlineData(typeof(NonPublicGetterState), false)]
+    [InlineData(typeof(ProtectedSetterState), false)]
     [InlineData(typeof(PrivateSetterState), true)]
-    [InlineData(typeof(ProtectedSetterState), true)]
+    [InlineData(typeof(ComputedState), true)]
+    [InlineData(typeof(ReadOnlyCollectionState), true)]
     [InlineData(typeof(ReadOnlyFieldState), true)]
     [InlineData(typeof(ReadOnlyReferenceState), true)]
-    public void DomainState_Should_RejectExternalWrites_When_MemberAccessVaries(Type type, bool expected)
+    public void DomainState_Should_EnforceEncapsulation_When_MemberAccessVaries(Type type, bool expected)
     {
-        var violations = GetExternalMutationViolations(type).ToArray();
+        var violations = GetEncapsulationViolations(type).ToArray();
 
         Assert.Equal(expected, violations.Length == 0);
     }
@@ -383,7 +390,7 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    private static IEnumerable<string> GetExternalMutationViolations(Type type)
+    private static IEnumerable<string> GetEncapsulationViolations(Type type)
     {
         const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public |
                                    BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
@@ -392,6 +399,14 @@ public sealed class DomainEncapsulationConventionTests
              currentType is not null && currentType != typeof(object);
              currentType = currentType.BaseType)
         {
+            if (currentType.Assembly == type.Assembly)
+            {
+                foreach (var violation in GetPropertyEncapsulationViolations(currentType))
+                {
+                    yield return violation;
+                }
+            }
+
             foreach (var field in currentType.GetFields(Flags).Where(field =>
                          !field.IsInitOnly && (field.IsPublic || field.IsAssembly || field.IsFamilyOrAssembly)))
             {
@@ -403,6 +418,30 @@ public sealed class DomainEncapsulationConventionTests
                          .SelectMany(GetExternalMethodMutationViolations))
             {
                 yield return violation;
+            }
+        }
+    }
+
+    private static IEnumerable<string> GetPropertyEncapsulationViolations(Type type)
+    {
+        const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public |
+                                   BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+
+        foreach (var property in type.GetProperties(Flags))
+        {
+            var setter = property.GetSetMethod(nonPublic: true);
+            var backingField = type.GetField($"<{property.Name}>k__BackingField", Flags);
+            if (backingField is null && setter is null)
+            {
+                continue;
+            }
+
+            if (property.GetGetMethod(nonPublic: true) is not { IsPublic: true } ||
+                setter is not { IsPrivate: true } ||
+                setter.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(IsExternalInit)))
+            {
+                yield return $"{type.FullName}.{property.Name} must have a public getter " +
+                             "and an explicit private setter, not an init accessor.";
             }
         }
     }
@@ -612,6 +651,23 @@ public sealed class DomainEncapsulationConventionTests
 
     private sealed class InheritedSetterState : SetterStateBase;
 
+    private class GetterOnlyState
+    {
+        public int Value { get; } = 1;
+    }
+
+    private sealed class InheritedGetterOnlyState : GetterOnlyState;
+
+    private sealed class PrivateInitState
+    {
+        public int Value { get; private init; }
+    }
+
+    private sealed class NonPublicGetterState
+    {
+        internal int Value { get; private set; }
+    }
+
     private sealed class PrivateSetterState
     {
         public int Value { get; private set; }
@@ -620,6 +676,20 @@ public sealed class DomainEncapsulationConventionTests
     private class ProtectedSetterState
     {
         public int Value { get; protected set; }
+    }
+
+    private sealed class ComputedState
+    {
+        private readonly int _value = 1;
+
+        public int Value => _value + 1;
+    }
+
+    private sealed class ReadOnlyCollectionState
+    {
+        private readonly List<int> _values = [1];
+
+        public IReadOnlyCollection<int> Values => _values.AsReadOnly();
     }
 
     private sealed class ReadOnlyFieldState
