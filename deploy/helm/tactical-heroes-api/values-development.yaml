@@ -1,3 +1,7 @@
+env:
+  values:
+    OpenIddictValidationOptions__Issuer: https://dev.api.tactical-heroes.panixida.ru/
+
 externalSecrets:
   openbao:
     role: tactical-heroes-api-development

@@ -91,10 +91,20 @@ internal sealed class IdentityProviderClientsOptionsValidator
             failures.Add($"{path}:ClientSecret must not be empty for a confidential client.");
         }
 
-        ValidateRequiredValues(
-            values: client.GrantTypes,
-            path: $"{path}:GrantTypes",
-            failures: failures);
+        if (isConfidential)
+        {
+            ValidateOptionalValues(
+                values: client.GrantTypes,
+                path: $"{path}:GrantTypes",
+                failures: failures);
+        }
+        else
+        {
+            ValidateRequiredValues(
+                values: client.GrantTypes,
+                path: $"{path}:GrantTypes",
+                failures: failures);
+        }
         ValidateGrantTypes(
             values: client.GrantTypes,
             path: $"{path}:GrantTypes",

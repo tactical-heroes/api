@@ -60,6 +60,31 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Token Validation
+
+Protected API endpoints validate Bearer tokens through HTTP introspection using
+`OpenIddictValidationOptions`. Set `Issuer` to the Identity server's issuer and
+`Audiences` to the intended API audience. The `tactical-heroes-api` confidential
+client matches that audience and has only introspection permission; it cannot
+issue or revoke tokens. Cookie login and OAuth endpoints remain on the Identity server.
+
+For each deployed environment, provide the same generated secret in OpenBao under
+`secret/applications/tactical-heroes-api/<environment>` for both keys:
+
+```text
+OpenIddictValidationOptions__ClientSecret
+Identity__Provider__Clients__2__ClientSecret
+```
+
+For local development, set the corresponding configuration keys with .NET User
+Secrets. No default introspection secret is shipped. Each protected API request
+contacts Identity, so token revocation takes effect on the next request and Identity
+must be reachable.
+
+The host replaces OpenIddict's introspection HTTP send handler so transport exceptions
+reach the shared HTTP middleware. Client cancellation stays 499/Warning; independent
+network failures stay 500/Error instead of losing their exception details.
+
 ## OpenIddict Certificates
 
 Store separate signing/encryption certificates as Base64 PFX with passwords in OpenBao at

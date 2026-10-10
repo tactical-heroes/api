@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -142,17 +141,11 @@ internal static class IdentityProviderServiceCollectionExtensions
                 {
                     aspNetCore.DisableTransportSecurityRequirement();
                 }
-            })
-            .AddValidation(options =>
-            {
-                options.UseLocalServer();
-                options.UseAspNetCore();
-                options.EnableTokenEntryValidation();
             });
 
-        serviceCollection.Configure<AuthenticationOptions>(options =>
-            options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
-        new AuthenticationBuilder(serviceCollection).AddIdentityCookies();
+        serviceCollection
+            .AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+            .AddIdentityCookies();
 
         return serviceCollection;
     }

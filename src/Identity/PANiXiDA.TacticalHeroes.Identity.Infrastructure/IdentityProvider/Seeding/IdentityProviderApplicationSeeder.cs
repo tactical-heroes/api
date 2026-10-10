@@ -50,8 +50,12 @@ internal sealed class IdentityProviderApplicationSeeder(
         };
 
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Introspection);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
-        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
+
+        if (client.GrantTypes.Count > 0)
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
+        }
 
         foreach (var grantType in client.GrantTypes)
         {
