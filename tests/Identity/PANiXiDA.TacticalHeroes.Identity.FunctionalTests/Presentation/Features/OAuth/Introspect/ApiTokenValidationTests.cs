@@ -43,18 +43,22 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         testFactory.IntrospectionRequestCount.ShouldBe(1);
     }
 
-    [Fact(DisplayName = "Introspection client should not issue tokens when client credentials flow is requested")]
-    public async Task PostToken_Should_RejectIntrospectionClient_When_ClientCredentialsFlowIsRequested()
+    [Fact(DisplayName = "Existing service client should retain token grants when reused for introspection")]
+    public async Task PostToken_Should_UseExistingServiceClient_When_ClientCredentialsFlowIsRequested()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var options = Fixture.Services.GetRequiredService<IOptions<OpenIddictValidationOptions>>().Value;
         await using var scope = Fixture.Services.CreateAsyncScope();
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
         options.ClientId.ShouldNotBeNull();
+        options.ClientId.ShouldBe("tactical-heroes-service");
+        (await manager.CountAsync(cancellationToken)).ShouldBe(2);
         var application = await manager.FindByClientIdAsync(options.ClientId, cancellationToken);
         application.ShouldNotBeNull();
         var permissions = await manager.GetPermissionsAsync(application, cancellationToken);
-        permissions.ShouldHaveSingleItem().ShouldBe(OpenIddictConstants.Permissions.Endpoints.Introspection);
+        permissions.ShouldContain(OpenIddictConstants.Permissions.Endpoints.Introspection);
+        permissions.ShouldContain(OpenIddictConstants.Permissions.GrantTypes.ClientCredentials);
+        permissions.ShouldContain(OpenIddictConstants.Permissions.GrantTypes.TokenExchange);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
 
         using var response = await client.PostAsync("/connect/token", new FormUrlEncodedContent(
@@ -66,9 +70,40 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
             }), cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, body);
         using var document = JsonDocument.Parse(body);
-        document.RootElement.GetProperty(OpenIddictConstants.Parameters.Error).GetString()
-            .ShouldBe(OpenIddictConstants.Errors.UnauthorizedClient);
+        document.RootElement.GetProperty(OpenIddictConstants.Parameters.AccessToken).GetString()
+            .ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact(DisplayName = "Service client should receive user claims when introspecting a web client token")]
+    public async Task PostIntrospect_Should_ReturnUserClaims_When_ServiceClientIntrospectsWebToken()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var options = Fixture.Services.GetRequiredService<IOptions<OpenIddictValidationOptions>>().Value;
+        var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "service-introspection@example.test", "service-introspection-hero", "StrongPassword1!", cancellationToken);
+        using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            client, "service-introspection@example.test", "StrongPassword1!", cancellationToken);
+
+        using var response = await client.PostAsync("/connect/introspect", new FormUrlEncodedContent(
+            new Dictionary<string, string?>
+            {
+                [OpenIddictConstants.Parameters.ClientId] = options.ClientId,
+                [OpenIddictConstants.Parameters.ClientSecret] = options.ClientSecret,
+                [OpenIddictConstants.Parameters.Token] = tokens.AccessToken
+            }), cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, body);
+        using var document = JsonDocument.Parse(body);
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.Active).GetBoolean().ShouldBeTrue();
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.Audience).GetString().ShouldBe(options.ClientId);
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.ClientId).GetString()
+            .ShouldBe(OAuthAuthorizationRequestTestHelper.ClientId);
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.Subject).GetString().ShouldBe(user.Id.ToString());
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.Name).GetString().ShouldBe("service-introspection-hero");
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.Email).GetString().ShouldBe("service-introspection@example.test");
     }
 }

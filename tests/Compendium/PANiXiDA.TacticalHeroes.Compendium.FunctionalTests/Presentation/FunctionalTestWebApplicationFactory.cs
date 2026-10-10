@@ -20,7 +20,7 @@ internal sealed class FunctionalTestWebApplicationFactory
             new Dictionary<string, string?>
             {
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
-                ["Identity:Provider:Clients:2:ClientSecret"] = "functional-test-introspection-secret"
+                ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret"
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
