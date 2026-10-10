@@ -1,9 +1,5 @@
 replicaCount: 2
 
-env:
-  values:
-    OpenIddictValidationOptions__Issuer: https://api.tactical-heroes.panixida.ru/
-
 externalSecrets:
   openbao:
     role: tactical-heroes-api-production

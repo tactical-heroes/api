@@ -68,8 +68,10 @@ Protected API endpoints validate Bearer tokens through HTTP introspection using
 client matches that audience and has only introspection permission; it cannot
 issue or revoke tokens. Cookie login and OAuth endpoints remain on the Identity server.
 
-For each deployed environment, provide the same generated secret in OpenBao under
-`secret/applications/tactical-heroes-api/<environment>` for both keys:
+Deployed environments load the issuer and credentials from OpenBao at
+`secret/applications/tactical-heroes-api/<environment>`. Set
+`OpenIddictValidationOptions__Issuer` to the same URL as `Identity__Provider__Issuer`
+and provide the same generated secret for both keys:
 
 ```text
 OpenIddictValidationOptions__ClientSecret
