@@ -37,15 +37,17 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
                     handler.AdditionalHandlers.Add(new FailingIntrospectionHandler(requestAborted, abortRequest, exception)))));
         });
 
-        var response = await factory.Server.SendAsync(context =>
-        {
-            context.Request.Method = HttpMethods.Get;
-            context.Request.Scheme = "https";
-            context.Request.Host = new HostString("localhost");
-            context.Request.Path = "/api/v1/users";
-            context.Request.Headers.Authorization = $"Bearer {accessToken}";
-            context.RequestAborted = requestAborted.Token;
-        }, cancellationToken);
+        var response = await factory.Server.SendAsync(
+            context =>
+            {
+                context.Request.Method = HttpMethods.Get;
+                context.Request.Scheme = "https";
+                context.Request.Host = new HostString("localhost");
+                context.Request.Path = "/api/v1/users";
+                context.Request.Headers.Authorization = $"Bearer {accessToken}";
+                context.RequestAborted = requestAborted.Token;
+            },
+            cancellationToken);
         await loggerProvider.RequestCompleted.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
 
         requestAborted.IsCancellationRequested.ShouldBe(abortRequest);
@@ -130,17 +132,19 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         };
         await using var body = new FailingRequestBodyStream(exception);
 
-        var response = await factory.Server.SendAsync(context =>
-        {
-            context.Request.Method = HttpMethods.Post;
-            context.Request.Scheme = "https";
-            context.Request.Host = new HostString("localhost");
-            context.Request.Path = path;
-            context.Request.ContentType = "application/x-www-form-urlencoded";
-            context.Request.ContentLength = 100;
-            context.Request.Body = body;
-            context.RequestAborted = requestAborted;
-        }, TestContext.Current.CancellationToken);
+        var response = await factory.Server.SendAsync(
+            context =>
+            {
+                context.Request.Method = HttpMethods.Post;
+                context.Request.Scheme = "https";
+                context.Request.Host = new HostString("localhost");
+                context.Request.Path = path;
+                context.Request.ContentType = "application/x-www-form-urlencoded";
+                context.Request.ContentLength = 100;
+                context.Request.Body = body;
+                context.RequestAborted = requestAborted;
+            },
+            TestContext.Current.CancellationToken);
 
         await loggerProvider.RequestCompleted.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
@@ -231,16 +235,18 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
             {
                 var attributes = new Dictionary<string, object?>();
-                provider._scopeProvider.ForEachScope(static (scope, values) =>
-                {
-                    if (scope is IEnumerable<KeyValuePair<string, object?>> pairs)
+                provider._scopeProvider.ForEachScope(
+                    static (scope, values) =>
                     {
-                        foreach (var pair in pairs)
+                        if (scope is IEnumerable<KeyValuePair<string, object?>> pairs)
                         {
-                            values.Add(pair.Key, pair.Value);
+                            foreach (var pair in pairs)
+                            {
+                                values.Add(pair.Key, pair.Value);
+                            }
                         }
-                    }
-                }, attributes);
+                    },
+                    attributes);
                 var message = formatter(state, exception);
                 provider.Records.Enqueue(new LogEntry(logLevel, message, exception, attributes));
                 if (message == "HTTP request finished")

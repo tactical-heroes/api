@@ -48,8 +48,8 @@ internal sealed class FunctionalTestWebApplicationFactory
                 .AddScheme<
                     AuthenticationSchemeOptions,
                     TestAuthenticationHandler>(
-                    TestAuthenticationHandler.SchemeName,
-                    _ => { });
+                        TestAuthenticationHandler.SchemeName,
+                        _ => { });
             services.RunWolverineInSoloMode();
         });
     }

@@ -38,9 +38,13 @@ public sealed class ApplicationUserMapperTests
         var roleId = Guid.CreateVersion7();
 
         var result = ApplicationUserMapper.ToDomain(CreateDbModel(
-            Guid.CreateVersion7(), " HERO@Example.com ", true,
-            [roleId, roleId], [(" permission ", " heroes.read "), ("permission", "heroes.read")],
-            userName: " restored-hero ", status: " Blocked "));
+            Guid.CreateVersion7(),
+            " HERO@Example.com ",
+            true,
+            [roleId, roleId],
+            [(" permission ", " heroes.read "), ("permission", "heroes.read")],
+            userName: " restored-hero ",
+            status: " Blocked "));
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Email.Value.ShouldBe("hero@example.com");

@@ -7,7 +7,8 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features
 public sealed class UnitsRepository(
     CompendiumWriteDbContext dbContext,
     IAggregateTracker aggregateTracker)
-    : EfRepository<CompendiumWriteDbContext, UnitId, Unit>(
-        dbContext,
-        aggregateTracker),
-    IUnitsRepository;
+    :
+        EfRepository<CompendiumWriteDbContext, UnitId, Unit>(
+            dbContext,
+            aggregateTracker),
+        IUnitsRepository;

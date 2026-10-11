@@ -128,22 +128,22 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
 
             unitToUpdate.ShouldNotBeNull();
             unitToUpdate.Update(
-            name: UnitName.Create(value: "Marksman").Value,
-            description: UnitDescription.Create(value: "An elite ranged unit.").Value,
-            stats: UnitCombatStats.Create(
-                attack: 10,
-                defense: 5,
-                health: 14,
-                minimumDamage: 4,
-                maximumDamage: 7,
-                initiative: 11.5,
-                speed: 7).Value,
-            rangedAttack: UnitRangedAttack.Create(
-                shots: shots,
-                rangedAttackRange: rangedAttackRange).Value,
-            morale: UnitMorale.Create(value: 3).Value,
-            luck: UnitLuck.Create(value: 2).Value,
-            factionId: faction.Id);
+                name: UnitName.Create(value: "Marksman").Value,
+                description: UnitDescription.Create(value: "An elite ranged unit.").Value,
+                stats: UnitCombatStats.Create(
+                    attack: 10,
+                    defense: 5,
+                    health: 14,
+                    minimumDamage: 4,
+                    maximumDamage: 7,
+                    initiative: 11.5,
+                    speed: 7).Value,
+                rangedAttack: UnitRangedAttack.Create(
+                    shots: shots,
+                    rangedAttackRange: rangedAttackRange).Value,
+                morale: UnitMorale.Create(value: 3).Value,
+                luck: UnitLuck.Create(value: 2).Value,
+                factionId: faction.Id);
 
             await repository.UpdateAsync(unitToUpdate, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -195,8 +195,8 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         var verificationRepository = verificationScope.ServiceProvider
             .GetRequiredService<IUnitsRepository>();
         (await verificationRepository.GetByIdAsync(
-                unit.Id,
-                cancellationToken))
+            unit.Id,
+            cancellationToken))
             .ShouldBeNull();
     }
 

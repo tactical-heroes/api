@@ -341,12 +341,14 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
 
             foreach (var subject in new[] { user.Id, user.Id, otherUserId })
             {
-                await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
-                {
-                    Subject = subject.ToString(),
-                    Type = tokenType,
-                    Status = subject == user.Id ? tokenStatus : OpenIddictConstants.Statuses.Valid
-                }, cancellationToken);
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        Type = tokenType,
+                        Status = subject == user.Id ? tokenStatus : OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
             }
 
             var result = await service.ResetPasswordAsync(
@@ -368,7 +370,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Select(token => token.Status)
             .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
         tokens.Single(token => token.Subject == otherUserId.ToString())
-            .Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
     }
 
     [Theory(DisplayName = "ResetPasswordAsync should preserve tokens and password when reset fails")]
@@ -398,12 +401,14 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
                 OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode
             })
             {
-                await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
-                {
-                    Subject = user.Id.ToString(),
-                    Type = tokenType,
-                    Status = OpenIddictConstants.Statuses.Valid
-                }, cancellationToken);
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = user.Id.ToString(),
+                        Type = tokenType,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
             }
 
             var result = await service.ResetPasswordAsync(user.Id, resetToken, newPassword, cancellationToken);

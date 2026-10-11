@@ -34,8 +34,12 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
                 OpenIddictConstants.Parameters.CodeChallengeMethod
             ],
             ignoreOrder: true);
-        var scopeTypes = schema.GetProperty("properties").GetProperty(OpenIddictConstants.Parameters.Scope)
-            .GetProperty("type").EnumerateArray().Select(type => type.GetString()).ToArray();
+        var scopeTypes = schema.GetProperty("properties")
+            .GetProperty(OpenIddictConstants.Parameters.Scope)
+            .GetProperty("type")
+            .EnumerateArray()
+            .Select(type => type.GetString())
+            .ToArray();
         scopeTypes.ShouldContain("null");
     }
 
@@ -66,8 +70,12 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
             ignoreOrder: true);
         foreach (var propertyName in new[] { "shots", "rangedAttackRange" })
         {
-            var types = schema.GetProperty("properties").GetProperty(propertyName)
-                .GetProperty("type").EnumerateArray().Select(type => type.GetString()).ToArray();
+            var types = schema.GetProperty("properties")
+                .GetProperty(propertyName)
+                .GetProperty("type")
+                .EnumerateArray()
+                .Select(type => type.GetString())
+                .ToArray();
             types.ShouldContain("null");
         }
     }

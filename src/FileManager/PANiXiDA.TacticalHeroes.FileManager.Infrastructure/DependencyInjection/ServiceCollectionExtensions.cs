@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddPostgreSqlEfRepository<
             FileManagerWriteDbContext,
             FileManagerReadDbContext>(
-            configuration);
+                configuration);
         serviceCollection.AddS3FileStorage(configuration.GetRequiredSection(nameof(FileManager)));
 
         return serviceCollection;

@@ -175,9 +175,11 @@ internal static class DomainCollectionConvention
     private static bool IsReadOnlyViewType(ITypeSymbol type, Compilation compilation)
     {
         return type is INamedTypeSymbol namedType &&
-               (SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition,
-                    compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!)) ||
-                SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition,
+               (SymbolEqualityComparer.Default.Equals(
+                   namedType.OriginalDefinition,
+                   compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!)) ||
+                SymbolEqualityComparer.Default.Equals(
+                    namedType.OriginalDefinition,
                     compilation.GetTypeByMetadataName(typeof(ReadOnlyMemory<>).FullName!)));
     }
 }

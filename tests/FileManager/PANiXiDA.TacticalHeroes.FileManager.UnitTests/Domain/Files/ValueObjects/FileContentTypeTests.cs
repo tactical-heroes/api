@@ -27,7 +27,7 @@ public sealed class FileContentTypeTests
         var result = FileContentType.Create(value!);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation, "File content type must be a concrete media type without parameters.")
+            ErrorType.Validation, "File content type must be a concrete media type without parameters.")
             .ShouldHaveField(nameof(FileContentType));
     }
 

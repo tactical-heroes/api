@@ -27,8 +27,8 @@ internal sealed class FactionsApiTestClient(FunctionalTestFixture fixture)
         response.Headers.Location.ShouldNotBeNull();
 
         return await response.Content.ReadFromJsonAsync<CreateFactionResponse>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("Created faction was not returned.");
     }
 
@@ -44,8 +44,8 @@ internal sealed class FactionsApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<GetFactionDetailsResponse>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("Faction details were not returned.");
     }
 
@@ -60,7 +60,7 @@ internal sealed class FactionsApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<
-                PaginationResult<FactionListItemResponse>>(
+            PaginationResult<FactionListItemResponse>>(
                 TestJsonSerializerOptions.Web,
                 cancellationToken)
             ?? throw new InvalidOperationException("Faction page was not returned.");

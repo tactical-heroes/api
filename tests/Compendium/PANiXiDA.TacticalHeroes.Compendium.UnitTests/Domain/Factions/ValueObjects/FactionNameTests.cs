@@ -21,8 +21,8 @@ public sealed class FactionNameTests
         var result = FactionName.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                "Faction name cannot be empty.")
+            ErrorType.Validation,
+            "Faction name cannot be empty.")
             .ShouldHaveField(nameof(FactionName));
     }
 
@@ -33,8 +33,8 @@ public sealed class FactionNameTests
             new string('a', FactionName.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Faction name cannot be longer than {FactionName.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Faction name cannot be longer than {FactionName.MaxLength} characters.")
             .ShouldHaveField(nameof(FactionName));
     }
 

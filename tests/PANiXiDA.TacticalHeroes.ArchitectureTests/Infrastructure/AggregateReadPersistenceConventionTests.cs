@@ -72,7 +72,7 @@ public sealed class AggregateReadPersistenceConventionTests
             else
             {
                 foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
-                             model, "Persistence", "Features", feature, "Read", "DbModels"))
+                    model, "Persistence", "Features", feature, "Read", "DbModels"))
                 {
                     yield return violation;
                 }
@@ -92,7 +92,7 @@ public sealed class AggregateReadPersistenceConventionTests
             }
 
             foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
-                         repository, "Persistence", "Features", feature, "Read"))
+                repository, "Persistence", "Features", feature, "Read"))
             {
                 yield return violation;
             }

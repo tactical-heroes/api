@@ -47,8 +47,8 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
         logoutResponse.Headers.Location.GetLeftPart(UriPartial.Path)
             .ShouldBe("https://localhost:5173/oauth/logout-callback");
         OAuthAuthorizationRequestTestHelper.GetQueryParameter(
-                logoutResponse.Headers.Location,
-                OpenIddictConstants.Parameters.State)
+            logoutResponse.Headers.Location,
+            OpenIddictConstants.Parameters.State)
             .ShouldBe("logout-state");
         logoutResponse.Headers.TryGetValues("Set-Cookie", out var cookies).ShouldBeTrue();
         cookies.ShouldContain(cookie =>

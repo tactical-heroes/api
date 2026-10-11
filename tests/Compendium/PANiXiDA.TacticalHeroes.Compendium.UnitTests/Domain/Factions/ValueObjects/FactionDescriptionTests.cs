@@ -22,8 +22,8 @@ public sealed class FactionDescriptionTests
         var result = FactionDescription.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                "Faction description cannot be empty.")
+            ErrorType.Validation,
+            "Faction description cannot be empty.")
             .ShouldHaveField(nameof(FactionDescription));
     }
 
@@ -34,8 +34,8 @@ public sealed class FactionDescriptionTests
             new string('a', FactionDescription.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Faction description cannot be longer than {FactionDescription.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Faction description cannot be longer than {FactionDescription.MaxLength} characters.")
             .ShouldHaveField(nameof(FactionDescription));
     }
 

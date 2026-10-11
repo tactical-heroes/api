@@ -11,9 +11,9 @@ public sealed class ConfirmEmailHandlerTests
         var userId = Guid.CreateVersion7();
         var service = Substitute.For<IUserCredentialsService>();
         service.ConfirmEmailAsync(
-                userId,
-                "confirmation-token",
-                Arg.Any<CancellationToken>())
+            userId,
+            "confirmation-token",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new ConfirmEmailHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -18,10 +18,13 @@ public sealed class DomainStaticStateConventionTests
     {
         var results = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetStaticStateResultsAsync);
         var violations = results.SelectMany(result => result.Violations)
-            .Distinct().Order(StringComparer.Ordinal).ToArray();
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 
         Assert.NotEmpty(results);
-        Assert.True(violations.Length == 0,
+        Assert.True(
+            violations.Length == 0,
             $"Domain static state must be immutable:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
@@ -66,9 +69,12 @@ public sealed class DomainStaticStateConventionTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
-            .Split(Path.PathSeparator).Select(path => MetadataReference.CreateFromFile(path));
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path));
         var compilation = CSharpCompilation.Create(
-            assemblyName: $"StaticStateProbe_{Guid.NewGuid():N}", syntaxTrees: [tree], references: references,
+            assemblyName: $"StaticStateProbe_{Guid.NewGuid():N}",
+            syntaxTrees: [tree],
+            references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         using var stream = new MemoryStream();
         var emission = compilation.Emit(stream, cancellationToken: cancellationToken);
@@ -128,7 +134,7 @@ public sealed class DomainStaticStateConventionTests
             if (symbol is IPropertySymbol)
             {
                 foreach (var field in owner.GetMembers().OfType<IFieldSymbol>().Where(field =>
-                             SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, symbol)))
+                    SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, symbol)))
                 {
                     yield return new StaticMember(typeName, field.MetadataName);
                 }

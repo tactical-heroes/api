@@ -79,11 +79,14 @@ public sealed class ReadModelConventionTests
         var sortingTypes = GetReadModelComponents(typeof(IReadModelSorting<>));
         var mappers = GetReadModelComponents(typeof(IReadModelMapper<,,>));
         var violations = sortingTypes.Where(sorting => !mappers.Any(mapper =>
-                GetReadModel(mapper, typeof(IReadModelMapper<,,>)) == GetReadModel(sorting, typeof(IReadModelSorting<>)) &&
-                mapper.Namespace == sorting.Namespace &&
-                InfrastructurePersistenceConvention.FindSourceFiles(mapper).Select(Path.GetDirectoryName)
-                    .Intersect(InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
-                        StringComparer.OrdinalIgnoreCase).Any()))
+            GetReadModel(mapper, typeof(IReadModelMapper<,,>)) == GetReadModel(sorting, typeof(IReadModelSorting<>)) &&
+            mapper.Namespace == sorting.Namespace &&
+            InfrastructurePersistenceConvention.FindSourceFiles(mapper)
+                .Select(Path.GetDirectoryName)
+                .Intersect(
+                    InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
+                    StringComparer.OrdinalIgnoreCase)
+                .Any()))
             .Select(type => $"{type.FullName} must share its directory and namespace with a mapper for the same read model.")
             .ToArray();
 
@@ -195,7 +198,7 @@ public sealed class ReadModelConventionTests
             var slice = Path.GetFileName(source.Directory);
             var feature = Path.GetFileName(Path.GetDirectoryName(source.Directory));
             foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
-                         component, "Persistence", "Features", feature!, "Read", slice))
+                component, "Persistence", "Features", feature!, "Read", slice))
             {
                 yield return violation;
             }
@@ -283,10 +286,10 @@ public sealed class ReadModelConventionTests
             .ToHashSet(StringComparer.Ordinal);
 
         foreach (var foreignKey in dependentReadDbModel
-                     .GetProperties()
-                     .Where(property =>
-                         property.Name.Length > "Id".Length &&
-                         property.Name.EndsWith("Id", StringComparison.Ordinal)))
+            .GetProperties()
+            .Where(property =>
+                property.Name.Length > "Id".Length &&
+                property.Name.EndsWith("Id", StringComparison.Ordinal)))
         {
             var aggregateName = foreignKey.Name[..^"Id".Length];
 
@@ -334,10 +337,10 @@ public sealed class ReadModelConventionTests
             }
 
             if (!principalReadDbModel
-                    .GetProperties()
-                    .Any(property => IsCollectionOf(
-                        property.PropertyType,
-                        dependentReadDbModel)))
+                .GetProperties()
+                .Any(property => IsCollectionOf(
+                    property.PropertyType,
+                    dependentReadDbModel)))
             {
                 yield return
                     $"{principalReadDbModel.FullName} must have a collection " +

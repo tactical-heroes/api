@@ -26,15 +26,19 @@ public sealed class UserRequestValidationTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var payload = JsonSerializer.SerializeToNode(
-            UserApiTestClient.CreateDefaultRequest() with { Status = status }, JsonOptions)!.AsObject();
+            UserApiTestClient.CreateDefaultRequest() with { Status = status }, JsonOptions)!
+            .AsObject();
 
         using var response = await SendUserRequestAsync(update, payload, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
         using var problem = JsonDocument.Parse(responseBody);
-        var errors = problem.RootElement.GetProperty("errors").GetProperty("status")
-            .EnumerateArray().Select(error => error.GetString()).ToArray();
+        var errors = problem.RootElement.GetProperty("errors")
+            .GetProperty("status")
+            .EnumerateArray()
+            .Select(error => error.GetString())
+            .ToArray();
         errors.ShouldBe([expectedMessage]);
     }
 
@@ -78,8 +82,10 @@ public sealed class UserRequestValidationTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
         using var document = JsonDocument.Parse(responseBody);
         var schema = document.RootElement.GetProperty("components").GetProperty("schemas").GetProperty(schemaName);
-        var requiredProperties = schema.GetProperty("required").EnumerateArray()
-            .Select(property => property.GetString()!).ToArray();
+        var requiredProperties = schema.GetProperty("required")
+            .EnumerateArray()
+            .Select(property => property.GetString()!)
+            .ToArray();
         string[] expectedProperties = includePassword
             ? ["email", "userName", "password", "isConfirmed", "claims", "status"]
             : ["email", "userName", "isConfirmed", "claims", "status"];

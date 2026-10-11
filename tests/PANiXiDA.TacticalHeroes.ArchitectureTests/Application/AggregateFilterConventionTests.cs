@@ -132,11 +132,17 @@ public sealed class AggregateFilterConventionTests
         ApplicationType source)
     {
         var expectedPath = Path.Combine(
-            source.RepositoryRoot, "src", InfrastructurePersistenceConvention.GetModuleShortName(module),
-            module.ApplicationAssemblyName, pluralName, "Common", "Filters", $"{source.Type.Name}.cs");
+            source.RepositoryRoot,
+            "src",
+            InfrastructurePersistenceConvention.GetModuleShortName(module),
+            module.ApplicationAssemblyName,
+            pluralName,
+            "Common",
+            "Filters",
+            $"{source.Type.Name}.cs");
 
         if (!source.Type.DeclaringSyntaxReferences.Any(reference =>
-                string.Equals(reference.SyntaxTree.FilePath, expectedPath, StringComparison.Ordinal)))
+            string.Equals(reference.SyntaxTree.FilePath, expectedPath, StringComparison.Ordinal)))
         {
             yield return $"{source.Type}: must be declared in '{Path.GetRelativePath(source.RepositoryRoot, expectedPath)}'.";
         }

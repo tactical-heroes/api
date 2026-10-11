@@ -233,7 +233,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         var exception = await saveFile.ShouldThrowAsync<DbUpdateException>();
         exception.InnerException.ShouldBeOfType<PostgresException>()
-            .SqlState.ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
+            .SqlState
+            .ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
         await using var scope = Fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         (await context.Set<File>().AnyAsync(cancellationToken)).ShouldBeFalse();

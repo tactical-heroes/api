@@ -21,8 +21,10 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var northern = CreateFaction("Northern Alliance", "North.");
-        await AddFactionsAsync(cancellationToken,
-            CreateFaction("Southern Alliance", "South."), northern,
+        await AddFactionsAsync(
+            cancellationToken,
+            CreateFaction("Southern Alliance", "South."),
+            northern,
             CreateFaction("Empire", "Alliance appears only in description."));
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
@@ -41,7 +43,8 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetSelectOptionsAsync_Should_ReturnSortedOptions_When_SearchIsBlank(string? search)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddFactionsAsync(cancellationToken,
+        await AddFactionsAsync(
+            cancellationToken,
             CreateFaction("Southern Alliance", "South."),
             CreateFaction("Northern Alliance", "North."));
         await using var scope = Fixture.CreateScope();
@@ -60,7 +63,9 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         {
             CreateFaction("Northern Alliance", "First."),
             CreateFaction("Northern Alliance", "Second.")
-        }.OrderBy(faction => faction.Id.Value).ToArray();
+        }
+            .OrderBy(faction => faction.Id.Value)
+            .ToArray();
         await AddFactionsAsync(cancellationToken, factions);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
@@ -139,7 +144,9 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         {
             CreateFaction("Alliance", "First."),
             CreateFaction("Alliance", "Second.")
-        }.OrderBy(faction => faction.Id.Value).ToArray();
+        }
+            .OrderBy(faction => faction.Id.Value)
+            .ToArray();
         await AddFactionsAsync(cancellationToken, factions);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();

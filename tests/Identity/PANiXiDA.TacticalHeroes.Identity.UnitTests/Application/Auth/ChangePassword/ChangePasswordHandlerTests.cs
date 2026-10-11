@@ -11,10 +11,10 @@ public sealed class ChangePasswordHandlerTests
         var userId = Guid.CreateVersion7();
         var service = Substitute.For<IUserCredentialsService>();
         service.ChangePasswordAsync(
-                userId,
-                "CurrentPassword1!",
-                "NewPassword1!",
-                Arg.Any<CancellationToken>())
+            userId,
+            "CurrentPassword1!",
+            "NewPassword1!",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new ChangePasswordHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

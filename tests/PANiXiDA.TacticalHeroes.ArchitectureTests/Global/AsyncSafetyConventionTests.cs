@@ -175,18 +175,18 @@ internal static class AsyncSafetySourceDiscovery
         }
 
         if (string.Equals(
-                operation.TargetMethod.Name,
-                "Wait",
-                StringComparison.Ordinal) &&
+            operation.TargetMethod.Name,
+            "Wait",
+            StringComparison.Ordinal) &&
             IsTaskType(operation.TargetMethod.ContainingType))
         {
             return true;
         }
 
         return string.Equals(
-                   operation.TargetMethod.Name,
-                   "GetResult",
-                   StringComparison.Ordinal) &&
+            operation.TargetMethod.Name,
+            "GetResult",
+            StringComparison.Ordinal) &&
                operation.TargetMethod.ContainingNamespace.ToDisplayString() ==
                "System.Runtime.CompilerServices" &&
                operation.TargetMethod.ContainingType.Name.Contains(

@@ -57,8 +57,13 @@ public sealed class UserTests
         List<RoleId> roleIds = [roleId];
         List<UserClaim> claims = [claim];
         var user = User.Create(
-            UserId.New(), Email.Create("hero@example.com").Value, UserName.Create("hero").Value,
-            UserStatus.Active, UserConfirmationStatus.Unconfirmed(), roleIds, claims);
+            UserId.New(),
+            Email.Create("hero@example.com").Value,
+            UserName.Create("hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.Unconfirmed(),
+            roleIds,
+            claims);
 
         roleIds.Clear();
         claims.Clear();

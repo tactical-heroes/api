@@ -60,7 +60,9 @@ public sealed class FileTests
         file.MoveTo(destination).IsSuccess.ShouldBeTrue();
         file.CompleteUpload(
             FileContentType.Create("image/png").Value,
-            FileSize.Create(128).Value).IsSuccess.ShouldBeTrue();
+            FileSize.Create(128).Value)
+            .IsSuccess
+            .ShouldBeTrue();
         file.BeginDeletion().IsSuccess.ShouldBeTrue();
         file.CompleteDeletion().IsSuccess.ShouldBeTrue();
 
@@ -112,7 +114,9 @@ public sealed class FileTests
         }
         else
         {
-            result.ShouldHaveSingleError(ErrorType.Validation, owned
+            result.ShouldHaveSingleError(
+                ErrorType.Validation,
+                owned
                     ? "Only personal files can have a user id."
                     : "Personal files require a user id.")
                 .ShouldHaveField(nameof(File.UserId));

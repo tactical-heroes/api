@@ -81,21 +81,23 @@ public sealed class RepositoryConventionTests
     {
         var repositories = GetRepositories();
         var violations = repositories
-            .Select(repository => new
-            {
-                repository.Type,
-                ActualFeatureName = GetFeatureName(repository.Type),
-                ExpectedFeatureName = EnglishNamingConvention.Pluralize(
-                    repository.Contract.GetGenericArguments()[1].Name)
-            })
-            .Select(repository => new
-            {
-                repository.Type,
-                repository.ActualFeatureName,
-                repository.ExpectedFeatureName,
-                ExpectedName =
-                    "I" + repository.ExpectedFeatureName + RepositorySuffix
-            })
+            .Select(
+                repository => new
+                {
+                    repository.Type,
+                    ActualFeatureName = GetFeatureName(repository.Type),
+                    ExpectedFeatureName = EnglishNamingConvention.Pluralize(
+                        repository.Contract.GetGenericArguments()[1].Name)
+                })
+            .Select(
+                repository => new
+                {
+                    repository.Type,
+                    repository.ActualFeatureName,
+                    repository.ExpectedFeatureName,
+                    ExpectedName =
+                        "I" + repository.ExpectedFeatureName + RepositorySuffix
+                })
             .Where(repository =>
                 !string.Equals(
                     repository.Type.Name,
@@ -145,13 +147,14 @@ public sealed class RepositoryConventionTests
         Assert.NotEmpty(repositoryParameters);
 
         var violations = repositoryParameters
-            .Select(candidate => new
-            {
-                candidate.DeclaringType,
-                candidate.Parameter,
-                ExpectedName = GetExpectedParameterName(
-                    candidate.Parameter.ParameterType)
-            })
+            .Select(
+                candidate => new
+                {
+                    candidate.DeclaringType,
+                    candidate.Parameter,
+                    ExpectedName = GetExpectedParameterName(
+                        candidate.Parameter.ParameterType)
+                })
             .Where(candidate => !string.Equals(
                 candidate.Parameter.Name,
                 candidate.ExpectedName,
@@ -175,11 +178,12 @@ public sealed class RepositoryConventionTests
             .. ArchitectureDefinition.s_productionAssemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsInterface)
-                .Select(type => new
-                {
-                    Type = type,
-                    Contract = GetClosedRepositoryContract(type)
-                })
+                .Select(
+                    type => new
+                    {
+                        Type = type,
+                        Contract = GetClosedRepositoryContract(type)
+                    })
                 .Where(repository => repository.Contract is not null)
                 .Select(repository => new Repository(
                     repository.Type,
@@ -198,8 +202,8 @@ public sealed class RepositoryConventionTests
         var assemblyName = GetAssemblyName(repository);
 
         if (!assemblyName.EndsWith(
-                DomainAssemblySuffix,
-                StringComparison.Ordinal))
+            DomainAssemblySuffix,
+            StringComparison.Ordinal))
         {
             violations.Add(
                 $"{repository.FullName} inherits IRepository<,> and must be " +
@@ -207,8 +211,8 @@ public sealed class RepositoryConventionTests
         }
 
         if (!HasNamespaceSegment(
-                repository,
-                AbstractionsNamespaceSegment))
+            repository,
+            AbstractionsNamespaceSegment))
         {
             violations.Add(
                 $"{repository.FullName} must be declared in an " +
@@ -516,8 +520,8 @@ public sealed class RepositoryConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }

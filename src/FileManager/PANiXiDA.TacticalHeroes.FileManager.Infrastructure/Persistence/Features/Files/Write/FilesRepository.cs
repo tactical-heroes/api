@@ -11,10 +11,11 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Feature
 public sealed class FilesRepository(
     FileManagerWriteDbContext dbContext,
     IAggregateTracker aggregateTracker)
-    : EfRepository<FileManagerWriteDbContext, FileId, File>(
-        dbContext,
-        aggregateTracker),
-    IFilesRepository
+    :
+        EfRepository<FileManagerWriteDbContext, FileId, File>(
+            dbContext,
+            aggregateTracker),
+        IFilesRepository
 {
     protected override IQueryable<File> Query => DbSet.AsTracking();
 }

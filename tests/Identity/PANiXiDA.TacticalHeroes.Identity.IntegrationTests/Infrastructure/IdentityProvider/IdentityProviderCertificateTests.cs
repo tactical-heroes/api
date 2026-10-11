@@ -60,13 +60,15 @@ public sealed class IdentityProviderCertificateTests
             EncryptingCredentials = issuer.EncryptionCredentials.ShouldHaveSingleItem()
         });
 
-        var result = await handler.ValidateTokenAsync(token, new TokenValidationParameters
-        {
-            ValidIssuer = "https://localhost/",
-            ValidAudience = "tactical-heroes-api",
-            IssuerSigningKeys = replica.SigningCredentials.Select(credential => credential.Key),
-            TokenDecryptionKeys = replica.EncryptionCredentials.Select(credential => credential.Key)
-        });
+        var result = await handler.ValidateTokenAsync(
+            token,
+            new TokenValidationParameters
+            {
+                ValidIssuer = "https://localhost/",
+                ValidAudience = "tactical-heroes-api",
+                IssuerSigningKeys = replica.SigningCredentials.Select(credential => credential.Key),
+                TokenDecryptionKeys = replica.EncryptionCredentials.Select(credential => credential.Key)
+            });
 
         result.IsValid.ShouldBeTrue();
         result.ClaimsIdentity.FindFirst("sub")?.Value.ShouldBe("certificate-test-user");
@@ -129,10 +131,18 @@ public sealed class IdentityProviderCertificateTests
     {
         var options = CreateServerOptions([], environment);
 
-        options.SigningCredentials.ShouldHaveSingleItem().Key.ShouldBeOfType<X509SecurityKey>()
-            .Certificate.HasPrivateKey.ShouldBeTrue();
-        options.EncryptionCredentials.ShouldHaveSingleItem().Key.ShouldBeOfType<X509SecurityKey>()
-            .Certificate.HasPrivateKey.ShouldBeTrue();
+        options.SigningCredentials.ShouldHaveSingleItem()
+            .Key
+            .ShouldBeOfType<X509SecurityKey>()
+            .Certificate
+            .HasPrivateKey
+            .ShouldBeTrue();
+        options.EncryptionCredentials.ShouldHaveSingleItem()
+            .Key
+            .ShouldBeOfType<X509SecurityKey>()
+            .Certificate
+            .HasPrivateKey
+            .ShouldBeTrue();
     }
 
     [Theory(DisplayName = "AddIdentityProvider should reject partial configuration when one certificate is missing")]

@@ -57,7 +57,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-            var result = await repository.UpdateAsync(IntegrationTestData.CreateUser(id: userId, email: "updated@example.com", isConfirmed: true, roleIds: [], claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value)), userName: "updated-hero", status: UserStatus.Blocked),
+            var result = await repository.UpdateAsync(
+                IntegrationTestData.CreateUser(id: userId, email: "updated@example.com", isConfirmed: true, roleIds: [], claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value)), userName: "updated-hero", status: UserStatus.Blocked),
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -100,7 +101,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var dbContext =
             verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         (await dbContext.Set<ApplicationUser>()
-                .AnyAsync(item => item.Id == userId, cancellationToken))
+            .AnyAsync(item => item.Id == userId, cancellationToken))
             .ShouldBeFalse();
     }
 
@@ -169,9 +170,10 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-        var result = await repository.AddAsync(IntegrationTestData.CreateUser(id: Guid.CreateVersion7(), email: email, isConfirmed: isConfirmed, roleIds: [], claims: claims.Select(claim => (claim.Type, claim.Value)), userName: userName, status: UserStatus.Create(value: status).Value),
-                Password,
-                cancellationToken);
+        var result = await repository.AddAsync(
+            IntegrationTestData.CreateUser(id: Guid.CreateVersion7(), email: email, isConfirmed: isConfirmed, roleIds: [], claims: claims.Select(claim => (claim.Type, claim.Value)), userName: userName, status: UserStatus.Create(value: status).Value),
+            Password,
+            cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

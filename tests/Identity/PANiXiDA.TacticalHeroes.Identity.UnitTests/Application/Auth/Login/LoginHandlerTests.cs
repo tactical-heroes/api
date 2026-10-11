@@ -15,9 +15,9 @@ public sealed class LoginHandlerTests
             []);
         var service = Substitute.For<IUserCredentialsService>();
         service.LoginAsync(
-                "hero@example.com",
-                "StrongPassword1!",
-                Arg.Any<CancellationToken>())
+            "hero@example.com",
+            "StrongPassword1!",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success(authenticatedUser));
         var handler = new LoginHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

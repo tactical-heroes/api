@@ -53,12 +53,14 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
             user.ShouldNotBeNull();
             passwordHash = user.PasswordHash!;
             securityStamp = user.SecurityStamp!;
-            var refreshToken = await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
-            {
-                Subject = createdUser.Id.ToString(),
-                Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
-                Status = OpenIddictConstants.Statuses.Valid
-            }, cancellationToken);
+            var refreshToken = await tokenManager.CreateAsync(
+                new OpenIddictTokenDescriptor
+                {
+                    Subject = createdUser.Id.ToString(),
+                    Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                cancellationToken);
             refreshTokenId = (await tokenManager.GetIdAsync(refreshToken, cancellationToken))!;
         }
 
