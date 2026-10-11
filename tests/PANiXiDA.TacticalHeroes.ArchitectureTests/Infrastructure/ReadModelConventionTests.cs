@@ -79,11 +79,12 @@ public sealed class ReadModelConventionTests
         var sortingTypes = GetReadModelComponents(typeof(IReadModelSorting<>));
         var mappers = GetReadModelComponents(typeof(IReadModelMapper<,,>));
         var violations = sortingTypes.Where(sorting => !mappers.Any(mapper =>
-                GetReadModel(mapper, typeof(IReadModelMapper<,,>)) == GetReadModel(sorting, typeof(IReadModelSorting<>)) &&
-                mapper.Namespace == sorting.Namespace &&
-                InfrastructurePersistenceConvention.FindSourceFiles(mapper).Select(Path.GetDirectoryName)
-                    .Intersect(InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
-                        StringComparer.OrdinalIgnoreCase).Any()))
+            GetReadModel(mapper, typeof(IReadModelMapper<,,>)) == GetReadModel(sorting, typeof(IReadModelSorting<>)) &&
+            mapper.Namespace == sorting.Namespace &&
+            InfrastructurePersistenceConvention.FindSourceFiles(mapper).Select(Path.GetDirectoryName)
+                .Intersect(
+                    InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
+                    StringComparer.OrdinalIgnoreCase).Any()))
             .Select(type => $"{type.FullName} must share its directory and namespace with a mapper for the same read model.")
             .ToArray();
 
@@ -195,7 +196,7 @@ public sealed class ReadModelConventionTests
             var slice = Path.GetFileName(source.Directory);
             var feature = Path.GetFileName(Path.GetDirectoryName(source.Directory));
             foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
-                         component, "Persistence", "Features", feature!, "Read", slice))
+                component, "Persistence", "Features", feature!, "Read", slice))
             {
                 yield return violation;
             }

@@ -133,8 +133,8 @@ public sealed class DomainEncapsulationConventionTests
     {
         var enumerations = GetDomainTypes()
             .Where(type => !type.IsAbstract &&
-                           InfrastructurePersistenceConvention.GetClosedGenericBaseType(
-                               type, typeof(Enumeration<>)) is not null)
+                InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                    type, typeof(Enumeration<>)) is not null)
             .ToArray();
         var violations = enumerations
             .SelectMany(DomainImmutableStateConvention.GetViolations)
@@ -408,7 +408,7 @@ public sealed class DomainEncapsulationConventionTests
             }
 
             foreach (var field in currentType.GetFields(Flags).Where(field =>
-                         !field.IsInitOnly && (field.IsPublic || field.IsAssembly || field.IsFamilyOrAssembly)))
+                !field.IsInitOnly && (field.IsPublic || field.IsAssembly || field.IsFamilyOrAssembly)))
             {
                 yield return $"{currentType.FullName}.{field.Name} must not expose a writable field.";
             }

@@ -25,10 +25,10 @@ public sealed class GetUsersHandlerTests
             1);
         var usersReadRepository = Substitute.For<IUsersReadRepository>();
         usersReadRepository.GetPageAsync(
-                filter,
-                pagination,
-                sorting,
-                Arg.Any<CancellationToken>())
+            filter,
+            pagination,
+            sorting,
+            Arg.Any<CancellationToken>())
             .Returns(page);
         var handler = new GetUsersHandler(usersReadRepository);
         var cancellationToken = TestContext.Current.CancellationToken;

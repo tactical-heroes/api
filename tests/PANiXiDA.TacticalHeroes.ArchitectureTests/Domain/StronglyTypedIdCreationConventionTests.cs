@@ -15,7 +15,8 @@ public sealed class StronglyTypedIdCreationConventionTests
     {
         var violations = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetDocumentViolationsAsync);
 
-        Assert.True(violations.Length == 0,
+        Assert.True(
+            violations.Length == 0,
             $"Strongly typed IDs must be created through their factories:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
@@ -86,7 +87,9 @@ public sealed class StronglyTypedIdCreationConventionTests
             .Split(Path.PathSeparator).Append(typeof(IStronglyTypedId).Assembly.Location)
             .Distinct(StringComparer.OrdinalIgnoreCase).Select(path => MetadataReference.CreateFromFile(path));
         var compilation = CSharpCompilation.Create(
-            assemblyName: "IdCreationProbe", syntaxTrees: [tree], references: references,
+            assemblyName: "IdCreationProbe",
+            syntaxTrees: [tree],
+            references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
 

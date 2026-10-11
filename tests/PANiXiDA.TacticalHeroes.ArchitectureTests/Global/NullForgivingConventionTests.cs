@@ -16,7 +16,8 @@ public sealed class NullForgivingConventionTests
     {
         var violations = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetDocumentViolationsAsync);
 
-        Assert.True(violations.Length == 0,
+        Assert.True(
+            violations.Length == 0,
             $"Suppressed null values in production code:{Environment.NewLine}" +
             string.Join(Environment.NewLine, violations));
     }
@@ -98,7 +99,9 @@ public sealed class NullForgivingConventionTests
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Select(path => MetadataReference.CreateFromFile(path));
         var compilation = CSharpCompilation.Create(
-            assemblyName: "NullForgivingProbe", syntaxTrees: [tree], references: references,
+            assemblyName: "NullForgivingProbe",
+            syntaxTrees: [tree],
+            references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
 

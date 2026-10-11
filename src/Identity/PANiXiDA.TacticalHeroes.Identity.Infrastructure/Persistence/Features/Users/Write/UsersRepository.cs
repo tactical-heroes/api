@@ -175,8 +175,8 @@ public sealed class UsersRepository(
         foreach (var currentClaim in applicationUser.Claims.ToArray())
         {
             if (targetClaims.Any(targetClaim =>
-                    string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
-                    string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
+                string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
+                string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -187,8 +187,8 @@ public sealed class UsersRepository(
         foreach (var targetClaim in targetClaims)
         {
             if (applicationUser.Claims.Any(currentClaim =>
-                    string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
-                    string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
+                string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
+                string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
             {
                 continue;
             }

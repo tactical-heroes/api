@@ -112,7 +112,9 @@ public sealed class FileTests
         }
         else
         {
-            result.ShouldHaveSingleError(ErrorType.Validation, owned
+            result.ShouldHaveSingleError(
+                ErrorType.Validation,
+                owned
                     ? "Only personal files can have a user id."
                     : "Personal files require a user id.")
                 .ShouldHaveField(nameof(File.UserId));

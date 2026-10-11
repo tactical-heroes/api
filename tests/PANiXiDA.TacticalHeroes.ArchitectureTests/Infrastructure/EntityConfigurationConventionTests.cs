@@ -144,14 +144,15 @@ public sealed class EntityConfigurationConventionTests
 
         return ArchitectureDefinition.s_modules
             .SelectMany(module => productionAssemblies[
-                    module.DomainAssemblyName]
+                module.DomainAssemblyName]
                 .GetTypes())
-            .Where(type => type.GetField(MaximumLengthMemberName) is
-            {
-                IsLiteral: true,
-                IsStatic: true,
-                IsPublic: true
-            })
+            .Where(
+                type => type.GetField(MaximumLengthMemberName) is
+                {
+                    IsLiteral: true,
+                    IsStatic: true,
+                    IsPublic: true
+                })
             .Select(type => type.Name)
             .ToHashSet(StringComparer.Ordinal);
     }
@@ -239,11 +240,12 @@ public sealed class EntityConfigurationConventionTests
                     .SelectMany(declaration => declaration
                         .DescendantNodes()
                         .OfType<InvocationExpressionSyntax>())
-                    .Select(invocation => new
-                    {
-                        Invocation = invocation,
-                        MethodName = GetInvokedMethodName(invocation)
-                    })
+                    .Select(
+                        invocation => new
+                        {
+                            Invocation = invocation,
+                            MethodName = GetInvokedMethodName(invocation)
+                        })
                     .Where(candidate =>
                         candidate.MethodName is not null &&
                         s_explicitStoreNamingMethods.Contains(

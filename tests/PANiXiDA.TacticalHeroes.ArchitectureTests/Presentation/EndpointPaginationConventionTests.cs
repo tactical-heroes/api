@@ -12,7 +12,7 @@ public sealed class EndpointPaginationConventionTests
     {
         var endpoints = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetEndpointsAsync);
         var violations = endpoints.Where(endpoint => endpoint.HasParameters != endpoint.DeclaresPagination ||
-                endpoint.HasParameters != endpoint.ReturnsPagination)
+            endpoint.HasParameters != endpoint.ReturnsPagination)
             .Select(endpoint => $"{endpoint.Name}: PaginationParameters, Produces<PaginationResult<T>>, " +
                 "and the paginated success response must occur together.")
             .ToArray();
@@ -72,7 +72,9 @@ public sealed class EndpointPaginationConventionTests
 
             endpoints.Add(new EndpointPagination(
                 $"{Path.GetRelativePath(repositoryRoot, document.FilePath!)}:{invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1}",
-                hasParameters, declaresPagination, returnsPagination));
+                hasParameters,
+                declaresPagination,
+                returnsPagination));
         }
 
         return [.. endpoints];

@@ -61,13 +61,16 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         permissions.ShouldContain(OpenIddictConstants.Permissions.GrantTypes.TokenExchange);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
 
-        using var response = await client.PostAsync("/connect/token", new FormUrlEncodedContent(
-            new Dictionary<string, string?>
-            {
-                [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.ClientCredentials,
-                [OpenIddictConstants.Parameters.ClientId] = options.ClientId,
-                [OpenIddictConstants.Parameters.ClientSecret] = options.ClientSecret
-            }), cancellationToken);
+        using var response = await client.PostAsync(
+            "/connect/token",
+            new FormUrlEncodedContent(
+                new Dictionary<string, string?>
+                {
+                    [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.ClientCredentials,
+                    [OpenIddictConstants.Parameters.ClientId] = options.ClientId,
+                    [OpenIddictConstants.Parameters.ClientSecret] = options.ClientSecret
+                }),
+            cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK, body);
@@ -87,13 +90,16 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client, "service-introspection@example.test", "StrongPassword1!", cancellationToken);
 
-        using var response = await client.PostAsync("/connect/introspect", new FormUrlEncodedContent(
-            new Dictionary<string, string?>
-            {
-                [OpenIddictConstants.Parameters.ClientId] = options.ClientId,
-                [OpenIddictConstants.Parameters.ClientSecret] = options.ClientSecret,
-                [OpenIddictConstants.Parameters.Token] = tokens.AccessToken
-            }), cancellationToken);
+        using var response = await client.PostAsync(
+            "/connect/introspect",
+            new FormUrlEncodedContent(
+                new Dictionary<string, string?>
+                {
+                    [OpenIddictConstants.Parameters.ClientId] = options.ClientId,
+                    [OpenIddictConstants.Parameters.ClientSecret] = options.ClientSecret,
+                    [OpenIddictConstants.Parameters.Token] = tokens.AccessToken
+                }),
+            cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK, body);

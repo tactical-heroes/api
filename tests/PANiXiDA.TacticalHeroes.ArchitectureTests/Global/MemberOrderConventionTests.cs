@@ -38,8 +38,8 @@ public sealed class MemberOrderConventionTests
     public void MemberOrder_Should_AcceptDeclarations_When_OrderIsValid(string source)
     {
         var root = CSharpSyntaxTree.ParseText(
-                source,
-                cancellationToken: TestContext.Current.CancellationToken)
+            source,
+            cancellationToken: TestContext.Current.CancellationToken)
             .GetRoot(TestContext.Current.CancellationToken);
 
         var violations = MemberOrderConvention.GetViolations(root, "Sample.cs");
@@ -69,8 +69,8 @@ public sealed class MemberOrderConventionTests
         string reason)
     {
         var root = CSharpSyntaxTree.ParseText(
-                source,
-                cancellationToken: TestContext.Current.CancellationToken)
+            source,
+            cancellationToken: TestContext.Current.CancellationToken)
             .GetRoot(TestContext.Current.CancellationToken);
 
         var violations = MemberOrderConvention.GetViolations(root, "Sample.cs");

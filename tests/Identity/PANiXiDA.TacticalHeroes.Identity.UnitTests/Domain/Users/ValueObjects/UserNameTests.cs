@@ -30,8 +30,8 @@ public sealed class UserNameTests
         var result = UserName.Create(new string('a', UserName.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"User name cannot be longer than {UserName.MaxLength} characters.")
+            ErrorType.Validation,
+            $"User name cannot be longer than {UserName.MaxLength} characters.")
             .ShouldHaveField(nameof(UserName));
     }
 

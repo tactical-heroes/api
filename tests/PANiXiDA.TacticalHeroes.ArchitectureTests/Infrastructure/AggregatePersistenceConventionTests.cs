@@ -224,8 +224,8 @@ public sealed class AggregatePersistenceConventionTests
             .ToArray();
 
         return configuredTypeNames.Contains(
-                   aggregateType.Name,
-                   StringComparer.Ordinal) ||
+            aggregateType.Name,
+            StringComparer.Ordinal) ||
                configuredTypeNames.Contains(
                    "Application" + aggregateType.Name,
                    StringComparer.Ordinal);
