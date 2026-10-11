@@ -16,8 +16,8 @@ public sealed class MemberOrderConventionTests
         Assert.NotEmpty(documents);
         Assert.True(
             violations.Length == 0,
-            $"Member ordering violations: {violations.Length} total.{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Member ordering violations: {violations.Length} total.{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Member order should accept declarations when order is valid")]
@@ -140,9 +140,9 @@ internal static class MemberOrderConvention
                 var line = current.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 var previousLine = previous.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 violations.Add(
-                    $"{relativePath}:{line}: '{type.Identifier.ValueText}': " +
-                        $"{current.Kind()} must precede {previous.Kind()} at line {previousLine} " +
-                        $"according to {reason} order.");
+                    $"{relativePath}:{line}: '{type.Identifier.ValueText}': "
+                        + $"{current.Kind()} must precede {previous.Kind()} at line {previousLine} "
+                        + $"according to {reason} order.");
             }
         }
 
@@ -182,8 +182,8 @@ internal static class MemberOrderConvention
         MemberDeclarationSyntax member,
         TypeDeclarationSyntax containingType)
     {
-        if (member is ConstructorDeclarationSyntax && member.Modifiers.Any(SyntaxKind.StaticKeyword) ||
-            member is MethodDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
+        if (member is ConstructorDeclarationSyntax && member.Modifiers.Any(SyntaxKind.StaticKeyword)
+            || member is MethodDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
                 PropertyDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
                 IndexerDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or
                 EventDeclarationSyntax { ExplicitInterfaceSpecifier: not null } or

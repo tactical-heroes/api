@@ -223,9 +223,9 @@ public sealed class UserCredentialsService(
     {
         var applicationUser = await userManager.FindByEmailAsync(email);
 
-        if (applicationUser is null ||
-            applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+        if (applicationUser is null
+            || applicationUser.EmailConfirmed
+            || IsBlocked(applicationUser))
         {
             return Result.Success();
         }
@@ -265,9 +265,9 @@ public sealed class UserCredentialsService(
     {
         var applicationUser = await userManager.FindByEmailAsync(email);
 
-        if (applicationUser is null ||
-            !applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+        if (applicationUser is null
+            || !applicationUser.EmailConfirmed
+            || IsBlocked(applicationUser))
         {
             return Result.Success();
         }

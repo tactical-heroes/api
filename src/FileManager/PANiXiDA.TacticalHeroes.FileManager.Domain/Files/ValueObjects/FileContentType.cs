@@ -22,9 +22,9 @@ public sealed partial class FileContentType : ValueObject
                     .WithField(nameof(FileContentType)));
         }
 
-        if (contentType.MediaType is not { Length: > 0 and <= MaxLength } mediaType ||
-            mediaType.Contains('*') ||
-            contentType.Parameters.Count != 0)
+        if (contentType.MediaType is not { Length: > 0 and <= MaxLength } mediaType
+            || mediaType.Contains('*')
+            || contentType.Parameters.Count != 0)
         {
             return Result.Failure<FileContentType>(
                 Error.Validation("File content type must be a concrete media type without parameters.")

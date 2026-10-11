@@ -20,9 +20,9 @@ public sealed partial class TestDisplayNameConventionTests
 
         Assert.True(
             violations.Length == 0,
-            $"Fact and Theory attributes without a string-literal DisplayName:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Fact and Theory attributes without a string-literal DisplayName:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Fact and Theory display names should describe test conditions when a test is declared")]
@@ -37,22 +37,22 @@ public sealed partial class TestDisplayNameConventionTests
                     ExpectedCondition = GetExpectedCondition(testMethod.Name)
                 })
             .Where(item =>
-                item.ExpectedCondition is null ||
-                    !EnglishBehaviorDescriptionPattern().IsMatch(
-                        item.TestMethod.DisplayName!) ||
-                    !item.TestMethod.DisplayName!.EndsWith(
+                item.ExpectedCondition is null
+                    || !EnglishBehaviorDescriptionPattern().IsMatch(
+                        item.TestMethod.DisplayName!)
+                    || !item.TestMethod.DisplayName!.EndsWith(
                         item.ExpectedCondition,
                         StringComparison.Ordinal))
             .Select(item =>
-                $"{item.TestMethod.Location}: \"{item.TestMethod.DisplayName}\"; " +
-                    $"expected an English '<subject> should <behavior>" +
-                    $"{item.ExpectedCondition ?? " when <condition>"}' description.")
+                $"{item.TestMethod.Location}: \"{item.TestMethod.DisplayName}\"; "
+                    + $"expected an English '<subject> should <behavior>"
+                    + $"{item.ExpectedCondition ?? " when <condition>"}' description.")
             .ToArray();
 
         Assert.True(
             violations.Length == 0,
-            $"DisplayName convention violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"DisplayName convention violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [GeneratedRegex(

@@ -15,17 +15,17 @@ public sealed class EndpointBehaviorConventionTests
         var violations = createdAtRouteCalls
             .Where(call => !UsesEndpointRouteName(call.Invocation))
             .Select(call =>
-                $"{call.Endpoint.FullName} must pass routeName as " +
-                    $"new <Target>Endpoint().Name at " +
-                    $"'{Path.GetFileName(call.SourceFile)}:" +
-                    $"{GetLineNumber(call.Invocation)}'.")
+                $"{call.Endpoint.FullName} must pass routeName as "
+                    + $"new <Target>Endpoint().Name at "
+                    + $"'{Path.GetFileName(call.SourceFile)}:"
+                    + $"{GetLineNumber(call.Invocation)}'.")
             .ToArray();
 
         Assert.NotEmpty(createdAtRouteCalls);
         Assert.True(
             violations.Length == 0,
-            $"CreatedAtRoute route name violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"CreatedAtRoute route name violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Mediator messages should be created by slice mappers when endpoint sends a message")]
@@ -36,17 +36,17 @@ public sealed class EndpointBehaviorConventionTests
         var violations = analysis.MediatorCalls
             .Where(call => !call.UsesPresentationMapper)
             .Select(call =>
-                $"{call.RelativePath}:{call.LineNumber}: " +
-                    $"{call.EndpointTypeName}.{call.MethodName} must receive a " +
-                    $"command or query created directly by a Presentation " +
-                    $"Mapper.")
+                $"{call.RelativePath}:{call.LineNumber}: "
+                    + $"{call.EndpointTypeName}.{call.MethodName} must receive a "
+                    + $"command or query created directly by a Presentation "
+                    + $"Mapper.")
             .ToArray();
 
         Assert.NotEmpty(analysis.MediatorCalls);
         Assert.True(
             violations.Length == 0,
-            $"Endpoint mediator usage violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Endpoint mediator usage violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static EndpointInvocation[] GetEndpointInvocations(
@@ -87,8 +87,8 @@ public sealed class EndpointBehaviorConventionTests
         {
             Expression: ObjectCreationExpressionSyntax objectCreation,
             Name.Identifier.ValueText: "Name"
-        } &&
-            objectCreation.Type.ToString().EndsWith(
+        }
+            && objectCreation.Type.ToString().EndsWith(
                 "Endpoint",
                 StringComparison.Ordinal);
     }
@@ -181,9 +181,9 @@ internal static class MediatorSourceDiscovery
         var semanticModel = await document.GetSemanticModelAsync();
         var sourceFile = document.FilePath;
 
-        if (root is null ||
-            semanticModel is null ||
-            sourceFile is null)
+        if (root is null
+            || semanticModel is null
+            || sourceFile is null)
         {
             return [];
         }
@@ -216,8 +216,8 @@ internal static class MediatorSourceDiscovery
                 .Select(invocation => new
                     {
                         Invocation = invocation,
-                        Operation = semanticModel.GetOperation(invocation) as
-                            IInvocationOperation,
+                        Operation = semanticModel.GetOperation(invocation)
+            as IInvocationOperation,
                         Endpoint = invocation.Ancestors()
                             .OfType<TypeDeclarationSyntax>()
                             .Select(declaration =>
@@ -226,12 +226,12 @@ internal static class MediatorSourceDiscovery
                             .FirstOrDefault(IsEndpoint)
                     })
                 .Where(target =>
-                    target.Operation is not null &&
-                        target.Endpoint is not null &&
-                        s_mediatorMethodNames.Contains(
+                    target.Operation is not null
+                        && target.Endpoint is not null
+                        && s_mediatorMethodNames.Contains(
                             target.Operation.TargetMethod.Name,
-                            StringComparer.Ordinal) &&
-                        string.Equals(
+                            StringComparer.Ordinal)
+                        && string.Equals(
                             target.Operation.TargetMethod.ContainingType
                                 .ToDisplayString(),
                             MediatorTypeName,
@@ -254,8 +254,8 @@ internal static class MediatorSourceDiscovery
             string.Equals(
                 interfaceType.Name,
                 "IEndpoint",
-                StringComparison.Ordinal) &&
-                string.Equals(
+                StringComparison.Ordinal)
+                && string.Equals(
                     interfaceType.ContainingNamespace.ToDisplayString(),
                     EndpointInterfaceNamespace,
                     StringComparison.Ordinal));
@@ -270,11 +270,11 @@ internal static class MediatorSourceDiscovery
             operation = conversion.Operand;
         }
 
-        return operation is IInvocationOperation mapperInvocation &&
-            mapperInvocation.TargetMethod.ContainingType.Name.EndsWith(
+        return operation is IInvocationOperation mapperInvocation
+            && mapperInvocation.TargetMethod.ContainingType.Name.EndsWith(
                 MapperSuffix,
-                StringComparison.Ordinal) &&
-            string.Equals(
+                StringComparison.Ordinal)
+            && string.Equals(
                 mapperInvocation.TargetMethod.ContainingAssembly.Name,
                 presentationAssemblyName,
                 StringComparison.Ordinal);

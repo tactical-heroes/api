@@ -13,17 +13,17 @@ public sealed class CancellationTokenConventionTests
         var analysis = await CancellationTokenSourceDiscovery.GetAnalysisAsync();
         var violations = analysis.Sentinels
             .Select(sentinel =>
-                $"{sentinel.RelativePath}:{sentinel.LineNumber}: " +
-                    $"'{sentinel.Expression}' must be replaced with an actual " +
-                    $"cancellation token.")
+                $"{sentinel.RelativePath}:{sentinel.LineNumber}: "
+                    + $"'{sentinel.Expression}' must be replaced with an actual "
+                    + $"cancellation token.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Parameters);
         Assert.True(
             violations.Length == 0,
-            $"Cancellation token sentinel violations: " +
-                $"{violations.Length} total.{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Cancellation token sentinel violations: "
+                + $"{violations.Length} total.{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Cancellation token parameters should be used when declared")]
@@ -32,21 +32,21 @@ public sealed class CancellationTokenConventionTests
         var analysis = await CancellationTokenSourceDiscovery.GetAnalysisAsync();
         var violations = analysis.Parameters
             .Where(parameter =>
-                parameter.HasImplementation &&
-                    !parameter.HasExternallyDefinedSignature &&
-                    !parameter.IsUsed)
+                parameter.HasImplementation
+                    && !parameter.HasExternallyDefinedSignature
+                    && !parameter.IsUsed)
             .Select(parameter =>
-                $"{parameter.RelativePath}:{parameter.LineNumber}: " +
-                    $"cancellation token parameter '{parameter.Name}' is unused " +
-                    $"and should be removed.")
+                $"{parameter.RelativePath}:{parameter.LineNumber}: "
+                    + $"cancellation token parameter '{parameter.Name}' is unused "
+                    + $"and should be removed.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Parameters);
         Assert.True(
             violations.Length == 0,
-            $"Unused cancellation token parameters: " +
-                $"{violations.Length} total.{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Unused cancellation token parameters: "
+                + $"{violations.Length} total.{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Cancellation tokens should be forwarded when available")]
@@ -55,20 +55,20 @@ public sealed class CancellationTokenConventionTests
         var analysis = await CancellationTokenSourceDiscovery.GetAnalysisAsync();
         var violations = analysis.Invocations
             .Where(invocation =>
-                invocation.HasAvailableToken &&
-                    !invocation.PassesAllTokens)
+                invocation.HasAvailableToken
+                    && !invocation.PassesAllTokens)
             .Select(invocation =>
-                $"{invocation.RelativePath}:{invocation.LineNumber}: " +
-                    $"'{invocation.Expression}' should receive the available " +
-                    $"cancellation token.")
+                $"{invocation.RelativePath}:{invocation.LineNumber}: "
+                    + $"'{invocation.Expression}' should receive the available "
+                    + $"cancellation token.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Invocations);
         Assert.True(
             violations.Length == 0,
-            $"Cancellation token forwarding violations: " +
-                $"{violations.Length} total.{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Cancellation token forwarding violations: "
+                + $"{violations.Length} total.{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Cancellation tokens should be available when cancellable operation is invoked")]
@@ -77,22 +77,22 @@ public sealed class CancellationTokenConventionTests
         var analysis = await CancellationTokenSourceDiscovery.GetAnalysisAsync();
         var violations = analysis.Invocations
             .Where(invocation =>
-                IsProductionSource(invocation.RelativePath) &&
-                    !invocation.HasAvailableToken &&
-                    !invocation.PassesAllTokens)
+                IsProductionSource(invocation.RelativePath)
+                    && !invocation.HasAvailableToken
+                    && !invocation.PassesAllTokens)
             .Select(invocation =>
-                $"{invocation.RelativePath}:{invocation.LineNumber}: " +
-                    $"'{invocation.Expression}' supports cancellation, but no " +
-                    $"token is available. Add a CancellationToken parameter and " +
-                    $"propagate it from the entry point.")
+                $"{invocation.RelativePath}:{invocation.LineNumber}: "
+                    + $"'{invocation.Expression}' supports cancellation, but no "
+                    + $"token is available. Add a CancellationToken parameter and "
+                    + $"propagate it from the entry point.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Invocations);
         Assert.True(
             violations.Length == 0,
-            $"Missing cancellation token sources: " +
-                $"{violations.Length} total.{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Missing cancellation token sources: "
+                + $"{violations.Length} total.{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static bool IsProductionSource(string relativePath)
@@ -160,9 +160,9 @@ internal static class CancellationTokenSourceDiscovery
         var semanticModel = await document.GetSemanticModelAsync();
         var sourceFile = document.FilePath;
 
-        if (root is null ||
-            semanticModel is null ||
-            sourceFile is null)
+        if (root is null
+            || semanticModel is null
+            || sourceFile is null)
         {
             return [];
         }
@@ -213,8 +213,8 @@ internal static class CancellationTokenSourceDiscovery
         ParameterSyntax parameter)
     {
         if (semanticModel.GetDeclaredSymbol(parameter) is not
-                IParameterSymbol parameterSymbol ||
-            !IsCancellationToken(parameterSymbol.Type))
+                IParameterSymbol parameterSymbol
+            || !IsCancellationToken(parameterSymbol.Type))
         {
             return null;
         }
@@ -227,13 +227,13 @@ internal static class CancellationTokenSourceDiscovery
             LineNumber: GetLineNumber(parameter),
             Position: parameter.SpanStart,
             Name: parameterSymbol.Name,
-            HasImplementation: callable is not null &&
-                HasImplementation(callable),
+            HasImplementation: callable is not null
+                && HasImplementation(callable),
             HasExternallyDefinedSignature:
-                method is not null &&
-                    HasExternallyDefinedSignature(method),
-            IsUsed: callable is not null &&
-                callable
+                method is not null
+                    && HasExternallyDefinedSignature(method),
+            IsUsed: callable is not null
+                && callable
                     .DescendantNodes()
                     .OfType<IdentifierNameSyntax>()
                     .Any(identifier => SymbolEqualityComparer.Default.Equals(
@@ -325,22 +325,22 @@ internal static class CancellationTokenSourceDiscovery
         SemanticModel semanticModel,
         ExpressionSyntax expression)
     {
-        if (expression is MemberAccessExpressionSyntax memberAccess &&
-            semanticModel.GetSymbolInfo(memberAccess).Symbol is
-                IPropertySymbol property &&
-            property.IsStatic &&
-            string.Equals(
+        if (expression is MemberAccessExpressionSyntax memberAccess
+            && semanticModel.GetSymbolInfo(memberAccess).Symbol is
+                IPropertySymbol property
+            && property.IsStatic
+            && string.Equals(
                 property.Name,
                 "None",
-                StringComparison.Ordinal) &&
-            IsCancellationToken(property.ContainingType))
+                StringComparison.Ordinal)
+            && IsCancellationToken(property.ContainingType))
         {
             return true;
         }
 
-        return (expression.IsKind(SyntaxKind.DefaultLiteralExpression) ||
-            expression is DefaultExpressionSyntax) &&
-            IsCancellationToken(
+        return (expression.IsKind(SyntaxKind.DefaultLiteralExpression)
+            || expression is DefaultExpressionSyntax)
+            && IsCancellationToken(
                 semanticModel.GetTypeInfo(expression).ConvertedType);
     }
 
@@ -359,11 +359,11 @@ internal static class CancellationTokenSourceDiscovery
         return callable switch
         {
             BaseMethodDeclarationSyntax method =>
-                method.Body is not null ||
-                    method.ExpressionBody is not null,
+                method.Body is not null
+                    || method.ExpressionBody is not null,
             LocalFunctionStatementSyntax localFunction =>
-                localFunction.Body is not null ||
-                    localFunction.ExpressionBody is not null,
+                localFunction.Body is not null
+                    || localFunction.ExpressionBody is not null,
             AnonymousFunctionExpressionSyntax => true,
             _ => false
         };
@@ -371,8 +371,8 @@ internal static class CancellationTokenSourceDiscovery
 
     private static bool HasExternallyDefinedSignature(IMethodSymbol method)
     {
-        if (method.IsOverride ||
-            method.ExplicitInterfaceImplementations.Length > 0)
+        if (method.IsOverride
+            || method.ExplicitInterfaceImplementations.Length > 0)
         {
             return true;
         }

@@ -22,8 +22,8 @@ public sealed class DomainEncapsulationConventionTests
     {
         var domainEvents = GetDomainTypes()
             .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                    typeof(DomainEvent).IsAssignableFrom(type))
+                type is { IsClass: true, IsAbstract: false }
+                    && typeof(DomainEvent).IsAssignableFrom(type))
             .ToArray();
         var violations = domainEvents
             .SelectMany(DomainImmutableStateConvention.GetViolations)
@@ -34,8 +34,8 @@ public sealed class DomainEncapsulationConventionTests
         Assert.NotEmpty(domainEvents);
         Assert.True(
             violations.Length == 0,
-            $"Domain events must contain only immutable state:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Domain events must contain only immutable state:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(
@@ -96,8 +96,8 @@ public sealed class DomainEncapsulationConventionTests
     {
         var valueObjects = GetDomainTypes()
             .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                    typeof(ValueObject).IsAssignableFrom(type))
+                type is { IsClass: true, IsAbstract: false }
+                    && typeof(ValueObject).IsAssignableFrom(type))
             .ToArray();
         var violations = valueObjects
             .SelectMany(DomainImmutableStateConvention.GetViolations)
@@ -108,8 +108,8 @@ public sealed class DomainEncapsulationConventionTests
         Assert.NotEmpty(valueObjects);
         Assert.True(
             violations.Length == 0,
-            $"Value objects must contain only immutable state:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Value objects must contain only immutable state:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Strongly typed ids should contain only immutable state when declared")]
@@ -125,16 +125,16 @@ public sealed class DomainEncapsulationConventionTests
         Assert.NotEmpty(identifiers);
         Assert.True(
             violations.Length == 0,
-            $"Strongly typed ids must contain only immutable state:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Strongly typed ids must contain only immutable state:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Enumerations should contain only immutable state when declared")]
     public void Enumerations_Should_ContainOnlyImmutableState_When_Declared()
     {
         var enumerations = GetDomainTypes()
-            .Where(type => !type.IsAbstract &&
-                InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+            .Where(type => !type.IsAbstract
+                && InfrastructurePersistenceConvention.GetClosedGenericBaseType(
                     type, typeof(Enumeration<>)) is not null)
             .ToArray();
         var violations = enumerations
@@ -146,8 +146,8 @@ public sealed class DomainEncapsulationConventionTests
         Assert.NotEmpty(enumerations);
         Assert.True(
             violations.Length == 0,
-            $"Enumerations must contain only immutable state:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Enumerations must contain only immutable state:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(
@@ -166,16 +166,16 @@ public sealed class DomainEncapsulationConventionTests
         var violations = valueObjects.Concat(enumerations)
             .SelectMany(type => type
                 .GetProperties(
-                    BindingFlags.Instance |
-                        BindingFlags.Static |
-                        BindingFlags.Public |
-                        BindingFlags.NonPublic)
+                    BindingFlags.Instance
+                        | BindingFlags.Static
+                        | BindingFlags.Public
+                        | BindingFlags.NonPublic)
                 .Where(property =>
-                    property.GetGetMethod(nonPublic: true) is not { IsPublic: true } ||
-                        property.GetSetMethod(nonPublic: true) is not null)
+                    property.GetGetMethod(nonPublic: true) is not { IsPublic: true }
+                        || property.GetSetMethod(nonPublic: true) is not null)
                 .Select(property =>
-                    $"{type.FullName}.{property.Name} must have a public getter " +
-                        $"and no setter or init accessor."))
+                    $"{type.FullName}.{property.Name} must have a public getter "
+                        + $"and no setter or init accessor."))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
@@ -183,8 +183,8 @@ public sealed class DomainEncapsulationConventionTests
         Assert.NotEmpty(enumerations);
         Assert.True(
             violations.Length == 0,
-            $"Value object and enumeration property violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Value object and enumeration property violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Aggregate roots and entities should not expose writable state when domain state is declared")]
@@ -200,8 +200,8 @@ public sealed class DomainEncapsulationConventionTests
         Assert.NotEmpty(domainEntities);
         Assert.True(
             violations.Length == 0,
-            $"Domain encapsulation violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Domain encapsulation violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Domain state should enforce encapsulation when member access varies")]
@@ -262,17 +262,17 @@ public sealed class DomainEncapsulationConventionTests
             .Where(member =>
                 ContainsMutableCollection(member.MemberType))
             .Select(member =>
-                $"{member.DeclaringType.FullName}.{member.Name} exposes " +
-                    $"mutable collection type '{member.MemberType}'.")
+                $"{member.DeclaringType.FullName}.{member.Name} exposes "
+                    + $"mutable collection type '{member.MemberType}'.")
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(domainEntities);
         Assert.True(
             violations.Length == 0,
-            $"Mutable collections exposed by domain types:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Mutable collections exposed by domain types:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Aggregate roots should not contain other aggregate roots when state is declared")]
@@ -285,25 +285,25 @@ public sealed class DomainEncapsulationConventionTests
         var violations = aggregateRoots
             .SelectMany(type => type
                 .GetFields(
-                    BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.NonPublic |
-                        BindingFlags.DeclaredOnly)
+                    BindingFlags.Instance
+                        | BindingFlags.Public
+                        | BindingFlags.NonPublic
+                        | BindingFlags.DeclaredOnly)
                 .Where(field => GetContainedTypes(field.FieldType)
                     .Any(containedType =>
                         typeof(IAggregateRoot).IsAssignableFrom(
                             containedType)))
                 .Select(field =>
-                    $"{type.FullName}.{field.Name} must not contain " +
-                        $"aggregate root type '{field.FieldType}'."))
+                    $"{type.FullName}.{field.Name} must not contain "
+                        + $"aggregate root type '{field.FieldType}'."))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(aggregateRoots);
         Assert.True(
             violations.Length == 0,
-            $"Nested aggregate roots:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Nested aggregate roots:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Domain objects should declare only private constructors when created through factories")]
@@ -311,33 +311,33 @@ public sealed class DomainEncapsulationConventionTests
     {
         var domainObjects = GetDomainTypes()
             .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                    (typeof(IEntity).IsAssignableFrom(type) ||
-                        typeof(ValueObject).IsAssignableFrom(type) ||
-                        InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                type is { IsClass: true, IsAbstract: false }
+                    && (typeof(IEntity).IsAssignableFrom(type)
+                        || typeof(ValueObject).IsAssignableFrom(type)
+                        || InfrastructurePersistenceConvention.GetClosedGenericBaseType(
                             type,
                             typeof(Enumeration<>)) is not null))
             .ToArray();
         var violations = domainObjects
             .SelectMany(type => type
                 .GetConstructors(
-                    BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.NonPublic |
-                        BindingFlags.DeclaredOnly)
+                    BindingFlags.Instance
+                        | BindingFlags.Public
+                        | BindingFlags.NonPublic
+                        | BindingFlags.DeclaredOnly)
                 .Where(constructor => !constructor.IsPrivate)
                 .Select(constructor =>
-                    $"{type.FullName} declares non-private constructor " +
-                        $"'{constructor}' and must expose creation through a " +
-                        $"factory method instead."))
+                    $"{type.FullName} declares non-private constructor "
+                        + $"'{constructor}' and must expose creation through a "
+                        + $"factory method instead."))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(domainObjects);
         Assert.True(
             violations.Length == 0,
-            $"Non-private Domain object constructors:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Non-private Domain object constructors:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Strongly typed ids should declare only private constructors when declared")]
@@ -347,23 +347,23 @@ public sealed class DomainEncapsulationConventionTests
         var violations = identifiers
             .SelectMany(type => type
                 .GetConstructors(
-                    BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.NonPublic |
-                        BindingFlags.DeclaredOnly)
+                    BindingFlags.Instance
+                        | BindingFlags.Public
+                        | BindingFlags.NonPublic
+                        | BindingFlags.DeclaredOnly)
                 .Where(constructor => !constructor.IsPrivate)
                 .Select(constructor =>
-                    $"{type.FullName} declares non-private constructor " +
-                        $"'{constructor}' and must expose creation through a " +
-                        $"factory method instead."))
+                    $"{type.FullName} declares non-private constructor "
+                        + $"'{constructor}' and must expose creation through a "
+                        + $"factory method instead."))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(identifiers);
         Assert.True(
             violations.Length == 0,
-            $"Non-private strongly typed id constructors:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Non-private strongly typed id constructors:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(
@@ -374,31 +374,31 @@ public sealed class DomainEncapsulationConventionTests
         var violations = identifiers
             .SelectMany(type => type
                 .GetProperties(
-                    BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.NonPublic |
-                        BindingFlags.DeclaredOnly)
+                    BindingFlags.Instance
+                        | BindingFlags.Public
+                        | BindingFlags.NonPublic
+                        | BindingFlags.DeclaredOnly)
                 .Where(property =>
-                    property.GetGetMethod(nonPublic: true) is not { IsPublic: true } ||
-                        property.GetSetMethod(nonPublic: true) is not null)
+                    property.GetGetMethod(nonPublic: true) is not { IsPublic: true }
+                        || property.GetSetMethod(nonPublic: true) is not null)
                 .Select(property =>
-                    $"{type.FullName}.{property.Name} must have a public getter " +
-                        $"and no setter or init accessor."))
+                    $"{type.FullName}.{property.Name} must have a public getter "
+                        + $"and no setter or init accessor."))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(identifiers);
         Assert.True(
             violations.Length == 0,
-            $"Strongly typed id property violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Strongly typed id property violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static IEnumerable<string> GetEncapsulationViolations(Type type)
     {
         const BindingFlags Flags = BindingFlags.Instance
-            | BindingFlags.Public |
-            BindingFlags.NonPublic
+            | BindingFlags.Public
+            | BindingFlags.NonPublic
             | BindingFlags.DeclaredOnly;
 
         for (var currentType = type;
@@ -431,8 +431,8 @@ public sealed class DomainEncapsulationConventionTests
     private static IEnumerable<string> GetPropertyEncapsulationViolations(Type type)
     {
         const BindingFlags Flags = BindingFlags.Instance
-            | BindingFlags.Public |
-            BindingFlags.NonPublic
+            | BindingFlags.Public
+            | BindingFlags.NonPublic
             | BindingFlags.DeclaredOnly;
 
         foreach (var property in type.GetProperties(Flags))
@@ -444,21 +444,21 @@ public sealed class DomainEncapsulationConventionTests
                 continue;
             }
 
-            if (property.GetGetMethod(nonPublic: true) is not { IsPublic: true } ||
-                setter is not { IsPrivate: true } ||
-                setter.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(IsExternalInit)))
+            if (property.GetGetMethod(nonPublic: true) is not { IsPublic: true }
+                || setter is not { IsPrivate: true }
+                || setter.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(IsExternalInit)))
             {
-                yield return $"{type.FullName}.{property.Name} must have a public getter " +
-                    "and an explicit private setter, not an init accessor.";
+                yield return $"{type.FullName}.{property.Name} must have a public getter "
+                    + "and an explicit private setter, not an init accessor.";
             }
         }
     }
 
     private static IEnumerable<string> GetExternalMethodMutationViolations(MethodInfo method)
     {
-        if (method.IsSpecialName &&
-            (method.Name.StartsWith("set_", StringComparison.Ordinal) ||
-                method.Name.Contains(".set_", StringComparison.Ordinal)))
+        if (method.IsSpecialName
+            && (method.Name.StartsWith("set_", StringComparison.Ordinal)
+                || method.Name.Contains(".set_", StringComparison.Ordinal)))
         {
             yield return $"{method.DeclaringType?.FullName}.{method.Name} must not expose a setter or init accessor.";
         }
@@ -473,8 +473,8 @@ public sealed class DomainEncapsulationConventionTests
     {
         return method.IsPublic
             || method.IsAssembly
-            || method.IsFamilyOrAssembly ||
-            method is { IsPrivate: true, IsVirtual: true, IsFinal: true };
+            || method.IsFamilyOrAssembly
+            || method is { IsPrivate: true, IsVirtual: true, IsFinal: true };
     }
 
     private static Type[] GetStronglyTypedIds()
@@ -483,8 +483,8 @@ public sealed class DomainEncapsulationConventionTests
         [
             .. GetDomainTypes()
                 .Where(type =>
-                    (type.IsClass || type.IsValueType) &&
-                        typeof(IStronglyTypedId).IsAssignableFrom(type))
+                    (type.IsClass || type.IsValueType)
+                        && typeof(IStronglyTypedId).IsAssignableFrom(type))
         ];
     }
 
@@ -494,8 +494,8 @@ public sealed class DomainEncapsulationConventionTests
         [
             .. GetDomainTypes()
                 .Where(type =>
-                    type is { IsClass: true, IsAbstract: false } &&
-                        typeof(IEntity).IsAssignableFrom(type))
+                    type is { IsClass: true, IsAbstract: false }
+                        && typeof(IEntity).IsAssignableFrom(type))
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
         ];
     }
@@ -514,9 +514,9 @@ public sealed class DomainEncapsulationConventionTests
     {
         var properties = domainType
             .GetProperties(
-                BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.DeclaredOnly)
+                BindingFlags.Instance
+                    | BindingFlags.Public
+                    | BindingFlags.DeclaredOnly)
             .Where(property =>
                 property.GetMethod is { IsPublic: true })
             .Select(property => new PublicStateMember(
@@ -525,22 +525,22 @@ public sealed class DomainEncapsulationConventionTests
                 property.PropertyType));
         var fields = domainType
             .GetFields(
-                BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.DeclaredOnly)
+                BindingFlags.Instance
+                    | BindingFlags.Public
+                    | BindingFlags.DeclaredOnly)
             .Select(field => new PublicStateMember(
                 domainType,
                 field.Name,
                 field.FieldType));
         var methods = domainType
             .GetMethods(
-                BindingFlags.Instance |
-                    BindingFlags.Static |
-                    BindingFlags.Public |
-                    BindingFlags.DeclaredOnly)
+                BindingFlags.Instance
+                    | BindingFlags.Static
+                    | BindingFlags.Public
+                    | BindingFlags.DeclaredOnly)
             .Where(method =>
-                !method.IsSpecialName &&
-                    method.ReturnType != typeof(void))
+                !method.IsSpecialName
+                    && method.ReturnType != typeof(void))
             .Select(method => new PublicStateMember(
                 domainType,
                 method.Name + "()",
@@ -558,14 +558,14 @@ public sealed class DomainEncapsulationConventionTests
             return false;
         }
 
-        if (DomainCollectionConvention.IsCollectionType(type) &&
-            !DomainCollectionConvention.IsReadOnlyCollectionType(type))
+        if (DomainCollectionConvention.IsCollectionType(type)
+            && !DomainCollectionConvention.IsReadOnlyCollectionType(type))
         {
             return true;
         }
 
-        return type.IsGenericType &&
-            type.GetGenericArguments()
+        return type.IsGenericType
+            && type.GetGenericArguments()
                 .Any(ContainsMutableCollection);
     }
 

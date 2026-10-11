@@ -32,15 +32,17 @@ public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
         using var validResponse = await client.SendAsync(validRequest, cancellationToken);
         validResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
+                [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
+                [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
+            });
+
         using var revokeResponse = await client.PostAsync(
             "/connect/revoke",
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-                    [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
-                    [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
-                }),
+            content,
             cancellationToken);
         var revokeResponseBody = await revokeResponse.Content.ReadAsStringAsync(cancellationToken);
 

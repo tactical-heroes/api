@@ -22,8 +22,8 @@ internal static class EmailNotificationMessageFactory
             RecipientEmail: domainEvent.Email,
             Subject: EmailConfirmationSubject,
             TextBody:
-                $"Confirm your Tactical Heroes email: {domainEvent.ConfirmationUrl}{Environment.NewLine}" +
-                    $"This link expires at {expiresAtUtc}.",
+                $"Confirm your Tactical Heroes email: {domainEvent.ConfirmationUrl}{Environment.NewLine}"
+                    + $"This link expires at {expiresAtUtc}.",
             HtmlBody: BuildHtmlBody(
                 title: "Confirm your email",
                 description: "Confirm your email address to finish setting up your Tactical Heroes account.",
@@ -43,8 +43,8 @@ internal static class EmailNotificationMessageFactory
             RecipientEmail: domainEvent.Email,
             Subject: PasswordResetSubject,
             TextBody:
-                $"Reset your Tactical Heroes password: {domainEvent.PasswordResetUrl}{Environment.NewLine}" +
-                    $"This link expires at {expiresAtUtc}.",
+                $"Reset your Tactical Heroes password: {domainEvent.PasswordResetUrl}{Environment.NewLine}"
+                    + $"This link expires at {expiresAtUtc}.",
             HtmlBody: BuildHtmlBody(
                 title: "Reset your password",
                 description: "Use the button below to choose a new password for your Tactical Heroes account.",

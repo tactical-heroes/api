@@ -24,8 +24,8 @@ internal sealed class IdentityCleanupOptionsValidator
                 $"{IdentityCleanupOptions.SectionName}:UnconfirmedUserRetention must be positive.");
         }
 
-        if (string.IsNullOrWhiteSpace(options.UnconfirmedUsersCronSchedule) ||
-            !CronExpression.TryParse(options.UnconfirmedUsersCronSchedule, out _))
+        if (string.IsNullOrWhiteSpace(options.UnconfirmedUsersCronSchedule)
+            || !CronExpression.TryParse(options.UnconfirmedUsersCronSchedule, out _))
         {
             failures.Add(
                 $"{IdentityCleanupOptions.SectionName}:UnconfirmedUsersCronSchedule must be a valid Quartz cron expression.");

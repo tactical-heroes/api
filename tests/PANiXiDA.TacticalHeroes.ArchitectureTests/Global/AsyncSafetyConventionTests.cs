@@ -12,16 +12,16 @@ public sealed class AsyncSafetyConventionTests
         var analysis = await AsyncSafetySourceDiscovery.GetAnalysisAsync();
         var violations = analysis.BlockingCalls
             .Select(call =>
-                $"{call.RelativePath}:{call.LineNumber}: '{call.Expression}' " +
-                    $"blocks asynchronous execution and must be awaited.")
+                $"{call.RelativePath}:{call.LineNumber}: '{call.Expression}' "
+                    + $"blocks asynchronous execution and must be awaited.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Callables);
         Assert.True(
             violations.Length == 0,
-            $"Blocking async calls: {violations.Length} total." +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Blocking async calls: {violations.Length} total."
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Async void callables should not be declared when production code is declared")]
@@ -30,17 +30,17 @@ public sealed class AsyncSafetyConventionTests
         var analysis = await AsyncSafetySourceDiscovery.GetAnalysisAsync();
         var violations = analysis.AsyncVoidCallables
             .Select(callable =>
-                $"{callable.RelativePath}:{callable.LineNumber}: " +
-                    $"'{callable.Expression}' is async void and cannot be " +
-                    $"reliably awaited or observed.")
+                $"{callable.RelativePath}:{callable.LineNumber}: "
+                    + $"'{callable.Expression}' is async void and cannot be "
+                    + $"reliably awaited or observed.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Callables);
         Assert.True(
             violations.Length == 0,
-            $"Async void callables: {violations.Length} total." +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Async void callables: {violations.Length} total."
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 }
 
@@ -98,9 +98,9 @@ internal static class AsyncSafetySourceDiscovery
         var semanticModel = await document.GetSemanticModelAsync();
         var sourceFile = document.FilePath;
 
-        if (root is null ||
-            semanticModel is null ||
-            sourceFile is null)
+        if (root is null
+            || semanticModel is null
+            || sourceFile is null)
         {
             return [];
         }
@@ -156,19 +156,19 @@ internal static class AsyncSafetySourceDiscovery
         SemanticModel semanticModel,
         ExpressionSyntax expression)
     {
-        if (expression is MemberAccessExpressionSyntax memberAccess &&
-            semanticModel.GetSymbolInfo(memberAccess).Symbol is
+        if (expression is MemberAccessExpressionSyntax memberAccess
+            && semanticModel.GetSymbolInfo(memberAccess).Symbol is
                 IPropertySymbol
             {
                 Name: "Result"
-            } property &&
-            IsTaskType(property.ContainingType))
+            } property
+            && IsTaskType(property.ContainingType))
         {
             return true;
         }
 
-        if (expression is not InvocationExpressionSyntax invocation ||
-            semanticModel.GetOperation(invocation) is not
+        if (expression is not InvocationExpressionSyntax invocation
+            || semanticModel.GetOperation(invocation) is not
                 IInvocationOperation operation)
         {
             return false;
@@ -177,8 +177,8 @@ internal static class AsyncSafetySourceDiscovery
         if (string.Equals(
             operation.TargetMethod.Name,
             "Wait",
-            StringComparison.Ordinal) &&
-            IsTaskType(operation.TargetMethod.ContainingType))
+            StringComparison.Ordinal)
+            && IsTaskType(operation.TargetMethod.ContainingType))
         {
             return true;
         }
@@ -186,10 +186,10 @@ internal static class AsyncSafetySourceDiscovery
         return string.Equals(
             operation.TargetMethod.Name,
             "GetResult",
-            StringComparison.Ordinal) &&
-            operation.TargetMethod.ContainingNamespace.ToDisplayString() ==
-                "System.Runtime.CompilerServices" &&
-            operation.TargetMethod.ContainingType.Name.Contains(
+            StringComparison.Ordinal)
+            && operation.TargetMethod.ContainingNamespace.ToDisplayString()
+            == "System.Runtime.CompilerServices"
+            && operation.TargetMethod.ContainingType.Name.Contains(
                 "TaskAwaiter",
                 StringComparison.Ordinal);
     }
@@ -202,21 +202,21 @@ internal static class AsyncSafetySourceDiscovery
         {
             MethodDeclarationSyntax method =>
                 method.Modifiers.Any(modifier =>
-                    modifier.ValueText == "async") &&
-                    semanticModel.GetDeclaredSymbol(method) is IMethodSymbol
+                    modifier.ValueText == "async")
+                    && semanticModel.GetDeclaredSymbol(method) is IMethodSymbol
                     {
                         ReturnsVoid: true
                     },
             LocalFunctionStatementSyntax localFunction =>
                 localFunction.Modifiers.Any(modifier =>
-                    modifier.ValueText == "async") &&
-                    semanticModel.GetDeclaredSymbol(localFunction) is IMethodSymbol
+                    modifier.ValueText == "async")
+                    && semanticModel.GetDeclaredSymbol(localFunction) is IMethodSymbol
                     {
                         ReturnsVoid: true
                     },
             AnonymousFunctionExpressionSyntax anonymousFunction =>
-                anonymousFunction.AsyncKeyword.ValueText == "async" &&
-                    semanticModel.GetTypeInfo(anonymousFunction).ConvertedType is
+                anonymousFunction.AsyncKeyword.ValueText == "async"
+                    && semanticModel.GetTypeInfo(anonymousFunction).ConvertedType is
                         INamedTypeSymbol
                     {
                         DelegateInvokeMethod.ReturnsVoid: true
@@ -227,9 +227,9 @@ internal static class AsyncSafetySourceDiscovery
 
     private static bool IsTaskType(ITypeSymbol type)
     {
-        return type.ContainingNamespace.ToDisplayString() ==
-               "System.Threading.Tasks" &&
-            type.Name is "Task" or "ValueTask";
+        return type.ContainingNamespace.ToDisplayString()
+            == "System.Threading.Tasks"
+            && type.Name is "Task" or "ValueTask";
     }
 
     private static AsyncSafetySource CreateSource(

@@ -45,7 +45,8 @@ public sealed class ScalarFaviconTests(FunctionalTestFixture fixture)
     public async Task GetFavicon_Should_PreserveHttpsAndApiAuthorization_When_ShortCircuited()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await using var factory = new FunctionalTestWebApplicationFactory(Environments.Development)
+        await using var testFactory = new FunctionalTestWebApplicationFactory(Environments.Development);
+        await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddHttpsRedirection(options => options.HttpsPort = 443)));
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions

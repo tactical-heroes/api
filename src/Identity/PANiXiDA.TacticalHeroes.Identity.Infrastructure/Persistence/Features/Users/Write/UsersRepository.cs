@@ -177,8 +177,11 @@ public sealed class UsersRepository(
             if (
                 targetClaims.Any(
                     targetClaim =>
-                        string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal) &&
-                            string.Equals(targetClaim.ClaimValue, currentClaim.ClaimValue, StringComparison.Ordinal)))
+                        string.Equals(targetClaim.ClaimType, currentClaim.ClaimType, StringComparison.Ordinal)
+                            && string.Equals(
+                                targetClaim.ClaimValue,
+                                currentClaim.ClaimValue,
+                                StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -191,8 +194,11 @@ public sealed class UsersRepository(
             if (
                 applicationUser.Claims.Any(
                     currentClaim =>
-                        string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal) &&
-                            string.Equals(currentClaim.ClaimValue, targetClaim.ClaimValue, StringComparison.Ordinal)))
+                        string.Equals(currentClaim.ClaimType, targetClaim.ClaimType, StringComparison.Ordinal)
+                            && string.Equals(
+                                currentClaim.ClaimValue,
+                                targetClaim.ClaimValue,
+                                StringComparison.Ordinal)))
             {
                 continue;
             }

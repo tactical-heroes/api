@@ -17,8 +17,8 @@ public sealed class StronglyTypedIdCreationConventionTests
 
         Assert.True(
             violations.Length == 0,
-            $"Strongly typed IDs must be created through their factories:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Strongly typed IDs must be created through their factories:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "ID creation should detect default values when source expressions vary")]
@@ -116,8 +116,8 @@ public sealed class StronglyTypedIdCreationConventionTests
 
         var relativePath = Path.GetRelativePath(repositoryRoot, document.FilePath);
         return [.. GetViolations(root, model).Select(expression =>
-            $"{relativePath}:{expression.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: " +
-                $"'{expression}' can produce a default strongly typed ID.")];
+            $"{relativePath}:{expression.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: "
+                + $"'{expression}' can produce a default strongly typed ID.")];
     }
 
     private static ExpressionSyntax[] GetViolations(SyntaxNode root, SemanticModel model)
@@ -146,11 +146,11 @@ public sealed class StronglyTypedIdCreationConventionTests
                     Type: IArrayTypeSymbol array,
                     Initializer: null
                 } creation
-                    && IsIdentifier(array.ElementType, identifier) &&
-                    !creation.DimensionSizes.Any(size => size.ConstantValue is { HasValue: true, Value: 0 });
+                    && IsIdentifier(array.ElementType, identifier)
+                    && !creation.DimensionSizes.Any(size => size.ConstantValue is { HasValue: true, Value: 0 });
             case InvocationExpressionSyntax:
-                return model.GetOperation(expression) is IInvocationOperation invocation &&
-                    InvocationProducesDefaultId(invocation, model.Compilation, identifier);
+                return model.GetOperation(expression) is IInvocationOperation invocation
+                    && InvocationProducesDefaultId(invocation, model.Compilation, identifier);
             default:
                 return false;
         }
@@ -164,24 +164,24 @@ public sealed class StronglyTypedIdCreationConventionTests
         if (method.ContainingType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
         {
             return method.Name == "GetValueOrDefault"
-                && method.Parameters.Length == 0 &&
-                IsIdentifier(method.ReturnType, identifier);
+                && method.Parameters.Length == 0
+                && IsIdentifier(method.ReturnType, identifier);
         }
 
-        if (IsType(method.ContainingType, compilation, "System.Linq.Enumerable") ||
-            IsType(method.ContainingType, compilation, "System.Linq.Queryable"))
+        if (IsType(method.ContainingType, compilation, "System.Linq.Enumerable")
+            || IsType(method.ContainingType, compilation, "System.Linq.Queryable"))
         {
             return method.Name is "FirstOrDefault" or "LastOrDefault" or "SingleOrDefault" or
-                "ElementAtOrDefault" or "DefaultIfEmpty" &&
-                method.TypeArguments.Any(type => IsIdentifier(type, identifier)) &&
-                !method.Parameters.Any(parameter => parameter.Name == "defaultValue");
+                "ElementAtOrDefault" or "DefaultIfEmpty"
+                && method.TypeArguments.Any(type => IsIdentifier(type, identifier))
+                && !method.Parameters.Any(parameter => parameter.Name == "defaultValue");
         }
 
         return method.Name == "CreateInstance"
-            && IsType(method.ContainingType, compilation, "System.Activator") &&
-            (method.TypeArguments.Any(type => IsIdentifier(type, identifier)) ||
-                invocation.Arguments.Any(argument => argument.Value is ITypeOfOperation typeOf &&
-                    IsIdentifier(typeOf.TypeOperand, identifier)));
+            && IsType(method.ContainingType, compilation, "System.Activator")
+            && (method.TypeArguments.Any(type => IsIdentifier(type, identifier))
+                || invocation.Arguments.Any(argument => argument.Value is ITypeOfOperation typeOf
+                    && IsIdentifier(typeOf.TypeOperand, identifier)));
     }
 
     private static bool IsIdentifier(ITypeSymbol? type, INamedTypeSymbol identifier)
@@ -191,9 +191,9 @@ public sealed class StronglyTypedIdCreationConventionTests
             return parameter.ConstraintTypes.Any(constraint => IsIdentifier(constraint, identifier));
         }
 
-        return type is not null &&
-            (SymbolEqualityComparer.Default.Equals(type, identifier) ||
-                type.AllInterfaces.Any(candidate => SymbolEqualityComparer.Default.Equals(candidate, identifier)));
+        return type is not null
+            && (SymbolEqualityComparer.Default.Equals(type, identifier)
+                || type.AllInterfaces.Any(candidate => SymbolEqualityComparer.Default.Equals(candidate, identifier)));
     }
 
     private static bool IsType(ITypeSymbol type, Compilation compilation, string metadataName)

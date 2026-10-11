@@ -24,9 +24,9 @@ internal static partial class LoginMapper
         };
         claims.AddRange(
             user.Claims.Where(claim =>
-                claim.Type != OpenIddictConstants.Claims.Subject &&
-                    claim.Type != OpenIddictConstants.Claims.Name &&
-                    claim.Type != OpenIddictConstants.Claims.Email));
+                claim.Type != OpenIddictConstants.Claims.Subject
+                    && claim.Type != OpenIddictConstants.Claims.Name
+                    && claim.Type != OpenIddictConstants.Claims.Email));
 
         var identity = new ClaimsIdentity(
             claims: claims,

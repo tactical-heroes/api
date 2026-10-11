@@ -17,17 +17,17 @@ public sealed class RepositoryImplementationConventionTests
         var violations = repositoryContracts
             .Where(contract => contract.Implementations.Length != 1)
             .Select(contract =>
-                $"{contract.Interface.FullName} must have exactly one " +
-                    $"concrete Infrastructure implementation, found: " +
-                    $"{FormatTypes(contract.Implementations)}.")
+                $"{contract.Interface.FullName} must have exactly one "
+                    + $"concrete Infrastructure implementation, found: "
+                    + $"{FormatTypes(contract.Implementations)}.")
             .ToArray();
 
         Assert.NotEmpty(repositoryContracts);
         Assert.True(
             violations.Length == 0,
-            $"Repository implementation count violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Repository implementation count violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Repository implementations should use plural aggregate names when declared")]
@@ -41,9 +41,9 @@ public sealed class RepositoryImplementationConventionTests
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
-            $"Repository implementation naming violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Repository implementation naming violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read repository implementations should use plural aggregate names when declared")]
@@ -57,9 +57,9 @@ public sealed class RepositoryImplementationConventionTests
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
-            $"Read repository implementation naming violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Read repository implementation naming violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Repository implementations should reside in Write roots when declared")]
@@ -75,9 +75,9 @@ public sealed class RepositoryImplementationConventionTests
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
-            $"Repository implementation location violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Repository implementation location violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read repository implementations should reside in Read roots when declared")]
@@ -93,9 +93,9 @@ public sealed class RepositoryImplementationConventionTests
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
-            $"Read repository implementation location violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Read repository implementation location violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static RepositoryAdapter[] GetWriteRepositoryImplementations()
@@ -116,8 +116,8 @@ public sealed class RepositoryImplementationConventionTests
                                 type,
                                 typeof(IRepository<,>))
                             ?? throw new InvalidOperationException(
-                                $"Could not determine repository contract for " +
-                                    $"'{type.FullName}'.");
+                                $"Could not determine repository contract for "
+                                    + $"'{type.FullName}'.");
                     var aggregateType =
                         repositoryContract.GetGenericArguments()[1];
                     var featureName =
@@ -237,16 +237,16 @@ public sealed class RepositoryImplementationConventionTests
                     var repositoryInterfaces = domainAssembly
                         .GetTypes()
                         .Where(type =>
-                            type.IsInterface &&
-                                InfrastructurePersistenceConvention
+                            type.IsInterface
+                                && InfrastructurePersistenceConvention
                                     .GetClosedGenericInterface(
                                         type,
                                         typeof(IRepository<,>)) is not null)
                         .Concat(applicationAssembly
                             .GetTypes()
                             .Where(type =>
-                                type.IsInterface &&
-                                    InfrastructurePersistenceConvention
+                                type.IsInterface
+                                    && InfrastructurePersistenceConvention
                                         .GetClosedGenericInterface(
                                             type,
                                             typeof(IReadRepository<>)) is not null));
@@ -273,8 +273,8 @@ public sealed class RepositoryImplementationConventionTests
         {
             return
             [
-                $"{repository.Type.FullName} must correspond to an aggregate " +
-                    $"root in its module."
+                $"{repository.Type.FullName} must correspond to an aggregate "
+                    + $"root in its module."
             ];
         }
 
@@ -285,8 +285,8 @@ public sealed class RepositoryImplementationConventionTests
             ? []
             :
             [
-                $"{repository.Type.FullName} must be named " +
-                    $"'{repository.ExpectedName}'."
+                $"{repository.Type.FullName} must be named "
+                    + $"'{repository.ExpectedName}'."
             ];
     }
 
@@ -298,8 +298,8 @@ public sealed class RepositoryImplementationConventionTests
         {
             return
             [
-                $"{repository.Type.FullName} must correspond to an aggregate " +
-                    $"root before its location can be validated."
+                $"{repository.Type.FullName} must correspond to an aggregate "
+                    + $"root before its location can be validated."
             ];
         }
 

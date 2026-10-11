@@ -12,8 +12,8 @@ internal sealed class OAuthSpaOptionsValidator
         if (Uri.TryCreate(
             uriString: options.LoginUrl,
             uriKind: UriKind.Absolute,
-            result: out var loginUri) &&
-            IsHttpScheme(uri: loginUri))
+            result: out var loginUri)
+            && IsHttpScheme(uri: loginUri))
         {
             return ValidateOptionsResult.Success;
         }
@@ -24,7 +24,7 @@ internal sealed class OAuthSpaOptionsValidator
 
     private static bool IsHttpScheme(Uri uri)
     {
-        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
     }
 }

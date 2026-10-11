@@ -32,9 +32,9 @@ public sealed class EntityConfigurationConventionTests
         Assert.NotEmpty(configurations);
         Assert.True(
             violations.Length == 0,
-            $"Auditable entity configuration location violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Auditable entity configuration location violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Entity type configurations should reside in aggregate Write roots when declared")]
@@ -52,9 +52,9 @@ public sealed class EntityConfigurationConventionTests
         Assert.NotEmpty(configurations);
         Assert.True(
             violations.Length == 0,
-            $"Entity type configuration location violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Entity type configuration location violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Auditable entity configurations should avoid explicit store object names when declared")]
@@ -68,9 +68,9 @@ public sealed class EntityConfigurationConventionTests
         Assert.NotEmpty(configurations);
         Assert.True(
             violations.Length == 0,
-            $"Auditable entity configuration explicit naming violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Auditable entity configuration explicit naming violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Entity type configurations should avoid explicit store object names when declared")]
@@ -84,9 +84,9 @@ public sealed class EntityConfigurationConventionTests
         Assert.NotEmpty(configurations);
         Assert.True(
             violations.Length == 0,
-            $"Entity type configuration explicit naming violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Entity type configuration explicit naming violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Entity configuration length limits should reference domain constants when declared")]
@@ -105,10 +105,10 @@ public sealed class EntityConfigurationConventionTests
         Assert.NotEmpty(domainTypesWithMaximumLength);
         Assert.True(
             violations.Length == 0,
-            $"Entity configuration length limits must reference a domain " +
-                $"type's {MaximumLengthMemberName} constant:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Entity configuration length limits must reference a domain "
+                + $"type's {MaximumLengthMemberName} constant:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static Type[] GetAuditableEntityConfigurations()
@@ -138,8 +138,8 @@ public sealed class EntityConfigurationConventionTests
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
-                        $"Could not determine the name of assembly " +
-                            $"'{assembly.FullName}'."),
+                        $"Could not determine the name of assembly "
+                            + $"'{assembly.FullName}'."),
                 StringComparer.Ordinal);
 
         return ArchitectureDefinition.s_modules
@@ -187,10 +187,10 @@ public sealed class EntityConfigurationConventionTests
                         invocation,
                         domainTypesWithMaximumLength))
                     .Select(invocation =>
-                        $"{configuration.FullName} calls HasMaxLength " +
-                            $"without a domain {MaximumLengthMemberName} " +
-                            $"constant at '{Path.GetFileName(sourceFile)}:" +
-                            $"{invocation.GetLocation()
+                        $"{configuration.FullName} calls HasMaxLength "
+                            + $"without a domain {MaximumLengthMemberName} "
+                            + $"constant at '{Path.GetFileName(sourceFile)}:"
+                            + $"{invocation.GetLocation()
                                 .GetLineSpan()
                                 .StartLinePosition.Line
                                 + 1}'.");
@@ -217,8 +217,8 @@ public sealed class EntityConfigurationConventionTests
             ?.Identifier
             .ValueText;
 
-        return ownerName is not null &&
-            domainTypesWithMaximumLength.Contains(ownerName);
+        return ownerName is not null
+            && domainTypesWithMaximumLength.Contains(ownerName);
     }
 
     private static IEnumerable<string> GetExplicitStoreNamingViolations(
@@ -249,15 +249,15 @@ public sealed class EntityConfigurationConventionTests
                             MethodName = GetInvokedMethodName(invocation)
                         })
                     .Where(candidate =>
-                        candidate.MethodName is not null &&
-                            s_explicitStoreNamingMethods.Contains(
+                        candidate.MethodName is not null
+                            && s_explicitStoreNamingMethods.Contains(
                                 candidate.MethodName,
                                 StringComparer.Ordinal))
                     .Select(candidate =>
-                        $"{configuration.FullName} explicitly calls " +
-                            $"'{candidate.MethodName}' at " +
-                            $"'{Path.GetFileName(sourceFile)}:" +
-                            $"{candidate.Invocation.GetLocation()
+                        $"{configuration.FullName} explicitly calls "
+                            + $"'{candidate.MethodName}' at "
+                            + $"'{Path.GetFileName(sourceFile)}:"
+                            + $"{candidate.Invocation.GetLocation()
                                 .GetLineSpan()
                                 .StartLinePosition.Line
                                 + 1}'.");

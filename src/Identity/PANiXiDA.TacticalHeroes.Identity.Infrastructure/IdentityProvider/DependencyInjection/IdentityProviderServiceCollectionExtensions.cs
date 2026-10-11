@@ -136,9 +136,9 @@ internal static class IdentityProviderServiceCollectionExtensions
                     .EnableEndSessionEndpointPassthrough()
                     .EnableStatusCodePagesIntegration();
 
-                if (environment is null ||
-                    environment.IsDevelopment() ||
-                    environment.IsEnvironment(EnvironmentConstants.Test))
+                if (environment is null
+                    || environment.IsDevelopment()
+                    || environment.IsEnvironment(EnvironmentConstants.Test))
                 {
                     aspNetCore.DisableTransportSecurityRequirement();
                 }

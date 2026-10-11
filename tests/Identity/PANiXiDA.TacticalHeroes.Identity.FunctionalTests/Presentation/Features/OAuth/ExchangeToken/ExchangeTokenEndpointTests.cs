@@ -25,15 +25,17 @@ public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)
             "StrongPassword1!",
             cancellationToken);
 
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.RefreshToken,
+                [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
+                [OpenIddictConstants.Parameters.RefreshToken] = tokens.RefreshToken
+            });
+
         using var response = await client.PostAsync(
             "/connect/token",
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.RefreshToken,
-                    [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-                    [OpenIddictConstants.Parameters.RefreshToken] = tokens.RefreshToken
-                }),
+            content,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 

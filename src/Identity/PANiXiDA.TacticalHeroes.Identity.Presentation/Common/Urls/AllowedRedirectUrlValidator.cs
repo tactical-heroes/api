@@ -10,8 +10,8 @@ internal static class AllowedRedirectUrlValidator
         string allowedPath,
         string fieldName)
     {
-        if (string.IsNullOrWhiteSpace(url) ||
-            !IsValid(url: url, httpContext: httpContext, allowedPath: allowedPath))
+        if (string.IsNullOrWhiteSpace(url)
+            || !IsValid(url: url, httpContext: httpContext, allowedPath: allowedPath))
         {
             return Result.Failure(
                 error: Error.Validation(message: "Return URL is invalid.")
@@ -26,8 +26,8 @@ internal static class AllowedRedirectUrlValidator
         HttpContext httpContext,
         string allowedPath)
     {
-        if (url.StartsWith('/') &&
-            !url.StartsWith("//", StringComparison.Ordinal))
+        if (url.StartsWith('/')
+            && !url.StartsWith("//", StringComparison.Ordinal))
         {
             return GetPath(url).Equals(allowedPath, StringComparison.Ordinal);
         }
@@ -43,9 +43,9 @@ internal static class AllowedRedirectUrlValidator
             ? uri.Host
             : uri.GetComponents(UriComponents.HostAndPort, UriFormat.UriEscaped);
 
-        return string.Equals(uri.Scheme, request.Scheme, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(redirectHost, requestHost, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(uri.AbsolutePath, allowedPath, StringComparison.Ordinal);
+        return string.Equals(uri.Scheme, request.Scheme, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(redirectHost, requestHost, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(uri.AbsolutePath, allowedPath, StringComparison.Ordinal);
     }
 
     private static string GetPath(string pathAndQuery)

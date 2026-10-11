@@ -26,8 +26,8 @@ public sealed class OAuthClientsRepositoryTests(IntegrationTestFixture fixture)
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Claims.ShouldContain(claim =>
-            claim.Type == OpenIddictConstants.Claims.Subject &&
-                claim.Value == "integration-tests");
+            claim.Type == OpenIddictConstants.Claims.Subject
+                && claim.Value == "integration-tests");
     }
 
     [Fact(

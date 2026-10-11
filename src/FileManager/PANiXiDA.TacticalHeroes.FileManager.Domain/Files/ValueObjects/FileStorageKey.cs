@@ -29,10 +29,10 @@ public sealed partial class FileStorageKey : ValueObject
                     .WithField(nameof(FileStorageKey)));
         }
 
-        if (value != value.Trim() ||
-            value.Contains('\\') ||
-            value.Any(char.IsControl) ||
-            value.Split('/').Any(segment => segment is "" or "." or ".."))
+        if (value != value.Trim()
+            || value.Contains('\\')
+            || value.Any(char.IsControl)
+            || value.Split('/').Any(segment => segment is "" or "." or ".."))
         {
             return Result.Failure<FileStorageKey>(
                 Error.Validation(

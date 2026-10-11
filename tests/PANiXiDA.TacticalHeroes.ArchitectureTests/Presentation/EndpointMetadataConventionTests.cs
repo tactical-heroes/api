@@ -90,21 +90,21 @@ public sealed partial class EndpointMetadataConventionTests
                         PropertyName = propertyName
                     }))
             .Where(candidate =>
-                candidate.Property is null ||
-                    !candidate.Property.CanRead ||
-                    candidate.Property.SetMethod is not null)
+                candidate.Property is null
+                    || !candidate.Property.CanRead
+                    || candidate.Property.SetMethod is not null)
             .Select(candidate =>
-                $"{candidate.EndpointGroup.FullName}." +
-                    $"{candidate.PropertyName} must be a get-only public " +
-                    $"property.")
+                $"{candidate.EndpointGroup.FullName}."
+                    + $"{candidate.PropertyName} must be a get-only public "
+                    + $"property.")
             .ToArray();
 
         Assert.NotEmpty(endpointGroups);
         Assert.True(
             violations.Length == 0,
-            $"Endpoint group metadata mutability violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Endpoint group metadata mutability violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [GeneratedRegex(
@@ -146,7 +146,7 @@ public sealed partial class EndpointMetadataConventionTests
         return route
             .Split('/', StringSplitOptions.RemoveEmptyEntries)
             .All(segment =>
-                RouteSegmentPattern().IsMatch(segment) ||
-                    RouteParameterPattern().IsMatch(segment));
+                RouteSegmentPattern().IsMatch(segment)
+                    || RouteParameterPattern().IsMatch(segment));
     }
 }

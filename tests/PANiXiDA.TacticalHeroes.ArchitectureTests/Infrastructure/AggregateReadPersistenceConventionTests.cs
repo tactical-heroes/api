@@ -37,8 +37,10 @@ public sealed class AggregateReadPersistenceConventionTests
         var contextType = infrastructure.GetType(
             module.InfrastructureAssemblyName + ".Persistence.Core." + contextName);
         if (contextType is null
-            || contextType.IsAbstract ||
-            InfrastructurePersistenceConvention.GetClosedGenericBaseType(contextType, typeof(ReadDbContext<>)) is null)
+            || contextType.IsAbstract
+            || InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                contextType,
+                typeof(ReadDbContext<>)) is null)
         {
             yield return $"{module.Name} has aggregates and must declare '{contextName}' in Persistence/Core.";
             yield break;
@@ -57,8 +59,8 @@ public sealed class AggregateReadPersistenceConventionTests
             var feature = EnglishNamingConvention.Pluralize(aggregate.Name);
             var contractName = $"{module.ApplicationAssemblyName}.{feature}.Abstractions.I{feature}ReadRepository";
             var contract = application.GetType(contractName);
-            if (contract is not { IsInterface: true } ||
-                InfrastructurePersistenceConvention.GetClosedGenericInterface(
+            if (contract is not { IsInterface: true }
+                || InfrastructurePersistenceConvention.GetClosedGenericInterface(
                     contract,
                     typeof(IReadRepository<>)) is null)
             {
@@ -69,8 +71,8 @@ public sealed class AggregateReadPersistenceConventionTests
             var modelName = $"{readNamespace}.DbModels.{aggregate.Name}ReadDbModel";
             var model = infrastructure.GetType(modelName);
             if (model is null
-                || model.IsAbstract ||
-                InfrastructurePersistenceConvention.GetClosedGenericBaseType(model, typeof(ReadDbModel<>)) is null)
+                || model.IsAbstract
+                || InfrastructurePersistenceConvention.GetClosedGenericBaseType(model, typeof(ReadDbModel<>)) is null)
             {
                 yield return $"{aggregate.FullName} must declare '{modelName}'.";
             }
@@ -105,15 +107,15 @@ public sealed class AggregateReadPersistenceConventionTests
             var repositoryBase = InfrastructurePersistenceConvention.GetClosedGenericBaseType(
                 repository, typeof(EfReadRepository<,,>));
             if (repositoryBase is null
-                || repositoryBase.GenericTypeArguments[0] != contextType ||
-                repositoryBase.GenericTypeArguments[2] != model)
+                || repositoryBase.GenericTypeArguments[0] != contextType
+                || repositoryBase.GenericTypeArguments[2] != model)
             {
                 yield return
                     $"{repository.FullName} must use '{contextName}' and '{modelName}' through EfReadRepository.";
             }
 
-            if (contract is not null &&
-                (!contract.IsAssignableFrom(repository)
+            if (contract is not null
+                && (!contract.IsAssignableFrom(repository)
                     || scope.ServiceProvider.GetService(contract)?.GetType() != repository))
             {
                 yield return $"{repository.FullName} must implement and be registered as '{contract.FullName}'.";

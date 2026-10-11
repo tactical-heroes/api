@@ -19,8 +19,8 @@ public sealed class NullForgivingConventionTests
 
         Assert.True(
             violations.Length == 0,
-            $"Suppressed null values in production code:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Suppressed null values in production code:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(
@@ -148,15 +148,15 @@ public sealed class NullForgivingConventionTests
 
         var relativePath = Path.GetRelativePath(repositoryRoot, document.FilePath);
         return [.. GetViolations(root, model).Select(expression =>
-            $"{relativePath}:{expression.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: " +
-                $"'{expression}' suppresses a null value outside EF initialization.")];
+            $"{relativePath}:{expression.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: "
+                + $"'{expression}' suppresses a null value outside EF initialization.")];
     }
 
     private static PostfixUnaryExpressionSyntax[] GetViolations(SyntaxNode root, SemanticModel model)
     {
         return [.. root.DescendantNodes().OfType<PostfixUnaryExpressionSyntax>()
-            .Where(expression => expression.IsKind(SyntaxKind.SuppressNullableWarningExpression) &&
-                SuppressesNullValue(expression.Operand, model)
+            .Where(expression => expression.IsKind(SyntaxKind.SuppressNullableWarningExpression)
+                && SuppressesNullValue(expression.Operand, model)
                 && !IsEfInitialization(expression, model))];
     }
 
@@ -178,8 +178,8 @@ public sealed class NullForgivingConventionTests
 
     private static bool CanBeNull(ITypeSymbol? type)
     {
-        return type is not { IsValueType: true } ||
-            type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        return type is not { IsValueType: true }
+            || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
     }
 
     private static bool IsEfInitialization(ExpressionSyntax expression, SemanticModel model)
@@ -189,40 +189,40 @@ public sealed class NullForgivingConventionTests
             expression = parentheses;
         }
 
-        if (expression.Parent is EqualsValueClauseSyntax { Parent: PropertyDeclarationSyntax declaration } &&
-            model.GetDeclaredSymbol(declaration) is { IsStatic: false } property &&
-            property.GetMethod?.DeclaredAccessibility == Accessibility.Public &&
-            property.SetMethod?.DeclaredAccessibility == Accessibility.Public &&
-            declaration.AccessorList?.Accessors
+        if (expression.Parent is EqualsValueClauseSyntax { Parent: PropertyDeclarationSyntax declaration }
+            && model.GetDeclaredSymbol(declaration) is { IsStatic: false } property
+            && property.GetMethod?.DeclaredAccessibility == Accessibility.Public
+            && property.SetMethod?.DeclaredAccessibility == Accessibility.Public
+            && declaration.AccessorList?.Accessors
                 .All(accessor => accessor.Body is null && accessor.ExpressionBody is null) == true)
         {
             return IsType(
                 property.Type.OriginalDefinition,
                 model.Compilation,
-                "Microsoft.EntityFrameworkCore.DbSet`1") &&
-                InheritsFrom(property.ContainingType, model.Compilation, "Microsoft.EntityFrameworkCore.DbContext");
+                "Microsoft.EntityFrameworkCore.DbSet`1")
+                && InheritsFrom(property.ContainingType, model.Compilation, "Microsoft.EntityFrameworkCore.DbContext");
         }
 
-        return expression.Parent is AssignmentExpressionSyntax assignment &&
-            assignment.Right == expression
-            && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
-            assignment
-                .Parent is ExpressionStatementSyntax { Parent: BlockSyntax { Parent: ConstructorDeclarationSyntax } } &&
-            model.GetEnclosingSymbol(expression.SpanStart) is IMethodSymbol
+        return expression.Parent is AssignmentExpressionSyntax assignment
+            && assignment.Right == expression
+            && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression)
+            && assignment
+                .Parent is ExpressionStatementSyntax { Parent: BlockSyntax { Parent: ConstructorDeclarationSyntax } }
+            && model.GetEnclosingSymbol(expression.SpanStart) is IMethodSymbol
             {
                 MethodKind: MethodKind.Constructor,
                 DeclaredAccessibility: Accessibility.Private
-            } constructor &&
-            model.GetOperation(assignment.Left) is IPropertyReferenceOperation
+            } constructor
+            && model.GetOperation(assignment.Left) is IPropertyReferenceOperation
             {
                 Instance: IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.ContainingTypeInstance },
                 Property: { IsStatic: false, SetMethod.DeclaredAccessibility: Accessibility.Private } target
-            } &&
-            SymbolEqualityComparer.Default.Equals(target.ContainingType, constructor.ContainingType) &&
-            target.ContainingType.AllInterfaces
-                .Any(type => IsType(type, model.Compilation, typeof(IEntity).FullName!)) &&
-            InheritsFrom(target.Type, model.Compilation, "PANiXiDA.Core.Domain.ValueObjects.ValueObject") &&
-            target.Type.GetMembers().OfType<IPropertySymbol>()
+            }
+            && SymbolEqualityComparer.Default.Equals(target.ContainingType, constructor.ContainingType)
+            && target.ContainingType.AllInterfaces
+                .Any(type => IsType(type, model.Compilation, typeof(IEntity).FullName!))
+            && InheritsFrom(target.Type, model.Compilation, "PANiXiDA.Core.Domain.ValueObjects.ValueObject")
+            && target.Type.GetMembers().OfType<IPropertySymbol>()
                 .Count(property => !property.IsStatic && !property.IsIndexer && !property.IsImplicitlyDeclared) > 1;
     }
 

@@ -67,7 +67,8 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
 
         using var requestCancellation = new CancellationTokenSource();
         var interceptor = new CancelAfterPasswordSaveInterceptor(createdUser.Id, passwordHash, requestCancellation);
-        await using var factory = new FunctionalTestWebApplicationFactory()
+        await using var testFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddSingleton<IInterceptor>(interceptor)));
         using var client = new HttpClient(factory.Server.CreateHandler(context =>
