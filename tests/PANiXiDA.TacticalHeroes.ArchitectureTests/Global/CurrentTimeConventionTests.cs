@@ -12,18 +12,18 @@ public sealed class CurrentTimeConventionTests
         var violations = accesses
             .Where(access => !access.IsAllowed)
             .Select(access =>
-                $"{access.RelativePath}:{access.LineNumber}: " +
-                    $"'{access.Expression}' must use TimeProvider.GetUtcNow(). " +
-                    $"DateTime/DateTimeOffset.UtcNow is allowed only in " +
-                    $"constructors.")
+                $"{access.RelativePath}:{access.LineNumber}: "
+                    + $"'{access.Expression}' must use TimeProvider.GetUtcNow(). "
+                    + $"DateTime/DateTimeOffset.UtcNow is allowed only in "
+                    + $"constructors.")
             .ToArray();
 
         Assert.NotEmpty(accesses);
         Assert.True(
             violations.Length == 0,
-            $"Current time access violations: {violations.Length} total." +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Current time access violations: {violations.Length} total."
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 }
 
@@ -67,9 +67,9 @@ internal static class CurrentTimeSourceDiscovery
         var semanticModel = await document.GetSemanticModelAsync();
         var sourceFile = document.FilePath;
 
-        if (root is null ||
-            semanticModel is null ||
-            sourceFile is null)
+        if (root is null
+            || semanticModel is null
+            || sourceFile is null)
         {
             return [];
         }
@@ -117,11 +117,11 @@ internal static class CurrentTimeSourceDiscovery
         MemberAccessExpressionSyntax memberAccess)
     {
         if (semanticModel.GetSymbolInfo(memberAccess).Symbol is not
-            IPropertySymbol property ||
-            !s_dateTimeProperties.Contains(
+            IPropertySymbol property
+            || !s_dateTimeProperties.Contains(
                 property.Name,
-                StringComparer.Ordinal) ||
-            !IsDateTimeType(property.ContainingType))
+                StringComparer.Ordinal)
+            || !IsDateTimeType(property.ContainingType))
         {
             return null;
         }
@@ -133,8 +133,8 @@ internal static class CurrentTimeSourceDiscovery
                 string.Equals(
                     property.Name,
                     "UtcNow",
-                    StringComparison.Ordinal) &&
-                    memberAccess.Ancestors()
+                    StringComparison.Ordinal)
+                    && memberAccess.Ancestors()
                         .OfType<ConstructorDeclarationSyntax>()
                         .Any());
     }
@@ -145,11 +145,11 @@ internal static class CurrentTimeSourceDiscovery
         InvocationExpressionSyntax invocation)
     {
         if (semanticModel.GetSymbolInfo(invocation).Symbol is not
-            IMethodSymbol method ||
-            !s_timeProviderMethods.Contains(
+            IMethodSymbol method
+            || !s_timeProviderMethods.Contains(
                 method.Name,
-                StringComparer.Ordinal) ||
-            !IsType(
+                StringComparer.Ordinal)
+            || !IsType(
                 method.ContainingType,
                 "System.TimeProvider"))
         {
@@ -184,8 +184,8 @@ internal static class CurrentTimeSourceDiscovery
 
     private static bool IsDateTimeType(ITypeSymbol type)
     {
-        return IsType(type, "System.DateTime") ||
-            IsType(type, "System.DateTimeOffset");
+        return IsType(type, "System.DateTime")
+            || IsType(type, "System.DateTimeOffset");
     }
 
     private static bool IsType(

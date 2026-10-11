@@ -21,16 +21,16 @@ public sealed class ProjectReferenceDependencyTests
                         sourceAssemblyName,
                         targetAssemblyName))
                     .Select(targetAssemblyName =>
-                        $"{sourceAssemblyName} must not reference " +
-                            $"{targetAssemblyName}.")))
+                        $"{sourceAssemblyName} must not reference "
+                            + $"{targetAssemblyName}.")))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(modules);
         Assert.True(
             violations.Length == 0,
-            $"Forbidden module project references:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Forbidden module project references:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static Dictionary<string, string> GetProjectPaths(
@@ -50,8 +50,8 @@ public sealed class ProjectReferenceDependencyTests
                 {
                     Name = Path.GetFileNameWithoutExtension(projectPath)
                         ?? throw new InvalidOperationException(
-                            $"Could not determine project name for " +
-                                $"'{projectPath}'."),
+                            $"Could not determine project name for "
+                                + $"'{projectPath}'."),
                     Path = projectPath
                 })
             .ToDictionary(
@@ -99,8 +99,8 @@ public sealed class ProjectReferenceDependencyTests
             ".Contracts",
             StringComparison.Ordinal))
         {
-            return sourceAssemblyName != module.ContractsAssemblyName &&
-                sourceAssemblyName != module.DomainAssemblyName;
+            return sourceAssemblyName != module.ContractsAssemblyName
+                && sourceAssemblyName != module.DomainAssemblyName;
         }
 
         if (sourceAssemblyName == module.ApplicationAssemblyName)
@@ -110,8 +110,8 @@ public sealed class ProjectReferenceDependencyTests
 
         if (sourceAssemblyName == module.InfrastructureAssemblyName)
         {
-            return targetAssemblyName == module.DomainAssemblyName ||
-                targetAssemblyName == module.ApplicationAssemblyName;
+            return targetAssemblyName == module.DomainAssemblyName
+                || targetAssemblyName == module.ApplicationAssemblyName;
         }
 
         if (sourceAssemblyName == module.PresentationAssemblyName)
@@ -150,7 +150,7 @@ public sealed class ProjectReferenceDependencyTests
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-                $"the '{SourceDirectoryName}' directory.");
+            $"Could not find repository root containing "
+                + $"the '{SourceDirectoryName}' directory.");
     }
 }

@@ -33,26 +33,26 @@ public sealed class ReadModelConventionTests
                     .OfType<TypeDeclarationSyntax>()
                     .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
                     .OfType<INamedTypeSymbol>()
-                    .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct &&
-                        (type.Name.EndsWith(ReadModelSuffix, StringComparison.Ordinal) ||
-                            type.AllInterfaces.Any(contract =>
+                    .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct
+                        && (type.Name.EndsWith(ReadModelSuffix, StringComparison.Ordinal)
+                            || type.AllInterfaces.Any(contract =>
                                 SymbolEqualityComparer.Default.Equals(contract, readModelContract))))];
         });
         var violations = readModels
             .Where(type => !type.IsRecord
                 || type.TypeKind != TypeKind.Class
-                || !type.IsSealed ||
-                type.DeclaringSyntaxReferences.Any(reference =>
-                    reference.GetSyntax() is RecordDeclarationSyntax declaration &&
-                        declaration.ClassOrStructKeyword.RawKind != 0))
+                || !type.IsSealed
+                || type.DeclaringSyntaxReferences.Any(reference =>
+                    reference.GetSyntax() is RecordDeclarationSyntax declaration
+                        && declaration.ClassOrStructKeyword.RawKind != 0))
             .Select(type => $"{type.ToDisplayString()} must use 'sealed record' without 'class' or 'struct'.")
             .ToArray();
 
         Assert.NotEmpty(readModels);
         Assert.True(
             violations.Length == 0,
-            $"Read model record violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Read model record violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read models should end with ReadModel when declared")]
@@ -60,23 +60,23 @@ public sealed class ReadModelConventionTests
     {
         var readModels = GetApplicationTypes()
             .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                    typeof(IReadModel).IsAssignableFrom(type))
+                type is { IsClass: true, IsAbstract: false }
+                    && typeof(IReadModel).IsAssignableFrom(type))
             .ToArray();
         var violations = readModels
             .Where(type => !type.Name.EndsWith(
                 ReadModelSuffix,
                 StringComparison.Ordinal))
             .Select(type =>
-                $"{type.FullName} implements IReadModel and must end with " +
-                    $"'{ReadModelSuffix}'.")
+                $"{type.FullName} implements IReadModel and must end with "
+                    + $"'{ReadModelSuffix}'.")
             .ToArray();
 
         Assert.NotEmpty(readModels);
         Assert.True(
             violations.Length == 0,
-            $"Read model naming violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Read model naming violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Types ending with ReadModel should implement IReadModel when declared")]
@@ -84,23 +84,23 @@ public sealed class ReadModelConventionTests
     {
         var namedReadModels = GetApplicationTypes()
             .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                    type.Name.EndsWith(
+                type is { IsClass: true, IsAbstract: false }
+                    && type.Name.EndsWith(
                         ReadModelSuffix,
                         StringComparison.Ordinal))
             .ToArray();
         var violations = namedReadModels
             .Where(type => !typeof(IReadModel).IsAssignableFrom(type))
             .Select(type =>
-                $"{type.FullName} ends with '{ReadModelSuffix}' and must " +
-                    $"implement IReadModel.")
+                $"{type.FullName} ends with '{ReadModelSuffix}' and must "
+                    + $"implement IReadModel.")
             .ToArray();
 
         Assert.NotEmpty(namedReadModels);
         Assert.True(
             violations.Length == 0,
-            $"Read model inheritance violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Read model inheritance violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Query handlers should return read models when declared")]
@@ -111,9 +111,9 @@ public sealed class ReadModelConventionTests
             .SelectMany(type => type
                 .GetInterfaces()
                 .Where(candidate =>
-                    candidate.IsGenericType &&
-                        candidate.GetGenericTypeDefinition() ==
-                            typeof(IQueryHandler<,>))
+                    candidate.IsGenericType
+                        && candidate.GetGenericTypeDefinition()
+                            == typeof(IQueryHandler<,>))
                 .Select(contract => new QueryHandler(
                     type,
                     contract.GetGenericArguments()[1])))
@@ -122,16 +122,16 @@ public sealed class ReadModelConventionTests
             .Where(handler => !ReadSideConvention.IsReadModelResult(
                 handler.ResultType))
             .Select(handler =>
-                $"{handler.Type.FullName} must return an IReadModel, " +
-                    $"optionally wrapped in Task, Result, a collection, or a " +
-                    $"pagination model; found '{handler.ResultType}'.")
+                $"{handler.Type.FullName} must return an IReadModel, "
+                    + $"optionally wrapped in Task, Result, a collection, or a "
+                    + $"pagination model; found '{handler.ResultType}'.")
             .ToArray();
 
         Assert.NotEmpty(queryHandlers);
         Assert.True(
             violations.Length == 0,
-            $"Query handler result type violations:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Query handler result type violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static Type[] GetApplicationTypes()

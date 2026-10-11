@@ -19,8 +19,8 @@ public sealed class ReadRepositorySortingConventionTests
             .Where(method => method.IsCollection)
             .ToArray();
         var violations = methods.Where(method => !method.AppliesSorting)
-            .Select(method => $"{method.Name}: return a collection sorted by IReadModelSorting<{method.Model}> " +
-                "using ApplySorting or GetPagedResultAsync.")
+            .Select(method => $"{method.Name}: return a collection sorted by IReadModelSorting<{method.Model}> "
+                + "using ApplySorting or GetPagedResultAsync.")
             .ToArray();
 
         Assert.NotEmpty(methods);
@@ -35,8 +35,8 @@ public sealed class ReadRepositorySortingConventionTests
             .ToArray();
         var violations = methods.Where(method => !method.AppliesMapping)
             .Select(method =>
-                $"{method.Name}: return {method.Model} using IReadModelMapper<TId, TReadDbModel, TReadModel> " +
-                    "matching the repository through ProjectTo, GetByIdAsync, or GetPagedResultAsync.")
+                $"{method.Name}: return {method.Model} using IReadModelMapper<TId, TReadDbModel, TReadModel> "
+                    + "matching the repository through ProjectTo, GetByIdAsync, or GetPagedResultAsync.")
             .ToArray();
 
         Assert.NotEmpty(methods);
@@ -47,8 +47,8 @@ public sealed class ReadRepositorySortingConventionTests
     public void ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared()
     {
         var sortingTypes = InfrastructurePersistenceConvention.GetConcreteInfrastructureTypes(type =>
-            type.GetInterfaces().Any(contract => contract.IsGenericType &&
-                contract.GetGenericTypeDefinition() == typeof(IReadModelSorting<>)));
+            type.GetInterfaces().Any(contract => contract.IsGenericType
+                && contract.GetGenericTypeDefinition() == typeof(IReadModelSorting<>)));
         var violations = sortingTypes.Where(type =>
             type.GetProperty(nameof(IReadModelSorting<>.DefaultSorting), BindingFlags.Public | BindingFlags.Static)
                 ?.GetValue(null) is not SortingParameters { HasSorting: true })
@@ -76,13 +76,13 @@ public sealed class ReadRepositorySortingConventionTests
         var methods = new List<ReadMethod>();
         foreach (var declaration in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
         {
-            if (semanticModel.GetDeclaredSymbol(declaration) is not IMethodSymbol { IsAbstract: false } method ||
-                method.IsStatic ||
-                (method.DeclaredAccessibility != Accessibility.Public
-                    && method.ExplicitInterfaceImplementations.Length == 0) ||
-                !method.ContainingType.AllInterfaces.Any(contract => contract.OriginalDefinition.ToDisplayString() ==
-                    "PANiXiDA.Core.Application.Persistence.IReadRepository<TId>") ||
-                GetResultModel(method.ReturnType, collectionsOnly: false) is not { } model)
+            if (semanticModel.GetDeclaredSymbol(declaration) is not IMethodSymbol { IsAbstract: false } method
+                || method.IsStatic
+                || (method.DeclaredAccessibility != Accessibility.Public
+                    && method.ExplicitInterfaceImplementations.Length == 0)
+                || !method.ContainingType.AllInterfaces.Any(contract => contract.OriginalDefinition.ToDisplayString()
+                    == "PANiXiDA.Core.Application.Persistence.IReadRepository<TId>")
+                || GetResultModel(method.ReturnType, collectionsOnly: false) is not { } model)
             {
                 continue;
             }
@@ -148,24 +148,24 @@ public sealed class ReadRepositorySortingConventionTests
         }
 
         if ((named.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks"
-            && named.MetadataName is "Task`1" or "ValueTask`1") ||
-            (named.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.ResultPattern"
+            && named.MetadataName is "Task`1" or "ValueTask`1")
+            || (named.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.ResultPattern"
                 && named.MetadataName == "Result`1"))
         {
             return GetResultModel(named.TypeArguments[0], collectionsOnly);
         }
 
         if (named.ContainingNamespace.ToDisplayString() is "PANiXiDA.Core.Application.Querying.Pagination" or
-                "PANiXiDA.Core.Application.Querying.Cursor" &&
-            named.Name is "PaginationResult" or "CursorPaginationResult")
+                "PANiXiDA.Core.Application.Querying.Cursor"
+            && named.Name is "PaginationResult" or "CursorPaginationResult")
         {
             return named.TypeArguments[0];
         }
 
         return named.AllInterfaces.Prepend(named)
             .FirstOrDefault(contract => contract.OriginalDefinition.SpecialType == SpecialType
-                .System_Collections_Generic_IEnumerable_T ||
-                (contract.MetadataName == "IAsyncEnumerable`1"
+                .System_Collections_Generic_IEnumerable_T
+                || (contract.MetadataName == "IAsyncEnumerable`1"
                     && contract.ContainingNamespace.ToDisplayString() == "System.Collections.Generic"))
             ?.TypeArguments[0];
     }
@@ -192,8 +192,8 @@ public sealed class ReadRepositorySortingConventionTests
                         IVariableDeclaratorOperation variable when SymbolEqualityComparer.Default
                             .Equals(variable.Symbol, local.Local) => variable.Initializer?.Value,
                         ISimpleAssignmentOperation assignment
-                            when assignment.Target is ILocalReferenceOperation target &&
-                                SymbolEqualityComparer.Default.Equals(target.Local, local.Local) => assignment.Value,
+                            when assignment.Target is ILocalReferenceOperation target
+                                && SymbolEqualityComparer.Default.Equals(target.Local, local.Local) => assignment.Value,
                         _ => null
                     })
                     .OfType<IOperation>()
@@ -208,13 +208,18 @@ public sealed class ReadRepositorySortingConventionTests
                 }
 
                 return ((call.TargetMethod.Name == "ApplySorting"
-                    && IsSortingFor(call.TargetMethod.ContainingType, model)) ||
-                    (call.TargetMethod.IsExtensionMethod
+                    && IsSortingFor(call.TargetMethod.ContainingType, model))
+                    || (call.TargetMethod.IsExtensionMethod
                         && call.TargetMethod.Name is
                             "ToListAsync" or "ToArrayAsync" or "ToList" or "ToArray" or "Where" or "Take" or "Skip" or
                             "AsEnumerable" or "FirstOrDefaultAsync" or "SingleOrDefaultAsync"
-                                or "FirstAsync" or "SingleAsync")) &&
-                    UsesOperation(call.Arguments.FirstOrDefault()?.Value, model, declaration, semanticModel, matches);
+                                or "FirstAsync" or "SingleAsync"))
+                    && UsesOperation(
+                        call.Arguments.FirstOrDefault()?.Value,
+                        model,
+                        declaration,
+                        semanticModel,
+                        matches);
             default:
                 return false;
         }
@@ -222,10 +227,10 @@ public sealed class ReadRepositorySortingConventionTests
 
     private static bool AppliesSorting(IInvocationOperation call, ITypeSymbol model)
     {
-        return (call.TargetMethod.Name == "ApplySorting" && IsSortingFor(call.TargetMethod.ContainingType, model)) ||
-            (call.TargetMethod.Name == "GetPagedResultAsync"
-                && IsEfRepository(call.TargetMethod.ContainingType) &&
-                call.TargetMethod.TypeArguments.Length == 3
+        return (call.TargetMethod.Name == "ApplySorting" && IsSortingFor(call.TargetMethod.ContainingType, model))
+            || (call.TargetMethod.Name == "GetPagedResultAsync"
+                && IsEfRepository(call.TargetMethod.ContainingType)
+                && call.TargetMethod.TypeArguments.Length == 3
                 && IsSortingFor(call.TargetMethod.TypeArguments[2], model));
     }
 
@@ -234,30 +239,30 @@ public sealed class ReadRepositorySortingConventionTests
         var method = call.TargetMethod;
         var mapper = method.Name == "ProjectTo" ? method.ContainingType :
             IsEfRepository(method.ContainingType)
-                && method.Name is "GetByIdAsync" or "GetPagedResultAsync" &&
-                method.TypeArguments.Length >= 2 ? method.TypeArguments[1] : null;
+                && method.Name is "GetByIdAsync" or "GetPagedResultAsync"
+                && method.TypeArguments.Length >= 2 ? method.TypeArguments[1] : null;
 
         return mapper is not null
             && mapper.AllInterfaces.Any(contract =>
-                contract.MetadataName == "IReadModelMapper`3" &&
-                    contract.ContainingNamespace
-                        .ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping" &&
-                    SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], repository.TypeArguments[1]) &&
-                    SymbolEqualityComparer.Default.Equals(contract.TypeArguments[1], repository.TypeArguments[2]) &&
-                    SymbolEqualityComparer.Default.Equals(contract.TypeArguments[2], model));
+                contract.MetadataName == "IReadModelMapper`3"
+                    && contract.ContainingNamespace
+                        .ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping"
+                    && SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], repository.TypeArguments[1])
+                    && SymbolEqualityComparer.Default.Equals(contract.TypeArguments[1], repository.TypeArguments[2])
+                    && SymbolEqualityComparer.Default.Equals(contract.TypeArguments[2], model));
     }
 
     private static bool IsEfRepository(INamedTypeSymbol type)
     {
-        return type.MetadataName == "EfReadRepository`3" &&
-            type.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read";
+        return type.MetadataName == "EfReadRepository`3"
+            && type.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read";
     }
 
     private static bool IsSortingFor(ITypeSymbol type, ITypeSymbol model)
     {
-        return type.AllInterfaces.Any(contract => contract.OriginalDefinition.ToDisplayString() ==
-            "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Sorting.IReadModelSorting<TReadModel>" &&
-            SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], model));
+        return type.AllInterfaces.Any(contract => contract.OriginalDefinition.ToDisplayString()
+            == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Sorting.IReadModelSorting<TReadModel>"
+            && SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], model));
     }
 
     private sealed record ReadMethod(

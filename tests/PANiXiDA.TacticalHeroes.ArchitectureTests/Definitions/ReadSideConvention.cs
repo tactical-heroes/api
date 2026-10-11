@@ -24,16 +24,16 @@ internal static class ReadSideConvention
     {
         var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 
-        return underlyingType.IsPrimitive ||
-            underlyingType.IsEnum ||
-            underlyingType == typeof(string) ||
-            underlyingType == typeof(decimal) ||
-            underlyingType == typeof(Guid) ||
-            underlyingType == typeof(DateTime) ||
-            underlyingType == typeof(DateTimeOffset) ||
-            underlyingType == typeof(DateOnly) ||
-            underlyingType == typeof(TimeOnly) ||
-            underlyingType == typeof(TimeSpan);
+        return underlyingType.IsPrimitive
+            || underlyingType.IsEnum
+            || underlyingType == typeof(string)
+            || underlyingType == typeof(decimal)
+            || underlyingType == typeof(Guid)
+            || underlyingType == typeof(DateTime)
+            || underlyingType == typeof(DateTimeOffset)
+            || underlyingType == typeof(DateOnly)
+            || underlyingType == typeof(TimeOnly)
+            || underlyingType == typeof(TimeSpan);
     }
 
     internal static bool IsAllowedReadInput(Type type)
@@ -48,9 +48,9 @@ internal static class ReadSideConvention
         return TryCollectReadModelTypes(
             type,
             readModelTypes,
-            new HashSet<Type>()) &&
-            readModelTypes.Count > 0 &&
-            readModelTypes.All(type =>
+            new HashSet<Type>())
+            && readModelTypes.Count > 0
+            && readModelTypes.All(type =>
                 typeof(IReadModel).IsAssignableFrom(type));
     }
 
@@ -63,14 +63,14 @@ internal static class ReadSideConvention
             return true;
         }
 
-        if (IsDomainType(type) ||
-            typeof(IReadModel).IsAssignableFrom(type))
+        if (IsDomainType(type)
+            || typeof(IReadModel).IsAssignableFrom(type))
         {
             return false;
         }
 
-        if (IsPrimitiveValue(type) ||
-            type == typeof(CancellationToken))
+        if (IsPrimitiveValue(type)
+            || type == typeof(CancellationToken))
         {
             return true;
         }
@@ -158,16 +158,16 @@ internal static class ReadSideConvention
                 visitedTypes);
         }
 
-        if (!type.IsGenericType ||
-            !IsSupportedResultWrapper(type.GetGenericTypeDefinition()))
+        if (!type.IsGenericType
+            || !IsSupportedResultWrapper(type.GetGenericTypeDefinition()))
         {
             return false;
         }
 
         var genericArguments = type.GetGenericArguments();
 
-        return genericArguments.Length == 1 &&
-            TryCollectReadModelTypes(
+        return genericArguments.Length == 1
+            && TryCollectReadModelTypes(
                 genericArguments[0],
                 readModelTypes,
                 visitedTypes);
@@ -180,8 +180,8 @@ internal static class ReadSideConvention
         return string.Equals(
             assemblyName,
             CoreDomainAssemblyName,
-            StringComparison.Ordinal) ||
-            assemblyName?.EndsWith(
+            StringComparison.Ordinal)
+            || assemblyName?.EndsWith(
                 DomainAssemblySuffix,
                 StringComparison.Ordinal) == true;
     }
@@ -192,8 +192,8 @@ internal static class ReadSideConvention
 
         return assemblyName?.EndsWith(
             ApplicationAssemblySuffix,
-            StringComparison.Ordinal) == true ||
-            IsCoreApplicationQueryingType(type);
+            StringComparison.Ordinal) == true
+            || IsCoreApplicationQueryingType(type);
     }
 
     private static bool IsCoreApplicationQueryingType(Type type)
@@ -201,12 +201,12 @@ internal static class ReadSideConvention
         return string.Equals(
             type.Assembly.GetName().Name,
             CoreApplicationAssemblyName,
-            StringComparison.Ordinal) &&
-            (string.Equals(
+            StringComparison.Ordinal)
+            && (string.Equals(
                 type.Namespace,
                 CoreApplicationQueryingNamespace,
-                StringComparison.Ordinal) ||
-                type.Namespace?.StartsWith(
+                StringComparison.Ordinal)
+                || type.Namespace?.StartsWith(
                     CoreApplicationQueryingNamespace + ".",
                     StringComparison.Ordinal) == true);
     }
@@ -225,10 +225,10 @@ internal static class ReadSideConvention
     private static bool IsSupportedResultWrapper(
         Type genericTypeDefinition)
     {
-        return genericTypeDefinition == typeof(Task<>) ||
-            genericTypeDefinition == typeof(ValueTask<>) ||
-            genericTypeDefinition == typeof(Result<>) ||
-            genericTypeDefinition == typeof(PaginationResult<>) ||
-            genericTypeDefinition == typeof(CursorPaginationResult<>);
+        return genericTypeDefinition == typeof(Task<>)
+            || genericTypeDefinition == typeof(ValueTask<>)
+            || genericTypeDefinition == typeof(Result<>)
+            || genericTypeDefinition == typeof(PaginationResult<>)
+            || genericTypeDefinition == typeof(CursorPaginationResult<>);
     }
 }

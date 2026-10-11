@@ -23,10 +23,10 @@ public sealed class DomainCollectionExposureConventionTests
         Assert.NotEmpty(returns);
         Assert.True(
             violations.Length == 0,
-            "Domain collections must be returned through standard read-only wrappers, " +
-                "immutable collections, or frozen collections. A read-only interface " +
-                $"alone does not protect mutable storage:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            "Domain collections must be returned through standard read-only wrappers, "
+                + "immutable collections, or frozen collections. A read-only interface "
+                + $"alone does not protect mutable storage:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Collection exposure should validate protection when member shapes vary")]
@@ -208,11 +208,11 @@ public sealed class DomainCollectionExposureConventionTests
         }
 
         if (member is null
-            || !IsExposed(member) ||
-            returnType is null ||
-            !DomainCollectionConvention.ContainsCollection(returnType, semanticModel.Compilation) &&
-                !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation) ||
-            !member.ContainingType.AllInterfaces.Any(type =>
+            || !IsExposed(member)
+            || returnType is null
+            || !DomainCollectionConvention.ContainsCollection(returnType, semanticModel.Compilation)
+                && !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation)
+            || !member.ContainingType.AllInterfaces.Any(type =>
                 SymbolEqualityComparer.Default.Equals(type, entity)))
         {
             return null;
@@ -222,24 +222,24 @@ public sealed class DomainCollectionExposureConventionTests
             ? DomainCollectionConvention.IsProtectedCollectionType(returnType, semanticModel.Compilation)
             : DomainCollectionConvention.IsProtectedCollection(operation, semanticModel.Compilation);
 
-        if (node is YieldStatementSyntax &&
-            !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation))
+        if (node is YieldStatementSyntax
+            && !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation))
         {
             isProtected = true;
         }
 
         return new CollectionReturn(
-            Location: $"{Path.GetRelativePath(repositoryRoot, node.SyntaxTree.FilePath)}:" +
-                $"{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1} " +
-                $"{member.Name}",
+            Location: $"{Path.GetRelativePath(repositoryRoot, node.SyntaxTree.FilePath)}:"
+                + $"{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1} "
+                + $"{member.Name}",
             IsProtected: member is not IFieldSymbol { IsReadOnly: false } && isProtected);
     }
 
     private static bool IsExposed(ISymbol member)
     {
         return member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or
-                   Accessibility.ProtectedOrInternal ||
-            member is IPropertySymbol { ExplicitInterfaceImplementations.IsEmpty: false } or
+                   Accessibility.ProtectedOrInternal
+            || member is IPropertySymbol { ExplicitInterfaceImplementations.IsEmpty: false } or
                 IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false };
     }
 

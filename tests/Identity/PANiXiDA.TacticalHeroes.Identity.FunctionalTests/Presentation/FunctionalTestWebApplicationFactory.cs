@@ -50,8 +50,8 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
                 options.HttpResiliencePipeline = null);
 
             var seederHostedService = services.SingleOrDefault(descriptor =>
-                descriptor.ServiceType == typeof(IHostedService) &&
-                    descriptor.ImplementationType == typeof(IdentityProviderApplicationSeederHostedService));
+                descriptor.ServiceType == typeof(IHostedService)
+                    && descriptor.ImplementationType == typeof(IdentityProviderApplicationSeederHostedService));
 
             if (seederHostedService is not null)
             {

@@ -17,7 +17,7 @@ internal sealed class MailKitEmailSender(
         EmailMessage message,
         CancellationToken cancellationToken)
     {
-        var email = new MimeMessage
+        using var email = new MimeMessage
         {
             Subject = message.Subject,
             Body = new BodyBuilder
@@ -42,8 +42,8 @@ internal sealed class MailKitEmailSender(
             options: options.Value.SocketOptions,
             cancellationToken: cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(options.Value.Username) &&
-            !string.IsNullOrWhiteSpace(options.Value.Password))
+        if (!string.IsNullOrWhiteSpace(options.Value.Username)
+            && !string.IsNullOrWhiteSpace(options.Value.Password))
         {
             await smtpClient.AuthenticateAsync(
                 userName: options.Value.Username,

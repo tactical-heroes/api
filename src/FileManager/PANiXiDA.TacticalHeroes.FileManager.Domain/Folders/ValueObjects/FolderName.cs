@@ -29,10 +29,10 @@ public sealed partial class FolderName : ValueObject
                     .WithField(nameof(FolderName)));
         }
 
-        if (normalizedValue is "." or ".." ||
-            normalizedValue.Contains('/') ||
-            normalizedValue.Contains('\\') ||
-            value.Any(char.IsControl))
+        if (normalizedValue is "." or ".."
+            || normalizedValue.Contains('/')
+            || normalizedValue.Contains('\\')
+            || value.Any(char.IsControl))
         {
             return Result.Failure<FolderName>(
                 Error.Validation("Folder name cannot contain paths or control characters.")

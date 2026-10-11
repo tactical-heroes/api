@@ -31,11 +31,11 @@ public sealed class CreateUnitHandlerTests
         result.IsSuccess.ShouldBeTrue();
         await unitsRepository.Received(1).AddAsync(
             Arg.Is<Unit>(unit =>
-                unit.Id.Value == result.Value &&
-                    unit.Name.Value == "Archer" &&
-                    unit.Stats.Attack == 8 &&
-                    unit.RangedAttack.Shots == 12 &&
-                    unit.FactionId == faction.Id),
+                unit.Id.Value == result.Value
+                    && unit.Name.Value == "Archer"
+                    && unit.Stats.Attack == 8
+                    && unit.RangedAttack.Shots == 12
+                    && unit.FactionId == faction.Id),
             cancellationToken);
     }
 

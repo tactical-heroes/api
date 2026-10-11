@@ -17,19 +17,19 @@ public sealed class EndpointMappingConventionTests
         var violations = mappings
             .Where(mapping => !mapping.HasAuthorizationIntent)
             .Select(mapping =>
-                $"{mapping.RelativePath}:{mapping.LineNumber}: " +
-                    $"{mapping.Endpoint.FullName} maps " +
-                    $"{string.Join(',', mapping.HttpMethods)} " +
-                    $"'{mapping.Route}' without RequireAuthorization() or " +
-                    $"AllowAnonymous() on the endpoint or its group.")
+                $"{mapping.RelativePath}:{mapping.LineNumber}: "
+                    + $"{mapping.Endpoint.FullName} maps "
+                    + $"{string.Join(',', mapping.HttpMethods)} "
+                    + $"'{mapping.Route}' without RequireAuthorization() or "
+                    + $"AllowAnonymous() on the endpoint or its group.")
             .ToArray();
 
         Assert.NotEmpty(mappings);
         Assert.True(
             violations.Length == 0,
-            $"Endpoint authorization intent violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Endpoint authorization intent violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoint mappings should not repeat matching group authorization when authorization matches")]
@@ -42,17 +42,17 @@ public sealed class EndpointMappingConventionTests
                     mapping.GroupAuthorizationDeclarations,
                     StringComparer.Ordinal)
                 .Select(authorization =>
-                    $"{mapping.RelativePath}:{mapping.LineNumber}: " +
-                        $"{mapping.Endpoint.FullName} repeats group " +
-                        $"authorization '{authorization}'."))
+                    $"{mapping.RelativePath}:{mapping.LineNumber}: "
+                        + $"{mapping.Endpoint.FullName} repeats group "
+                        + $"authorization '{authorization}'."))
             .ToArray();
 
         Assert.NotEmpty(mappings);
         Assert.True(
             violations.Length == 0,
-            $"Duplicate endpoint group authorization:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Duplicate endpoint group authorization:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoint names should be unique when mapped")]
@@ -65,20 +65,20 @@ public sealed class EndpointMappingConventionTests
                 StringComparer.Ordinal)
             .Where(group => group.Count() > 1)
             .Select(group =>
-                $"Endpoint name '{group.Key}' is used by " +
-                    string.Join(
+                $"Endpoint name '{group.Key}' is used by "
+                    + string.Join(
                         ", ",
                         group.Select(mapping =>
-                            $"{mapping.Endpoint.FullName} " +
-                                $"({string.Join(',', mapping.HttpMethods)} " +
-                                $"{mapping.Route})")))
+                            $"{mapping.Endpoint.FullName} "
+                                + $"({string.Join(',', mapping.HttpMethods)} "
+                                + $"{mapping.Route})")))
             .ToArray();
 
         Assert.NotEmpty(mappings);
         Assert.True(
             violations.Length == 0,
-            $"Duplicate endpoint names:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Duplicate endpoint names:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoint routes should be unique when mapped")]
@@ -90,8 +90,8 @@ public sealed class EndpointMappingConventionTests
                 new
                 {
                     Mapping = mapping,
-                    Key = $"{mapping.ApiVersion}|{httpMethod}|" +
-                        mapping.Route
+                    Key = $"{mapping.ApiVersion}|{httpMethod}|"
+                        + mapping.Route
                 }))
             .ToArray();
         var violations = routeMappings
@@ -100,8 +100,8 @@ public sealed class EndpointMappingConventionTests
                 StringComparer.OrdinalIgnoreCase)
             .Where(group => group.Count() > 1)
             .Select(group =>
-                $"Endpoint route '{group.Key}' is used by " +
-                    string.Join(
+                $"Endpoint route '{group.Key}' is used by "
+                    + string.Join(
                         ", ",
                         group.Select(mapping =>
                             mapping.Mapping.Endpoint.FullName)))
@@ -110,8 +110,8 @@ public sealed class EndpointMappingConventionTests
         Assert.NotEmpty(mappings);
         Assert.True(
             violations.Length == 0,
-            $"Duplicate endpoint routes:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Duplicate endpoint routes:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 }
 
@@ -190,8 +190,8 @@ internal static class EndpointMappingSourceDiscovery
                 $"Could not create '{endpointGroup.FullName}'."));
         var endpointGroupName = endpointGroup.FullName
             ?? throw new InvalidOperationException(
-                $"Endpoint group '{endpointGroup}' does not have a full " +
-                    $"name.");
+                $"Endpoint group '{endpointGroup}' does not have a full "
+                    + $"name.");
         var endpointGroupAuthorization =
             groupAuthorization.GetValueOrDefault(endpointGroupName);
 
@@ -207,8 +207,8 @@ internal static class EndpointMappingSourceDiscovery
                 endpointInstance.Route),
             ApiVersion: groupInstance.ApiVersion.ToString(),
             HasAuthorizationIntent:
-                source.HasAuthorizationIntent ||
-                    endpointGroupAuthorization?.HasAuthorizationIntent == true,
+                source.HasAuthorizationIntent
+                    || endpointGroupAuthorization?.HasAuthorizationIntent == true,
             EndpointAuthorizationDeclarations:
                 source.AuthorizationDeclarations,
             GroupAuthorizationDeclarations:
@@ -231,9 +231,9 @@ internal static class EndpointMappingSourceDiscovery
         var semanticModel = await document.GetSemanticModelAsync();
         var sourceFile = document.FilePath;
 
-        if (root is null ||
-            semanticModel is null ||
-            sourceFile is null)
+        if (root is null
+            || semanticModel is null
+            || sourceFile is null)
         {
             return [];
         }
@@ -248,8 +248,8 @@ internal static class EndpointMappingSourceDiscovery
                 declaration => new
                 {
                     Declaration = declaration,
-                    Symbol = semanticModel.GetDeclaredSymbol(declaration) as
-                        INamedTypeSymbol
+                    Symbol = semanticModel.GetDeclaredSymbol(declaration)
+            as INamedTypeSymbol
                 })
             .Where(target => target.Symbol is not null)
             .ToArray();
@@ -298,13 +298,13 @@ internal static class EndpointMappingSourceDiscovery
                 invocation => new
                 {
                     Invocation = invocation,
-                    Operation = semanticModel.GetOperation(invocation) as
-                        IInvocationOperation
+                    Operation = semanticModel.GetOperation(invocation)
+            as IInvocationOperation
                 })
             .Where(target =>
-                target.Operation is not null &&
-                    target.Invocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-                    semanticModel.GetTypeInfo(memberAccess.Expression).Type?
+                target.Operation is not null
+                    && target.Invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                    && semanticModel.GetTypeInfo(memberAccess.Expression).Type?
                         .ToDisplayString() == EndpointMapBuilderTypeName)
             .Select(target => new EndpointMappingSource(
                 EndpointTypeName: endpointType.ToDisplayString(),
@@ -350,8 +350,8 @@ internal static class EndpointMappingSourceDiscovery
             .. operation
                 .DescendantsAndSelf()
                 .Where(candidate =>
-                    candidate.ConstantValue.HasValue &&
-                        candidate.ConstantValue.Value is string)
+                    candidate.ConstantValue.HasValue
+                        && candidate.ConstantValue.Value is string)
                 .Select(candidate =>
                     (string)candidate.ConstantValue.Value!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -369,13 +369,13 @@ internal static class EndpointMappingSourceDiscovery
                 invocation => new
                 {
                     Invocation = invocation,
-                    Operation = semanticModel.GetOperation(invocation) as
-                        IInvocationOperation
+                    Operation = semanticModel.GetOperation(invocation)
+            as IInvocationOperation
                 })
             .Where(target =>
-                target.Operation?.TargetMethod.Name == "WithName" &&
-                    target.Invocation != mappingInvocation &&
-                    target.Invocation.Span.Contains(mappingInvocation.Span))
+                target.Operation?.TargetMethod.Name == "WithName"
+                    && target.Invocation != mappingInvocation
+                    && target.Invocation.Span.Contains(mappingInvocation.Span))
             .Select(target => target.Invocation.ArgumentList.Arguments
                 .FirstOrDefault()
                 ?.Expression)
@@ -409,20 +409,20 @@ internal static class EndpointMappingSourceDiscovery
                     invocation => new
                     {
                         Invocation = invocation,
-                        Operation = semanticModel.GetOperation(invocation) as
-                            IInvocationOperation
+                        Operation = semanticModel.GetOperation(invocation)
+            as IInvocationOperation
                     })
                 .Where(target => target.Operation?.TargetMethod.Name is
                     "RequireAuthorization" or "AllowAnonymous")
                 .Select(target =>
-                    $"{target.Operation!.TargetMethod.Name}(" +
-                        string.Join(
+                    $"{target.Operation!.TargetMethod.Name}("
+                        + string.Join(
                             ",",
                             target.Invocation.ArgumentList.Arguments.Select(argument =>
                                 argument.Expression
                                     .NormalizeWhitespace()
-                                    .ToFullString())) +
-                        ")")
+                                    .ToFullString()))
+                        + ")")
                 .Distinct(StringComparer.Ordinal)
         ];
     }
@@ -447,8 +447,8 @@ internal static class EndpointMappingSourceDiscovery
             string.Equals(
                 interfaceType.Name,
                 interfaceTypeName,
-                StringComparison.Ordinal) &&
-                string.Equals(
+                StringComparison.Ordinal)
+                && string.Equals(
                     interfaceType.ContainingNamespace.ToDisplayString(),
                     EndpointInterfaceNamespace,
                     StringComparison.Ordinal));

@@ -63,9 +63,9 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
             AuthorizeMapper.ToQuery(id: userIdResult.Value),
             httpContext.RequestAborted);
 
-        if (userResult.IsFailure ||
-            userResult.Value.IsBlocked ||
-            !userResult.Value.IsConfirmed)
+        if (userResult.IsFailure
+            || userResult.Value.IsBlocked
+            || !userResult.Value.IsConfirmed)
         {
             return TypedResults.Forbid();
         }

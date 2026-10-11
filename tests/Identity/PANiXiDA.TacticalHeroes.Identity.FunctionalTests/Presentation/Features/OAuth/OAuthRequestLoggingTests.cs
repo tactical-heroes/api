@@ -99,8 +99,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
         var completion = loggerProvider.Records
-            .Where(record => record.Message == "HTTP request finished" &&
-                Equals(record.Attributes.GetValueOrDefault("url.path"), requestPath))
+            .Where(record => record.Message == "HTTP request finished"
+                && Equals(record.Attributes.GetValueOrDefault("url.path"), requestPath))
             .ShouldHaveSingleItem();
         completion.Level.ShouldBe(LogLevel.Information);
         completion.Attributes["enduser.id"].ShouldBe(createdUser.Id.ToString());
@@ -139,7 +139,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         LogLevel expectedLevel)
     {
         using var loggerProvider = new CapturingLoggerProvider();
-        await using var factory = new FunctionalTestWebApplicationFactory("Development")
+        await using var testFactory = new FunctionalTestWebApplicationFactory("Development");
+        await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureLogging(logging => logging.AddProvider(loggerProvider)));
         using var client = factory.CreateClient();
         var requestAborted = new CancellationToken(failureKind == FailureKind.ClientCancellation);

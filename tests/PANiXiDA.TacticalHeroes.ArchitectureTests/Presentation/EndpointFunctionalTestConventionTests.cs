@@ -19,8 +19,8 @@ public sealed class EndpointFunctionalTestConventionTests
                 StringComparison.Ordinal) == true)
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type =>
-                type is { IsClass: true, IsAbstract: false } &&
-                    typeof(IEndpoint).IsAssignableFrom(type))
+                type is { IsClass: true, IsAbstract: false }
+                    && typeof(IEndpoint).IsAssignableFrom(type))
             .OrderBy(type => type.FullName, StringComparer.Ordinal)
             .ToArray();
 
@@ -34,8 +34,8 @@ public sealed class EndpointFunctionalTestConventionTests
 
         Assert.True(
             missingTestFiles.Length == 0,
-            $"Missing functional test files:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, missingTestFiles));
+            $"Missing functional test files:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, missingTestFiles));
     }
 
     private static string GetExpectedTestFilePath(
@@ -60,8 +60,8 @@ public sealed class EndpointFunctionalTestConventionTests
             StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                $"Endpoint namespace '{endpointNamespace}' must start with " +
-                    $"'{presentationNamespacePrefix}'.");
+                $"Endpoint namespace '{endpointNamespace}' must start with "
+                    + $"'{presentationNamespacePrefix}'.");
         }
 
         var relativeNamespace = endpointNamespace[presentationNamespacePrefix.Length..];
@@ -87,8 +87,8 @@ public sealed class EndpointFunctionalTestConventionTests
         {
             if (Directory.Exists(Path.Combine(
                 directory.FullName,
-                SourceDirectoryName)) &&
-                Directory.Exists(Path.Combine(
+                SourceDirectoryName))
+                && Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))
             {
@@ -97,7 +97,7 @@ public sealed class EndpointFunctionalTestConventionTests
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-                $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+            $"Could not find repository root containing "
+                + $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 }

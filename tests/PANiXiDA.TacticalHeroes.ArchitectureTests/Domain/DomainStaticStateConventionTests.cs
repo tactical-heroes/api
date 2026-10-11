@@ -11,8 +11,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 public sealed class DomainStaticStateConventionTests
 {
     private const BindingFlags StaticMemberFlags = BindingFlags.Static
-        | BindingFlags.Public |
-        BindingFlags.NonPublic
+        | BindingFlags.Public
+        | BindingFlags.NonPublic
         | BindingFlags.DeclaredOnly;
 
     [Fact(DisplayName = "Domain types should contain only immutable static state when authored members are declared")]
@@ -27,8 +27,8 @@ public sealed class DomainStaticStateConventionTests
         Assert.NotEmpty(results);
         Assert.True(
             violations.Length == 0,
-            $"Domain static state must be immutable:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Domain static state must be immutable:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Static state should reject shared mutation when authored member shapes vary")]

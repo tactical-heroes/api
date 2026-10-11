@@ -64,14 +64,16 @@ public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
         using var userResponse = await client.GetAsync($"/api/v1/users/{createdUser.Id}", cancellationToken);
         userResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         client.DefaultRequestHeaders.Authorization = null;
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.RefreshToken,
+            [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
+            [OpenIddictConstants.Parameters.RefreshToken] = tokens.RefreshToken
+        });
+
         using var refreshResponse = await client.PostAsync(
             "/connect/token",
-            new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.RefreshToken,
-                [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-                [OpenIddictConstants.Parameters.RefreshToken] = tokens.RefreshToken
-            }),
+            content,
             cancellationToken);
         refreshResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         using var refreshError = JsonDocument.Parse(await refreshResponse.Content.ReadAsStringAsync(cancellationToken));

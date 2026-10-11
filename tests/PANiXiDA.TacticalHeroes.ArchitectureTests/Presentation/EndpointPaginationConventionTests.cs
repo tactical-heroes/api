@@ -11,10 +11,10 @@ public sealed class EndpointPaginationConventionTests
     public async Task Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped()
     {
         var endpoints = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetEndpointsAsync);
-        var violations = endpoints.Where(endpoint => endpoint.HasParameters != endpoint.DeclaresPagination ||
-            endpoint.HasParameters != endpoint.ReturnsPagination)
-            .Select(endpoint => $"{endpoint.Name}: PaginationParameters, Produces<PaginationResult<T>>, " +
-                "and the paginated success response must occur together.")
+        var violations = endpoints.Where(endpoint => endpoint.HasParameters != endpoint.DeclaresPagination
+            || endpoint.HasParameters != endpoint.ReturnsPagination)
+            .Select(endpoint => $"{endpoint.Name}: PaginationParameters, Produces<PaginationResult<T>>, "
+                + "and the paginated success response must occur together.")
             .ToArray();
 
         Assert.NotEmpty(endpoints);
@@ -39,11 +39,11 @@ public sealed class EndpointPaginationConventionTests
         var endpoints = new List<EndpointPagination>();
         foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
-            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess ||
-                semanticModel.GetTypeInfo(memberAccess.Expression).Type?.ToDisplayString() !=
-                    "PANiXiDA.Core.Presentation.Http.Endpoints.EndpointMapBuilder" ||
-                semanticModel.GetSymbolInfo(invocation).Symbol is not IMethodSymbol mapping ||
-                !mapping.Name.StartsWith("Map", StringComparison.Ordinal))
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess
+                || semanticModel.GetTypeInfo(memberAccess.Expression).Type?.ToDisplayString()
+                != "PANiXiDA.Core.Presentation.Http.Endpoints.EndpointMapBuilder"
+                || semanticModel.GetSymbolInfo(invocation).Symbol is not IMethodSymbol mapping
+                || !mapping.Name.StartsWith("Map", StringComparison.Ordinal))
             {
                 continue;
             }
@@ -56,8 +56,8 @@ public sealed class EndpointPaginationConventionTests
                 ?? throw new InvalidOperationException(
                     $"{document.FilePath}: cannot resolve the handler for {invocation}.");
 
-            var hasParameters = handler.Parameters.Any(parameter => parameter.Type.ToDisplayString() ==
-                "PANiXiDA.Core.Application.Querying.Pagination.PaginationParameters");
+            var hasParameters = handler.Parameters.Any(parameter => parameter.Type.ToDisplayString()
+                == "PANiXiDA.Core.Application.Querying.Pagination.PaginationParameters");
             var declaresPagination = invocation.Ancestors()
                 .OfType<InvocationExpressionSyntax>()
                 .Select(call => semanticModel.GetSymbolInfo(call).Symbol)
@@ -73,8 +73,8 @@ public sealed class EndpointPaginationConventionTests
                     .Select(call => handlerModel.GetSymbolInfo(call).Symbol)
                     .OfType<IMethodSymbol>()
                     .Any(method =>
-                        method.ContainingType.ToDisplayString() == "Microsoft.AspNetCore.Http.TypedResults" &&
-                            method.Name == "Ok"
+                        method.ContainingType.ToDisplayString() == "Microsoft.AspNetCore.Http.TypedResults"
+                            && method.Name == "Ok"
                             && method.TypeArguments.Any(IsPaginationResult));
             }
 
@@ -90,8 +90,8 @@ public sealed class EndpointPaginationConventionTests
 
     private static bool IsPaginationResult(ITypeSymbol type)
     {
-        return type is INamedTypeSymbol { MetadataName: "PaginationResult`1" } named &&
-            named.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Pagination";
+        return type is INamedTypeSymbol { MetadataName: "PaginationResult`1" } named
+            && named.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Pagination";
     }
 
     private sealed record EndpointPagination(

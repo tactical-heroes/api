@@ -38,8 +38,8 @@ internal static class OAuthServiceAccessTokenTestHelper
             string.Equals(
                 item.ClientType,
                 OpenIddictConstants.ClientTypes.Confidential,
-                StringComparison.Ordinal) &&
-                item.GrantTypes.Contains(
+                StringComparison.Ordinal)
+                && item.GrantTypes.Contains(
                     OpenIddictConstants.GrantTypes.ClientCredentials,
                     StringComparer.Ordinal));
         var parameters = new Dictionary<string, string>
@@ -54,9 +54,11 @@ internal static class OAuthServiceAccessTokenTestHelper
             parameters[OpenIddictConstants.Parameters.Scope] = string.Join(' ', client.Scopes);
         }
 
+        using var content = new FormUrlEncodedContent(parameters);
+
         using var response = await fixture.Client.PostAsync(
             TokenPath,
-            new FormUrlEncodedContent(parameters),
+            content,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 

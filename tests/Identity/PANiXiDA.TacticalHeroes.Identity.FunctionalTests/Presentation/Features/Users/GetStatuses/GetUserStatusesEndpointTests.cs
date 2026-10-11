@@ -13,10 +13,10 @@ public sealed class GetUserStatusesEndpointTests(FunctionalTestFixture fixture)
         var response = await client.GetStatusesAsync(TestContext.Current.CancellationToken);
 
         response.ShouldContain(status =>
-            status.Id == UserStatus.Active.Id &&
-                status.Name == UserStatus.Active.Name);
+            status.Id == UserStatus.Active.Id
+                && status.Name == UserStatus.Active.Name);
         response.ShouldContain(status =>
-            status.Id == UserStatus.Blocked.Id &&
-                status.Name == UserStatus.Blocked.Name);
+            status.Id == UserStatus.Blocked.Id
+                && status.Name == UserStatus.Blocked.Name);
     }
 }

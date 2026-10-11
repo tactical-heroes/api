@@ -44,10 +44,10 @@ public sealed class OptionsConfigurationConventionTests
         Assert.NotEmpty(optionsTypes);
         Assert.True(
             violations.Length == 0,
-            $"Configuration options must have a registered " +
-                $"IValidateOptions<TOptions> validator in the same directory:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Configuration options must have a registered "
+                + $"IValidateOptions<TOptions> validator in the same directory:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Configuration options should use ValidateOnStart when registered")]
@@ -69,10 +69,10 @@ public sealed class OptionsConfigurationConventionTests
         Assert.NotEmpty(optionsTypes);
         Assert.True(
             violations.Length == 0,
-            $"Configuration options must be registered through " +
-                $"AddOptions<TOptions>() with ValidateOnStart():" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Configuration options must be registered through "
+                + $"AddOptions<TOptions>() with ValidateOnStart():"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Configuration options should reside in dedicated Options subdirectories when declared")]
@@ -91,10 +91,10 @@ public sealed class OptionsConfigurationConventionTests
         Assert.NotEmpty(optionsTypes);
         Assert.True(
             violations.Length == 0,
-            $"Configuration options must reside in dedicated " +
-                $"'{OptionsDirectoryName}/<Name>/' subdirectories:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Configuration options must reside in dedicated "
+                + $"'{OptionsDirectoryName}/<Name>/' subdirectories:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static Type[] GetConfigurationOptionsTypes()
@@ -112,14 +112,14 @@ public sealed class OptionsConfigurationConventionTests
     {
         var sectionNameField = type.GetField(
             SectionNameFieldName,
-            BindingFlags.DeclaredOnly |
-                BindingFlags.Public |
-                BindingFlags.Static);
+            BindingFlags.DeclaredOnly
+                | BindingFlags.Public
+                | BindingFlags.Static);
 
-        return type is { IsClass: true, IsAbstract: false } &&
-            type.Name.EndsWith(OptionsSuffix, StringComparison.Ordinal) &&
-            sectionNameField is { IsLiteral: true } &&
-            sectionNameField.FieldType == typeof(string);
+        return type is { IsClass: true, IsAbstract: false }
+            && type.Name.EndsWith(OptionsSuffix, StringComparison.Ordinal)
+            && sectionNameField is { IsLiteral: true }
+            && sectionNameField.FieldType == typeof(string);
     }
 
     private static IEnumerable<string> GetValidatorViolations(
@@ -137,8 +137,8 @@ public sealed class OptionsConfigurationConventionTests
 
         if (validatorType is null)
         {
-            yield return $"{optionsType.FullName} requires " +
-                $"{validatorFullName}.";
+            yield return $"{optionsType.FullName} requires "
+                + $"{validatorFullName}.";
             yield break;
         }
 
@@ -147,22 +147,22 @@ public sealed class OptionsConfigurationConventionTests
 
         if (!validateOptionsType.IsAssignableFrom(validatorType))
         {
-            yield return $"{validatorType.FullName} must implement " +
-                $"IValidateOptions<{optionsType.Name}>.";
+            yield return $"{validatorType.FullName} must implement "
+                + $"IValidateOptions<{optionsType.Name}>.";
         }
 
         if (!validatorRegistrations.Any(registration =>
             string.Equals(
                 registration.OptionsTypeName,
                 optionsType.Name,
-                StringComparison.Ordinal) &&
-                string.Equals(
+                StringComparison.Ordinal)
+                && string.Equals(
                     registration.ValidatorTypeName,
                     validatorType.Name,
                     StringComparison.Ordinal)))
         {
-            yield return $"{validatorType.FullName} must be registered for " +
-                $"IValidateOptions<{optionsType.Name}>.";
+            yield return $"{validatorType.FullName} must be registered for "
+                + $"IValidateOptions<{optionsType.Name}>.";
         }
 
         var optionsSourceFiles = FindSourceFiles(
@@ -174,32 +174,32 @@ public sealed class OptionsConfigurationConventionTests
 
         if (optionsSourceFiles.Length != 1)
         {
-            yield return $"{optionsType.FullName} must have exactly one " +
-                $"source declaration; found " +
-                $"{optionsSourceFiles.Length}.";
+            yield return $"{optionsType.FullName} must have exactly one "
+                + $"source declaration; found "
+                + $"{optionsSourceFiles.Length}.";
         }
 
         if (validatorSourceFiles.Length != 1)
         {
-            yield return $"{validatorType.FullName} must have exactly one " +
-                $"source declaration; found " +
-                $"{validatorSourceFiles.Length}.";
+            yield return $"{validatorType.FullName} must have exactly one "
+                + $"source declaration; found "
+                + $"{validatorSourceFiles.Length}.";
         }
 
-        if (optionsSourceFiles.Length == 1 &&
-            validatorSourceFiles.Length == 1 &&
-            !string.Equals(
+        if (optionsSourceFiles.Length == 1
+            && validatorSourceFiles.Length == 1
+            && !string.Equals(
                 Path.GetDirectoryName(optionsSourceFiles[0]),
                 Path.GetDirectoryName(validatorSourceFiles[0]),
                 StringComparison.OrdinalIgnoreCase))
         {
-            yield return $"{optionsType.FullName} and " +
-                $"{validatorType.FullName} must reside in the same " +
-                $"directory; found " +
-                $"'{Path.GetRelativePath(
+            yield return $"{optionsType.FullName} and "
+                + $"{validatorType.FullName} must reside in the same "
+                + $"directory; found "
+                + $"'{Path.GetRelativePath(
                     repositoryRoot,
-                    optionsSourceFiles[0])}' and " +
-                $"'{Path.GetRelativePath(
+                    optionsSourceFiles[0])}' and "
+                + $"'{Path.GetRelativePath(
                     repositoryRoot,
                     validatorSourceFiles[0])}'.";
         }
@@ -218,17 +218,17 @@ public sealed class OptionsConfigurationConventionTests
 
         if (optionsRegistrations.Length == 0)
         {
-            yield return $"{optionsType.FullName} is not registered through " +
-                $"AddOptions<{optionsType.Name}>().";
+            yield return $"{optionsType.FullName} is not registered through "
+                + $"AddOptions<{optionsType.Name}>().";
             yield break;
         }
 
         foreach (var registration in optionsRegistrations
             .Where(registration => !registration.UsesValidateOnStart))
         {
-            yield return $"{optionsType.FullName} registration at " +
-                $"'{registration.SourceLocation}' must call " +
-                $"{ValidateOnStartMethodName}().";
+            yield return $"{optionsType.FullName} registration at "
+                + $"'{registration.SourceLocation}' must call "
+                + $"{ValidateOnStartMethodName}().";
         }
     }
 
@@ -243,9 +243,9 @@ public sealed class OptionsConfigurationConventionTests
 
         if (optionsSourceFiles.Length != 1)
         {
-            yield return $"{optionsType.FullName} must have exactly one " +
-                $"source declaration; found " +
-                $"{optionsSourceFiles.Length}.";
+            yield return $"{optionsType.FullName} must have exactly one "
+                + $"source declaration; found "
+                + $"{optionsSourceFiles.Length}.";
             yield break;
         }
 
@@ -254,8 +254,8 @@ public sealed class OptionsConfigurationConventionTests
 
         if (optionsDirectoryPath is null)
         {
-            yield return $"{optionsType.FullName} source directory could " +
-                $"not be determined.";
+            yield return $"{optionsType.FullName} source directory could "
+                + $"not be determined.";
             yield break;
         }
 
@@ -265,16 +265,16 @@ public sealed class OptionsConfigurationConventionTests
         if (!string.Equals(
             optionsDirectory.Name,
             expectedDirectoryName,
-            StringComparison.Ordinal) ||
-            !string.Equals(
+            StringComparison.Ordinal)
+            || !string.Equals(
                 optionsDirectory.Parent?.Name,
                 OptionsDirectoryName,
                 StringComparison.Ordinal))
         {
-            yield return $"{optionsType.FullName} must reside under " +
-                $"'{OptionsDirectoryName}/" +
-                $"{expectedDirectoryName}/'; found " +
-                $"'{Path.GetRelativePath(
+            yield return $"{optionsType.FullName} must reside under "
+                + $"'{OptionsDirectoryName}/"
+                + $"{expectedDirectoryName}/'; found "
+                + $"'{Path.GetRelativePath(
                     repositoryRoot,
                     optionsSourceFiles[0])}'.";
         }
@@ -293,8 +293,8 @@ public sealed class OptionsConfigurationConventionTests
         {
             var genericName = GetInvokedGenericName(invocation);
 
-            if (genericName is null ||
-                !s_serviceRegistrationMethodNames.Contains(
+            if (genericName is null
+                || !s_serviceRegistrationMethodNames.Contains(
                     genericName.Identifier.ValueText,
                     StringComparer.Ordinal))
             {
@@ -311,8 +311,8 @@ public sealed class OptionsConfigurationConventionTests
                         OptionsSuffix + ValidatorSuffix,
                         StringComparison.Ordinal));
 
-            if (optionsTypeName is not null &&
-                validatorTypeName is not null)
+            if (optionsTypeName is not null
+                && validatorTypeName is not null)
             {
                 yield return new ValidatorRegistration(
                     optionsTypeName,
@@ -339,18 +339,18 @@ public sealed class OptionsConfigurationConventionTests
                     GenericName = GetInvokedGenericName(invocation)
                 })
             .Where(candidate =>
-                candidate.GenericName is not null &&
-                    string.Equals(
+                candidate.GenericName is not null
+                    && string.Equals(
                         candidate.GenericName.Identifier.ValueText,
                         "AddOptions",
-                        StringComparison.Ordinal) &&
-                    candidate.GenericName.TypeArgumentList.Arguments.Count == 1)
+                        StringComparison.Ordinal)
+                    && candidate.GenericName.TypeArgumentList.Arguments.Count == 1)
             .Select(candidate => new OptionsRegistration(
                 OptionsTypeName: GetSimpleTypeName(
                     candidate.GenericName!.TypeArgumentList.Arguments[0]),
                 SourceLocation:
-                    $"{Path.GetRelativePath(repositoryRoot, sourceFile)}:" +
-                        $"{candidate.Invocation.GetLocation()
+                    $"{Path.GetRelativePath(repositoryRoot, sourceFile)}:"
+                        + $"{candidate.Invocation.GetLocation()
                             .GetLineSpan()
                             .StartLinePosition.Line
                             + 1}",
@@ -478,8 +478,8 @@ public sealed class OptionsConfigurationConventionTests
                 string.Equals(
                     declaration.Identifier.ValueText,
                     type.Name,
-                    StringComparison.Ordinal) &&
-                    string.Equals(
+                    StringComparison.Ordinal)
+                    && string.Equals(
                         GetNamespace(declaration),
                         type.Namespace,
                         StringComparison.Ordinal));
@@ -510,10 +510,10 @@ public sealed class OptionsConfigurationConventionTests
                     searchPattern: "*.cs",
                     searchOption: SearchOption.AllDirectories)
                 .Where(sourceFile =>
-                    !HasPathSegment(sourceFile, "bin") &&
-                        !HasPathSegment(sourceFile, "obj") &&
-                        !HasPathSegment(sourceFile, "Generated") &&
-                        !HasPathSegment(sourceFile, "Migrations"))
+                    !HasPathSegment(sourceFile, "bin")
+                        && !HasPathSegment(sourceFile, "obj")
+                        && !HasPathSegment(sourceFile, "Generated")
+                        && !HasPathSegment(sourceFile, "Migrations"))
                 .Order(StringComparer.OrdinalIgnoreCase)
         ];
     }
@@ -545,8 +545,8 @@ public sealed class OptionsConfigurationConventionTests
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-                $"the '{SourceDirectoryName}' directory.");
+            $"Could not find repository root containing "
+                + $"the '{SourceDirectoryName}' directory.");
     }
 
     private sealed record OptionsRegistration(

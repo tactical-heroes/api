@@ -16,17 +16,17 @@ public sealed class DependencyInjectionConventionTests
                     descriptor,
                     registration.Implementation)))
             .Select(registration =>
-                $"{registration.Implementation.FullName} implements " +
-                    $"{registration.Abstraction.FullName} and must be registered " +
-                    $"for that abstraction in the module service collection.")
+                $"{registration.Implementation.FullName} implements "
+                    + $"{registration.Abstraction.FullName} and must be registered "
+                    + $"for that abstraction in the module service collection.")
             .ToArray();
 
         Assert.NotEmpty(registrations);
         Assert.True(
             violations.Length == 0,
-            $"Missing Infrastructure registrations for Application or " +
-                $"Domain abstractions:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Missing Infrastructure registrations for Application or "
+                + $"Domain abstractions:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Database contexts should be registered when declared")]
@@ -37,16 +37,16 @@ public sealed class DependencyInjectionConventionTests
             .Where(registration =>
                 registration.ServiceDescriptors.Length == 0)
             .Select(registration =>
-                $"{registration.DatabaseContext.FullName} must be " +
-                    $"registered in the module service collection.")
+                $"{registration.DatabaseContext.FullName} must be "
+                    + $"registered in the module service collection.")
             .ToArray();
 
         Assert.NotEmpty(registrations);
         Assert.True(
             violations.Length == 0,
-            $"Database context registration violations:" +
-                $"{Environment.NewLine}" +
-                string.Join(Environment.NewLine, violations));
+            $"Database context registration violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static AbstractionRegistration[] GetAbstractionRegistrations()
@@ -89,8 +89,8 @@ public sealed class DependencyInjectionConventionTests
                                     [
                                         .. serviceCollection.Where(
                                             descriptor =>
-                                                descriptor.ServiceType ==
-                                                abstraction)
+                                                descriptor.ServiceType
+                        == abstraction)
                                     ])));
                 })
                 .OrderBy(
@@ -123,16 +123,16 @@ public sealed class DependencyInjectionConventionTests
                             {
                                 IsClass: true,
                                 IsAbstract: false
-                            } &&
-                                typeof(DbContext).IsAssignableFrom(type))
+                            }
+                                && typeof(DbContext).IsAssignableFrom(type))
                         .Select(databaseContext =>
                             new DatabaseContextRegistration(
                                 DatabaseContext: databaseContext,
                                 ServiceDescriptors:
                                 [
                                     .. serviceCollection.Where(descriptor =>
-                                        descriptor.ServiceType ==
-                                        databaseContext)
+                                        descriptor.ServiceType
+                        == databaseContext)
                                 ]));
                 })
                 .OrderBy(
@@ -155,8 +155,8 @@ public sealed class DependencyInjectionConventionTests
         ServiceDescriptor descriptor,
         Type implementation)
     {
-        return descriptor.ImplementationType == implementation ||
-            descriptor.ImplementationInstance?.GetType() == implementation;
+        return descriptor.ImplementationType == implementation
+            || descriptor.ImplementationInstance?.GetType() == implementation;
     }
 
     private sealed record AbstractionRegistration(

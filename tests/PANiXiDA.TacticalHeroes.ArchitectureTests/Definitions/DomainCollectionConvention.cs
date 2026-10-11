@@ -52,34 +52,34 @@ internal static class DomainCollectionConvention
 
     internal static bool IsImmutableCollectionType(Type type)
     {
-        return type.IsGenericType &&
-            s_immutableCollectionTypes.Contains(type.GetGenericTypeDefinition());
+        return type.IsGenericType
+            && s_immutableCollectionTypes.Contains(type.GetGenericTypeDefinition());
     }
 
     internal static bool IsReadOnlyCollectionType(Type type)
     {
-        return type == typeof(System.Collections.IEnumerable) ||
-            type.IsGenericType &&
-                (s_protectedCollectionTypes.Contains(type.GetGenericTypeDefinition()) ||
-                    s_readOnlyCollectionInterfaces.Contains(type.GetGenericTypeDefinition()));
+        return type == typeof(System.Collections.IEnumerable)
+            || type.IsGenericType
+                && (s_protectedCollectionTypes.Contains(type.GetGenericTypeDefinition())
+                    || s_readOnlyCollectionInterfaces.Contains(type.GetGenericTypeDefinition()));
     }
 
     internal static bool IsCollectionType(Type type)
     {
-        return type != typeof(string) &&
-            (typeof(System.Collections.IEnumerable).IsAssignableFrom(type) ||
-                type.IsGenericType && s_collectionViewTypes.Contains(type.GetGenericTypeDefinition()));
+        return type != typeof(string)
+            && (typeof(System.Collections.IEnumerable).IsAssignableFrom(type)
+                || type.IsGenericType && s_collectionViewTypes.Contains(type.GetGenericTypeDefinition()));
     }
 
     internal static bool IsCollection(ITypeSymbol type, Compilation compilation)
     {
         var enumerable = compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
 
-        return type.SpecialType != SpecialType.System_String &&
-            (SymbolEqualityComparer.Default.Equals(type, enumerable) ||
-                type.AllInterfaces.Any(candidate =>
-                    SymbolEqualityComparer.Default.Equals(candidate, enumerable)) ||
-                type is INamedTypeSymbol namedType
+        return type.SpecialType != SpecialType.System_String
+            && (SymbolEqualityComparer.Default.Equals(type, enumerable)
+                || type.AllInterfaces.Any(candidate =>
+                    SymbolEqualityComparer.Default.Equals(candidate, enumerable))
+                || type is INamedTypeSymbol namedType
                     && s_collectionViewTypes.Any(candidate =>
                         SymbolEqualityComparer.Default.Equals(
                             namedType.OriginalDefinition,
@@ -99,11 +99,11 @@ internal static class DomainCollectionConvention
             IConversionOperation conversion => IsProtectedConversion(conversion, compilation),
             IParenthesizedOperation parenthesized => IsProtectedCollection(parenthesized.Operand, compilation),
             IConditionalOperation conditional =>
-                IsProtectedCollection(conditional.WhenTrue, compilation) &&
-                    IsProtectedCollection(conditional.WhenFalse, compilation),
+                IsProtectedCollection(conditional.WhenTrue, compilation)
+                    && IsProtectedCollection(conditional.WhenFalse, compilation),
             ICoalesceOperation coalesce =>
-                IsProtectedCollection(coalesce.Value, compilation) &&
-                    IsProtectedCollection(coalesce.WhenNull, compilation),
+                IsProtectedCollection(coalesce.Value, compilation)
+                    && IsProtectedCollection(coalesce.WhenNull, compilation),
             ISwitchExpressionOperation switchExpression => switchExpression.Arms.All(arm =>
                 IsProtectedCollection(arm.Value, compilation)),
             ITupleOperation tuple => tuple.Elements.All(element =>
@@ -125,19 +125,19 @@ internal static class DomainCollectionConvention
             .Where(argument => ContainsCollection(argument, compilation))
             .ToArray();
 
-        return (isCollection || collectionArguments.Length > 0) &&
-            (!isCollection
+        return (isCollection || collectionArguments.Length > 0)
+            && (!isCollection
                 || s_protectedCollectionTypes.Any(candidate =>
                     SymbolEqualityComparer.Default.Equals(
                         namedType.OriginalDefinition,
-                        compilation.GetTypeByMetadataName(candidate.FullName!)))) &&
-            collectionArguments.All(argument => IsProtectedCollectionType(argument, compilation));
+                        compilation.GetTypeByMetadataName(candidate.FullName!))))
+            && collectionArguments.All(argument => IsProtectedCollectionType(argument, compilation));
     }
 
     internal static bool ContainsCollection(ITypeSymbol type, Compilation compilation)
     {
-        return IsCollection(type, compilation) ||
-            type is INamedTypeSymbol namedType
+        return IsCollection(type, compilation)
+            || type is INamedTypeSymbol namedType
                 && namedType.TypeArguments.Any(argument =>
                     ContainsCollection(argument, compilation));
     }
@@ -148,10 +148,10 @@ internal static class DomainCollectionConvention
         {
             IConversionOperation conversion => ReturnsCollection(conversion.Operand, compilation),
             IParenthesizedOperation parenthesized => ReturnsCollection(parenthesized.Operand, compilation),
-            IConditionalOperation conditional => ReturnsCollection(conditional.WhenTrue, compilation) ||
-                ReturnsCollection(conditional.WhenFalse, compilation),
-            ICoalesceOperation coalesce => ReturnsCollection(coalesce.Value, compilation) ||
-                ReturnsCollection(coalesce.WhenNull, compilation),
+            IConditionalOperation conditional => ReturnsCollection(conditional.WhenTrue, compilation)
+                || ReturnsCollection(conditional.WhenFalse, compilation),
+            ICoalesceOperation coalesce => ReturnsCollection(coalesce.Value, compilation)
+                || ReturnsCollection(coalesce.WhenNull, compilation),
             ISwitchExpressionOperation switchExpression => switchExpression.Arms.Any(arm =>
                 ReturnsCollection(arm.Value, compilation)),
             ITupleOperation tuple => tuple.Elements.Any(element => ReturnsCollection(element, compilation)),
@@ -163,9 +163,9 @@ internal static class DomainCollectionConvention
     private static bool IsProtectedConversion(IConversionOperation conversion, Compilation compilation)
     {
         if (conversion.Type is { } type
-            && IsReadOnlyViewType(type, compilation) &&
-            IsProtectedCollectionType(type, compilation) &&
-            (conversion.OperatorMethod is null
+            && IsReadOnlyViewType(type, compilation)
+            && IsProtectedCollectionType(type, compilation)
+            && (conversion.OperatorMethod is null
                 || s_collectionViewTypes.Any(candidate =>
                     SymbolEqualityComparer.Default.Equals(
                         conversion.OperatorMethod.ContainingType.OriginalDefinition,
@@ -179,11 +179,11 @@ internal static class DomainCollectionConvention
 
     private static bool IsReadOnlyViewType(ITypeSymbol type, Compilation compilation)
     {
-        return type is INamedTypeSymbol namedType &&
-            (SymbolEqualityComparer.Default.Equals(
+        return type is INamedTypeSymbol namedType
+            && (SymbolEqualityComparer.Default.Equals(
                 namedType.OriginalDefinition,
-                compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!)) ||
-                SymbolEqualityComparer.Default.Equals(
+                compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!))
+                || SymbolEqualityComparer.Default.Equals(
                     namedType.OriginalDefinition,
                     compilation.GetTypeByMetadataName(typeof(ReadOnlyMemory<>).FullName!)));
     }

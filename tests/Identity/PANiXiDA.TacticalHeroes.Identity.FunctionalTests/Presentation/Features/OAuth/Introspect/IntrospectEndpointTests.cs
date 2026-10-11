@@ -25,15 +25,17 @@ public sealed class IntrospectEndpointTests(FunctionalTestFixture fixture)
             "StrongPassword1!",
             cancellationToken);
 
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
+                [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
+                [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
+            });
+
         using var response = await client.PostAsync(
             "/connect/introspect",
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-                    [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
-                    [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
-                }),
+            content,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 

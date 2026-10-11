@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
@@ -92,13 +91,11 @@ internal static class ProductionSourceDocumentDiscovery
                 "*.slnx",
                 SearchOption.TopDirectoryOnly)
             .Single();
-        var workspace = MSBuildWorkspace.Create();
-        var solution = await workspace.OpenSolutionAsync(solutionPath);
+        var solution = await ProductionSourceWorkspaceFixture.Workspace.OpenSolutionAsync(solutionPath);
 
         return new ProductionSourceContext(
             RepositoryRoot: repositoryRoot,
-            Solution: solution,
-            Workspace: workspace);
+            Solution: solution);
     }
 
     private static bool IsSourceProject(
@@ -106,8 +103,8 @@ internal static class ProductionSourceDocumentDiscovery
         string? projectFile,
         IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
-        return projectFile is not null &&
-            IsWithinSourceRoots(
+        return projectFile is not null
+            && IsWithinSourceRoots(
                 repositoryRoot,
                 projectFile,
                 sourceRootDirectoryNames);
@@ -118,12 +115,12 @@ internal static class ProductionSourceDocumentDiscovery
         string? sourceFile,
         IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
-        return sourceFile is not null &&
-            IsWithinSourceRoots(
+        return sourceFile is not null
+            && IsWithinSourceRoots(
                 repositoryRoot,
                 sourceFile,
-                sourceRootDirectoryNames) &&
-            !sourceFile
+                sourceRootDirectoryNames)
+            && !sourceFile
                 .Split(
                     [
                         Path.DirectorySeparatorChar,
@@ -164,8 +161,8 @@ internal static class ProductionSourceDocumentDiscovery
         {
             if (Directory.Exists(Path.Combine(
                 directory.FullName,
-                SourceRootDirectoryName)) &&
-                Directory.EnumerateFiles(
+                SourceRootDirectoryName))
+                && Directory.EnumerateFiles(
                     directory.FullName,
                     "*.slnx",
                     SearchOption.TopDirectoryOnly)
@@ -176,12 +173,11 @@ internal static class ProductionSourceDocumentDiscovery
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-                $"'{SourceRootDirectoryName}' and a solution file.");
+            $"Could not find repository root containing "
+                + $"'{SourceRootDirectoryName}' and a solution file.");
     }
 }
 
 internal sealed record ProductionSourceContext(
     string RepositoryRoot,
-    Solution Solution,
-    MSBuildWorkspace Workspace);
+    Solution Solution);
