@@ -215,21 +215,21 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         bool abortRequest,
         Exception exception) : DelegatingHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             if (request.RequestUri?.AbsolutePath != "/connect/introspect")
             {
-                return base.SendAsync(request, cancellationToken);
+                return await base.SendAsync(request, cancellationToken);
             }
 
             if (abortRequest)
             {
-                requestAborted.Cancel();
+                await requestAborted.CancelAsync();
             }
 
-            return Task.FromException<HttpResponseMessage>(exception);
+            throw exception;
         }
     }
 

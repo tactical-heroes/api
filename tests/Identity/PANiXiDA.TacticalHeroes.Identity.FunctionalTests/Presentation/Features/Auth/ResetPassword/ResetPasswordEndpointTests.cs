@@ -136,7 +136,7 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
     {
         public bool PasswordSavedInTransaction { get; private set; }
 
-        public override ValueTask<int> SavedChangesAsync(
+        public override async ValueTask<int> SavedChangesAsync(
             SaveChangesCompletedEventData eventData,
             int result,
             CancellationToken cancellationToken)
@@ -149,10 +149,10 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
             if (user is not null && user.PasswordHash != originalPasswordHash)
             {
                 PasswordSavedInTransaction = context!.Database.CurrentTransaction is not null;
-                requestCancellation.Cancel();
+                await requestCancellation.CancelAsync();
             }
 
-            return ValueTask.FromResult(result);
+            return result;
         }
     }
 }
