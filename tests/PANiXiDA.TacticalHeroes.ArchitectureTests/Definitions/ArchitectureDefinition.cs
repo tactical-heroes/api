@@ -134,7 +134,7 @@ internal static class ArchitectureDefinition
             .EnumerateObject()
             .Where(library =>
                 library.Value.TryGetProperty("type", out var type) &&
-                type.GetString() == "project")
+                    type.GetString() == "project")
             .Select(library => library.Name.Split('/')[0])
             .Where(assemblyName => assemblyName != executingAssemblyName)];
     }
@@ -142,16 +142,16 @@ internal static class ArchitectureDefinition
     private static bool IsArchitecturalAssemblyName(string assemblyName)
     {
         return IsLayerAssemblyName(assemblyName) ||
-               assemblyName.EndsWith(HostLayerSuffix, StringComparison.Ordinal);
+            assemblyName.EndsWith(HostLayerSuffix, StringComparison.Ordinal);
     }
 
     private static bool IsLayerAssemblyName(string assemblyName)
     {
         return assemblyName.EndsWith(ContractsLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(DomainLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(ApplicationLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(InfrastructureLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(PresentationLayerSuffix, StringComparison.Ordinal);
+            assemblyName.EndsWith(DomainLayerSuffix, StringComparison.Ordinal) ||
+            assemblyName.EndsWith(ApplicationLayerSuffix, StringComparison.Ordinal) ||
+            assemblyName.EndsWith(InfrastructureLayerSuffix, StringComparison.Ordinal) ||
+            assemblyName.EndsWith(PresentationLayerSuffix, StringComparison.Ordinal);
     }
 
     private static ReflectionAssembly LoadAssembly(string assemblyName)

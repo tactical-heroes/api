@@ -92,6 +92,6 @@ internal sealed class IdentityProviderOptionsValidator
     private static bool IsHttpScheme(Uri uri)
     {
         return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+            string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
     }
 }

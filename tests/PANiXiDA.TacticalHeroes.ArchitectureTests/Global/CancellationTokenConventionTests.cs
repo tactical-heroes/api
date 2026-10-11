@@ -14,16 +14,16 @@ public sealed class CancellationTokenConventionTests
         var violations = analysis.Sentinels
             .Select(sentinel =>
                 $"{sentinel.RelativePath}:{sentinel.LineNumber}: " +
-                $"'{sentinel.Expression}' must be replaced with an actual " +
-                $"cancellation token.")
+                    $"'{sentinel.Expression}' must be replaced with an actual " +
+                    $"cancellation token.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Parameters);
         Assert.True(
             violations.Length == 0,
             $"Cancellation token sentinel violations: " +
-            $"{violations.Length} total.{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{violations.Length} total.{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Cancellation token parameters should be used when declared")]
@@ -33,20 +33,20 @@ public sealed class CancellationTokenConventionTests
         var violations = analysis.Parameters
             .Where(parameter =>
                 parameter.HasImplementation &&
-                !parameter.HasExternallyDefinedSignature &&
-                !parameter.IsUsed)
+                    !parameter.HasExternallyDefinedSignature &&
+                    !parameter.IsUsed)
             .Select(parameter =>
                 $"{parameter.RelativePath}:{parameter.LineNumber}: " +
-                $"cancellation token parameter '{parameter.Name}' is unused " +
-                $"and should be removed.")
+                    $"cancellation token parameter '{parameter.Name}' is unused " +
+                    $"and should be removed.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Parameters);
         Assert.True(
             violations.Length == 0,
             $"Unused cancellation token parameters: " +
-            $"{violations.Length} total.{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{violations.Length} total.{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Cancellation tokens should be forwarded when available")]
@@ -56,19 +56,19 @@ public sealed class CancellationTokenConventionTests
         var violations = analysis.Invocations
             .Where(invocation =>
                 invocation.HasAvailableToken &&
-                !invocation.PassesAllTokens)
+                    !invocation.PassesAllTokens)
             .Select(invocation =>
                 $"{invocation.RelativePath}:{invocation.LineNumber}: " +
-                $"'{invocation.Expression}' should receive the available " +
-                $"cancellation token.")
+                    $"'{invocation.Expression}' should receive the available " +
+                    $"cancellation token.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Invocations);
         Assert.True(
             violations.Length == 0,
             $"Cancellation token forwarding violations: " +
-            $"{violations.Length} total.{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{violations.Length} total.{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Cancellation tokens should be available when cancellable operation is invoked")]
@@ -78,21 +78,21 @@ public sealed class CancellationTokenConventionTests
         var violations = analysis.Invocations
             .Where(invocation =>
                 IsProductionSource(invocation.RelativePath) &&
-                !invocation.HasAvailableToken &&
-                !invocation.PassesAllTokens)
+                    !invocation.HasAvailableToken &&
+                    !invocation.PassesAllTokens)
             .Select(invocation =>
                 $"{invocation.RelativePath}:{invocation.LineNumber}: " +
-                $"'{invocation.Expression}' supports cancellation, but no " +
-                $"token is available. Add a CancellationToken parameter and " +
-                $"propagate it from the entry point.")
+                    $"'{invocation.Expression}' supports cancellation, but no " +
+                    $"token is available. Add a CancellationToken parameter and " +
+                    $"propagate it from the entry point.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Invocations);
         Assert.True(
             violations.Length == 0,
             $"Missing cancellation token sources: " +
-            $"{violations.Length} total.{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{violations.Length} total.{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     private static bool IsProductionSource(string relativePath)
@@ -228,17 +228,17 @@ internal static class CancellationTokenSourceDiscovery
             Position: parameter.SpanStart,
             Name: parameterSymbol.Name,
             HasImplementation: callable is not null &&
-                               HasImplementation(callable),
+                HasImplementation(callable),
             HasExternallyDefinedSignature:
                 method is not null &&
-                HasExternallyDefinedSignature(method),
+                    HasExternallyDefinedSignature(method),
             IsUsed: callable is not null &&
-                    callable
-                        .DescendantNodes()
-                        .OfType<IdentifierNameSyntax>()
-                        .Any(identifier => SymbolEqualityComparer.Default.Equals(
-                            semanticModel.GetSymbolInfo(identifier).Symbol,
-                            parameterSymbol)));
+                callable
+                    .DescendantNodes()
+                    .OfType<IdentifierNameSyntax>()
+                    .Any(identifier => SymbolEqualityComparer.Default.Equals(
+                        semanticModel.GetSymbolInfo(identifier).Symbol,
+                        parameterSymbol)));
     }
 
     private static CancellationTokenSentinel[] GetSentinels(
@@ -339,9 +339,9 @@ internal static class CancellationTokenSourceDiscovery
         }
 
         return (expression.IsKind(SyntaxKind.DefaultLiteralExpression) ||
-                expression is DefaultExpressionSyntax) &&
-               IsCancellationToken(
-                   semanticModel.GetTypeInfo(expression).ConvertedType);
+            expression is DefaultExpressionSyntax) &&
+            IsCancellationToken(
+                semanticModel.GetTypeInfo(expression).ConvertedType);
     }
 
     private static SyntaxNode? GetCallable(ParameterSyntax parameter)
@@ -360,10 +360,10 @@ internal static class CancellationTokenSourceDiscovery
         {
             BaseMethodDeclarationSyntax method =>
                 method.Body is not null ||
-                method.ExpressionBody is not null,
+                    method.ExpressionBody is not null,
             LocalFunctionStatementSyntax localFunction =>
                 localFunction.Body is not null ||
-                localFunction.ExpressionBody is not null,
+                    localFunction.ExpressionBody is not null,
             AnonymousFunctionExpressionSyntax => true,
             _ => false
         };
@@ -414,7 +414,8 @@ internal static class CancellationTokenSourceDiscovery
         return node
             .GetLocation()
             .GetLineSpan()
-            .StartLinePosition.Line + 1;
+            .StartLinePosition.Line
+            + 1;
     }
 }
 

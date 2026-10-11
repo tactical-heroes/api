@@ -74,8 +74,8 @@ public sealed class EndpointPaginationConventionTests
                     .OfType<IMethodSymbol>()
                     .Any(method =>
                         method.ContainingType.ToDisplayString() == "Microsoft.AspNetCore.Http.TypedResults" &&
-                        method.Name == "Ok"
-                        && method.TypeArguments.Any(IsPaginationResult));
+                            method.Name == "Ok"
+                            && method.TypeArguments.Any(IsPaginationResult));
             }
 
             endpoints.Add(new EndpointPagination(

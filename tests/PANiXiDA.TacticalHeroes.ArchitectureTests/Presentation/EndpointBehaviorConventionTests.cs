@@ -16,16 +16,16 @@ public sealed class EndpointBehaviorConventionTests
             .Where(call => !UsesEndpointRouteName(call.Invocation))
             .Select(call =>
                 $"{call.Endpoint.FullName} must pass routeName as " +
-                $"new <Target>Endpoint().Name at " +
-                $"'{Path.GetFileName(call.SourceFile)}:" +
-                $"{GetLineNumber(call.Invocation)}'.")
+                    $"new <Target>Endpoint().Name at " +
+                    $"'{Path.GetFileName(call.SourceFile)}:" +
+                    $"{GetLineNumber(call.Invocation)}'.")
             .ToArray();
 
         Assert.NotEmpty(createdAtRouteCalls);
         Assert.True(
             violations.Length == 0,
             $"CreatedAtRoute route name violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Mediator messages should be created by slice mappers when endpoint sends a message")]
@@ -37,16 +37,16 @@ public sealed class EndpointBehaviorConventionTests
             .Where(call => !call.UsesPresentationMapper)
             .Select(call =>
                 $"{call.RelativePath}:{call.LineNumber}: " +
-                $"{call.EndpointTypeName}.{call.MethodName} must receive a " +
-                $"command or query created directly by a Presentation " +
-                $"Mapper.")
+                    $"{call.EndpointTypeName}.{call.MethodName} must receive a " +
+                    $"command or query created directly by a Presentation " +
+                    $"Mapper.")
             .ToArray();
 
         Assert.NotEmpty(analysis.MediatorCalls);
         Assert.True(
             violations.Length == 0,
             $"Endpoint mediator usage violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     private static EndpointInvocation[] GetEndpointInvocations(
@@ -227,15 +227,15 @@ internal static class MediatorSourceDiscovery
                     })
                 .Where(target =>
                     target.Operation is not null &&
-                    target.Endpoint is not null &&
-                    s_mediatorMethodNames.Contains(
-                        target.Operation.TargetMethod.Name,
-                        StringComparer.Ordinal) &&
-                    string.Equals(
-                        target.Operation.TargetMethod.ContainingType
-                            .ToDisplayString(),
-                        MediatorTypeName,
-                        StringComparison.Ordinal))
+                        target.Endpoint is not null &&
+                        s_mediatorMethodNames.Contains(
+                            target.Operation.TargetMethod.Name,
+                            StringComparer.Ordinal) &&
+                        string.Equals(
+                            target.Operation.TargetMethod.ContainingType
+                                .ToDisplayString(),
+                            MediatorTypeName,
+                            StringComparison.Ordinal))
                 .Select(target => new MediatorCallSource(
                     RelativePath: relativePath,
                     LineNumber: GetLineNumber(target.Invocation),
@@ -255,10 +255,10 @@ internal static class MediatorSourceDiscovery
                 interfaceType.Name,
                 "IEndpoint",
                 StringComparison.Ordinal) &&
-            string.Equals(
-                interfaceType.ContainingNamespace.ToDisplayString(),
-                EndpointInterfaceNamespace,
-                StringComparison.Ordinal));
+                string.Equals(
+                    interfaceType.ContainingNamespace.ToDisplayString(),
+                    EndpointInterfaceNamespace,
+                    StringComparison.Ordinal));
     }
 
     private static bool IsPresentationMapperInvocation(
@@ -271,13 +271,13 @@ internal static class MediatorSourceDiscovery
         }
 
         return operation is IInvocationOperation mapperInvocation &&
-               mapperInvocation.TargetMethod.ContainingType.Name.EndsWith(
-                   MapperSuffix,
-                   StringComparison.Ordinal) &&
-               string.Equals(
-                   mapperInvocation.TargetMethod.ContainingAssembly.Name,
-                   presentationAssemblyName,
-                   StringComparison.Ordinal);
+            mapperInvocation.TargetMethod.ContainingType.Name.EndsWith(
+                MapperSuffix,
+                StringComparison.Ordinal) &&
+            string.Equals(
+                mapperInvocation.TargetMethod.ContainingAssembly.Name,
+                presentationAssemblyName,
+                StringComparison.Ordinal);
     }
 
     private static int GetLineNumber(SyntaxNode node)

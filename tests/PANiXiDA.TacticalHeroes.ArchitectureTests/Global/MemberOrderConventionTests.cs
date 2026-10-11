@@ -17,7 +17,7 @@ public sealed class MemberOrderConventionTests
         Assert.True(
             violations.Length == 0,
             $"Member ordering violations: {violations.Length} total.{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Member order should accept declarations when order is valid")]
@@ -141,8 +141,8 @@ internal static class MemberOrderConvention
                 var previousLine = previous.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 violations.Add(
                     $"{relativePath}:{line}: '{type.Identifier.ValueText}': " +
-                    $"{current.Kind()} must precede {previous.Kind()} at line {previousLine} " +
-                    $"according to {reason} order.");
+                        $"{current.Kind()} must precede {previous.Kind()} at line {previousLine} " +
+                        $"according to {reason} order.");
             }
         }
 

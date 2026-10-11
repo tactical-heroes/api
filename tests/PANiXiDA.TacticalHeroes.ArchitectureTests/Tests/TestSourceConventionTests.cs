@@ -23,9 +23,9 @@ public sealed partial class TestSourceConventionTests
         Assert.True(
             violations.Length == 0,
             $"Test method names must match " +
-            $"'MethodName_Should_DoSomething_When_Condition':" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"'MethodName_Should_DoSomething_When_Condition':" +
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Test methods should follow Arrange Act Assert structure when a test is declared")]
@@ -39,8 +39,8 @@ public sealed partial class TestSourceConventionTests
         Assert.True(
             violations.Length == 0,
             $"Test methods must separate setup and execution from a final " +
-            $"assertion section with a blank line:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"assertion section with a blank line:{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [GeneratedRegex(
@@ -143,11 +143,11 @@ public sealed partial class TestSourceConventionTests
             : string.Empty;
 
         return name.Contains("Should", StringComparison.Ordinal) ||
-               name.StartsWith("Assert", StringComparison.Ordinal) ||
-               string.Equals(containingType, "Assert", StringComparison.Ordinal) ||
-               string.Equals(name, "Check", StringComparison.Ordinal) ||
-               string.Equals(name, "Received", StringComparison.Ordinal) ||
-               string.Equals(name, "DidNotReceive", StringComparison.Ordinal);
+            name.StartsWith("Assert", StringComparison.Ordinal) ||
+            string.Equals(containingType, "Assert", StringComparison.Ordinal) ||
+            string.Equals(name, "Check", StringComparison.Ordinal) ||
+            string.Equals(name, "Received", StringComparison.Ordinal) ||
+            string.Equals(name, "DidNotReceive", StringComparison.Ordinal);
     }
 }
 
@@ -222,7 +222,7 @@ internal static class TestSourceDiscovery
                 StringSplitOptions.RemoveEmptyEntries)
             .Any(segment =>
                 string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase));
+                    string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string FindRepositoryRoot()
@@ -244,7 +244,7 @@ internal static class TestSourceDiscovery
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+                $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 }
 
@@ -270,7 +270,7 @@ internal sealed record TestMethodSource(
                 ?.Expression;
 
             return expression is LiteralExpressionSyntax literalExpression &&
-                   literalExpression.IsKind(SyntaxKind.StringLiteralExpression)
+                literalExpression.IsKind(SyntaxKind.StringLiteralExpression)
                 ? literalExpression.Token.ValueText
                 : null;
         }
@@ -284,7 +284,8 @@ internal sealed record TestMethodSource(
                 .GetLocation()
                 .GetLineSpan()
                 .StartLinePosition
-                .Line + 1;
+                .Line
+                + 1;
 
             return $"{RelativePath}:{lineNumber}";
         }

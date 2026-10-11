@@ -13,8 +13,8 @@ internal static class InfrastructureServiceCollectionFactory
             .GetTypes()
             .SelectMany(type => type.GetMethods(
                 BindingFlags.Public |
-                BindingFlags.Static |
-                BindingFlags.DeclaredOnly))
+                    BindingFlags.Static |
+                    BindingFlags.DeclaredOnly))
             .Single(method =>
             {
                 var parameters = method.GetParameters();
@@ -23,11 +23,11 @@ internal static class InfrastructureServiceCollectionFactory
                     method.Name,
                     "AddInfrastructure",
                     StringComparison.Ordinal) &&
-                       parameters.Length >= 2 &&
-                       parameters[0].ParameterType ==
-                       typeof(IServiceCollection) &&
-                       parameters[1].ParameterType ==
-                       typeof(IConfiguration);
+                    parameters.Length >= 2 &&
+                    parameters[0].ParameterType ==
+                        typeof(IServiceCollection) &&
+                    parameters[1].ParameterType ==
+                        typeof(IConfiguration);
             });
         var serviceCollection = new ServiceCollection();
         var configuration = new ConfigurationBuilder()

@@ -17,7 +17,7 @@ public sealed class PostgreSqlTestDatabase(string schema) : IAsyncDisposable
 
     public string PostgreSqlConnectionString =>
         _postgreSqlConnectionString ??
-        throw new InvalidOperationException("PostgreSQL test database is not initialized.");
+            throw new InvalidOperationException("PostgreSQL test database is not initialized.");
 
     public async ValueTask InitializeAsync(
         CancellationToken cancellationToken)

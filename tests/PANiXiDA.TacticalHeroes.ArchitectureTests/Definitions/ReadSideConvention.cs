@@ -25,15 +25,15 @@ internal static class ReadSideConvention
         var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 
         return underlyingType.IsPrimitive ||
-               underlyingType.IsEnum ||
-               underlyingType == typeof(string) ||
-               underlyingType == typeof(decimal) ||
-               underlyingType == typeof(Guid) ||
-               underlyingType == typeof(DateTime) ||
-               underlyingType == typeof(DateTimeOffset) ||
-               underlyingType == typeof(DateOnly) ||
-               underlyingType == typeof(TimeOnly) ||
-               underlyingType == typeof(TimeSpan);
+            underlyingType.IsEnum ||
+            underlyingType == typeof(string) ||
+            underlyingType == typeof(decimal) ||
+            underlyingType == typeof(Guid) ||
+            underlyingType == typeof(DateTime) ||
+            underlyingType == typeof(DateTimeOffset) ||
+            underlyingType == typeof(DateOnly) ||
+            underlyingType == typeof(TimeOnly) ||
+            underlyingType == typeof(TimeSpan);
     }
 
     internal static bool IsAllowedReadInput(Type type)
@@ -49,9 +49,9 @@ internal static class ReadSideConvention
             type,
             readModelTypes,
             new HashSet<Type>()) &&
-               readModelTypes.Count > 0 &&
-               readModelTypes.All(type =>
-                   typeof(IReadModel).IsAssignableFrom(type));
+            readModelTypes.Count > 0 &&
+            readModelTypes.All(type =>
+                typeof(IReadModel).IsAssignableFrom(type));
     }
 
     private static bool IsAllowedReadInput(
@@ -167,10 +167,10 @@ internal static class ReadSideConvention
         var genericArguments = type.GetGenericArguments();
 
         return genericArguments.Length == 1 &&
-               TryCollectReadModelTypes(
-                   genericArguments[0],
-                   readModelTypes,
-                   visitedTypes);
+            TryCollectReadModelTypes(
+                genericArguments[0],
+                readModelTypes,
+                visitedTypes);
     }
 
     private static bool IsDomainType(Type type)
@@ -181,9 +181,9 @@ internal static class ReadSideConvention
             assemblyName,
             CoreDomainAssemblyName,
             StringComparison.Ordinal) ||
-               assemblyName?.EndsWith(
-                   DomainAssemblySuffix,
-                   StringComparison.Ordinal) == true;
+            assemblyName?.EndsWith(
+                DomainAssemblySuffix,
+                StringComparison.Ordinal) == true;
     }
 
     private static bool IsApplicationParameterModel(Type type)
@@ -193,7 +193,7 @@ internal static class ReadSideConvention
         return assemblyName?.EndsWith(
             ApplicationAssemblySuffix,
             StringComparison.Ordinal) == true ||
-               IsCoreApplicationQueryingType(type);
+            IsCoreApplicationQueryingType(type);
     }
 
     private static bool IsCoreApplicationQueryingType(Type type)
@@ -202,10 +202,10 @@ internal static class ReadSideConvention
             type.Assembly.GetName().Name,
             CoreApplicationAssemblyName,
             StringComparison.Ordinal) &&
-               (string.Equals(
-                   type.Namespace,
-                   CoreApplicationQueryingNamespace,
-                   StringComparison.Ordinal) ||
+            (string.Equals(
+                type.Namespace,
+                CoreApplicationQueryingNamespace,
+                StringComparison.Ordinal) ||
                 type.Namespace?.StartsWith(
                     CoreApplicationQueryingNamespace + ".",
                     StringComparison.Ordinal) == true);
@@ -226,9 +226,9 @@ internal static class ReadSideConvention
         Type genericTypeDefinition)
     {
         return genericTypeDefinition == typeof(Task<>) ||
-               genericTypeDefinition == typeof(ValueTask<>) ||
-               genericTypeDefinition == typeof(Result<>) ||
-               genericTypeDefinition == typeof(PaginationResult<>) ||
-               genericTypeDefinition == typeof(CursorPaginationResult<>);
+            genericTypeDefinition == typeof(ValueTask<>) ||
+            genericTypeDefinition == typeof(Result<>) ||
+            genericTypeDefinition == typeof(PaginationResult<>) ||
+            genericTypeDefinition == typeof(CursorPaginationResult<>);
     }
 }

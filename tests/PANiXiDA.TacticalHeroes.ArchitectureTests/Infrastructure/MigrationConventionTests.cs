@@ -11,7 +11,7 @@ public sealed class MigrationConventionTests
         var migrationTypes = InfrastructurePersistenceConvention
             .GetConcreteInfrastructureTypes(type =>
                 typeof(Migration).IsAssignableFrom(type) ||
-                typeof(ModelSnapshot).IsAssignableFrom(type));
+                    typeof(ModelSnapshot).IsAssignableFrom(type));
         var violations = migrationTypes
             .SelectMany(type =>
                 InfrastructurePersistenceConvention.GetLocationViolations(
@@ -25,6 +25,6 @@ public sealed class MigrationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Migration location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 }

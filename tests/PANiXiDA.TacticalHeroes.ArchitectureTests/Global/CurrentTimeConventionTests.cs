@@ -13,17 +13,17 @@ public sealed class CurrentTimeConventionTests
             .Where(access => !access.IsAllowed)
             .Select(access =>
                 $"{access.RelativePath}:{access.LineNumber}: " +
-                $"'{access.Expression}' must use TimeProvider.GetUtcNow(). " +
-                $"DateTime/DateTimeOffset.UtcNow is allowed only in " +
-                $"constructors.")
+                    $"'{access.Expression}' must use TimeProvider.GetUtcNow(). " +
+                    $"DateTime/DateTimeOffset.UtcNow is allowed only in " +
+                    $"constructors.")
             .ToArray();
 
         Assert.NotEmpty(accesses);
         Assert.True(
             violations.Length == 0,
             $"Current time access violations: {violations.Length} total." +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 }
 
@@ -134,9 +134,9 @@ internal static class CurrentTimeSourceDiscovery
                     property.Name,
                     "UtcNow",
                     StringComparison.Ordinal) &&
-                memberAccess.Ancestors()
-                    .OfType<ConstructorDeclarationSyntax>()
-                    .Any());
+                    memberAccess.Ancestors()
+                        .OfType<ConstructorDeclarationSyntax>()
+                        .Any());
     }
 
     private static CurrentTimeAccess? GetTimeProviderAccess(
@@ -175,7 +175,8 @@ internal static class CurrentTimeSourceDiscovery
             LineNumber: expression
                 .GetLocation()
                 .GetLineSpan()
-                .StartLinePosition.Line + 1,
+                .StartLinePosition.Line
+                + 1,
             Position: expression.SpanStart,
             Expression: expression.ToString(),
             IsAllowed: isAllowed);
@@ -184,7 +185,7 @@ internal static class CurrentTimeSourceDiscovery
     private static bool IsDateTimeType(ITypeSymbol type)
     {
         return IsType(type, "System.DateTime") ||
-               IsType(type, "System.DateTimeOffset");
+            IsType(type, "System.DateTimeOffset");
     }
 
     private static bool IsType(

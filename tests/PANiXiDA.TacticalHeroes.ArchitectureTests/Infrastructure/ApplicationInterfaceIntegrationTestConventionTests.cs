@@ -33,13 +33,13 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
             .Where(target => !File.Exists(target.ExpectedPath))
             .Select(target =>
                 $"{target.Implementation.FullName}: " +
-                Path.GetRelativePath(repositoryRoot, target.ExpectedPath))
+                    Path.GetRelativePath(repositoryRoot, target.ExpectedPath))
             .ToArray();
 
         Assert.True(
             missingTestFiles.Length == 0,
             $"Missing integration test files:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, missingTestFiles));
+                string.Join(Environment.NewLine, missingTestFiles));
     }
 
     [Fact(
@@ -58,7 +58,7 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         Assert.True(
             missingTestMethods.Length == 0,
             $"Missing integration test methods:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, missingTestMethods));
+                string.Join(Environment.NewLine, missingTestMethods));
     }
 
     [GeneratedRegex(
@@ -154,9 +154,9 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
             .Where(coverage => coverage.ActualTestCount < coverage.RequiredTestCount)
             .Select(coverage =>
                 $"{target.Implementation.FullName}.{coverage.MethodName}: expected " +
-                $"{coverage.RequiredTestCount} test method(s) starting with " +
-                $"'{coverage.MethodName}_Should_', found {coverage.ActualTestCount} " +
-                $"in '{Path.GetRelativePath(repositoryRoot, testFilePath)}'.");
+                    $"{coverage.RequiredTestCount} test method(s) starting with " +
+                    $"'{coverage.MethodName}_Should_', found {coverage.ActualTestCount} " +
+                    $"in '{Path.GetRelativePath(repositoryRoot, testFilePath)}'.");
     }
 
     private static string GetExpectedTestFilePath(
@@ -189,7 +189,7 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         {
             throw new InvalidOperationException(
                 $"Infrastructure implementation namespace '{implementationNamespace}' must be " +
-                $"'{infrastructureNamespace}' or start with '{infrastructureNamespacePrefix}'.");
+                    $"'{infrastructureNamespace}' or start with '{infrastructureNamespacePrefix}'.");
         }
 
         var moduleDirectoryName = module.Name[(module.Name.LastIndexOf('.') + 1)..];
@@ -229,7 +229,7 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+                $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 
     private sealed record InfrastructureImplementation(

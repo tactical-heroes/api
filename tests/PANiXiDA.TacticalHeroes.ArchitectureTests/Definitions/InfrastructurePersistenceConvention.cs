@@ -24,7 +24,7 @@ internal static class InfrastructurePersistenceConvention
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type =>
                     type is { IsClass: true, IsAbstract: false } &&
-                    predicate(type))
+                        predicate(type))
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
         ];
     }
@@ -56,7 +56,7 @@ internal static class InfrastructurePersistenceConvention
             .Append(type)
             .FirstOrDefault(candidate =>
                 candidate.IsGenericType &&
-                candidate.GetGenericTypeDefinition() == openGenericType);
+                    candidate.GetGenericTypeDefinition() == openGenericType);
     }
 
     internal static ModuleArchitecture GetModule(Type infrastructureType)
@@ -64,7 +64,7 @@ internal static class InfrastructurePersistenceConvention
         var assemblyName = infrastructureType.Assembly.GetName().Name
             ?? throw new InvalidOperationException(
                 $"Could not determine assembly for " +
-                $"'{infrastructureType.FullName}'.");
+                    $"'{infrastructureType.FullName}'.");
 
         return ArchitectureDefinition.s_modules.Single(module =>
             string.Equals(
@@ -105,7 +105,7 @@ internal static class InfrastructurePersistenceConvention
                 .GetTypes()
                 .Where(type =>
                     type is { IsClass: true, IsAbstract: false } &&
-                    typeof(IAggregateRoot).IsAssignableFrom(type))
+                        typeof(IAggregateRoot).IsAssignableFrom(type))
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
         ];
     }
@@ -154,7 +154,7 @@ internal static class InfrastructurePersistenceConvention
                     SearchOption.AllDirectories)
                 .Where(path =>
                     !HasPathSegment(path, "bin") &&
-                    !HasPathSegment(path, "obj"))
+                        !HasPathSegment(path, "obj"))
                 .Where(path => DeclaresType(
                     path,
                     expectedNamespace,
@@ -170,8 +170,9 @@ internal static class InfrastructurePersistenceConvention
         var module = GetModule(type);
         var expectedNamespaces = relativeNamespaceCandidates
             .Select(segments =>
-                module.InfrastructureAssemblyName + "." +
-                string.Join(".", segments))
+                module.InfrastructureAssemblyName
+                    + "." +
+                    string.Join(".", segments))
             .ToArray();
         var expectedDirectories = relativeNamespaceCandidates
             .Select(segments => Path.Combine(
@@ -187,7 +188,7 @@ internal static class InfrastructurePersistenceConvention
         {
             violations.Add(
                 $"{type.FullName} must reside in one of these namespaces: " +
-                $"{FormatValues(expectedNamespaces)}.");
+                    $"{FormatValues(expectedNamespaces)}.");
         }
 
         if (sourceFiles.Length == 0)
@@ -205,13 +206,13 @@ internal static class InfrastructurePersistenceConvention
                         StringComparison.OrdinalIgnoreCase)))
             .Select(sourceFile =>
                 $"{type.FullName} source file " +
-                $"'{Path.GetRelativePath(
-                    FindRepositoryRoot(),
-                    sourceFile)}' must reside in one of these directories: " +
-                $"{FormatValues(expectedDirectories.Select(directory =>
-                    Path.GetRelativePath(
+                    $"'{Path.GetRelativePath(
                         FindRepositoryRoot(),
-                        directory)))}."));
+                        sourceFile)}' must reside in one of these directories: " +
+                    $"{FormatValues(expectedDirectories.Select(directory =>
+                        Path.GetRelativePath(
+                            FindRepositoryRoot(),
+                            directory)))}."));
 
         return violations;
     }
@@ -244,10 +245,10 @@ internal static class InfrastructurePersistenceConvention
                     declaration.Identifier.ValueText,
                     expectedTypeName,
                     StringComparison.Ordinal) &&
-                string.Equals(
-                    GetNamespace(declaration),
-                    expectedNamespace,
-                    StringComparison.Ordinal));
+                    string.Equals(
+                        GetNamespace(declaration),
+                        expectedNamespace,
+                        StringComparison.Ordinal));
     }
 
     private static string GetNamespace(
@@ -300,6 +301,6 @@ internal static class InfrastructurePersistenceConvention
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+                $"the '{SourceDirectoryName}' directory.");
     }
 }

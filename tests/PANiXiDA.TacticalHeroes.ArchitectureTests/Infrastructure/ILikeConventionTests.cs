@@ -16,15 +16,15 @@ public sealed class ILikeConventionTests
             .Where(call => !call.IsValid)
             .Select(call =>
                 $"{call.RelativePath}:{call.LineNumber}: '{call.Expression}' " +
-                $"must use named matchExpression and pattern arguments with " +
-                $"a $\"%{{value.Trim()}}%\" pattern.")
+                    $"must use named matchExpression and pattern arguments with " +
+                    $"a $\"%{{value.Trim()}}%\" pattern.")
             .ToArray();
 
         Assert.NotEmpty(calls);
         Assert.True(
             violations.Length == 0,
             $"ILIKE convention violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "ILIKE calls should rely on SQL null semantics when declared")]
@@ -35,14 +35,14 @@ public sealed class ILikeConventionTests
             .Where(call => call.HasRedundantNullGuard)
             .Select(call =>
                 $"{call.RelativePath}:{call.LineNumber}: '{call.Expression}' " +
-                "must not use an explicit null guard for matchExpression.")
+                    "must not use an explicit null guard for matchExpression.")
             .ToArray();
 
         Assert.NotEmpty(calls);
         Assert.True(
             violations.Length == 0,
             $"ILIKE null guard violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 }
 
@@ -120,7 +120,8 @@ internal static class ILikeSourceDiscovery
             LineNumber: invocation
                 .GetLocation()
                 .GetLineSpan()
-                .StartLinePosition.Line + 1,
+                .StartLinePosition.Line
+                + 1,
             Position: invocation.SpanStart,
             Expression: invocation.ToString(),
             IsValid: UsesNamedSubstringArguments(
@@ -176,25 +177,25 @@ internal static class ILikeSourceDiscovery
                 comparison.Right,
                 matchExpressionSymbol,
                 semanticModel) ||
-                   IsNullComparison(
-                       comparison.Right,
-                       comparison.Left,
-                       matchExpressionSymbol,
-                       semanticModel);
+                IsNullComparison(
+                    comparison.Right,
+                    comparison.Left,
+                    matchExpressionSymbol,
+                    semanticModel);
         }
 
         return node is IsPatternExpressionSyntax patternExpression &&
-               patternExpression.Pattern.IsKind(SyntaxKind.NotPattern) &&
-               patternExpression.Pattern
-                   .DescendantNodesAndSelf()
-                   .OfType<ConstantPatternSyntax>()
-                   .Any(pattern =>
-                       pattern.Expression.IsKind(
-                           SyntaxKind.NullLiteralExpression)) &&
-               RefersToMatchExpression(
-                   patternExpression.Expression,
-                   matchExpressionSymbol,
-                   semanticModel);
+            patternExpression.Pattern.IsKind(SyntaxKind.NotPattern) &&
+            patternExpression.Pattern
+                .DescendantNodesAndSelf()
+                .OfType<ConstantPatternSyntax>()
+                .Any(pattern =>
+                    pattern.Expression.IsKind(
+                        SyntaxKind.NullLiteralExpression)) &&
+            RefersToMatchExpression(
+                patternExpression.Expression,
+                matchExpressionSymbol,
+                semanticModel);
     }
 
     private static bool IsNullComparison(
@@ -204,10 +205,10 @@ internal static class ILikeSourceDiscovery
         SemanticModel semanticModel)
     {
         return nullExpression.IsKind(SyntaxKind.NullLiteralExpression) &&
-               RefersToMatchExpression(
-                   candidateExpression,
-                   matchExpressionSymbol,
-                   semanticModel);
+            RefersToMatchExpression(
+                candidateExpression,
+                matchExpressionSymbol,
+                semanticModel);
     }
 
     private static bool RefersToMatchExpression(
@@ -228,9 +229,9 @@ internal static class ILikeSourceDiscovery
         SeparatedSyntaxList<ArgumentSyntax> arguments)
     {
         return arguments.Count == 2 &&
-               IsNamed(arguments[0], "matchExpression") &&
-               IsNamed(arguments[1], "pattern") &&
-               IsSubstringPattern(arguments[1].Expression);
+            IsNamed(arguments[0], "matchExpression") &&
+            IsNamed(arguments[1], "pattern") &&
+            IsSubstringPattern(arguments[1].Expression);
     }
 
     private static bool IsNamed(
@@ -265,17 +266,17 @@ internal static class ILikeSourceDiscovery
             prefix.TextToken.ValueText,
             "%",
             StringComparison.Ordinal) &&
-               string.Equals(
-                   suffix.TextToken.ValueText,
-                   "%",
-                   StringComparison.Ordinal) &&
-               string.Equals(
-                   trimMemberAccess.Name.Identifier.ValueText,
-                   "Trim",
-                   StringComparison.Ordinal) &&
-               trimInvocation.ArgumentList.Arguments.Count == 0 &&
-               interpolation.AlignmentClause is null &&
-               interpolation.FormatClause is null;
+            string.Equals(
+                suffix.TextToken.ValueText,
+                "%",
+                StringComparison.Ordinal) &&
+            string.Equals(
+                trimMemberAccess.Name.Identifier.ValueText,
+                "Trim",
+                StringComparison.Ordinal) &&
+            trimInvocation.ArgumentList.Arguments.Count == 0 &&
+            interpolation.AlignmentClause is null &&
+            interpolation.FormatClause is null;
     }
 }
 

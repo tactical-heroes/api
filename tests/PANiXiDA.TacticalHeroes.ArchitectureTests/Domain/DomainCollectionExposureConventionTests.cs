@@ -24,9 +24,9 @@ public sealed class DomainCollectionExposureConventionTests
         Assert.True(
             violations.Length == 0,
             "Domain collections must be returned through standard read-only wrappers, " +
-            "immutable collections, or frozen collections. A read-only interface " +
-            $"alone does not protect mutable storage:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                "immutable collections, or frozen collections. A read-only interface " +
+                $"alone does not protect mutable storage:{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Collection exposure should validate protection when member shapes vary")]
@@ -207,10 +207,11 @@ public sealed class DomainCollectionExposureConventionTests
             operation = conversion;
         }
 
-        if (member is null || !IsExposed(member) ||
+        if (member is null
+            || !IsExposed(member) ||
             returnType is null ||
             !DomainCollectionConvention.ContainsCollection(returnType, semanticModel.Compilation) &&
-            !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation) ||
+                !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation) ||
             !member.ContainingType.AllInterfaces.Any(type =>
                 SymbolEqualityComparer.Default.Equals(type, entity)))
         {
@@ -229,8 +230,8 @@ public sealed class DomainCollectionExposureConventionTests
 
         return new CollectionReturn(
             Location: $"{Path.GetRelativePath(repositoryRoot, node.SyntaxTree.FilePath)}:" +
-                      $"{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1} " +
-                      $"{member.Name}",
+                $"{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1} " +
+                $"{member.Name}",
             IsProtected: member is not IFieldSymbol { IsReadOnly: false } && isProtected);
     }
 
@@ -238,8 +239,8 @@ public sealed class DomainCollectionExposureConventionTests
     {
         return member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or
                    Accessibility.ProtectedOrInternal ||
-               member is IPropertySymbol { ExplicitInterfaceImplementations.IsEmpty: false } or
-                   IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false };
+            member is IPropertySymbol { ExplicitInterfaceImplementations.IsEmpty: false } or
+                IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false };
     }
 
     private sealed record CollectionReturn(string Location, bool IsProtected);

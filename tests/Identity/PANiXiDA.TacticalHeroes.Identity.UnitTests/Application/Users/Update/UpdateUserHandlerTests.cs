@@ -16,7 +16,8 @@ public sealed class UpdateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com"
+            Arg.Is<User>(user => user.Id.Value == userId
+                && user.Email.Value == "hero@example.com"
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed
@@ -38,7 +39,8 @@ public sealed class UpdateUserHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com"
+            Arg.Is<User>(user => user.Id.Value == userId
+                && user.Email.Value == "hero@example.com"
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed

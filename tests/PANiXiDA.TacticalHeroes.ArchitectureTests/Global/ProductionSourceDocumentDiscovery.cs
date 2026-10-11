@@ -107,10 +107,10 @@ internal static class ProductionSourceDocumentDiscovery
         IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
         return projectFile is not null &&
-               IsWithinSourceRoots(
-                   repositoryRoot,
-                   projectFile,
-                   sourceRootDirectoryNames);
+            IsWithinSourceRoots(
+                repositoryRoot,
+                projectFile,
+                sourceRootDirectoryNames);
     }
 
     private static bool IsSourceFile(
@@ -119,21 +119,21 @@ internal static class ProductionSourceDocumentDiscovery
         IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
         return sourceFile is not null &&
-               IsWithinSourceRoots(
-                   repositoryRoot,
-                   sourceFile,
-                   sourceRootDirectoryNames) &&
-               !sourceFile
-                   .Split(
-                       [
-                           Path.DirectorySeparatorChar,
-                           Path.AltDirectorySeparatorChar
-                       ],
-                       StringSplitOptions.RemoveEmptyEntries)
-                   .Any(segment =>
-                       s_excludedDirectoryNames.Contains(
-                           segment,
-                           StringComparer.OrdinalIgnoreCase));
+            IsWithinSourceRoots(
+                repositoryRoot,
+                sourceFile,
+                sourceRootDirectoryNames) &&
+            !sourceFile
+                .Split(
+                    [
+                        Path.DirectorySeparatorChar,
+                        Path.AltDirectorySeparatorChar
+                    ],
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Any(segment =>
+                    s_excludedDirectoryNames.Contains(
+                        segment,
+                        StringComparer.OrdinalIgnoreCase));
     }
 
     private static bool IsWithinSourceRoots(
@@ -177,7 +177,7 @@ internal static class ProductionSourceDocumentDiscovery
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"'{SourceRootDirectoryName}' and a solution file.");
+                $"'{SourceRootDirectoryName}' and a solution file.");
     }
 }
 

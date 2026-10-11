@@ -36,7 +36,7 @@ public sealed class ReadRepositorySortingConventionTests
         var violations = methods.Where(method => !method.AppliesMapping)
             .Select(method =>
                 $"{method.Name}: return {method.Model} using IReadModelMapper<TId, TReadDbModel, TReadModel> " +
-                "matching the repository through ProjectTo, GetByIdAsync, or GetPagedResultAsync.")
+                    "matching the repository through ProjectTo, GetByIdAsync, or GetPagedResultAsync.")
             .ToArray();
 
         Assert.NotEmpty(methods);
@@ -106,20 +106,23 @@ public sealed class ReadRepositorySortingConventionTests
                 model.ToDisplayString(),
                 GetResultModel(method.ReturnType, collectionsOnly: true) is not null,
                 repository is not null,
-                returns.Length > 0 && returns.All(expression =>
-                    UsesOperation(
-                        semanticModel.GetOperation(expression),
-                        model,
-                        declaration,
-                        semanticModel,
-                        call => AppliesSorting(call, model))),
-                repository is not null && returns.Length > 0 && returns.All(expression =>
-                    UsesOperation(
-                        semanticModel.GetOperation(expression),
-                        model,
-                        declaration,
-                        semanticModel,
-                        call => AppliesMapping(call, model, repository)))));
+                returns.Length > 0
+                    && returns.All(expression =>
+                        UsesOperation(
+                            semanticModel.GetOperation(expression),
+                            model,
+                            declaration,
+                            semanticModel,
+                            call => AppliesSorting(call, model))),
+                repository is not null
+                    && returns.Length > 0
+                    && returns.All(expression =>
+                        UsesOperation(
+                            semanticModel.GetOperation(expression),
+                            model,
+                            declaration,
+                            semanticModel,
+                            call => AppliesMapping(call, model, repository)))));
         }
 
         return [.. methods];
@@ -127,8 +130,9 @@ public sealed class ReadRepositorySortingConventionTests
 
     private static ITypeSymbol? GetResultModel(ITypeSymbol type, bool collectionsOnly)
     {
-        if (!collectionsOnly && type.AllInterfaces.Any(contract =>
-            contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
+        if (!collectionsOnly
+            && type.AllInterfaces.Any(contract =>
+                contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
         {
             return type;
         }
@@ -189,7 +193,7 @@ public sealed class ReadRepositorySortingConventionTests
                             .Equals(variable.Symbol, local.Local) => variable.Initializer?.Value,
                         ISimpleAssignmentOperation assignment
                             when assignment.Target is ILocalReferenceOperation target &&
-                            SymbolEqualityComparer.Default.Equals(target.Local, local.Local) => assignment.Value,
+                                SymbolEqualityComparer.Default.Equals(target.Local, local.Local) => assignment.Value,
                         _ => null
                     })
                     .OfType<IOperation>()
@@ -205,10 +209,11 @@ public sealed class ReadRepositorySortingConventionTests
 
                 return ((call.TargetMethod.Name == "ApplySorting"
                     && IsSortingFor(call.TargetMethod.ContainingType, model)) ||
-                    (call.TargetMethod.IsExtensionMethod && call.TargetMethod.Name is
-                        "ToListAsync" or "ToArrayAsync" or "ToList" or "ToArray" or "Where" or "Take" or "Skip" or
-                        "AsEnumerable" or "FirstOrDefaultAsync" or "SingleOrDefaultAsync"
-                            or "FirstAsync" or "SingleAsync")) &&
+                    (call.TargetMethod.IsExtensionMethod
+                        && call.TargetMethod.Name is
+                            "ToListAsync" or "ToArrayAsync" or "ToList" or "ToArray" or "Where" or "Take" or "Skip" or
+                            "AsEnumerable" or "FirstOrDefaultAsync" or "SingleOrDefaultAsync"
+                                or "FirstAsync" or "SingleAsync")) &&
                     UsesOperation(call.Arguments.FirstOrDefault()?.Value, model, declaration, semanticModel, matches);
             default:
                 return false;
@@ -218,24 +223,28 @@ public sealed class ReadRepositorySortingConventionTests
     private static bool AppliesSorting(IInvocationOperation call, ITypeSymbol model)
     {
         return (call.TargetMethod.Name == "ApplySorting" && IsSortingFor(call.TargetMethod.ContainingType, model)) ||
-            (call.TargetMethod.Name == "GetPagedResultAsync" && IsEfRepository(call.TargetMethod.ContainingType) &&
-                call.TargetMethod.TypeArguments.Length == 3 && IsSortingFor(call.TargetMethod.TypeArguments[2], model));
+            (call.TargetMethod.Name == "GetPagedResultAsync"
+                && IsEfRepository(call.TargetMethod.ContainingType) &&
+                call.TargetMethod.TypeArguments.Length == 3
+                && IsSortingFor(call.TargetMethod.TypeArguments[2], model));
     }
 
     private static bool AppliesMapping(IInvocationOperation call, ITypeSymbol model, INamedTypeSymbol repository)
     {
         var method = call.TargetMethod;
         var mapper = method.Name == "ProjectTo" ? method.ContainingType :
-            IsEfRepository(method.ContainingType) && method.Name is "GetByIdAsync" or "GetPagedResultAsync" &&
-            method.TypeArguments.Length >= 2 ? method.TypeArguments[1] : null;
+            IsEfRepository(method.ContainingType)
+                && method.Name is "GetByIdAsync" or "GetPagedResultAsync" &&
+                method.TypeArguments.Length >= 2 ? method.TypeArguments[1] : null;
 
-        return mapper is not null && mapper.AllInterfaces.Any(contract =>
-            contract.MetadataName == "IReadModelMapper`3" &&
-            contract.ContainingNamespace
-                .ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping" &&
-            SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], repository.TypeArguments[1]) &&
-            SymbolEqualityComparer.Default.Equals(contract.TypeArguments[1], repository.TypeArguments[2]) &&
-            SymbolEqualityComparer.Default.Equals(contract.TypeArguments[2], model));
+        return mapper is not null
+            && mapper.AllInterfaces.Any(contract =>
+                contract.MetadataName == "IReadModelMapper`3" &&
+                    contract.ContainingNamespace
+                        .ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping" &&
+                    SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], repository.TypeArguments[1]) &&
+                    SymbolEqualityComparer.Default.Equals(contract.TypeArguments[1], repository.TypeArguments[2]) &&
+                    SymbolEqualityComparer.Default.Equals(contract.TypeArguments[2], model));
     }
 
     private static bool IsEfRepository(INamedTypeSymbol type)

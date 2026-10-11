@@ -20,7 +20,7 @@ public sealed class NullForgivingConventionTests
         Assert.True(
             violations.Length == 0,
             $"Suppressed null values in production code:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Theory(
@@ -149,14 +149,15 @@ public sealed class NullForgivingConventionTests
         var relativePath = Path.GetRelativePath(repositoryRoot, document.FilePath);
         return [.. GetViolations(root, model).Select(expression =>
             $"{relativePath}:{expression.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: " +
-            $"'{expression}' suppresses a null value outside EF initialization.")];
+                $"'{expression}' suppresses a null value outside EF initialization.")];
     }
 
     private static PostfixUnaryExpressionSyntax[] GetViolations(SyntaxNode root, SemanticModel model)
     {
         return [.. root.DescendantNodes().OfType<PostfixUnaryExpressionSyntax>()
             .Where(expression => expression.IsKind(SyntaxKind.SuppressNullableWarningExpression) &&
-                SuppressesNullValue(expression.Operand, model) && !IsEfInitialization(expression, model))];
+                SuppressesNullValue(expression.Operand, model)
+                && !IsEfInitialization(expression, model))];
     }
 
     private static bool SuppressesNullValue(ExpressionSyntax expression, SemanticModel model)
@@ -203,7 +204,8 @@ public sealed class NullForgivingConventionTests
         }
 
         return expression.Parent is AssignmentExpressionSyntax assignment &&
-            assignment.Right == expression && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
+            assignment.Right == expression
+            && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
             assignment
                 .Parent is ExpressionStatementSyntax { Parent: BlockSyntax { Parent: ConstructorDeclarationSyntax } } &&
             model.GetEnclosingSymbol(expression.SpanStart) is IMethodSymbol
