@@ -58,7 +58,15 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             var result = await repository.UpdateAsync(
-                IntegrationTestData.CreateUser(id: userId, email: "updated@example.com", isConfirmed: true, roleIds: [], claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value)), userName: "updated-hero", status: UserStatus.Blocked),
+                IntegrationTestData.CreateUser(
+                    id: userId,
+                    email: "updated@example.com",
+                    isConfirmed: true,
+                    roleIds: [],
+                    claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(
+                        claim => (claim.Type, claim.Value)),
+                    userName: "updated-hero",
+                    status: UserStatus.Blocked),
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -171,7 +179,14 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
         var result = await repository.AddAsync(
-            IntegrationTestData.CreateUser(id: Guid.CreateVersion7(), email: email, isConfirmed: isConfirmed, roleIds: [], claims: claims.Select(claim => (claim.Type, claim.Value)), userName: userName, status: UserStatus.Create(value: status).Value),
+            IntegrationTestData.CreateUser(
+                id: Guid.CreateVersion7(),
+                email: email,
+                isConfirmed: isConfirmed,
+                roleIds: [],
+                claims: claims.Select(claim => (claim.Type, claim.Value)),
+                userName: userName,
+                status: UserStatus.Create(value: status).Value),
             Password,
             cancellationToken);
 

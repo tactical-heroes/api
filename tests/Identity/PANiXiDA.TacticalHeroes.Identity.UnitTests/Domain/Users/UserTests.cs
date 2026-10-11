@@ -13,7 +13,9 @@ public sealed class UserTests
     [Fact(DisplayName = "Register should create an unconfirmed user with normalized email when email is valid")]
     public void Register_Should_CreateUnconfirmedUser_When_EmailIsValid()
     {
-        var result = User.Register(Email.Create(value: " HERO@Example.COM ").Value, UserName.Create(value: " hero ").Value);
+        var result = User.Register(
+            Email.Create(value: " HERO@Example.COM ").Value,
+            UserName.Create(value: " hero ").Value);
 
         result.Id.Value.ShouldNotBe(Guid.Empty);
         result.Email.Value.ShouldBe("hero@example.com");
@@ -72,13 +74,15 @@ public sealed class UserTests
         user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
     }
 
-    [Fact(DisplayName = "Request email confirmation should raise an event for an unconfirmed user when user is unconfirmed")]
+    [Fact(
+        DisplayName = "Request email confirmation should raise an event for an unconfirmed user when user is unconfirmed")]
     public void RequestEmailConfirmation_Should_RaiseEvent_When_UserIsUnconfirmed()
     {
         var user = CreateUser();
         var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(24);
 
-        var result = user.RequestEmailConfirmation(UserActionToken.Create(value: "confirmation-token", expiresAtUtc: expiresAtUtc).Value);
+        var result = user.RequestEmailConfirmation(
+            UserActionToken.Create(value: "confirmation-token", expiresAtUtc: expiresAtUtc).Value);
 
         result.IsSuccess.ShouldBeTrue();
         var domainEvent = user.GetDomainEvents()
@@ -90,20 +94,24 @@ public sealed class UserTests
         domainEvent.ExpiresAtUtc.ShouldBe(expiresAtUtc);
     }
 
-    [Fact(DisplayName = "Request email confirmation should not raise an event for a confirmed user when user is confirmed")]
+    [Fact(
+        DisplayName = "Request email confirmation should not raise an event for a confirmed user when user is confirmed")]
     public void RequestEmailConfirmation_Should_NotRaiseEvent_When_UserIsConfirmed()
     {
         var user = CreateUser();
         user.ConfirmRegistration();
         user.ClearDomainEvents();
 
-        var result = user.RequestEmailConfirmation(UserActionToken.Create(value: "confirmation-token", expiresAtUtc: DateTimeOffset.UtcNow.AddHours(24)).Value);
+        var result = user.RequestEmailConfirmation(
+            UserActionToken.Create(value: "confirmation-token", expiresAtUtc: DateTimeOffset.UtcNow.AddHours(24))
+                .Value);
 
         result.IsSuccess.ShouldBeTrue();
         user.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Confirm registration should confirm the user and raise an event once when user is unconfirmed")]
+    [Fact(
+        DisplayName = "Confirm registration should confirm the user and raise an event once when user is unconfirmed")]
     public void ConfirmRegistration_Should_RaiseEventOnce_When_UserIsUnconfirmed()
     {
         var user = CreateUser();
@@ -126,7 +134,9 @@ public sealed class UserTests
     {
         var user = CreateUser();
 
-        var result = user.RequestPasswordReset(UserActionToken.Create(value: "password-reset-token", expiresAtUtc: DateTimeOffset.UtcNow.AddHours(1)).Value);
+        var result = user.RequestPasswordReset(
+            UserActionToken.Create(value: "password-reset-token", expiresAtUtc: DateTimeOffset.UtcNow.AddHours(1))
+                .Value);
 
         result.ShouldHaveSingleError(
             ErrorType.Conflict,
@@ -142,7 +152,8 @@ public sealed class UserTests
         user.ClearDomainEvents();
         var expiresAtUtc = DateTimeOffset.UtcNow.AddHours(1);
 
-        var result = user.RequestPasswordReset(UserActionToken.Create(value: "password-reset-token", expiresAtUtc: expiresAtUtc).Value);
+        var result = user.RequestPasswordReset(
+            UserActionToken.Create(value: "password-reset-token", expiresAtUtc: expiresAtUtc).Value);
 
         result.IsSuccess.ShouldBeTrue();
         var domainEvent = user.GetDomainEvents()
@@ -172,8 +183,14 @@ public sealed class UserTests
         var user = CreateUser();
         var claims = user.Claims;
 
-        user.GrantClaim(UserClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
-        user.GrantClaim(UserClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
+        user.GrantClaim(
+            UserClaim.Create(
+                ClaimType.Create(value: "permission").Value,
+                ClaimValue.Create(value: "heroes.read").Value));
+        user.GrantClaim(
+            UserClaim.Create(
+                ClaimType.Create(value: "permission").Value,
+                ClaimValue.Create(value: "heroes.read").Value));
 
         claims.ShouldHaveSingleItem();
     }

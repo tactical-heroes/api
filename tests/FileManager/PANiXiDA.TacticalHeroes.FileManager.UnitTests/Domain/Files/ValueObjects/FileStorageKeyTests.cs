@@ -60,7 +60,9 @@ public sealed class FileStorageKeyTests
     {
         var result = FileStorageKey.Create(value);
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "File storage key must be a relative path without surrounding whitespace, empty or dot segments, backslashes, or control characters.")
+        result.ShouldHaveSingleError(
+            ErrorType.Validation,
+            "File storage key must be a relative path without surrounding whitespace, empty or dot segments, backslashes, or control characters.")
             .ShouldHaveField(nameof(FileStorageKey));
     }
 

@@ -63,7 +63,9 @@ public sealed class StronglyTypedIdCreationConventionTests
     [InlineData("public static SampleId Get(SampleId? id) => id.GetValueOrDefault(SampleId.New());", false)]
     [InlineData("public static SampleId Get(SampleId[] ids) => ids.FirstOrDefault(SampleId.New());", false)]
     [InlineData("public static SampleId? Get(SampleId?[] ids) => ids.FirstOrDefault();", false)]
-    [InlineData("public static IEnumerable<SampleId> Get(SampleId[] ids) => ids.DefaultIfEmpty(SampleId.New());", false)]
+    [InlineData(
+        "public static IEnumerable<SampleId> Get(SampleId[] ids) => ids.DefaultIfEmpty(SampleId.New());",
+        false)]
     [InlineData("public static int Get() => Activator.CreateInstance<int>();", false)]
     public void IdCreation_Should_DetectDefaultValues_When_SourceExpressionsVary(string member, bool expected)
     {
@@ -93,7 +95,9 @@ public sealed class StronglyTypedIdCreationConventionTests
             syntaxTrees: [tree],
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(
+            compilation.GetDiagnostics(cancellationToken),
+            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
 
         var violations = GetViolations(tree.GetRoot(cancellationToken), compilation.GetSemanticModel(tree));
 

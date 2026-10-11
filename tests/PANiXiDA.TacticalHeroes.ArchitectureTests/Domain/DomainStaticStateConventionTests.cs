@@ -80,7 +80,9 @@ public sealed class DomainStaticStateConventionTests
         var emission = compilation.Emit(stream, cancellationToken: cancellationToken);
         Assert.True(emission.Success, string.Join(Environment.NewLine, emission.Diagnostics));
         var assembly = Assembly.Load(stream.ToArray());
-        var membersToCheck = GetAuthoredStaticMembers(tree.GetRoot(cancellationToken), compilation.GetSemanticModel(tree));
+        var membersToCheck = GetAuthoredStaticMembers(
+            tree.GetRoot(cancellationToken),
+            compilation.GetSemanticModel(tree));
 
         var results = membersToCheck.Select(member => CheckMember(assembly, member)).ToArray();
 
@@ -181,7 +183,8 @@ public sealed class DomainStaticStateConventionTests
             case PropertyInfo { SetMethod: not null }:
                 yield return $"{name} must not declare a static setter.";
                 break;
-            case PropertyInfo { GetMethod: { } getter } when DomainImmutableStateConvention.ReturnsWritableReference(getter):
+            case PropertyInfo { GetMethod: { } getter } when DomainImmutableStateConvention.ReturnsWritableReference(
+                getter):
             case MethodInfo method when DomainImmutableStateConvention.ReturnsWritableReference(method):
                 yield return $"{name} must not return a writable reference.";
                 break;

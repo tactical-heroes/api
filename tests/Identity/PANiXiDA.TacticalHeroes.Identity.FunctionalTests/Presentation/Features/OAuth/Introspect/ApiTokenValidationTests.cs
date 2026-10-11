@@ -85,7 +85,11 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         var cancellationToken = TestContext.Current.CancellationToken;
         var options = Fixture.Services.GetRequiredService<IOptions<OpenIddictValidationOptions>>().Value;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "service-introspection@example.test", "service-introspection-hero", "StrongPassword1!", cancellationToken);
+            Fixture,
+            "service-introspection@example.test",
+            "service-introspection-hero",
+            "StrongPassword1!",
+            cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client, "service-introspection@example.test", "StrongPassword1!", cancellationToken);
@@ -109,7 +113,9 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         document.RootElement.GetProperty(OpenIddictConstants.Claims.ClientId).GetString()
             .ShouldBe(OAuthAuthorizationRequestTestHelper.ClientId);
         document.RootElement.GetProperty(OpenIddictConstants.Claims.Subject).GetString().ShouldBe(user.Id.ToString());
-        document.RootElement.GetProperty(OpenIddictConstants.Claims.Name).GetString().ShouldBe("service-introspection-hero");
-        document.RootElement.GetProperty(OpenIddictConstants.Claims.Email).GetString().ShouldBe("service-introspection@example.test");
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.Name).GetString()
+            .ShouldBe("service-introspection-hero");
+        document.RootElement.GetProperty(OpenIddictConstants.Claims.Email).GetString()
+            .ShouldBe("service-introspection@example.test");
     }
 }

@@ -34,7 +34,8 @@ public sealed class ReadRepositorySortingConventionTests
             .Where(method => method.IsEfRepository)
             .ToArray();
         var violations = methods.Where(method => !method.AppliesMapping)
-            .Select(method => $"{method.Name}: return {method.Model} using IReadModelMapper<TId, TReadDbModel, TReadModel> " +
+            .Select(method =>
+                $"{method.Name}: return {method.Model} using IReadModelMapper<TId, TReadDbModel, TReadModel> " +
                 "matching the repository through ProjectTo, GetByIdAsync, or GetPagedResultAsync.")
             .ToArray();
 
@@ -77,7 +78,8 @@ public sealed class ReadRepositorySortingConventionTests
         {
             if (semanticModel.GetDeclaredSymbol(declaration) is not IMethodSymbol { IsAbstract: false } method ||
                 method.IsStatic ||
-                (method.DeclaredAccessibility != Accessibility.Public && method.ExplicitInterfaceImplementations.Length == 0) ||
+                (method.DeclaredAccessibility != Accessibility.Public
+                    && method.ExplicitInterfaceImplementations.Length == 0) ||
                 !method.ContainingType.AllInterfaces.Any(contract => contract.OriginalDefinition.ToDisplayString() ==
                     "PANiXiDA.Core.Application.Persistence.IReadRepository<TId>") ||
                 GetResultModel(method.ReturnType, collectionsOnly: false) is not { } model)
@@ -87,7 +89,8 @@ public sealed class ReadRepositorySortingConventionTests
 
             var returns = declaration.ExpressionBody is { } body
                 ? [body.Expression]
-                : declaration.DescendantNodes(node => node is not AnonymousFunctionExpressionSyntax and not LocalFunctionStatementSyntax)
+                : declaration.DescendantNodes(
+                    node => node is not AnonymousFunctionExpressionSyntax and not LocalFunctionStatementSyntax)
                     .OfType<ReturnStatementSyntax>()
                     .Select(statement => statement.Expression)
                     .OfType<ExpressionSyntax>()
@@ -140,8 +143,10 @@ public sealed class ReadRepositorySortingConventionTests
             return null;
         }
 
-        if ((named.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks" && named.MetadataName is "Task`1" or "ValueTask`1") ||
-            (named.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.ResultPattern" && named.MetadataName == "Result`1"))
+        if ((named.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks"
+            && named.MetadataName is "Task`1" or "ValueTask`1") ||
+            (named.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.ResultPattern"
+                && named.MetadataName == "Result`1"))
         {
             return GetResultModel(named.TypeArguments[0], collectionsOnly);
         }
@@ -154,8 +159,10 @@ public sealed class ReadRepositorySortingConventionTests
         }
 
         return named.AllInterfaces.Prepend(named)
-            .FirstOrDefault(contract => contract.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
-                (contract.MetadataName == "IAsyncEnumerable`1" && contract.ContainingNamespace.ToDisplayString() == "System.Collections.Generic"))
+            .FirstOrDefault(contract => contract.OriginalDefinition.SpecialType == SpecialType
+                .System_Collections_Generic_IEnumerable_T ||
+                (contract.MetadataName == "IAsyncEnumerable`1"
+                    && contract.ContainingNamespace.ToDisplayString() == "System.Collections.Generic"))
             ?.TypeArguments[0];
     }
 
@@ -178,8 +185,10 @@ public sealed class ReadRepositorySortingConventionTests
                     .Select(node => semanticModel.GetOperation(node))
                     .Select(candidate => candidate switch
                     {
-                        IVariableDeclaratorOperation variable when SymbolEqualityComparer.Default.Equals(variable.Symbol, local.Local) => variable.Initializer?.Value,
-                        ISimpleAssignmentOperation assignment when assignment.Target is ILocalReferenceOperation target &&
+                        IVariableDeclaratorOperation variable when SymbolEqualityComparer.Default
+                            .Equals(variable.Symbol, local.Local) => variable.Initializer?.Value,
+                        ISimpleAssignmentOperation assignment
+                            when assignment.Target is ILocalReferenceOperation target &&
                             SymbolEqualityComparer.Default.Equals(target.Local, local.Local) => assignment.Value,
                         _ => null
                     })
@@ -194,10 +203,12 @@ public sealed class ReadRepositorySortingConventionTests
                     return true;
                 }
 
-                return ((call.TargetMethod.Name == "ApplySorting" && IsSortingFor(call.TargetMethod.ContainingType, model)) ||
+                return ((call.TargetMethod.Name == "ApplySorting"
+                    && IsSortingFor(call.TargetMethod.ContainingType, model)) ||
                     (call.TargetMethod.IsExtensionMethod && call.TargetMethod.Name is
                         "ToListAsync" or "ToArrayAsync" or "ToList" or "ToArray" or "Where" or "Take" or "Skip" or
-                        "AsEnumerable" or "FirstOrDefaultAsync" or "SingleOrDefaultAsync" or "FirstAsync" or "SingleAsync")) &&
+                        "AsEnumerable" or "FirstOrDefaultAsync" or "SingleOrDefaultAsync"
+                            or "FirstAsync" or "SingleAsync")) &&
                     UsesOperation(call.Arguments.FirstOrDefault()?.Value, model, declaration, semanticModel, matches);
             default:
                 return false;
@@ -220,7 +231,8 @@ public sealed class ReadRepositorySortingConventionTests
 
         return mapper is not null && mapper.AllInterfaces.Any(contract =>
             contract.MetadataName == "IReadModelMapper`3" &&
-            contract.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping" &&
+            contract.ContainingNamespace
+                .ToDisplayString() == "PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Mapping" &&
             SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], repository.TypeArguments[1]) &&
             SymbolEqualityComparer.Default.Equals(contract.TypeArguments[1], repository.TypeArguments[2]) &&
             SymbolEqualityComparer.Default.Equals(contract.TypeArguments[2], model));

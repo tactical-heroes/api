@@ -11,7 +11,8 @@ public sealed class UnitCombatStatsTests
 
         var result = stats.ToString();
 
-        result.ShouldBe("UnitCombatStats { Attack = 8, Defense = 4, Health = 12, MinimumDamage = 3, MaximumDamage = 5, Initiative = 10.5, Speed = 6 }");
+        result.ShouldBe(
+            "UnitCombatStats { Attack = 8, Defense = 4, Health = 12, MinimumDamage = 3, MaximumDamage = 5, Initiative = 10.5, Speed = 6 }");
     }
 
     [Fact(DisplayName = "Unit combat stats should create values when values are valid")]

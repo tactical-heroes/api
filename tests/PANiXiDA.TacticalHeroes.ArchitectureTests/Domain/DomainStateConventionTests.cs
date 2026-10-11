@@ -13,7 +13,8 @@ public sealed class DomainStateConventionTests
 {
     private const string DomainAssemblySuffix = ".Domain";
 
-    [Fact(DisplayName = "Aggregate roots should contain only value objects identifiers enumerations and entities when state is declared")]
+    [Fact(
+        DisplayName = "Aggregate roots should contain only value objects identifiers enumerations and entities when state is declared")]
     public void AggregateRoots_Should_ContainOnlyDomainTypes_When_StateIsDeclared()
     {
         var aggregateRoots = GetDomainTypes()
@@ -36,7 +37,8 @@ public sealed class DomainStateConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Entities should contain only value objects identifiers and enumerations when state is declared")]
+    [Fact(
+        DisplayName = "Entities should contain only value objects identifiers and enumerations when state is declared")]
     public void Entities_Should_ContainOnlyDomainTypes_When_StateIsDeclared()
     {
         var entities = GetDomainTypes()

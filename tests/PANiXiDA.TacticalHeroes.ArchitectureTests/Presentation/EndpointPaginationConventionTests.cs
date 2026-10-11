@@ -53,7 +53,8 @@ public sealed class EndpointPaginationConventionTests
                 .SelectMany(info => info.Symbol is { } symbol ? [symbol] : info.CandidateSymbols)
                 .OfType<IMethodSymbol>()
                 .SingleOrDefault()
-                ?? throw new InvalidOperationException($"{document.FilePath}: cannot resolve the handler for {invocation}.");
+                ?? throw new InvalidOperationException(
+                    $"{document.FilePath}: cannot resolve the handler for {invocation}.");
 
             var hasParameters = handler.Parameters.Any(parameter => parameter.Type.ToDisplayString() ==
                 "PANiXiDA.Core.Application.Querying.Pagination.PaginationParameters");
@@ -71,8 +72,10 @@ public sealed class EndpointPaginationConventionTests
                     .OfType<InvocationExpressionSyntax>()
                     .Select(call => handlerModel.GetSymbolInfo(call).Symbol)
                     .OfType<IMethodSymbol>()
-                    .Any(method => method.ContainingType.ToDisplayString() == "Microsoft.AspNetCore.Http.TypedResults" &&
-                        method.Name == "Ok" && method.TypeArguments.Any(IsPaginationResult));
+                    .Any(method =>
+                        method.ContainingType.ToDisplayString() == "Microsoft.AspNetCore.Http.TypedResults" &&
+                        method.Name == "Ok"
+                        && method.TypeArguments.Any(IsPaginationResult));
             }
 
             endpoints.Add(new EndpointPagination(
@@ -91,5 +94,9 @@ public sealed class EndpointPaginationConventionTests
             named.ContainingNamespace.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Pagination";
     }
 
-    private sealed record EndpointPagination(string Name, bool HasParameters, bool DeclaresPagination, bool ReturnsPagination);
+    private sealed record EndpointPagination(
+        string Name,
+        bool HasParameters,
+        bool DeclaresPagination,
+        bool ReturnsPagination);
 }

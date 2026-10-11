@@ -7,7 +7,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "POST OAuth revoke should invalidate a persisted access token when a protected endpoint is requested")]
+    [Theory(
+        DisplayName = "POST OAuth revoke should invalidate a persisted access token when a protected endpoint is requested")]
     [InlineData("/connect/userinfo")]
     [InlineData("/api/v1/users")]
     public async Task PostRevoke_Should_RejectRevokedToken_When_AProtectedEndpointIsRequested(string path)

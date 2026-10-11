@@ -38,7 +38,8 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Theory(DisplayName = "Domain events should require immutable collections and elements when collections are declared")]
+    [Theory(
+        DisplayName = "Domain events should require immutable collections and elements when collections are declared")]
     [InlineData(typeof(int[]), false)]
     [InlineData(typeof(List<int>), false)]
     [InlineData(typeof(Dictionary<int, string>), false)]
@@ -149,7 +150,8 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Value objects and enumerations should declare public getters without setters when properties are declared")]
+    [Fact(
+        DisplayName = "Value objects and enumerations should declare public getters without setters when properties are declared")]
     public void ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared()
     {
         var domainTypes = GetDomainTypes().ToArray();
@@ -250,7 +252,8 @@ public sealed class DomainEncapsulationConventionTests
         Assert.Equal(expected, violations.Length == 0);
     }
 
-    [Fact(DisplayName = "Aggregate roots and entities should not expose mutable collections when public state is declared")]
+    [Fact(
+        DisplayName = "Aggregate roots and entities should not expose mutable collections when public state is declared")]
     public void AggregateRootsAndEntities_Should_NotExposeMutableCollections_When_PublicStateIsDeclared()
     {
         var domainEntities = GetDomainEntities();
@@ -363,7 +366,8 @@ public sealed class DomainEncapsulationConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Strongly typed ids should declare public getters without setters when properties are declared")]
+    [Fact(
+        DisplayName = "Strongly typed ids should declare public getters without setters when properties are declared")]
     public void StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared()
     {
         var identifiers = GetStronglyTypedIds();

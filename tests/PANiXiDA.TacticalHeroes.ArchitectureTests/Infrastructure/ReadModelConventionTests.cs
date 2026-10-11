@@ -26,7 +26,15 @@ public sealed class ReadModelConventionTests
                 InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType) is not null)
             .ToArray();
         var violations = components
-            .Where(type => type is not { IsClass: true, IsNotPublic: true, IsNested: false, IsSealed: true, IsAbstract: false })
+            .Where(
+                type => type is not
+                {
+                    IsClass: true,
+                    IsNotPublic: true,
+                    IsNested: false,
+                    IsSealed: true,
+                    IsAbstract: false
+                })
             .Select(type => $"{type.FullName} must be a top-level internal sealed class.")
             .ToArray();
 
@@ -87,7 +95,9 @@ public sealed class ReadModelConventionTests
                     InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
                     StringComparer.OrdinalIgnoreCase)
                 .Any()))
-            .Select(type => $"{type.FullName} must share its directory and namespace with a mapper for the same read model.")
+            .Select(
+                type =>
+                    $"{type.FullName} must share its directory and namespace with a mapper for the same read model.")
             .ToArray();
 
         Assert.NotEmpty(sortingTypes);
@@ -133,7 +143,8 @@ public sealed class ReadModelConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations when declared")]
+    [Fact(
+        DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations when declared")]
     public void ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared()
     {
         var readDbModels = GetReadDatabaseModels();
@@ -162,7 +173,8 @@ public sealed class ReadModelConventionTests
 
     private static Type GetReadModel(Type type, Type contractType)
     {
-        return InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType)!.GetGenericArguments()[^1];
+        return InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType)!
+            .GetGenericArguments()[^1];
     }
 
     private static async Task<ModelSource[]> GetApplicationModelsAsync(string repositoryRoot, Document document)
@@ -178,11 +190,15 @@ public sealed class ReadModelConventionTests
             [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()
                 .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
                 .OfType<INamedTypeSymbol>()
-                .Where(type => type.AllInterfaces.Any(contract => contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
+                .Where(type => type.AllInterfaces
+                    .Any(contract => contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
                 .Select(type => new ModelSource(type.ToDisplayString(), Path.GetDirectoryName(document.FilePath)!))];
     }
 
-    private static IEnumerable<string> GetComponentLocationViolations(Type component, Type contractType, ModelSource[] sources)
+    private static IEnumerable<string> GetComponentLocationViolations(
+        Type component,
+        Type contractType,
+        ModelSource[] sources)
     {
         var model = GetReadModel(component, contractType);
         var module = InfrastructurePersistenceConvention.GetModule(component);

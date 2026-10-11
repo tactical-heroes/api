@@ -55,7 +55,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         after.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Folder read model should restore all columns without tracking when parent and ownership vary")]
+    [Theory(
+        DisplayName = "Folder read model should restore all columns without tracking when parent and ownership vary")]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -96,7 +97,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         readContext.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Folder read model should load parent and direct children without tracking when depth varies")]
+    [Theory(
+        DisplayName = "Folder read model should load parent and direct children without tracking when depth varies")]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]

@@ -79,7 +79,9 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-        var result = await repository.AddAsync(IntegrationTestData.CreateRole(Guid.CreateVersion7(), name, []), cancellationToken);
+        var result = await repository.AddAsync(
+            IntegrationTestData.CreateRole(Guid.CreateVersion7(), name, []),
+            cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

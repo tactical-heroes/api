@@ -37,7 +37,8 @@ public sealed class FileNameTests
         result.IsSuccess.ShouldBe(valid);
     }
 
-    [Theory(DisplayName = "File name should reject paths and control characters when name contains path or control characters")]
+    [Theory(
+        DisplayName = "File name should reject paths and control characters when name contains path or control characters")]
     [InlineData(".")]
     [InlineData("..")]
     [InlineData("../avatar.png")]

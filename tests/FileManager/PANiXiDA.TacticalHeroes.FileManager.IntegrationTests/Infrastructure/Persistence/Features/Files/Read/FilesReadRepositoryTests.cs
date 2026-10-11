@@ -51,7 +51,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         after.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Read database model should restore all columns without tracking when upload state and ownership vary")]
+    [Theory(
+        DisplayName = "Read database model should restore all columns without tracking when upload state and ownership vary")]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -98,10 +99,12 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         readContext.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Read models should load file and folder navigations without tracking when folder is optional")]
+    [Theory(
+        DisplayName = "Read models should load file and folder navigations without tracking when folder is optional")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task ReadDbModel_Should_LoadFileAndFolderNavigationsWithoutTracking_When_FolderIsOptional(bool assigned)
+    public async Task ReadDbModel_Should_LoadFileAndFolderNavigationsWithoutTracking_When_FolderIsOptional(
+        bool assigned)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = await AddFileAsync(false, cancellationToken);

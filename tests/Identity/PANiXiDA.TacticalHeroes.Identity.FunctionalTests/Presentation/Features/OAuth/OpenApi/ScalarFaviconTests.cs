@@ -40,7 +40,8 @@ public sealed class ScalarFaviconTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "Favicon should preserve HTTPS redirection, forwarded headers and API authorization when short circuited")]
+    [Fact(
+        DisplayName = "Favicon should preserve HTTPS redirection, forwarded headers and API authorization when short circuited")]
     public async Task GetFavicon_Should_PreserveHttpsAndApiAuthorization_When_ShortCircuited()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

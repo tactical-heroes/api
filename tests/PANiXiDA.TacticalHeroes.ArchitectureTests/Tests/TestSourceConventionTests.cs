@@ -9,7 +9,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
 public sealed partial class TestSourceConventionTests
 {
-    [Fact(DisplayName = "Test methods should use MethodName Should Behavior When Condition naming when a test is declared")]
+    [Fact(
+        DisplayName = "Test methods should use MethodName Should Behavior When Condition naming when a test is declared")]
     public void TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared()
     {
         var violations = TestSourceDiscovery.GetTestMethods()

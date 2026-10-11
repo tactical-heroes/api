@@ -35,7 +35,8 @@ public sealed partial class FileStorageKey : ValueObject
             value.Split('/').Any(segment => segment is "" or "." or ".."))
         {
             return Result.Failure<FileStorageKey>(
-                Error.Validation("File storage key must be a relative path without surrounding whitespace, empty or dot segments, backslashes, or control characters.")
+                Error.Validation(
+                    "File storage key must be a relative path without surrounding whitespace, empty or dot segments, backslashes, or control characters.")
                     .WithField(nameof(FileStorageKey)));
         }
 

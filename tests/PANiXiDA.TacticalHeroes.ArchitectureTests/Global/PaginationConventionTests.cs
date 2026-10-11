@@ -27,7 +27,9 @@ public sealed class PaginationConventionTests
         var violations = methods.Where(method =>
             method.GetParameters().Any(parameter => parameter.ParameterType == typeof(PaginationParameters)) !=
             IsPaginationResult(method.ReturnType))
-            .Select(method => $"{method.DeclaringType?.FullName}.{method.Name}: PaginationParameters and PaginationResult<T> must occur together.")
+            .Select(
+                method =>
+                    $"{method.DeclaringType?.FullName}.{method.Name}: PaginationParameters and PaginationResult<T> must occur together.")
             .ToArray();
 
         Assert.NotEmpty(methods);
@@ -54,23 +56,28 @@ public sealed class PaginationConventionTests
         var handlers = ArchitectureDefinition.s_productionAssemblies.SelectMany(assembly => assembly.GetTypes())
             .Where(type => type is { IsClass: true, IsAbstract: false })
             .SelectMany(type => type.GetInterfaces()
-                .Where(contract => contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
+                .Where(contract => contract.IsGenericType
+                    && contract.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
                 .Select(contract => new { Type = type, Contract = contract }))
             .ToArray();
         var violations = handlers.Where(handler =>
             HasPaginationParameters(handler.Contract.GetGenericArguments()[0]) !=
             IsPaginationResult(handler.Contract.GetGenericArguments()[1]))
-            .Select(handler => $"{handler.Type.FullName}: query PaginationParameters and handler PaginationResult<T> must occur together.")
+            .Select(
+                handler =>
+                    $"{handler.Type.FullName}: query PaginationParameters and handler PaginationResult<T> must occur together.")
             .ToArray();
 
         Assert.NotEmpty(handlers);
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
     }
 
-    [Theory(DisplayName = "Query validators should attach matching child validators when querying parameters are present")]
+    [Theory(
+        DisplayName = "Query validators should attach matching child validators when querying parameters are present")]
     [InlineData(typeof(PaginationParameters))]
     [InlineData(typeof(SortingParameters))]
-    public void QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent(Type parameterType)
+    public void QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent(
+        Type parameterType)
     {
         var queries = GetQueries()
             .Where(type => type.GetProperties().Any(property => property.PropertyType == parameterType))
@@ -224,7 +231,8 @@ public sealed class PaginationConventionTests
             foreach (var property in query.GetProperties().Where(property => property.PropertyType == parameterType))
             {
                 if (!descriptor.GetValidatorsForMember(property.Name).Any(component =>
-                    component.Validator is IChildValidatorAdaptor adaptor && adaptor.ValidatorType == expectedValidator))
+                    component.Validator is IChildValidatorAdaptor adaptor
+                        && adaptor.ValidatorType == expectedValidator))
                 {
                     yield return $"{validatorType.FullName}: {property.Name} must use {expectedValidator.FullName}.";
                 }

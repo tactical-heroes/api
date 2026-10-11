@@ -43,7 +43,8 @@ public sealed class OpenApiSecurityDocumentTests(FunctionalTestFixture fixture)
             requirement.GetProperty("Bearer").GetArrayLength() == 0);
     }
 
-    [Theory(DisplayName = "GET Identity OpenAPI document should not require Bearer authentication when endpoint allows anonymous")]
+    [Theory(
+        DisplayName = "GET Identity OpenAPI document should not require Bearer authentication when endpoint allows anonymous")]
     [InlineData("/connect/authorize", "get")]
     [InlineData("/connect/token", "post")]
     public async Task GetIdentityOpenApiDocument_Should_NotRequireBearerAuthentication_When_EndpointAllowsAnonymous(

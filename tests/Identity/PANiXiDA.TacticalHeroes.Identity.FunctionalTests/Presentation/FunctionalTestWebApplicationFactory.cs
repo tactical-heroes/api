@@ -40,7 +40,8 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
             services.ConfigureAll<HttpClientFactoryOptions>(options =>
                 options.HttpMessageHandlerBuilderActions.Add(handler =>
                 {
-                    if (handler.Name?.StartsWith("OpenIddict.Validation.SystemNetHttp", StringComparison.Ordinal) == true)
+                    if (handler.Name?
+                        .StartsWith("OpenIddict.Validation.SystemNetHttp", StringComparison.Ordinal) == true)
                     {
                         handler.PrimaryHandler = new IntrospectionTrackingHandler(this);
                     }
@@ -69,7 +70,9 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
     {
         private readonly HttpMessageInvoker _transport = new(factory.Server.CreateHandler());
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             if (request.RequestUri?.AbsolutePath == "/connect/introspect")
             {

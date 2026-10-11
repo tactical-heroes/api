@@ -29,7 +29,8 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "POST auth reset-password should roll back and allow retry when request is canceled after password save")]
+    [Fact(
+        DisplayName = "POST auth reset-password should roll back and allow retry when request is canceled after password save")]
     public async Task PostResetPassword_Should_RollBackAndAllowRetry_When_RequestIsCanceledAfterPasswordSave()
     {
         const string CurrentPassword = "StrongPassword1!";
@@ -116,7 +117,8 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
 
         retryResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         await using var verificationScope = Fixture.Services.CreateAsyncScope();
-        var verificationUserManager = verificationScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var verificationUserManager = verificationScope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
         var verificationTokenManager = verificationScope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
         var updatedUser = await verificationUserManager.FindByIdAsync(createdUser.Id.ToString());
         updatedUser.ShouldNotBeNull();

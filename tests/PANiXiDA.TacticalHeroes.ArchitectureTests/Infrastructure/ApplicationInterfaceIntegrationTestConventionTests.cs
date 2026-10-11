@@ -10,8 +10,10 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
     private const string SourceDirectoryName = "src";
     private const string TestsDirectoryName = "tests";
 
-    [Fact(DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files when application interfaces are implemented")]
-    public void InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
+    [Fact(
+        DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files when application interfaces are implemented")]
+    public void
+        InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
     {
         var repositoryRoot = FindRepositoryRoot();
         var implementations = GetInfrastructureImplementations();
@@ -40,7 +42,8 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
             string.Join(Environment.NewLine, missingTestFiles));
     }
 
-    [Fact(DisplayName = "Integration tests should cover every implemented Application interface method when implementation exists")]
+    [Fact(
+        DisplayName = "Integration tests should cover every implemented Application interface method when implementation exists")]
     public void IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists()
     {
         var repositoryRoot = FindRepositoryRoot();

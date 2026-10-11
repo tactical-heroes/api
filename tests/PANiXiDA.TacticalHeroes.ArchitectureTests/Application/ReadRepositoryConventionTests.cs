@@ -137,7 +137,8 @@ public sealed class ReadRepositoryConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read repository constructor parameters should follow type-based naming when read repository is injected")]
+    [Fact(
+        DisplayName = "Read repository constructor parameters should follow type-based naming when read repository is injected")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected()
     {
         var repositoryParameters = ArchitectureDefinition.s_productionAssemblies

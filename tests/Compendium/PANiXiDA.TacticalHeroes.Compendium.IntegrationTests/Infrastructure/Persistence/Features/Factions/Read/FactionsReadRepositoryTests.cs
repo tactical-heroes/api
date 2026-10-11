@@ -29,7 +29,10 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
-        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(search), new LimitParameters(1), cancellationToken);
+        var options = await repository.GetSelectOptionsAsync(
+            new FactionsFilter(search),
+            new LimitParameters(1),
+            cancellationToken);
 
         options.ShouldHaveSingleItem();
         options[0].Id.ShouldBe(northern.Id.Value);
@@ -50,7 +53,10 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
-        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(search), new LimitParameters(20), cancellationToken);
+        var options = await repository.GetSelectOptionsAsync(
+            new FactionsFilter(search),
+            new LimitParameters(20),
+            cancellationToken);
 
         options.Select(option => option.Name).ShouldBe(["Northern Alliance", "Southern Alliance"]);
     }
@@ -70,7 +76,10 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
-        var options = await repository.GetSelectOptionsAsync(new FactionsFilter(), new LimitParameters(1), cancellationToken);
+        var options = await repository.GetSelectOptionsAsync(
+            new FactionsFilter(),
+            new LimitParameters(1),
+            cancellationToken);
 
         options.ShouldHaveSingleItem();
         options[0].Id.ShouldBe(factions[1].Id.Value);
@@ -84,7 +93,10 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
-        var options = await repository.GetSelectOptionsAsync(new FactionsFilter("Northern"), new LimitParameters(20), cancellationToken);
+        var options = await repository.GetSelectOptionsAsync(
+            new FactionsFilter("Northern"),
+            new LimitParameters(20),
+            cancellationToken);
 
         options.ShouldBeEmpty();
     }
@@ -152,8 +164,14 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
         var sortingParameters = SortingParameters.Descending(nameof(FactionListItemReadModel.Name));
 
-        var firstPage = await repository.GetPageAsync(new PaginationParameters(1, 1), sortingParameters, cancellationToken);
-        var secondPage = await repository.GetPageAsync(new PaginationParameters(2, 1), sortingParameters, cancellationToken);
+        var firstPage = await repository.GetPageAsync(
+            new PaginationParameters(1, 1),
+            sortingParameters,
+            cancellationToken);
+        var secondPage = await repository.GetPageAsync(
+            new PaginationParameters(2, 1),
+            sortingParameters,
+            cancellationToken);
 
         firstPage.Items.ShouldHaveSingleItem().Id.ShouldBe(factions[1].Id.Value);
         secondPage.Items.ShouldHaveSingleItem().Id.ShouldBe(factions[0].Id.Value);
