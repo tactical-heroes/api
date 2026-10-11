@@ -32,10 +32,10 @@ public sealed class CreateHeroHandlerTests
         await heroesRepository.Received(1).AddAsync(
             Arg.Is<Hero>(hero =>
                 hero.Id.Value == result.Value &&
-                hero.Name.Value == "Orrin" &&
-                hero.Stats.Attack == 8 &&
-                hero.Stats.MaximumDamage == 7 &&
-                hero.FactionId == faction.Id),
+                    hero.Name.Value == "Orrin" &&
+                    hero.Stats.Attack == 8 &&
+                    hero.Stats.MaximumDamage == 7 &&
+                    hero.FactionId == faction.Id),
             cancellationToken);
     }
 

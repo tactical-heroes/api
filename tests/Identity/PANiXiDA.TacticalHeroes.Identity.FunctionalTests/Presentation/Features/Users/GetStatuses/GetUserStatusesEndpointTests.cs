@@ -14,9 +14,9 @@ public sealed class GetUserStatusesEndpointTests(FunctionalTestFixture fixture)
 
         response.ShouldContain(status =>
             status.Id == UserStatus.Active.Id &&
-            status.Name == UserStatus.Active.Name);
+                status.Name == UserStatus.Active.Name);
         response.ShouldContain(status =>
             status.Id == UserStatus.Blocked.Id &&
-            status.Name == UserStatus.Blocked.Name);
+                status.Name == UserStatus.Blocked.Name);
     }
 }

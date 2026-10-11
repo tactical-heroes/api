@@ -41,19 +41,19 @@ public sealed class DomainTypeUnitTestConventionTests
                 })
             .Where(target =>
                 !File.Exists(target.DomainType.ExpectedTestFilePath) ||
-                target.TestMethods.Length == 0)
+                    target.TestMethods.Length == 0)
             .Select(target =>
                 $"{target.DomainType.Type.FullName} must have a separate unit " +
-                $"test file containing at least one Fact or Theory at " +
-                $"'{Path.GetRelativePath(
-                    repositoryRoot,
-                    target.DomainType.ExpectedTestFilePath)}'.")
+                    $"test file containing at least one Fact or Theory at " +
+                    $"'{Path.GetRelativePath(
+                        repositoryRoot,
+                        target.DomainType.ExpectedTestFilePath)}'.")
             .ToArray();
 
         Assert.True(
             violations.Length == 0,
             $"Missing or empty Domain unit test files:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Domain unit tests should cover every accessible method when domain methods are declared")]
@@ -77,7 +77,7 @@ public sealed class DomainTypeUnitTestConventionTests
         Assert.True(
             violations.Length == 0,
             $"Missing Domain unit test methods:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     private static DomainType[] GetDomainTypes(string repositoryRoot)
@@ -139,7 +139,7 @@ public sealed class DomainTypeUnitTestConventionTests
     private static bool IsDomainType(Type type)
     {
         return !type.IsAbstract &&
-               (typeof(IAggregateRoot).IsAssignableFrom(type) ||
+            (typeof(IAggregateRoot).IsAssignableFrom(type) ||
                 typeof(IEntity).IsAssignableFrom(type) ||
                 typeof(ValueObject).IsAssignableFrom(type) ||
                 typeof(IStronglyTypedId).IsAssignableFrom(type) ||
@@ -189,8 +189,8 @@ public sealed class DomainTypeUnitTestConventionTests
 
         throw new InvalidOperationException(
             $"Domain type namespace '{typeNamespace}' must be " +
-            $"'{domainAssemblyName}' or start with " +
-            $"'{domainNamespacePrefix}'.");
+                $"'{domainAssemblyName}' or start with " +
+                $"'{domainNamespacePrefix}'.");
     }
 
     private static IEnumerable<string> GetMissingTestMethods(
@@ -208,10 +208,10 @@ public sealed class DomainTypeUnitTestConventionTests
         var domainMethods = domainType.Type
             .GetMethods(
                 BindingFlags.Instance |
-                BindingFlags.Static |
-                BindingFlags.Public |
-                BindingFlags.NonPublic |
-                BindingFlags.DeclaredOnly)
+                    BindingFlags.Static |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.DeclaredOnly)
             .Where(IsAccessibleDomainMethod)
             .GroupBy(method => method.Name, StringComparer.Ordinal);
 
@@ -230,21 +230,21 @@ public sealed class DomainTypeUnitTestConventionTests
                 coverage.ActualTestCount < coverage.RequiredTestCount)
             .Select(coverage =>
                 $"{domainType.Type.FullName}.{coverage.MethodName}: expected " +
-                $"{coverage.RequiredTestCount} test method(s) starting with " +
-                $"'{coverage.MethodName}_Should_', found " +
-                $"{coverage.ActualTestCount} in " +
-                $"'{Path.GetRelativePath(
-                    repositoryRoot,
-                    domainType.ExpectedTestFilePath)}'.");
+                    $"{coverage.RequiredTestCount} test method(s) starting with " +
+                    $"'{coverage.MethodName}_Should_', found " +
+                    $"{coverage.ActualTestCount} in " +
+                    $"'{Path.GetRelativePath(
+                        repositoryRoot,
+                        domainType.ExpectedTestFilePath)}'.");
     }
 
     private static bool IsAccessibleDomainMethod(MethodInfo method)
     {
         return !method.IsSpecialName &&
-               (method.IsPublic ||
+            (method.IsPublic ||
                 method.IsAssembly ||
                 method.IsFamilyOrAssembly) &&
-               method.GetCustomAttribute<CompilerGeneratedAttribute>() is null;
+            method.GetCustomAttribute<CompilerGeneratedAttribute>() is null;
     }
 
     private static bool HasPath(
@@ -282,7 +282,7 @@ public sealed class DomainTypeUnitTestConventionTests
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+                $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 
     private sealed record DomainType(

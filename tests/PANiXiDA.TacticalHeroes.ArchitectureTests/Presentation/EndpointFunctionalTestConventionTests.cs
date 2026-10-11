@@ -20,7 +20,7 @@ public sealed class EndpointFunctionalTestConventionTests
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(IEndpoint).IsAssignableFrom(type))
+                    typeof(IEndpoint).IsAssignableFrom(type))
             .OrderBy(type => type.FullName, StringComparer.Ordinal)
             .ToArray();
 
@@ -35,7 +35,7 @@ public sealed class EndpointFunctionalTestConventionTests
         Assert.True(
             missingTestFiles.Length == 0,
             $"Missing functional test files:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, missingTestFiles));
+                string.Join(Environment.NewLine, missingTestFiles));
     }
 
     private static string GetExpectedTestFilePath(
@@ -61,7 +61,7 @@ public sealed class EndpointFunctionalTestConventionTests
         {
             throw new InvalidOperationException(
                 $"Endpoint namespace '{endpointNamespace}' must start with " +
-                $"'{presentationNamespacePrefix}'.");
+                    $"'{presentationNamespacePrefix}'.");
         }
 
         var relativeNamespace = endpointNamespace[presentationNamespacePrefix.Length..];
@@ -98,6 +98,6 @@ public sealed class EndpointFunctionalTestConventionTests
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+                $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 }

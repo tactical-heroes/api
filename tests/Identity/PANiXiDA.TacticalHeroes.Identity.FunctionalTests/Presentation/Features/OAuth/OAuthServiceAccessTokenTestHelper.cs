@@ -39,9 +39,9 @@ internal static class OAuthServiceAccessTokenTestHelper
                 item.ClientType,
                 OpenIddictConstants.ClientTypes.Confidential,
                 StringComparison.Ordinal) &&
-            item.GrantTypes.Contains(
-                OpenIddictConstants.GrantTypes.ClientCredentials,
-                StringComparer.Ordinal));
+                item.GrantTypes.Contains(
+                    OpenIddictConstants.GrantTypes.ClientCredentials,
+                    StringComparer.Ordinal));
         var parameters = new Dictionary<string, string>
         {
             [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.ClientCredentials,

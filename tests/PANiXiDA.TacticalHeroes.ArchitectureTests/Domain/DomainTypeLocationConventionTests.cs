@@ -23,7 +23,7 @@ public sealed class DomainTypeLocationConventionTests
         var aggregateRoots = GetDomainTypes()
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(IAggregateRoot).IsAssignableFrom(type))
+                    typeof(IAggregateRoot).IsAssignableFrom(type))
             .ToArray();
         var violations = aggregateRoots
             .SelectMany(type =>
@@ -31,15 +31,15 @@ public sealed class DomainTypeLocationConventionTests
                 var assemblyName = GetAssemblyName(type);
                 var expectedNamespace =
                     $"{assemblyName}." +
-                    $"{EnglishNamingConvention.Pluralize(type.Name)}";
+                        $"{EnglishNamingConvention.Pluralize(type.Name)}";
 
                 return GetLocationViolations(
                     repositoryRoot,
                     type,
                     expectedNamespace,
                     $"Aggregate root '{type.FullName}' must have a singular " +
-                    $"type name and reside in plural directory " +
-                    $"'{EnglishNamingConvention.Pluralize(type.Name)}'.");
+                        $"type name and reside in plural directory " +
+                        $"'{EnglishNamingConvention.Pluralize(type.Name)}'.");
             })
             .ToArray();
 
@@ -47,7 +47,7 @@ public sealed class DomainTypeLocationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Aggregate root location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Entities should have singular names and plural directories when declared")]
@@ -58,7 +58,7 @@ public sealed class DomainTypeLocationConventionTests
         var entities = owners
             .Where(type =>
                 typeof(IEntity).IsAssignableFrom(type) &&
-                !typeof(IAggregateRoot).IsAssignableFrom(type))
+                    !typeof(IAggregateRoot).IsAssignableFrom(type))
             .ToArray();
         var violations = entities
             .SelectMany(entity => GetEntityLocationViolations(
@@ -71,7 +71,7 @@ public sealed class DomainTypeLocationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Entity location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Value objects should reside in owner ValueObjects directories when declared")]
@@ -82,7 +82,7 @@ public sealed class DomainTypeLocationConventionTests
         var valueObjects = GetDomainTypes()
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(ValueObject).IsAssignableFrom(type))
+                    typeof(ValueObject).IsAssignableFrom(type))
             .ToArray();
         var violations = valueObjects
             .SelectMany(valueObject => GetOwnedTypeLocationViolations(
@@ -96,7 +96,7 @@ public sealed class DomainTypeLocationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Value object location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Enumerations should reside in owner or common Enumerations directories when declared")]
@@ -119,7 +119,7 @@ public sealed class DomainTypeLocationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Enumeration location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Domain events should reside in Events directories when declared")]
@@ -129,7 +129,7 @@ public sealed class DomainTypeLocationConventionTests
         var domainEvents = GetDomainTypes()
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(DomainEvent).IsAssignableFrom(type))
+                    typeof(DomainEvent).IsAssignableFrom(type))
             .ToArray();
         var violations = domainEvents
             .SelectMany(domainEvent =>
@@ -144,7 +144,7 @@ public sealed class DomainTypeLocationConventionTests
                     return
                     [
                         $"{domainEvent.FullName} must reside in an " +
-                        $"'{EventsDirectoryName}' namespace and directory."
+                            $"'{EventsDirectoryName}' namespace and directory."
                     ];
                 }
 
@@ -159,7 +159,7 @@ public sealed class DomainTypeLocationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Domain event location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Strongly typed ids should match owner names and locations when declared")]
@@ -170,7 +170,7 @@ public sealed class DomainTypeLocationConventionTests
         var stronglyTypedIds = GetDomainTypes()
             .Where(type =>
                 !type.IsInterface &&
-                typeof(IStronglyTypedId).IsAssignableFrom(type))
+                    typeof(IStronglyTypedId).IsAssignableFrom(type))
             .ToArray();
         var ownerIdentifiers = owners
             .Select(
@@ -199,8 +199,8 @@ public sealed class DomainTypeLocationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Strongly typed id convention violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     private static Type[] GetDomainTypes()
@@ -223,7 +223,7 @@ public sealed class DomainTypeLocationConventionTests
             .. GetDomainTypes()
                 .Where(type =>
                     type is { IsClass: true, IsAbstract: false } &&
-                    typeof(IEntity).IsAssignableFrom(type))
+                        typeof(IEntity).IsAssignableFrom(type))
         ];
     }
 
@@ -234,7 +234,7 @@ public sealed class DomainTypeLocationConventionTests
     {
         var expectedNamespaceSuffix =
             $".{EntitiesDirectoryName}." +
-            $"{EnglishNamingConvention.Pluralize(entity.Name)}";
+                $"{EnglishNamingConvention.Pluralize(entity.Name)}";
         var entityNamespace = entity.Namespace;
 
         if (entityNamespace is null ||
@@ -245,9 +245,9 @@ public sealed class DomainTypeLocationConventionTests
             return
             [
                 $"{entity.FullName} must have a singular type name and " +
-                $"reside in " +
-                $"'<owner>.{EntitiesDirectoryName}." +
-                $"{EnglishNamingConvention.Pluralize(entity.Name)}'."
+                    $"reside in " +
+                    $"'<owner>.{EntitiesDirectoryName}." +
+                    $"{EnglishNamingConvention.Pluralize(entity.Name)}'."
             ];
         }
 
@@ -255,18 +255,18 @@ public sealed class DomainTypeLocationConventionTests
             entityNamespace[..^expectedNamespaceSuffix.Length];
         var hasOwner = owners.Any(owner =>
             owner != entity &&
-            string.Equals(
-                owner.Namespace,
-                ownerNamespace,
-                StringComparison.Ordinal));
+                string.Equals(
+                    owner.Namespace,
+                    ownerNamespace,
+                    StringComparison.Ordinal));
         var violations = new List<string>();
 
         if (!hasOwner)
         {
             violations.Add(
                 $"{entity.FullName} must reside under an aggregate root or " +
-                $"entity namespace, found owner namespace " +
-                $"'{ownerNamespace}'.");
+                    $"entity namespace, found owner namespace " +
+                    $"'{ownerNamespace}'.");
         }
 
         violations.AddRange(GetSourceFileViolations(
@@ -294,8 +294,8 @@ public sealed class DomainTypeLocationConventionTests
             return
             [
                 $"{ownedType.FullName} must reside in a " +
-                $"'{categoryDirectoryName}' namespace and directory under " +
-                $"its aggregate root or entity."
+                    $"'{categoryDirectoryName}' namespace and directory under " +
+                    $"its aggregate root or entity."
             ];
         }
 
@@ -307,14 +307,14 @@ public sealed class DomainTypeLocationConventionTests
             StringComparison.Ordinal));
         var isCommonEnumeration =
             categoryDirectoryName == EnumerationsDirectoryName &&
-            ownerNamespace == $"{GetAssemblyName(ownedType)}.Common";
+                ownerNamespace == $"{GetAssemblyName(ownedType)}.Common";
         var violations = new List<string>();
 
         if (!hasOwner && !isCommonEnumeration)
         {
             violations.Add(
                 $"{ownedType.FullName} must belong to an aggregate root or " +
-                $"entity in namespace '{ownerNamespace}'.");
+                    $"entity in namespace '{ownerNamespace}'.");
         }
 
         violations.AddRange(GetSourceFileViolations(
@@ -340,7 +340,7 @@ public sealed class DomainTypeLocationConventionTests
         {
             violations.Add(
                 $"{namespaceViolation} Expected namespace " +
-                $"'{expectedNamespace}', found '{type.Namespace}'.");
+                    $"'{expectedNamespace}', found '{type.Namespace}'.");
         }
 
         violations.AddRange(GetSourceFileViolations(
@@ -366,14 +366,14 @@ public sealed class DomainTypeLocationConventionTests
         {
             violations.Add(
                 $"{owner.FullName} identifier must be named " +
-                $"'{expectedIdentifierName}', found '{identifier.Name}'.");
+                    $"'{expectedIdentifierName}', found '{identifier.Name}'.");
         }
 
         if (!typeof(IStronglyTypedId).IsAssignableFrom(identifier))
         {
             violations.Add(
                 $"{owner.FullName} identifier '{identifier.FullName}' must " +
-                $"implement IStronglyTypedId.");
+                    $"implement IStronglyTypedId.");
         }
 
         if (!string.Equals(
@@ -383,7 +383,7 @@ public sealed class DomainTypeLocationConventionTests
         {
             violations.Add(
                 $"{identifier.FullName} must reside next to its owner " +
-                $"'{owner.FullName}' in namespace '{owner.Namespace}'.");
+                    $"'{owner.FullName}' in namespace '{owner.Namespace}'.");
         }
 
         violations.AddRange(GetSourceFileViolations(
@@ -403,13 +403,13 @@ public sealed class DomainTypeLocationConventionTests
     {
         var externalOwner = owners.FirstOrDefault(owner =>
             owner.Assembly != identifier.Assembly &&
-            owner.Name + "Id" == identifier.Name);
+                owner.Name + "Id" == identifier.Name);
         if (externalOwner is null)
         {
             return
             [
                 $"{identifier.FullName} must identify a local aggregate root or " +
-                $"entity, or reference an owner from another module."
+                    $"entity, or reference an owner from another module."
             ];
         }
 
@@ -422,8 +422,8 @@ public sealed class DomainTypeLocationConventionTests
             $"External identifier '{identifier.FullName}' must reside in its owner's plural directory.");
         var isReferenced = owners.Any(owner =>
             owner.Assembly == identifier.Assembly &&
-            owner.GetProperties().Any(property =>
-                (Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType) == identifier));
+                owner.GetProperties().Any(property =>
+                    (Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType) == identifier));
         if (!isReferenced)
         {
             violations.Add(
@@ -448,7 +448,7 @@ public sealed class DomainTypeLocationConventionTests
             :
             [
                 $"{type.FullName} must be declared at " +
-                $"'{Path.GetRelativePath(repositoryRoot, expectedPath)}'."
+                    $"'{Path.GetRelativePath(repositoryRoot, expectedPath)}'."
             ];
     }
 
@@ -469,7 +469,7 @@ public sealed class DomainTypeLocationConventionTests
             ? expectedNamespace[namespacePrefix.Length..]
             : throw new InvalidOperationException(
                 $"Expected namespace '{expectedNamespace}' must start with " +
-                $"'{namespacePrefix}'.");
+                    $"'{namespacePrefix}'.");
 
         return Path.Combine(
             repositoryRoot,
@@ -547,6 +547,6 @@ public sealed class DomainTypeLocationConventionTests
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+                $"the '{SourceDirectoryName}' directory.");
     }
 }

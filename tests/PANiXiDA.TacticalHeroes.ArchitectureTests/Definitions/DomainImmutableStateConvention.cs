@@ -14,7 +14,7 @@ internal static class DomainImmutableStateConvention
     internal static bool ReturnsWritableReference(MethodInfo method)
     {
         return method.ReturnType.IsByRef &&
-               !method.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(InAttribute));
+            !method.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(InAttribute));
     }
 
     private static IEnumerable<string> GetViolations(Type type, ISet<Type> visitedTypes)
@@ -42,16 +42,16 @@ internal static class DomainImmutableStateConvention
         if (DomainCollectionConvention.IsCollectionType(type))
         {
             yield return $"Collection type '{type}' must be a standard immutable " +
-                         "or frozen collection; mutable collections, read-only " +
-                         "wrappers and collection interfaces are not allowed.";
+                "or frozen collection; mutable collections, read-only " +
+                "wrappers and collection interfaces are not allowed.";
             yield break;
         }
 
         if (!type.IsValueType && !type.IsSealed)
         {
             yield return $"State type '{type}' must be a scalar, value type, " +
-                         "or sealed class with immutable state; polymorphic " +
-                         "state is not allowed.";
+                "or sealed class with immutable state; polymorphic " +
+                "state is not allowed.";
             yield break;
         }
 
@@ -68,8 +68,10 @@ internal static class DomainImmutableStateConvention
 
     private static IEnumerable<string> GetDeclaredViolations(Type type, ISet<Type> visitedTypes)
     {
-        const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public |
-                                   BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+        const BindingFlags Flags = BindingFlags.Instance
+            | BindingFlags.Public |
+            BindingFlags.NonPublic
+            | BindingFlags.DeclaredOnly;
 
         foreach (var property in type.GetProperties(Flags))
         {
@@ -79,7 +81,7 @@ internal static class DomainImmutableStateConvention
                 !setter.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(IsExternalInit)))
             {
                 yield return $"{type.FullName}.{property.Name} must not " +
-                             "declare a setter; only get or init is allowed.";
+                    "declare a setter; only get or init is allowed.";
             }
         }
 
@@ -104,9 +106,15 @@ internal static class DomainImmutableStateConvention
 
     private static bool IsImmutableScalar(Type type)
     {
-        return type.IsPrimitive || type.IsEnum ||
-               type == typeof(string) || type == typeof(decimal) || type == typeof(Guid) ||
-               type == typeof(DateTime) || type == typeof(DateTimeOffset) ||
-               type == typeof(DateOnly) || type == typeof(TimeOnly) || type == typeof(TimeSpan);
+        return type.IsPrimitive
+            || type.IsEnum ||
+            type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(Guid) ||
+            type == typeof(DateTime)
+            || type == typeof(DateTimeOffset) ||
+            type == typeof(DateOnly)
+            || type == typeof(TimeOnly)
+            || type == typeof(TimeSpan);
     }
 }

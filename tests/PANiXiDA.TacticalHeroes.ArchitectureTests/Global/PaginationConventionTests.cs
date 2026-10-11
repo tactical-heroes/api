@@ -103,7 +103,7 @@ public sealed class PaginationConventionTests
             .Where(property => property.Name != parameterType.Name)
             .Select(property =>
                 $"{property.DeclaringType?.FullName}.{property.Name}: " +
-                $"properties of type {parameterType.Name} must be named '{parameterType.Name}'.")
+                    $"properties of type {parameterType.Name} must be named '{parameterType.Name}'.")
             .ToArray();
 
         Assert.NotEmpty(properties);
@@ -125,7 +125,7 @@ public sealed class PaginationConventionTests
             .Where(parameter => parameter.Name != expectedName)
             .Select(parameter =>
                 $"{parameter.Member.DeclaringType?.FullName}.{parameter.Member.Name}: " +
-                $"{parameterType.Name} parameter '{parameter.Name}' must be named '{expectedName}'.")
+                    $"{parameterType.Name} parameter '{parameter.Name}' must be named '{expectedName}'.")
             .ToArray();
 
         Assert.NotEmpty(parameters);
@@ -144,7 +144,7 @@ public sealed class PaginationConventionTests
                 parameter.ParameterType == typeof(SortingParameters)))
             .Select(method =>
                 $"{method.DeclaringType?.FullName}.{method.Name}: " +
-                "methods accepting PaginationParameters must also accept SortingParameters.")
+                    "methods accepting PaginationParameters must also accept SortingParameters.")
             .ToArray();
 
         Assert.NotEmpty(methods);
@@ -163,7 +163,7 @@ public sealed class PaginationConventionTests
                 property.PropertyType == typeof(SortingParameters)))
             .Select(type =>
                 $"{type.FullName}: queries containing PaginationParameters " +
-                "must also contain SortingParameters.")
+                    "must also contain SortingParameters.")
             .ToArray();
 
         Assert.NotEmpty(queries);
@@ -261,8 +261,11 @@ public sealed class PaginationConventionTests
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => !type.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false))
             .SelectMany(type => type.GetMethods(
-                BindingFlags.Public | BindingFlags.NonPublic |
-                BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly))
+                BindingFlags.Public
+                    | BindingFlags.NonPublic |
+                    BindingFlags.Instance
+                    | BindingFlags.Static
+                    | BindingFlags.DeclaredOnly))
             .Where(method => !method.IsSpecialName &&
                 !method.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false))
             .OrderBy(method => method.DeclaringType?.FullName, StringComparer.Ordinal)

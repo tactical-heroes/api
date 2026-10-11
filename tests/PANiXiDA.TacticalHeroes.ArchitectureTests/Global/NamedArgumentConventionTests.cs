@@ -14,8 +14,8 @@ public sealed class NamedArgumentConventionTests
             .Where(argument => argument.RequiresName && !argument.IsNamed)
             .Select(argument =>
                 $"{argument.RelativePath}:{argument.LineNumber}: argument " +
-                $"'{argument.Argument}' passed to '{argument.Call}' must be " +
-                $"named because {argument.Requirement}.")
+                    $"'{argument.Argument}' passed to '{argument.Call}' must be " +
+                    $"named because {argument.Requirement}.")
             .ToArray();
 
         Assert.NotEmpty(arguments);
@@ -153,8 +153,8 @@ internal static class NamedArgumentSourceDiscovery
                 argument.Expression);
             var requiresName =
                 !callHasParamsParameter &&
-                !callIsSystemString &&
-                (isAmbiguousLiteral || allArgumentsRequireNames);
+                    !callIsSystemString &&
+                    (isAmbiguousLiteral || allArgumentsRequireNames);
             var requirement = isAmbiguousLiteral
                 ? "null, default and boolean literals are ambiguous"
                 : $"the call declares {arguments.Count} arguments";
@@ -164,7 +164,8 @@ internal static class NamedArgumentSourceDiscovery
                 LineNumber: argument
                     .GetLocation()
                     .GetLineSpan()
-                    .StartLinePosition.Line + 1,
+                    .StartLinePosition.Line
+                    + 1,
                 Position: argument.SpanStart,
                 Call: call,
                 Argument: argument.Expression.ToString(),
@@ -192,13 +193,13 @@ internal static class NamedArgumentSourceDiscovery
 
         return unwrappedExpression.IsKind(
             SyntaxKind.NullLiteralExpression) ||
-               unwrappedExpression.IsKind(
-                   SyntaxKind.DefaultLiteralExpression) ||
-               unwrappedExpression.IsKind(
-                   SyntaxKind.TrueLiteralExpression) ||
-               unwrappedExpression.IsKind(
-                   SyntaxKind.FalseLiteralExpression) ||
-               unwrappedExpression is DefaultExpressionSyntax;
+            unwrappedExpression.IsKind(
+                SyntaxKind.DefaultLiteralExpression) ||
+            unwrappedExpression.IsKind(
+                SyntaxKind.TrueLiteralExpression) ||
+            unwrappedExpression.IsKind(
+                SyntaxKind.FalseLiteralExpression) ||
+            unwrappedExpression is DefaultExpressionSyntax;
     }
 
     private static ExpressionSyntax UnwrapExpression(
@@ -221,10 +222,10 @@ internal static class NamedArgumentSourceDiscovery
     private static bool IsNameOf(InvocationExpressionSyntax invocation)
     {
         return invocation.Expression is IdentifierNameSyntax identifier &&
-               string.Equals(
-                   identifier.Identifier.ValueText,
-                   "nameof",
-                   StringComparison.Ordinal);
+            string.Equals(
+                identifier.Identifier.ValueText,
+                "nameof",
+                StringComparison.Ordinal);
     }
 }
 

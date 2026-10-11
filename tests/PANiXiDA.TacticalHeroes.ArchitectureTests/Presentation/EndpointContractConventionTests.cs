@@ -27,7 +27,7 @@ public sealed class EndpointContractConventionTests
         Assert.True(
             violations.Length == 0,
             $"Mapperly mapper naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoint input types should end with Request when declared")]
@@ -44,14 +44,14 @@ public sealed class EndpointContractConventionTests
                 StringComparison.Ordinal))
             .Select(type =>
                 $"{type.FullName} is accepted by an endpoint and must end " +
-                $"with '{RequestSuffix}'.")
+                    $"with '{RequestSuffix}'.")
             .ToArray();
 
         Assert.NotEmpty(endpointInputs);
         Assert.True(
             violations.Length == 0,
             $"Endpoint input naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoint output types should end with Response when declared")]
@@ -68,14 +68,14 @@ public sealed class EndpointContractConventionTests
                 StringComparison.Ordinal))
             .Select(type =>
                 $"{type.FullName} is returned by an endpoint and must end " +
-                $"with '{ResponseSuffix}'.")
+                    $"with '{ResponseSuffix}'.")
             .ToArray();
 
         Assert.NotEmpty(endpointOutputs);
         Assert.True(
             violations.Length == 0,
             $"Endpoint output naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoint slice parts should share one feature folder when declared")]
@@ -90,7 +90,7 @@ public sealed class EndpointContractConventionTests
         Assert.True(
             violations.Length == 0,
             $"Endpoint slice colocation violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     private static EndpointParts[] GetEndpointParts()
@@ -117,18 +117,18 @@ public sealed class EndpointContractConventionTests
         var handlerInputTypes = endpoint
             .GetMethods(
                 System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.Static |
-                System.Reflection.BindingFlags.Public |
-                System.Reflection.BindingFlags.NonPublic |
-                System.Reflection.BindingFlags.DeclaredOnly)
+                    System.Reflection.BindingFlags.Static |
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.DeclaredOnly)
             .SelectMany(method => method.GetParameters())
             .Select(parameter => parameter.ParameterType)
             .Where(type =>
                 type.Assembly == endpoint.Assembly &&
-                string.Equals(
-                    type.Namespace,
-                    endpoint.Namespace,
-                    StringComparison.Ordinal));
+                    string.Equals(
+                        type.Namespace,
+                        endpoint.Namespace,
+                        StringComparison.Ordinal));
         var acceptedTypes = GetGenericInvocationTypes(
             endpoint,
             "Accepts");
@@ -215,7 +215,7 @@ public sealed class EndpointContractConventionTests
         var endpointNamespace = parts.Endpoint.Namespace
             ?? throw new InvalidOperationException(
                 $"Endpoint '{parts.Endpoint.FullName}' does not have a " +
-                $"namespace.");
+                    $"namespace.");
         var endpointSourceDirectories =
             PresentationArchitectureConvention
                 .FindSourceFiles(parts.Endpoint)
@@ -236,8 +236,8 @@ public sealed class EndpointContractConventionTests
                 StringComparison.Ordinal))
             .Select(type =>
                 $"{type.FullName} must share namespace " +
-                $"'{endpointNamespace}' with " +
-                $"{parts.Endpoint.Name}.")
+                    $"'{endpointNamespace}' with " +
+                    $"{parts.Endpoint.Name}.")
             .ToList();
 
         violations.AddRange(sliceParts
@@ -250,8 +250,8 @@ public sealed class EndpointContractConventionTests
                             StringComparer.OrdinalIgnoreCase))
                     .Select(sourceFile =>
                         $"{type.FullName} source file " +
-                        $"'{sourceFile}' must share the feature directory " +
-                        $"with {parts.Endpoint.FullName}.")));
+                            $"'{sourceFile}' must share the feature directory " +
+                            $"with {parts.Endpoint.FullName}.")));
 
         return violations;
     }

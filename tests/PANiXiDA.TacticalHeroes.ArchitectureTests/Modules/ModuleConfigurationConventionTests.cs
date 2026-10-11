@@ -34,8 +34,8 @@ public sealed class ModuleConfigurationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Every module must have a host configuration in " +
-            $"'{ModuleConfigurationsNamespace}':{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"'{ModuleConfigurationsNamespace}':{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     private static string? GetConfigurationViolation(
@@ -60,13 +60,13 @@ public sealed class ModuleConfigurationConventionTests
         if (hostAssembly.GetType(configurationTypeName) is null)
         {
             return $"Module '{module.Name}' must declare " +
-                   $"'{configurationTypeName}'.";
+                $"'{configurationTypeName}'.";
         }
 
         if (!File.Exists(configurationPath))
         {
             return $"Module '{module.Name}' configuration must reside at " +
-                   $"'{relativeConfigurationPath}'.";
+                $"'{relativeConfigurationPath}'.";
         }
 
         return null;
@@ -88,6 +88,6 @@ public sealed class ModuleConfigurationConventionTests
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+                $"the '{SourceDirectoryName}' directory.");
     }
 }

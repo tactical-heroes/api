@@ -55,9 +55,9 @@ public sealed class DomainValidationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Command validators must delegate business constraints to " +
-            $"domain factories through domain result validation extensions:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"domain factories through domain result validation extensions:" +
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     private static IEnumerable<string> GetDirectDomainConstraintViolations(
@@ -79,15 +79,16 @@ public sealed class DomainValidationConventionTests
                 })
             .Where(candidate =>
                 candidate.MethodName is not null &&
-                s_directDomainConstraintMethods.Contains(
-                    candidate.MethodName,
-                    StringComparer.Ordinal))
+                    s_directDomainConstraintMethods.Contains(
+                        candidate.MethodName,
+                        StringComparer.Ordinal))
             .Select(candidate =>
                 $"{Path.GetRelativePath(repositoryRoot, sourceFile)}:" +
-                $"{candidate.Invocation.GetLocation()
-                    .GetLineSpan()
-                    .StartLinePosition.Line + 1} calls " +
-                $"'{candidate.MethodName}'.");
+                    $"{candidate.Invocation.GetLocation()
+                        .GetLineSpan()
+                        .StartLinePosition.Line
+                        + 1} calls " +
+                    $"'{candidate.MethodName}'.");
     }
 
     private static string? GetInvokedMethodName(
@@ -113,7 +114,7 @@ public sealed class DomainValidationConventionTests
                 StringSplitOptions.RemoveEmptyEntries)
             .Any(segment =>
                 string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase));
+                    string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string FindRepositoryRoot()
@@ -132,6 +133,6 @@ public sealed class DomainValidationConventionTests
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+                $"the '{SourceDirectoryName}' directory.");
     }
 }

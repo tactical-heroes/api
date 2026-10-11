@@ -26,7 +26,7 @@ internal static class PresentationArchitectureConvention
     {
         return GetPresentationTypes(type =>
             !type.IsAbstract &&
-            predicate(type));
+                predicate(type));
     }
 
     internal static Type[] GetPresentationTypes(
@@ -44,11 +44,11 @@ internal static class PresentationArchitectureConvention
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type =>
                     type is { IsClass: true } &&
-                    type.Namespace is not null &&
-                    type.Namespace.StartsWith(
-                        type.Assembly.GetName().Name + ".",
-                        StringComparison.Ordinal) &&
-                    predicate(type))
+                        type.Namespace is not null &&
+                        type.Namespace.StartsWith(
+                            type.Assembly.GetName().Name + ".",
+                            StringComparison.Ordinal) &&
+                        predicate(type))
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
         ];
     }
@@ -85,7 +85,7 @@ internal static class PresentationArchitectureConvention
             .Append(type)
             .FirstOrDefault(candidate =>
                 candidate.IsGenericType &&
-                candidate.GetGenericTypeDefinition() == openGenericType);
+                    candidate.GetGenericTypeDefinition() == openGenericType);
     }
 
     internal static bool IsMapperlyMapper(Type type)
@@ -95,22 +95,22 @@ internal static class PresentationArchitectureConvention
                 attribute.AttributeType.FullName,
                 MapperAttributeFullName,
                 StringComparison.Ordinal)) ||
-               GetSourceSyntax(type)
-                   .SelectMany(source => source.Root
-                       .DescendantNodes()
-                       .OfType<BaseTypeDeclarationSyntax>())
-                   .Where(declaration => string.Equals(
-                       declaration.Identifier.ValueText,
-                       type.Name.Split('`')[0],
-                       StringComparison.Ordinal))
-                   .SelectMany(declaration => declaration.AttributeLists)
-                   .SelectMany(attributeList => attributeList.Attributes)
-                   .Any(attribute =>
-                       attribute.Name.ToString() is
-                           "Mapper" or
-                           "MapperAttribute" or
-                           "Riok.Mapperly.Abstractions.Mapper" or
-                           "Riok.Mapperly.Abstractions.MapperAttribute");
+            GetSourceSyntax(type)
+                .SelectMany(source => source.Root
+                    .DescendantNodes()
+                    .OfType<BaseTypeDeclarationSyntax>())
+                .Where(declaration => string.Equals(
+                    declaration.Identifier.ValueText,
+                    type.Name.Split('`')[0],
+                    StringComparison.Ordinal))
+                .SelectMany(declaration => declaration.AttributeLists)
+                .SelectMany(attributeList => attributeList.Attributes)
+                .Any(attribute =>
+                    attribute.Name.ToString() is
+                        "Mapper" or
+                        "MapperAttribute" or
+                        "Riok.Mapperly.Abstractions.Mapper" or
+                        "Riok.Mapperly.Abstractions.MapperAttribute");
     }
 
     internal static ModuleArchitecture GetModule(Type presentationType)
@@ -118,7 +118,7 @@ internal static class PresentationArchitectureConvention
         var assemblyName = presentationType.Assembly.GetName().Name
             ?? throw new InvalidOperationException(
                 $"Could not determine assembly for " +
-                $"'{presentationType.FullName}'.");
+                    $"'{presentationType.FullName}'.");
 
         return ArchitectureDefinition.s_modules.Single(module =>
             string.Equals(
@@ -143,7 +143,7 @@ internal static class PresentationArchitectureConvention
         {
             throw new InvalidOperationException(
                 $"Type '{type.FullName}' namespace must start with " +
-                $"'{namespacePrefix}'.");
+                    $"'{namespacePrefix}'.");
         }
 
         return typeNamespace[namespacePrefix.Length..];
@@ -155,8 +155,9 @@ internal static class PresentationArchitectureConvention
     {
         var module = GetModule(type);
         var expectedNamespace =
-            module.PresentationAssemblyName + "." +
-            string.Join(".", relativeNamespaceSegments);
+            module.PresentationAssemblyName
+                + "." +
+                string.Join(".", relativeNamespaceSegments);
         var expectedDirectory = Path.Combine(
             GetProjectDirectory(type),
             Path.Combine(relativeNamespaceSegments));
@@ -170,7 +171,7 @@ internal static class PresentationArchitectureConvention
         {
             violations.Add(
                 $"{type.FullName} must reside in namespace " +
-                $"'{expectedNamespace}'.");
+                    $"'{expectedNamespace}'.");
         }
 
         if (sourceFiles.Length == 0)
@@ -186,12 +187,12 @@ internal static class PresentationArchitectureConvention
                 StringComparison.OrdinalIgnoreCase))
             .Select(sourceFile =>
                 $"{type.FullName} source file " +
-                $"'{Path.GetRelativePath(
-                    FindRepositoryRoot(),
-                    sourceFile)}' must reside in " +
-                $"'{Path.GetRelativePath(
-                    FindRepositoryRoot(),
-                    expectedDirectory)}'."));
+                    $"'{Path.GetRelativePath(
+                        FindRepositoryRoot(),
+                        sourceFile)}' must reside in " +
+                    $"'{Path.GetRelativePath(
+                        FindRepositoryRoot(),
+                        expectedDirectory)}'."));
 
         return violations;
     }
@@ -217,7 +218,7 @@ internal static class PresentationArchitectureConvention
                                 SearchOption.AllDirectories)
                             .Where(path =>
                                 !HasPathSegment(path, "bin") &&
-                                !HasPathSegment(path, "obj"))
+                                    !HasPathSegment(path, "obj"))
                     ])
                 .Where(path => DeclaresType(
                     path,
@@ -283,10 +284,10 @@ internal static class PresentationArchitectureConvention
                     declaration.Identifier.ValueText,
                     expectedTypeName,
                     StringComparison.Ordinal) &&
-                string.Equals(
-                    GetNamespace(declaration),
-                    expectedNamespace,
-                    StringComparison.Ordinal));
+                    string.Equals(
+                        GetNamespace(declaration),
+                        expectedNamespace,
+                        StringComparison.Ordinal));
     }
 
     private static string GetNamespace(
@@ -341,7 +342,7 @@ internal static class PresentationArchitectureConvention
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+                $"the '{SourceDirectoryName}' directory.");
     }
 }
 

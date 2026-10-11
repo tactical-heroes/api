@@ -22,8 +22,8 @@ public sealed class AggregatePersistenceConventionTests
         Assert.True(
             violations.Length == 0,
             $"Aggregate repository registration violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Aggregate roots should have persistence configurations when declared")]
@@ -38,8 +38,8 @@ public sealed class AggregatePersistenceConventionTests
         Assert.True(
             violations.Length == 0,
             $"Aggregate persistence configuration violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     private static AggregatePersistence[] GetAggregatePersistence()
@@ -62,10 +62,10 @@ public sealed class AggregatePersistenceConventionTests
                     var writeDbContextTypes = infrastructureTypes
                         .Where(type =>
                             type is { IsClass: true, IsAbstract: false } &&
-                            type.Name.EndsWith(
-                                WriteDbContextSuffix,
-                                StringComparison.Ordinal) &&
-                            typeof(DbContext).IsAssignableFrom(type))
+                                type.Name.EndsWith(
+                                    WriteDbContextSuffix,
+                                    StringComparison.Ordinal) &&
+                                typeof(DbContext).IsAssignableFrom(type))
                         .ToArray();
                     var configuredEntityTypes =
                         GetConfiguredEntityTypes(
@@ -81,9 +81,9 @@ public sealed class AggregatePersistenceConventionTests
                                     aggregateType.Name);
                             var writeNamespace =
                                 module.InfrastructureAssemblyName +
-                                ".Persistence.Features." +
-                                featureName +
-                                ".Write";
+                                    ".Persistence.Features." +
+                                    featureName +
+                                    ".Write";
                             var repositoryTypes = infrastructureTypes
                                 .Where(type =>
                                     type is
@@ -91,13 +91,13 @@ public sealed class AggregatePersistenceConventionTests
                                         IsClass: true,
                                         IsAbstract: false
                                     } &&
-                                    string.Equals(
-                                        type.Namespace,
-                                        writeNamespace,
-                                        StringComparison.Ordinal) &&
-                                    type.Name.EndsWith(
-                                        RepositorySuffix,
-                                        StringComparison.Ordinal))
+                                        string.Equals(
+                                            type.Namespace,
+                                            writeNamespace,
+                                            StringComparison.Ordinal) &&
+                                        type.Name.EndsWith(
+                                            RepositorySuffix,
+                                            StringComparison.Ordinal))
                                 .ToArray();
                             var configurationTypes = infrastructureTypes
                                 .Where(type =>
@@ -106,13 +106,13 @@ public sealed class AggregatePersistenceConventionTests
                                         IsClass: true,
                                         IsAbstract: false
                                     } &&
-                                    string.Equals(
-                                        type.Namespace,
-                                        writeNamespace,
-                                        StringComparison.Ordinal) &&
-                                    IsConfigurationFor(
-                                        type,
-                                        aggregateType))
+                                        string.Equals(
+                                            type.Namespace,
+                                            writeNamespace,
+                                            StringComparison.Ordinal) &&
+                                        IsConfigurationFor(
+                                            type,
+                                            aggregateType))
                                 .ToArray();
 
                             return new AggregatePersistence(
@@ -127,10 +127,10 @@ public sealed class AggregatePersistenceConventionTests
                                 ],
                                 HasConfigurationDeclaration:
                                     configurationTypes.Length > 0 ||
-                                    writeDbContextTypes.Any(type =>
-                                        HasInlineConfiguration(
-                                            type,
-                                            aggregateType)),
+                                        writeDbContextTypes.Any(type =>
+                                            HasInlineConfiguration(
+                                                type,
+                                                aggregateType)),
                                 ConfiguredEntityTypes:
                                     configuredEntityTypes);
                         });
@@ -148,8 +148,8 @@ public sealed class AggregatePersistenceConventionTests
         {
             yield return
                 $"{aggregate.AggregateType.FullName} must have exactly one " +
-                $"repository in its Write feature root, found: " +
-                $"{FormatTypes(aggregate.RepositoryTypes)}.";
+                    $"repository in its Write feature root, found: " +
+                    $"{FormatTypes(aggregate.RepositoryTypes)}.";
             yield break;
         }
 
@@ -157,7 +157,7 @@ public sealed class AggregatePersistenceConventionTests
         {
             yield return
                 $"{aggregate.RepositoryTypes[0].FullName} must be registered " +
-                $"in the module service collection.";
+                    $"in the module service collection.";
         }
     }
 
@@ -168,14 +168,14 @@ public sealed class AggregatePersistenceConventionTests
         {
             yield return
                 $"{aggregate.AggregateType.FullName} must have an EF Core " +
-                $"entity configuration declaration.";
+                    $"entity configuration declaration.";
         }
 
         if (!IsConfigured(aggregate))
         {
             yield return
                 $"{aggregate.AggregateType.FullName} must have its entity " +
-                $"configuration registered in the module write DbContext.";
+                    $"configuration registered in the module write DbContext.";
         }
     }
 
@@ -185,7 +185,7 @@ public sealed class AggregatePersistenceConventionTests
     {
         return serviceCollection.Any(descriptor =>
             descriptor.ImplementationType == implementationType ||
-            descriptor.ServiceType == implementationType);
+                descriptor.ServiceType == implementationType);
     }
 
     private static bool IsConfigurationFor(
@@ -217,7 +217,7 @@ public sealed class AggregatePersistenceConventionTests
                     genericName.Identifier.ValueText,
                     "Entity",
                     StringComparison.Ordinal) &&
-                genericName.TypeArgumentList.Arguments.Count == 1)
+                    genericName.TypeArgumentList.Arguments.Count == 1)
             .Select(genericName =>
                 genericName.TypeArgumentList.Arguments[0].ToString())
             .Select(GetUnqualifiedTypeName)
@@ -226,9 +226,9 @@ public sealed class AggregatePersistenceConventionTests
         return configuredTypeNames.Contains(
             aggregateType.Name,
             StringComparer.Ordinal) ||
-               configuredTypeNames.Contains(
-                   "Application" + aggregateType.Name,
-                   StringComparer.Ordinal);
+            configuredTypeNames.Contains(
+                "Application" + aggregateType.Name,
+                StringComparer.Ordinal);
     }
 
     private static string GetUnqualifiedTypeName(string typeName)
@@ -269,10 +269,10 @@ public sealed class AggregatePersistenceConventionTests
                 type.Name,
                 aggregate.AggregateType.Name,
                 StringComparison.Ordinal) ||
-            string.Equals(
-                type.Name,
-                "Application" + aggregate.AggregateType.Name,
-                StringComparison.Ordinal));
+                string.Equals(
+                    type.Name,
+                    "Application" + aggregate.AggregateType.Name,
+                    StringComparison.Ordinal));
     }
 
     private static string FormatTypes(

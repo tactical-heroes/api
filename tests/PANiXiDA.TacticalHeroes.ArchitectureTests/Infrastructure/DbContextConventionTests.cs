@@ -22,8 +22,8 @@ public sealed class DbContextConventionTests
         Assert.True(
             violations.Length == 0,
             $"Read database context convention violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(
@@ -41,8 +41,8 @@ public sealed class DbContextConventionTests
         Assert.True(
             violations.Length == 0,
             $"Write database context convention violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     private static Type[] GetDatabaseContexts(Type openGenericContextType)
@@ -63,7 +63,7 @@ public sealed class DbContextConventionTests
             InfrastructurePersistenceConvention.GetModule(context);
         var expectedName =
             InfrastructurePersistenceConvention.GetModuleShortName(module) +
-            expectedSuffix;
+                expectedSuffix;
         var violations = new List<string>();
 
         if (!string.Equals(

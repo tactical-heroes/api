@@ -20,7 +20,7 @@ public sealed class DomainStateConventionTests
         var aggregateRoots = GetDomainTypes()
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(IAggregateRoot).IsAssignableFrom(type))
+                    typeof(IAggregateRoot).IsAssignableFrom(type))
             .ToArray();
 
         Assert.NotEmpty(aggregateRoots);
@@ -32,9 +32,9 @@ public sealed class DomainStateConventionTests
         Assert.True(
             violations.Length == 0,
             $"Aggregate root state must contain only value objects, strongly " +
-            $"typed identifiers, enumerations, or entities:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"typed identifiers, enumerations, or entities:" +
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(
@@ -44,8 +44,8 @@ public sealed class DomainStateConventionTests
         var entities = GetDomainTypes()
             .Where(type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(IEntity).IsAssignableFrom(type) &&
-                !typeof(IAggregateRoot).IsAssignableFrom(type))
+                    typeof(IEntity).IsAssignableFrom(type) &&
+                    !typeof(IAggregateRoot).IsAssignableFrom(type))
             .ToArray();
 
         Assert.NotEmpty(entities);
@@ -57,8 +57,8 @@ public sealed class DomainStateConventionTests
         Assert.True(
             violations.Length == 0,
             $"Entity state must contain only value objects, strongly typed " +
-            $"identifiers, or enumerations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"identifiers, or enumerations:{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Aggregate roots and entities should accept only domain types when methods are declared")]
@@ -69,10 +69,10 @@ public sealed class DomainStateConventionTests
                 typeof(IEntity).IsAssignableFrom(type))
             .SelectMany(type => type.GetMethods(
                 BindingFlags.Instance |
-                BindingFlags.Static |
-                BindingFlags.Public |
-                BindingFlags.NonPublic |
-                BindingFlags.DeclaredOnly))
+                    BindingFlags.Static |
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.DeclaredOnly))
             .Where(method => !method.IsPrivate && !method.IsSpecialName)
             .ToArray();
         var violations = methods
@@ -81,11 +81,11 @@ public sealed class DomainStateConventionTests
                 {
                     var types = GetStateTypes(parameter.ParameterType);
                     return types.Length == 0 ||
-                           types.Any(type => !IsAllowedDomainType(type, allowEntities: true));
+                        types.Any(type => !IsAllowedDomainType(type, allowEntities: true));
                 })
                 .Select(parameter =>
                     $"{method.DeclaringType?.FullName}.{method.Name} parameter " +
-                    $"'{parameter.Name}' has non-domain type '{parameter.ParameterType}'."))
+                        $"'{parameter.Name}' has non-domain type '{parameter.ParameterType}'."))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
@@ -93,9 +93,9 @@ public sealed class DomainStateConventionTests
         Assert.True(
             violations.Length == 0,
             $"Aggregate and entity methods must accept only value objects, strongly typed " +
-            $"identifiers, enumerations, entities, or collections of these types:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"identifiers, enumerations, entities, or collections of these types:" +
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     private static Type[] GetDomainTypes()
@@ -121,9 +121,9 @@ public sealed class DomainStateConventionTests
                 .SelectMany(type => type
                     .GetFields(
                         BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.NonPublic |
-                        BindingFlags.DeclaredOnly)
+                            BindingFlags.Public |
+                            BindingFlags.NonPublic |
+                            BindingFlags.DeclaredOnly)
                     .Select(field => new
                         {
                             DomainType = type,
@@ -137,7 +137,7 @@ public sealed class DomainStateConventionTests
                             allowEntities)))
                 .Select(state =>
                     $"{state.DomainType.FullName}.{state.Field.Name} has type " +
-                    $"'{state.Field.FieldType}'.")
+                        $"'{state.Field.FieldType}'.")
                 .Order(StringComparer.Ordinal)
         ];
     }
@@ -164,7 +164,7 @@ public sealed class DomainStateConventionTests
                 .Append(fieldType)
                 .Where(type =>
                     type.IsGenericType &&
-                    type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                        type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 .Select(type => type.GetGenericArguments()[0])
                 .Distinct()
         ];
@@ -175,9 +175,9 @@ public sealed class DomainStateConventionTests
         bool allowEntities)
     {
         return typeof(ValueObject).IsAssignableFrom(type) ||
-               typeof(IStronglyTypedId).IsAssignableFrom(type) ||
-               IsEnumeration(type) ||
-               allowEntities && typeof(IEntity).IsAssignableFrom(type);
+            typeof(IStronglyTypedId).IsAssignableFrom(type) ||
+            IsEnumeration(type) ||
+            allowEntities && typeof(IEntity).IsAssignableFrom(type);
     }
 
     private static bool IsEnumeration(Type type)

@@ -45,7 +45,7 @@ public sealed class TypeSealingConventionTests
             ApplicationAssemblySuffix,
             type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                type.GetInterfaces().Any(IsHandlerInterface));
+                    type.GetInterfaces().Any(IsHandlerInterface));
 
         AssertTypesAreSealed(
             applicationHandlers,
@@ -59,7 +59,7 @@ public sealed class TypeSealingConventionTests
             InfrastructureAssemblySuffix,
             type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                type.GetInterfaces().Any(IsRepositoryInterface));
+                    type.GetInterfaces().Any(IsRepositoryInterface));
 
         AssertTypesAreSealed(
             repositoryImplementations,
@@ -73,8 +73,8 @@ public sealed class TypeSealingConventionTests
             PresentationAssemblySuffix,
             type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                (typeof(IEndpoint).IsAssignableFrom(type) ||
-                 typeof(IEndpointGroup).IsAssignableFrom(type)));
+                    (typeof(IEndpoint).IsAssignableFrom(type) ||
+                        typeof(IEndpointGroup).IsAssignableFrom(type)));
 
         AssertTypesAreSealed(
             endpointTypes,
@@ -100,15 +100,15 @@ public sealed class TypeSealingConventionTests
     private static bool IsHandlerInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               s_handlerInterfaceDefinitions.Contains(
-                   interfaceType.GetGenericTypeDefinition());
+            s_handlerInterfaceDefinitions.Contains(
+                interfaceType.GetGenericTypeDefinition());
     }
 
     private static bool IsRepositoryInterface(Type interfaceType)
     {
         return interfaceType.IsGenericType &&
-               s_repositoryInterfaceDefinitions.Contains(
-                   interfaceType.GetGenericTypeDefinition());
+            s_repositoryInterfaceDefinitions.Contains(
+                interfaceType.GetGenericTypeDefinition());
     }
 
     private static void AssertTypesAreSealed(
@@ -125,6 +125,6 @@ public sealed class TypeSealingConventionTests
         Assert.True(
             violations.Length == 0,
             $"{description} that are not sealed:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 }

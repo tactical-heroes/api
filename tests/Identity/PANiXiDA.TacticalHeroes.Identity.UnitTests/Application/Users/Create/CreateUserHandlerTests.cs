@@ -17,7 +17,8 @@ public sealed class CreateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.read")];
         var repository = Substitute.For<IUsersRepository>();
         repository.AddAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.UserName.Value == "hero"
+            Arg.Is<User>(user => user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Active
                 && user.ConfirmationStatus.IsConfirmed
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
@@ -40,7 +41,8 @@ public sealed class CreateUserHandlerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(userId);
         await repository.Received(1).AddAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.UserName.Value == "hero"
+            Arg.Is<User>(user => user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Active
                 && user.ConfirmationStatus.IsConfirmed
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),

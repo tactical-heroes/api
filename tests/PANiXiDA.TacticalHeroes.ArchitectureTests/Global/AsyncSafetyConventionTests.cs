@@ -13,15 +13,15 @@ public sealed class AsyncSafetyConventionTests
         var violations = analysis.BlockingCalls
             .Select(call =>
                 $"{call.RelativePath}:{call.LineNumber}: '{call.Expression}' " +
-                $"blocks asynchronous execution and must be awaited.")
+                    $"blocks asynchronous execution and must be awaited.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Callables);
         Assert.True(
             violations.Length == 0,
             $"Blocking async calls: {violations.Length} total." +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Async void callables should not be declared when production code is declared")]
@@ -31,16 +31,16 @@ public sealed class AsyncSafetyConventionTests
         var violations = analysis.AsyncVoidCallables
             .Select(callable =>
                 $"{callable.RelativePath}:{callable.LineNumber}: " +
-                $"'{callable.Expression}' is async void and cannot be " +
-                $"reliably awaited or observed.")
+                    $"'{callable.Expression}' is async void and cannot be " +
+                    $"reliably awaited or observed.")
             .ToArray();
 
         Assert.NotEmpty(analysis.Callables);
         Assert.True(
             violations.Length == 0,
             $"Async void callables: {violations.Length} total." +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 }
 
@@ -187,11 +187,11 @@ internal static class AsyncSafetySourceDiscovery
             operation.TargetMethod.Name,
             "GetResult",
             StringComparison.Ordinal) &&
-               operation.TargetMethod.ContainingNamespace.ToDisplayString() ==
-               "System.Runtime.CompilerServices" &&
-               operation.TargetMethod.ContainingType.Name.Contains(
-                   "TaskAwaiter",
-                   StringComparison.Ordinal);
+            operation.TargetMethod.ContainingNamespace.ToDisplayString() ==
+                "System.Runtime.CompilerServices" &&
+            operation.TargetMethod.ContainingType.Name.Contains(
+                "TaskAwaiter",
+                StringComparison.Ordinal);
     }
 
     private static bool IsAsyncVoid(
@@ -203,24 +203,24 @@ internal static class AsyncSafetySourceDiscovery
             MethodDeclarationSyntax method =>
                 method.Modifiers.Any(modifier =>
                     modifier.ValueText == "async") &&
-                semanticModel.GetDeclaredSymbol(method) is IMethodSymbol
-                {
-                    ReturnsVoid: true
-                },
+                    semanticModel.GetDeclaredSymbol(method) is IMethodSymbol
+                    {
+                        ReturnsVoid: true
+                    },
             LocalFunctionStatementSyntax localFunction =>
                 localFunction.Modifiers.Any(modifier =>
                     modifier.ValueText == "async") &&
-                semanticModel.GetDeclaredSymbol(localFunction) is IMethodSymbol
-                {
-                    ReturnsVoid: true
-                },
+                    semanticModel.GetDeclaredSymbol(localFunction) is IMethodSymbol
+                    {
+                        ReturnsVoid: true
+                    },
             AnonymousFunctionExpressionSyntax anonymousFunction =>
                 anonymousFunction.AsyncKeyword.ValueText == "async" &&
-                semanticModel.GetTypeInfo(anonymousFunction).ConvertedType is
-                    INamedTypeSymbol
-                {
-                    DelegateInvokeMethod.ReturnsVoid: true
-                },
+                    semanticModel.GetTypeInfo(anonymousFunction).ConvertedType is
+                        INamedTypeSymbol
+                    {
+                        DelegateInvokeMethod.ReturnsVoid: true
+                    },
             _ => false
         };
     }
@@ -229,7 +229,7 @@ internal static class AsyncSafetySourceDiscovery
     {
         return type.ContainingNamespace.ToDisplayString() ==
                "System.Threading.Tasks" &&
-               type.Name is "Task" or "ValueTask";
+            type.Name is "Task" or "ValueTask";
     }
 
     private static AsyncSafetySource CreateSource(
@@ -242,7 +242,8 @@ internal static class AsyncSafetySourceDiscovery
             LineNumber: node
                 .GetLocation()
                 .GetLineSpan()
-                .StartLinePosition.Line + 1,
+                .StartLinePosition.Line
+                + 1,
             Position: node.SpanStart,
             Expression: expression);
     }

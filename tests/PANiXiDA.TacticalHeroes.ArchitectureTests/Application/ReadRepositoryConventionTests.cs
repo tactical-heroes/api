@@ -27,7 +27,7 @@ public sealed class ReadRepositoryConventionTests
         Assert.True(
             violations.Length == 0,
             $"Read repository location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read repositories should use primitive ids when declared")]
@@ -39,15 +39,15 @@ public sealed class ReadRepositoryConventionTests
                 repository.Contract.GetGenericArguments()[0]))
             .Select(repository =>
                 $"{repository.Type.FullName} must use a primitive read " +
-                $"identifier, found " +
-                $"'{repository.Contract.GetGenericArguments()[0].FullName}'.")
+                    $"identifier, found " +
+                    $"'{repository.Contract.GetGenericArguments()[0].FullName}'.")
             .ToArray();
 
         Assert.NotEmpty(readRepositories);
         Assert.True(
             violations.Length == 0,
             $"Read repository identifier violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read repository methods should use only primitive input models when declared")]
@@ -62,19 +62,19 @@ public sealed class ReadRepositoryConventionTests
                         parameter.ParameterType))
                 .Select(parameter =>
                     $"{target.Repository.FullName}.{target.Method.Name} " +
-                    $"parameter '{parameter.Name}' has type " +
-                    $"'{parameter.ParameterType.FullName}'. Read repository " +
-                    $"inputs must be primitives, CancellationToken, " +
-                    $"collections of primitives, or Application parameter " +
-                    $"models composed only from those types; Domain types " +
-                    $"are forbidden."))
+                        $"parameter '{parameter.Name}' has type " +
+                        $"'{parameter.ParameterType.FullName}'. Read repository " +
+                        $"inputs must be primitives, CancellationToken, " +
+                        $"collections of primitives, or Application parameter " +
+                        $"models composed only from those types; Domain types " +
+                        $"are forbidden."))
             .ToArray();
 
         Assert.NotEmpty(methods);
         Assert.True(
             violations.Length == 0,
             $"Read repository input type violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read repository methods should return read models when declared")]
@@ -86,16 +86,16 @@ public sealed class ReadRepositoryConventionTests
                 target.Method.ReturnType))
             .Select(target =>
                 $"{target.Repository.FullName}.{target.Method.Name} must " +
-                $"return an IReadModel, optionally wrapped in Task, a " +
-                $"Result, a collection, or a pagination model; found " +
-                $"'{target.Method.ReturnType}'.")
+                    $"return an IReadModel, optionally wrapped in Task, a " +
+                    $"Result, a collection, or a pagination model; found " +
+                    $"'{target.Method.ReturnType}'.")
             .ToArray();
 
         Assert.NotEmpty(methods);
         Assert.True(
             violations.Length == 0,
             $"Read repository result type violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read repositories should match plural aggregate names when declared")]
@@ -115,26 +115,27 @@ public sealed class ReadRepositoryConventionTests
                 !repository.ExpectedFeatureNames.Contains(
                     repository.ActualFeatureName,
                     StringComparer.Ordinal) ||
-                !string.Equals(
-                    repository.Type.Name,
-                    "I" + repository.ActualFeatureName +
-                    ReadRepositorySuffix,
-                    StringComparison.Ordinal))
+                    !string.Equals(
+                        repository.Type.Name,
+                        "I"
+                            + repository.ActualFeatureName +
+                            ReadRepositorySuffix,
+                        StringComparison.Ordinal))
             .Select(repository =>
                 $"{repository.Type.FullName} must use a plural aggregate " +
-                $"feature and one of these names: " +
-                $"{string.Join(
-                    ", ",
-                    repository.ExpectedFeatureNames.Select(featureName =>
-                        $"'I{featureName}{ReadRepositorySuffix}'"))}.")
+                    $"feature and one of these names: " +
+                    $"{string.Join(
+                        ", ",
+                        repository.ExpectedFeatureNames.Select(featureName =>
+                            $"'I{featureName}{ReadRepositorySuffix}'"))}.")
             .ToArray();
 
         Assert.NotEmpty(readRepositories);
         Assert.True(
             violations.Length == 0,
             $"Read repository interface naming violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+                $"{Environment.NewLine}" +
+                string.Join(Environment.NewLine, violations));
     }
 
     [Fact(
@@ -150,8 +151,8 @@ public sealed class ReadRepositoryConventionTests
             .SelectMany(type => type
                 .GetConstructors(
                     BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic)
+                        BindingFlags.Public |
+                        BindingFlags.NonPublic)
                 .SelectMany(constructor => constructor
                     .GetParameters()
                     .Where(parameter => GetClosedReadRepositoryContract(
@@ -179,9 +180,9 @@ public sealed class ReadRepositoryConventionTests
                 StringComparison.Ordinal))
             .Select(candidate =>
                 $"{candidate.DeclaringType.FullName} constructor parameter " +
-                $"'{candidate.Parameter.Name}' of type " +
-                $"'{candidate.Parameter.ParameterType.FullName}' must be named " +
-                $"'{candidate.ExpectedName}'.")
+                    $"'{candidate.Parameter.Name}' of type " +
+                    $"'{candidate.Parameter.ParameterType.FullName}' must be named " +
+                    $"'{candidate.ExpectedName}'.")
             .ToArray();
 
         Assert.True(
@@ -225,7 +226,7 @@ public sealed class ReadRepositoryConventionTests
         {
             violations.Add(
                 $"{readRepository.FullName} inherits IReadRepository<> and " +
-                $"must be declared in Application.");
+                    $"must be declared in Application.");
         }
 
         if (!HasNamespaceSegment(
@@ -234,7 +235,7 @@ public sealed class ReadRepositoryConventionTests
         {
             violations.Add(
                 $"{readRepository.FullName} must be declared in an " +
-                $"'{AbstractionsNamespaceSegment}' namespace.");
+                    $"'{AbstractionsNamespaceSegment}' namespace.");
         }
 
         var expectedSourceFilePath = GetExpectedSourceFilePath(
@@ -245,9 +246,9 @@ public sealed class ReadRepositoryConventionTests
         {
             violations.Add(
                 $"{readRepository.FullName} must have a matching source file " +
-                $"at '{Path.GetRelativePath(
-                    repositoryRoot,
-                    expectedSourceFilePath)}'.");
+                    $"at '{Path.GetRelativePath(
+                        repositoryRoot,
+                        expectedSourceFilePath)}'.");
         }
 
         return violations;
@@ -261,8 +262,8 @@ public sealed class ReadRepositoryConventionTests
                 .SelectMany(repository => repository.Type
                     .GetMethods(
                         BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.DeclaredOnly)
+                            BindingFlags.Public |
+                            BindingFlags.DeclaredOnly)
                     .Select(method => new ReadRepositoryMethod(
                         repository.Type,
                         method)))
@@ -282,8 +283,8 @@ public sealed class ReadRepositoryConventionTests
             .Append(type)
             .FirstOrDefault(candidate =>
                 candidate.IsGenericType &&
-                candidate.GetGenericTypeDefinition() ==
-                typeof(IReadRepository<>));
+                    candidate.GetGenericTypeDefinition() ==
+                        typeof(IReadRepository<>));
     }
 
     private static string GetFeatureName(Type readRepository)
@@ -291,7 +292,7 @@ public sealed class ReadRepositoryConventionTests
         var repositoryNamespace = readRepository.Namespace
             ?? throw new InvalidOperationException(
                 $"Read repository interface '{readRepository.FullName}' does " +
-                $"not have a namespace.");
+                    $"not have a namespace.");
         var namespaceSegments = repositoryNamespace.Split('.');
         var abstractionsIndex = Array.LastIndexOf(
             namespaceSegments,
@@ -301,8 +302,8 @@ public sealed class ReadRepositoryConventionTests
         {
             throw new InvalidOperationException(
                 $"Read repository interface '{readRepository.FullName}' must " +
-                $"be declared in an '*.{{Feature}}." +
-                $"{AbstractionsNamespaceSegment}' namespace.");
+                    $"be declared in an '*.{{Feature}}." +
+                    $"{AbstractionsNamespaceSegment}' namespace.");
         }
 
         return namespaceSegments[abstractionsIndex - 1];
@@ -323,7 +324,7 @@ public sealed class ReadRepositoryConventionTests
                 .GetTypes()
                 .Where(type =>
                     type is { IsClass: true, IsAbstract: false } &&
-                    typeof(IAggregateRoot).IsAssignableFrom(type))
+                        typeof(IAggregateRoot).IsAssignableFrom(type))
                 .Select(type =>
                     EnglishNamingConvention.Pluralize(type.Name))
                 .Order(StringComparer.Ordinal)
@@ -336,7 +337,7 @@ public sealed class ReadRepositoryConventionTests
         var nameWithoutInterfacePrefix = typeName[1..];
 
         return char.ToLowerInvariant(nameWithoutInterfacePrefix[0]) +
-               nameWithoutInterfacePrefix[1..];
+            nameWithoutInterfacePrefix[1..];
     }
 
     private static string RemoveGenericArity(string typeName)
@@ -368,28 +369,28 @@ public sealed class ReadRepositoryConventionTests
                 candidate.ContractsAssemblyName,
                 assemblyName,
                 StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.DomainAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.ApplicationAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.InfrastructureAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.PresentationAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal));
+                string.Equals(
+                    candidate.DomainAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal) ||
+                string.Equals(
+                    candidate.ApplicationAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal) ||
+                string.Equals(
+                    candidate.InfrastructureAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal) ||
+                string.Equals(
+                    candidate.PresentationAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal));
         var moduleDirectoryName =
             module.Name[(module.Name.LastIndexOf('.') + 1)..];
         var repositoryNamespace = readRepository.Namespace
             ?? throw new InvalidOperationException(
                 $"Read repository interface '{readRepository.FullName}' does " +
-                $"not have a namespace.");
+                    $"not have a namespace.");
         var namespacePrefix = assemblyName + ".";
         var relativeNamespace = repositoryNamespace.StartsWith(
             namespacePrefix,
@@ -397,7 +398,7 @@ public sealed class ReadRepositoryConventionTests
             ? repositoryNamespace[namespacePrefix.Length..]
             : throw new InvalidOperationException(
                 $"Read repository interface '{readRepository.FullName}' " +
-                $"namespace must start with '{namespacePrefix}'.");
+                    $"namespace must start with '{namespacePrefix}'.");
 
         return Path.Combine(
             repositoryRoot,
@@ -444,7 +445,7 @@ public sealed class ReadRepositoryConventionTests
 
         throw new DirectoryNotFoundException(
             $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+                $"the '{SourceDirectoryName}' directory.");
     }
 
     private sealed record ReadRepository(
