@@ -59,7 +59,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
     }
 
-    [Theory(DisplayName = "RegisterAsync should reject invalid credentials without persistence when credentials are invalid")]
+    [Theory(
+        DisplayName = "RegisterAsync should reject invalid credentials without persistence when credentials are invalid")]
     [InlineData("invalid-email", "hero", 1)]
     [InlineData("hero@example.com", "", 1)]
     [InlineData("invalid-email", "", 2)]
@@ -169,7 +170,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
     }
 
-    [Fact(DisplayName = "Change password should replace credentials stored by ASP.NET Core Identity when current password is valid")]
+    [Fact(
+        DisplayName = "Change password should replace credentials stored by ASP.NET Core Identity when current password is valid")]
     public async Task ChangePasswordAsync_Should_ReplacePassword_When_CurrentPasswordIsValid()
     {
         var role = new ApplicationRole

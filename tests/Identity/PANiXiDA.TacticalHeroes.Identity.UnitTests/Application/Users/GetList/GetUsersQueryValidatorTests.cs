@@ -38,7 +38,10 @@ public sealed class GetUsersQueryValidatorTests
         var validator = new GetUsersQueryValidator();
 
         var result = validator.Validate(
-            new GetUsersQuery(new UsersFilter(), new PaginationParameters(pageNumber, pageSize), SortingParameters.None));
+            new GetUsersQuery(
+                new UsersFilter(),
+                new PaginationParameters(pageNumber, pageSize),
+                SortingParameters.None));
 
         result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(propertyName);
     }

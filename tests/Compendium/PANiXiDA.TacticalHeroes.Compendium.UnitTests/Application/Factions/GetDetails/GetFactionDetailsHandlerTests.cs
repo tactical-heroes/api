@@ -28,7 +28,8 @@ public sealed class GetFactionDetailsHandlerTests
         result.Value.ShouldBe(readModel);
     }
 
-    [Fact(DisplayName = "Faction details handler should return not found for a missing faction when faction does not exist")]
+    [Fact(
+        DisplayName = "Faction details handler should return not found for a missing faction when faction does not exist")]
     public async Task HandleAsync_Should_ReturnNotFound_When_FactionDoesNotExist()
     {
         var factionsReadRepository = Substitute.For<IFactionsReadRepository>();

@@ -34,7 +34,9 @@ public sealed class ReadDatabaseSchemaConventionTests
             .SelectMany(context => context.Model.GetRelationalModel().Tables)
             .ToDictionary(table => (table.Schema, table.Name));
         var readContexts = contexts
-            .Where(type => InfrastructurePersistenceConvention.GetClosedGenericBaseType(type, typeof(ReadDbContext<>)) is not null)
+            .Where(type => InfrastructurePersistenceConvention.GetClosedGenericBaseType(
+                type,
+                typeof(ReadDbContext<>)) is not null)
             .Select(type => (DbContext)scope.ServiceProvider.GetRequiredService(type));
 
         foreach (var context in readContexts)
@@ -65,9 +67,11 @@ public sealed class ReadDatabaseSchemaConventionTests
                     }
                     else
                     {
-                        if (actual.ProviderClrType != expected.ProviderClrType || actual.IsNullable != expected.IsNullable)
+                        if (actual.ProviderClrType != expected.ProviderClrType
+                            || actual.IsNullable != expected.IsNullable)
                         {
-                            yield return $"{tableName}.{name}: expected {Describe(expected)}, read model has {Describe(actual)}.";
+                            yield return
+                                $"{tableName}.{name}: expected {Describe(expected)}, read model has {Describe(actual)}.";
                         }
 
                         if (actual.PropertyMappings.Any(mapping => mapping.Property.IsShadowProperty()))

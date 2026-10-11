@@ -14,7 +14,13 @@ public sealed class UpdateRoleHandlerTests
         var roleId = Guid.CreateVersion7();
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IRolesRepository>();
-        repository.UpdateAsync(Arg.Is<Role>(role => role.Id.Value == roleId && role.Name.Value == "admin" && role.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")), Arg.Any<CancellationToken>())
+        repository.UpdateAsync(
+            Arg.Is<Role>(
+                role => role.Id.Value == roleId
+                    && role.Name.Value == "admin"
+                    && role.Claims.Any(
+                        claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new UpdateRoleHandler(repository);
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -24,10 +30,17 @@ public sealed class UpdateRoleHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).UpdateAsync(Arg.Is<Role>(role => role.Id.Value == roleId && role.Name.Value == "admin" && role.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")), cancellationToken);
+        await repository.Received(1).UpdateAsync(
+            Arg.Is<Role>(
+                role => role.Id.Value == roleId
+                    && role.Name.Value == "admin"
+                    && role.Claims.Any(
+                        claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            cancellationToken);
     }
 
-    [Theory(DisplayName = "Update role handler should reject invalid values without persistence when command is invalid")]
+    [Theory(
+        DisplayName = "Update role handler should reject invalid values without persistence when command is invalid")]
     [InlineData("", "permission", "heroes.manage")]
     [InlineData("admin", "", "")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CommandIsInvalid(

@@ -93,10 +93,12 @@ public sealed class IdentityProviderCertificateTests
             .ShouldBe([encryption.Thumbprint, nextEncryption.Thumbprint], ignoreOrder: true);
     }
 
-    [Theory(DisplayName = "AddIdentityProvider should reject missing certificates when environment requires certificates")]
+    [Theory(
+        DisplayName = "AddIdentityProvider should reject missing certificates when environment requires certificates")]
     [InlineData("Production")]
     [InlineData("Staging")]
-    public void AddIdentityProvider_Should_RejectMissingCertificates_When_EnvironmentRequiresCertificates(string environment)
+    public void AddIdentityProvider_Should_RejectMissingCertificates_When_EnvironmentRequiresCertificates(
+        string environment)
     {
         var exception = Should.Throw<OptionsValidationException>(() =>
             CreateServerOptions([], environment));
@@ -123,11 +125,13 @@ public sealed class IdentityProviderCertificateTests
         exception.Message.ShouldContain("EncryptionCertificates");
     }
 
-    [Theory(DisplayName = "AddIdentityProvider should use development certificates when local configuration has no certificates")]
+    [Theory(
+        DisplayName = "AddIdentityProvider should use development certificates when local configuration has no certificates")]
     [InlineData("Development")]
     [InlineData("Test")]
     [InlineData(null)]
-    public void AddIdentityProvider_Should_UseDevelopmentCertificates_When_LocalConfigurationHasNoCertificates(string? environment)
+    public void AddIdentityProvider_Should_UseDevelopmentCertificates_When_LocalConfigurationHasNoCertificates(
+        string? environment)
     {
         var options = CreateServerOptions([], environment);
 
@@ -156,7 +160,8 @@ public sealed class IdentityProviderCertificateTests
         var configuration = new Dictionary<string, string?>();
         AddCertificate(configuration, prefix, certificate);
 
-        var exception = Should.Throw<OptionsValidationException>(() => CreateServerOptions(configuration, "Development"));
+        var exception = Should.Throw<OptionsValidationException>(
+            () => CreateServerOptions(configuration, "Development"));
 
         exception.Message.ShouldContain(prefix == SigningPrefix ? "EncryptionCertificates" : "SigningCertificates");
     }
@@ -164,14 +169,17 @@ public sealed class IdentityProviderCertificateTests
     [Theory(DisplayName = "AddIdentityProvider should reject invalid certificate when data or password is invalid")]
     [InlineData("PfxBase64", "invalid-pfx-sensitive-value")]
     [InlineData("Password", "incorrect-sensitive-password")]
-    public void AddIdentityProvider_Should_RejectInvalidCertificate_When_DataOrPasswordIsInvalid(string property, string value)
+    public void AddIdentityProvider_Should_RejectInvalidCertificate_When_DataOrPasswordIsInvalid(
+        string property,
+        string value)
     {
         using var signing = CreateCertificate(X509KeyUsageFlags.DigitalSignature);
         using var encryption = CreateCertificate(X509KeyUsageFlags.KeyEncipherment);
         var configuration = CreateConfiguration(signing, encryption);
         configuration[$"{SigningPrefix}:{property}"] = value;
 
-        var exception = Should.Throw<InvalidOperationException>(() => CreateServerOptions(configuration, "Development"));
+        var exception = Should.Throw<InvalidOperationException>(
+            () => CreateServerOptions(configuration, "Development"));
 
         exception.Message.ShouldContain(SigningPrefix);
         exception.ToString().ShouldNotContain(value);
@@ -190,7 +198,9 @@ public sealed class IdentityProviderCertificateTests
         exception.Message.ShouldContain("private key");
     }
 
-    private static Dictionary<string, string?> CreateConfiguration(X509Certificate2 signing, X509Certificate2 encryption)
+    private static Dictionary<string, string?> CreateConfiguration(
+        X509Certificate2 signing,
+        X509Certificate2 encryption)
     {
         var configuration = new Dictionary<string, string?>();
         AddCertificate(configuration, SigningPrefix, signing);
@@ -198,9 +208,13 @@ public sealed class IdentityProviderCertificateTests
         return configuration;
     }
 
-    private static void AddCertificate(Dictionary<string, string?> configuration, string prefix, X509Certificate2 certificate)
+    private static void AddCertificate(
+        Dictionary<string, string?> configuration,
+        string prefix,
+        X509Certificate2 certificate)
     {
-        configuration[$"{prefix}:PfxBase64"] = Convert.ToBase64String(certificate.Export(X509ContentType.Pfx, CertificatePassword));
+        configuration[$"{prefix}:PfxBase64"] = Convert.ToBase64String(
+            certificate.Export(X509ContentType.Pfx, CertificatePassword));
         configuration[$"{prefix}:Password"] = CertificatePassword;
     }
 
@@ -221,7 +235,11 @@ public sealed class IdentityProviderCertificateTests
     private static X509Certificate2 CreateCertificate(X509KeyUsageFlags usage)
     {
         using var key = RSA.Create(2048);
-        var request = new CertificateRequest("CN=OpenIddict Test", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var request = new CertificateRequest(
+            "CN=OpenIddict Test",
+            key,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
         request.CertificateExtensions.Add(new X509KeyUsageExtension(usage, critical: true));
         return request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddDays(1));
     }

@@ -28,7 +28,8 @@ public sealed class IdentityProviderCertificatesOptionsValidatorTests
         var result = validator.Validate(null, options);
 
         result.Failed.ShouldBeTrue();
-        result.Failures.ShouldHaveSingleItem().ShouldContain(signing ? "SigningCertificates" : "EncryptionCertificates");
+        result.Failures.ShouldHaveSingleItem()
+            .ShouldContain(signing ? "SigningCertificates" : "EncryptionCertificates");
     }
 
     [Fact(DisplayName = "Validate should report indexed failures when certificate collections contain null entries")]
@@ -87,7 +88,8 @@ public sealed class IdentityProviderCertificatesOptionsValidatorTests
         result.Succeeded.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "AddIdentityProviderOptionsValidators should apply environment rules when options are resolved")]
+    [Theory(
+        DisplayName = "AddIdentityProviderOptionsValidators should apply environment rules when options are resolved")]
     [InlineData("Production", false)]
     [InlineData("Staging", false)]
     [InlineData("Development", true)]

@@ -5,7 +5,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
 public sealed class DependencyInjectionConventionTests
 {
-    [Fact(DisplayName = "Infrastructure implementations should be registered for domain or application abstractions when declared")]
+    [Fact(
+        DisplayName = "Infrastructure implementations should be registered for domain or application abstractions when declared")]
     public void InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared()
     {
         var registrations = GetAbstractionRegistrations();

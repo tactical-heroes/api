@@ -21,20 +21,30 @@ public sealed class MemberOrderConventionTests
     }
 
     [Theory(DisplayName = "Member order should accept declarations when order is valid")]
-    [InlineData("class C { private const int Value = 1; public int Field; private C() {} public int Property { get; } public void M() {} private class Nested {} }")]
-    [InlineData("class C { public void A() {} internal void B() {} protected internal void D() {} protected void E() {} private protected void F() {} private void G() {} }")]
+    [InlineData(
+        "class C { private const int Value = 1; public int Field; private C() {} public int Property { get; } public void M() {} private class Nested {} }")]
+    [InlineData(
+        "class C { public void A() {} internal void B() {} protected internal void D() {} protected void E() {} private protected void F() {} private void G() {} }")]
     [InlineData("class C { public void A() {} private static void B() {} private void D() {} }")]
-    [InlineData("class C { public static readonly int A; public static int B; public readonly int D; public int E; private static readonly int F; }")]
-    [InlineData("class C { static C() {} public C() {} ~C() {} public event System.Action E { add {} remove {} } public int P => 0; public int this[int i] => i; public void M() {} public static C operator +(C a, C b) => a; private delegate void D(); }")]
+    [InlineData(
+        "class C { public static readonly int A; public static int B; public readonly int D; public int E; private static readonly int F; }")]
+    [InlineData(
+        "class C { static C() {} public C() {} ~C() {} public event System.Action E { add {} remove {} } public int P => 0; public int this[int i] => i; public void M() {} public static C operator +(C a, C b) => a; private delegate void D(); }")]
     [InlineData("interface I { void A(); private static void B() {} }")]
-    [InlineData("class C : System.IDisposable { public void A() {} void System.IDisposable.Dispose() {} private void B() {} }")]
-    [InlineData("interface I<T> where T : I<T> { static abstract T operator +(T a, T b); } class C : I<C> { static C I<C>.operator +(C a, C b) => a; public static C operator -(C a) => a; }")]
-    [InlineData("interface I<T> where T : I<T> { static abstract explicit operator int(T v); } class C : I<C> { static explicit I<C>.operator int(C v) => 0; public static explicit operator long(C v) => 0; }")]
-    [InlineData("record C(int Value) { public int A => Value; private int B => Value; private record Nested { public void A() {} private void B() {} } }")]
+    [InlineData(
+        "class C : System.IDisposable { public void A() {} void System.IDisposable.Dispose() {} private void B() {} }")]
+    [InlineData(
+        "interface I<T> where T : I<T> { static abstract T operator +(T a, T b); } class C : I<C> { static C I<C>.operator +(C a, C b) => a; public static C operator -(C a) => a; }")]
+    [InlineData(
+        "interface I<T> where T : I<T> { static abstract explicit operator int(T v); } class C : I<C> { static explicit I<C>.operator int(C v) => 0; public static explicit operator long(C v) => 0; }")]
+    [InlineData(
+        "record C(int Value) { public int A => Value; private int B => Value; private record Nested { public void A() {} private void B() {} } }")]
     [InlineData("partial class C { private void A() {} } partial class C { public void B() {} }")]
     [InlineData("struct S { public int B() => 0; public readonly int A() => 0; }")]
-    [InlineData("public static class E { public static void A() {} extension(string value) { public int P => value.Length; public static string B() => string.Empty; public int C() => value.Length; private int D() => value.Length; } }")]
-    [InlineData("public static class E { public static void A() {} extension<T>(T value) where T : class { public bool HasValue => value is not null; public T GetValue() => value; } }")]
+    [InlineData(
+        "public static class E { public static void A() {} extension(string value) { public int P => value.Length; public static string B() => string.Empty; public int C() => value.Length; private int D() => value.Length; } }")]
+    [InlineData(
+        "public static class E { public static void A() {} extension<T>(T value) where T : class { public bool HasValue => value is not null; public T GetValue() => value; } }")]
     public void MemberOrder_Should_AcceptDeclarations_When_OrderIsValid(string source)
     {
         var root = CSharpSyntaxTree.ParseText(
@@ -60,10 +70,18 @@ public sealed class MemberOrderConventionTests
     [InlineData("class C { void A() {} public void B() {} }", "accessibility")]
     [InlineData("interface I { private void A() {} void B(); }", "accessibility")]
     [InlineData("class C { private class Nested { private void A() {} public void B() {} } }", "accessibility")]
-    [InlineData("public static class E { extension(string value) { public int Length() => value.Length; } public static void A() {} }", "member kind")]
-    [InlineData("public static class E { extension(string value) { public int Length() => value.Length; public bool IsEmpty => value.Length == 0; } }", "member kind")]
-    [InlineData("public static class E { extension(string value) { private int A() => value.Length; public int B() => value.Length; } }", "accessibility")]
-    [InlineData("public static class E { extension(string value) { public int A() => value.Length; public static string B() => string.Empty; } }", "static")]
+    [InlineData(
+        "public static class E { extension(string value) { public int Length() => value.Length; } public static void A() {} }",
+        "member kind")]
+    [InlineData(
+        "public static class E { extension(string value) { public int Length() => value.Length; public bool IsEmpty => value.Length == 0; } }",
+        "member kind")]
+    [InlineData(
+        "public static class E { extension(string value) { private int A() => value.Length; public int B() => value.Length; } }",
+        "accessibility")]
+    [InlineData(
+        "public static class E { extension(string value) { public int A() => value.Length; public static string B() => string.Empty; } }",
+        "static")]
     public void MemberOrder_Should_RejectDeclarations_When_OrderIsInvalid(
         string source,
         string reason)

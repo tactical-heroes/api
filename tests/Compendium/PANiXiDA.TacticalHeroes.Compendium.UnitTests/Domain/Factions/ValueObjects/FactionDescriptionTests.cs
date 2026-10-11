@@ -27,7 +27,8 @@ public sealed class FactionDescriptionTests
             .ShouldHaveField(nameof(FactionDescription));
     }
 
-    [Fact(DisplayName = "Faction description should reject a value over the maximum length when description is too long")]
+    [Fact(
+        DisplayName = "Faction description should reject a value over the maximum length when description is too long")]
     public void Create_Should_ReturnValidationFailure_When_DescriptionIsTooLong()
     {
         var result = FactionDescription.Create(

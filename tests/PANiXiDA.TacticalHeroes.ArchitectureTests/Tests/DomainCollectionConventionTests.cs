@@ -6,7 +6,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
 public sealed class DomainCollectionConventionTests
 {
-    [Theory(DisplayName = "Collection returns should identify protected storage when expressions use different collection types")]
+    [Theory(
+        DisplayName = "Collection returns should identify protected storage when expressions use different collection types")]
     [InlineData("new List<int>()", false)]
     [InlineData("new HashSet<int>()", false)]
     [InlineData("new Dictionary<int, int>()", false)]
@@ -77,7 +78,9 @@ public sealed class DomainCollectionConventionTests
             compilation.GetSemanticModel(syntaxTree).GetOperation(returnExpression, cancellationToken),
             compilation);
 
-        Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(
+            compilation.GetDiagnostics(cancellationToken),
+            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         Assert.Equal(expected, result);
     }
 }

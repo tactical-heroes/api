@@ -76,14 +76,24 @@ internal static class EmailNotificationMessageFactory
               <title>{{title}}</title>
             </head>
             <body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#1f2937;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 16px;background:#f4f6f8;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                     style="padding:32px 16px;background:#f4f6f8;">
                 <tr>
                   <td align="center">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;padding:32px;background:#ffffff;border-radius:12px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                           style="max-width:560px;padding:32px;background:#ffffff;border-radius:12px;">
                       <tr><td><h1 style="margin:0 0 16px;font-size:24px;">{{title}}</h1></td></tr>
                       <tr><td><p style="margin:0 0 24px;line-height:1.5;">{{description}}</p></td></tr>
-                      <tr><td><a href="{{actionUrl}}" style="display:inline-block;padding:12px 20px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;">{{actionText}}</a></td></tr>
-                      <tr><td><p style="margin:24px 0 0;color:#6b7280;font-size:14px;">This link expires at {{expiresAtUtc}}.</p></td></tr>
+                      <tr><td>
+                        <a href="{{actionUrl}}"
+                           style="display:inline-block;padding:12px 20px;background:#2563eb;color:#ffffff;
+                                  text-decoration:none;border-radius:8px;font-weight:700;">{{actionText}}</a>
+                      </td></tr>
+                      <tr><td>
+                        <p style="margin:24px 0 0;color:#6b7280;font-size:14px;">
+                          This link expires at {{expiresAtUtc}}.
+                        </p>
+                      </td></tr>
                     </table>
                   </td>
                 </tr>

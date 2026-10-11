@@ -65,11 +65,14 @@ internal static class ArchitectureDefinition
 
         s_contractsLayer = Types().That().ResideInAssemblyMatching(ContractsAssemblyNamePattern).As("Contracts layer");
 
-        s_applicationLayer = Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern).As("Application layer");
+        s_applicationLayer = Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern)
+            .As("Application layer");
 
-        s_infrastructureLayer = Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern).As("Infrastructure layer");
+        s_infrastructureLayer = Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern)
+            .As("Infrastructure layer");
 
-        s_presentationLayer = Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern).As("Presentation layer");
+        s_presentationLayer = Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern)
+            .As("Presentation layer");
 
         s_hostLayer = Types().That().ResideInAssemblyMatching(AssemblyNamePattern(HostLayerSuffix)).As("Host layer");
     }

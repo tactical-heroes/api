@@ -91,7 +91,8 @@ internal static class OAuthAuthorizationRequestTestHelper
                     [OpenIddictConstants.Parameters.Scope] = string.Join(' ', scopes),
                     [OpenIddictConstants.Parameters.State] = "functional-test-state",
                     [OpenIddictConstants.Parameters.CodeChallenge] = CodeChallenge,
-                    [OpenIddictConstants.Parameters.CodeChallengeMethod] = OpenIddictConstants.CodeChallengeMethods.Sha256
+                    [OpenIddictConstants.Parameters.CodeChallengeMethod] = OpenIddictConstants.CodeChallengeMethods
+                        .Sha256
                 }),
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);

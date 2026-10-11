@@ -5,7 +5,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Register;
 
 public sealed class RegisterUserHandlerTests
 {
-    [Fact(DisplayName = "Register handler should delegate registration to credentials service when credentials service succeeds")]
+    [Fact(
+        DisplayName = "Register handler should delegate registration to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnUserId_When_CredentialsServiceSucceeds()
     {
         var userId = Guid.CreateVersion7();
@@ -32,7 +33,8 @@ public sealed class RegisterUserHandlerTests
             cancellationToken);
     }
 
-    [Fact(DisplayName = "Register handler should return validation failures when credentials service rejects credentials")]
+    [Fact(
+        DisplayName = "Register handler should return validation failures when credentials service rejects credentials")]
     public async Task HandleAsync_Should_ReturnValidationFailures_When_CredentialsServiceRejectsCredentials()
     {
         var service = Substitute.For<IUserCredentialsService>();

@@ -120,7 +120,8 @@ public sealed class RepositoryConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Repository constructor parameters should follow type-based naming when repository is injected")]
+    [Fact(
+        DisplayName = "Repository constructor parameters should follow type-based naming when repository is injected")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_RepositoryIsInjected()
     {
         var repositoryParameters = ArchitectureDefinition.s_productionAssemblies

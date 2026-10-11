@@ -58,7 +58,8 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.Lockout.MaxFailedAccessAttempts = identityProviderOptions.Lockout.MaxFailedAccessAttempts;
                 options.Lockout.DefaultLockoutTimeSpan = identityProviderOptions.Lockout.DefaultLockoutTimeSpan;
                 options.Lockout.AllowedForNewUsers = true;
-                options.Tokens.EmailConfirmationTokenProvider = identityProviderOptions.TokenProviders.EmailConfirmation;
+                options.Tokens.EmailConfirmationTokenProvider =
+                    identityProviderOptions.TokenProviders.EmailConfirmation;
                 options.Tokens.PasswordResetTokenProvider = identityProviderOptions.TokenProviders.PasswordReset;
             })
             .AddRoles<ApplicationRole>()

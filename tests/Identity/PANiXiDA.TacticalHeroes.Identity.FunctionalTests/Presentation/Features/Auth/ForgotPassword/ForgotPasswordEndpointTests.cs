@@ -20,7 +20,8 @@ public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
 
-    [Fact(DisplayName = "Password reset should replace the password and revoke existing tokens when issued token is valid")]
+    [Fact(
+        DisplayName = "Password reset should replace the password and revoke existing tokens when issued token is valid")]
     public async Task PasswordReset_Should_ReplacePasswordAndRevokeTokens_When_IssuedTokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

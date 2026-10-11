@@ -1,4 +1,5 @@
-using DomainEvent = PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events.EmailConfirmationNotificationRequested;
+using DomainEvent =
+    PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events.EmailConfirmationNotificationRequested;
 using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.EmailConfirmationRequested;
 
 namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.Handlers;

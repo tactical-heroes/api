@@ -66,7 +66,8 @@ public sealed class UserRequestValidationTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
     }
 
-    [Theory(DisplayName = "User OpenAPI schemas should preserve required fields without validation attributes when requested")]
+    [Theory(
+        DisplayName = "User OpenAPI schemas should preserve required fields without validation attributes when requested")]
     [InlineData("CreateUserRequest", true)]
     [InlineData("UpdateUserRequest", false)]
     public async Task GetOpenApiDocument_Should_PreserveUserJsonContract_When_Requested(

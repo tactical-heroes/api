@@ -37,11 +37,14 @@ public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
         SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
-        return GetPagedResultAsync<FactionListItemReadModel, FactionListItemReadModelMapper, FactionListItemReadModelSorting>(
-            query: Query,
-            paginationParameters: paginationParameters,
-            sortingParameters: sortingParameters,
-            cancellationToken: cancellationToken);
+        return GetPagedResultAsync<
+            FactionListItemReadModel,
+            FactionListItemReadModelMapper,
+            FactionListItemReadModelSorting>(
+                query: Query,
+                paginationParameters: paginationParameters,
+                sortingParameters: sortingParameters,
+                cancellationToken: cancellationToken);
     }
 
     public Task<FactionDetailsReadModel?> GetDetailsByIdAsync(

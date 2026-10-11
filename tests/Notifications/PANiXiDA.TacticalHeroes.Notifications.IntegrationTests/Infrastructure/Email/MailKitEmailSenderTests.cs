@@ -38,7 +38,8 @@ public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixtur
         textBody.ShouldContain(message.TextBody);
     }
 
-    [Fact(DisplayName = "Email confirmation event should send a formatted email through Mailpit when event is published")]
+    [Fact(
+        DisplayName = "Email confirmation event should send a formatted email through Mailpit when event is published")]
     public async Task EmailConfirmationRequested_Should_SendFormattedEmail_When_EventIsPublished()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

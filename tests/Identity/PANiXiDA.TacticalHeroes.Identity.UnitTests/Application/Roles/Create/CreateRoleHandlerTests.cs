@@ -8,13 +8,18 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Create;
 
 public sealed class CreateRoleHandlerTests
 {
-    [Fact(DisplayName = "Create role handler should delegate creation to the write repository when repository succeeds")]
+    [Fact(
+        DisplayName = "Create role handler should delegate creation to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnRoleId_When_RepositorySucceeds()
     {
         var roleId = Guid.CreateVersion7();
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IRolesRepository>();
-        repository.AddAsync(Arg.Is<Role>(role => role.Name.Value == "admin" && role.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")), Arg.Any<CancellationToken>())
+        repository.AddAsync(
+            Arg.Is<Role>(role => role.Name.Value == "admin" && role.Claims.Any(
+                claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            Arg
+                .Any<CancellationToken>())
             .Returns(Result.Success(roleId));
         var handler = new CreateRoleHandler(repository);
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -25,10 +30,14 @@ public sealed class CreateRoleHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(roleId);
-        await repository.Received(1).AddAsync(Arg.Is<Role>(role => role.Name.Value == "admin" && role.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")), cancellationToken);
+        await repository.Received(1).AddAsync(
+            Arg.Is<Role>(role => role.Name.Value == "admin" && role.Claims.Any(
+                claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            cancellationToken);
     }
 
-    [Theory(DisplayName = "Create role handler should reject invalid values without persistence when command is invalid")]
+    [Theory(
+        DisplayName = "Create role handler should reject invalid values without persistence when command is invalid")]
     [InlineData("", "permission", "heroes.manage")]
     [InlineData("admin", "", "")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CommandIsInvalid(

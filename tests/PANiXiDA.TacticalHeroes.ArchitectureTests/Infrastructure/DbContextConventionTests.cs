@@ -7,7 +7,8 @@ public sealed class DbContextConventionTests
     private const string ReadDbContextSuffix = "ReadDbContext";
     private const string WriteDbContextSuffix = "WriteDbContext";
 
-    [Fact(DisplayName = "Read database contexts should match module names and reside in Persistence Core when declared")]
+    [Fact(
+        DisplayName = "Read database contexts should match module names and reside in Persistence Core when declared")]
     public void ReadDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared()
     {
         var contexts = GetDatabaseContexts(typeof(ReadDbContext<>));
@@ -25,7 +26,8 @@ public sealed class DbContextConventionTests
             string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Write database contexts should match module names and reside in Persistence Core when declared")]
+    [Fact(
+        DisplayName = "Write database contexts should match module names and reside in Persistence Core when declared")]
     public void WriteDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared()
     {
         var contexts = GetDatabaseContexts(typeof(WriteDbContext<>));

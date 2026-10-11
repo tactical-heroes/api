@@ -144,7 +144,8 @@ public sealed class AggregateFilterConventionTests
         if (!source.Type.DeclaringSyntaxReferences.Any(reference =>
             string.Equals(reference.SyntaxTree.FilePath, expectedPath, StringComparison.Ordinal)))
         {
-            yield return $"{source.Type}: must be declared in '{Path.GetRelativePath(source.RepositoryRoot, expectedPath)}'.";
+            yield return
+                $"{source.Type}: must be declared in '{Path.GetRelativePath(source.RepositoryRoot, expectedPath)}'.";
         }
     }
 

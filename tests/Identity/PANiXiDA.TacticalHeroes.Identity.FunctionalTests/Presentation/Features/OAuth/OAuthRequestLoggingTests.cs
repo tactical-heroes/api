@@ -15,7 +15,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
     [InlineData(IntrospectionFailureKind.Timeout)]
     [InlineData(IntrospectionFailureKind.NetworkFailure)]
     [InlineData(IntrospectionFailureKind.ServerFailureAfterCancellation)]
-    public async Task GetUsers_Should_LogServerError_When_IntrospectionTransportFails(IntrospectionFailureKind failureKind)
+    public async Task GetUsers_Should_LogServerError_When_IntrospectionTransportFails(
+        IntrospectionFailureKind failureKind)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var accessToken = await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken);
@@ -23,7 +24,9 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         var abortRequest = failureKind == IntrospectionFailureKind.ServerFailureAfterCancellation;
         Exception exception = failureKind switch
         {
-            IntrospectionFailureKind.Timeout => new TaskCanceledException("Introspection timed out", new TimeoutException()),
+            IntrospectionFailureKind.Timeout => new TaskCanceledException(
+                "Introspection timed out",
+                new TimeoutException()),
             IntrospectionFailureKind.NetworkFailure => new HttpRequestException("Identity server is unavailable"),
             _ => new InvalidOperationException("Independent introspection failure")
         };
@@ -34,7 +37,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
             builder.ConfigureLogging(logging => logging.AddProvider(loggerProvider));
             builder.ConfigureServices(services => services.ConfigureAll<HttpClientFactoryOptions>(options =>
                 options.HttpMessageHandlerBuilderActions.Add(handler =>
-                    handler.AdditionalHandlers.Add(new FailingIntrospectionHandler(requestAborted, abortRequest, exception)))));
+                    handler.AdditionalHandlers
+                        .Add(new FailingIntrospectionHandler(requestAborted, abortRequest, exception)))));
         });
 
         var response = await factory.Server.SendAsync(
@@ -57,10 +61,12 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
             .ShouldHaveSingleItem();
         completion.Level.ShouldBe(LogLevel.Error);
         completion.Attributes["http.response.status_code"].ShouldBe(StatusCodes.Status500InternalServerError);
-        loggerProvider.Records.ShouldContain(record => record.Level == LogLevel.Error && ReferenceEquals(record.Exception, exception));
+        loggerProvider.Records
+            .ShouldContain(record => record.Level == LogLevel.Error && ReferenceEquals(record.Exception, exception));
     }
 
-    [Theory(DisplayName = "Authenticated requests should retain user and endpoint in the completion log when bearer token is valid")]
+    [Theory(
+        DisplayName = "Authenticated requests should retain user and endpoint in the completion log when bearer token is valid")]
     [InlineData("/connect/userinfo")]
     [InlineData("/api/v1/users/{id}")]
     public async Task GetAuthenticatedEndpoint_Should_LogAuthenticatedUser_When_BearerTokenIsValid(string path)
@@ -99,7 +105,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         completion.Level.ShouldBe(LogLevel.Information);
         completion.Attributes["enduser.id"].ShouldBe(createdUser.Id.ToString());
         completion.Attributes["http.route"].ShouldBeOfType<string>().ShouldNotBeNullOrWhiteSpace();
-        completion.Attributes["aspnetcore.endpoint.display_name"].ShouldBeOfType<string>().ShouldNotBeNullOrWhiteSpace();
+        completion.Attributes["aspnetcore.endpoint.display_name"].ShouldBeOfType<string>()
+            .ShouldNotBeNullOrWhiteSpace();
         completion.Attributes["http.response.status_code"].ShouldBe(StatusCodes.Status200OK);
         completion.Exception.ShouldBeNull();
         testFactory.IntrospectionRequestCount.ShouldBe(1);
@@ -109,9 +116,21 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
     [InlineData("/connect/token", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]
     [InlineData("/connect/par", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]
     [InlineData("/connect/introspect", FailureKind.TruncatedBody, StatusCodes.Status400BadRequest, LogLevel.Warning)]
-    [InlineData("/connect/token", FailureKind.ClientCancellation, StatusCodes.Status499ClientClosedRequest, LogLevel.Warning)]
-    [InlineData("/connect/par", FailureKind.ClientCancellation, StatusCodes.Status499ClientClosedRequest, LogLevel.Warning)]
-    [InlineData("/connect/introspect", FailureKind.ClientCancellation, StatusCodes.Status499ClientClosedRequest, LogLevel.Warning)]
+    [InlineData(
+        "/connect/token",
+        FailureKind.ClientCancellation,
+        StatusCodes.Status499ClientClosedRequest,
+        LogLevel.Warning)]
+    [InlineData(
+        "/connect/par",
+        FailureKind.ClientCancellation,
+        StatusCodes.Status499ClientClosedRequest,
+        LogLevel.Warning)]
+    [InlineData(
+        "/connect/introspect",
+        FailureKind.ClientCancellation,
+        StatusCodes.Status499ClientClosedRequest,
+        LogLevel.Warning)]
     [InlineData("/connect/token", FailureKind.ServerFailure, StatusCodes.Status500InternalServerError, LogLevel.Error)]
     public async Task PostOAuth_Should_LogHandledFailureOnce_When_RequestBodyReadFails(
         string path,
@@ -146,7 +165,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
             },
             TestContext.Current.CancellationToken);
 
-        await loggerProvider.RequestCompleted.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await loggerProvider.RequestCompleted.Task
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
         response.Response.StatusCode.ShouldBe(expectedStatus);
         var completion = loggerProvider.Records
@@ -195,7 +215,9 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         bool abortRequest,
         Exception exception) : DelegatingHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             if (request.RequestUri?.AbsolutePath != "/connect/introspect")
             {
@@ -216,7 +238,9 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         private IExternalScopeProvider _scopeProvider = new LoggerExternalScopeProvider();
 
         internal ConcurrentQueue<LogEntry> Records { get; } = new();
-        internal TaskCompletionSource RequestCompleted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        internal TaskCompletionSource RequestCompleted { get; }
+            = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ILogger CreateLogger(string categoryName) => new CapturingLogger(this);
 
@@ -228,11 +252,17 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
 
         private sealed class CapturingLogger(CapturingLoggerProvider provider) : ILogger
         {
-            public IDisposable BeginScope<TState>(TState state) where TState : notnull => provider._scopeProvider.Push(state);
+            public IDisposable BeginScope<TState>(TState state) where TState : notnull
+                => provider._scopeProvider.Push(state);
 
             public bool IsEnabled(LogLevel logLevel) => true;
 
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter)
             {
                 var attributes = new Dictionary<string, object?>();
                 provider._scopeProvider.ForEachScope(
@@ -257,5 +287,9 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         }
     }
 
-    private sealed record LogEntry(LogLevel Level, string Message, Exception? Exception, Dictionary<string, object?> Attributes);
+    private sealed record LogEntry(
+        LogLevel Level,
+        string Message,
+        Exception? Exception,
+        Dictionary<string, object?> Attributes);
 }

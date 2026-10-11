@@ -6,7 +6,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetList;
 
 public sealed class GetUsersHandlerTests
 {
-    [Fact(DisplayName = "User list handler should return a filtered page from the read repository when repository succeeds")]
+    [Fact(
+        DisplayName = "User list handler should return a filtered page from the read repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
     {
         var filter = new UsersFilter("hero@example.com");
