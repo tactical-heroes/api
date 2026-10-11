@@ -26,7 +26,9 @@ public sealed class CreateRoleCommandValidatorTests
             new CreateRoleCommand("", [new Claim("", "")]));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateRoleCommand.Name));
-        result.Errors.Count(error =>
-            error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal)).ShouldBe(2);
+        result.Errors
+            .Count(error =>
+                error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
+            .ShouldBe(2);
     }
 }

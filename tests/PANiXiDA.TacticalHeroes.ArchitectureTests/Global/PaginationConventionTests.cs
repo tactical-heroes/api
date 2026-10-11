@@ -22,7 +22,8 @@ public sealed class PaginationConventionTests
         var methods = GetMethods().Where(method => !method.IsStatic &&
             (method.IsPublic || method.IsPrivate && method.IsFinal) &&
             method.DeclaringType!.GetInterfaces().Append(method.DeclaringType).Any(type =>
-                type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IReadRepository<>))).ToArray();
+                type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IReadRepository<>)))
+            .ToArray();
         var violations = methods.Where(method =>
             method.GetParameters().Any(parameter => parameter.ParameterType == typeof(PaginationParameters)) !=
             IsPaginationResult(method.ReturnType))
@@ -54,7 +55,8 @@ public sealed class PaginationConventionTests
             .Where(type => type is { IsClass: true, IsAbstract: false })
             .SelectMany(type => type.GetInterfaces()
                 .Where(contract => contract.IsGenericType && contract.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
-                .Select(contract => new { Type = type, Contract = contract })).ToArray();
+                .Select(contract => new { Type = type, Contract = contract }))
+            .ToArray();
         var violations = handlers.Where(handler =>
             HasPaginationParameters(handler.Contract.GetGenericArguments()[0]) !=
             IsPaginationResult(handler.Contract.GetGenericArguments()[1]))

@@ -18,7 +18,9 @@ public sealed class DomainStaticStateConventionTests
     {
         var results = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetStaticStateResultsAsync);
         var violations = results.SelectMany(result => result.Violations)
-            .Distinct().Order(StringComparer.Ordinal).ToArray();
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 
         Assert.NotEmpty(results);
         Assert.True(
@@ -67,7 +69,8 @@ public sealed class DomainStaticStateConventionTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
-            .Split(Path.PathSeparator).Select(path => MetadataReference.CreateFromFile(path));
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path));
         var compilation = CSharpCompilation.Create(
             assemblyName: $"StaticStateProbe_{Guid.NewGuid():N}",
             syntaxTrees: [tree],

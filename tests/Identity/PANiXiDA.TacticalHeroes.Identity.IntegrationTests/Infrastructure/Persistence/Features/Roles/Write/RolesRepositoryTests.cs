@@ -76,7 +76,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var dbContext =
             verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         (await dbContext.Set<ApplicationRole>()
-                .AnyAsync(item => item.Id == roleId, cancellationToken))
+            .AnyAsync(item => item.Id == roleId, cancellationToken))
             .ShouldBeFalse();
     }
 
@@ -92,7 +92,9 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
                 id: Guid.CreateVersion7(),
                 name: "admin",
                 claims: []),
-            cancellationToken)).IsSuccess.ShouldBeTrue();
+            cancellationToken))
+            .IsSuccess
+            .ShouldBeTrue();
         var result = await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),

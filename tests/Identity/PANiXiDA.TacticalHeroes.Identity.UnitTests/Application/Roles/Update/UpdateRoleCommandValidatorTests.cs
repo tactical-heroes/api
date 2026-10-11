@@ -30,7 +30,9 @@ public sealed class UpdateRoleCommandValidatorTests
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateRoleCommand.Id));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateRoleCommand.Name));
-        result.Errors.Count(error =>
-            error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal)).ShouldBe(2);
+        result.Errors
+            .Count(error =>
+                error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
+            .ShouldBe(2);
     }
 }

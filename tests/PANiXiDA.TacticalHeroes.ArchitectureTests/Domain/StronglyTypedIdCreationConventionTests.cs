@@ -84,8 +84,10 @@ public sealed class StronglyTypedIdCreationConventionTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
-            .Split(Path.PathSeparator).Append(typeof(IStronglyTypedId).Assembly.Location)
-            .Distinct(StringComparer.OrdinalIgnoreCase).Select(path => MetadataReference.CreateFromFile(path));
+            .Split(Path.PathSeparator)
+            .Append(typeof(IStronglyTypedId).Assembly.Location)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(path => MetadataReference.CreateFromFile(path));
         var compilation = CSharpCompilation.Create(
             assemblyName: "IdCreationProbe",
             syntaxTrees: [tree],

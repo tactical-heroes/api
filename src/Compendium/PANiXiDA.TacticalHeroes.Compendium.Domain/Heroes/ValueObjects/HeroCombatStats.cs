@@ -48,14 +48,16 @@ public sealed partial class HeroCombatStats : ValueObject
         var damageRangeResult = maximumDamage >= minimumDamage
             ? Result.Success()
             : Result.Failure(
-                error: Error.Validation(
-                    message: "Hero maximum damage cannot be less than minimum damage.")
+                error: Error
+                    .Validation(
+                        message: "Hero maximum damage cannot be less than minimum damage.")
                     .WithField(nameof(MaximumDamage)));
         var initiativeResult = double.IsFinite(initiative) && initiative >= 0
             ? Result.Success()
             : Result.Failure(
-                error: Error.Validation(
-                    message: "Hero initiative must be a finite non-negative number.")
+                error: Error
+                    .Validation(
+                        message: "Hero initiative must be a finite non-negative number.")
                     .WithField(nameof(Initiative)));
         var validationResult = Result.Combine(
             attackResult,

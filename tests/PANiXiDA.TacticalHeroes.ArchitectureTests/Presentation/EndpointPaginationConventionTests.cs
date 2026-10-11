@@ -51,21 +51,26 @@ public sealed class EndpointPaginationConventionTests
             var handler = invocation.ArgumentList.Arguments
                 .Select(argument => semanticModel.GetSymbolInfo(argument.Expression))
                 .SelectMany(info => info.Symbol is { } symbol ? [symbol] : info.CandidateSymbols)
-                .OfType<IMethodSymbol>().SingleOrDefault()
+                .OfType<IMethodSymbol>()
+                .SingleOrDefault()
                 ?? throw new InvalidOperationException($"{document.FilePath}: cannot resolve the handler for {invocation}.");
 
             var hasParameters = handler.Parameters.Any(parameter => parameter.Type.ToDisplayString() ==
                 "PANiXiDA.Core.Application.Querying.Pagination.PaginationParameters");
-            var declaresPagination = invocation.Ancestors().OfType<InvocationExpressionSyntax>()
-                .Select(call => semanticModel.GetSymbolInfo(call).Symbol).OfType<IMethodSymbol>()
+            var declaresPagination = invocation.Ancestors()
+                .OfType<InvocationExpressionSyntax>()
+                .Select(call => semanticModel.GetSymbolInfo(call).Symbol)
+                .OfType<IMethodSymbol>()
                 .Any(method => method.Name == "Produces" && method.TypeArguments.Any(IsPaginationResult));
             var returnsPagination = false;
             foreach (var reference in handler.DeclaringSyntaxReferences)
             {
                 var declaration = await reference.GetSyntaxAsync();
                 var handlerModel = semanticModel.Compilation.GetSemanticModel(declaration.SyntaxTree);
-                returnsPagination |= declaration.DescendantNodes().OfType<InvocationExpressionSyntax>()
-                    .Select(call => handlerModel.GetSymbolInfo(call).Symbol).OfType<IMethodSymbol>()
+                returnsPagination |= declaration.DescendantNodes()
+                    .OfType<InvocationExpressionSyntax>()
+                    .Select(call => handlerModel.GetSymbolInfo(call).Symbol)
+                    .OfType<IMethodSymbol>()
                     .Any(method => method.ContainingType.ToDisplayString() == "Microsoft.AspNetCore.Http.TypedResults" &&
                         method.Name == "Ok" && method.TypeArguments.Any(IsPaginationResult));
             }

@@ -16,7 +16,8 @@ public sealed class ReadRepositorySortingConventionTests
     public async Task ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections()
     {
         var methods = (await ProductionSourceDocumentDiscovery.GetItemsAsync(GetMethodsAsync))
-            .Where(method => method.IsCollection).ToArray();
+            .Where(method => method.IsCollection)
+            .ToArray();
         var violations = methods.Where(method => !method.AppliesSorting)
             .Select(method => $"{method.Name}: return a collection sorted by IReadModelSorting<{method.Model}> " +
                 "using ApplySorting or GetPagedResultAsync.")
@@ -30,7 +31,8 @@ public sealed class ReadRepositorySortingConventionTests
     public async Task EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels()
     {
         var methods = (await ProductionSourceDocumentDiscovery.GetItemsAsync(GetMethodsAsync))
-            .Where(method => method.IsEfRepository).ToArray();
+            .Where(method => method.IsEfRepository)
+            .ToArray();
         var violations = methods.Where(method => !method.AppliesMapping)
             .Select(method => $"{method.Name}: return {method.Model} using IReadModelMapper<TId, TReadDbModel, TReadModel> " +
                 "matching the repository through ProjectTo, GetByIdAsync, or GetPagedResultAsync.")
@@ -86,7 +88,10 @@ public sealed class ReadRepositorySortingConventionTests
             var returns = declaration.ExpressionBody is { } body
                 ? [body.Expression]
                 : declaration.DescendantNodes(node => node is not AnonymousFunctionExpressionSyntax and not LocalFunctionStatementSyntax)
-                    .OfType<ReturnStatementSyntax>().Select(statement => statement.Expression).OfType<ExpressionSyntax>().ToArray();
+                    .OfType<ReturnStatementSyntax>()
+                    .Select(statement => statement.Expression)
+                    .OfType<ExpressionSyntax>()
+                    .ToArray();
             var repository = method.ContainingType;
             while (repository is not null && !IsEfRepository(repository))
             {
@@ -178,8 +183,10 @@ public sealed class ReadRepositorySortingConventionTests
                             SymbolEqualityComparer.Default.Equals(target.Local, local.Local) => assignment.Value,
                         _ => null
                     })
-                    .OfType<IOperation>().Where(candidate => candidate.Syntax.Span.End <= local.Syntax.SpanStart)
-                    .OrderBy(candidate => candidate.Syntax.SpanStart).LastOrDefault();
+                    .OfType<IOperation>()
+                    .Where(candidate => candidate.Syntax.Span.End <= local.Syntax.SpanStart)
+                    .OrderBy(candidate => candidate.Syntax.SpanStart)
+                    .LastOrDefault();
                 return UsesOperation(value, model, declaration, semanticModel, matches);
             case IInvocationOperation call:
                 if (matches(call))

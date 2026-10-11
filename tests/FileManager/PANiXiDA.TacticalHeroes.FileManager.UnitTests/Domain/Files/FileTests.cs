@@ -60,7 +60,9 @@ public sealed class FileTests
         file.MoveTo(destination).IsSuccess.ShouldBeTrue();
         file.CompleteUpload(
             FileContentType.Create("image/png").Value,
-            FileSize.Create(128).Value).IsSuccess.ShouldBeTrue();
+            FileSize.Create(128).Value)
+            .IsSuccess
+            .ShouldBeTrue();
         file.BeginDeletion().IsSuccess.ShouldBeTrue();
         file.CompleteDeletion().IsSuccess.ShouldBeTrue();
 

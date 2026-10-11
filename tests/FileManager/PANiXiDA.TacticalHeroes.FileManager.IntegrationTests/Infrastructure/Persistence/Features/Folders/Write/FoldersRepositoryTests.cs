@@ -49,8 +49,11 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         restored.UserId.ShouldBe(userId);
         restored.ParentId.ShouldBe(folder.ParentId);
         scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
-            .ChangeTracker.Entries<Folder>().ShouldHaveSingleItem()
-            .Entity.ShouldBeSameAs(restored);
+            .ChangeTracker
+            .Entries<Folder>()
+            .ShouldHaveSingleItem()
+            .Entity
+            .ShouldBeSameAs(restored);
     }
 
     [Fact(DisplayName = "Folder repository should preserve placement when folder is renamed")]
@@ -130,7 +133,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
 
         var exception = await saveOrphan.ShouldThrowAsync<DbUpdateException>();
         exception.InnerException.ShouldBeOfType<PostgresException>()
-            .SqlState.ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
+            .SqlState
+            .ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
         await using var scope = Fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         (await context.Set<Folder>().AnyAsync(cancellationToken)).ShouldBeFalse();

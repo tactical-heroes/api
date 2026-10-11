@@ -63,7 +63,9 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         {
             CreateFaction("Northern Alliance", "First."),
             CreateFaction("Northern Alliance", "Second.")
-        }.OrderBy(faction => faction.Id.Value).ToArray();
+        }
+            .OrderBy(faction => faction.Id.Value)
+            .ToArray();
         await AddFactionsAsync(cancellationToken, factions);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
@@ -142,7 +144,9 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         {
             CreateFaction("Alliance", "First."),
             CreateFaction("Alliance", "Second.")
-        }.OrderBy(faction => faction.Id.Value).ToArray();
+        }
+            .OrderBy(faction => faction.Id.Value)
+            .ToArray();
         await AddFactionsAsync(cancellationToken, factions);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();

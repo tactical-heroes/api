@@ -75,7 +75,8 @@ public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
         refreshResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         using var refreshError = JsonDocument.Parse(await refreshResponse.Content.ReadAsStringAsync(cancellationToken));
         refreshError.RootElement.GetProperty(OpenIddictConstants.Parameters.Error)
-            .GetString().ShouldBe(OpenIddictConstants.Errors.InvalidGrant);
+            .GetString()
+            .ShouldBe(OpenIddictConstants.Errors.InvalidGrant);
 
         using var newClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var newTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(

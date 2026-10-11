@@ -131,10 +131,18 @@ public sealed class IdentityProviderCertificateTests
     {
         var options = CreateServerOptions([], environment);
 
-        options.SigningCredentials.ShouldHaveSingleItem().Key.ShouldBeOfType<X509SecurityKey>()
-            .Certificate.HasPrivateKey.ShouldBeTrue();
-        options.EncryptionCredentials.ShouldHaveSingleItem().Key.ShouldBeOfType<X509SecurityKey>()
-            .Certificate.HasPrivateKey.ShouldBeTrue();
+        options.SigningCredentials.ShouldHaveSingleItem()
+            .Key
+            .ShouldBeOfType<X509SecurityKey>()
+            .Certificate
+            .HasPrivateKey
+            .ShouldBeTrue();
+        options.EncryptionCredentials.ShouldHaveSingleItem()
+            .Key
+            .ShouldBeOfType<X509SecurityKey>()
+            .Certificate
+            .HasPrivateKey
+            .ShouldBeTrue();
     }
 
     [Theory(DisplayName = "AddIdentityProvider should reject partial configuration when one certificate is missing")]

@@ -17,8 +17,9 @@ public sealed partial class UnitLuck : ValueObject
         return value is >= Minimum and <= Maximum
             ? Result.Success(value: new UnitLuck(value: value))
             : Result.Failure<UnitLuck>(
-                error: Error.Validation(
-                    message: $"Unit luck must be between {Minimum} and {Maximum}.")
+                error: Error
+                    .Validation(
+                        message: $"Unit luck must be between {Minimum} and {Maximum}.")
                     .WithField(nameof(UnitLuck)));
     }
 }

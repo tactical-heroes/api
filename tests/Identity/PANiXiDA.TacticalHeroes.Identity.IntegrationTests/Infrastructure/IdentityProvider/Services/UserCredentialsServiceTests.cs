@@ -370,7 +370,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Select(token => token.Status)
             .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
         tokens.Single(token => token.Subject == otherUserId.ToString())
-            .Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
     }
 
     [Theory(DisplayName = "ResetPasswordAsync should preserve tokens and password when reset fails")]

@@ -414,8 +414,8 @@ public sealed class DomainEncapsulationConventionTests
             }
 
             foreach (var violation in currentType.GetMethods(Flags)
-                         .Where(IsExternallyAccessible)
-                         .SelectMany(GetExternalMethodMutationViolations))
+                .Where(IsExternallyAccessible)
+                .SelectMany(GetExternalMethodMutationViolations))
             {
                 yield return violation;
             }
