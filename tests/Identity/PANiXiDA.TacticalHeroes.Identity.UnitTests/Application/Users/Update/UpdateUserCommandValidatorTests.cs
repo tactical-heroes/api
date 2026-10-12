@@ -46,4 +46,31 @@ public sealed class UpdateUserCommandValidatorTests
             .ShouldBe(2);
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Status));
     }
+
+    [Theory(DisplayName = "User validator should validate role identifiers when role IDs are provided")]
+    [InlineData(false, false, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    public void Validate_Should_CheckRoleIds_When_RoleIdsAreProvided(bool emptyId, bool duplicate, bool expectedValid)
+    {
+        var validator = new UpdateUserCommandValidator();
+        var id = emptyId ? Guid.Empty : Guid.CreateVersion7();
+        Guid[] roleIds = duplicate ? [id, id] : [id];
+
+        var result = validator.Validate(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: roleIds));
+
+        result.IsValid.ShouldBe(expectedValid);
+        if (!expectedValid)
+        {
+            result.Errors.ShouldContain(error => error.PropertyName.StartsWith("RoleIds", StringComparison.Ordinal));
+        }
+    }
 }

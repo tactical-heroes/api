@@ -23,6 +23,9 @@ internal sealed class UserDetailsReadModelMapper
                 .Select(claim => new Claim(
                     type: claim.ClaimType!,
                     value: claim.ClaimValue!))
-                .ToArray()));
+                .ToArray())
+        {
+            RoleIds = user.Roles.Select(role => role.RoleId).ToArray()
+        });
     }
 }

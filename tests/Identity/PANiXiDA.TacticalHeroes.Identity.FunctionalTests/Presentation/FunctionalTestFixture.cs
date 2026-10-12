@@ -98,6 +98,8 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
     private async Task SeedIdentityProviderAsync(CancellationToken cancellationToken)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
+        var roleSeeder = scope.ServiceProvider.GetRequiredService<IdentityRoleSeeder>();
+        await roleSeeder.SeedAsync(cancellationToken);
         var seeder = scope.ServiceProvider.GetRequiredService<IdentityProviderApplicationSeeder>();
 
         await seeder.SeedAsync(cancellationToken);
