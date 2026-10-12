@@ -15,7 +15,8 @@ public sealed class LayerDependencyTests
             ArchitectureDefinition.s_applicationLayer,
             ArchitectureDefinition.s_infrastructureLayer,
             ArchitectureDefinition.s_presentationLayer,
-            ArchitectureDefinition.s_hostLayer
+            ArchitectureDefinition.s_hostLayer,
+            ArchitectureDefinition.TypesInAssembly(ArchitectureDefinition.CommonAssemblyName)
         };
 
         foreach (var forbiddenDependency in forbiddenDependencies)
@@ -35,7 +36,8 @@ public sealed class LayerDependencyTests
             ArchitectureDefinition.s_applicationLayer,
             ArchitectureDefinition.s_infrastructureLayer,
             ArchitectureDefinition.s_presentationLayer,
-            ArchitectureDefinition.s_hostLayer
+            ArchitectureDefinition.s_hostLayer,
+            ArchitectureDefinition.TypesInAssembly(ArchitectureDefinition.CommonAssemblyName)
         };
 
         foreach (var forbiddenDependency in forbiddenDependencies)
@@ -51,6 +53,7 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
+            ArchitectureDefinition.s_contractsLayer,
             ArchitectureDefinition.s_infrastructureLayer,
             ArchitectureDefinition.s_presentationLayer,
             ArchitectureDefinition.s_hostLayer
@@ -86,6 +89,7 @@ public sealed class LayerDependencyTests
     {
         var forbiddenDependencies = new[]
         {
+            ArchitectureDefinition.s_contractsLayer,
             ArchitectureDefinition.s_domainLayer,
             ArchitectureDefinition.s_infrastructureLayer,
             ArchitectureDefinition.s_hostLayer
@@ -96,6 +100,44 @@ public sealed class LayerDependencyTests
             TypesShouldNotDependOn(
                 ArchitectureDefinition.s_presentationLayer,
                 forbiddenDependency);
+        }
+    }
+
+    [Fact(DisplayName = "Contracts layer should only be used by infrastructure when validated")]
+    public void ContractsLayer_Should_OnlyBeUsedByInfrastructure_When_Validated()
+    {
+        var forbiddenSources = new[]
+        {
+            ArchitectureDefinition.s_domainLayer,
+            ArchitectureDefinition.s_applicationLayer,
+            ArchitectureDefinition.s_presentationLayer,
+            ArchitectureDefinition.s_hostLayer,
+            ArchitectureDefinition.TypesInAssembly(ArchitectureDefinition.CommonAssemblyName)
+        };
+
+        foreach (var source in forbiddenSources)
+        {
+            TypesShouldNotDependOn(source, ArchitectureDefinition.s_contractsLayer);
+        }
+    }
+
+    [Fact(DisplayName = "Common layer should not depend on module layers or host when validated")]
+    public void CommonLayer_Should_NotDependOnModuleLayersOrHost_When_Validated()
+    {
+        var forbiddenDependencies = new[]
+        {
+            ArchitectureDefinition.s_contractsLayer,
+            ArchitectureDefinition.s_domainLayer,
+            ArchitectureDefinition.s_applicationLayer,
+            ArchitectureDefinition.s_infrastructureLayer,
+            ArchitectureDefinition.s_presentationLayer,
+            ArchitectureDefinition.s_hostLayer
+        };
+        var commonLayer = ArchitectureDefinition.TypesInAssembly(ArchitectureDefinition.CommonAssemblyName);
+
+        foreach (var forbiddenDependency in forbiddenDependencies)
+        {
+            TypesShouldNotDependOn(commonLayer, forbiddenDependency);
         }
     }
 

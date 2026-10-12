@@ -62,66 +62,22 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 
 ## Claim Catalogs
 
-`PANiXiDA.TacticalHeroes.Common` owns `Permissions.All` and `Sections.All`.
-Claim types come from `PANiXiDA.Core.Application.Authentication.ClaimTypes`
-(`Permission` / `Section`). Definitions live in
-`Authentication/Permissions` and `Authentication/Sections`, with each resource
-or section in its own file and subfolder. Common has no project dependencies.
+Common provides `Permissions.All` and `Sections.All`; claim types come from
+`PANiXiDA.Core.Application.Authentication.ClaimTypes`.
 
-Permissions grant API operations. Sections are independent claims for showing
-UI sections: a section grant does not grant API permissions, and a permission
-grant does not imply a section grant. `PermissionDefinition.SectionCode` links
-permissions to sections for display grouping only. Resource codes and names
-are declared once in the resource permission classes; clients group resources
-by `(SectionCode, ResourceCode)` without a separate resource catalog.
+Authenticated catalogs return `{ "type": "...", "items": [...] }`:
 
-The authenticated Claims endpoints return `{ "type": "...", "items": [...] }`:
+- `GET /api/v1/claims/permissions` — type `permission`, operation codes and
+  section/resource display metadata.
+- `GET /api/v1/claims/sections` — type `section`, section codes and display names.
 
-- `GET /api/v1/claims/permissions`: type `permission`; each item contains
-  `code`, `displayName`, `sectionCode`, `resourceCode`, and `resourceDisplayName`.
-- `GET /api/v1/claims/sections`: type `section`; each item contains
-  `code` and `displayName`.
-
-Clients build assignments from the catalog type and item code. Existing user
-and role create/update requests continue to accept `claims` as type/value pairs:
-
-```json
-{
-  "claims": [
-    { "type": "section", "value": "identity" },
-    { "type": "permission", "value": "identity.roles.read" }
-  ]
-}
-```
-
-User and role command validators check `permission` and `section` values against
-the corresponding catalog and return HTTP 400 for unknown values. Other custom
-claim types retain their existing domain validation. Claim types are compared
-case-insensitively; catalog codes are case-sensitive. Domain factories trim
-surrounding whitespace before persisting claims.
-
-The permission catalog covers users, roles, factions, heroes, and units.
-Operations are declared individually with explicit display names and may use
-suffixes such as `read.own` and `read.all` when added to the catalog. Create,
-read, update, and delete permissions are independent; update covers user
-blocking and unblocking. Object-level access belongs to the owning module.
-Application handlers can use the shared codes with Core authorization:
-
-```csharp
-public static IReadOnlyCollection<string> AllPermissions =>
-    [Permissions.IdentityRoles.Update.Code];
-```
-
-The catalog does not enable permission checks on existing handlers. No database
-migration or configuration change is required. Existing permission codes remain
-unchanged; existing users and roles need explicit section grants before a client
-adopts section-based visibility. Display-name changes do not change grants;
-changing a code requires migrating assignments.
+User and role requests assign `{ type, value: item.code }` through `claims`.
+Unknown permission/section values return HTTP 400. Sections control UI visibility
+independently of API permissions; enabling permission checks on existing operations
+is separate work. Existing assignments need explicit section grants for UI visibility.
 
 The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
-Its flat array becomes the type/items envelope and `sectionDisplayName` is removed;
-section names come from `/api/v1/claims/sections`. Frontend adaptation is separate.
-Unknown managed claims previously accepted by assignment endpoints now fail validation.
+Frontend adaptation is separate; no database migration is required.
 
 ## Request Validation
 
