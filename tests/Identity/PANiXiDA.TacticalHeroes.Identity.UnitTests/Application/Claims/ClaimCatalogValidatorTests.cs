@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Claims;
 
 public sealed class ClaimCatalogValidatorTests
 {
-    [Theory(DisplayName = "Claim catalog validator should accept known or custom claims when values are valid")]
+    [Theory(DisplayName = "Claim catalog validator should accept known or custom claims when claim is known or custom")]
     [InlineData("permission", "identity.roles.read")]
     [InlineData("PERMISSION", "compendium.heroes.update")]
     [InlineData(" permission ", " identity.users.read ")]
@@ -25,7 +25,7 @@ public sealed class ClaimCatalogValidatorTests
         result.IsValid.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Claim catalog validator should reject managed claims when values are unknown")]
+    [Theory(DisplayName = "Claim catalog validator should reject managed claims when managed claim is unknown")]
     [InlineData("permission", "unknown.resource.read")]
     [InlineData("permission", "identity")]
     [InlineData("permission", "identity.roles.read.own")]

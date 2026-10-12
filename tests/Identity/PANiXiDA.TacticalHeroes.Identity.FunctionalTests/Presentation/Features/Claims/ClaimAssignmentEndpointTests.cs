@@ -14,7 +14,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "User and role requests should reject unknown managed claims when assigning claims")]
+    [Theory(DisplayName = "User and role requests should reject unknown managed claims when managed claim is unknown")]
     [InlineData(false, false, "permission")]
     [InlineData(false, true, "permission")]
     [InlineData(true, false, "permission")]
@@ -66,7 +66,7 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
         }
     }
 
-    [Theory(DisplayName = "Role requests should persist a section without permissions when assigning section access")]
+    [Theory(DisplayName = "Role requests should persist a section without permissions when section is known")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task AssignRoleClaims_Should_PersistSectionOnly_When_SectionIsKnown(bool update)
@@ -85,7 +85,7 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
         details.Claims.ShouldBe(claims);
     }
 
-    [Theory(DisplayName = "User requests should persist a section without permissions when assigning section access")]
+    [Theory(DisplayName = "User requests should persist a section without permissions when section is known")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task AssignUserClaims_Should_PersistSectionOnly_When_SectionIsKnown(bool update)
