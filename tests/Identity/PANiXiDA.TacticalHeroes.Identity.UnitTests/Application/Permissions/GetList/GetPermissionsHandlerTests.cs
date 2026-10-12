@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Common.Authentication;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Sections;
 using PANiXiDA.TacticalHeroes.Identity.Application.Permissions.GetList;
 
-using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Permissions.GetList;
 
@@ -25,10 +25,7 @@ public sealed class GetPermissionsHandlerTests
                 .Single(section => section.Code == permission.SectionCode)
                 .DisplayName);
             readModel.ResourceCode.ShouldBe(permission.ResourceCode);
-            readModel.ResourceDisplayName.ShouldBe(PermissionCatalog.Resources
-                .Single(resource =>
-                    resource.SectionCode == permission.SectionCode && resource.Code == permission.ResourceCode)
-                .DisplayName);
+            readModel.ResourceDisplayName.ShouldBe(permission.ResourceDisplayName);
         }
     }
 }

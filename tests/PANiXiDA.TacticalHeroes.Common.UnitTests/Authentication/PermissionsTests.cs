@@ -1,6 +1,7 @@
 using System.Reflection;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Sections;
 
 namespace PANiXiDA.TacticalHeroes.Common.UnitTests.Authentication;
 
@@ -26,7 +27,8 @@ public sealed class PermissionsTests
             !string.IsNullOrWhiteSpace(permission.Code)
                 && !string.IsNullOrWhiteSpace(permission.DisplayName)
                 && !string.IsNullOrWhiteSpace(permission.SectionCode)
-                && !string.IsNullOrWhiteSpace(permission.ResourceCode));
+                && !string.IsNullOrWhiteSpace(permission.ResourceCode)
+                && !string.IsNullOrWhiteSpace(permission.ResourceDisplayName));
     }
 
     [Theory(DisplayName = "All should preserve permission codes when catalog is read")]
@@ -47,50 +49,33 @@ public sealed class PermissionsTests
             ignoreOrder: true);
     }
 
-    [Fact(DisplayName = "All should reference known sections and resources when catalog is read")]
-    public void All_Should_ReferenceKnownSectionsAndResources_When_CatalogIsRead()
+    [Fact(DisplayName = "All should reference known sections when catalog is read")]
+    public void All_Should_ReferenceKnownSections_When_CatalogIsRead()
     {
         var permissions = Permissions.All;
 
         foreach (var permission in permissions)
         {
             Sections.All.Count(section => section.Code == permission.SectionCode).ShouldBe(1);
-            Permissions.Resources
-                .Count(resource =>
-                    resource.SectionCode == permission.SectionCode && resource.Code == permission.ResourceCode)
-                .ShouldBe(1);
             permission.Code.ShouldStartWith($"{permission.SectionCode}.{permission.ResourceCode}.");
         }
     }
 
-    [Fact(DisplayName = "Resources should contain every declared resource exactly once when catalog is read")]
-    public void Resources_Should_ContainEveryDeclaredResourceExactlyOnce_When_CatalogIsRead()
+    [Fact(DisplayName = "All should use consistent resource names when catalog is grouped")]
+    public void All_Should_UseConsistentResourceNames_When_CatalogIsGrouped()
     {
-        var declaredResources = typeof(Permissions).GetNestedTypes()
-            .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
-            .Where(field => field.FieldType == typeof(ResourceDefinition))
-            .Select(field => (ResourceDefinition)field.GetValue(null)!)
+        var resources = Permissions.All
+            .GroupBy(permission => (permission.SectionCode, permission.ResourceCode))
             .ToArray();
 
-        Permissions.Resources.ShouldNotBeEmpty();
-        Permissions.Resources.ShouldBe(declaredResources, ignoreOrder: true);
-        Permissions.Resources
-            .Select(resource => (resource.SectionCode, resource.Code))
-            .Distinct()
-            .Count()
-            .ShouldBe(Permissions.Resources.Count);
-        Permissions.Resources.ShouldAllBe(resource =>
-            !string.IsNullOrWhiteSpace(resource.Code) && !string.IsNullOrWhiteSpace(resource.DisplayName));
-        foreach (var resource in Permissions.Resources)
+        resources.Length.ShouldBe(5);
+        foreach (var resource in resources)
         {
-            Sections.All.Count(section => section.Code == resource.SectionCode).ShouldBe(1);
-            Permissions.All.ShouldContain(permission =>
-                permission.SectionCode == resource.SectionCode && permission.ResourceCode == resource.Code);
+            resource.Select(permission => permission.ResourceDisplayName)
+                .Distinct(StringComparer.Ordinal)
+                .Count()
+                .ShouldBe(1);
         }
-
-        var resources = (IList<ResourceDefinition>)Permissions.Resources;
-        resources.IsReadOnly.ShouldBeTrue();
-        Should.Throw<NotSupportedException>(() => resources.Clear());
     }
 
     [Fact(DisplayName = "All should reject collection changes when accessed as mutable list")]

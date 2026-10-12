@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Sections;
 
-using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Permissions.GetList;
 
@@ -14,7 +14,6 @@ public sealed class GetPermissionsHandler
         CancellationToken cancellationToken)
     {
         var sections = Sections.All.ToDictionary(section => section.Code, StringComparer.Ordinal);
-        var resources = PermissionCatalog.Resources.ToDictionary(resource => (resource.SectionCode, resource.Code));
 
         IReadOnlyCollection<PermissionReadModel> permissions =
         [
@@ -24,7 +23,7 @@ public sealed class GetPermissionsHandler
                 SectionCode: permission.SectionCode,
                 SectionDisplayName: sections[permission.SectionCode].DisplayName,
                 ResourceCode: permission.ResourceCode,
-                ResourceDisplayName: resources[(permission.SectionCode, permission.ResourceCode)].DisplayName))
+                ResourceDisplayName: permission.ResourceDisplayName))
         ];
 
         return Task.FromResult(result: Result.Success(value: permissions));

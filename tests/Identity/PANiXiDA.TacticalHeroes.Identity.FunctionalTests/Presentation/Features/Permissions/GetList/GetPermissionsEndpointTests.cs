@@ -1,10 +1,10 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Sections;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Permissions.GetList;
 
-using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Permissions.GetList;
 
@@ -42,10 +42,7 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
                 .Single(section => section.Code == permission.SectionCode)
                 .DisplayName);
             item.ResourceCode.ShouldBe(permission.ResourceCode);
-            item.ResourceDisplayName.ShouldBe(PermissionCatalog.Resources
-                .Single(resource =>
-                    resource.SectionCode == permission.SectionCode && resource.Code == permission.ResourceCode)
-                .DisplayName);
+            item.ResourceDisplayName.ShouldBe(permission.ResourceDisplayName);
         }
     }
 

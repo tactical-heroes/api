@@ -1,6 +1,7 @@
 using System.Reflection;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Sections;
 
 namespace PANiXiDA.TacticalHeroes.Common.UnitTests.Authentication;
 

@@ -1,4 +1,6 @@
-namespace PANiXiDA.TacticalHeroes.Common.Authentication;
+using SectionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Sections.Sections;
+
+namespace PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 
 public static partial class Permissions
 {
@@ -7,19 +9,24 @@ public static partial class Permissions
         public const string ResourceCode = "units";
         public const string ResourceName = "Юниты";
 
-        public static readonly ResourceDefinition Resource =
-            Sections.Compendium.Definition.CreateResource(ResourceCode, ResourceName);
-
         public static readonly PermissionDefinition Create =
-            Resource.CreatePermission("create", "Создание юнитов");
+            Define("create", "Создание юнитов");
 
         public static readonly PermissionDefinition Read =
-            Resource.CreatePermission("read", "Просмотр юнитов");
+            Define("read", "Просмотр юнитов");
 
         public static readonly PermissionDefinition Update =
-            Resource.CreatePermission("update", "Изменение юнитов");
+            Define("update", "Изменение юнитов");
 
         public static readonly PermissionDefinition Delete =
-            Resource.CreatePermission("delete", "Удаление юнитов");
+            Define("delete", "Удаление юнитов");
+
+        private static PermissionDefinition Define(string action, string displayName) =>
+            PermissionDefinition.Create(
+                sectionCode: SectionCatalog.Compendium.Code,
+                resourceCode: ResourceCode,
+                resourceDisplayName: ResourceName,
+                action: action,
+                displayName: displayName);
     }
 }
