@@ -12,7 +12,7 @@ public sealed class CreateRoleCommandValidatorTests
         var validator = new CreateRoleCommandValidator();
 
         var result = validator.Validate(
-            new CreateRoleCommand("admin", [new Claim("permission", "heroes.manage")]));
+            new CreateRoleCommand("admin", [new Claim("permission", "compendium.heroes.update")]));
 
         result.IsValid.ShouldBeTrue();
     }

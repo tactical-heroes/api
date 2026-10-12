@@ -15,6 +15,7 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/PANiXiDA.TacticalHeroes.Common/PANiXiDA.TacticalHeroes.Common.csproj" />
     <Project Path="src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj" />
   </Folder>
   <Folder Name="/src/Compendium/">
@@ -66,6 +67,7 @@
     <Project Path="tests/Notifications/PANiXiDA.TacticalHeroes.Notifications.UnitTests/PANiXiDA.TacticalHeroes.Notifications.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/PANiXiDA.TacticalHeroes.Common.UnitTests/PANiXiDA.TacticalHeroes.Common.UnitTests.csproj" />
     <Project Path="tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.TacticalHeroes.ArchitectureTests.csproj" />
     <Project Path="tests/PANiXiDA.TacticalHeroes.Testing/PANiXiDA.TacticalHeroes.Testing.csproj" />
   </Folder>

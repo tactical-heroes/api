@@ -60,6 +60,25 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Claim Catalogs
+
+Common provides `Permissions.All` and `Sections.All`; claim types come from
+`PANiXiDA.Core.Application.Authentication.ClaimTypes`.
+
+Authenticated catalogs return `{ "type": "...", "items": [...] }`:
+
+- `GET /api/v1/claims/permissions` — type `permission`, operation codes and
+  section/resource display metadata.
+- `GET /api/v1/claims/sections` — type `section`, section codes and display names.
+
+User and role requests assign `{ type, value: item.code }` through `claims`.
+Unknown permission/section values return HTTP 400. Sections control UI visibility
+independently of API permissions; enabling permission checks on existing operations
+is separate work. Existing assignments need explicit section grants for UI visibility.
+
+The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
+Frontend adaptation is separate; no database migration is required.
+
 ## Request Validation
 
 Request DTO constructors and nullable annotations define the JSON contract and

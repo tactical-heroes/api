@@ -17,7 +17,7 @@ public sealed class UpdateUserCommandValidatorTests
                 "hero@example.com",
                 "hero",
                 true,
-                [new Claim("permission", "heroes.manage")],
+                [new Claim("permission", "compendium.heroes.update")],
                 "Blocked"));
 
         result.IsValid.ShouldBeTrue();

@@ -17,7 +17,7 @@ public sealed class CreateUserCommandValidatorTests
                 "hero",
                 "StrongPassword1!",
                 true,
-                [new Claim("permission", "heroes.read")],
+                [new Claim("permission", "compendium.heroes.read")],
                 "Active"));
 
         result.IsValid.ShouldBeTrue();

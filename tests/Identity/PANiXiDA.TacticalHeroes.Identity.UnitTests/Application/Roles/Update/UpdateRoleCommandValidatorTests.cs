@@ -15,7 +15,7 @@ public sealed class UpdateRoleCommandValidatorTests
             new UpdateRoleCommand(
                 Guid.CreateVersion7(),
                 "admin",
-                [new Claim("permission", "heroes.manage")]));
+                [new Claim("permission", "compendium.heroes.update")]));
 
         result.IsValid.ShouldBeTrue();
     }

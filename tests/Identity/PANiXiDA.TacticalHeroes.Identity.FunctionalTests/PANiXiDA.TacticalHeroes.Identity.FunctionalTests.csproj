@@ -14,6 +14,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
         <ProjectReference Include="..\..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
         <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Host\PANiXiDA.TacticalHeroes.Host.csproj" />
         <ProjectReference Include="..\..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Infrastructure\PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj" />

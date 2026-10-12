@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
@@ -29,7 +30,8 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
 
                 claim.RuleFor(item => item.Value)
                     .MustBeValidDomainValue(ClaimValue.Create);
-            });
+            })
+            .SetValidator(new ClaimCatalogValidator());
 
         RuleFor(command => command.Status)
             .MustBeValidDomainValue(UserStatus.Create);

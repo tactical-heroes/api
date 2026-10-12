@@ -19,7 +19,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
                 "updated@example.com",
                 "updated-hero",
                 false,
-                [new Claim("permission", "heroes.manage")],
+                [new Claim("permission", "compendium.heroes.update")],
                 "Blocked"),
             cancellationToken);
         var user = await UserDatabaseTestHelper.FindAsync(
@@ -32,6 +32,6 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         user.UserName.ShouldBe("updated-hero");
         user.EmailConfirmed.ShouldBeFalse();
         user.Status.ShouldBe("Blocked");
-        user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
+        user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.update");
     }
 }
