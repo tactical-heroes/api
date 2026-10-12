@@ -29,7 +29,8 @@ public sealed class IdentityRoleSeederTests(IntegrationTestFixture fixture) : In
             .ToArrayAsync(cancellationToken);
         roles.Select(role => role.Name).ShouldBe(RoleNames.All, ignoreOrder: true);
         roles.ShouldAllBe(role => role.Id != Guid.Empty && role.CreatedAt != default && role.UpdatedAt != default);
-        roles.ShouldAllBe(role => role.NormalizedName == role.Name!.ToUpperInvariant());
+        roles.ShouldAllBe(role => string.Equals(
+            role.NormalizedName, role.Name!.ToUpperInvariant(), StringComparison.Ordinal));
         roles.ShouldAllBe(role => role.Claims.Count == 0);
     }
 

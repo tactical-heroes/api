@@ -211,20 +211,14 @@ public sealed class UsersRepository(
             return false;
         }
 
-        foreach (var currentRole in applicationUser.Roles.ToArray())
+        foreach (var currentRole in applicationUser.Roles.Where(role => !roleIds.Contains(role.RoleId)).ToArray())
         {
-            if (!roleIds.Contains(currentRole.RoleId))
-            {
-                dbContext.Set<ApplicationUserRole>().Remove(currentRole);
-            }
+            dbContext.Set<ApplicationUserRole>().Remove(currentRole);
         }
 
-        foreach (var roleId in roleIds)
+        foreach (var roleId in roleIds.Where(id => applicationUser.Roles.All(role => role.RoleId != id)))
         {
-            if (applicationUser.Roles.All(role => role.RoleId != roleId))
-            {
-                applicationUser.Roles.Add(new ApplicationUserRole { UserId = applicationUser.Id, RoleId = roleId });
-            }
+            applicationUser.Roles.Add(new ApplicationUserRole { UserId = applicationUser.Id, RoleId = roleId });
         }
 
         return true;
