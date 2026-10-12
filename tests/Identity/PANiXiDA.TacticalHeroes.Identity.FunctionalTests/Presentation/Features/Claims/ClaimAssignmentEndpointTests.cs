@@ -1,7 +1,6 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
@@ -9,6 +8,8 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
+
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Claims;
 
@@ -73,7 +74,7 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        Claim[] claims = [new(CustomClaimTypes.Section, "identity")];
+        Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
         var role = await client.CreateAsync(cancellationToken, new CreateRoleRequest("admin", update ? [] : claims));
 
         if (update)
@@ -92,7 +93,7 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        Claim[] claims = [new(CustomClaimTypes.Section, "compendium")];
+        Claim[] claims = [new(ApplicationClaimTypes.Section, "compendium")];
         var request = UserApiTestClient.CreateDefaultRequest() with { Claims = update ? [] : claims };
         var user = await client.CreateAsync(cancellationToken, request);
 

@@ -62,8 +62,9 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 
 ## Claim Catalogs
 
-`PANiXiDA.TacticalHeroes.Common` owns `Permissions.All`, `Sections.All`, and
-`CustomClaimTypes.Permission` / `CustomClaimTypes.Section`. Definitions live in
+`PANiXiDA.TacticalHeroes.Common` owns `Permissions.All` and `Sections.All`.
+Claim types come from `PANiXiDA.Core.Application.Authentication.ClaimTypes`
+(`Permission` / `Section`). Definitions live in
 `Authentication/Permissions` and `Authentication/Sections`, with each resource
 or section in its own file and subfolder. Common has no project dependencies.
 

@@ -1,7 +1,6 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
-
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 using SectionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Sections.Sections;
 
@@ -18,12 +17,12 @@ public sealed class ClaimCatalogValidator : AbstractValidator<Claim>
 
     private static bool IsKnownValue(string type, string value)
     {
-        if (string.Equals(type, CustomClaimTypes.Permission, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(type, ApplicationClaimTypes.Permission, StringComparison.OrdinalIgnoreCase))
         {
             return PermissionCatalog.All.Any(permission => permission.Code == value);
         }
 
-        if (string.Equals(type, CustomClaimTypes.Section, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(type, ApplicationClaimTypes.Section, StringComparison.OrdinalIgnoreCase))
         {
             return SectionCatalog.All.Any(section => section.Code == value);
         }

@@ -1,9 +1,9 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Claims.GetSections;
 
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 using SectionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Sections.Sections;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Claims.GetSections;
@@ -31,7 +31,7 @@ public sealed class GetSectionsEndpointTests(FunctionalTestFixture fixture) : Fu
 
         var catalog = await response.Content.ReadFromJsonAsync<GetSectionsResponse>(JsonOptions, cancellationToken);
         catalog.ShouldNotBeNull();
-        catalog.Type.ShouldBe(CustomClaimTypes.Section);
+        catalog.Type.ShouldBe(ApplicationClaimTypes.Section);
         catalog.Items.Count.ShouldBe(SectionCatalog.All.Count);
         foreach (var section in SectionCatalog.All)
         {

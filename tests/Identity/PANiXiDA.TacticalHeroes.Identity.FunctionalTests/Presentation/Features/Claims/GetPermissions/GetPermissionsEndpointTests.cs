@@ -1,9 +1,9 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Common.Authentication;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Claims.GetPermissions;
 
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Claims.GetPermissions;
@@ -23,7 +23,7 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
         using var document = JsonDocument.Parse(body);
         document.RootElement.EnumerateObject().Select(property => property.Name)
             .ShouldBe(["type", "items"], ignoreOrder: true);
-        document.RootElement.GetProperty("type").GetString().ShouldBe(CustomClaimTypes.Permission);
+        document.RootElement.GetProperty("type").GetString().ShouldBe(ApplicationClaimTypes.Permission);
         foreach (var item in document.RootElement.GetProperty("items").EnumerateArray())
         {
             item.EnumerateObject().Select(property => property.Name).ShouldBe(
@@ -35,7 +35,7 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
             JsonOptions,
             cancellationToken);
         permissions.ShouldNotBeNull();
-        permissions.Type.ShouldBe(CustomClaimTypes.Permission);
+        permissions.Type.ShouldBe(ApplicationClaimTypes.Permission);
         permissions.Items.Count.ShouldBe(PermissionCatalog.All.Count);
         foreach (var permission in PermissionCatalog.All)
         {
