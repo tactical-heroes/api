@@ -9,24 +9,18 @@ public static partial class Permissions
         public const string ResourceCode = "factions";
         public const string ResourceName = "Фракции";
 
-        public static readonly PermissionDefinition Create =
-            Define("create", "Создание фракций");
+        public static readonly PermissionDefinition Create;
+        public static readonly PermissionDefinition Read;
+        public static readonly PermissionDefinition Update;
+        public static readonly PermissionDefinition Delete;
 
-        public static readonly PermissionDefinition Read =
-            Define("read", "Просмотр фракций");
-
-        public static readonly PermissionDefinition Update =
-            Define("update", "Изменение фракций");
-
-        public static readonly PermissionDefinition Delete =
-            Define("delete", "Удаление фракций");
-
-        private static PermissionDefinition Define(string action, string displayName) =>
-            PermissionDefinition.Create(
+        static Factions()
+        {
+            (Create, Read, Update, Delete) = PermissionDefinition.CreateCrud(
                 sectionCode: SectionCatalog.Compendium.Code,
                 resourceCode: ResourceCode,
                 resourceDisplayName: ResourceName,
-                action: action,
-                displayName: displayName);
+                resourceGenitiveName: "фракций");
+        }
     }
 }

@@ -9,24 +9,18 @@ public static partial class Permissions
         public const string ResourceCode = "users";
         public const string ResourceName = "Пользователи";
 
-        public static readonly PermissionDefinition Create =
-            Define("create", "Создание пользователей");
+        public static readonly PermissionDefinition Create;
+        public static readonly PermissionDefinition Read;
+        public static readonly PermissionDefinition Update;
+        public static readonly PermissionDefinition Delete;
 
-        public static readonly PermissionDefinition Read =
-            Define("read", "Просмотр пользователей");
-
-        public static readonly PermissionDefinition Update =
-            Define("update", "Изменение пользователей");
-
-        public static readonly PermissionDefinition Delete =
-            Define("delete", "Удаление пользователей");
-
-        private static PermissionDefinition Define(string action, string displayName) =>
-            PermissionDefinition.Create(
+        static IdentityUsers()
+        {
+            (Create, Read, Update, Delete) = PermissionDefinition.CreateCrud(
                 sectionCode: SectionCatalog.Identity.Code,
                 resourceCode: ResourceCode,
                 resourceDisplayName: ResourceName,
-                action: action,
-                displayName: displayName);
+                resourceGenitiveName: "пользователей");
+        }
     }
 }
