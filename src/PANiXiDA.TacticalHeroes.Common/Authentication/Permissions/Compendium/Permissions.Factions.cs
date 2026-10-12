@@ -7,35 +7,18 @@ public static partial class Permissions
         public const string ResourceCode = "factions";
         public const string ResourceName = "Фракции";
 
-        private const string Prefix = $"{Sections.Compendium.Code}.{ResourceCode}";
+        public static readonly ResourceDefinition Resource = new(ResourceCode, ResourceName, Sections.Compendium.Code);
 
-        public static readonly ResourceDefinition Resource = new(
-            Code: ResourceCode,
-            DisplayName: ResourceName,
-            SectionCode: Sections.Compendium.Code);
+        public static readonly PermissionDefinition Create =
+            Resource.CreatePermission("create", "Создание фракций");
 
-        public static readonly PermissionDefinition Create = new(
-            Code: $"{Prefix}.create",
-            DisplayName: "Создание фракций",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Read =
+            Resource.CreatePermission("read", "Просмотр фракций");
 
-        public static readonly PermissionDefinition Read = new(
-            Code: $"{Prefix}.read",
-            DisplayName: "Просмотр фракций",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Update =
+            Resource.CreatePermission("update", "Изменение фракций");
 
-        public static readonly PermissionDefinition Update = new(
-            Code: $"{Prefix}.update",
-            DisplayName: "Изменение фракций",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
-
-        public static readonly PermissionDefinition Delete = new(
-            Code: $"{Prefix}.delete",
-            DisplayName: "Удаление фракций",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Delete =
+            Resource.CreatePermission("delete", "Удаление фракций");
     }
 }

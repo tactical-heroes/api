@@ -7,35 +7,18 @@ public static partial class Permissions
         public const string ResourceCode = "heroes";
         public const string ResourceName = "Герои";
 
-        private const string Prefix = $"{Sections.Compendium.Code}.{ResourceCode}";
+        public static readonly ResourceDefinition Resource = new(ResourceCode, ResourceName, Sections.Compendium.Code);
 
-        public static readonly ResourceDefinition Resource = new(
-            Code: ResourceCode,
-            DisplayName: ResourceName,
-            SectionCode: Sections.Compendium.Code);
+        public static readonly PermissionDefinition Create =
+            Resource.CreatePermission("create", "Создание героев");
 
-        public static readonly PermissionDefinition Create = new(
-            Code: $"{Prefix}.create",
-            DisplayName: "Создание героев",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Read =
+            Resource.CreatePermission("read", "Просмотр героев");
 
-        public static readonly PermissionDefinition Read = new(
-            Code: $"{Prefix}.read",
-            DisplayName: "Просмотр героев",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Update =
+            Resource.CreatePermission("update", "Изменение героев");
 
-        public static readonly PermissionDefinition Update = new(
-            Code: $"{Prefix}.update",
-            DisplayName: "Изменение героев",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
-
-        public static readonly PermissionDefinition Delete = new(
-            Code: $"{Prefix}.delete",
-            DisplayName: "Удаление героев",
-            SectionCode: Sections.Compendium.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Delete =
+            Resource.CreatePermission("delete", "Удаление героев");
     }
 }

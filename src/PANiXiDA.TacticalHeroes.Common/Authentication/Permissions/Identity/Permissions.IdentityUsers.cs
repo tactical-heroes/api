@@ -7,35 +7,18 @@ public static partial class Permissions
         public const string ResourceCode = "users";
         public const string ResourceName = "Пользователи";
 
-        private const string Prefix = $"{Sections.Identity.Code}.{ResourceCode}";
+        public static readonly ResourceDefinition Resource = new(ResourceCode, ResourceName, Sections.Identity.Code);
 
-        public static readonly ResourceDefinition Resource = new(
-            Code: ResourceCode,
-            DisplayName: ResourceName,
-            SectionCode: Sections.Identity.Code);
+        public static readonly PermissionDefinition Create =
+            Resource.CreatePermission("create", "Создание пользователей");
 
-        public static readonly PermissionDefinition Create = new(
-            Code: $"{Prefix}.create",
-            DisplayName: "Создание пользователей",
-            SectionCode: Sections.Identity.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Read =
+            Resource.CreatePermission("read", "Просмотр пользователей");
 
-        public static readonly PermissionDefinition Read = new(
-            Code: $"{Prefix}.read",
-            DisplayName: "Просмотр пользователей",
-            SectionCode: Sections.Identity.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Update =
+            Resource.CreatePermission("update", "Изменение пользователей");
 
-        public static readonly PermissionDefinition Update = new(
-            Code: $"{Prefix}.update",
-            DisplayName: "Изменение пользователей",
-            SectionCode: Sections.Identity.Code,
-            ResourceCode: ResourceCode);
-
-        public static readonly PermissionDefinition Delete = new(
-            Code: $"{Prefix}.delete",
-            DisplayName: "Удаление пользователей",
-            SectionCode: Sections.Identity.Code,
-            ResourceCode: ResourceCode);
+        public static readonly PermissionDefinition Delete =
+            Resource.CreatePermission("delete", "Удаление пользователей");
     }
 }
