@@ -4,24 +4,38 @@ public static partial class Permissions
 {
     public static class Heroes
     {
+        public const string ResourceCode = "heroes";
+        public const string ResourceName = "Герои";
+
+        private const string Prefix = $"{Sections.Compendium.Code}.{ResourceCode}";
+
+        public static readonly ResourceDefinition Resource = new(
+            Code: ResourceCode,
+            DisplayName: ResourceName,
+            SectionCode: Sections.Compendium.Code);
+
         public static readonly PermissionDefinition Create = new(
-            Code: "compendium.heroes.create",
+            Code: $"{Prefix}.create",
             DisplayName: "Создание героев",
-            Group: "Справочники / Герои");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Read = new(
-            Code: "compendium.heroes.read",
+            Code: $"{Prefix}.read",
             DisplayName: "Просмотр героев",
-            Group: "Справочники / Герои");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Update = new(
-            Code: "compendium.heroes.update",
+            Code: $"{Prefix}.update",
             DisplayName: "Изменение героев",
-            Group: "Справочники / Герои");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Delete = new(
-            Code: "compendium.heroes.delete",
+            Code: $"{Prefix}.delete",
             DisplayName: "Удаление героев",
-            Group: "Справочники / Герои");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
     }
 }

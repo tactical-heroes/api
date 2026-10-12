@@ -1,3 +1,6 @@
+using System.Text.Json;
+
+using PANiXiDA.TacticalHeroes.Common.Authentication;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Permissions.GetList;
 
@@ -17,6 +20,14 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK, body);
+        using var document = JsonDocument.Parse(body);
+        foreach (var item in document.RootElement.EnumerateArray())
+        {
+            item.EnumerateObject().Select(property => property.Name).ShouldBe(
+                ["code", "displayName", "sectionCode", "sectionDisplayName", "resourceCode", "resourceDisplayName"],
+                ignoreOrder: true);
+        }
+
         var permissions = await response.Content.ReadFromJsonAsync<PermissionResponse[]>(
             JsonOptions,
             cancellationToken);
@@ -26,7 +37,15 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
         {
             var item = permissions.Single(item => item.Code == permission.Code);
             item.DisplayName.ShouldBe(permission.DisplayName);
-            item.Group.ShouldBe(permission.Group);
+            item.SectionCode.ShouldBe(permission.SectionCode);
+            item.SectionDisplayName.ShouldBe(Sections.All
+                .Single(section => section.Code == permission.SectionCode)
+                .DisplayName);
+            item.ResourceCode.ShouldBe(permission.ResourceCode);
+            item.ResourceDisplayName.ShouldBe(PermissionCatalog.Resources
+                .Single(resource =>
+                    resource.SectionCode == permission.SectionCode && resource.Code == permission.ResourceCode)
+                .DisplayName);
         }
     }
 

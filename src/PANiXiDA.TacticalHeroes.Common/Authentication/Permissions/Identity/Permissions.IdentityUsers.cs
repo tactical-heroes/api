@@ -4,24 +4,38 @@ public static partial class Permissions
 {
     public static class IdentityUsers
     {
+        public const string ResourceCode = "users";
+        public const string ResourceName = "Пользователи";
+
+        private const string Prefix = $"{Sections.Identity.Code}.{ResourceCode}";
+
+        public static readonly ResourceDefinition Resource = new(
+            Code: ResourceCode,
+            DisplayName: ResourceName,
+            SectionCode: Sections.Identity.Code);
+
         public static readonly PermissionDefinition Create = new(
-            Code: "identity.users.create",
+            Code: $"{Prefix}.create",
             DisplayName: "Создание пользователей",
-            Group: "Пользователи");
+            SectionCode: Sections.Identity.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Read = new(
-            Code: "identity.users.read",
+            Code: $"{Prefix}.read",
             DisplayName: "Просмотр пользователей",
-            Group: "Пользователи");
+            SectionCode: Sections.Identity.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Update = new(
-            Code: "identity.users.update",
+            Code: $"{Prefix}.update",
             DisplayName: "Изменение пользователей",
-            Group: "Пользователи");
+            SectionCode: Sections.Identity.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Delete = new(
-            Code: "identity.users.delete",
+            Code: $"{Prefix}.delete",
             DisplayName: "Удаление пользователей",
-            Group: "Пользователи");
+            SectionCode: Sections.Identity.Code,
+            ResourceCode: ResourceCode);
     }
 }

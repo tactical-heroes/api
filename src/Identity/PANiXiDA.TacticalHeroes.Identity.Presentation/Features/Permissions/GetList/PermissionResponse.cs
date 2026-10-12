@@ -3,4 +3,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Permissions.Get
 public sealed record PermissionResponse(
     string Code,
     string DisplayName,
-    string Group);
+    string SectionCode,
+    string SectionDisplayName,
+    string ResourceCode,
+    string ResourceDisplayName);

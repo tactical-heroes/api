@@ -63,10 +63,16 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 ## Permission Catalog
 
 `PANiXiDA.TacticalHeroes.Common` owns the shared permission definitions.
-Each definition contains a stable `Code`, a Russian `DisplayName`, and a
-`Group` for the admin UI. Definitions are grouped by resource under
-`Authentication/Permissions`; `Permissions.All` exposes the complete read-only
-catalog. Common has no project dependencies.
+Each definition contains a stable `Code`, a Russian `DisplayName`, a
+`SectionCode`, and a `ResourceCode` for the admin UI. Definitions are organized
+by resource under `Authentication/Permissions`; `Permissions.All` exposes the
+complete read-only catalog. Common has no project dependencies.
+
+`Sections.All` defines the UI sections (Identity and Compendium), and
+`Permissions.Resources` defines their resources (users, roles, factions, heroes,
+and units). Section codes and display names are declared once in `Sections`;
+resource codes and names are declared once in their permission classes.
+Permission codes are composed from the shared section and resource constants.
 
 Application handlers can use the shared codes with Core authorization:
 
@@ -76,8 +82,15 @@ public static IReadOnlyCollection<string> AllPermissions =>
 ```
 
 The authenticated `GET /api/v1/permissions` endpoint returns the catalog as
-`code`, `displayName`, and `group` objects. Admin clients should display the
-metadata and use codes as selection values, without maintaining another catalog.
+`code`, `displayName`, `sectionCode`, `sectionDisplayName`, `resourceCode`, and
+`resourceDisplayName` objects. These fields replace the previous `group` field.
+Admin clients should display the metadata and use codes as selection values,
+without maintaining another catalog.
+
+A section is visible in the UI when the user's effective permissions include
+at least one permission from that section. Clients should intersect the user's
+granted codes with this catalog and group matches by section, then resource.
+Section visibility is UI metadata; it does not grant access to API operations.
 
 The initial catalog covers users, roles, factions, heroes, and units. Create,
 read, update, and delete permissions are independent; update covers user blocking

@@ -4,24 +4,38 @@ public static partial class Permissions
 {
     public static class Factions
     {
+        public const string ResourceCode = "factions";
+        public const string ResourceName = "Фракции";
+
+        private const string Prefix = $"{Sections.Compendium.Code}.{ResourceCode}";
+
+        public static readonly ResourceDefinition Resource = new(
+            Code: ResourceCode,
+            DisplayName: ResourceName,
+            SectionCode: Sections.Compendium.Code);
+
         public static readonly PermissionDefinition Create = new(
-            Code: "compendium.factions.create",
+            Code: $"{Prefix}.create",
             DisplayName: "Создание фракций",
-            Group: "Справочники / Фракции");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Read = new(
-            Code: "compendium.factions.read",
+            Code: $"{Prefix}.read",
             DisplayName: "Просмотр фракций",
-            Group: "Справочники / Фракции");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Update = new(
-            Code: "compendium.factions.update",
+            Code: $"{Prefix}.update",
             DisplayName: "Изменение фракций",
-            Group: "Справочники / Фракции");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Delete = new(
-            Code: "compendium.factions.delete",
+            Code: $"{Prefix}.delete",
             DisplayName: "Удаление фракций",
-            Group: "Справочники / Фракции");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
     }
 }

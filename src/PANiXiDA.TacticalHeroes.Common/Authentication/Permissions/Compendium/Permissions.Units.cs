@@ -4,24 +4,38 @@ public static partial class Permissions
 {
     public static class Units
     {
+        public const string ResourceCode = "units";
+        public const string ResourceName = "Юниты";
+
+        private const string Prefix = $"{Sections.Compendium.Code}.{ResourceCode}";
+
+        public static readonly ResourceDefinition Resource = new(
+            Code: ResourceCode,
+            DisplayName: ResourceName,
+            SectionCode: Sections.Compendium.Code);
+
         public static readonly PermissionDefinition Create = new(
-            Code: "compendium.units.create",
+            Code: $"{Prefix}.create",
             DisplayName: "Создание юнитов",
-            Group: "Справочники / Юниты");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Read = new(
-            Code: "compendium.units.read",
+            Code: $"{Prefix}.read",
             DisplayName: "Просмотр юнитов",
-            Group: "Справочники / Юниты");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Update = new(
-            Code: "compendium.units.update",
+            Code: $"{Prefix}.update",
             DisplayName: "Изменение юнитов",
-            Group: "Справочники / Юниты");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
 
         public static readonly PermissionDefinition Delete = new(
-            Code: "compendium.units.delete",
+            Code: $"{Prefix}.delete",
             DisplayName: "Удаление юнитов",
-            Group: "Справочники / Юниты");
+            SectionCode: Sections.Compendium.Code,
+            ResourceCode: ResourceCode);
     }
 }
