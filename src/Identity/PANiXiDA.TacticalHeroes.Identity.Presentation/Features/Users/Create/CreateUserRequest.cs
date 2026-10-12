@@ -8,4 +8,5 @@ public sealed record CreateUserRequest(
     string Password,
     bool IsConfirmed,
     IReadOnlyCollection<Claim> Claims,
-    string Status);
+    string Status,
+    IReadOnlyCollection<Guid>? RoleIds = null);

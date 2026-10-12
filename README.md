@@ -79,6 +79,20 @@ is separate work. Existing assignments need explicit section grants for UI visib
 The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
 Frontend adaptation is separate; no database migration is required.
 
+## User Roles
+
+Identity seeds `developer`, `moderator`, and `player` at startup using the existing
+lowercase role-name convention. Seeding preserves existing role IDs and claims;
+new roles have no permission/section claims. Public registration assigns Developer.
+Existing users are not reassigned automatically.
+
+User create/update requests accept optional `roleIds` (GUID array); get-details
+returns the selected IDs. On update, an omitted/null field preserves roles and `[]`
+clears them. On administrative creation, omitted/null means no roles. Empty GUIDs,
+duplicates, and unknown role IDs are rejected before persistence. Use the existing
+roles list endpoint to populate selection options. Role changes rotate the security
+stamp and revoke the user's tokens. No database migration or new configuration is required.
+
 ## Request Validation
 
 Request DTO constructors and nullable annotations define the JSON contract and

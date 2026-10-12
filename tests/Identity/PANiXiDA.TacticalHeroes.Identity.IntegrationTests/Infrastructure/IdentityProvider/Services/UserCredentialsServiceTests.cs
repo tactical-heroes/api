@@ -8,10 +8,12 @@ using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -32,6 +34,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
+        await scope.ServiceProvider.GetRequiredService<IdentityRoleSeeder>().SeedAsync(cancellationToken);
+
         var result = await service.RegisterAsync(
             " REGISTER@Example.COM ",
             " registered-hero ",
@@ -44,6 +48,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.Email.ShouldBe("register@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
+        (await userManager.GetRolesAsync(user)).ShouldBe([RoleNames.Developer]);
 
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
         var trackedUser = aggregateTracker.GetAll()
@@ -82,6 +87,32 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         (await userManager.Users.AnyAsync(cancellationToken)).ShouldBeFalse();
         aggregateTracker.GetAll().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Registration should reject invalid default role configuration when default role is invalid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RegisterAsync_Should_RejectInvalidDefaultRole_When_DefaultRoleIsInvalid(bool emptyRoleId)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        if (emptyRoleId)
+        {
+            dbContext.Set<ApplicationRole>().Add(new ApplicationRole
+            {
+                Id = Guid.Empty,
+                Name = RoleNames.Developer,
+                NormalizedName = RoleNames.Developer.ToUpperInvariant()
+            });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.RegisterAsync("hero@example.com", "hero", Password, cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        (await dbContext.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeFalse();
     }
 
     [Fact(DisplayName = "LoginAsync should load user and all claims in one read query when credentials are valid")]

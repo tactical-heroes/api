@@ -22,6 +22,7 @@
         <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
         <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Presentation\PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
+        <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Infrastructure\PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Presentation\PANiXiDA.TacticalHeroes.Identity.Presentation.csproj" />

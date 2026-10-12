@@ -33,6 +33,9 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
             })
             .SetValidator(new ClaimCatalogValidator());
 
+        RuleFor(command => command.RoleIds)
+            .MustBeValidDomainValue(UserRoleAssignments.Create);
+
         RuleFor(command => command.Status)
             .MustBeValidDomainValue(UserStatus.Create);
     }

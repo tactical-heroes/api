@@ -34,5 +34,6 @@ public sealed class RegisterUserEndpointTests(FunctionalTestFixture fixture)
         user.Email.ShouldBe("registered@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
+        user.Roles.ShouldHaveSingleItem().Role!.Name.ShouldBe("developer");
     }
 }

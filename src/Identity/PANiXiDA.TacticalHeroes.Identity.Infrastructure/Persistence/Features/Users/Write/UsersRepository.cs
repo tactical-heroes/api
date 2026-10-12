@@ -6,6 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
@@ -25,6 +26,12 @@ public sealed class UsersRepository(
         string password,
         CancellationToken cancellationToken)
     {
+        var rolesResult = await ValidateRolesAsync(user, cancellationToken);
+        if (rolesResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: rolesResult.Errors);
+        }
+
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,
@@ -45,7 +52,8 @@ public sealed class UsersRepository(
 
     public async Task<Result> UpdateAsync(
         User user,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool replaceRoles = true)
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
@@ -56,6 +64,16 @@ public sealed class UsersRepository(
             return UserNotFound();
         }
 
+        if (replaceRoles)
+        {
+            var rolesResult = await ValidateRolesAsync(user, cancellationToken);
+            if (rolesResult.IsFailure)
+            {
+                return rolesResult;
+            }
+        }
+
+        var rolesChanged = replaceRoles && SyncRoles(applicationUser, user);
         ApplicationUserMapper.MapToDbModel(
             user: user,
             dbModel: applicationUser,
@@ -64,12 +82,14 @@ public sealed class UsersRepository(
             applicationUser: applicationUser,
             user: user);
 
-        if (user.Status.IsBlocked)
+        if (user.Status.IsBlocked || rolesChanged)
         {
             await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
         }
 
-        var identityResult = await userManager.UpdateAsync(applicationUser);
+        var identityResult = rolesChanged
+            ? await userManager.UpdateSecurityStampAsync(applicationUser)
+            : await userManager.UpdateAsync(applicationUser);
 
         if (!identityResult.Succeeded)
         {
@@ -162,6 +182,46 @@ public sealed class UsersRepository(
         CancellationToken cancellationToken)
     {
         await tokenManager.RevokeBySubjectAsync(id.ToString(), cancellationToken);
+    }
+
+    private async Task<Result> ValidateRolesAsync(User user, CancellationToken cancellationToken)
+    {
+        var roleIds = user.RoleIds.Select(roleId => roleId.Value).ToArray();
+        if (roleIds.Length == 0)
+        {
+            return Result.Success();
+        }
+
+        var count = await dbContext.Set<ApplicationRole>()
+            .CountAsync(role => roleIds.Contains(role.Id), cancellationToken);
+        if (count != roleIds.Length)
+        {
+            return Result.Failure(error: Error.Validation(message: "One or more roles were not found.")
+                .WithField(nameof(User.RoleIds)));
+        }
+
+        return Result.Success();
+    }
+
+    private bool SyncRoles(ApplicationUser applicationUser, User user)
+    {
+        var roleIds = user.RoleIds.Select(roleId => roleId.Value).ToHashSet();
+        if (roleIds.SetEquals(applicationUser.Roles.Select(role => role.RoleId)))
+        {
+            return false;
+        }
+
+        foreach (var currentRole in applicationUser.Roles.Where(role => !roleIds.Contains(role.RoleId)).ToArray())
+        {
+            dbContext.Set<ApplicationUserRole>().Remove(currentRole);
+        }
+
+        foreach (var roleId in roleIds.Where(id => applicationUser.Roles.All(role => role.RoleId != id)))
+        {
+            applicationUser.Roles.Add(new ApplicationUserRole { UserId = applicationUser.Id, RoleId = roleId });
+        }
+
+        return true;
     }
 
     private void SyncClaims(

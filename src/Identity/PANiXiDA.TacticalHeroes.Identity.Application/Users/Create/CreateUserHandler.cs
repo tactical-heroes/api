@@ -17,7 +17,8 @@ public sealed class CreateUserHandler(IUsersRepository usersRepository)
         var emailResult = Email.Create(value: command.Email);
         var userNameResult = UserName.Create(value: command.UserName);
         var statusResult = UserStatus.Create(value: command.Status);
-        var validationResult = Result.Combine(emailResult, userNameResult, statusResult);
+        var roleIdsResult = UserRoleAssignments.Create(command.RoleIds);
+        var validationResult = Result.Combine(emailResult, userNameResult, statusResult, roleIdsResult);
 
         if (validationResult.IsFailure)
         {
@@ -46,7 +47,7 @@ public sealed class CreateUserHandler(IUsersRepository usersRepository)
             userName: userNameResult.Value,
             status: statusResult.Value,
             confirmationStatus: UserConfirmationStatus.From(isConfirmed: command.IsConfirmed),
-            roleIds: [],
+            roleIds: roleIdsResult.Value,
             claims: claims);
 
         return usersRepository.AddAsync(

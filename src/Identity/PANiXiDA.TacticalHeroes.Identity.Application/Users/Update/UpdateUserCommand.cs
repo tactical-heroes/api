@@ -8,4 +8,5 @@ public sealed record UpdateUserCommand(
     string UserName,
     bool IsConfirmed,
     IReadOnlyCollection<Claim> Claims,
-    string Status) : ICommand<Result>;
+    string Status,
+    IReadOnlyCollection<Guid>? RoleIds = null) : ICommand<Result>;

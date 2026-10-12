@@ -13,6 +13,8 @@ public sealed record UserDetailsReadModel(
     string StatusDisplayName,
     IReadOnlyCollection<Claim> Claims) : IReadModel
 {
+    public IReadOnlyCollection<Guid> RoleIds { get; init; } = [];
+
     public bool IsBlocked => string.Equals(
         Status,
         UserStatus.Blocked.Name,
