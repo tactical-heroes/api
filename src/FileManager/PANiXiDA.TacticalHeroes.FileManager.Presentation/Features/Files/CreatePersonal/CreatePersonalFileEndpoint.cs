@@ -1,8 +1,4 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Http;
-
-using OpenIddict.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonal;
 
@@ -24,22 +20,14 @@ internal sealed class CreatePersonalFileEndpoint : IEndpoint<FilesEndpoints>
 
     private static async Task<IResult> HandleAsync(
         [AsParameters] CreatePersonalFileRequest request,
-        ClaimsPrincipal user,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var subject = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
-        if (!Guid.TryParse(subject, out var userId) || userId == Guid.Empty)
-        {
-            return TypedResults.Unauthorized();
-        }
-
         await using var content = request.File.OpenReadStream();
         var result = await mediator.SendAsync(
             CreatePersonalFileMapper.ToCommand(
                 request: request,
-                content: content,
-                userId: userId),
+                content: content),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: id =>

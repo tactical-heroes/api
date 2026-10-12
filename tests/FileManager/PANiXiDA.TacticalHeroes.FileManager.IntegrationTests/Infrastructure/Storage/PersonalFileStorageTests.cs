@@ -4,6 +4,9 @@ using Amazon.S3.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using NSubstitute;
+
+using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
@@ -26,10 +29,11 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
         await unitOfWork.BeginTransactionAsync(cancellationToken);
         await using var content = new MemoryStream([1, 2, 3, 4]);
+        var userId = Guid.NewGuid();
         var command = new CreatePersonalFileCommand(
-            "file.bin", "application/octet-stream", content.Length, content, Guid.NewGuid(), FolderId: null);
+            "file.bin", "application/octet-stream", content.Length, content, FolderId: null);
 
-        var result = await CreateHandler(scope.ServiceProvider).HandleAsync(command, cancellationToken);
+        var result = await CreateHandler(scope.ServiceProvider, userId).HandleAsync(command, cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         unitOfWork.HasActiveTransaction.ShouldBeFalse();
@@ -37,6 +41,7 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         var db = verification.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
         var file = await db.Set<FileReadDbModel>().SingleAsync(cancellationToken);
         file.Id.ShouldBe(result.Value);
+        file.UserId.ShouldBe(userId);
         file.Status.ShouldBe("Ready");
         file.Size.ShouldBe(content.Length);
         var storage = verification.ServiceProvider.GetRequiredService<IFileStorage>();
@@ -51,27 +56,31 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         using var s3 = Fixture.Storage.CreateClient();
-        await s3.DeleteBucketAsync(new DeleteBucketRequest { BucketName = S3TestStorage.BucketName }, cancellationToken);
+        await s3.DeleteBucketAsync(
+            new DeleteBucketRequest { BucketName = S3TestStorage.BucketName },
+            cancellationToken);
 
         try
         {
             await using var scope = Fixture.CreateScope();
-            var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+            var unitOfWork = scope.ServiceProvider
+                .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
             await unitOfWork.BeginTransactionAsync(cancellationToken);
             await using var content = new MemoryStream([1]);
+            var userId = Guid.NewGuid();
             var command = new CreatePersonalFileCommand(
-                "file.bin", "application/octet-stream", content.Length, content, Guid.NewGuid(), FolderId: null);
+                "file.bin", "application/octet-stream", content.Length, content, FolderId: null);
 
             await Should.ThrowAsync<AmazonS3Exception>(() =>
-                CreateHandler(scope.ServiceProvider).HandleAsync(command, cancellationToken));
+                CreateHandler(scope.ServiceProvider, userId).HandleAsync(command, cancellationToken));
             await unitOfWork.RollbackTransactionAsync(cancellationToken);
 
             await using var verification = Fixture.CreateScope();
             var db = verification.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
             var pending = await db.Set<FileReadDbModel>().SingleAsync(cancellationToken);
             pending.Status.ShouldBe("PendingUpload");
-            pending.UserId.ShouldBe(command.UserId);
-            pending.StorageKey.ShouldBe($"personal/{command.UserId:D}/{pending.Id:D}");
+            pending.UserId.ShouldBe(userId);
+            pending.StorageKey.ShouldBe($"personal/{userId:D}/{pending.Id:D}");
             pending.Size.ShouldBeNull();
             pending.ContentType.ShouldBeNull();
         }
@@ -81,12 +90,17 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         }
     }
 
-    private static CreatePersonalFileHandler CreateHandler(IServiceProvider services)
+    private static CreatePersonalFileHandler CreateHandler(IServiceProvider services, Guid userId)
     {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.IsAuthenticated.Returns(true);
+        currentUser.UserId.Returns(userId);
+
         return new CreatePersonalFileHandler(
             services.GetRequiredService<IFilesRepository>(),
             services.GetRequiredService<IFoldersRepository>(),
             services.GetRequiredService<IFileStorage>(),
-            services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)));
+            services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
+            currentUser);
     }
 }

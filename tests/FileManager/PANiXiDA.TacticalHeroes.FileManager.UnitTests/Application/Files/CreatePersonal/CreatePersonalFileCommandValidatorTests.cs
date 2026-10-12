@@ -9,14 +9,13 @@ public sealed class CreatePersonalFileCommandValidatorTests
     {
         var validator = new CreatePersonalFileCommandValidator();
         var command = new CreatePersonalFileCommand(
-            "../file.txt", "text/*", 0, Stream.Null, Guid.Empty, Guid.Empty);
+            "../file.txt", "text/*", 0, Stream.Null, Guid.Empty);
 
         var result = validator.Validate(command);
 
         result.Errors.Select(error => error.PropertyName).ShouldContain(nameof(command.Name));
         result.Errors.Select(error => error.PropertyName).ShouldContain(nameof(command.ContentType));
         result.Errors.Select(error => error.PropertyName).ShouldContain(nameof(command.Size));
-        result.Errors.Select(error => error.PropertyName).ShouldContain(nameof(command.UserId));
         result.Errors.Select(error => error.PropertyName).ShouldContain(nameof(command.FolderId));
     }
 
@@ -27,7 +26,10 @@ public sealed class CreatePersonalFileCommandValidatorTests
     {
         using var content = new MemoryStream([1]);
         var command = new CreatePersonalFileCommand(
-            "file.txt", "text/plain", content.Length, content, Guid.NewGuid(),
+            "file.txt",
+            "text/plain",
+            content.Length,
+            content,
             hasFolder ? Guid.NewGuid() : null);
 
         var result = new CreatePersonalFileCommandValidator().Validate(command);
@@ -39,7 +41,7 @@ public sealed class CreatePersonalFileCommandValidatorTests
     public void Validate_Should_ReturnContentError_When_StreamIsMissing()
     {
         var command = new CreatePersonalFileCommand(
-            "file.txt", "text/plain", 1, null!, Guid.NewGuid(), FolderId: null);
+            "file.txt", "text/plain", 1, null!, FolderId: null);
 
         var result = new CreatePersonalFileCommandValidator().Validate(command);
 

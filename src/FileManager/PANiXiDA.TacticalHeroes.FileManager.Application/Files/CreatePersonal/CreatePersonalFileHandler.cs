@@ -1,3 +1,4 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
@@ -15,22 +16,26 @@ public sealed class CreatePersonalFileHandler(
     IFilesRepository filesRepository,
     IFoldersRepository foldersRepository,
     IFileStorage fileStorage,
-    IUnitOfWork unitOfWork)
-    : ICommandHandler<CreatePersonalFileCommand, Result<Guid>>
+    IUnitOfWork unitOfWork,
+    ICurrentUser currentUser)
+    : ICommandHandler<CreatePersonalFileCommand, Result<Guid>>, IRequireAuthorization
 {
     public async Task<Result<Guid>> HandleAsync(
         CreatePersonalFileCommand command,
         CancellationToken cancellationToken)
     {
+        if (currentUser.UserId is not { } userId || userId == Guid.Empty)
+        {
+            return Result.Failure<Guid>(Error.Unauthorized("A user account is required."));
+        }
+
         var nameResult = FileName.Create(command.Name);
         var contentTypeResult = FileContentType.Create(command.ContentType);
         var sizeResult = FileSize.Create(command.Size);
-        var userIdResult = UserId.Create(command.UserId);
         var validationResult = Result.Combine(
             nameResult,
             contentTypeResult,
-            sizeResult,
-            userIdResult);
+            sizeResult);
 
         if (validationResult.IsFailure)
         {
@@ -45,7 +50,7 @@ public sealed class CreatePersonalFileHandler(
         var file = File.Create(
             name: nameResult.Value,
             type: FileType.Personal,
-            userId: userIdResult.Value).Value;
+            userId: UserId.Create(userId).Value).Value;
 
         if (command.FolderId is { } folderId)
         {

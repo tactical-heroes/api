@@ -24,7 +24,8 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
 {
     private const string Route = "/api/v1/files/personal";
 
-    [Theory(DisplayName = "Create personal file endpoint should persist metadata and upload bytes when request is valid")]
+    [Theory(
+        DisplayName = "Create personal file endpoint should persist metadata and upload bytes when request is valid")]
     [InlineData(32, false)]
     [InlineData(32, true)]
     [InlineData(17 * 1024 * 1024, false)]
@@ -35,12 +36,16 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         Guid? folderId = hasFolder ? await CreateFolderAsync(userId) : null;
         var bytes = new byte[size];
         Random.Shared.NextBytes(bytes);
-        using var request = CreateRequest(userId.ToString(), bytes, "file.bin", "application/octet-stream", folderId);
-        ((MultipartFormDataContent)request.Content!).Add(new StringContent(Guid.NewGuid().ToString()), "UserId");
+        using var response = await SendRequestAsync(
+            userId.ToString(),
+            bytes,
+            "file.bin",
+            "application/octet-stream",
+            folderId,
+            suppliedUserId: Guid.NewGuid());
 
-        using var response = await Fixture.Client.SendAsync(request, cancellationToken);
-
-        response.StatusCode.ShouldBe(HttpStatusCode.Created, await response.Content.ReadAsStringAsync(cancellationToken));
+        response.StatusCode
+            .ShouldBe(HttpStatusCode.Created, await response.Content.ReadAsStringAsync(cancellationToken));
         var body = await response.Content.ReadFromJsonAsync<CreatePersonalFileResponse>(cancellationToken);
         body.ShouldNotBeNull();
         await using var scope = Fixture.CreateScope();
@@ -62,11 +67,13 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         downloadedHash.ShouldBe(SHA256.HashData(bytes));
 
         using var s3 = Fixture.Storage.CreateClient();
-        var metadata = await s3.GetObjectMetadataAsync(new GetObjectMetadataRequest
-        {
-            BucketName = S3TestStorage.BucketName,
-            Key = $"{S3TestStorage.KeyPrefix}/{file.StorageKey}"
-        }, cancellationToken);
+        var metadata = await s3.GetObjectMetadataAsync(
+            new GetObjectMetadataRequest
+            {
+                BucketName = S3TestStorage.BucketName,
+                Key = $"{S3TestStorage.KeyPrefix}/{file.StorageKey}"
+            },
+            cancellationToken);
         metadata.ContentLength.ShouldBe(size);
         metadata.Headers.ContentType.ShouldBe(file.ContentType);
     }
@@ -77,9 +84,8 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
     [InlineData("00000000-0000-0000-0000-000000000000")]
     public async Task HandleAsync_Should_ReturnUnauthorized_When_SubjectIsUnavailable(string? subject)
     {
-        using var request = CreateRequest(subject, [1], "file.bin", "application/octet-stream", folderId: null);
-
-        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+        using var response = await SendRequestAsync(
+            subject, [1], "file.bin", "application/octet-stream", folderId: null, suppliedUserId: null);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         await AssertNoFilesAsync();
@@ -91,9 +97,8 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
     [InlineData("file.txt", "text/plain", 0)]
     public async Task HandleAsync_Should_ReturnBadRequest_When_FileIsInvalid(string name, string contentType, int size)
     {
-        using var request = CreateRequest(Guid.NewGuid().ToString(), new byte[size], name, contentType, folderId: null);
-
-        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+        using var response = await SendRequestAsync(
+            Guid.NewGuid().ToString(), new byte[size], name, contentType, folderId: null, suppliedUserId: null);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         await AssertNoFilesAsync();
@@ -103,10 +108,11 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
     public async Task HandleAsync_Should_ReturnBadRequest_When_FileIsMissing()
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, Route);
+        using var name = new StringContent("ignored");
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, Guid.NewGuid().ToString());
         request.Content = new MultipartFormDataContent
         {
-            { new StringContent("ignored"), "Name" }
+            { name, "Name" }
         };
 
         using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
@@ -129,37 +135,49 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
             "empty" => Guid.Empty,
             _ => Guid.NewGuid()
         };
-        using var request = CreateRequest(Guid.NewGuid().ToString(), [1], "file.bin", "application/octet-stream", folderId);
-
-        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+        using var response = await SendRequestAsync(
+            Guid.NewGuid().ToString(),
+            [1],
+            "file.bin",
+            "application/octet-stream",
+            folderId,
+            suppliedUserId: null);
 
         response.StatusCode.ShouldBe(folderKind == "empty" ? HttpStatusCode.BadRequest : HttpStatusCode.NotFound);
         await AssertNoFilesAsync();
     }
 
-    private static HttpRequestMessage CreateRequest(
+    private async Task<HttpResponseMessage> SendRequestAsync(
         string? subject,
         byte[] bytes,
         string name,
         string contentType,
-        Guid? folderId)
+        Guid? folderId,
+        Guid? suppliedUserId)
     {
-        var multipart = new MultipartFormDataContent();
-        var file = new ByteArrayContent(bytes);
+        using var multipart = new MultipartFormDataContent();
+        using var file = new ByteArrayContent(bytes);
         file.Headers.TryAddWithoutValidation("Content-Type", contentType);
         multipart.Add(file, "File", name);
-        if (folderId is { } id)
+        using var folder = folderId is { } id ? new StringContent(id.ToString()) : null;
+        if (folder is not null)
         {
-            multipart.Add(new StringContent(id.ToString()), "FolderId");
+            multipart.Add(folder, "FolderId");
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Post, Route) { Content = multipart };
+        using var userId = suppliedUserId is { } ownerId ? new StringContent(ownerId.ToString()) : null;
+        if (userId is not null)
+        {
+            multipart.Add(userId, "UserId");
+        }
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, Route) { Content = multipart };
         if (subject is not null)
         {
             request.Headers.Add(TestAuthenticationHandler.UserIdHeader, subject);
         }
 
-        return request;
+        return await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
     }
 
     private async Task<Guid> CreateFolderAsync(Guid? userId)

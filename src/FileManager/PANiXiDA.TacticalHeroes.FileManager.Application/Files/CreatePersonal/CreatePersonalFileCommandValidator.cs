@@ -1,6 +1,5 @@
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
 
@@ -16,9 +15,6 @@ public sealed class CreatePersonalFileCommandValidator : AbstractValidator<Creat
 
         RuleFor(command => command.Size)
             .MustBeValidDomainValue(FileSize.Create);
-
-        RuleFor(command => command.UserId)
-            .MustBeValidDomainValue(UserId.Create);
 
         RuleFor(command => command.FolderId)
             .MustBeValidDomainValue(value => FolderId.Create(value.GetValueOrDefault()))

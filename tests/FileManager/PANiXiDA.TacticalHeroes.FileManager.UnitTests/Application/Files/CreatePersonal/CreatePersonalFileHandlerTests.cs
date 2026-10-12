@@ -1,5 +1,6 @@
 using NSubstitute.ExceptionExtensions;
 
+using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 
@@ -22,8 +23,16 @@ public sealed class CreatePersonalFileHandlerTests
     private readonly IFoldersRepository _folders = Substitute.For<IFoldersRepository>();
     private readonly IFileStorage _storage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly ICurrentUser _currentUser = Substitute.For<ICurrentUser>();
+    private readonly Guid _userId = Guid.NewGuid();
 
-    [Theory(DisplayName = "Create personal file handler should commit pending upload before storing content when command is valid")]
+    public CreatePersonalFileHandlerTests()
+    {
+        _currentUser.IsAuthenticated.Returns(true);
+        _currentUser.UserId.Returns(_userId);
+    }
+
+    [Theory(DisplayName = "Personal file upload should commit pending metadata before uploading content")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task HandleAsync_Should_CommitPendingThenUploadThenSaveReady_When_CommandIsValid(bool hasFolder)
@@ -33,7 +42,7 @@ public sealed class CreatePersonalFileHandlerTests
         var folder = Folder.Create(
             FolderName.Create("Documents").Value,
             FileType.Personal,
-            UserId.Create(command.UserId).Value).Value;
+            UserId.Create(_userId).Value).Value;
         if (hasFolder)
         {
             command = command with { FolderId = folder.Id.Value };
@@ -62,9 +71,9 @@ public sealed class CreatePersonalFileHandlerTests
         {
             var file = call.Arg<File>();
             file.Status.ShouldBe(FileStatus.Ready);
-            file.UserId.ShouldBe(UserId.Create(command.UserId).Value);
+            file.UserId.ShouldBe(UserId.Create(_userId).Value);
             file.FolderId.ShouldBe(hasFolder ? folder.Id : null);
-            file.StorageKey.Value.ShouldBe($"personal/{command.UserId:D}/{file.Id.Value:D}");
+            file.StorageKey.Value.ShouldBe($"personal/{_userId:D}/{file.Id.Value:D}");
             file.Size!.Value.ShouldBe(content.Length);
             steps.Add("ready");
             return Task.CompletedTask;
@@ -77,7 +86,7 @@ public sealed class CreatePersonalFileHandlerTests
         content.CanRead.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Create personal file handler should reject the folder without uploading when folder is unavailable")]
+    [Theory(DisplayName = "Personal file upload should reject an unavailable folder without uploading")]
     [InlineData("missing")]
     [InlineData("foreign")]
     [InlineData("avatar")]
@@ -100,7 +109,8 @@ public sealed class CreatePersonalFileHandlerTests
         result.IsFailure.ShouldBeTrue();
         result.Errors.Single().Message.ShouldBe("Folder was not found.");
         await _files.DidNotReceiveWithAnyArgs().AddAsync(null!, TestContext.Current.CancellationToken);
-        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
+        await _storage.DidNotReceiveWithAnyArgs()
+            .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
     }
 
     [Theory(DisplayName = "Create personal file handler should reject input before saving when command is invalid")]
@@ -113,7 +123,7 @@ public sealed class CreatePersonalFileHandlerTests
         var command = CreateCommand(content);
         if (invalidPart == "metadata")
         {
-            command = command with { Name = "../file", ContentType = "text/*", Size = 0, UserId = Guid.Empty };
+            command = command with { Name = "../file", ContentType = "text/*", Size = 0 };
         }
         else if (invalidPart == "folder")
         {
@@ -128,7 +138,25 @@ public sealed class CreatePersonalFileHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         await _files.DidNotReceiveWithAnyArgs().AddAsync(null!, TestContext.Current.CancellationToken);
-        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
+        await _storage.DidNotReceiveWithAnyArgs()
+            .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
+    }
+
+    [Theory(DisplayName = "Create personal file handler should reject the caller when user id is unavailable")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_ReturnUnauthorizedWithoutSaving_When_UserIdIsUnavailable(bool emptyUserId)
+    {
+        _currentUser.UserId.Returns(emptyUserId ? Guid.Empty : null);
+        await using var content = new MemoryStream([1]);
+
+        var result = await CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken);
+
+        result.ShouldHaveSingleError(ErrorType.Unauthorized, "A user account is required.");
+        _files.ReceivedCalls().ShouldBeEmpty();
+        _folders.ReceivedCalls().ShouldBeEmpty();
+        _storage.ReceivedCalls().ShouldBeEmpty();
+        _unitOfWork.ReceivedCalls().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Create personal file handler should not upload when commit fails")]
@@ -141,7 +169,8 @@ public sealed class CreatePersonalFileHandlerTests
             CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken));
 
         exception.ShouldBeOfType<IOException>();
-        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
+        await _storage.DidNotReceiveWithAnyArgs()
+            .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
     }
 
     [Theory(DisplayName = "Create personal file handler should not mark the file ready when upload fails")]
@@ -151,10 +180,13 @@ public sealed class CreatePersonalFileHandlerTests
     {
         await using var content = new MemoryStream([1]);
         var cancellationToken = TestContext.Current.CancellationToken;
-        Exception failure = cancelled ? new OperationCanceledException(cancellationToken) : new IOException("Upload failed.");
+        Exception failure = cancelled
+            ? new OperationCanceledException(cancellationToken)
+            : new IOException("Upload failed.");
         _storage.UploadAsync(Arg.Any<string>(), content, Arg.Any<string>(), cancellationToken).ThrowsAsync(failure);
 
-        var thrown = await Record.ExceptionAsync(() => CreateHandler().HandleAsync(CreateCommand(content), cancellationToken));
+        var thrown = await Record.ExceptionAsync(
+            () => CreateHandler().HandleAsync(CreateCommand(content), cancellationToken));
 
         thrown.ShouldBeSameAs(failure);
         await _unitOfWork.Received(1).CommitTransactionAsync(cancellationToken);
@@ -165,11 +197,11 @@ public sealed class CreatePersonalFileHandlerTests
     private static CreatePersonalFileCommand CreateCommand(Stream content)
     {
         return new CreatePersonalFileCommand(
-            "file.txt", "text/plain", content.Length, content, Guid.NewGuid(), FolderId: null);
+            "file.txt", "text/plain", content.Length, content, FolderId: null);
     }
 
     private CreatePersonalFileHandler CreateHandler()
     {
-        return new CreatePersonalFileHandler(_files, _folders, _storage, _unitOfWork);
+        return new CreatePersonalFileHandler(_files, _folders, _storage, _unitOfWork, _currentUser);
     }
 }

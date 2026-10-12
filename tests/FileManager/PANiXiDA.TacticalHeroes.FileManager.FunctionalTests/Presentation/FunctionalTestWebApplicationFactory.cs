@@ -20,9 +20,8 @@ internal sealed class FunctionalTestWebApplicationFactory
         {
             var seederHostedServices = services
                 .Where(descriptor =>
-                    descriptor.ServiceType == typeof(IHostedService) &&
-                    descriptor.ImplementationType?.Name ==
-                    "IdentityProviderApplicationSeederHostedService")
+                    descriptor.ServiceType == typeof(IHostedService)
+                        && descriptor.ImplementationType?.Name == "IdentityProviderApplicationSeederHostedService")
                 .ToArray();
 
             foreach (var seederHostedService in seederHostedServices)
@@ -41,8 +40,8 @@ internal sealed class FunctionalTestWebApplicationFactory
                 .AddScheme<
                     AuthenticationSchemeOptions,
                     TestAuthenticationHandler>(
-                    TestAuthenticationHandler.SchemeName,
-                    _ => { });
+                        TestAuthenticationHandler.SchemeName,
+                        _ => { });
             services.RunWolverineInSoloMode();
         });
     }

@@ -22,8 +22,10 @@ public sealed class S3TestStorage : IAsyncDisposable
         .WithEnvironment("AWS_SECRET_ACCESS_KEY", SecretKey)
         .WithEnvironment("S3_BUCKET", BucketName)
         .WithWaitStrategy(Wait.ForUnixContainer()
-            .UntilMessageIsLogged("S3 Endpoint:", strategy =>
-                strategy.WithTimeout(TimeSpan.FromMinutes(1))))
+            .UntilMessageIsLogged(
+                "S3 Endpoint:",
+                strategy =>
+                    strategy.WithTimeout(TimeSpan.FromMinutes(1))))
         .Build();
 
     public string ServiceUrl => $"http://{_container.Hostname}:{_container.GetMappedPublicPort(8333)}";
@@ -77,11 +79,13 @@ public sealed class S3TestStorage : IAsyncDisposable
                 return;
             }
 
-            var deleted = await client.DeleteObjectsAsync(new DeleteObjectsRequest
-            {
-                BucketName = BucketName,
-                Objects = [.. objects.Select(item => new KeyVersion { Key = item.Key })]
-            }, cancellationToken);
+            var deleted = await client.DeleteObjectsAsync(
+                new DeleteObjectsRequest
+                {
+                    BucketName = BucketName,
+                    Objects = [.. objects.Select(item => new KeyVersion { Key = item.Key })]
+                },
+                cancellationToken);
             (deleted.DeleteErrors?.Count ?? 0).ShouldBe(0);
         }
     }

@@ -4,7 +4,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenIddict.Abstractions" />
         <PackageReference Include="PANiXiDA.Core.Application" />
         <PackageReference Include="PANiXiDA.Core.Presentation.Http" />
         <PackageReference Include="Riok.Mapperly" PrivateAssets="all" />

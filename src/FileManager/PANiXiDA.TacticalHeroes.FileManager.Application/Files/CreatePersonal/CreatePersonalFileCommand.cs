@@ -5,5 +5,4 @@ public sealed record CreatePersonalFileCommand(
     string ContentType,
     long Size,
     Stream Content,
-    Guid UserId,
     Guid? FolderId) : ICommand<Result<Guid>>;
