@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Common.Authentication.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.Contracts.OAuth;
 
 public static class OAuthEndpointRoutes
 {

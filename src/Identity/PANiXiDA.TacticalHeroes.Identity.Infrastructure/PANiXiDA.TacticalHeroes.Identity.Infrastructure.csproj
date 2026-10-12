@@ -18,7 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Application\PANiXiDA.TacticalHeroes.Identity.Application.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
@@ -52,7 +51,7 @@
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Models" />
         <Using Include="PANiXiDA.Core.Infrastructure.Persistence.Ef.Write" />
 
-        <Using Include="PANiXiDA.TacticalHeroes.Common.Authentication.OAuth" />
+        <Using Include="PANiXiDA.TacticalHeroes.Identity.Contracts.OAuth" />
 
         <Using Include="OpenIddict.Abstractions" />
     </ItemGroup>

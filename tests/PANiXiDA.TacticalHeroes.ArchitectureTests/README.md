@@ -20,15 +20,15 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
    проект `Contracts` не должен содержать `ProjectReference`, включая ссылки
    на `Common` и Contracts других модулей.
 
-3. `ContractsLayer_Should_OnlyBeUsedByInfrastructure_When_Validated` — типы
-   `Contracts` могут использоваться только в `Infrastructure` и внутри самих
-   контрактов. Для `Domain`, `Application`, `Presentation`, `Host` и `Common`
-   зависимости на типы контрактов запрещены.
+3. `ContractsLayer_Should_OnlyBeUsedByInfrastructureAndPresentation_When_Validated` — типы
+   `Contracts` могут использоваться в `Infrastructure`, `Presentation` и внутри
+   самих контрактов. Для `Domain`, `Application`, `Host` и `Common` зависимости
+   на типы контрактов запрещены.
 
-4. `ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructure_When_Validated`
-   — среди production-проектов только `Infrastructure` может содержать прямую
-   ссылку на `Contracts` своего или другого модуля. Проверка охватывает также Host
-   и Common; ссылки тестовых проектов не ограничиваются.
+4. `ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructureAndPresentation_When_Validated`
+   — среди production-проектов только `Infrastructure` и `Presentation` могут
+   содержать прямые ссылки на `Contracts` своего или другого модуля. Проверка
+   охватывает также Host и Common; ссылки тестовых проектов не ограничиваются.
 
 5. `CommonLayer_Should_NotDependOnModuleLayersOrHost_When_Validated` — типы
    `Common` не должны зависеть от слоёв модулей или `Host`.
@@ -49,9 +49,9 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
    типы слоя `Infrastructure` не должны зависеть от `Presentation` или `Host`.
 
 10. `PresentationLayer_Should_NotDependOnDomainInfrastructureOrHost_When_Validated`
-    — типы слоя `Presentation` не должны напрямую зависеть от `Contracts`,
-    `Domain`, `Infrastructure` или `Host`. Взаимодействие с бизнес-логикой
-    выполняется через Application; общие определения доступны через Common.
+    — типы слоя `Presentation` не должны напрямую зависеть от `Domain`,
+    `Infrastructure` или `Host`. Взаимодействие с бизнес-логикой выполняется через
+    Application; доступны Contracts и общие определения Common.
 
 11. `Modules_Should_HaveAllExpectedLayerAssemblies_When_Discovered` — каждый
     обнаруженный модуль должен содержать пять сборок с одинаковым префиксом:
@@ -59,13 +59,14 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 12. `ModuleLayers_Should_NotDependOnOtherModuleInternals_When_Validated` — типы
     внутренних слоёв одного модуля не должны зависеть от внутренних слоёв другого.
-    Межмодульные зависимости разрешены через Contracts только в Infrastructure.
+    Межмодульные зависимости разрешены через Contracts в Infrastructure и Presentation.
 
 13. `ModuleProjectReferences_Should_FollowAllowedDependencies_When_Validated` —
     прямые `ProjectReference` модулей должны соответствовать следующему графу:
     `Contracts` и `Domain` не ссылаются на проекты решения; `Application` — на свой
     `Domain`; `Infrastructure` — на свои `Domain` и `Application`, а также на
-    `Contracts` своего или другого модуля; `Presentation` — на свой `Application`.
+    `Contracts` своего или другого модуля; `Presentation` — на свой `Application`
+    и `Contracts` своего или другого модуля.
     `Common` доступен Application, Infrastructure, Presentation и Host; Domain
     ссылаться на него не может, а Contracts остаётся без зависимостей на проекты.
 
