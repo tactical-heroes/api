@@ -16,7 +16,7 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
             " hero ",
             "StrongPassword1!",
             true,
-            [new Claim("permission", "heroes.read")],
+            [new Claim("permission", "compendium.heroes.read")],
             "Active");
 
         var response = await client.CreateAsync(cancellationToken, request);
@@ -30,6 +30,6 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
         user.Email.ShouldBe("hero@example.com");
         user.UserName.ShouldBe("hero");
         user.EmailConfirmed.ShouldBeTrue();
-        user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.read");
+        user.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.read");
     }
 }

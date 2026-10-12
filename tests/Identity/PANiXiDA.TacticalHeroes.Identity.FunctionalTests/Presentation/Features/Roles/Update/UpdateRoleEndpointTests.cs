@@ -17,7 +17,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             createdRole.Id,
             new UpdateRoleRequest(
                 "manager",
-                [new Claim("permission", "heroes.manage")]),
+                [new Claim("permission", "compendium.heroes.update")]),
             cancellationToken);
         var role = await RoleDatabaseTestHelper.FindAsync(
             Fixture,
@@ -26,6 +26,6 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
 
         role.ShouldNotBeNull();
         role.Name.ShouldBe("manager");
-        role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
+        role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.update");
     }
 }

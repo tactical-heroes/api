@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Permissions.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Permissions.GetList;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Claims.GetPermissions;
 
 public sealed class GetPermissionsQueryValidatorTests
 {

@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Permissions.GetList;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Claims.GetPermissions;
 
-internal sealed class GetPermissionsEndpoint : IEndpoint<PermissionsEndpoints>
+internal sealed class GetPermissionsEndpoint : IEndpoint<ClaimsEndpoints>
 {
-    public string Route { get; } = "/";
+    public string Route { get; } = "/permissions";
     public string Name { get; } = "GetPermissions";
     public string Summary { get; } = "Get available permissions";
 
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapGet(builder.Route, HandleAsync)
-            .Produces<IReadOnlyCollection<PermissionResponse>>(StatusCodes.Status200OK)
+            .Produces<GetPermissionsResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized);
     }
 

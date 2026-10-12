@@ -1,9 +1,8 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Permissions.GetList;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
 
 public sealed record PermissionReadModel(
     string Code,
     string DisplayName,
     string SectionCode,
-    string SectionDisplayName,
     string ResourceCode,
     string ResourceDisplayName) : IReadModel;

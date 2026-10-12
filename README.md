@@ -60,26 +60,50 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
-## Permission Catalog
+## Claim Catalogs
 
-`PANiXiDA.TacticalHeroes.Common` owns the shared permission definitions.
-Each definition contains a stable `Code`, a Russian `DisplayName`, a
-`SectionCode`, and a `ResourceCode` for the admin UI. Definitions are organized
-by resource under `Authentication/Permissions`; `Permissions.All` exposes the
-complete read-only catalog. Common has no project dependencies.
+`PANiXiDA.TacticalHeroes.Common` owns `Permissions.All`, `Sections.All`, and
+`CustomClaimTypes.Permission` / `CustomClaimTypes.Section`. Definitions live in
+`Authentication/Permissions` and `Authentication/Sections`, with each resource
+or section in its own file and subfolder. Common has no project dependencies.
 
-`Sections.All` defines the UI sections (Identity and Compendium), and
-`Permissions.Resources` defines their resources (users, roles, factions, heroes,
-and units). Section codes and display names are declared once in `Sections`;
-resource codes and names are declared once in their permission classes.
-Permission codes are composed from the shared section and resource constants.
-Operations are declared individually with explicit codes and display names;
-they may include arbitrary suffixes such as `read.own` and `read.all`.
-`PermissionDefinition` includes the resource display name; clients group resources
-by `(SectionCode, ResourceCode)` without a separate resource catalog. Definitions
-live in `Common/Authentication/Permissions` and `Common/Authentication/Sections`;
-each section is declared in its own file and subfolder.
+Permissions grant API operations. Sections are independent claims for showing
+UI sections: a section grant does not grant API permissions, and a permission
+grant does not imply a section grant. `PermissionDefinition.SectionCode` links
+permissions to sections for display grouping only. Resource codes and names
+are declared once in the resource permission classes; clients group resources
+by `(SectionCode, ResourceCode)` without a separate resource catalog.
 
+The authenticated Claims endpoints return `{ "type": "...", "items": [...] }`:
+
+- `GET /api/v1/claims/permissions`: type `permission`; each item contains
+  `code`, `displayName`, `sectionCode`, `resourceCode`, and `resourceDisplayName`.
+- `GET /api/v1/claims/sections`: type `section`; each item contains
+  `code` and `displayName`.
+
+Clients build assignments from the catalog type and item code. Existing user
+and role create/update requests continue to accept `claims` as type/value pairs:
+
+```json
+{
+  "claims": [
+    { "type": "section", "value": "identity" },
+    { "type": "permission", "value": "identity.roles.read" }
+  ]
+}
+```
+
+User and role command validators check `permission` and `section` values against
+the corresponding catalog and return HTTP 400 for unknown values. Other custom
+claim types retain their existing domain validation. Claim types are compared
+case-insensitively; catalog codes are case-sensitive. Domain factories trim
+surrounding whitespace before persisting claims.
+
+The permission catalog covers users, roles, factions, heroes, and units.
+Operations are declared individually with explicit display names and may use
+suffixes such as `read.own` and `read.all` when added to the catalog. Create,
+read, update, and delete permissions are independent; update covers user
+blocking and unblocking. Object-level access belongs to the owning module.
 Application handlers can use the shared codes with Core authorization:
 
 ```csharp
@@ -87,26 +111,16 @@ public static IReadOnlyCollection<string> AllPermissions =>
     [Permissions.IdentityRoles.Update.Code];
 ```
 
-The authenticated `GET /api/v1/permissions` endpoint returns the catalog as
-`code`, `displayName`, `sectionCode`, `sectionDisplayName`, `resourceCode`, and
-`resourceDisplayName` objects. These fields replace the previous `group` field.
-Admin clients should display the metadata and use codes as selection values,
-without maintaining another catalog.
+The catalog does not enable permission checks on existing handlers. No database
+migration or configuration change is required. Existing permission codes remain
+unchanged; existing users and roles need explicit section grants before a client
+adopts section-based visibility. Display-name changes do not change grants;
+changing a code requires migrating assignments.
 
-A section is visible in the UI when the user's effective permissions include
-at least one permission from that section. Clients should intersect the user's
-granted codes with this catalog and group matches by section, then resource.
-Section visibility is UI metadata; it does not grant access to API operations.
-
-The initial catalog covers users, roles, factions, heroes, and units. Create,
-read, update, and delete permissions are independent; update covers user blocking
-and unblocking. Object-level access remains the responsibility of the owning
-module. Renaming a display name does not change a grant; changing a code requires
-migrating existing grants.
-
-The catalog does not grant permissions or enable checks on existing handlers.
-Identity continues to store assignments in user and role claims with type
-`permission`. No database migration is required for the catalog.
+The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
+Its flat array becomes the type/items envelope and `sectionDisplayName` is removed;
+section names come from `/api/v1/claims/sections`. Frontend adaptation is separate.
+Unknown managed claims previously accepted by assignment endpoints now fail validation.
 
 ## Request Validation
 
