@@ -2,7 +2,7 @@ namespace PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 
 public static partial class Permissions
 {
-    public static IReadOnlyList<PermissionDefinition> All { get; } = Array.AsReadOnly<PermissionDefinition>(
+    public static IReadOnlyList<PermissionDefinition> All { get; } = Array.AsReadOnly(
     [
         IdentityUsers.Create,
         IdentityUsers.Read,

@@ -16,11 +16,15 @@ public static partial class Permissions
 
         static Factions()
         {
-            (Create, Read, Update, Delete) = PermissionDefinition.CreateCrud(
+            var define = PermissionDefinition.ForResource(
                 sectionCode: SectionCatalog.Compendium.Code,
                 resourceCode: ResourceCode,
-                resourceDisplayName: ResourceName,
-                resourceGenitiveName: "фракций");
+                resourceDisplayName: ResourceName);
+
+            Create = define("create", "Создание фракций");
+            Read = define("read", "Просмотр фракций");
+            Update = define("update", "Изменение фракций");
+            Delete = define("delete", "Удаление фракций");
         }
     }
 }

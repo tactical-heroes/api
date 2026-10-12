@@ -16,11 +16,15 @@ public static partial class Permissions
 
         static Units()
         {
-            (Create, Read, Update, Delete) = PermissionDefinition.CreateCrud(
+            var define = PermissionDefinition.ForResource(
                 sectionCode: SectionCatalog.Compendium.Code,
                 resourceCode: ResourceCode,
-                resourceDisplayName: ResourceName,
-                resourceGenitiveName: "юнитов");
+                resourceDisplayName: ResourceName);
+
+            Create = define("create", "Создание юнитов");
+            Read = define("read", "Просмотр юнитов");
+            Update = define("update", "Изменение юнитов");
+            Delete = define("delete", "Удаление юнитов");
         }
     }
 }

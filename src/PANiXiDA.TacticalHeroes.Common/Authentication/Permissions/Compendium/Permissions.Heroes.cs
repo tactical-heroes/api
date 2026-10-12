@@ -16,11 +16,15 @@ public static partial class Permissions
 
         static Heroes()
         {
-            (Create, Read, Update, Delete) = PermissionDefinition.CreateCrud(
+            var define = PermissionDefinition.ForResource(
                 sectionCode: SectionCatalog.Compendium.Code,
                 resourceCode: ResourceCode,
-                resourceDisplayName: ResourceName,
-                resourceGenitiveName: "героев");
+                resourceDisplayName: ResourceName);
+
+            Create = define("create", "Создание героев");
+            Read = define("read", "Просмотр героев");
+            Update = define("update", "Изменение героев");
+            Delete = define("delete", "Удаление героев");
         }
     }
 }

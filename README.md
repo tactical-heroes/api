@@ -73,6 +73,8 @@ complete read-only catalog. Common has no project dependencies.
 and units). Section codes and display names are declared once in `Sections`;
 resource codes and names are declared once in their permission classes.
 Permission codes are composed from the shared section and resource constants.
+Operations are declared individually with explicit codes and display names;
+they may include arbitrary suffixes such as `read.own` and `read.all`.
 `PermissionDefinition` includes the resource display name; clients group resources
 by `(SectionCode, ResourceCode)` without a separate resource catalog. Definitions
 live in `Common/Authentication/Permissions` and `Common/Authentication/Sections`;

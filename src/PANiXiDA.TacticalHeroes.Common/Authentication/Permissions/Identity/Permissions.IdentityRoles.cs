@@ -16,11 +16,15 @@ public static partial class Permissions
 
         static IdentityRoles()
         {
-            (Create, Read, Update, Delete) = PermissionDefinition.CreateCrud(
+            var define = PermissionDefinition.ForResource(
                 sectionCode: SectionCatalog.Identity.Code,
                 resourceCode: ResourceCode,
-                resourceDisplayName: ResourceName,
-                resourceGenitiveName: "ролей");
+                resourceDisplayName: ResourceName);
+
+            Create = define("create", "Создание ролей");
+            Read = define("read", "Просмотр ролей");
+            Update = define("update", "Изменение ролей");
+            Delete = define("delete", "Удаление ролей");
         }
     }
 }
