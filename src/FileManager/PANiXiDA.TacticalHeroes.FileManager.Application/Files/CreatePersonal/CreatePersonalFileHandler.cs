@@ -32,10 +32,12 @@ public sealed class CreatePersonalFileHandler(
         var nameResult = FileName.Create(command.Name);
         var contentTypeResult = FileContentType.Create(command.ContentType);
         var sizeResult = FileSize.Create(command.Size);
+        var userIdResult = UserId.Create(userId);
         var validationResult = Result.Combine(
             nameResult,
             contentTypeResult,
-            sizeResult);
+            sizeResult,
+            userIdResult);
 
         if (validationResult.IsFailure)
         {
@@ -50,7 +52,7 @@ public sealed class CreatePersonalFileHandler(
         var file = File.Create(
             name: nameResult.Value,
             type: FileType.Personal,
-            userId: UserId.Create(userId).Value).Value;
+            userId: userIdResult.Value).Value;
 
         if (command.FolderId is { } folderId)
         {
