@@ -9,22 +9,16 @@ public static partial class Permissions
         public const string ResourceCode = "units";
         public const string ResourceName = "Юниты";
 
-        public static readonly PermissionDefinition Create;
-        public static readonly PermissionDefinition Read;
-        public static readonly PermissionDefinition Update;
-        public static readonly PermissionDefinition Delete;
-
-        static Units()
-        {
-            var define = PermissionDefinition.ForResource(
+        private static readonly Func<string, string, PermissionDefinition> s_define =
+            PermissionDefinition.ForResource(
                 sectionCode: SectionCatalog.Compendium.Code,
                 resourceCode: ResourceCode,
                 resourceDisplayName: ResourceName);
 
-            Create = define("create", "Создание юнитов");
-            Read = define("read", "Просмотр юнитов");
-            Update = define("update", "Изменение юнитов");
-            Delete = define("delete", "Удаление юнитов");
-        }
+        public static readonly PermissionDefinition
+            Create = s_define("create", "Создание юнитов"),
+            Read = s_define("read", "Просмотр юнитов"),
+            Update = s_define("update", "Изменение юнитов"),
+            Delete = s_define("delete", "Удаление юнитов");
     }
 }
