@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Permissions.Get
 
 internal sealed class GetPermissionsEndpoint : IEndpoint<PermissionsEndpoints>
 {
-    public string Route { get; } = string.Empty;
+    public string Route { get; } = "/";
     public string Name { get; } = "GetPermissions";
     public string Summary { get; } = "Get available permissions";
 
