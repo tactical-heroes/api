@@ -7,10 +7,12 @@ public sealed record PermissionDefinition(
     string ResourceCode,
     string ResourceDisplayName)
 {
-    internal static Func<string, string, PermissionDefinition> ForResource(
+    internal static PermissionDefinition Create(
         string sectionCode,
         string resourceCode,
-        string resourceDisplayName) => (action, displayName) => new(
+        string resourceDisplayName,
+        string action,
+        string displayName) => new(
             Code: $"{sectionCode}.{resourceCode}.{action}",
             DisplayName: displayName,
             SectionCode: sectionCode,
