@@ -7,10 +7,8 @@ public static partial class Permissions
         public const string ResourceCode = "roles";
         public const string ResourceName = "Роли";
 
-        public static readonly ResourceDefinition Resource = new(
-            Code: ResourceCode,
-            DisplayName: ResourceName,
-            SectionCode: Sections.Identity.Code);
+        public static readonly ResourceDefinition Resource =
+            Sections.Identity.Definition.CreateResource(ResourceCode, ResourceName);
 
         public static readonly PermissionDefinition Create =
             Resource.CreatePermission("create", "Создание ролей");
