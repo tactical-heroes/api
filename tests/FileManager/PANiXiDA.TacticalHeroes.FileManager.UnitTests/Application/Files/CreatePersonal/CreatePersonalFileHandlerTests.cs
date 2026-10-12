@@ -32,7 +32,7 @@ public sealed class CreatePersonalFileHandlerTests
         _currentUser.UserId.Returns(_userId);
     }
 
-    [Theory(DisplayName = "Personal file upload should commit pending metadata before uploading content")]
+    [Theory(DisplayName = "Personal file upload should commit pending metadata when command is valid")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task HandleAsync_Should_CommitPendingThenUploadThenSaveReady_When_CommandIsValid(bool hasFolder)
@@ -86,7 +86,7 @@ public sealed class CreatePersonalFileHandlerTests
         content.CanRead.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Personal file upload should reject an unavailable folder without uploading")]
+    [Theory(DisplayName = "Personal file upload should skip uploading when folder is unavailable")]
     [InlineData("missing")]
     [InlineData("foreign")]
     [InlineData("avatar")]
