@@ -46,7 +46,7 @@ public sealed class ProjectReferenceDependencyTests
         }
     }
 
-    [Fact(DisplayName = "Production project references should use contracts only from infrastructure and presentation when validated")]
+    [Fact(DisplayName = "Project references should use contracts only from infrastructure and presentation when validated")]
     public void ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructureAndPresentation_When_Validated()
     {
         var projectPaths = GetProjectPaths(FindRepositoryRoot());
