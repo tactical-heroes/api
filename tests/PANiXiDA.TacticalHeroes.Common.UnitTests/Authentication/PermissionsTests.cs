@@ -50,7 +50,9 @@ public sealed class PermissionsTests
     [Fact(DisplayName = "All should reference known sections and resources when catalog is read")]
     public void All_Should_ReferenceKnownSectionsAndResources_When_CatalogIsRead()
     {
-        foreach (var permission in Permissions.All)
+        var permissions = Permissions.All;
+
+        foreach (var permission in permissions)
         {
             Sections.All.Count(section => section.Code == permission.SectionCode).ShouldBe(1);
             Permissions.Resources
