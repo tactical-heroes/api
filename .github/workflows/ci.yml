@@ -45,6 +45,41 @@ jobs:
     if: ${{ github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development') }}
     uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/resolve-environment.yml@main
 
+  validate-containers:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [ api, migrator ]
+        include:
+          - service: api
+            folder: src/PANiXiDA.TacticalHeroes.Host
+          - service: migrator
+            folder: tools/PANiXiDA.TacticalHeroes.Ef.Migrator
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create nuget.config
+        if: ${{ vars.NUGET_CONFIG != '' }}
+        env:
+          NUGET_CONFIG: ${{ vars.NUGET_CONFIG }}
+          NUGET_PROVIDER: ${{ vars.NUGET_PROVIDER }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: printf '%s\n' "$NUGET_CONFIG" | envsubst > nuget.config
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build container
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.folder }}/Dockerfile
+          push: false
+          cache-from: type=gha,scope=pr-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=pr-${{ matrix.service }}
+
   build-api:
     if: ${{ github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development') }}
     needs: [ format, tests, sonar, helm, resolve-env ]

@@ -46,8 +46,8 @@ public sealed class ProjectReferenceDependencyTests
         }
     }
 
-    [Fact(DisplayName = "Projects should use contracts only from infrastructure and presentation when validated")]
-    public void ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructureAndPresentation_When_Validated()
+    [Fact(DisplayName = "Projects should use contracts only from infrastructure presentation and host when validated")]
+    public void ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated()
     {
         var projectPaths = GetProjectPaths(FindRepositoryRoot());
         var contractsAssemblyNames = ArchitectureDefinition.s_modules
@@ -56,7 +56,8 @@ public sealed class ProjectReferenceDependencyTests
 
         var violations = projectPaths
             .Where(project => !project.Key.EndsWith(".Infrastructure", StringComparison.Ordinal)
-                && !project.Key.EndsWith(".Presentation", StringComparison.Ordinal))
+                && !project.Key.EndsWith(".Presentation", StringComparison.Ordinal)
+                && !project.Key.EndsWith(".Host", StringComparison.Ordinal))
             .SelectMany(project => GetProjectReferences(project.Value)
                 .Where(contractsAssemblyNames.Contains)
                 .Select(target => $"{project.Key} must not reference {target}."))
