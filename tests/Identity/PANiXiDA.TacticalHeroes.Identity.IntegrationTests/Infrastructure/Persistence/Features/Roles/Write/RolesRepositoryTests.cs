@@ -45,7 +45,15 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-            (await repository.UpdateAsync(IntegrationTestData.CreateRole(id: roleId, name: "manager", claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value))), cancellationToken)).IsSuccess.ShouldBeTrue();
+            (await repository.UpdateAsync(
+                IntegrationTestData.CreateRole(
+                    id: roleId,
+                    name: "manager",
+                    claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(
+                        claim => (claim.Type, claim.Value))),
+                cancellationToken))
+                .IsSuccess
+                .ShouldBeTrue();
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -76,7 +84,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var dbContext =
             verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         (await dbContext.Set<ApplicationRole>()
-                .AnyAsync(item => item.Id == roleId, cancellationToken))
+            .AnyAsync(item => item.Id == roleId, cancellationToken))
             .ShouldBeFalse();
     }
 
@@ -92,7 +100,9 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
                 id: Guid.CreateVersion7(),
                 name: "admin",
                 claims: []),
-            cancellationToken)).IsSuccess.ShouldBeTrue();
+            cancellationToken))
+            .IsSuccess
+            .ShouldBeTrue();
         var result = await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
@@ -110,7 +120,12 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-        var result = await repository.AddAsync(IntegrationTestData.CreateRole(id: Guid.CreateVersion7(), name: name, claims: claims.Select(claim => (claim.Type, claim.Value))), cancellationToken);
+        var result = await repository.AddAsync(
+            IntegrationTestData.CreateRole(
+                id: Guid.CreateVersion7(),
+                name: name,
+                claims: claims.Select(claim => (claim.Type, claim.Value))),
+            cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

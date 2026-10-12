@@ -42,8 +42,12 @@ public sealed class RoleTests
         var role = CreateRole();
         var claims = role.Claims;
 
-        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
-        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
+        role.GrantClaim(RoleClaim.Create(
+            ClaimType.Create(value: "permission").Value,
+            ClaimValue.Create(value: "heroes.manage").Value));
+        role.GrantClaim(RoleClaim.Create(
+            ClaimType.Create(value: "permission").Value,
+            ClaimValue.Create(value: "heroes.manage").Value));
 
         claims.ShouldHaveSingleItem();
     }
@@ -52,8 +56,13 @@ public sealed class RoleTests
     public void RevokeClaim_Should_RemoveClaim_When_ClaimExists()
     {
         var role = CreateRole();
-        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value));
-        role.GrantClaim(RoleClaim.Create(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.manage").Value));
+        role.GrantClaim(
+            RoleClaim.Create(
+                ClaimType.Create(value: "permission").Value,
+                ClaimValue.Create(value: "heroes.read").Value));
+        role.GrantClaim(RoleClaim.Create(
+            ClaimType.Create(value: "permission").Value,
+            ClaimValue.Create(value: "heroes.manage").Value));
         var claims = role.Claims;
 
         role.RevokeClaim(ClaimType.Create(value: "permission").Value, ClaimValue.Create(value: "heroes.read").Value);

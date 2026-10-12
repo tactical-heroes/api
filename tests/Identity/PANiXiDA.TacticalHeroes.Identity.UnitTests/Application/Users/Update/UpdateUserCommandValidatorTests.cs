@@ -40,8 +40,10 @@ public sealed class UpdateUserCommandValidatorTests
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Id));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Email));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.UserName));
-        result.Errors.Count(error =>
-            error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal)).ShouldBe(2);
+        result.Errors
+            .Count(error =>
+                error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
+            .ShouldBe(2);
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Status));
     }
 }

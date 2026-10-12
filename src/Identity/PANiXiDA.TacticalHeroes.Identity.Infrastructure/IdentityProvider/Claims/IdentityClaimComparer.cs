@@ -19,10 +19,10 @@ internal sealed class IdentityClaimComparer : IEqualityComparer<Claim>
             return true;
         }
 
-        return first is not null &&
-            second is not null &&
-            first.Type == second.Type &&
-            first.Value == second.Value;
+        return first is not null
+            && second is not null
+            && first.Type == second.Type
+            && first.Value == second.Value;
     }
 
     public int GetHashCode(Claim claim)

@@ -7,8 +7,11 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST OAuth revoke should invalidate a persisted access token when user info is requested")]
-    public async Task PostRevoke_Should_RejectRevokedToken_When_UserInfoIsRequested()
+    [Theory(
+        DisplayName = "POST OAuth revoke should invalidate a persisted access token when a protected endpoint is requested")]
+    [InlineData("/connect/userinfo")]
+    [InlineData("/api/v1/users")]
+    public async Task PostRevoke_Should_RejectRevokedToken_When_AProtectedEndpointIsRequested(string path)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
@@ -24,21 +27,28 @@ public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
             "StrongPassword1!",
             cancellationToken);
 
+        using var validRequest = new HttpRequestMessage(HttpMethod.Get, path);
+        validRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+        using var validResponse = await client.SendAsync(validRequest, cancellationToken);
+        validResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
+                [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
+                [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
+            });
+
         using var revokeResponse = await client.PostAsync(
             "/connect/revoke",
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-                    [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
-                    [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
-                }),
+            content,
             cancellationToken);
         var revokeResponseBody = await revokeResponse.Content.ReadAsStringAsync(cancellationToken);
 
         revokeResponse.StatusCode.ShouldBe(HttpStatusCode.OK, revokeResponseBody);
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/connect/userinfo");
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
         using var userInfoResponse = await client.SendAsync(request, cancellationToken);
 

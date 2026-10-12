@@ -10,8 +10,10 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
     private const string SourceDirectoryName = "src";
     private const string TestsDirectoryName = "tests";
 
-    [Fact(DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files when application interfaces are implemented")]
-    public void InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
+    [Fact(
+        DisplayName = "Infrastructure implementations of Application interfaces should have matching integration test files when application interfaces are implemented")]
+    public void
+        InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented()
     {
         var repositoryRoot = FindRepositoryRoot();
         var implementations = GetInfrastructureImplementations();
@@ -19,27 +21,29 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         Assert.NotEmpty(implementations);
 
         var missingTestFiles = implementations
-            .Select(target => new
-            {
-                target.Implementation,
-                ExpectedPath = GetExpectedTestFilePath(
-                    repositoryRoot,
-                    target.Module,
-                    target.Implementation)
-            })
+            .Select(
+                target => new
+                {
+                    target.Implementation,
+                    ExpectedPath = GetExpectedTestFilePath(
+                        repositoryRoot,
+                        target.Module,
+                        target.Implementation)
+                })
             .Where(target => !File.Exists(target.ExpectedPath))
             .Select(target =>
-                $"{target.Implementation.FullName}: " +
-                Path.GetRelativePath(repositoryRoot, target.ExpectedPath))
+                $"{target.Implementation.FullName}: "
+                    + Path.GetRelativePath(repositoryRoot, target.ExpectedPath))
             .ToArray();
 
         Assert.True(
             missingTestFiles.Length == 0,
-            $"Missing integration test files:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, missingTestFiles));
+            $"Missing integration test files:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, missingTestFiles));
     }
 
-    [Fact(DisplayName = "Integration tests should cover every implemented Application interface method when implementation exists")]
+    [Fact(
+        DisplayName = "Integration tests should cover every implemented Application interface method when implementation exists")]
     public void IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists()
     {
         var repositoryRoot = FindRepositoryRoot();
@@ -53,8 +57,8 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
 
         Assert.True(
             missingTestMethods.Length == 0,
-            $"Missing integration test methods:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, missingTestMethods));
+            $"Missing integration test methods:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, missingTestMethods));
     }
 
     [GeneratedRegex(
@@ -137,21 +141,22 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
             .GroupBy(method => method.Name, StringComparer.Ordinal);
 
         return contractMethods
-            .Select(methods => new
-            {
-                MethodName = methods.Key,
-                RequiredTestCount = methods.Count(),
-                ActualTestCount = testMethodNames.Count(testMethodName =>
-                    testMethodName.StartsWith(
-                        methods.Key + "_Should_",
-                        StringComparison.Ordinal))
-            })
+            .Select(
+                methods => new
+                {
+                    MethodName = methods.Key,
+                    RequiredTestCount = methods.Count(),
+                    ActualTestCount = testMethodNames.Count(testMethodName =>
+                        testMethodName.StartsWith(
+                            methods.Key + "_Should_",
+                            StringComparison.Ordinal))
+                })
             .Where(coverage => coverage.ActualTestCount < coverage.RequiredTestCount)
             .Select(coverage =>
-                $"{target.Implementation.FullName}.{coverage.MethodName}: expected " +
-                $"{coverage.RequiredTestCount} test method(s) starting with " +
-                $"'{coverage.MethodName}_Should_', found {coverage.ActualTestCount} " +
-                $"in '{Path.GetRelativePath(repositoryRoot, testFilePath)}'.");
+                $"{target.Implementation.FullName}.{coverage.MethodName}: expected "
+                    + $"{coverage.RequiredTestCount} test method(s) starting with "
+                    + $"'{coverage.MethodName}_Should_', found {coverage.ActualTestCount} "
+                    + $"in '{Path.GetRelativePath(repositoryRoot, testFilePath)}'.");
     }
 
     private static string GetExpectedTestFilePath(
@@ -167,15 +172,15 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         string relativeNamespace;
 
         if (string.Equals(
-                implementationNamespace,
-                infrastructureNamespace,
-                StringComparison.Ordinal))
+            implementationNamespace,
+            infrastructureNamespace,
+            StringComparison.Ordinal))
         {
             relativeNamespace = string.Empty;
         }
         else if (implementationNamespace.StartsWith(
-                     infrastructureNamespacePrefix,
-                     StringComparison.Ordinal))
+            infrastructureNamespacePrefix,
+            StringComparison.Ordinal))
         {
             relativeNamespace =
                 implementationNamespace[infrastructureNamespacePrefix.Length..];
@@ -183,8 +188,8 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         else
         {
             throw new InvalidOperationException(
-                $"Infrastructure implementation namespace '{implementationNamespace}' must be " +
-                $"'{infrastructureNamespace}' or start with '{infrastructureNamespacePrefix}'.");
+                $"Infrastructure implementation namespace '{implementationNamespace}' must be "
+                    + $"'{infrastructureNamespace}' or start with '{infrastructureNamespacePrefix}'.");
         }
 
         var moduleDirectoryName = module.Name[(module.Name.LastIndexOf('.') + 1)..];
@@ -212,9 +217,9 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)) &&
-                Directory.Exists(Path.Combine(
+                directory.FullName,
+                SourceDirectoryName))
+                && Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))
             {
@@ -223,8 +228,8 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+            $"Could not find repository root containing "
+                + $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 
     private sealed record InfrastructureImplementation(

@@ -9,7 +9,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Tests;
 
 public sealed partial class TestSourceConventionTests
 {
-    [Fact(DisplayName = "Test methods should use MethodName Should Behavior When Condition naming when a test is declared")]
+    [Fact(
+        DisplayName = "Test methods should use MethodName Should Behavior When Condition naming when a test is declared")]
     public void TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared()
     {
         var violations = TestSourceDiscovery.GetTestMethods()
@@ -21,10 +22,10 @@ public sealed partial class TestSourceConventionTests
 
         Assert.True(
             violations.Length == 0,
-            $"Test method names must match " +
-            $"'MethodName_Should_DoSomething_When_Condition':" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Test method names must match "
+                + $"'MethodName_Should_DoSomething_When_Condition':"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Test methods should follow Arrange Act Assert structure when a test is declared")]
@@ -37,9 +38,9 @@ public sealed partial class TestSourceConventionTests
 
         Assert.True(
             violations.Length == 0,
-            $"Test methods must separate setup and execution from a final " +
-            $"assertion section with a blank line:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Test methods must separate setup and execution from a final "
+                + $"assertion section with a blank line:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [GeneratedRegex(
@@ -62,15 +63,15 @@ public sealed partial class TestSourceConventionTests
 
         if (sections.Count < MinimumSectionCount)
         {
-            return $"{testMethod.Location}: {testMethod.Name} has " +
-                $"{sections.Count} logical section(s), expected at least " +
-                $"{MinimumSectionCount}.";
+            return $"{testMethod.Location}: {testMethod.Name} has "
+                + $"{sections.Count} logical section(s), expected at least "
+                + $"{MinimumSectionCount}.";
         }
 
         if (!sections[^1].Any(ContainsAssertion))
         {
-            return $"{testMethod.Location}: {testMethod.Name} must keep " +
-                $"assertions in its final logical section.";
+            return $"{testMethod.Location}: {testMethod.Name} must keep "
+                + $"assertions in its final logical section.";
         }
 
         return null;
@@ -141,12 +142,12 @@ public sealed partial class TestSourceConventionTests
             ? containingIdentifier.Identifier.ValueText
             : string.Empty;
 
-        return name.Contains("Should", StringComparison.Ordinal) ||
-               name.StartsWith("Assert", StringComparison.Ordinal) ||
-               string.Equals(containingType, "Assert", StringComparison.Ordinal) ||
-               string.Equals(name, "Check", StringComparison.Ordinal) ||
-               string.Equals(name, "Received", StringComparison.Ordinal) ||
-               string.Equals(name, "DidNotReceive", StringComparison.Ordinal);
+        return name.Contains("Should", StringComparison.Ordinal)
+            || name.StartsWith("Assert", StringComparison.Ordinal)
+            || string.Equals(containingType, "Assert", StringComparison.Ordinal)
+            || string.Equals(name, "Check", StringComparison.Ordinal)
+            || string.Equals(name, "Received", StringComparison.Ordinal)
+            || string.Equals(name, "DidNotReceive", StringComparison.Ordinal);
     }
 }
 
@@ -184,13 +185,14 @@ internal static class TestSourceDiscovery
         return root
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
-            .Select(method => new
-            {
-                Method = method,
-                TestAttribute = method.AttributeLists
-                    .SelectMany(attributeList => attributeList.Attributes)
-                    .FirstOrDefault(IsTestAttribute)
-            })
+            .Select(
+                method => new
+                {
+                    Method = method,
+                    TestAttribute = method.AttributeLists
+                        .SelectMany(attributeList => attributeList.Attributes)
+                        .FirstOrDefault(IsTestAttribute)
+                })
             .Where(item => item.TestAttribute is not null)
             .Select(item => new TestMethodSource(
                 RelativePath: Path.GetRelativePath(repositoryRoot, path),
@@ -219,8 +221,8 @@ internal static class TestSourceDiscovery
                 [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
                 StringSplitOptions.RemoveEmptyEntries)
             .Any(segment =>
-                string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase));
+                string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string FindRepositoryRoot()
@@ -230,9 +232,9 @@ internal static class TestSourceDiscovery
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)) &&
-                Directory.Exists(Path.Combine(
+                directory.FullName,
+                SourceDirectoryName))
+                && Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))
             {
@@ -241,8 +243,8 @@ internal static class TestSourceDiscovery
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+            $"Could not find repository root containing "
+                + $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 }
 
@@ -267,8 +269,8 @@ internal sealed record TestMethodSource(
                         StringComparison.Ordinal))
                 ?.Expression;
 
-            return expression is LiteralExpressionSyntax literalExpression &&
-                   literalExpression.IsKind(SyntaxKind.StringLiteralExpression)
+            return expression is LiteralExpressionSyntax literalExpression
+                && literalExpression.IsKind(SyntaxKind.StringLiteralExpression)
                 ? literalExpression.Token.ValueText
                 : null;
         }
@@ -282,7 +284,8 @@ internal sealed record TestMethodSource(
                 .GetLocation()
                 .GetLineSpan()
                 .StartLinePosition
-                .Line + 1;
+                .Line
+                + 1;
 
             return $"{RelativePath}:{lineNumber}";
         }

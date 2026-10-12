@@ -33,9 +33,9 @@ public sealed class ModuleConfigurationConventionTests
         Assert.NotEmpty(modules);
         Assert.True(
             violations.Length == 0,
-            $"Every module must have a host configuration in " +
-            $"'{ModuleConfigurationsNamespace}':{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Every module must have a host configuration in "
+                + $"'{ModuleConfigurationsNamespace}':{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static string? GetConfigurationViolation(
@@ -59,14 +59,14 @@ public sealed class ModuleConfigurationConventionTests
 
         if (hostAssembly.GetType(configurationTypeName) is null)
         {
-            return $"Module '{module.Name}' must declare " +
-                   $"'{configurationTypeName}'.";
+            return $"Module '{module.Name}' must declare "
+                + $"'{configurationTypeName}'.";
         }
 
         if (!File.Exists(configurationPath))
         {
-            return $"Module '{module.Name}' configuration must reside at " +
-                   $"'{relativeConfigurationPath}'.";
+            return $"Module '{module.Name}' configuration must reside at "
+                + $"'{relativeConfigurationPath}'.";
         }
 
         return null;
@@ -79,15 +79,15 @@ public sealed class ModuleConfigurationConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+            $"Could not find repository root containing "
+                + $"the '{SourceDirectoryName}' directory.");
     }
 }

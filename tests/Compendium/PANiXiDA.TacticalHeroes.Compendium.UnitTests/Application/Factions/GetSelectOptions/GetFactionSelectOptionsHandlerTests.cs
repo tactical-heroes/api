@@ -17,7 +17,9 @@ public sealed class GetFactionSelectOptionsHandlerTests
         repository.GetSelectOptionsAsync(filter, new LimitParameters(10), cancellationToken).Returns(options);
         var handler = new GetFactionSelectOptionsHandler(repository);
 
-        var result = await handler.HandleAsync(new GetFactionSelectOptionsQuery(filter, new LimitParameters(10)), cancellationToken);
+        var result = await handler.HandleAsync(
+            new GetFactionSelectOptionsQuery(filter, new LimitParameters(10)),
+            cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(options);

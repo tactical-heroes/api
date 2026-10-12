@@ -5,15 +5,16 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ConfirmEma
 
 public sealed class ConfirmEmailHandlerTests
 {
-    [Fact(DisplayName = "Confirm email handler should delegate confirmation to credentials service when credentials service succeeds")]
+    [Fact(
+        DisplayName = "Confirm email handler should delegate confirmation to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var userId = Guid.CreateVersion7();
         var service = Substitute.For<IUserCredentialsService>();
         service.ConfirmEmailAsync(
-                userId,
-                "confirmation-token",
-                Arg.Any<CancellationToken>())
+            userId,
+            "confirmation-token",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new ConfirmEmailHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

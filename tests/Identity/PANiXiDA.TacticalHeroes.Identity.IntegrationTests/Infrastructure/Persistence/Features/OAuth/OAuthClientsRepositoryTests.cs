@@ -26,11 +26,12 @@ public sealed class OAuthClientsRepositoryTests(IntegrationTestFixture fixture)
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Claims.ShouldContain(claim =>
-            claim.Type == OpenIddictConstants.Claims.Subject &&
-            claim.Value == "integration-tests");
+            claim.Type == OpenIddictConstants.Claims.Subject
+                && claim.Value == "integration-tests");
     }
 
-    [Fact(DisplayName = "OAuth clients repository should return not found for a missing client when client does not exist")]
+    [Fact(
+        DisplayName = "OAuth clients repository should return not found for a missing client when client does not exist")]
     public async Task GetTokenPrincipalByClientIdAsync_Should_ReturnNotFound_When_ClientDoesNotExist()
     {
         await using var scope = Fixture.CreateScope();

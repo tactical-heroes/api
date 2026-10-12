@@ -79,11 +79,13 @@ public sealed class IdentityMessagingConfigurationTests
     private static ServiceProvider CreateServices(string? confirmationTemplate, string? passwordResetTemplate)
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Identity:Messaging:EmailConfirmationUrlTemplate"] = confirmationTemplate,
-                ["Identity:Messaging:PasswordResetUrlTemplate"] = passwordResetTemplate
-            }.Where(pair => pair.Value is not null))
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["Identity:Messaging:EmailConfirmationUrlTemplate"] = confirmationTemplate,
+                    ["Identity:Messaging:PasswordResetUrlTemplate"] = passwordResetTemplate
+                }
+                    .Where(pair => pair.Value is not null))
             .Build();
         var services = new ServiceCollection();
         services.AddMessaging(configuration);

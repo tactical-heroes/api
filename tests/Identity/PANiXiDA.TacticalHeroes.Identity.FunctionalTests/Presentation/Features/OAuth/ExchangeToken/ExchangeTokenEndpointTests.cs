@@ -7,7 +7,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST OAuth token should exchange and refresh a persisted user authorization when refresh token is valid")]
+    [Fact(
+        DisplayName = "POST OAuth token should exchange and refresh a persisted user authorization when refresh token is valid")]
     public async Task PostToken_Should_IssueNewTokens_When_RefreshTokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -24,15 +25,17 @@ public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)
             "StrongPassword1!",
             cancellationToken);
 
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.RefreshToken,
+                [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
+                [OpenIddictConstants.Parameters.RefreshToken] = tokens.RefreshToken
+            });
+
         using var response = await client.PostAsync(
             "/connect/token",
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.RefreshToken,
-                    [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-                    [OpenIddictConstants.Parameters.RefreshToken] = tokens.RefreshToken
-                }),
+            content,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 

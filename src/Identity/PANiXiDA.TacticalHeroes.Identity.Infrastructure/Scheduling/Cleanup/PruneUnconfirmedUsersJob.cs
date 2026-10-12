@@ -39,8 +39,8 @@ internal sealed class PruneUnconfirmedUsersJob(
 
         await dbContext.Set<ApplicationUser>()
             .Where(user =>
-                !user.EmailConfirmed &&
-                user.CreatedAt < deleteBeforeUtc)
+                !user.EmailConfirmed
+                    && user.CreatedAt < deleteBeforeUtc)
             .ExecuteDeleteAsync(cancellationToken);
     }
 }

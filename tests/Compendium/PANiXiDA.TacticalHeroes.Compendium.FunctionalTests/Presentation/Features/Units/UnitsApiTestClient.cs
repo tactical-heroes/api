@@ -60,8 +60,8 @@ internal sealed class UnitsApiTestClient(FunctionalTestFixture fixture)
         response.Headers.Location.ShouldNotBeNull();
 
         return await response.Content.ReadFromJsonAsync<CreateUnitResponse>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("Created unit was not returned.");
     }
 
@@ -77,8 +77,8 @@ internal sealed class UnitsApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<GetUnitDetailsResponse>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("Unit details were not returned.");
     }
 
@@ -93,7 +93,7 @@ internal sealed class UnitsApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<
-                PaginationResult<UnitListItemResponse>>(
+            PaginationResult<UnitListItemResponse>>(
                 TestJsonSerializerOptions.Web,
                 cancellationToken)
             ?? throw new InvalidOperationException("Unit page was not returned.");

@@ -59,7 +59,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
     }
 
-    [Theory(DisplayName = "RegisterAsync should reject invalid credentials without persistence when credentials are invalid")]
+    [Theory(
+        DisplayName = "RegisterAsync should reject invalid credentials without persistence when credentials are invalid")]
     [InlineData("invalid-email", "hero", 1)]
     [InlineData("hero@example.com", "", 1)]
     [InlineData("invalid-email", "", 2)]
@@ -169,7 +170,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
     }
 
-    [Fact(DisplayName = "Change password should replace credentials stored by ASP.NET Core Identity when current password is valid")]
+    [Fact(
+        DisplayName = "Change password should replace credentials stored by ASP.NET Core Identity when current password is valid")]
     public async Task ChangePasswordAsync_Should_ReplacePassword_When_CurrentPasswordIsValid()
     {
         var role = new ApplicationRole
@@ -341,12 +343,14 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
 
             foreach (var subject in new[] { user.Id, user.Id, otherUserId })
             {
-                await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
-                {
-                    Subject = subject.ToString(),
-                    Type = tokenType,
-                    Status = subject == user.Id ? tokenStatus : OpenIddictConstants.Statuses.Valid
-                }, cancellationToken);
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        Type = tokenType,
+                        Status = subject == user.Id ? tokenStatus : OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
             }
 
             var result = await service.ResetPasswordAsync(
@@ -368,7 +372,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Select(token => token.Status)
             .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
         tokens.Single(token => token.Subject == otherUserId.ToString())
-            .Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
     }
 
     [Theory(DisplayName = "ResetPasswordAsync should preserve tokens and password when reset fails")]
@@ -398,12 +403,14 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
                 OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode
             })
             {
-                await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
-                {
-                    Subject = user.Id.ToString(),
-                    Type = tokenType,
-                    Status = OpenIddictConstants.Statuses.Valid
-                }, cancellationToken);
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = user.Id.ToString(),
+                        Type = tokenType,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
             }
 
             var result = await service.ResetPasswordAsync(user.Id, resetToken, newPassword, cancellationToken);

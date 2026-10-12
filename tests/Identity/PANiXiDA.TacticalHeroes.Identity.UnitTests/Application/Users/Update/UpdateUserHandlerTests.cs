@@ -16,7 +16,12 @@ public sealed class UpdateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Blocked && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            Arg.Is<User>(user => user.Id.Value == userId
+                && user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
+                && user.Status == UserStatus.Blocked
+                && user.ConfirmationStatus.IsConfirmed
+                && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository);
@@ -34,11 +39,17 @@ public sealed class UpdateUserHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Blocked && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            Arg.Is<User>(user => user.Id.Value == userId
+                && user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
+                && user.Status == UserStatus.Blocked
+                && user.ConfirmationStatus.IsConfirmed
+                && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             cancellationToken);
     }
 
-    [Theory(DisplayName = "Update user handler should reject invalid values without persistence when command is invalid")]
+    [Theory(
+        DisplayName = "Update user handler should reject invalid values without persistence when command is invalid")]
     [InlineData("invalid-email", "hero", "Active", "permission", "heroes.read")]
     [InlineData("hero@example.com", "", "Active", "permission", "heroes.read")]
     [InlineData("hero@example.com", "hero", "Unknown", "permission", "heroes.read")]
@@ -55,7 +66,13 @@ public sealed class UpdateUserHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new UpdateUserCommand(Guid.CreateVersion7(), email, userName, false, [new Claim(claimType, claimValue)], status),
+            new UpdateUserCommand(
+                Guid.CreateVersion7(),
+                email,
+                userName,
+                false,
+                [new Claim(claimType, claimValue)],
+                status),
             cancellationToken);
 
         result.IsFailure.ShouldBeTrue();

@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
@@ -54,24 +53,24 @@ internal static class ProductionSourceDocumentDiscovery
         var items = new List<T>();
 
         foreach (var project in context.Solution.Projects
-                     .Where(project =>
-                         IsSourceProject(
-                             context.RepositoryRoot,
-                             project.FilePath,
-                             sourceRootDirectoryNames))
-                     .OrderBy(
-                         project => project.FilePath,
-                         StringComparer.Ordinal))
+            .Where(project =>
+                IsSourceProject(
+                    context.RepositoryRoot,
+                    project.FilePath,
+                    sourceRootDirectoryNames))
+            .OrderBy(
+                project => project.FilePath,
+                StringComparer.Ordinal))
         {
             foreach (var document in project.Documents
-                         .Where(document =>
-                             IsSourceFile(
-                                 context.RepositoryRoot,
-                                 document.FilePath,
-                                 sourceRootDirectoryNames))
-                         .OrderBy(
-                             document => document.FilePath,
-                             StringComparer.Ordinal))
+                .Where(document =>
+                    IsSourceFile(
+                        context.RepositoryRoot,
+                        document.FilePath,
+                        sourceRootDirectoryNames))
+                .OrderBy(
+                    document => document.FilePath,
+                    StringComparer.Ordinal))
             {
                 items.AddRange(
                     await getDocumentItemsAsync(
@@ -92,13 +91,11 @@ internal static class ProductionSourceDocumentDiscovery
                 "*.slnx",
                 SearchOption.TopDirectoryOnly)
             .Single();
-        var workspace = MSBuildWorkspace.Create();
-        var solution = await workspace.OpenSolutionAsync(solutionPath);
+        var solution = await ProductionSourceWorkspaceFixture.Workspace.OpenSolutionAsync(solutionPath);
 
         return new ProductionSourceContext(
             RepositoryRoot: repositoryRoot,
-            Solution: solution,
-            Workspace: workspace);
+            Solution: solution);
     }
 
     private static bool IsSourceProject(
@@ -106,11 +103,11 @@ internal static class ProductionSourceDocumentDiscovery
         string? projectFile,
         IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
-        return projectFile is not null &&
-               IsWithinSourceRoots(
-                   repositoryRoot,
-                   projectFile,
-                   sourceRootDirectoryNames);
+        return projectFile is not null
+            && IsWithinSourceRoots(
+                repositoryRoot,
+                projectFile,
+                sourceRootDirectoryNames);
     }
 
     private static bool IsSourceFile(
@@ -118,22 +115,22 @@ internal static class ProductionSourceDocumentDiscovery
         string? sourceFile,
         IReadOnlyCollection<string> sourceRootDirectoryNames)
     {
-        return sourceFile is not null &&
-               IsWithinSourceRoots(
-                   repositoryRoot,
-                   sourceFile,
-                   sourceRootDirectoryNames) &&
-               !sourceFile
-                   .Split(
-                       [
-                           Path.DirectorySeparatorChar,
-                           Path.AltDirectorySeparatorChar
-                       ],
-                       StringSplitOptions.RemoveEmptyEntries)
-                   .Any(segment =>
-                       s_excludedDirectoryNames.Contains(
-                           segment,
-                           StringComparer.OrdinalIgnoreCase));
+        return sourceFile is not null
+            && IsWithinSourceRoots(
+                repositoryRoot,
+                sourceFile,
+                sourceRootDirectoryNames)
+            && !sourceFile
+                .Split(
+                    [
+                        Path.DirectorySeparatorChar,
+                        Path.AltDirectorySeparatorChar
+                    ],
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Any(segment =>
+                    s_excludedDirectoryNames.Contains(
+                        segment,
+                        StringComparer.OrdinalIgnoreCase));
     }
 
     private static bool IsWithinSourceRoots(
@@ -146,8 +143,8 @@ internal static class ProductionSourceDocumentDiscovery
         return sourceRootDirectoryNames.Any(sourceRootDirectoryName =>
         {
             var sourceRoot = Path.Combine(
-                    repositoryRoot,
-                    sourceRootDirectoryName)
+                repositoryRoot,
+                sourceRootDirectoryName)
                 + Path.DirectorySeparatorChar;
 
             return fullPath.StartsWith(
@@ -163,12 +160,12 @@ internal static class ProductionSourceDocumentDiscovery
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
+                directory.FullName,
+                SourceRootDirectoryName))
+                && Directory.EnumerateFiles(
                     directory.FullName,
-                    SourceRootDirectoryName)) &&
-                Directory.EnumerateFiles(
-                        directory.FullName,
-                        "*.slnx",
-                        SearchOption.TopDirectoryOnly)
+                    "*.slnx",
+                    SearchOption.TopDirectoryOnly)
                     .Any())
             {
                 return directory.FullName;
@@ -176,12 +173,11 @@ internal static class ProductionSourceDocumentDiscovery
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"'{SourceRootDirectoryName}' and a solution file.");
+            $"Could not find repository root containing "
+                + $"'{SourceRootDirectoryName}' and a solution file.");
     }
 }
 
 internal sealed record ProductionSourceContext(
     string RepositoryRoot,
-    Solution Solution,
-    MSBuildWorkspace Workspace);
+    Solution Solution);

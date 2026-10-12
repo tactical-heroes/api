@@ -58,7 +58,8 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.Lockout.MaxFailedAccessAttempts = identityProviderOptions.Lockout.MaxFailedAccessAttempts;
                 options.Lockout.DefaultLockoutTimeSpan = identityProviderOptions.Lockout.DefaultLockoutTimeSpan;
                 options.Lockout.AllowedForNewUsers = true;
-                options.Tokens.EmailConfirmationTokenProvider = identityProviderOptions.TokenProviders.EmailConfirmation;
+                options.Tokens.EmailConfirmationTokenProvider =
+                    identityProviderOptions.TokenProviders.EmailConfirmation;
                 options.Tokens.PasswordResetTokenProvider = identityProviderOptions.TokenProviders.PasswordReset;
             })
             .AddRoles<ApplicationRole>()
@@ -115,9 +116,9 @@ internal static class IdentityProviderServiceCollectionExtensions
                         OpenIddictConstants.Scopes.Profile,
                         OpenIddictConstants.Scopes.Roles
                     }
-                    .Concat(identityProviderOptions.Clients.SelectMany(client => client.Scopes))
-                    .Where(scope => !string.IsNullOrWhiteSpace(scope))
-                    .Distinct(StringComparer.Ordinal)
+                        .Concat(identityProviderOptions.Clients.SelectMany(client => client.Scopes))
+                        .Where(scope => !string.IsNullOrWhiteSpace(scope))
+                        .Distinct(StringComparer.Ordinal)
                 ]);
                 options.SetAccessTokenLifetime(identityProviderOptions.AccessTokenLifetime);
                 options.SetRefreshTokenLifetime(identityProviderOptions.RefreshTokenLifetime);
@@ -135,24 +136,17 @@ internal static class IdentityProviderServiceCollectionExtensions
                     .EnableEndSessionEndpointPassthrough()
                     .EnableStatusCodePagesIntegration();
 
-                if (environment is null ||
-                    environment.IsDevelopment() ||
-                    environment.IsEnvironment(EnvironmentConstants.Test))
+                if (environment is null
+                    || environment.IsDevelopment()
+                    || environment.IsEnvironment(EnvironmentConstants.Test))
                 {
                     aspNetCore.DisableTransportSecurityRequirement();
                 }
-            })
-            .AddValidation(options =>
-            {
-                options.UseLocalServer();
-                options.UseAspNetCore();
-                options.EnableTokenEntryValidation();
             });
 
         serviceCollection
             .AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
             .AddIdentityCookies();
-        serviceCollection.AddAuthorization();
 
         return serviceCollection;
     }

@@ -34,8 +34,10 @@ public sealed class CreateUserCommandValidatorTests
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateUserCommand.Email));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateUserCommand.UserName));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateUserCommand.Password));
-        result.Errors.Count(error =>
-            error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal)).ShouldBe(2);
+        result.Errors
+            .Count(error =>
+                error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
+            .ShouldBe(2);
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateUserCommand.Status));
     }
 }

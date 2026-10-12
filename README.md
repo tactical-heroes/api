@@ -60,6 +60,46 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Request Validation
+
+Request DTO constructors and nullable annotations define the JSON contract and
+OpenAPI required fields. Optional constructor parameters must have explicit defaults.
+FluentValidation and domain factories validate field values; request DTOs do not
+use DataAnnotations validation attributes.
+
+User creation and updates require a non-null `status`. The domain factory rejects
+blank or unknown statuses. OpenAPI does not automatically export FluentValidation
+rules, including status restrictions, as schema constraints.
+
+## Token Validation
+
+Protected API endpoints validate Bearer tokens through HTTP introspection using
+`OpenIddictValidationOptions`. Set `Issuer` to the Identity server's issuer and
+`Audiences` and `ClientId` to `tactical-heroes-service`, matching `Identity:Provider:Audience`.
+The existing confidential service client handles introspection and retains its
+`client_credentials` and token exchange grants. The public `tactical-heroes-web`
+client handles user login and refresh; no additional client is seeded.
+
+Deployed environments load the issuer and credentials from OpenBao at
+`secret/applications/tactical-heroes-api/<environment>`. Set
+`OpenIddictValidationOptions__Issuer` to the same URL as `Identity__Provider__Issuer`
+and use the existing service client's secret for both keys:
+
+```text
+OpenIddictValidationOptions__ClientSecret
+Identity__Provider__Clients__1__ClientSecret
+```
+
+For local development, set the corresponding configuration keys with .NET User
+Secrets. Each protected API request
+contacts Identity, so token revocation takes effect on the next request and Identity
+must be reachable.
+
+Introspection uses OpenIddict's standard HTTP handlers. In OpenIddict 7.7.1, cancellation
+during an outgoing introspection request can produce 500/Error; the
+[upstream fix](https://github.com/openiddict/openiddict-core/commit/77d82cd7e65959ee6486c3288a2beb8a090f6b5e)
+is pending a stable release.
+
 ## OpenIddict Certificates
 
 Store separate signing/encryption certificates as Base64 PFX with passwords in OpenBao at

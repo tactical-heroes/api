@@ -32,13 +32,14 @@ public sealed class UpdateFactionHandlerTests
         await repository.Received(1).UpdateAsync(faction, cancellationToken);
     }
 
-    [Fact(DisplayName = "Update faction handler should return not found for a missing faction when faction does not exist")]
+    [Fact(
+        DisplayName = "Update faction handler should return not found for a missing faction when faction does not exist")]
     public async Task HandleAsync_Should_ReturnNotFound_When_FactionDoesNotExist()
     {
         var repository = Substitute.For<IFactionsRepository>();
         repository.GetByIdAsync(
-                Arg.Any<FactionId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<FactionId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new UpdateFactionHandler(repository);
 

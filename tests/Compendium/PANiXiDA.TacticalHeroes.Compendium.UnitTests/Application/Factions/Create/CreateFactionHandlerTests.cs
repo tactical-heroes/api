@@ -22,9 +22,9 @@ public sealed class CreateFactionHandlerTests
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).AddAsync(
             Arg.Is<Faction>(faction =>
-                faction.Id.Value == result.Value &&
-                faction.Name.Value == "Northern Alliance" &&
-                faction.Description.Value == "Defenders of the north."),
+                faction.Id.Value == result.Value
+                    && faction.Name.Value == "Northern Alliance"
+                    && faction.Description.Value == "Defenders of the north."),
             cancellationToken);
     }
 

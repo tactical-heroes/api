@@ -82,8 +82,8 @@ internal static class IdentityClaimsFactory
     {
         return claims
             .Where(claim =>
-                !string.IsNullOrWhiteSpace(claim.Type) &&
-                !string.IsNullOrWhiteSpace(claim.Value))
+                !string.IsNullOrWhiteSpace(claim.Type)
+                    && !string.IsNullOrWhiteSpace(claim.Value))
             .Select(claim => new Claim(type: claim.Type!, value: claim.Value!));
     }
 

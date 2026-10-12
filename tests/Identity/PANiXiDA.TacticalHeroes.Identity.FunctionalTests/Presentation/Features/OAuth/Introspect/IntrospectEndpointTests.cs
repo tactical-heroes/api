@@ -7,7 +7,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class IntrospectEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "POST OAuth introspect should report a persisted access token as active when access token is valid")]
+    [Fact(
+        DisplayName = "POST OAuth introspect should report a persisted access token as active when access token is valid")]
     public async Task PostIntrospect_Should_ReturnActiveToken_When_AccessTokenIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -24,15 +25,17 @@ public sealed class IntrospectEndpointTests(FunctionalTestFixture fixture)
             "StrongPassword1!",
             cancellationToken);
 
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
+                [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
+                [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
+            });
+
         using var response = await client.PostAsync(
             "/connect/introspect",
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-                    [OpenIddictConstants.Parameters.Token] = tokens.AccessToken,
-                    [OpenIddictConstants.Parameters.TokenTypeHint] = OpenIddictConstants.TokenTypeHints.AccessToken
-                }),
+            content,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 

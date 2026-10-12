@@ -15,22 +15,22 @@ public sealed class ProjectReferenceDependencyTests
         var violations = modules
             .SelectMany(module => GetModuleAssemblyNames(module)
                 .SelectMany(sourceAssemblyName => GetProjectReferences(
-                        projectPaths[sourceAssemblyName])
+                    projectPaths[sourceAssemblyName])
                     .Where(targetAssemblyName => !IsAllowedDependency(
                         module,
                         sourceAssemblyName,
                         targetAssemblyName))
                     .Select(targetAssemblyName =>
-                        $"{sourceAssemblyName} must not reference " +
-                        $"{targetAssemblyName}.")))
+                        $"{sourceAssemblyName} must not reference "
+                            + $"{targetAssemblyName}.")))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(modules);
         Assert.True(
             violations.Length == 0,
-            $"Forbidden module project references:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Forbidden module project references:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static Dictionary<string, string> GetProjectPaths(
@@ -45,14 +45,15 @@ public sealed class ProjectReferenceDependencyTests
                 sourceRoot,
                 "*.csproj",
                 SearchOption.AllDirectories)
-            .Select(projectPath => new
-            {
-                Name = Path.GetFileNameWithoutExtension(projectPath)
-                    ?? throw new InvalidOperationException(
-                        $"Could not determine project name for " +
-                        $"'{projectPath}'."),
-                Path = projectPath
-            })
+            .Select(
+                projectPath => new
+                {
+                    Name = Path.GetFileNameWithoutExtension(projectPath)
+                        ?? throw new InvalidOperationException(
+                            $"Could not determine project name for "
+                                + $"'{projectPath}'."),
+                    Path = projectPath
+                })
             .ToDictionary(
                 project => project.Name,
                 project => project.Path,
@@ -95,11 +96,11 @@ public sealed class ProjectReferenceDependencyTests
         string targetAssemblyName)
     {
         if (targetAssemblyName.EndsWith(
-                ".Contracts",
-                StringComparison.Ordinal))
+            ".Contracts",
+            StringComparison.Ordinal))
         {
-            return sourceAssemblyName != module.ContractsAssemblyName &&
-                   sourceAssemblyName != module.DomainAssemblyName;
+            return sourceAssemblyName != module.ContractsAssemblyName
+                && sourceAssemblyName != module.DomainAssemblyName;
         }
 
         if (sourceAssemblyName == module.ApplicationAssemblyName)
@@ -109,8 +110,8 @@ public sealed class ProjectReferenceDependencyTests
 
         if (sourceAssemblyName == module.InfrastructureAssemblyName)
         {
-            return targetAssemblyName == module.DomainAssemblyName ||
-                   targetAssemblyName == module.ApplicationAssemblyName;
+            return targetAssemblyName == module.DomainAssemblyName
+                || targetAssemblyName == module.ApplicationAssemblyName;
         }
 
         if (sourceAssemblyName == module.PresentationAssemblyName)
@@ -141,15 +142,15 @@ public sealed class ProjectReferenceDependencyTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+            $"Could not find repository root containing "
+                + $"the '{SourceDirectoryName}' directory.");
     }
 }

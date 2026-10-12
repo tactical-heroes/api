@@ -16,8 +16,8 @@ public sealed class CreateUnitHandlerTests
         var unitsRepository = Substitute.For<IUnitsRepository>();
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-                faction.Id,
-                Arg.Any<CancellationToken>())
+            faction.Id,
+            Arg.Any<CancellationToken>())
             .Returns(faction);
         var handler = new CreateUnitHandler(
             unitsRepository,
@@ -31,11 +31,11 @@ public sealed class CreateUnitHandlerTests
         result.IsSuccess.ShouldBeTrue();
         await unitsRepository.Received(1).AddAsync(
             Arg.Is<Unit>(unit =>
-                unit.Id.Value == result.Value &&
-                unit.Name.Value == "Archer" &&
-                unit.Stats.Attack == 8 &&
-                unit.RangedAttack.Shots == 12 &&
-                unit.FactionId == faction.Id),
+                unit.Id.Value == result.Value
+                    && unit.Name.Value == "Archer"
+                    && unit.Stats.Attack == 8
+                    && unit.RangedAttack.Shots == 12
+                    && unit.FactionId == faction.Id),
             cancellationToken);
     }
 
@@ -45,8 +45,8 @@ public sealed class CreateUnitHandlerTests
         var unitsRepository = Substitute.For<IUnitsRepository>();
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-                Arg.Any<FactionId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<FactionId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new CreateUnitHandler(
             unitsRepository,

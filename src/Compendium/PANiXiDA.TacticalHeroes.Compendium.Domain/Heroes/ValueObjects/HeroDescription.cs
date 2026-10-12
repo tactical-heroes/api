@@ -25,7 +25,8 @@ public sealed partial class HeroDescription : ValueObject
         return normalizedValue.Length <= MaxLength
             ? Result.Success(value: new HeroDescription(value: normalizedValue))
             : Result.Failure<HeroDescription>(
-                error: Error.Validation(
+                error: Error
+                    .Validation(
                         message: $"Hero description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(HeroDescription)));
     }

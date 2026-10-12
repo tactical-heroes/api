@@ -8,7 +8,8 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "POST auth login should authenticate a confirmed user from PostgreSQL when credentials are valid")]
+    [Fact(
+        DisplayName = "POST auth login should authenticate a confirmed user from PostgreSQL when credentials are valid")]
     public async Task PostLogin_Should_CreateAuthenticationSession_When_CredentialsAreValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

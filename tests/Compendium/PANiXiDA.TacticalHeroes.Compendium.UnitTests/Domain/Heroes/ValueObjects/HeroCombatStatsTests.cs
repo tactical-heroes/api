@@ -11,7 +11,8 @@ public sealed class HeroCombatStatsTests
 
         var result = stats.ToString();
 
-        result.ShouldBe("HeroCombatStats { Attack = 8, Defense = 6, MinimumDamage = 3, MaximumDamage = 7, Initiative = 10.5 }");
+        result.ShouldBe(
+            "HeroCombatStats { Attack = 8, Defense = 6, MinimumDamage = 3, MaximumDamage = 7, Initiative = 10.5 }");
     }
 
     [Fact(DisplayName = "Hero combat stats should create values when values are valid")]

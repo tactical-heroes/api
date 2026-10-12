@@ -30,8 +30,8 @@ public sealed class RepositoryConventionTests
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
-            $"Repository location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Repository location violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Repositories should use strongly typed ids and aggregate roots when declared")]
@@ -45,8 +45,8 @@ public sealed class RepositoryConventionTests
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
-            $"Repository boundary type violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Repository boundary type violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Repository methods should use only domain types when declared")]
@@ -57,23 +57,23 @@ public sealed class RepositoryConventionTests
             .Where(target =>
                 !IsAllowedRepositoryMethodType(
                     target.Method.ReturnType,
-                    new HashSet<Type>()) ||
-                target.Method.GetParameters().Any(parameter =>
-                    !IsAllowedRepositoryMethodType(
-                        parameter.ParameterType,
-                        new HashSet<Type>())))
+                    new HashSet<Type>())
+                    || target.Method.GetParameters().Any(parameter =>
+                        !IsAllowedRepositoryMethodType(
+                            parameter.ParameterType,
+                            new HashSet<Type>())))
             .Select(target =>
-                $"{target.Repository.FullName}.{target.Method.Name} may use " +
-                $"only aggregate roots, value objects, Enumerations, " +
-                $"strongly typed IDs, CancellationToken, and framework " +
-                $"wrappers; found signature '{target.Method}'.")
+                $"{target.Repository.FullName}.{target.Method.Name} may use "
+                    + $"only aggregate roots, value objects, Enumerations, "
+                    + $"strongly typed IDs, CancellationToken, and framework "
+                    + $"wrappers; found signature '{target.Method}'.")
             .ToArray();
 
         Assert.NotEmpty(methods);
         Assert.True(
             violations.Length == 0,
-            $"Repository method type violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Repository method type violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Repositories should match plural aggregate names when declared")]
@@ -81,44 +81,47 @@ public sealed class RepositoryConventionTests
     {
         var repositories = GetRepositories();
         var violations = repositories
-            .Select(repository => new
-            {
-                repository.Type,
-                ActualFeatureName = GetFeatureName(repository.Type),
-                ExpectedFeatureName = EnglishNamingConvention.Pluralize(
-                    repository.Contract.GetGenericArguments()[1].Name)
-            })
-            .Select(repository => new
-            {
-                repository.Type,
-                repository.ActualFeatureName,
-                repository.ExpectedFeatureName,
-                ExpectedName =
-                    "I" + repository.ExpectedFeatureName + RepositorySuffix
-            })
+            .Select(
+                repository => new
+                {
+                    repository.Type,
+                    ActualFeatureName = GetFeatureName(repository.Type),
+                    ExpectedFeatureName = EnglishNamingConvention.Pluralize(
+                        repository.Contract.GetGenericArguments()[1].Name)
+                })
+            .Select(
+                repository => new
+                {
+                    repository.Type,
+                    repository.ActualFeatureName,
+                    repository.ExpectedFeatureName,
+                    ExpectedName =
+                        "I" + repository.ExpectedFeatureName + RepositorySuffix
+                })
             .Where(repository =>
                 !string.Equals(
                     repository.Type.Name,
                     repository.ExpectedName,
-                    StringComparison.Ordinal) ||
-                !string.Equals(
-                    repository.ActualFeatureName,
-                    repository.ExpectedFeatureName,
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal)
+                    || !string.Equals(
+                        repository.ActualFeatureName,
+                        repository.ExpectedFeatureName,
+                        StringComparison.Ordinal))
             .Select(repository =>
-                $"{repository.Type.FullName} must be named " +
-                $"'{repository.ExpectedName}' and reside under aggregate " +
-                $"feature '{repository.ExpectedFeatureName}'.")
+                $"{repository.Type.FullName} must be named "
+                    + $"'{repository.ExpectedName}' and reside under aggregate "
+                    + $"feature '{repository.ExpectedFeatureName}'.")
             .ToArray();
 
         Assert.NotEmpty(repositories);
         Assert.True(
             violations.Length == 0,
-            $"Repository interface naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Repository interface naming violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Repository constructor parameters should follow type-based naming when repository is injected")]
+    [Fact(
+        DisplayName = "Repository constructor parameters should follow type-based naming when repository is injected")]
     public void ConstructorParameters_Should_FollowTypeBasedNaming_When_RepositoryIsInjected()
     {
         var repositoryParameters = ArchitectureDefinition.s_productionAssemblies
@@ -129,9 +132,9 @@ public sealed class RepositoryConventionTests
             .Where(type => type is { IsClass: true, IsAbstract: false })
             .SelectMany(type => type
                 .GetConstructors(
-                    BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic)
+                    BindingFlags.Instance
+                        | BindingFlags.Public
+                        | BindingFlags.NonPublic)
                 .SelectMany(constructor => constructor
                     .GetParameters()
                     .Where(parameter => GetClosedRepositoryContract(
@@ -145,22 +148,23 @@ public sealed class RepositoryConventionTests
         Assert.NotEmpty(repositoryParameters);
 
         var violations = repositoryParameters
-            .Select(candidate => new
-            {
-                candidate.DeclaringType,
-                candidate.Parameter,
-                ExpectedName = GetExpectedParameterName(
-                    candidate.Parameter.ParameterType)
-            })
+            .Select(
+                candidate => new
+                {
+                    candidate.DeclaringType,
+                    candidate.Parameter,
+                    ExpectedName = GetExpectedParameterName(
+                        candidate.Parameter.ParameterType)
+                })
             .Where(candidate => !string.Equals(
                 candidate.Parameter.Name,
                 candidate.ExpectedName,
                 StringComparison.Ordinal))
             .Select(candidate =>
-                $"{candidate.DeclaringType.FullName} constructor parameter " +
-                $"'{candidate.Parameter.Name}' of type " +
-                $"'{candidate.Parameter.ParameterType.FullName}' must be named " +
-                $"'{candidate.ExpectedName}'.")
+                $"{candidate.DeclaringType.FullName} constructor parameter "
+                    + $"'{candidate.Parameter.Name}' of type "
+                    + $"'{candidate.Parameter.ParameterType.FullName}' must be named "
+                    + $"'{candidate.ExpectedName}'.")
             .ToArray();
 
         Assert.True(
@@ -175,11 +179,12 @@ public sealed class RepositoryConventionTests
             .. ArchitectureDefinition.s_productionAssemblies
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsInterface)
-                .Select(type => new
-                {
-                    Type = type,
-                    Contract = GetClosedRepositoryContract(type)
-                })
+                .Select(
+                    type => new
+                    {
+                        Type = type,
+                        Contract = GetClosedRepositoryContract(type)
+                    })
                 .Where(repository => repository.Contract is not null)
                 .Select(repository => new Repository(
                     repository.Type,
@@ -198,21 +203,21 @@ public sealed class RepositoryConventionTests
         var assemblyName = GetAssemblyName(repository);
 
         if (!assemblyName.EndsWith(
-                DomainAssemblySuffix,
-                StringComparison.Ordinal))
+            DomainAssemblySuffix,
+            StringComparison.Ordinal))
         {
             violations.Add(
-                $"{repository.FullName} inherits IRepository<,> and must be " +
-                $"declared in Domain.");
+                $"{repository.FullName} inherits IRepository<,> and must be "
+                    + $"declared in Domain.");
         }
 
         if (!HasNamespaceSegment(
-                repository,
-                AbstractionsNamespaceSegment))
+            repository,
+            AbstractionsNamespaceSegment))
         {
             violations.Add(
-                $"{repository.FullName} must be declared in an " +
-                $"'{AbstractionsNamespaceSegment}' namespace.");
+                $"{repository.FullName} must be declared in an "
+                    + $"'{AbstractionsNamespaceSegment}' namespace.");
         }
 
         var expectedSourceFilePath = GetExpectedSourceFilePath(
@@ -222,10 +227,10 @@ public sealed class RepositoryConventionTests
         if (!File.Exists(expectedSourceFilePath))
         {
             violations.Add(
-                $"{repository.FullName} must have a matching source file at " +
-                $"'{Path.GetRelativePath(
-                    repositoryRoot,
-                    expectedSourceFilePath)}'.");
+                $"{repository.FullName} must have a matching source file at "
+                    + $"'{Path.GetRelativePath(
+                        repositoryRoot,
+                        expectedSourceFilePath)}'.");
         }
 
         return violations;
@@ -239,20 +244,20 @@ public sealed class RepositoryConventionTests
         var aggregateType = genericArguments[1];
         var violations = new List<string>();
 
-        if (IsPrimitiveValue(identifierType) ||
-            !typeof(IStronglyTypedId).IsAssignableFrom(identifierType))
+        if (IsPrimitiveValue(identifierType)
+            || !typeof(IStronglyTypedId).IsAssignableFrom(identifierType))
         {
             violations.Add(
-                $"{repository.Type.FullName} must use a non-primitive " +
-                $"strongly typed ID, found '{identifierType.FullName}'.");
+                $"{repository.Type.FullName} must use a non-primitive "
+                    + $"strongly typed ID, found '{identifierType.FullName}'.");
         }
 
-        if (IsPrimitiveValue(aggregateType) ||
-            !typeof(IAggregateRoot).IsAssignableFrom(aggregateType))
+        if (IsPrimitiveValue(aggregateType)
+            || !typeof(IAggregateRoot).IsAssignableFrom(aggregateType))
         {
             violations.Add(
-                $"{repository.Type.FullName} must use an aggregate root, " +
-                $"found '{aggregateType.FullName}'.");
+                $"{repository.Type.FullName} must use an aggregate root, "
+                    + $"found '{aggregateType.FullName}'.");
         }
 
         return violations;
@@ -265,9 +270,9 @@ public sealed class RepositoryConventionTests
             .. GetRepositories()
                 .SelectMany(repository => repository.Type
                     .GetMethods(
-                        BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.DeclaredOnly)
+                        BindingFlags.Instance
+                            | BindingFlags.Public
+                            | BindingFlags.DeclaredOnly)
                     .Concat(repository.Contract.GetMethods())
                     .DistinctBy(method => method.ToString())
                     .Select(method => new RepositoryMethod(
@@ -288,9 +293,9 @@ public sealed class RepositoryConventionTests
             .GetInterfaces()
             .Append(type)
             .FirstOrDefault(candidate =>
-                candidate.IsGenericType &&
-                candidate.GetGenericTypeDefinition() ==
-                typeof(IRepository<,>));
+                candidate.IsGenericType
+                    && candidate.GetGenericTypeDefinition()
+                        == typeof(IRepository<,>));
     }
 
     private static bool IsAllowedRepositoryMethodType(
@@ -302,18 +307,18 @@ public sealed class RepositoryConventionTests
             return true;
         }
 
-        if (typeof(IAggregateRoot).IsAssignableFrom(type) ||
-            typeof(ValueObject).IsAssignableFrom(type) ||
-            typeof(IStronglyTypedId).IsAssignableFrom(type) ||
-            IsEnumeration(type))
+        if (typeof(IAggregateRoot).IsAssignableFrom(type)
+            || typeof(ValueObject).IsAssignableFrom(type)
+            || typeof(IStronglyTypedId).IsAssignableFrom(type)
+            || IsEnumeration(type))
         {
             return true;
         }
 
-        if (type == typeof(void) ||
-            type == typeof(Task) ||
-            type == typeof(ValueTask) ||
-            type == typeof(CancellationToken))
+        if (type == typeof(void)
+            || type == typeof(Task)
+            || type == typeof(ValueTask)
+            || type == typeof(CancellationToken))
         {
             return true;
         }
@@ -341,8 +346,8 @@ public sealed class RepositoryConventionTests
             .Append(type)
             .Where(candidate => candidate.IsGenericType)
             .FirstOrDefault(candidate =>
-                candidate.GetGenericTypeDefinition() ==
-                typeof(IEnumerable<>))
+                candidate.GetGenericTypeDefinition()
+            == typeof(IEnumerable<>))
             ?.GetGenericArguments()[0];
 
         if (collectionElementType is not null)
@@ -359,12 +364,12 @@ public sealed class RepositoryConventionTests
 
         var genericTypeDefinition = type.GetGenericTypeDefinition();
 
-        return (genericTypeDefinition == typeof(Task<>) ||
-                genericTypeDefinition == typeof(ValueTask<>)) &&
-               type.GetGenericArguments().All(argument =>
-                   IsAllowedRepositoryMethodType(
-                       argument,
-                       visitedTypes));
+        return (genericTypeDefinition == typeof(Task<>)
+            || genericTypeDefinition == typeof(ValueTask<>))
+            && type.GetGenericArguments().All(argument =>
+                IsAllowedRepositoryMethodType(
+                    argument,
+                    visitedTypes));
     }
 
     private static bool IsEnumeration(Type type)
@@ -373,9 +378,9 @@ public sealed class RepositoryConventionTests
              currentType is not null;
              currentType = currentType.BaseType)
         {
-            if (currentType.IsGenericType &&
-                currentType.GetGenericTypeDefinition() ==
-                typeof(Enumeration<>))
+            if (currentType.IsGenericType
+                && currentType.GetGenericTypeDefinition()
+                == typeof(Enumeration<>))
             {
                 return true;
             }
@@ -388,24 +393,24 @@ public sealed class RepositoryConventionTests
     {
         var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 
-        return underlyingType.IsPrimitive ||
-               underlyingType.IsEnum ||
-               underlyingType == typeof(string) ||
-               underlyingType == typeof(decimal) ||
-               underlyingType == typeof(Guid) ||
-               underlyingType == typeof(DateTime) ||
-               underlyingType == typeof(DateTimeOffset) ||
-               underlyingType == typeof(DateOnly) ||
-               underlyingType == typeof(TimeOnly) ||
-               underlyingType == typeof(TimeSpan);
+        return underlyingType.IsPrimitive
+            || underlyingType.IsEnum
+            || underlyingType == typeof(string)
+            || underlyingType == typeof(decimal)
+            || underlyingType == typeof(Guid)
+            || underlyingType == typeof(DateTime)
+            || underlyingType == typeof(DateTimeOffset)
+            || underlyingType == typeof(DateOnly)
+            || underlyingType == typeof(TimeOnly)
+            || underlyingType == typeof(TimeSpan);
     }
 
     private static string GetFeatureName(Type repository)
     {
         var repositoryNamespace = repository.Namespace
             ?? throw new InvalidOperationException(
-                $"Repository interface '{repository.FullName}' does not have " +
-                $"a namespace.");
+                $"Repository interface '{repository.FullName}' does not have "
+                    + $"a namespace.");
         var namespaceSegments = repositoryNamespace.Split('.');
         var abstractionsIndex = Array.LastIndexOf(
             namespaceSegments,
@@ -414,9 +419,9 @@ public sealed class RepositoryConventionTests
         if (abstractionsIndex < 1)
         {
             throw new InvalidOperationException(
-                $"Repository interface '{repository.FullName}' must be " +
-                $"declared in an '*.{{Feature}}." +
-                $"{AbstractionsNamespaceSegment}' namespace.");
+                $"Repository interface '{repository.FullName}' must be "
+                    + $"declared in an '*.{{Feature}}."
+                    + $"{AbstractionsNamespaceSegment}' namespace.");
         }
 
         return namespaceSegments[abstractionsIndex - 1];
@@ -427,8 +432,8 @@ public sealed class RepositoryConventionTests
         var typeName = RemoveGenericArity(parameterType.Name);
         var nameWithoutInterfacePrefix = typeName[1..];
 
-        return char.ToLowerInvariant(nameWithoutInterfacePrefix[0]) +
-               nameWithoutInterfacePrefix[1..];
+        return char.ToLowerInvariant(nameWithoutInterfacePrefix[0])
+            + nameWithoutInterfacePrefix[1..];
     }
 
     private static string RemoveGenericArity(string typeName)
@@ -459,37 +464,37 @@ public sealed class RepositoryConventionTests
             string.Equals(
                 candidate.ContractsAssemblyName,
                 assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.DomainAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.ApplicationAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.InfrastructureAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                candidate.PresentationAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal));
+                StringComparison.Ordinal)
+                || string.Equals(
+                    candidate.DomainAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal)
+                || string.Equals(
+                    candidate.ApplicationAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal)
+                || string.Equals(
+                    candidate.InfrastructureAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal)
+                || string.Equals(
+                    candidate.PresentationAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal));
         var moduleDirectoryName =
             module.Name[(module.Name.LastIndexOf('.') + 1)..];
         var repositoryNamespace = repository.Namespace
             ?? throw new InvalidOperationException(
-                $"Repository interface '{repository.FullName}' does not have " +
-                $"a namespace.");
+                $"Repository interface '{repository.FullName}' does not have "
+                    + $"a namespace.");
         var namespacePrefix = assemblyName + ".";
         var relativeNamespace = repositoryNamespace.StartsWith(
             namespacePrefix,
             StringComparison.Ordinal)
             ? repositoryNamespace[namespacePrefix.Length..]
             : throw new InvalidOperationException(
-                $"Repository interface '{repository.FullName}' namespace must " +
-                $"start with '{namespacePrefix}'.");
+                $"Repository interface '{repository.FullName}' namespace must "
+                    + $"start with '{namespacePrefix}'.");
 
         return Path.Combine(
             repositoryRoot,
@@ -516,16 +521,16 @@ public sealed class RepositoryConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+            $"Could not find repository root containing "
+                + $"the '{SourceDirectoryName}' directory.");
     }
 
     private sealed record Repository(

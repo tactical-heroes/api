@@ -39,24 +39,24 @@ public sealed class ApplicationHandlerConventionTests
 
         var violations = handlers
             .Where(handler =>
-                !File.Exists(handler.ExpectedTestFilePath) ||
-                !testMethods.Any(testMethod => HasPath(
-                    repositoryRoot,
-                    testMethod,
-                    handler.ExpectedTestFilePath)))
+                !File.Exists(handler.ExpectedTestFilePath)
+                    || !testMethods.Any(testMethod => HasPath(
+                        repositoryRoot,
+                        testMethod,
+                        handler.ExpectedTestFilePath)))
             .Select(handler =>
-                $"{handler.Type.FullName} must have a separate unit test " +
-                $"file containing at least one Fact or Theory at " +
-                $"'{Path.GetRelativePath(
-                    repositoryRoot,
-                    handler.ExpectedTestFilePath)}'.")
+                $"{handler.Type.FullName} must have a separate unit test "
+                    + $"file containing at least one Fact or Theory at "
+                    + $"'{Path.GetRelativePath(
+                        repositoryRoot,
+                        handler.ExpectedTestFilePath)}'.")
             .ToArray();
 
         Assert.True(
             violations.Length == 0,
-            $"Missing or empty Application handler unit test files:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Missing or empty Application handler unit test files:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Application handler unit tests should cover every handler method when handlers are declared")]
@@ -78,9 +78,9 @@ public sealed class ApplicationHandlerConventionTests
 
         Assert.True(
             violations.Length == 0,
-            $"Missing Application handler unit test methods:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Missing Application handler unit test methods:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Command and query handlers should have validators when handlers are declared")]
@@ -94,22 +94,23 @@ public sealed class ApplicationHandlerConventionTests
         var violations = handlers
             .SelectMany(handler => handler.HandlerInterfaces
                 .Where(IsRequestHandlerInterface)
-                .Select(handlerInterface => new
-                {
-                    Handler = handler.Type,
-                    Request = handlerInterface.GetGenericArguments()[0]
-                }))
+                .Select(
+                    handlerInterface => new
+                    {
+                        Handler = handler.Type,
+                        Request = handlerInterface.GetGenericArguments()[0]
+                    }))
             .Where(target => !validators.Any(validator =>
                 validator.ValidatedTypes.Contains(target.Request)))
             .Select(target =>
-                $"{target.Handler.FullName} must have an IValidator<" +
-                $"{target.Request.FullName}> implementation.")
+                $"{target.Handler.FullName} must have an IValidator<"
+                    + $"{target.Request.FullName}> implementation.")
             .ToArray();
 
         Assert.True(
             violations.Length == 0,
-            $"Missing command or query validators:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Missing command or query validators:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Application validators should have matching unit test files when validators are declared")]
@@ -122,33 +123,34 @@ public sealed class ApplicationHandlerConventionTests
         Assert.NotEmpty(validators);
 
         var violations = validators
-            .Select(validator => new
-            {
-                validator.Type,
-                ExpectedTestFilePath = GetExpectedTestFilePath(
-                    repositoryRoot,
-                    validator.Module,
-                    validator.Type)
-            })
+            .Select(
+                validator => new
+                {
+                    validator.Type,
+                    ExpectedTestFilePath = GetExpectedTestFilePath(
+                        repositoryRoot,
+                        validator.Module,
+                        validator.Type)
+                })
             .Where(validator =>
-                !File.Exists(validator.ExpectedTestFilePath) ||
-                !testMethods.Any(testMethod => HasPath(
-                    repositoryRoot,
-                    testMethod,
-                    validator.ExpectedTestFilePath)))
+                !File.Exists(validator.ExpectedTestFilePath)
+                    || !testMethods.Any(testMethod => HasPath(
+                        repositoryRoot,
+                        testMethod,
+                        validator.ExpectedTestFilePath)))
             .Select(validator =>
-                $"{validator.Type.FullName} must have a separate unit test " +
-                $"file containing at least one Fact or Theory at " +
-                $"'{Path.GetRelativePath(
-                    repositoryRoot,
-                    validator.ExpectedTestFilePath)}'.")
+                $"{validator.Type.FullName} must have a separate unit test "
+                    + $"file containing at least one Fact or Theory at "
+                    + $"'{Path.GetRelativePath(
+                        repositoryRoot,
+                        validator.ExpectedTestFilePath)}'.")
             .ToArray();
 
         Assert.True(
             violations.Length == 0,
-            $"Missing or empty Application validator unit test files:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Missing or empty Application validator unit test files:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Application validators should be public and sealed when validators are declared")]
@@ -165,14 +167,14 @@ public sealed class ApplicationHandlerConventionTests
         var violations = validators
             .Where(type => !type.IsVisible || !type.IsSealed)
             .Select(type =>
-                $"{type.FullName} must be public and sealed so generated " +
-                "Wolverine registrations can reference it from the host assembly.")
+                $"{type.FullName} must be public and sealed so generated "
+                    + "Wolverine registrations can reference it from the host assembly.")
             .ToArray();
 
         Assert.True(
             violations.Length == 0,
-            $"Invalid Application validator visibility or inheritance:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Invalid Application validator visibility or inheritance:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static ApplicationHandler[] GetApplicationHandlers(
@@ -215,8 +217,8 @@ public sealed class ApplicationHandlerConventionTests
                     ],
                     Module: target.Module))
                 .Where(validator =>
-                    validator.ValidatedTypes.Count > 0 &&
-                    !typeof(SortingParametersValidator).IsAssignableFrom(validator.Type))
+                    validator.ValidatedTypes.Count > 0
+                        && !typeof(SortingParametersValidator).IsAssignableFrom(validator.Type))
                 .OrderBy(validator => validator.Type.FullName, StringComparer.Ordinal)
         ];
     }
@@ -266,25 +268,26 @@ public sealed class ApplicationHandlerConventionTests
             .GroupBy(method => method.Name, StringComparer.Ordinal);
 
         return handlerMethods
-            .Select(methods => new
-            {
-                MethodName = methods.Key,
-                RequiredTestCount = methods.Count(),
-                ActualTestCount = testMethodNames.Count(testMethodName =>
-                    testMethodName.StartsWith(
-                        methods.Key + "_Should_",
-                        StringComparison.Ordinal))
-            })
+            .Select(
+                methods => new
+                {
+                    MethodName = methods.Key,
+                    RequiredTestCount = methods.Count(),
+                    ActualTestCount = testMethodNames.Count(testMethodName =>
+                        testMethodName.StartsWith(
+                            methods.Key + "_Should_",
+                            StringComparison.Ordinal))
+                })
             .Where(coverage =>
                 coverage.ActualTestCount < coverage.RequiredTestCount)
             .Select(coverage =>
-                $"{handler.Type.FullName}.{coverage.MethodName}: expected " +
-                $"{coverage.RequiredTestCount} test method(s) starting with " +
-                $"'{coverage.MethodName}_Should_', found " +
-                $"{coverage.ActualTestCount} in " +
-                $"'{Path.GetRelativePath(
-                    repositoryRoot,
-                    handler.ExpectedTestFilePath)}'.");
+                $"{handler.Type.FullName}.{coverage.MethodName}: expected "
+                    + $"{coverage.RequiredTestCount} test method(s) starting with "
+                    + $"'{coverage.MethodName}_Should_', found "
+                    + $"{coverage.ActualTestCount} in "
+                    + $"'{Path.GetRelativePath(
+                        repositoryRoot,
+                        handler.ExpectedTestFilePath)}'.");
     }
 
     private static string GetExpectedTestFilePath(
@@ -324,45 +327,45 @@ public sealed class ApplicationHandlerConventionTests
         var applicationNamespacePrefix = applicationAssemblyName + ".";
 
         if (string.Equals(
-                typeNamespace,
-                applicationAssemblyName,
-                StringComparison.Ordinal))
+            typeNamespace,
+            applicationAssemblyName,
+            StringComparison.Ordinal))
         {
             return string.Empty;
         }
 
         if (typeNamespace.StartsWith(
-                applicationNamespacePrefix,
-                StringComparison.Ordinal))
+            applicationNamespacePrefix,
+            StringComparison.Ordinal))
         {
             return typeNamespace[applicationNamespacePrefix.Length..];
         }
 
         throw new InvalidOperationException(
-            $"Application type namespace '{typeNamespace}' must be " +
-            $"'{applicationAssemblyName}' or start with " +
-            $"'{applicationNamespacePrefix}'.");
+            $"Application type namespace '{typeNamespace}' must be "
+                + $"'{applicationAssemblyName}' or start with "
+                + $"'{applicationNamespacePrefix}'.");
     }
 
     private static bool IsHandlerInterface(Type interfaceType)
     {
-        return interfaceType.IsGenericType &&
-               s_handlerInterfaceDefinitions.Contains(
-                   interfaceType.GetGenericTypeDefinition());
+        return interfaceType.IsGenericType
+            && s_handlerInterfaceDefinitions.Contains(
+                interfaceType.GetGenericTypeDefinition());
     }
 
     private static bool IsRequestHandlerInterface(Type interfaceType)
     {
-        return interfaceType.IsGenericType &&
-               s_requestHandlerInterfaceDefinitions.Contains(
-                   interfaceType.GetGenericTypeDefinition());
+        return interfaceType.IsGenericType
+            && s_requestHandlerInterfaceDefinitions.Contains(
+                interfaceType.GetGenericTypeDefinition());
     }
 
     private static bool IsValidatorInterface(Type interfaceType)
     {
-        return interfaceType.IsGenericType &&
-               interfaceType.GetGenericTypeDefinition() ==
-               typeof(IValidator<>);
+        return interfaceType.IsGenericType
+            && interfaceType.GetGenericTypeDefinition()
+            == typeof(IValidator<>);
     }
 
     private static bool HasPath(
@@ -388,9 +391,9 @@ public sealed class ApplicationHandlerConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)) &&
-                Directory.Exists(Path.Combine(
+                directory.FullName,
+                SourceDirectoryName))
+                && Directory.Exists(Path.Combine(
                     directory.FullName,
                     TestsDirectoryName)))
             {
@@ -399,8 +402,8 @@ public sealed class ApplicationHandlerConventionTests
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
+            $"Could not find repository root containing "
+                + $"'{SourceDirectoryName}' and '{TestsDirectoryName}' directories.");
     }
 
     private sealed record ApplicationType(

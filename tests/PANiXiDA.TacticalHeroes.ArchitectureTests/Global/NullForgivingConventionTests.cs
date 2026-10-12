@@ -11,17 +11,20 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class NullForgivingConventionTests
 {
-    [Fact(DisplayName = "Null-forgiving expressions should avoid suppressed null values when production code is declared")]
+    [Fact(
+        DisplayName = "Null-forgiving expressions should avoid suppressed null values when production code is declared")]
     public async Task NullForgivingExpressions_Should_AvoidSuppressedNullValues_When_ProductionCodeIsDeclared()
     {
         var violations = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetDocumentViolationsAsync);
 
-        Assert.True(violations.Length == 0,
-            $"Suppressed null values in production code:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+        Assert.True(
+            violations.Length == 0,
+            $"Suppressed null values in production code:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
-    [Theory(DisplayName = "Null-forgiving expressions should detect suppressed null values when source expressions vary")]
+    [Theory(
+        DisplayName = "Null-forgiving expressions should detect suppressed null values when source expressions vary")]
     [InlineData("public static string Get() => null!;", true)]
     [InlineData("public static string Get() => default!;", true)]
     [InlineData("public static string Get() => default(string)!;", true)]
@@ -56,26 +59,46 @@ public sealed class NullForgivingConventionTests
     [InlineData("public static object Get() => ((object)default(int))!;", false)]
     [InlineData("public static string Get(string? value) => value!;", false)]
     [InlineData("public static string Get() => string.Empty!;", false)]
-    [InlineData("private Sample(int _) : this() { Stats = null!; } public HeroCombatStats Stats { get; private set; }", false)]
-    [InlineData("private Sample(int _) : this() { this.Stats = (default!); } public HeroCombatStats Stats { get; private set; }", false)]
-    [InlineData("public Sample(int _) : this() { Stats = null!; } public HeroCombatStats Stats { get; private set; }", true)]
+    [InlineData(
+        "private Sample(int _) : this() { Stats = null!; } public HeroCombatStats Stats { get; private set; }",
+        false)]
+    [InlineData(
+        "private Sample(int _) : this() { this.Stats = (default!); } public HeroCombatStats Stats { get; private set; }",
+        false)]
+    [InlineData(
+        "public Sample(int _) : this() { Stats = null!; } public HeroCombatStats Stats { get; private set; }",
+        true)]
     [InlineData("public void Reset() { Stats = null!; } public HeroCombatStats Stats { get; private set; }", true)]
     [InlineData("private Sample(int _) : this() { Name = null!; } public HeroName Name { get; private set; }", true)]
-    [InlineData("private Sample(Sample other) : this() { other.Stats = null!; } public HeroCombatStats Stats { get; private set; }", true)]
-    [InlineData("private Sample(int _) : this() { void Reset() { Stats = null!; } Reset(); } public HeroCombatStats Stats { get; private set; }", true)]
+    [InlineData(
+        "private Sample(Sample other) : this() { other.Stats = null!; } public HeroCombatStats Stats { get; private set; }",
+        true)]
+    [InlineData(
+        "private Sample(int _) : this() { void Reset() { Stats = null!; } Reset(); } public HeroCombatStats Stats { get; private set; }",
+        true)]
     [InlineData("public HeroCombatStats Stats { get; private set; } = null!;", true)]
     [InlineData("private Sample(int _) : this() { Stats = null!; } public HeroCombatStats Stats { get; set; }", true)]
-    [InlineData("private Sample(int _) : this() { Stats = null!; } public static HeroCombatStats Stats { get; private set; }", true)]
+    [InlineData(
+        "private Sample(int _) : this() { Stats = null!; } public static HeroCombatStats Stats { get; private set; }",
+        true)]
     [InlineData("private Sample(int _) : this() { _stats = null!; } private HeroCombatStats _stats;", true)]
     [InlineData("public DbSet<Hero> Heroes { get; set; } = null!;", true)]
     [InlineData("public sealed class Context : DbContext { public DbSet<Hero> Heroes { get; set; } = null!; }", false)]
-    [InlineData("public sealed class Context : DbContext { public DbSet<Hero> Heroes { get; set; } = (default!); }", false)]
+    [InlineData(
+        "public sealed class Context : DbContext { public DbSet<Hero> Heroes { get; set; } = (default!); }",
+        false)]
     [InlineData("public sealed class Context : DbContext { public string Name { get; set; } = null!; }", true)]
-    [InlineData("public sealed class Context : DbContext { public static DbSet<Hero> Heroes { get; set; } = null!; }", true)]
-    [InlineData("public sealed class Context : DbContext { public DbSet<Hero> Heroes { get; set; } public void Reset() { Heroes = null!; } }", true)]
+    [InlineData(
+        "public sealed class Context : DbContext { public static DbSet<Hero> Heroes { get; set; } = null!; }",
+        true)]
+    [InlineData(
+        "public sealed class Context : DbContext { public DbSet<Hero> Heroes { get; set; } public void Reset() { Heroes = null!; } }",
+        true)]
     [InlineData("public sealed class Context : DbContext { public DbSet<Hero> Heroes => null!; }", true)]
     [InlineData("public sealed class Context : DbContext { public DbSet<Hero> Heroes = null!; }", true)]
-    public void NullForgivingExpressions_Should_DetectSuppressedNullValues_When_SourceExpressionsVary(string member, bool expected)
+    public void NullForgivingExpressions_Should_DetectSuppressedNullValues_When_SourceExpressionsVary(
+        string member,
+        bool expected)
     {
         var source = $$"""
                        #nullable enable
@@ -94,13 +117,19 @@ public sealed class NullForgivingConventionTests
         var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
             .Split(Path.PathSeparator)
-            .Concat([typeof(IEntity).Assembly.Location, typeof(Hero).Assembly.Location, typeof(DbContext).Assembly.Location])
+            .Concat(
+                [typeof(IEntity).Assembly.Location, typeof(Hero).Assembly.Location, typeof(DbContext).Assembly
+                    .Location])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Select(path => MetadataReference.CreateFromFile(path));
         var compilation = CSharpCompilation.Create(
-            assemblyName: "NullForgivingProbe", syntaxTrees: [tree], references: references,
+            assemblyName: "NullForgivingProbe",
+            syntaxTrees: [tree],
+            references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(
+            compilation.GetDiagnostics(cancellationToken),
+            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
 
         var violations = GetViolations(tree.GetRoot(cancellationToken), compilation.GetSemanticModel(tree));
 
@@ -119,15 +148,16 @@ public sealed class NullForgivingConventionTests
 
         var relativePath = Path.GetRelativePath(repositoryRoot, document.FilePath);
         return [.. GetViolations(root, model).Select(expression =>
-            $"{relativePath}:{expression.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: " +
-            $"'{expression}' suppresses a null value outside EF initialization.")];
+            $"{relativePath}:{expression.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: "
+                + $"'{expression}' suppresses a null value outside EF initialization.")];
     }
 
     private static PostfixUnaryExpressionSyntax[] GetViolations(SyntaxNode root, SemanticModel model)
     {
         return [.. root.DescendantNodes().OfType<PostfixUnaryExpressionSyntax>()
-            .Where(expression => expression.IsKind(SyntaxKind.SuppressNullableWarningExpression) &&
-                SuppressesNullValue(expression.Operand, model) && !IsEfInitialization(expression, model))];
+            .Where(expression => expression.IsKind(SyntaxKind.SuppressNullableWarningExpression)
+                && SuppressesNullValue(expression.Operand, model)
+                && !IsEfInitialization(expression, model))];
     }
 
     private static bool SuppressesNullValue(ExpressionSyntax expression, SemanticModel model)
@@ -136,7 +166,8 @@ public sealed class NullForgivingConventionTests
         {
             ParenthesizedExpressionSyntax parentheses => SuppressesNullValue(parentheses.Expression, model),
             CastExpressionSyntax cast => SuppressesNullValue(cast.Expression, model),
-            PostfixUnaryExpressionSyntax suppression when suppression.IsKind(SyntaxKind.SuppressNullableWarningExpression) =>
+            PostfixUnaryExpressionSyntax suppression when suppression.IsKind(
+                SyntaxKind.SuppressNullableWarningExpression) =>
                 SuppressesNullValue(suppression.Operand, model),
             DefaultExpressionSyntax => CanBeNull(model.GetTypeInfo(expression).Type),
             LiteralExpressionSyntax literal when literal.IsKind(SyntaxKind.DefaultLiteralExpression) =>
@@ -147,8 +178,8 @@ public sealed class NullForgivingConventionTests
 
     private static bool CanBeNull(ITypeSymbol? type)
     {
-        return type is not { IsValueType: true } ||
-            type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        return type is not { IsValueType: true }
+            || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
     }
 
     private static bool IsEfInitialization(ExpressionSyntax expression, SemanticModel model)
@@ -158,33 +189,40 @@ public sealed class NullForgivingConventionTests
             expression = parentheses;
         }
 
-        if (expression.Parent is EqualsValueClauseSyntax { Parent: PropertyDeclarationSyntax declaration } &&
-            model.GetDeclaredSymbol(declaration) is { IsStatic: false } property &&
-            property.GetMethod?.DeclaredAccessibility == Accessibility.Public &&
-            property.SetMethod?.DeclaredAccessibility == Accessibility.Public &&
-            declaration.AccessorList?.Accessors.All(accessor => accessor.Body is null && accessor.ExpressionBody is null) == true)
+        if (expression.Parent is EqualsValueClauseSyntax { Parent: PropertyDeclarationSyntax declaration }
+            && model.GetDeclaredSymbol(declaration) is { IsStatic: false } property
+            && property.GetMethod?.DeclaredAccessibility == Accessibility.Public
+            && property.SetMethod?.DeclaredAccessibility == Accessibility.Public
+            && declaration.AccessorList?.Accessors
+                .All(accessor => accessor.Body is null && accessor.ExpressionBody is null) == true)
         {
-            return IsType(property.Type.OriginalDefinition, model.Compilation, "Microsoft.EntityFrameworkCore.DbSet`1") &&
-                InheritsFrom(property.ContainingType, model.Compilation, "Microsoft.EntityFrameworkCore.DbContext");
+            return IsType(
+                property.Type.OriginalDefinition,
+                model.Compilation,
+                "Microsoft.EntityFrameworkCore.DbSet`1")
+                && InheritsFrom(property.ContainingType, model.Compilation, "Microsoft.EntityFrameworkCore.DbContext");
         }
 
-        return expression.Parent is AssignmentExpressionSyntax assignment &&
-            assignment.Right == expression && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
-            assignment.Parent is ExpressionStatementSyntax { Parent: BlockSyntax { Parent: ConstructorDeclarationSyntax } } &&
-            model.GetEnclosingSymbol(expression.SpanStart) is IMethodSymbol
+        return expression.Parent is AssignmentExpressionSyntax assignment
+            && assignment.Right == expression
+            && assignment.IsKind(SyntaxKind.SimpleAssignmentExpression)
+            && assignment
+                .Parent is ExpressionStatementSyntax { Parent: BlockSyntax { Parent: ConstructorDeclarationSyntax } }
+            && model.GetEnclosingSymbol(expression.SpanStart) is IMethodSymbol
             {
                 MethodKind: MethodKind.Constructor,
                 DeclaredAccessibility: Accessibility.Private
-            } constructor &&
-            model.GetOperation(assignment.Left) is IPropertyReferenceOperation
+            } constructor
+            && model.GetOperation(assignment.Left) is IPropertyReferenceOperation
             {
                 Instance: IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.ContainingTypeInstance },
                 Property: { IsStatic: false, SetMethod.DeclaredAccessibility: Accessibility.Private } target
-            } &&
-            SymbolEqualityComparer.Default.Equals(target.ContainingType, constructor.ContainingType) &&
-            target.ContainingType.AllInterfaces.Any(type => IsType(type, model.Compilation, typeof(IEntity).FullName!)) &&
-            InheritsFrom(target.Type, model.Compilation, "PANiXiDA.Core.Domain.ValueObjects.ValueObject") &&
-            target.Type.GetMembers().OfType<IPropertySymbol>()
+            }
+            && SymbolEqualityComparer.Default.Equals(target.ContainingType, constructor.ContainingType)
+            && target.ContainingType.AllInterfaces
+                .Any(type => IsType(type, model.Compilation, typeof(IEntity).FullName!))
+            && InheritsFrom(target.Type, model.Compilation, "PANiXiDA.Core.Domain.ValueObjects.ValueObject")
+            && target.Type.GetMembers().OfType<IPropertySymbol>()
                 .Count(property => !property.IsStatic && !property.IsIndexer && !property.IsImplicitlyDeclared) > 1;
     }
 

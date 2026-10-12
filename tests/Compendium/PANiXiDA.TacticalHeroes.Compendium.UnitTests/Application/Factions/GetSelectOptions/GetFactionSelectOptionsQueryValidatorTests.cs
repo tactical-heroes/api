@@ -14,7 +14,8 @@ public sealed class GetFactionSelectOptionsQueryValidatorTests
     {
         var validator = new GetFactionSelectOptionsQueryValidator();
 
-        var result = validator.Validate(new GetFactionSelectOptionsQuery(new FactionsFilter(), new LimitParameters(limit)));
+        var result = validator.Validate(
+            new GetFactionSelectOptionsQuery(new FactionsFilter(), new LimitParameters(limit)));
 
         result.Errors.ShouldContain(error => error.PropertyName == "Limit.Limit");
     }
@@ -34,7 +35,8 @@ public sealed class GetFactionSelectOptionsQueryValidatorTests
     {
         var validator = new GetFactionSelectOptionsQueryValidator();
 
-        var result = validator.Validate(new GetFactionSelectOptionsQuery(new FactionsFilter(" no "), new LimitParameters(20)));
+        var result = validator.Validate(
+            new GetFactionSelectOptionsQuery(new FactionsFilter(" no "), new LimitParameters(20)));
 
         result.Errors.ShouldContain(error => error.PropertyName == "Filter.Search");
     }
@@ -47,7 +49,8 @@ public sealed class GetFactionSelectOptionsQueryValidatorTests
     {
         var validator = new GetFactionSelectOptionsQueryValidator();
 
-        var result = validator.Validate(new GetFactionSelectOptionsQuery(new FactionsFilter(search), new LimitParameters(limit)));
+        var result = validator.Validate(
+            new GetFactionSelectOptionsQuery(new FactionsFilter(search), new LimitParameters(limit)));
 
         result.IsValid.ShouldBeTrue();
     }

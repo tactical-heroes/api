@@ -125,7 +125,14 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
         var result = await repository.AddAsync(
-            IntegrationTestData.CreateUser(Guid.CreateVersion7(), email, isConfirmed, [], claims.Select(claim => (claim.Type, claim.Value)), userName, UserStatus.Create(status).Value),
+            IntegrationTestData.CreateUser(
+                Guid.CreateVersion7(),
+                email,
+                isConfirmed,
+                [],
+                claims.Select(claim => (claim.Type, claim.Value)),
+                userName,
+                UserStatus.Create(status).Value),
             Password,
             cancellationToken);
 

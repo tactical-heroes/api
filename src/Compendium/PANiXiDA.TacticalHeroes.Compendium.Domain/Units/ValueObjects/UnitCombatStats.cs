@@ -60,7 +60,8 @@ public sealed partial class UnitCombatStats : ValueObject
         var damageRangeResult = maximumDamage >= minimumDamage
             ? Result.Success()
             : Result.Failure(
-                error: Error.Validation(
+                error: Error
+                    .Validation(
                         message: "Unit maximum damage cannot be less than minimum damage.")
                     .WithField(nameof(MaximumDamage)));
         var initiativeResult = ValidateNonNegativeFinite(

@@ -29,7 +29,8 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(DisplayName = "POST auth reset-password should roll back and allow retry when request is canceled after password save")]
+    [Fact(
+        DisplayName = "POST auth reset-password should roll back and allow retry when request is canceled after password save")]
     public async Task PostResetPassword_Should_RollBackAndAllowRetry_When_RequestIsCanceledAfterPasswordSave()
     {
         const string CurrentPassword = "StrongPassword1!";
@@ -53,18 +54,21 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
             user.ShouldNotBeNull();
             passwordHash = user.PasswordHash!;
             securityStamp = user.SecurityStamp!;
-            var refreshToken = await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
-            {
-                Subject = createdUser.Id.ToString(),
-                Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
-                Status = OpenIddictConstants.Statuses.Valid
-            }, cancellationToken);
+            var refreshToken = await tokenManager.CreateAsync(
+                new OpenIddictTokenDescriptor
+                {
+                    Subject = createdUser.Id.ToString(),
+                    Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                cancellationToken);
             refreshTokenId = (await tokenManager.GetIdAsync(refreshToken, cancellationToken))!;
         }
 
         using var requestCancellation = new CancellationTokenSource();
         var interceptor = new CancelAfterPasswordSaveInterceptor(createdUser.Id, passwordHash, requestCancellation);
-        await using var factory = new FunctionalTestWebApplicationFactory()
+        await using var testFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddSingleton<IInterceptor>(interceptor)));
         using var client = new HttpClient(factory.Server.CreateHandler(context =>
@@ -114,7 +118,8 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
 
         retryResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         await using var verificationScope = Fixture.Services.CreateAsyncScope();
-        var verificationUserManager = verificationScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var verificationUserManager = verificationScope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
         var verificationTokenManager = verificationScope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
         var updatedUser = await verificationUserManager.FindByIdAsync(createdUser.Id.ToString());
         updatedUser.ShouldNotBeNull();
@@ -132,7 +137,7 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
     {
         public bool PasswordSavedInTransaction { get; private set; }
 
-        public override ValueTask<int> SavedChangesAsync(
+        public override async ValueTask<int> SavedChangesAsync(
             SaveChangesCompletedEventData eventData,
             int result,
             CancellationToken cancellationToken)
@@ -145,10 +150,10 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
             if (user is not null && user.PasswordHash != originalPasswordHash)
             {
                 PasswordSavedInTransaction = context!.Database.CurrentTransaction is not null;
-                requestCancellation.Cancel();
+                await requestCancellation.CancelAsync();
             }
 
-            return ValueTask.FromResult(result);
+            return result;
         }
     }
 }
