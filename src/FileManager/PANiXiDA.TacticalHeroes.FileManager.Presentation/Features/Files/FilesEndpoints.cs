@@ -7,6 +7,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files;
 internal sealed class FilesEndpoints : IEndpointGroup
 {
     internal const string IdRoute = "/{id:guid}";
+    internal const string PersonalRoute = "/personal";
 
     public string Route { get; } = "files";
     public string Name { get; } = "Files";
