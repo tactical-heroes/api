@@ -7,7 +7,10 @@ public static partial class Permissions
         public const string ResourceCode = "units";
         public const string ResourceName = "Юниты";
 
-        public static readonly ResourceDefinition Resource = new(ResourceCode, ResourceName, Sections.Compendium.Code);
+        public static readonly ResourceDefinition Resource = new(
+            Code: ResourceCode,
+            DisplayName: ResourceName,
+            SectionCode: Sections.Compendium.Code);
 
         public static readonly PermissionDefinition Create =
             Resource.CreatePermission("create", "Создание юнитов");
