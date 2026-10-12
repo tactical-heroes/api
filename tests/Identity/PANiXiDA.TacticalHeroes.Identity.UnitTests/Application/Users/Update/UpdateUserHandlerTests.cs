@@ -106,7 +106,8 @@ public sealed class UpdateUserHandlerTests
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
             Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
-            cancellationToken, replaceRoles: true);
+            cancellationToken,
+            replaceRoles: true);
     }
 
     [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]

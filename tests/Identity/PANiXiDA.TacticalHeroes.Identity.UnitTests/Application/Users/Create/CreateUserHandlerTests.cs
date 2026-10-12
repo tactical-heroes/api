@@ -106,7 +106,8 @@ public sealed class CreateUserHandlerTests
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).AddAsync(
             Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
-            "StrongPassword1!", cancellationToken);
+            "StrongPassword1!",
+            cancellationToken);
     }
 
     [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]
