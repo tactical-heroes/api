@@ -1,4 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
@@ -19,7 +18,8 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
         var emailResult = Email.Create(value: command.Email);
         var userNameResult = UserName.Create(value: command.UserName);
         var statusResult = UserStatus.Create(value: command.Status);
-        var validationResult = Result.Combine(idResult, emailResult, userNameResult, statusResult);
+        var roleIdsResult = UserRoleAssignments.Create(command.RoleIds);
+        var validationResult = Result.Combine(idResult, emailResult, userNameResult, statusResult, roleIdsResult);
 
         if (validationResult.IsFailure)
         {
@@ -42,25 +42,13 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
             claims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
-        var roleIds = new List<RoleId>();
-        foreach (var roleId in command.RoleIds ?? [])
-        {
-            var roleIdResult = RoleId.Create(value: roleId);
-            if (roleIdResult.IsFailure)
-            {
-                return Task.FromResult(Result.Failure(errors: roleIdResult.Errors));
-            }
-
-            roleIds.Add(roleIdResult.Value);
-        }
-
         var user = User.Create(
             id: idResult.Value,
             email: emailResult.Value,
             userName: userNameResult.Value,
             status: statusResult.Value,
             confirmationStatus: UserConfirmationStatus.From(isConfirmed: command.IsConfirmed),
-            roleIds: roleIds,
+            roleIds: roleIdsResult.Value,
             claims: claims);
 
         return usersRepository.UpdateAsync(

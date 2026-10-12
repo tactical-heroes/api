@@ -50,12 +50,14 @@ public sealed class UserRoleAssignmentTests(IntegrationTestFixture fixture) : In
         var otherId = Guid.CreateVersion7();
         foreach (var subject in new[] { userId, otherId })
         {
-            await tokenManager.CreateAsync(new OpenIddictTokenDescriptor
-            {
-                Subject = subject.ToString(),
-                Status = OpenIddictConstants.Statuses.Valid,
-                Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken
-            }, cancellationToken);
+            await tokenManager.CreateAsync(
+                new OpenIddictTokenDescriptor
+                {
+                    Subject = subject.ToString(),
+                    Status = OpenIddictConstants.Statuses.Valid,
+                    Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+                },
+                cancellationToken);
         }
 
         var result = await repository.UpdateAsync(

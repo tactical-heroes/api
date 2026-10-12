@@ -44,13 +44,15 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
         var created = await client.CreateAsync(
             cancellationToken, UserApiTestClient.CreateDefaultRequest() with { RoleIds = [developerId] });
         IReadOnlyCollection<Guid>? selected = mode == "omit" ? null : mode == "clear" ? [] : [moderatorId];
-        var payload = JsonSerializer.SerializeToNode(new UpdateUserRequest(
-            Email: "edited@example.com",
-            UserName: "edited",
-            IsConfirmed: true,
-            Claims: [],
-            Status: "Active",
-            RoleIds: selected), JsonOptions)!
+        var payload = JsonSerializer.SerializeToNode(
+            new UpdateUserRequest(
+                Email: "edited@example.com",
+                UserName: "edited",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: selected),
+            JsonOptions)!
             .AsObject();
         if (mode == "omit")
         {

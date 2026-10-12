@@ -47,7 +47,7 @@ public sealed class UpdateUserCommandValidatorTests
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Status));
     }
 
-    [Theory(DisplayName = "User validator should validate role identifiers when role IDs are provided")]
+    [Theory(DisplayName = "User validator should validate role identifiers when role ids are provided")]
     [InlineData(false, false, true)]
     [InlineData(true, false, false)]
     [InlineData(false, true, false)]

@@ -63,7 +63,9 @@ public sealed class IdentityRoleSeederTests(IntegrationTestFixture fixture) : In
         using var cancellation = new CancellationTokenSource();
         await cancellation.CancelAsync();
 
-        await Should.ThrowAsync<OperationCanceledException>(() => seeder.SeedAsync(cancellation.Token));
+        var exception = await Should.ThrowAsync<OperationCanceledException>(() => seeder.SeedAsync(cancellation.Token));
+
+        exception.CancellationToken.ShouldBe(cancellation.Token);
     }
 
     [Fact(DisplayName = "Role seeding should fail startup when role creation fails")]

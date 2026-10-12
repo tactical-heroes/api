@@ -19,7 +19,7 @@ internal static class UserDatabaseTestHelper
         return await dbContext.Set<ApplicationUser>()
             .Include(user => user.Claims)
             .Include(user => user.Roles)
-                .ThenInclude(role => role.Role)
+            .ThenInclude(role => role.Role)
             .AsNoTracking()
             .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
     }

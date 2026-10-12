@@ -82,7 +82,7 @@ public sealed class CreateUserHandlerTests
         await repository.DidNotReceiveWithAnyArgs().AddAsync(null!, string.Empty, cancellationToken);
     }
 
-    [Fact(DisplayName = "User handler should pass assigned role IDs to persistence when role IDs are provided")]
+    [Fact(DisplayName = "User handler should pass assigned role IDs to persistence when role ids are provided")]
     public async Task HandleAsync_Should_PassRoleIds_When_RoleIdsAreProvided()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -104,11 +104,12 @@ public sealed class CreateUserHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).AddAsync(Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
+        await repository.Received(1).AddAsync(
+            Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
             "StrongPassword1!", cancellationToken);
     }
 
-    [Fact(DisplayName = "User handler should reject an empty role ID when role ID is invalid")]
+    [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]
     public async Task HandleAsync_Should_ReturnValidationFailure_When_RoleIdIsInvalid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

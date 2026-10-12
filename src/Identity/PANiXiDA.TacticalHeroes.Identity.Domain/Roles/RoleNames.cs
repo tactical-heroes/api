@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 
 public static class RoleNames
@@ -6,5 +8,5 @@ public static class RoleNames
     public const string Moderator = "moderator";
     public const string Player = "player";
 
-    public static IReadOnlyList<string> All { get; } = Array.AsReadOnly([Developer, Moderator, Player]);
+    public static ImmutableArray<string> All { get; } = [Developer, Moderator, Player];
 }
