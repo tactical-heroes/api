@@ -47,7 +47,7 @@ public sealed class ProjectReferenceDependencyTests
     }
 
     [Fact(DisplayName = "Projects should use contracts only from infrastructure presentation and host when validated")]
-    public void ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated()
+    public void ProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated()
     {
         var projectPaths = GetProjectPaths(FindRepositoryRoot());
         var contractsAssemblyNames = ArchitectureDefinition.s_modules

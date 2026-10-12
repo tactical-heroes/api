@@ -25,7 +25,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
    самих контрактов. Host использует контракты в сгенерированных обработчиках Wolverine.
    Для `Domain`, `Application` и `Common` зависимости на типы контрактов запрещены.
 
-4. `ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated`
+4. `ProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated`
    — среди production-проектов только `Infrastructure`, `Presentation` и `Host` могут
    содержать прямые ссылки на `Contracts` своего или другого модуля. Ссылки тестовых
    проектов не ограничиваются.
