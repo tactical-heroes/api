@@ -49,8 +49,10 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
         using var problem = JsonDocument.Parse(body);
-        problem.RootElement.GetProperty("errors").GetProperty("claims[0].Value")
-            .EnumerateArray().Select(error => error.GetString())
+        problem.RootElement.GetProperty("errors")
+            .GetProperty("claims[0].Value")
+            .EnumerateArray()
+            .Select(error => error.GetString())
             .ShouldBe(["Claim value is not present in its catalog."]);
         if (update)
         {
@@ -116,6 +118,7 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
         return role
             ? JsonSerializer.SerializeToNode(new CreateRoleRequest("admin", [claim]), JsonOptions)!.AsObject()
             : JsonSerializer.SerializeToNode(
-                UserApiTestClient.CreateDefaultRequest() with { Claims = [claim] }, JsonOptions)!.AsObject();
+                UserApiTestClient.CreateDefaultRequest() with { Claims = [claim] }, JsonOptions)!
+                .AsObject();
     }
 }
