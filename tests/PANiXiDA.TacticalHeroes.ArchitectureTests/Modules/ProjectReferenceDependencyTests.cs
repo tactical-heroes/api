@@ -33,6 +33,14 @@ public sealed class ProjectReferenceDependencyTests
                 + string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Common project should not reference other projects when validated")]
+    public void CommonProject_Should_NotReferenceOtherProjects_When_Validated()
+    {
+        var projectPaths = GetProjectPaths(FindRepositoryRoot());
+
+        Assert.Empty(GetProjectReferences(projectPaths[ArchitectureDefinition.CommonAssemblyName]));
+    }
+
     private static Dictionary<string, string> GetProjectPaths(
         string repositoryRoot)
     {
@@ -95,6 +103,13 @@ public sealed class ProjectReferenceDependencyTests
         string sourceAssemblyName,
         string targetAssemblyName)
     {
+        if (targetAssemblyName == ArchitectureDefinition.CommonAssemblyName)
+        {
+            return sourceAssemblyName == module.ApplicationAssemblyName
+                || sourceAssemblyName == module.InfrastructureAssemblyName
+                || sourceAssemblyName == module.PresentationAssemblyName;
+        }
+
         if (targetAssemblyName.EndsWith(
             ".Contracts",
             StringComparison.Ordinal))

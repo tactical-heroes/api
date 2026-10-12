@@ -50,7 +50,12 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
    ссылается только на свой `Domain` и при необходимости на Contracts;
    `Infrastructure` — на свои `Domain` и `Application`, а также на Contracts;
    `Presentation` — на свой `Application` и Contracts. Ссылка на Contracts
-   может вести как в свой, так и в другой модуль.
+   может вести как в свой, так и в другой модуль. Application, Infrastructure и
+   Presentation также могут ссылаться на общую сборку
+   `PANiXiDA.TacticalHeroes.Common`.
+
+   `CommonProject_Should_NotReferenceOtherProjects_When_Validated` проверяет,
+   что Common не ссылается на другие проекты решения.
 
 9. `Modules_Should_HaveHostConfigurationsInModulesDirectory_When_Discovered` —
    каждый обнаруженный модуль должен иметь `<Module>ModuleConfiguration` в

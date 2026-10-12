@@ -60,6 +60,35 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Permission Catalog
+
+`PANiXiDA.TacticalHeroes.Common` owns the shared permission definitions.
+Each definition contains a stable `Code`, a Russian `DisplayName`, and a
+`Group` for the admin UI. Definitions are grouped by resource under
+`Authentication/Permissions`; `Permissions.All` exposes the complete read-only
+catalog. Common has no project dependencies.
+
+Application handlers can use the shared codes with Core authorization:
+
+```csharp
+public static IReadOnlyCollection<string> AllPermissions =>
+    [Permissions.IdentityRoles.Update.Code];
+```
+
+The authenticated `GET /api/v1/permissions` endpoint returns the catalog as
+`code`, `displayName`, and `group` objects. Admin clients should display the
+metadata and use codes as selection values, without maintaining another catalog.
+
+The initial catalog covers users, roles, factions, heroes, and units. Create,
+read, update, and delete permissions are independent; update covers user blocking
+and unblocking. Object-level access remains the responsibility of the owning
+module. Renaming a display name does not change a grant; changing a code requires
+migrating existing grants.
+
+The catalog does not grant permissions or enable checks on existing handlers.
+Identity continues to store assignments in user and role claims with type
+`permission`. No database migration is required for the catalog.
+
 ## Request Validation
 
 Request DTO constructors and nullable annotations define the JSON contract and

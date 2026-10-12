@@ -6,6 +6,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
+        <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
     </ItemGroup>
 
     <ItemGroup>

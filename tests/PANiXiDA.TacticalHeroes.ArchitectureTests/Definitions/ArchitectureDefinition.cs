@@ -13,6 +13,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
 internal static class ArchitectureDefinition
 {
+    internal const string CommonAssemblyName = "PANiXiDA.TacticalHeroes.Common";
+
     private const string ContractsLayerSuffix = ".Contracts";
     private const string DomainLayerSuffix = ".Domain";
     private const string ApplicationLayerSuffix = ".Application";
@@ -142,6 +144,7 @@ internal static class ArchitectureDefinition
     private static bool IsArchitecturalAssemblyName(string assemblyName)
     {
         return IsLayerAssemblyName(assemblyName)
+            || assemblyName == CommonAssemblyName
             || assemblyName.EndsWith(HostLayerSuffix, StringComparison.Ordinal);
     }
 
