@@ -1,5 +1,5 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
@@ -34,7 +34,7 @@ public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCom
             .SetValidator(new ClaimCatalogValidator());
 
         RuleFor(command => command.RoleIds)
-            .MustBeValidDomainValue(UserRoleAssignments.Create);
+            .MustBeValidDomainValue(RoleId.Create);
 
         RuleFor(command => command.Status)
             .MustBeValidDomainValue(UserStatus.Create);

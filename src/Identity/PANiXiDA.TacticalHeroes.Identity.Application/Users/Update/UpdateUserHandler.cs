@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
@@ -18,7 +19,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
         var emailResult = Email.Create(value: command.Email);
         var userNameResult = UserName.Create(value: command.UserName);
         var statusResult = UserStatus.Create(value: command.Status);
-        var roleIdsResult = UserRoleAssignments.Create(command.RoleIds);
+        var roleIdsResult = RoleId.Create(command.RoleIds);
         var validationResult = Result.Combine(idResult, emailResult, userNameResult, statusResult, roleIdsResult);
 
         if (validationResult.IsFailure)
