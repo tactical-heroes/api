@@ -43,7 +43,7 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var developerRole = await roleManager.FindByNameAsync(RoleNames.Developer.Name);
+        var developerRole = await roleManager.FindByNameAsync(RoleName.Developer.Name);
         if (developerRole is null)
         {
             return Result.Failure<Guid>(error: Error.NotFound(message: "Developer role was not found."));

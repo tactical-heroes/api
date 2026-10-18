@@ -27,7 +27,7 @@ public sealed class IdentityRoleSeederTests(IntegrationTestFixture fixture) : In
             .Include(role => role.Claims)
             .AsNoTracking()
             .ToArrayAsync(cancellationToken);
-        roles.Select(role => role.Name).ShouldBe(RoleNames.GetAll().Select(role => role.Name), ignoreOrder: true);
+        roles.Select(role => role.Name).ShouldBe(["developer", "moderator", "player"], ignoreOrder: true);
         roles.ShouldAllBe(role => role.Id != Guid.Empty && role.CreatedAt != default && role.UpdatedAt != default);
         roles.ShouldAllBe(role => string.Equals(
             role.NormalizedName, role.Name!.ToUpperInvariant(), StringComparison.Ordinal));
@@ -42,14 +42,14 @@ public sealed class IdentityRoleSeederTests(IntegrationTestFixture fixture) : In
         var seeder = scope.ServiceProvider.GetRequiredService<IdentityRoleSeeder>();
         var manager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         await seeder.SeedAsync(cancellationToken);
-        var role = await manager.FindByNameAsync(RoleNames.Developer.Name);
+        var role = await manager.FindByNameAsync(RoleName.Developer.Name);
         role.ShouldNotBeNull();
         var id = role.Id;
         (await manager.AddClaimAsync(role, new Claim("permission", "identity.users.read"))).Succeeded.ShouldBeTrue();
 
         await seeder.SeedAsync(cancellationToken);
 
-        var existing = await manager.FindByNameAsync(RoleNames.Developer.Name);
+        var existing = await manager.FindByNameAsync(RoleName.Developer.Name);
         existing.ShouldNotBeNull();
         existing.Id.ShouldBe(id);
         (await manager.GetClaimsAsync(existing)).ShouldHaveSingleItem().Value.ShouldBe("identity.users.read");

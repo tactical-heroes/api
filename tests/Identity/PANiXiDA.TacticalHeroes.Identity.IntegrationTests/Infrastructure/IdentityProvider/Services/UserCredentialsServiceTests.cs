@@ -48,7 +48,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.Email.ShouldBe("register@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
-        (await userManager.GetRolesAsync(user)).ShouldBe([RoleNames.Developer.Name]);
+        (await userManager.GetRolesAsync(user)).ShouldBe([RoleName.Developer.Name.ToLowerInvariant()]);
 
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
         var trackedUser = aggregateTracker.GetAll()
@@ -102,8 +102,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             dbContext.Set<ApplicationRole>().Add(new ApplicationRole
             {
                 Id = Guid.Empty,
-                Name = RoleNames.Developer.Name,
-                NormalizedName = RoleNames.Developer.Name.ToUpperInvariant()
+                Name = RoleName.Developer.Name,
+                NormalizedName = RoleName.Developer.Name.ToUpperInvariant()
             });
             await dbContext.SaveChangesAsync(cancellationToken);
         }
