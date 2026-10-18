@@ -103,7 +103,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
                 IsConfirmed: true,
                 Claims: [],
                 Status: "Active",
-                RoleIds: roleIds), JsonOptions)!
+                RoleIds: roleIds),
+            JsonOptions)!
             .AsObject();
         if (invalid == "omitted")
         {
