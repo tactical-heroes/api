@@ -83,11 +83,11 @@ Frontend adaptation is separate; no database migration is required.
 
 Identity seeds `Developer`, `Moderator`, and `Player` at startup using the
 enumeration names. Seeding preserves existing role IDs and claims;
-new roles have no permission/section claims. Public registration assigns Developer.
+new roles have no permission/section claims. Public registration assigns Player via `RoleName.GetDefault()`.
 Existing users are not reassigned automatically.
 
 Role names are restricted to `Developer`, `Moderator`, and `Player`. Input is
-trimmed and matched without case sensitivity; names are persisted as `RoleName.Name`.
+trimmed and matched case-sensitively; names are persisted as `RoleName.Name`.
 
 User create/update requests require `roleIds` (GUID array), just like `claims`;
 get-details returns the selected IDs. Updates replace the complete role selection;

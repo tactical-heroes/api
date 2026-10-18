@@ -77,11 +77,11 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
         Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
         var role = await client.RecreateAsync(
             cancellationToken,
-            new CreateRoleRequest("moderator", update ? [] : claims));
+            new CreateRoleRequest("Moderator", update ? [] : claims));
 
         if (update)
         {
-            await client.UpdateAsync(role.Id, new UpdateRoleRequest("moderator", claims), cancellationToken);
+            await client.UpdateAsync(role.Id, new UpdateRoleRequest("Moderator", claims), cancellationToken);
         }
         var details = await client.GetDetailsAsync(role.Id, cancellationToken);
 
@@ -120,7 +120,7 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
     private static JsonObject CreatePayload(bool role, Claim claim)
     {
         return role
-            ? JsonSerializer.SerializeToNode(new CreateRoleRequest("moderator", [claim]), JsonOptions)!.AsObject()
+            ? JsonSerializer.SerializeToNode(new CreateRoleRequest("Moderator", [claim]), JsonOptions)!.AsObject()
             : JsonSerializer.SerializeToNode(
                 UserApiTestClient.CreateDefaultRequest() with { Claims = [claim] }, JsonOptions)!
                 .AsObject();

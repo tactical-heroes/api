@@ -16,6 +16,11 @@ public sealed partial class RoleName : Enumeration<RoleName>
 
     public string DisplayName { get; }
 
+    public static RoleName GetDefault()
+    {
+        return Player;
+    }
+
     public static Result<RoleName> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -26,10 +31,8 @@ public sealed partial class RoleName : Enumeration<RoleName>
         }
 
         var normalizedValue = value.Trim();
-        var roleName = GetAll().FirstOrDefault(role => string.Equals(
-            role.Name, normalizedValue, StringComparison.OrdinalIgnoreCase));
 
-        return roleName is not null
+        return TryFromName(normalizedValue, out var roleName) && roleName is not null
             ? Result.Success(value: roleName)
             : Result.Failure<RoleName>(
                 error: Error.Validation(message: $"Role name '{normalizedValue}' is invalid.")

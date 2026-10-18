@@ -43,13 +43,15 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var developerRole = await roleManager.FindByNameAsync(RoleName.Developer.Name);
-        if (developerRole is null)
+        var defaultRoleName = RoleName.GetDefault();
+        var defaultRole = await roleManager.FindByNameAsync(defaultRoleName.Name);
+        if (defaultRole is null)
         {
-            return Result.Failure<Guid>(error: Error.NotFound(message: "Developer role was not found."));
+            return Result.Failure<Guid>(
+                error: Error.NotFound(message: $"Default role '{defaultRoleName.Name}' was not found."));
         }
 
-        var roleIdResult = RoleId.Create(value: developerRole.Id);
+        var roleIdResult = RoleId.Create(value: defaultRole.Id);
         if (roleIdResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: roleIdResult.Errors);

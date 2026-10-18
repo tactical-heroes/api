@@ -82,11 +82,19 @@ public sealed class RoleNameTests
         (role?.Id).ShouldBe(expectedId);
     }
 
-    [Theory(DisplayName = "Role name factory should normalize known names when name is known")]
+    [Fact(DisplayName = "Default role should be player when called")]
+    public void GetDefault_Should_ReturnPlayer_When_Called()
+    {
+        var role = RoleName.GetDefault();
+
+        role.ShouldBe(RoleName.Player);
+    }
+
+    [Theory(DisplayName = "Role name factory should trim known names when name is known")]
     [InlineData("Developer", 1)]
-    [InlineData(" developer ", 1)]
-    [InlineData("MODERATOR", 2)]
-    [InlineData("player", 3)]
+    [InlineData(" Developer ", 1)]
+    [InlineData("Moderator", 2)]
+    [InlineData("Player", 3)]
     public void Create_Should_ReturnRole_When_NameIsKnown(string name, int id)
     {
         var result = RoleName.Create(name);
@@ -107,12 +115,15 @@ public sealed class RoleNameTests
             .ShouldHaveField(nameof(RoleName));
     }
 
-    [Fact(DisplayName = "Role name factory should reject unknown names when value is unknown")]
-    public void Create_Should_ReturnValidationFailure_When_ValueIsUnknown()
+    [Theory(DisplayName = "Role name factory should reject unknown names when value is unknown")]
+    [InlineData("admin")]
+    [InlineData("developer")]
+    [InlineData("MODERATOR")]
+    public void Create_Should_ReturnValidationFailure_When_ValueIsUnknown(string value)
     {
-        var result = RoleName.Create("admin");
+        var result = RoleName.Create(value);
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "Role name 'admin' is invalid.")
+        result.ShouldHaveSingleError(ErrorType.Validation, $"Role name '{value}' is invalid.")
             .ShouldHaveField(nameof(RoleName));
     }
 }

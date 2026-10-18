@@ -26,7 +26,7 @@ public sealed class UpdateRoleHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new UpdateRoleCommand(roleId, "developer", claims),
+            new UpdateRoleCommand(roleId, "Developer", claims),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -42,7 +42,7 @@ public sealed class UpdateRoleHandlerTests
     [Theory(
         DisplayName = "Update role handler should reject invalid values without persistence when command is invalid")]
     [InlineData("", "permission", "heroes.manage")]
-    [InlineData("developer", "", "")]
+    [InlineData("Developer", "", "")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CommandIsInvalid(
         string name,
         string claimType,

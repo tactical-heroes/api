@@ -13,7 +13,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("developer", cancellationToken);
+        var roleId = await AddRoleAsync("Developer", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -27,8 +27,8 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetPageAsync_Should_ReturnSortedPage_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddRoleAsync("player", cancellationToken);
-        await AddRoleAsync("developer", cancellationToken);
+        await AddRoleAsync("Player", cancellationToken);
+        await AddRoleAsync("Developer", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -45,7 +45,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("moderator", cancellationToken);
+        var roleId = await AddRoleAsync("Moderator", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -65,7 +65,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
         }
 
-        await AddRoleAsync("moderator", cancellationToken);
+        await AddRoleAsync("Moderator", cancellationToken);
 
         await using var populatedScope = Fixture.CreateScope();
         var populatedRepository =

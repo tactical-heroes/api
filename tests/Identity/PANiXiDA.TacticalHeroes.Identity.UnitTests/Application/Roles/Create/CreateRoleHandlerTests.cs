@@ -26,7 +26,7 @@ public sealed class CreateRoleHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new CreateRoleCommand("developer", claims),
+            new CreateRoleCommand("Developer", claims),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -41,7 +41,7 @@ public sealed class CreateRoleHandlerTests
     [Theory(
         DisplayName = "Create role handler should reject invalid values without persistence when command is invalid")]
     [InlineData("", "permission", "heroes.manage")]
-    [InlineData("developer", "", "")]
+    [InlineData("Developer", "", "")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CommandIsInvalid(
         string name,
         string claimType,

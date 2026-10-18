@@ -18,7 +18,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var roleId = await AddRoleAsync(
-            " DEVELOPER ",
+            " Developer ",
             [new Claim("permission", "heroes.read")],
             cancellationToken);
 
@@ -38,7 +38,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var roleId = await AddRoleAsync(
-            "developer",
+            "Developer",
             [new Claim("permission", "heroes.read")],
             cancellationToken);
 
@@ -48,7 +48,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             (await repository.UpdateAsync(
                 IntegrationTestData.CreateRole(
                     id: roleId,
-                    name: "moderator",
+                    name: "Moderator",
                     claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(
                         claim => (claim.Type, claim.Value))),
                 cancellationToken))
@@ -72,7 +72,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     public async Task DeleteAsync_Should_RemoveRole_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("player", [], cancellationToken);
+        var roleId = await AddRoleAsync("Player", [], cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -98,7 +98,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         (await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
-                name: "developer",
+                name: "Developer",
                 claims: []),
             cancellationToken))
             .IsSuccess
@@ -106,7 +106,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var result = await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
-                name: "DEVELOPER",
+                name: "Developer",
                 claims: []),
             cancellationToken);
 

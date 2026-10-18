@@ -15,7 +15,7 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
         var response = await client.RecreateAsync(
             cancellationToken,
             new CreateRoleRequest(
-                " MODERATOR ",
+                " Moderator ",
                 [new Claim("permission", "compendium.heroes.update")]));
         var role = await RoleDatabaseTestHelper.FindAsync(
             Fixture,

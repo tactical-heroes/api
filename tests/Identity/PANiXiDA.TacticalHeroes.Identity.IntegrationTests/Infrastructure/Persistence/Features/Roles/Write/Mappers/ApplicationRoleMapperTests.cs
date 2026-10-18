@@ -17,7 +17,7 @@ public sealed class ApplicationRoleMapperTests
     [Fact(DisplayName = "Role mapper should reject invalid claims when claim is invalid")]
     public void ToDomain_Should_ReturnValidationFailures_When_ClaimIsInvalid()
     {
-        var result = ApplicationRoleMapper.ToDomain(CreateDbModel(Guid.CreateVersion7(), "developer", [("", "")]));
+        var result = ApplicationRoleMapper.ToDomain(CreateDbModel(Guid.CreateVersion7(), "Developer", [("", "")]));
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.Count.ShouldBe(2);
@@ -28,7 +28,7 @@ public sealed class ApplicationRoleMapperTests
     {
         var result = ApplicationRoleMapper.ToDomain(CreateDbModel(
             Guid.CreateVersion7(),
-            " DEVELOPER ",
+            " Developer ",
             [(" permission ", " heroes.manage "), ("permission", "heroes.manage")]));
 
         result.IsSuccess.ShouldBeTrue();
