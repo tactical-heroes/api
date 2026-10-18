@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;

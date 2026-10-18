@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
