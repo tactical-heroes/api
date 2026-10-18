@@ -23,16 +23,24 @@ public sealed class ApplicationRoleMapperTests
         result.Errors.Count.ShouldBe(2);
     }
 
-    [Fact(DisplayName = "Role mapper should normalize and deduplicate claims when values are valid")]
-    public void ToDomain_Should_NormalizeAndDeduplicateClaims_When_ValuesAreValid()
+    [Theory(DisplayName = "Role mapper should normalize and deduplicate claims when values are valid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ToDomain_Should_NormalizeAndDeduplicateClaims_When_ValuesAreValid(bool isDefault)
     {
-        var result = ApplicationRoleMapper.ToDomain(CreateDbModel(
+        var dbModel = CreateDbModel(
             Guid.CreateVersion7(),
             " Developer ",
-            [(" permission ", " heroes.manage "), ("permission", "heroes.manage")]));
+            [(" permission ", " heroes.manage "), ("permission", "heroes.manage")]);
+        dbModel.IsDefault = isDefault;
+
+        var result = ApplicationRoleMapper.ToDomain(dbModel);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Name.Name.ShouldBe("Developer");
+        result.Value.Name.Value.ShouldBe("Developer");
+        result.Value.IsDefault.ShouldBe(isDefault);
+        ApplicationRoleMapper.ToDbModel(result.Value, DateTime.UtcNow, DateTime.UtcNow)
+            .IsDefault.ShouldBe(isDefault);
         var claim = result.Value.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");

@@ -5,4 +5,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
 public sealed record RoleDetailsReadModel(
     Guid Id,
     string Name,
-    IReadOnlyCollection<Claim> Claims) : IReadModel;
+    IReadOnlyCollection<Claim> Claims,
+    bool IsDefault = false) : IReadModel;

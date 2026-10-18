@@ -4,11 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -29,20 +27,20 @@ public sealed class UserRoleAssignmentTests(IntegrationTestFixture fixture) : In
         await using var scope = Fixture.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-        await scope.ServiceProvider.GetRequiredService<IdentityRoleSeeder>().SeedAsync(cancellationToken);
+        await Fixture.SeedRolesAsync(cancellationToken);
         var roles = await dbContext.Set<ApplicationRole>().ToDictionaryAsync(
             role => role.Name!, role => role.Id, StringComparer.OrdinalIgnoreCase, cancellationToken);
         var userId = Guid.CreateVersion7();
         var created = await repository.AddAsync(
-            CreateUser(userId, [roles[RoleName.Developer.Name]]), "StrongPassword1!", cancellationToken);
+            CreateUser(userId, [roles["Developer"]]), "StrongPassword1!", cancellationToken);
         created.IsSuccess.ShouldBeTrue();
         var originalStamp = (await dbContext.Set<ApplicationUser>()
             .SingleAsync(user => user.Id == userId, cancellationToken)).SecurityStamp;
         var targetRoles = mode switch
         {
-            "same" => new[] { roles[RoleName.Developer.Name] },
-            "replace" => [roles[RoleName.Moderator.Name]],
-            "add" => [roles[RoleName.Developer.Name], roles[RoleName.Player.Name]],
+            "same" => new[] { roles["Developer"] },
+            "replace" => [roles["Moderator"]],
+            "add" => [roles["Developer"], roles["Player"]],
             _ => []
         };
         var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();

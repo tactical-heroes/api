@@ -8,8 +8,11 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Update;
 
 public sealed class UpdateRoleHandlerTests
 {
-    [Fact(DisplayName = "Update role handler should delegate update to the write repository when repository succeeds")]
-    public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds()
+    [Theory(
+        DisplayName = "Update role handler should delegate update to the write repository when repository succeeds")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_ReturnSuccess_When_RepositorySucceeds(bool isDefault)
     {
         var roleId = Guid.CreateVersion7();
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
@@ -17,7 +20,8 @@ public sealed class UpdateRoleHandlerTests
         repository.UpdateAsync(
             Arg.Is<Role>(
                 role => role.Id.Value == roleId
-                    && role.Name.Name == "Developer"
+                    && role.Name.Value == "Developer"
+                    && role.IsDefault == isDefault
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg.Any<CancellationToken>())
@@ -26,14 +30,15 @@ public sealed class UpdateRoleHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new UpdateRoleCommand(roleId, "Developer", claims),
+            new UpdateRoleCommand(roleId, "Developer", claims, isDefault),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
             Arg.Is<Role>(
                 role => role.Id.Value == roleId
-                    && role.Name.Name == "Developer"
+                    && role.Name.Value == "Developer"
+                    && role.IsDefault == isDefault
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             cancellationToken);

@@ -77,24 +77,27 @@ independently of API permissions; enabling permission checks on existing operati
 is separate work. Existing assignments need explicit section grants for UI visibility.
 
 The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
-Frontend adaptation is separate; no database migration is required.
+Frontend adaptation is separate.
 
 ## User Roles
 
-Identity seeds `Developer`, `Moderator`, and `Player` at startup using the
-enumeration names. Seeding preserves existing role IDs and claims;
-new roles have no permission/section claims. Public registration assigns Player via `RoleName.GetDefault()`.
+Identity migrations seed `Developer`, `Moderator`, and `Player`. Developer receives all current
+permissions and both sections; Moderator receives Compendium permissions and its section;
+Player has no administrative claims and is the initial default role. Startup does not reseed roles.
 Existing users are not reassigned automatically.
 
-Role names are restricted to `Developer`, `Moderator`, and `Player`. Input is
-trimmed and matched case-sensitively; names are persisted as `RoleName.Name`.
+Role names are arbitrary nonempty values up to 128 characters, trimmed without changing case.
+Role create/update requests and list/details responses include `isDefault`. Selecting a new default
+switches it atomically; the current default cannot be deleted or unset directly (HTTP 409).
+Registration selects the role marked `isDefault`, independently of its name.
 
 User create/update requests require `roleIds` (GUID array), just like `claims`;
 get-details returns the selected IDs. Updates replace the complete role selection;
 `[]` means no roles. Omitted/null collections are rejected. Empty GUIDs,
 duplicates, and unknown role IDs are rejected before persistence. Use the existing
 roles list endpoint to populate selection options. Role changes rotate the security
-stamp and revoke the user's tokens. No database migration or new configuration is required.
+stamp and revoke the user's tokens. Apply the Identity default-role and seed-data migrations;
+no configuration changes are required. Rolling back seed data preserves roles and assignments.
 
 ## Request Validation
 

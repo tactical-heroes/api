@@ -113,6 +113,89 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
     }
 
+    [Theory(DisplayName = "Role persistence should switch the default when a different role is selected")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveAsync_Should_SwitchDefault_When_DifferentRoleIsSelected(bool create)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var previous = await dbContext.Set<ApplicationRole>().SingleAsync(role => role.IsDefault, cancellationToken);
+        var targetId = create
+            ? Guid.CreateVersion7()
+            : await dbContext.Set<ApplicationRole>().Where(role => role.Name == "Moderator")
+                .Select(role => role.Id).SingleAsync(cancellationToken);
+        var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+
+        if (create)
+        {
+            (await repository.AddAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
+        }
+        else
+        {
+            (await repository.UpdateAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
+        }
+
+        var defaults = await dbContext.Set<ApplicationRole>().AsNoTracking()
+            .Where(item => item.IsDefault).ToArrayAsync(cancellationToken);
+        defaults.ShouldHaveSingleItem().Id.ShouldBe(targetId);
+        previous.IsDefault.ShouldBeFalse();
+        (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "Role persistence should retain the default when a duplicate name rejects the change")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveAsync_Should_RetainDefault_When_DuplicateNameRejectsChange(bool create)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var targetId = create
+            ? Guid.CreateVersion7()
+            : await dbContext.Set<ApplicationRole>().Where(role => role.Name == "Moderator")
+                .Select(role => role.Id).SingleAsync(cancellationToken);
+        var role = IntegrationTestData.CreateRole(targetId, "Developer", [], isDefault: true);
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+
+        var result = create
+            ? (await repository.AddAsync(role, cancellationToken)).IsFailure
+            : (await repository.UpdateAsync(role, cancellationToken)).IsFailure;
+
+        result.ShouldBeTrue();
+        var defaultName = await dbContext.Set<ApplicationRole>().AsNoTracking().Where(item => item.IsDefault)
+            .Select(item => item.Name).SingleAsync(cancellationToken);
+        defaultName.ShouldBe("Player");
+    }
+
+    [Theory(DisplayName = "Role persistence should reject removal when the role is the current default")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveAsync_Should_ReturnConflict_When_CurrentDefaultWouldBeRemoved(bool delete)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var role = await dbContext.Set<ApplicationRole>().SingleAsync(item => item.IsDefault, cancellationToken);
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+
+        var result = delete
+            ? await repository.DeleteAsync(role.Id, cancellationToken)
+            : await repository.UpdateAsync(
+                IntegrationTestData.CreateRole(role.Id, "Renamed", [], isDefault: false), cancellationToken);
+
+        result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
+        var existing = await dbContext.Set<ApplicationRole>().AsNoTracking()
+            .SingleAsync(item => item.Id == role.Id, cancellationToken);
+        existing.IsDefault.ShouldBeTrue();
+        existing.Name.ShouldBe("Player");
+    }
+
     private async Task<Guid> AddRoleAsync(
         string name,
         IReadOnlyCollection<Claim> claims,

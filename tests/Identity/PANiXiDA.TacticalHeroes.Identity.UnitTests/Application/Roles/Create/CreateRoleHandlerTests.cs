@@ -8,15 +8,18 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Create;
 
 public sealed class CreateRoleHandlerTests
 {
-    [Fact(
+    [Theory(
         DisplayName = "Create role handler should delegate creation to the write repository when repository succeeds")]
-    public async Task HandleAsync_Should_ReturnRoleId_When_RepositorySucceeds()
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_ReturnRoleId_When_RepositorySucceeds(bool isDefault)
     {
         var roleId = Guid.CreateVersion7();
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IRolesRepository>();
         repository.AddAsync(
-            Arg.Is<Role>(role => role.Name.Name == "Developer"
+            Arg.Is<Role>(role => role.Name.Value == "Developer"
+                && role.IsDefault == isDefault
                 && role.Claims.Any(
                     claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg
@@ -26,13 +29,14 @@ public sealed class CreateRoleHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new CreateRoleCommand("Developer", claims),
+            new CreateRoleCommand("Developer", claims, isDefault),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(roleId);
         await repository.Received(1).AddAsync(
-            Arg.Is<Role>(role => role.Name.Name == "Developer"
+            Arg.Is<Role>(role => role.Name.Value == "Developer"
+                && role.IsDefault == isDefault
                 && role.Claims.Any(
                     claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             cancellationToken);

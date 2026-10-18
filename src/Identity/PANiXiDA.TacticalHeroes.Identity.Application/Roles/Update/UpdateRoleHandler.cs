@@ -2,7 +2,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 
@@ -41,7 +41,8 @@ public sealed class UpdateRoleHandler(IRolesRepository rolesRepository)
         var role = Role.Create(
             id: idResult.Value,
             name: nameResult.Value,
-            claims: claims);
+            claims: claims,
+            isDefault: command.IsDefault);
 
         return rolesRepository.UpdateAsync(
             role: role,

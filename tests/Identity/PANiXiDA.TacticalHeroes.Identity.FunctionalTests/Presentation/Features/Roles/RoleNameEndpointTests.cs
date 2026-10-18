@@ -5,10 +5,10 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 public sealed class RoleNameEndpointTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "Role requests should reject arbitrary names when name is unknown")]
+    [Theory(DisplayName = "Role requests should reject empty names when name is empty")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task SaveRole_Should_ReturnBadRequest_When_NameIsUnknown(bool update)
+    public async Task SaveRole_Should_ReturnBadRequest_When_NameIsEmpty(bool update)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
@@ -17,7 +17,7 @@ public sealed class RoleNameEndpointTests(FunctionalTestFixture fixture) : Funct
         var path = update ? $"/api/v1/roles/{roleId}" : "/api/v1/roles";
         using var request = new HttpRequestMessage(update ? HttpMethod.Put : HttpMethod.Post, path)
         {
-            Content = JsonContent.Create(new CreateRoleRequest("admin", []), options: JsonOptions)
+            Content = JsonContent.Create(new CreateRoleRequest(" ", []), options: JsonOptions)
         };
 
         using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);

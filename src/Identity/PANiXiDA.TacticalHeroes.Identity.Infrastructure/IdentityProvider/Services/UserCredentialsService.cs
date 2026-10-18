@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
@@ -43,12 +42,12 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var defaultRoleName = RoleName.GetDefault();
-        var defaultRole = await roleManager.FindByNameAsync(defaultRoleName.Name);
+        var defaultRole = await roleManager.Roles
+            .SingleOrDefaultAsync(role => role.IsDefault, cancellationToken);
         if (defaultRole is null)
         {
             return Result.Failure<Guid>(
-                error: Error.NotFound(message: $"Default role '{defaultRoleName.Name}' was not found."));
+                error: Error.NotFound(message: "Default role was not found."));
         }
 
         var roleIdResult = RoleId.Create(value: defaultRole.Id);

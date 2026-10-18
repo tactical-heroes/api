@@ -10,8 +10,6 @@ internal sealed class IdentityProviderApplicationSeederHostedService(
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         await using var scope = serviceScopeFactory.CreateAsyncScope();
-        var roleSeeder = scope.ServiceProvider.GetRequiredService<IdentityRoleSeeder>();
-        await roleSeeder.SeedAsync(cancellationToken);
         var seeder = scope.ServiceProvider.GetRequiredService<IdentityProviderApplicationSeeder>();
 
         await seeder.SeedAsync(cancellationToken);

@@ -1,24 +1,28 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles;
 
 public sealed class RoleTests
 {
-    [Fact(DisplayName = "Create should restore persisted role state when persisted values are valid")]
-    public void Create_Should_RestoreState_When_PersistedValuesAreValid()
+    [Theory(DisplayName = "Create should restore persisted role state when persisted values are valid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Create_Should_RestoreState_When_PersistedValuesAreValid(bool isDefault)
     {
         var id = Guid.CreateVersion7();
 
         var result = Role.Create(
             RoleId.Create(id).Value,
             RoleName.Create(" Developer ").Value,
-            [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)]);
+            [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)],
+            isDefault);
 
         result.Id.Value.ShouldBe(id);
-        result.Name.Name.ShouldBe("Developer");
+        result.Name.Value.ShouldBe("Developer");
+        result.IsDefault.ShouldBe(isDefault);
         var claim = result.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");

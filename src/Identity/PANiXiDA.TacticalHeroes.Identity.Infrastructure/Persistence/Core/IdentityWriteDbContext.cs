@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 using OpenIddict.EntityFrameworkCore.Models;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
@@ -96,8 +96,13 @@ public sealed class IdentityWriteDbContext(
             builder.ToTable("asp_net_roles", Schema);
 
             builder.Property(role => role.Id).ValueGeneratedNever();
-            builder.Property(role => role.Name).HasMaxLength(RoleName.MaxNameLength).IsRequired();
-            builder.Property(role => role.NormalizedName).HasMaxLength(RoleName.MaxNameLength).IsRequired();
+            builder.Property(role => role.Name).HasMaxLength(RoleName.MaxLength).IsRequired();
+            builder.Property(role => role.NormalizedName).HasMaxLength(RoleName.MaxLength).IsRequired();
+
+            builder.Property(role => role.IsDefault).HasDefaultValue(false);
+            builder.HasIndex(role => role.IsDefault)
+                .IsUnique()
+                .HasFilter("is_default");
 
             builder.HasMany(role => role.Users)
                 .WithOne(user => user.Role)

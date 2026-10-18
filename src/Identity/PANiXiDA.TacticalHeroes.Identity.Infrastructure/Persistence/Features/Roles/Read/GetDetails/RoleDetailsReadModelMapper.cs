@@ -18,6 +18,7 @@ internal sealed class RoleDetailsReadModelMapper
                 .Select(claim => new Claim(
                     type: claim.ClaimType!,
                     value: claim.ClaimValue!))
-                .ToArray()));
+                .ToArray(),
+            IsDefault: role.IsDefault));
     }
 }

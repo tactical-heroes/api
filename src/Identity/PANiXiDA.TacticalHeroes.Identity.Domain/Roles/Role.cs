@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 
@@ -10,22 +10,27 @@ public sealed class Role : AggregateRoot<RoleId>
 
     private Role(
         RoleId id,
-        RoleName name)
+        RoleName name,
+        bool isDefault)
         : base(id)
     {
         Name = name;
+        IsDefault = isDefault;
     }
 
     public RoleName Name { get; private set; }
+
+    public bool IsDefault { get; private set; }
 
     public IReadOnlyCollection<RoleClaim> Claims => _claims.AsReadOnly();
 
     public static Role Create(
         RoleId id,
         RoleName name,
-        IEnumerable<RoleClaim> claims)
+        IEnumerable<RoleClaim> claims,
+        bool isDefault = false)
     {
-        var role = new Role(id: id, name: name);
+        var role = new Role(id: id, name: name, isDefault: isDefault);
 
         foreach (var claim in claims)
         {

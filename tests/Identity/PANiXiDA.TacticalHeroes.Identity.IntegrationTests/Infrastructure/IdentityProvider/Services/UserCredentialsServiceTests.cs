@@ -8,12 +8,10 @@ using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -34,7 +32,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        await scope.ServiceProvider.GetRequiredService<IdentityRoleSeeder>().SeedAsync(cancellationToken);
+        await Fixture.SeedRolesAsync(cancellationToken);
 
         var result = await service.RegisterAsync(
             " REGISTER@Example.COM ",
@@ -48,7 +46,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.Email.ShouldBe("register@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
-        (await userManager.GetRolesAsync(user)).ShouldBe([RoleName.Player.Name]);
+        (await userManager.GetRolesAsync(user)).ShouldBe(["Player"]);
 
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
         var trackedUser = aggregateTracker.GetAll()
@@ -62,6 +60,27 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .ShouldHaveSingleItem();
         domainEvent.Email.ShouldBe(user.Email);
         domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact(DisplayName = "Registration should assign the configured role when the default has a custom name")]
+    public async Task RegisterAsync_Should_AssignConfiguredRole_When_DefaultHasCustomName()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var role = await dbContext.Set<ApplicationRole>().SingleAsync(item => item.IsDefault, cancellationToken);
+        role.Name = "Newcomer";
+        role.NormalizedName = "NEWCOMER";
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.RegisterAsync("newcomer@example.com", "newcomer", Password, cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var user = await dbContext.Set<ApplicationUser>().Include(item => item.Roles)
+            .SingleAsync(item => item.Id == result.Value, cancellationToken);
+        user.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(role.Id);
     }
 
     [Theory(
@@ -102,8 +121,9 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             dbContext.Set<ApplicationRole>().Add(new ApplicationRole
             {
                 Id = Guid.Empty,
-                Name = RoleName.Player.Name,
-                NormalizedName = RoleName.Player.Name.ToUpperInvariant()
+                Name = "Player",
+                NormalizedName = "PLAYER",
+                IsDefault = true
             });
             await dbContext.SaveChangesAsync(cancellationToken);
         }

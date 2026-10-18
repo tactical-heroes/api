@@ -21,17 +21,29 @@ public sealed class RolesRepository(
         Role role,
         CancellationToken cancellationToken)
     {
+        await using var transaction = dbContext.Database.CurrentTransaction is null
+            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        await LockRolesAsync(cancellationToken);
+
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationRole = ApplicationRoleMapper.ToDbModel(
             role: role,
             createdAt: nowUtc,
             updatedAt: nowUtc);
 
+        applicationRole.IsDefault = false;
         var identityResult = await roleManager.CreateAsync(role: applicationRole);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
+        }
+
+        await SetDefaultAsync(applicationRole, role.IsDefault, cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
         }
 
         aggregateTracker.Track(role);
@@ -43,6 +55,11 @@ public sealed class RolesRepository(
         Role role,
         CancellationToken cancellationToken)
     {
+        await using var transaction = dbContext.Database.CurrentTransaction is null
+            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        await LockRolesAsync(cancellationToken);
+
         var applicationRole = await roleManager.Roles
             .Include(item => item.Claims)
             .SingleOrDefaultAsync(item => item.Id == role.Id.Value, cancellationToken);
@@ -52,10 +69,17 @@ public sealed class RolesRepository(
             return RoleNotFound();
         }
 
+        if (applicationRole.IsDefault && !role.IsDefault)
+        {
+            return DefaultRoleConflict();
+        }
+
+        var wasDefault = applicationRole.IsDefault;
         ApplicationRoleMapper.MapToDbModel(
             role: role,
             dbModel: applicationRole,
             updatedAt: timeProvider.GetUtcNow().UtcDateTime);
+        applicationRole.IsDefault = wasDefault;
         SyncClaims(
             applicationRole: applicationRole,
             role: role);
@@ -67,6 +91,12 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
+        await SetDefaultAsync(applicationRole, role.IsDefault, cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
+
         aggregateTracker.Track(role);
 
         return Result.Success();
@@ -76,6 +106,11 @@ public sealed class RolesRepository(
         Guid id,
         CancellationToken cancellationToken)
     {
+        await using var transaction = dbContext.Database.CurrentTransaction is null
+            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        await LockRolesAsync(cancellationToken);
+
         var applicationRole = await roleManager.Roles
             .Include(role => role.Claims)
             .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
@@ -83,6 +118,11 @@ public sealed class RolesRepository(
         if (applicationRole is null)
         {
             return RoleNotFound();
+        }
+
+        if (applicationRole.IsDefault)
+        {
+            return DefaultRoleConflict();
         }
 
         var roleResult = ApplicationRoleMapper.ToDomain(role: applicationRole);
@@ -99,9 +139,49 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
+
         aggregateTracker.Track(roleResult.Value);
 
         return Result.Success();
+    }
+
+    private Task LockRolesAsync(CancellationToken cancellationToken)
+    {
+        return dbContext.Database.ExecuteSqlRawAsync(
+            "LOCK TABLE identity.asp_net_roles IN SHARE ROW EXCLUSIVE MODE", cancellationToken);
+    }
+
+    private async Task SetDefaultAsync(
+        ApplicationRole role,
+        bool isDefault,
+        CancellationToken cancellationToken)
+    {
+        if (!isDefault || role.IsDefault)
+        {
+            return;
+        }
+
+        var previousDefaults = await dbContext.Set<ApplicationRole>()
+            .Where(item => item.IsDefault && item.Id != role.Id)
+            .ToArrayAsync(cancellationToken);
+        foreach (var previous in previousDefaults)
+        {
+            previous.IsDefault = false;
+            previous.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        role.IsDefault = true;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static Result DefaultRoleConflict()
+    {
+        return Result.Failure(error: Error.Conflict(message: "Select another default role first."));
     }
 
     private static Result RoleNotFound()
