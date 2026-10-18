@@ -17,7 +17,7 @@ public sealed class RoleNameEndpointTests(FunctionalTestFixture fixture) : Funct
         var path = update ? $"/api/v1/roles/{roleId}" : "/api/v1/roles";
         using var request = new HttpRequestMessage(update ? HttpMethod.Put : HttpMethod.Post, path)
         {
-            Content = JsonContent.Create(new CreateRoleRequest(" ", []), options: JsonOptions)
+            Content = JsonContent.Create(new CreateRoleRequest(" ", false, []), options: JsonOptions)
         };
 
         using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);

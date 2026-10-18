@@ -9,7 +9,7 @@ public sealed class GetRoleDetailsHandlerTests
     public async Task HandleAsync_Should_ReturnRole_When_RoleExists()
     {
         var roleId = Guid.CreateVersion7();
-        var readModel = new RoleDetailsReadModel(roleId, "Developer", []);
+        var readModel = new RoleDetailsReadModel(roleId, "Developer", false, []);
         var rolesReadRepository = Substitute.For<IRolesReadRepository>();
         rolesReadRepository.GetDetailsByIdAsync(roleId, Arg.Any<CancellationToken>())
             .Returns(readModel);

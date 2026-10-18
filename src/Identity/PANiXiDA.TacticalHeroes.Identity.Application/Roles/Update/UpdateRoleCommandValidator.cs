@@ -15,6 +15,9 @@ public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCom
         RuleFor(command => command.Name)
             .MustBeValidDomainValue(RoleName.Create);
 
+        RuleFor(command => command.IsDefault)
+            .MustBeValidDomainValue(RoleDefaultFlag.Create);
+
         RuleFor(command => command.Claims)
             .NotNull();
 

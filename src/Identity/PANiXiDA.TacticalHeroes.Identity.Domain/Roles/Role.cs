@@ -11,31 +11,31 @@ public sealed class Role : AggregateRoot<RoleId>
     private Role(
         RoleId id,
         RoleName name,
-        RoleDefaultStatus defaultStatus)
+        RoleDefaultFlag defaultFlag)
         : base(id)
     {
         Name = name;
-        DefaultStatus = defaultStatus;
+        DefaultFlag = defaultFlag;
     }
 
     public RoleName Name { get; private set; }
 
-    public RoleDefaultStatus DefaultStatus { get; private set; }
+    public RoleDefaultFlag DefaultFlag { get; private set; }
 
-    public bool IsDefault => DefaultStatus.IsDefault;
+    public bool IsDefault => DefaultFlag.Value;
 
     public IReadOnlyCollection<RoleClaim> Claims => _claims.AsReadOnly();
 
     public static Role Create(
         RoleId id,
         RoleName name,
-        IEnumerable<RoleClaim> claims,
-        RoleDefaultStatus? defaultStatus = null)
+        RoleDefaultFlag defaultFlag,
+        IEnumerable<RoleClaim> claims)
     {
         var role = new Role(
             id: id,
             name: name,
-            defaultStatus: defaultStatus ?? RoleDefaultStatus.From(isDefault: false));
+            defaultFlag: defaultFlag);
 
         foreach (var claim in claims)
         {

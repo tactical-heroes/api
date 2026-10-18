@@ -14,7 +14,7 @@ internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
         CancellationToken cancellationToken,
         CreateRoleRequest? request = null)
     {
-        request ??= new CreateRoleRequest("Moderator", []);
+        request ??= new CreateRoleRequest("Moderator", false, []);
         var roles = await GetListAsync(cancellationToken);
         var existing = roles.Items.SingleOrDefault(role => string.Equals(
             role.Name, request.Name.Trim(), StringComparison.OrdinalIgnoreCase));
@@ -30,7 +30,7 @@ internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
         CancellationToken cancellationToken,
         CreateRoleRequest? request = null)
     {
-        request ??= new CreateRoleRequest("Moderator", []);
+        request ??= new CreateRoleRequest("Moderator", false, []);
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, RolesPath)
         {
             Content = JsonContent.Create(request, options: TestJsonSerializerOptions.Web)

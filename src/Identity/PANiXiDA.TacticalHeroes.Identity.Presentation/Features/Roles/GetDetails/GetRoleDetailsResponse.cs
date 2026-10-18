@@ -5,5 +5,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetail
 public sealed record GetRoleDetailsResponse(
     Guid Id,
     string Name,
-    IReadOnlyCollection<Claim> Claims,
-    bool IsDefault = false);
+    bool IsDefault,
+    IReadOnlyCollection<Claim> Claims);

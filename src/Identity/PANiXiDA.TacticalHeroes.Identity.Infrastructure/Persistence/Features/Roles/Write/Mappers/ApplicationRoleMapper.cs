@@ -55,7 +55,8 @@ internal static class ApplicationRoleMapper
     {
         var idResult = RoleId.Create(value: role.Id);
         var nameResult = RoleName.Create(value: role.Name!);
-        var validationResult = Result.Combine(idResult, nameResult);
+        var defaultFlagResult = RoleDefaultFlag.Create(value: role.IsDefault);
+        var validationResult = Result.Combine(idResult, nameResult, defaultFlagResult);
 
         if (validationResult.IsFailure)
         {
@@ -81,7 +82,7 @@ internal static class ApplicationRoleMapper
         return Result.Success(value: Role.Create(
             id: idResult.Value,
             name: nameResult.Value,
-            claims: domainClaims,
-            defaultStatus: RoleDefaultStatus.From(isDefault: role.IsDefault)));
+            defaultFlag: defaultFlagResult.Value,
+            claims: domainClaims));
     }
 }

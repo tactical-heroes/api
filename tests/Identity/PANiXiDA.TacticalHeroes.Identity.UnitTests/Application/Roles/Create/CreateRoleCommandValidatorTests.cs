@@ -12,7 +12,7 @@ public sealed class CreateRoleCommandValidatorTests
         var validator = new CreateRoleCommandValidator();
 
         var result = validator.Validate(
-            new CreateRoleCommand("Developer", [new Claim("permission", "compendium.heroes.update")]));
+            new CreateRoleCommand("Developer", false, [new Claim("permission", "compendium.heroes.update")]));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -23,7 +23,7 @@ public sealed class CreateRoleCommandValidatorTests
         var validator = new CreateRoleCommandValidator();
 
         var result = validator.Validate(
-            new CreateRoleCommand("", [new Claim("", "")]));
+            new CreateRoleCommand("", false, [new Claim("", "")]));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateRoleCommand.Name));
         result.Errors

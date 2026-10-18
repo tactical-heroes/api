@@ -17,8 +17,8 @@ public sealed class RoleTests
         var result = Role.Create(
             RoleId.Create(id).Value,
             RoleName.Create(" Developer ").Value,
-            [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)],
-            RoleDefaultStatus.From(isDefault));
+            RoleDefaultFlag.Create(isDefault).Value,
+            [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)]);
 
         result.Id.Value.ShouldBe(id);
         result.Name.Value.ShouldBe("Developer");
@@ -33,7 +33,8 @@ public sealed class RoleTests
     {
         var claim = RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value);
         List<RoleClaim> claims = [claim];
-        var role = Role.Create(RoleId.New(), RoleName.Create("Developer").Value, claims);
+        var role = Role.Create(
+            RoleId.New(), RoleName.Create("Developer").Value, RoleDefaultFlag.Create(false).Value, claims);
 
         claims.Clear();
 
@@ -93,6 +94,6 @@ public sealed class RoleTests
 
     private static Role CreateRole()
     {
-        return Role.Create(RoleId.New(), RoleName.Create("Developer").Value, []);
+        return Role.Create(RoleId.New(), RoleName.Create("Developer").Value, RoleDefaultFlag.Create(false).Value, []);
     }
 }

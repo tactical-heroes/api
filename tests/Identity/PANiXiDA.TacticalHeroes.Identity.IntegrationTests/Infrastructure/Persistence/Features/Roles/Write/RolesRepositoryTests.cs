@@ -113,10 +113,10 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
     }
 
-    [Theory(DisplayName = "Role persistence should switch the default when different role is selected")]
+    [Theory(DisplayName = "Role persistence should assign the default when previous flag is cleared")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task SaveAsync_Should_SwitchDefault_When_DifferentRoleIsSelected(bool create)
+    public async Task SaveAsync_Should_AssignDefault_When_PreviousFlagIsCleared(bool create)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await Fixture.SeedRolesAsync(cancellationToken);
@@ -131,6 +131,9 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
                 .SingleAsync(cancellationToken);
         var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        (await repository.UpdateAsync(
+            IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken))
+            .IsSuccess.ShouldBeTrue();
 
         if (create)
         {
@@ -181,10 +184,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         defaultName.ShouldBe("Player");
     }
 
-    [Theory(DisplayName = "Role persistence should reject removal when current default would be removed")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SaveAsync_Should_ReturnConflict_When_CurrentDefaultWouldBeRemoved(bool delete)
+    [Fact(DisplayName = "DeleteAsync should return conflict when role is default")]
+    public async Task DeleteAsync_Should_ReturnConflict_When_RoleIsDefault()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await Fixture.SeedRolesAsync(cancellationToken);
@@ -193,16 +194,67 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var role = await dbContext.Set<ApplicationRole>().SingleAsync(item => item.IsDefault, cancellationToken);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
-        var result = delete
-            ? await repository.DeleteAsync(role.Id, cancellationToken)
-            : await repository.UpdateAsync(
-                IntegrationTestData.CreateRole(role.Id, "Renamed", [], isDefault: false), cancellationToken);
+        var result = await repository.DeleteAsync(role.Id, cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
-        var existing = await dbContext.Set<ApplicationRole>().AsNoTracking()
+        var existing = await dbContext.Set<ApplicationRole>()
+            .AsNoTracking()
             .SingleAsync(item => item.Id == role.Id, cancellationToken);
         existing.IsDefault.ShouldBeTrue();
         existing.Name.ShouldBe("Player");
+    }
+
+    [Fact(DisplayName = "GetDefaultAsync should return null when default is missing")]
+    public async Task GetDefaultAsync_Should_ReturnNull_When_DefaultIsMissing()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+
+        var result = await repository.GetDefaultAsync(TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "GetDefaultAsync should return a role with claims when default exists")]
+    public async Task GetDefaultAsync_Should_ReturnRoleWithClaims_When_DefaultExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var role = IntegrationTestData.CreateRole(
+            Guid.CreateVersion7(), "CustomDefault", [("permission", "compendium.heroes.read")], isDefault: true);
+        (await repository.AddAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
+
+        var result = await repository.GetDefaultAsync(cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Id.ShouldBe(role.Id);
+        result.Value.IsDefault.ShouldBeTrue();
+        result.Value.Claims.ShouldHaveSingleItem().Value.Value.ShouldBe("compendium.heroes.read");
+    }
+
+    [Fact(DisplayName = "GetDefaultAsync should return validation errors when stored default is invalid")]
+    public async Task GetDefaultAsync_Should_ReturnValidationErrors_When_StoredDefaultIsInvalid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        dbContext.Set<ApplicationRole>().Add(new ApplicationRole
+        {
+            Id = Guid.Empty,
+            Name = "InvalidDefault",
+            NormalizedName = "INVALIDDEFAULT",
+            IsDefault = true
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+
+        var result = await repository.GetDefaultAsync(cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
     }
 
     private async Task<Guid> AddRoleAsync(

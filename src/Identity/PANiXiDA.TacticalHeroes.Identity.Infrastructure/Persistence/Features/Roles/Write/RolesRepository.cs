@@ -17,36 +17,38 @@ public sealed class RolesRepository(
     TimeProvider timeProvider)
     : IRolesRepository
 {
+    public async Task<Result<Role?>> GetDefaultAsync(CancellationToken cancellationToken)
+    {
+        var applicationRole = await roleManager.Roles
+            .AsNoTracking()
+            .Include(role => role.Claims)
+            .SingleOrDefaultAsync(role => role.IsDefault, cancellationToken);
+        if (applicationRole is null)
+        {
+            return Result.Success<Role?>(value: null);
+        }
+
+        var roleResult = ApplicationRoleMapper.ToDomain(role: applicationRole);
+        return roleResult.IsSuccess
+            ? Result.Success<Role?>(value: roleResult.Value)
+            : Result.Failure<Role?>(errors: roleResult.Errors);
+    }
+
     public async Task<Result<Guid>> AddAsync(
         Role role,
         CancellationToken cancellationToken)
     {
-        await using var transaction = dbContext.Database.CurrentTransaction is null
-            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
-            : null;
-        await LockRolesAsync(cancellationToken);
-
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationRole = ApplicationRoleMapper.ToDbModel(
             role: role,
             createdAt: nowUtc,
             updatedAt: nowUtc);
 
-        applicationRole.IsDefault = false;
         var identityResult = await roleManager.CreateAsync(role: applicationRole);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
-        }
-
-        await SetDefaultAsync(
-            role: applicationRole,
-            isDefault: role.IsDefault,
-            cancellationToken: cancellationToken);
-        if (transaction is not null)
-        {
-            await transaction.CommitAsync(cancellationToken);
         }
 
         aggregateTracker.Track(role);
@@ -58,11 +60,6 @@ public sealed class RolesRepository(
         Role role,
         CancellationToken cancellationToken)
     {
-        await using var transaction = dbContext.Database.CurrentTransaction is null
-            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
-            : null;
-        await LockRolesAsync(cancellationToken);
-
         var applicationRole = await roleManager.Roles
             .Include(item => item.Claims)
             .SingleOrDefaultAsync(item => item.Id == role.Id.Value, cancellationToken);
@@ -72,17 +69,10 @@ public sealed class RolesRepository(
             return RoleNotFound();
         }
 
-        if (applicationRole.IsDefault && !role.IsDefault)
-        {
-            return DefaultRoleConflict();
-        }
-
-        var wasDefault = applicationRole.IsDefault;
         ApplicationRoleMapper.MapToDbModel(
             role: role,
             dbModel: applicationRole,
             updatedAt: timeProvider.GetUtcNow().UtcDateTime);
-        applicationRole.IsDefault = wasDefault;
         SyncClaims(
             applicationRole: applicationRole,
             role: role);
@@ -94,15 +84,6 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        await SetDefaultAsync(
-            role: applicationRole,
-            isDefault: role.IsDefault,
-            cancellationToken: cancellationToken);
-        if (transaction is not null)
-        {
-            await transaction.CommitAsync(cancellationToken);
-        }
-
         aggregateTracker.Track(role);
 
         return Result.Success();
@@ -112,11 +93,6 @@ public sealed class RolesRepository(
         Guid id,
         CancellationToken cancellationToken)
     {
-        await using var transaction = dbContext.Database.CurrentTransaction is null
-            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
-            : null;
-        await LockRolesAsync(cancellationToken);
-
         var applicationRole = await roleManager.Roles
             .Include(role => role.Claims)
             .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
@@ -145,11 +121,6 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        if (transaction is not null)
-        {
-            await transaction.CommitAsync(cancellationToken);
-        }
-
         aggregateTracker.Track(roleResult.Value);
 
         return Result.Success();
@@ -157,42 +128,12 @@ public sealed class RolesRepository(
 
     private static Result DefaultRoleConflict()
     {
-        return Result.Failure(error: Error.Conflict(message: "Select another default role first."));
+        return Result.Failure(error: Error.Conflict(message: "Unset the default role before deleting it."));
     }
 
     private static Result RoleNotFound()
     {
         return Result.Failure(error: Error.NotFound(message: "Role was not found."));
-    }
-
-    private Task<int> LockRolesAsync(CancellationToken cancellationToken)
-    {
-        return dbContext.Database.ExecuteSqlRawAsync(
-            "LOCK TABLE identity.asp_net_roles IN SHARE ROW EXCLUSIVE MODE", cancellationToken);
-    }
-
-    private async Task SetDefaultAsync(
-        ApplicationRole role,
-        bool isDefault,
-        CancellationToken cancellationToken)
-    {
-        if (!isDefault || role.IsDefault)
-        {
-            return;
-        }
-
-        var previousDefaults = await dbContext.Set<ApplicationRole>()
-            .Where(item => item.IsDefault && item.Id != role.Id)
-            .ToArrayAsync(cancellationToken);
-        foreach (var previous in previousDefaults)
-        {
-            previous.IsDefault = false;
-            previous.UpdatedAt = timeProvider.GetUtcNow().UtcDateTime;
-        }
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        role.IsDefault = true;
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private void SyncClaims(

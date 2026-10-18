@@ -14,11 +14,11 @@ internal sealed class RoleDetailsReadModelMapper
         return query.Select(role => new RoleDetailsReadModel(
             Id: role.Id,
             Name: role.Name!,
+            IsDefault: role.IsDefault,
             Claims: role.Claims
                 .Select(claim => new Claim(
                     type: claim.ClaimType!,
                     value: claim.ClaimValue!))
-                .ToArray(),
-            IsDefault: role.IsDefault));
+                .ToArray()));
     }
 }

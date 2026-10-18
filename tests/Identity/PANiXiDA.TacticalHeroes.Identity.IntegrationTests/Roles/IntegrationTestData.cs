@@ -16,9 +16,9 @@ internal static class IntegrationTestData
         return Role.Create(
             id: RoleId.Create(value: id).Value,
             name: RoleName.Create(value: name).Value,
+            defaultFlag: RoleDefaultFlag.Create(value: isDefault).Value,
             claims: claims.Select(claim => RoleClaim.Create(
                 type: ClaimType.Create(value: claim.Type).Value,
-                value: ClaimValue.Create(value: claim.Value).Value)),
-            defaultStatus: RoleDefaultStatus.From(isDefault: isDefault));
+                value: ClaimValue.Create(value: claim.Value).Value)));
     }
 }

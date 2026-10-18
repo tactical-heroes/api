@@ -17,6 +17,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             createdRole.Id,
             new UpdateRoleRequest(
                 "CustomManager",
+                false,
                 [new Claim("permission", "compendium.heroes.update")]),
             cancellationToken);
         var role = await RoleDatabaseTestHelper.FindAsync(

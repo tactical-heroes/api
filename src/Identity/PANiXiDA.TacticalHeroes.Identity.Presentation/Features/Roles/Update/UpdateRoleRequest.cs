@@ -4,5 +4,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
 public sealed record UpdateRoleRequest(
     string Name,
-    IReadOnlyCollection<Claim> Claims,
-    bool IsDefault = false);
+    bool IsDefault,
+    IReadOnlyCollection<Claim> Claims);

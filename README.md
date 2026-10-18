@@ -87,8 +87,10 @@ Player has no administrative claims and is the initial default role. Startup doe
 Existing users are not reassigned automatically.
 
 Role names are arbitrary nonempty values up to 128 characters, trimmed without changing case.
-Role create/update requests and list/details responses include `isDefault`. Selecting a new default
-switches it atomically; the current default cannot be deleted or unset directly (HTTP 409).
+Role create/update requests require `isDefault` before `claims`; list/details responses include the flag.
+Selecting a default while another role has the flag returns HTTP 409. To change it, clear the previous
+flag and then select the new role. Editing the current default is allowed; deleting it returns HTTP 409.
+The unique database index also prevents duplicate defaults in concurrent requests.
 Registration selects the role marked `isDefault`, independently of its name.
 
 User create/update requests require `roleIds` (GUID array), just like `claims`;

@@ -11,6 +11,9 @@ public sealed class CreateRoleCommandValidator : AbstractValidator<CreateRoleCom
         RuleFor(command => command.Name)
             .MustBeValidDomainValue(RoleName.Create);
 
+        RuleFor(command => command.IsDefault)
+            .MustBeValidDomainValue(RoleDefaultFlag.Create);
+
         RuleFor(command => command.Claims)
             .NotNull();
 

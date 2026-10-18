@@ -11,7 +11,7 @@ public sealed class GetRolesHandlerTests
         var pagination = new PaginationParameters(1, 20);
         var sorting = SortingParameters.None;
         var page = PaginationResult<RoleListItemReadModel>.Create(
-            [new RoleListItemReadModel(Guid.CreateVersion7(), "Developer")],
+            [new RoleListItemReadModel(Guid.CreateVersion7(), "Developer", false)],
             1,
             20,
             1);

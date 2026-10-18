@@ -15,6 +15,7 @@ public sealed class UpdateRoleCommandValidatorTests
             new UpdateRoleCommand(
                 Guid.CreateVersion7(),
                 "Developer",
+                false,
                 [new Claim("permission", "compendium.heroes.update")]));
 
         result.IsValid.ShouldBeTrue();
@@ -26,7 +27,7 @@ public sealed class UpdateRoleCommandValidatorTests
         var validator = new UpdateRoleCommandValidator();
 
         var result = validator.Validate(
-            new UpdateRoleCommand(Guid.Empty, "", [new Claim("", "")]));
+            new UpdateRoleCommand(Guid.Empty, "", false, [new Claim("", "")]));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateRoleCommand.Id));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateRoleCommand.Name));
