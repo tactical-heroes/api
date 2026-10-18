@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using OpenIddict.Abstractions;
+using OpenIddict.EntityFrameworkCore;
 using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
@@ -102,6 +104,87 @@ public sealed class UserRoleAssignmentTests(IntegrationTestFixture fixture) : In
         succeeded.ShouldBeFalse();
         (await dbContext.Set<ApplicationUser>().CountAsync(cancellationToken)).ShouldBe(update ? 1 : 0);
         (await dbContext.Set<ApplicationUserRole>().AnyAsync(cancellationToken)).ShouldBeFalse();
+    }
+
+    [Theory(DisplayName = "User updates should preserve state and tokens when identity validation fails")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task UpdateAsync_Should_PreserveStateAndTokens_When_IdentityValidationFails(
+        bool duplicateEmail,
+        bool disableBulk)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var options = scope.ServiceProvider.GetRequiredService<IOptionsMonitor<OpenIddictEntityFrameworkCoreOptions>>()
+            .CurrentValue;
+        var originalDisableBulk = options.DisableBulkOperations;
+        options.DisableBulkOperations = disableBulk;
+        try
+        {
+            var roles = await dbContext.Set<ApplicationRole>().ToDictionaryAsync(
+                role => role.Name!, role => role.Id, cancellationToken);
+            var id = Guid.CreateVersion7();
+            var created = await repository.AddAsync(
+                CreateUser(id, [roles["Player"]]), "StrongPassword1!", cancellationToken);
+            created.IsSuccess.ShouldBeTrue();
+            var other = IntegrationTestData.CreateUser(
+                id: Guid.CreateVersion7(),
+                email: "occupied@example.com",
+                isConfirmed: true,
+                roleIds: [],
+                claims: [],
+                userName: "occupied",
+                status: UserStatus.Active);
+            (await repository.AddAsync(other, "StrongPassword1!", cancellationToken)).IsSuccess.ShouldBeTrue();
+            var original = await dbContext.Set<ApplicationUser>()
+                .AsNoTracking()
+                .SingleAsync(user => user.Id == id, cancellationToken);
+            await tokenManager.CreateAsync(
+                new OpenIddictTokenDescriptor
+                {
+                    Subject = id.ToString(),
+                    Status = OpenIddictConstants.Statuses.Valid,
+                    Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+                },
+                cancellationToken);
+            var updated = IntegrationTestData.CreateUser(
+                id: id,
+                email: duplicateEmail ? "occupied@example.com" : "hero@example.com",
+                isConfirmed: false,
+                roleIds: [roles["Developer"]],
+                claims: [("permission", "identity.users.read")],
+                userName: duplicateEmail ? "hero" : "occupied",
+                status: UserStatus.Active);
+
+            var result = await repository.UpdateAsync(updated, cancellationToken);
+
+            result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
+            var persisted = await dbContext.Set<ApplicationUser>()
+                .Include(user => user.Roles)
+                .Include(user => user.Claims)
+                .AsNoTracking()
+                .SingleAsync(user => user.Id == id, cancellationToken);
+            persisted.Email.ShouldBe(original.Email);
+            persisted.UserName.ShouldBe(original.UserName);
+            persisted.EmailConfirmed.ShouldBe(original.EmailConfirmed);
+            persisted.SecurityStamp.ShouldBe(original.SecurityStamp);
+            persisted.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(roles["Player"]);
+            persisted.Claims.ShouldBeEmpty();
+            var token = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+                .AsNoTracking()
+                .SingleAsync(cancellationToken);
+            token.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+        }
+        finally
+        {
+            options.DisableBulkOperations = originalDisableBulk;
+        }
     }
 
     private static User CreateUser(Guid id, IReadOnlyCollection<Guid> roleIds) =>

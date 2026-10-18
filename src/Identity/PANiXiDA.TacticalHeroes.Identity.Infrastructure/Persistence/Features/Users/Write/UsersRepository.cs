@@ -78,11 +78,6 @@ public sealed class UsersRepository(
             applicationUser: applicationUser,
             user: user);
 
-        if (user.Status.IsBlocked || rolesChanged)
-        {
-            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
-        }
-
         var identityResult = rolesChanged
             ? await userManager.UpdateSecurityStampAsync(applicationUser)
             : await userManager.UpdateAsync(applicationUser);
@@ -90,6 +85,11 @@ public sealed class UsersRepository(
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
+        }
+
+        if (user.Status.IsBlocked || rolesChanged)
+        {
+            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
         }
 
         aggregateTracker.Track(user);

@@ -98,7 +98,9 @@ get-details returns the selected IDs. Updates replace the complete role selectio
 `[]` means no roles. Omitted/null collections are rejected. Empty GUIDs,
 duplicates, and unknown role IDs are rejected before persistence. Use the existing
 roles list endpoint to populate selection options. Role changes rotate the security
-stamp and revoke the user's tokens. Apply the Identity default-role and seed-data migrations;
+stamp and revoke the user's tokens. Changes to an assigned role's name or claims,
+and role deletion, also invalidate sessions for its members. Failed user updates preserve
+existing assignments and sessions. Role writes and session invalidation share the command transaction. Apply the Identity default-role and seed-data migrations;
 no configuration changes are required. Rolling back seed data preserves roles and assignments.
 
 ## Request Validation
