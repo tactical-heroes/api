@@ -165,7 +165,7 @@ public sealed class RolesRepository(
         return Result.Failure(error: Error.NotFound(message: "Role was not found."));
     }
 
-    private Task LockRolesAsync(CancellationToken cancellationToken)
+    private Task<int> LockRolesAsync(CancellationToken cancellationToken)
     {
         return dbContext.Database.ExecuteSqlRawAsync(
             "LOCK TABLE identity.asp_net_roles IN SHARE ROW EXCLUSIVE MODE", cancellationToken);
