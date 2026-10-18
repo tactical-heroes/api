@@ -11,7 +11,11 @@ internal sealed class UpdateHeroEndpoint : IEndpoint<HeroesEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPut(builder.Route, HandleAsync)
-            .ProducesUpdateOrDeleteResponses();
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> HandleAsync(
