@@ -90,8 +90,8 @@ User creation and updates require a non-null `status`. The domain factory reject
 blank or unknown statuses. OpenAPI does not automatically export FluentValidation
 rules, including status restrictions, as schema constraints.
 
-Optimistic concurrency conflicts detected while persisting mediator commands return
-HTTP 409 with Problem Details. Reload the affected entity before retrying the operation.
+EF repository concurrency exceptions handled by the mediator pipeline return HTTP 409
+with Problem Details. Reload the affected entity before retrying the operation.
 
 ## Token Validation
 

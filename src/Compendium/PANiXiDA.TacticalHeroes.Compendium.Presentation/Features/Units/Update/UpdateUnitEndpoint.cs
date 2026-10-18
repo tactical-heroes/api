@@ -11,11 +11,7 @@ internal sealed class UpdateUnitEndpoint : IEndpoint<UnitsEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPut(builder.Route, HandleAsync)
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesUpdateOrDeleteResponses();
     }
 
     private static async Task<IResult> HandleAsync(

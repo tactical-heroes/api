@@ -11,11 +11,7 @@ internal sealed class DeleteFactionEndpoint : IEndpoint<FactionsEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapDelete(builder.Route, HandleAsync)
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesUpdateOrDeleteResponses();
     }
 
     private static async Task<IResult> HandleAsync(
