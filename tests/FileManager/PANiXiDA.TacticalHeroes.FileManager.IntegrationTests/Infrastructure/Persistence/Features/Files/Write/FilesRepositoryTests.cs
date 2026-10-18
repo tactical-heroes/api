@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
+using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -176,7 +177,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         Func<Task> saveStaleFile = () => completionRepository.UpdateAsync(completingFile, cancellationToken);
 
-        await saveStaleFile.ShouldThrowAsync<DbUpdateConcurrencyException>();
+        var exception = await saveStaleFile.ShouldThrowAsync<ConcurrencyException>();
+        exception.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
         await using var verificationScope = Fixture.CreateScope();
         var persistedFile = await verificationScope.ServiceProvider
             .GetRequiredService<IFilesRepository>()

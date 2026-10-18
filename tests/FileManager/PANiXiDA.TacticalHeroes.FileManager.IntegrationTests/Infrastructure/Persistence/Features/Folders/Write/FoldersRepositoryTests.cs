@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
+using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
@@ -108,7 +109,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
 
         Func<Task> saveStaleFolder = () => secondRepository.UpdateAsync(secondFolder, cancellationToken);
 
-        await saveStaleFolder.ShouldThrowAsync<DbUpdateConcurrencyException>();
+        var exception = await saveStaleFolder.ShouldThrowAsync<ConcurrencyException>();
+        exception.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
         await using var verificationScope = Fixture.CreateScope();
         var persistedFolder = await verificationScope.ServiceProvider
             .GetRequiredService<IFoldersRepository>()
