@@ -20,7 +20,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         var details = await repository.GetDetailsByIdAsync(roleId, cancellationToken);
 
         details.ShouldNotBeNull();
-        details.Name.ShouldBe("developer");
+        details.Name.ShouldBe("Developer");
     }
 
     [Fact(DisplayName = "GetPageAsync should return roles sorted by name when roles exist")]
@@ -38,7 +38,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
-        page.Items.Select(item => item.Name).ShouldBe(["developer", "player"]);
+        page.Items.Select(item => item.Name).ShouldBe(["Developer", "Player"]);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing role when role exists")]

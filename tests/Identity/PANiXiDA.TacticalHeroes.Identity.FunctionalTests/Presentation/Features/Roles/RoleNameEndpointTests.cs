@@ -13,7 +13,7 @@ public sealed class RoleNameEndpointTests(FunctionalTestFixture fixture) : Funct
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
         var roles = await client.GetListAsync(cancellationToken);
-        var roleId = roles.Items.Single(role => role.Name == "player").Id;
+        var roleId = roles.Items.Single(role => role.Name == "Player").Id;
         var path = update ? $"/api/v1/roles/{roleId}" : "/api/v1/roles";
         using var request = new HttpRequestMessage(update ? HttpMethod.Put : HttpMethod.Post, path)
         {
@@ -25,6 +25,6 @@ public sealed class RoleNameEndpointTests(FunctionalTestFixture fixture) : Funct
         var details = await client.GetDetailsAsync(roleId, cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
-        details.Name.ShouldBe("player");
+        details.Name.ShouldBe("Player");
     }
 }

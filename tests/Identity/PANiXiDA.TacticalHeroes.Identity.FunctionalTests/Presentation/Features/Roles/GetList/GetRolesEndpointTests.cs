@@ -12,6 +12,6 @@ public sealed class GetRolesEndpointTests(FunctionalTestFixture fixture)
         var response = await client.GetListAsync(cancellationToken);
 
         response.TotalCount.ShouldBe(3);
-        response.Items.Select(role => role.Name).ShouldBe(["developer", "moderator", "player"]);
+        response.Items.Select(role => role.Name).ShouldBe(["Developer", "Moderator", "Player"]);
     }
 }

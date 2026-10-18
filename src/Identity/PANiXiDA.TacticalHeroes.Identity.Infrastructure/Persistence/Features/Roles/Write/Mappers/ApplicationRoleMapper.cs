@@ -33,7 +33,7 @@ internal static class ApplicationRoleMapper
         ApplicationRole dbModel,
         DateTime updatedAt)
     {
-        dbModel.Name = role.Name.Name.ToLowerInvariant();
+        dbModel.Name = role.Name.Name;
         dbModel.UpdatedAt = updatedAt;
     }
 

@@ -27,7 +27,7 @@ public sealed class IdentityRoleSeederTests(IntegrationTestFixture fixture) : In
             .Include(role => role.Claims)
             .AsNoTracking()
             .ToArrayAsync(cancellationToken);
-        roles.Select(role => role.Name).ShouldBe(["developer", "moderator", "player"], ignoreOrder: true);
+        roles.Select(role => role.Name).ShouldBe(["Developer", "Moderator", "Player"], ignoreOrder: true);
         roles.ShouldAllBe(role => role.Id != Guid.Empty && role.CreatedAt != default && role.UpdatedAt != default);
         roles.ShouldAllBe(role => string.Equals(
             role.NormalizedName, role.Name!.ToUpperInvariant(), StringComparison.Ordinal));

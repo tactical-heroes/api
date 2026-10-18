@@ -9,7 +9,7 @@ internal sealed class IdentityRoleSeeder(RoleManager<ApplicationRole> roleManage
 {
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
-        foreach (var name in RoleName.GetAll().Select(role => role.Name.ToLowerInvariant()))
+        foreach (var name in RoleName.GetAll().Select(role => role.Name))
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (await roleManager.FindByNameAsync(name) is not null)

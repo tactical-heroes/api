@@ -15,8 +15,8 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
         var roles = (await new RoleApiTestClient(Fixture).GetListAsync(cancellationToken)).Items;
         Guid[] selected =
         [
-            roles.Single(role => role.Name == "developer").Id,
-            roles.Single(role => role.Name == "moderator").Id
+            roles.Single(role => role.Name == "Developer").Id,
+            roles.Single(role => role.Name == "Moderator").Id
         ];
         var client = new UserApiTestClient(Fixture);
 
@@ -37,8 +37,8 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var roles = (await new RoleApiTestClient(Fixture).GetListAsync(cancellationToken)).Items;
-        var developerId = roles.Single(role => role.Name == "developer").Id;
-        var moderatorId = roles.Single(role => role.Name == "moderator").Id;
+        var developerId = roles.Single(role => role.Name == "Developer").Id;
+        var moderatorId = roles.Single(role => role.Name == "Moderator").Id;
         var client = new UserApiTestClient(Fixture);
         var created = await client.CreateAsync(
             cancellationToken, UserApiTestClient.CreateDefaultRequest() with { RoleIds = [developerId] });
@@ -81,7 +81,7 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var roles = (await new RoleApiTestClient(Fixture).GetListAsync(cancellationToken)).Items;
-        var developerId = roles.Single(role => role.Name == "developer").Id;
+        var developerId = roles.Single(role => role.Name == "Developer").Id;
         Guid[] roleIds = invalid switch
         {
             "empty" => [Guid.Empty],

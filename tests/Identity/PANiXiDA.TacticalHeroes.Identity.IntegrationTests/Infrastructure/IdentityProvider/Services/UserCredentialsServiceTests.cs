@@ -48,7 +48,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.Email.ShouldBe("register@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
-        (await userManager.GetRolesAsync(user)).ShouldBe([RoleName.Developer.Name.ToLowerInvariant()]);
+        (await userManager.GetRolesAsync(user)).ShouldBe([RoleName.Developer.Name]);
 
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
         var trackedUser = aggregateTracker.GetAll()

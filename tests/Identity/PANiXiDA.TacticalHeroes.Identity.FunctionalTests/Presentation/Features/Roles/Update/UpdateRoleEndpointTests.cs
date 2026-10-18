@@ -13,7 +13,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         var client = new RoleApiTestClient(Fixture);
         var createdRole = await client.RecreateAsync(cancellationToken);
         var roles = await client.GetListAsync(cancellationToken);
-        await client.DeleteAsync(roles.Items.Single(role => role.Name == "player").Id, cancellationToken);
+        await client.DeleteAsync(roles.Items.Single(role => role.Name == "Player").Id, cancellationToken);
 
         await client.UpdateAsync(
             createdRole.Id,
@@ -27,7 +27,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         role.ShouldNotBeNull();
-        role.Name.ShouldBe("player");
+        role.Name.ShouldBe("Player");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.update");
     }
 }

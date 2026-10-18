@@ -81,13 +81,13 @@ Frontend adaptation is separate; no database migration is required.
 
 ## User Roles
 
-Identity seeds `developer`, `moderator`, and `player` at startup using the existing
-lowercase role-name convention. Seeding preserves existing role IDs and claims;
+Identity seeds `Developer`, `Moderator`, and `Player` at startup using the
+enumeration names. Seeding preserves existing role IDs and claims;
 new roles have no permission/section claims. Public registration assigns Developer.
 Existing users are not reassigned automatically.
 
 Role names are restricted to `Developer`, `Moderator`, and `Player`. Input is
-trimmed and matched without case sensitivity; persisted names remain lowercase.
+trimmed and matched without case sensitivity; names are persisted as `RoleName.Name`.
 
 User create/update requests require `roleIds` (GUID array), just like `claims`;
 get-details returns the selected IDs. Updates replace the complete role selection;
