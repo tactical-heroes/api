@@ -88,8 +88,8 @@ public sealed class UserRequestValidationTests(FunctionalTestFixture fixture)
             .Select(property => property.GetString()!)
             .ToArray();
         string[] expectedProperties = includePassword
-            ? ["email", "userName", "password", "isConfirmed", "claims", "status"]
-            : ["email", "userName", "isConfirmed", "claims", "status"];
+            ? ["email", "userName", "password", "isConfirmed", "claims", "status", "roleIds"]
+            : ["email", "userName", "isConfirmed", "claims", "status", "roleIds"];
         requiredProperties.ShouldBe(expectedProperties, ignoreOrder: true);
         var status = schema.GetProperty("properties").GetProperty("status");
         status.GetProperty("type").GetString().ShouldBe("string");
