@@ -1,5 +1,3 @@
-using static ArchUnitNET.Fluent.ArchRuleDefinition;
-
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Modules;
 
 public sealed class ModuleDependencyTests
@@ -24,7 +22,7 @@ public sealed class ModuleDependencyTests
                     foreach (var targetAssemblyName in GetInternalAssemblyNames(
                         targetModule))
                     {
-                        TypesShouldNotDependOn(
+                        AssembliesShouldNotDependOn(
                             sourceAssemblyName,
                             targetAssemblyName);
                     }
@@ -45,17 +43,17 @@ public sealed class ModuleDependencyTests
         ];
     }
 
-    private static void TypesShouldNotDependOn(
+    private static void AssembliesShouldNotDependOn(
         string sourceAssemblyName,
         string targetAssemblyName)
     {
-        Types()
-            .That()
-            .Are(ArchitectureDefinition.TypesInAssembly(sourceAssemblyName))
-            .Should()
-            .NotDependOnAny(
-                ArchitectureDefinition.TypesInAssembly(targetAssemblyName))
-            .WithoutRequiringPositiveResults()
-            .Check(ArchitectureDefinition.s_architecture);
+        var sourceAssembly = ArchitectureDefinition.s_productionAssemblies
+            .Single(assembly => assembly.GetName().Name == sourceAssemblyName);
+
+        // ArchUnitNET 0.13.4 conflates same-named generated members across assemblies.
+        // Assembly references preserve the module boundary without excluding generated code.
+        Assert.DoesNotContain(
+            sourceAssembly.GetReferencedAssemblies(),
+            reference => reference.Name == targetAssemblyName);
     }
 }

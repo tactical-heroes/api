@@ -77,7 +77,7 @@ public sealed class UnitsConcurrencyEndpointTests(FunctionalTestFixture fixture)
         public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
             InterceptionResult<int> result,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             if (UnitDeleted
                 || eventData.Context is not CompendiumWriteDbContext context
