@@ -1,7 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles;
 
@@ -14,11 +14,11 @@ public sealed class RoleTests
 
         var result = Role.Create(
             RoleId.Create(id).Value,
-            RoleName.Create(" ADMIN ").Value,
+            RoleName.Create(" DEVELOPER ").Value,
             [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)]);
 
         result.Id.Value.ShouldBe(id);
-        result.Name.Value.ShouldBe("admin");
+        result.Name.Name.ShouldBe("Developer");
         var claim = result.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");
@@ -29,7 +29,7 @@ public sealed class RoleTests
     {
         var claim = RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value);
         List<RoleClaim> claims = [claim];
-        var role = Role.Create(RoleId.New(), RoleName.Create("admin").Value, claims);
+        var role = Role.Create(RoleId.New(), RoleName.Create("developer").Value, claims);
 
         claims.Clear();
 
@@ -89,6 +89,6 @@ public sealed class RoleTests
 
     private static Role CreateRole()
     {
-        return Role.Create(RoleId.New(), RoleName.Create("admin").Value, []);
+        return Role.Create(RoleId.New(), RoleName.Create("developer").Value, []);
     }
 }

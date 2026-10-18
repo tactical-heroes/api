@@ -1,7 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Roles;
 

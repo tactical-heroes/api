@@ -17,7 +17,7 @@ public sealed class UpdateRoleHandlerTests
         repository.UpdateAsync(
             Arg.Is<Role>(
                 role => role.Id.Value == roleId
-                    && role.Name.Value == "admin"
+                    && role.Name.Name == "Developer"
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg.Any<CancellationToken>())
@@ -26,14 +26,14 @@ public sealed class UpdateRoleHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new UpdateRoleCommand(roleId, "admin", claims),
+            new UpdateRoleCommand(roleId, "developer", claims),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
             Arg.Is<Role>(
                 role => role.Id.Value == roleId
-                    && role.Name.Value == "admin"
+                    && role.Name.Name == "Developer"
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             cancellationToken);
@@ -42,7 +42,7 @@ public sealed class UpdateRoleHandlerTests
     [Theory(
         DisplayName = "Update role handler should reject invalid values without persistence when command is invalid")]
     [InlineData("", "permission", "heroes.manage")]
-    [InlineData("admin", "", "")]
+    [InlineData("developer", "", "")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CommandIsInvalid(
         string name,
         string claimType,

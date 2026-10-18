@@ -16,7 +16,7 @@ public sealed class CreateRoleHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IRolesRepository>();
         repository.AddAsync(
-            Arg.Is<Role>(role => role.Name.Value == "admin"
+            Arg.Is<Role>(role => role.Name.Name == "Developer"
                 && role.Claims.Any(
                     claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg
@@ -26,13 +26,13 @@ public sealed class CreateRoleHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new CreateRoleCommand("admin", claims),
+            new CreateRoleCommand("developer", claims),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(roleId);
         await repository.Received(1).AddAsync(
-            Arg.Is<Role>(role => role.Name.Value == "admin"
+            Arg.Is<Role>(role => role.Name.Name == "Developer"
                 && role.Claims.Any(
                     claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             cancellationToken);
@@ -41,7 +41,7 @@ public sealed class CreateRoleHandlerTests
     [Theory(
         DisplayName = "Create role handler should reject invalid values without persistence when command is invalid")]
     [InlineData("", "permission", "heroes.manage")]
-    [InlineData("admin", "", "")]
+    [InlineData("developer", "", "")]
     public async Task HandleAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CommandIsInvalid(
         string name,
         string claimType,

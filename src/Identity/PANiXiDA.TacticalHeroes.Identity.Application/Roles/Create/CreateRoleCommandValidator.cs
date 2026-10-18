@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
 

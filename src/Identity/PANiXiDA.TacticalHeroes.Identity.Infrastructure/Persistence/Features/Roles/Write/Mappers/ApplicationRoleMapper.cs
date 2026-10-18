@@ -1,7 +1,7 @@
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
@@ -33,7 +33,7 @@ internal static class ApplicationRoleMapper
         ApplicationRole dbModel,
         DateTime updatedAt)
     {
-        dbModel.Name = role.Name.Value;
+        dbModel.Name = role.Name.Name.ToLowerInvariant();
         dbModel.UpdatedAt = updatedAt;
     }
 

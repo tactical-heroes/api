@@ -18,7 +18,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var roleId = await AddRoleAsync(
-            " ADMIN ",
+            " DEVELOPER ",
             [new Claim("permission", "heroes.read")],
             cancellationToken);
 
@@ -29,7 +29,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .SingleAsync(item => item.Id == roleId, cancellationToken);
 
-        role.Name.ShouldBe("admin");
+        role.Name.ShouldBe("developer");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.read");
     }
 
@@ -38,7 +38,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var roleId = await AddRoleAsync(
-            "admin",
+            "developer",
             [new Claim("permission", "heroes.read")],
             cancellationToken);
 
@@ -48,7 +48,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             (await repository.UpdateAsync(
                 IntegrationTestData.CreateRole(
                     id: roleId,
-                    name: "manager",
+                    name: "moderator",
                     claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(
                         claim => (claim.Type, claim.Value))),
                 cancellationToken))
@@ -64,7 +64,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .SingleAsync(item => item.Id == roleId, cancellationToken);
 
-        role.Name.ShouldBe("manager");
+        role.Name.ShouldBe("moderator");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
     }
 
@@ -72,7 +72,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     public async Task DeleteAsync_Should_RemoveRole_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("delete-role", [], cancellationToken);
+        var roleId = await AddRoleAsync("player", [], cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -98,7 +98,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         (await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
-                name: "admin",
+                name: "developer",
                 claims: []),
             cancellationToken))
             .IsSuccess
@@ -106,7 +106,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var result = await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
-                name: "ADMIN",
+                name: "DEVELOPER",
                 claims: []),
             cancellationToken);
 

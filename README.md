@@ -86,6 +86,9 @@ lowercase role-name convention. Seeding preserves existing role IDs and claims;
 new roles have no permission/section claims. Public registration assigns Developer.
 Existing users are not reassigned automatically.
 
+Role names are restricted to `Developer`, `Moderator`, and `Player`. Input is
+trimmed and matched without case sensitivity; persisted names remain lowercase.
+
 User create/update requests require `roleIds` (GUID array), just like `claims`;
 get-details returns the selected IDs. Updates replace the complete role selection;
 `[]` means no roles. Omitted/null collections are rejected. Empty GUIDs,

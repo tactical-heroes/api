@@ -8,7 +8,7 @@ public sealed class DeleteRoleEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        var createdRole = await client.CreateAsync(cancellationToken);
+        var createdRole = await client.RecreateAsync(cancellationToken);
 
         await client.DeleteAsync(createdRole.Id, cancellationToken);
         var role = await RoleDatabaseTestHelper.FindAsync(

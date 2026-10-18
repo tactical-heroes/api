@@ -13,22 +13,22 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("admin", cancellationToken);
+        var roleId = await AddRoleAsync("developer", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
         var details = await repository.GetDetailsByIdAsync(roleId, cancellationToken);
 
         details.ShouldNotBeNull();
-        details.Name.ShouldBe("admin");
+        details.Name.ShouldBe("developer");
     }
 
     [Fact(DisplayName = "GetPageAsync should return roles sorted by name when roles exist")]
     public async Task GetPageAsync_Should_ReturnSortedPage_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddRoleAsync("viewer", cancellationToken);
-        await AddRoleAsync("admin", cancellationToken);
+        await AddRoleAsync("player", cancellationToken);
+        await AddRoleAsync("developer", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -38,14 +38,14 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
-        page.Items.Select(item => item.Name).ShouldBe(["admin", "viewer"]);
+        page.Items.Select(item => item.Name).ShouldBe(["developer", "player"]);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing role when role exists")]
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("exists-role", cancellationToken);
+        var roleId = await AddRoleAsync("moderator", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -65,7 +65,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
         }
 
-        await AddRoleAsync("any-role", cancellationToken);
+        await AddRoleAsync("moderator", cancellationToken);
 
         await using var populatedScope = Fixture.CreateScope();
         var populatedRepository =

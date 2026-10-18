@@ -81,4 +81,38 @@ public sealed class RoleNameTests
         found.ShouldBe(expectedId.HasValue);
         (role?.Id).ShouldBe(expectedId);
     }
+
+    [Theory(DisplayName = "Role name factory should normalize known names when name is known")]
+    [InlineData("Developer", 1)]
+    [InlineData(" developer ", 1)]
+    [InlineData("MODERATOR", 2)]
+    [InlineData("player", 3)]
+    public void Create_Should_ReturnRole_When_NameIsKnown(string name, int id)
+    {
+        var result = RoleName.Create(name);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(RoleName.FromId(id));
+    }
+
+    [Theory(DisplayName = "Role name factory should reject missing names when value is empty")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Create_Should_ReturnValidationFailure_When_ValueIsEmpty(string? value)
+    {
+        var result = RoleName.Create(value!);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "Role name is required.")
+            .ShouldHaveField(nameof(RoleName));
+    }
+
+    [Fact(DisplayName = "Role name factory should reject unknown names when value is unknown")]
+    public void Create_Should_ReturnValidationFailure_When_ValueIsUnknown()
+    {
+        var result = RoleName.Create("admin");
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "Role name 'admin' is invalid.")
+            .ShouldHaveField(nameof(RoleName));
+    }
 }

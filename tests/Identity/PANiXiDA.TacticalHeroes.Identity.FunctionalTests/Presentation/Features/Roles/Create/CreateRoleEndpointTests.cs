@@ -12,10 +12,10 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
 
-        var response = await client.CreateAsync(
+        var response = await client.RecreateAsync(
             cancellationToken,
             new CreateRoleRequest(
-                " ADMIN ",
+                " MODERATOR ",
                 [new Claim("permission", "compendium.heroes.update")]));
         var role = await RoleDatabaseTestHelper.FindAsync(
             Fixture,
@@ -23,7 +23,7 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         role.ShouldNotBeNull();
-        role.Name.ShouldBe("admin");
+        role.Name.ShouldBe("moderator");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.update");
     }
 }

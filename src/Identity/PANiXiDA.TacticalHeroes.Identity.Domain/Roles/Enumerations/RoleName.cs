@@ -2,6 +2,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 
 public sealed partial class RoleName : Enumeration<RoleName>
 {
+    public const int MaxNameLength = 128;
+
     public static readonly RoleName Developer = new(id: 1, name: nameof(Developer), displayName: "Разработчик");
     public static readonly RoleName Moderator = new(id: 2, name: nameof(Moderator), displayName: "Модератор");
     public static readonly RoleName Player = new(id: 3, name: nameof(Player), displayName: "Игрок");
@@ -13,4 +15,24 @@ public sealed partial class RoleName : Enumeration<RoleName>
     }
 
     public string DisplayName { get; }
+
+    public static Result<RoleName> Create(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Result.Failure<RoleName>(
+                error: Error.Validation(message: "Role name is required.")
+                    .WithField(nameof(RoleName)));
+        }
+
+        var normalizedValue = value.Trim();
+        var roleName = GetAll().FirstOrDefault(role => string.Equals(
+            role.Name, normalizedValue, StringComparison.OrdinalIgnoreCase));
+
+        return roleName is not null
+            ? Result.Success(value: roleName)
+            : Result.Failure<RoleName>(
+                error: Error.Validation(message: $"Role name '{normalizedValue}' is invalid.")
+                    .WithField(nameof(RoleName)));
+    }
 }
