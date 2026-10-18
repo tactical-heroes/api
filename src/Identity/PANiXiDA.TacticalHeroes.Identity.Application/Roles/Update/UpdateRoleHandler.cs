@@ -42,7 +42,7 @@ public sealed class UpdateRoleHandler(IRolesRepository rolesRepository)
             id: idResult.Value,
             name: nameResult.Value,
             claims: claims,
-            isDefault: command.IsDefault);
+            defaultStatus: RoleDefaultStatus.From(isDefault: command.IsDefault));
 
         return rolesRepository.UpdateAsync(
             role: role,

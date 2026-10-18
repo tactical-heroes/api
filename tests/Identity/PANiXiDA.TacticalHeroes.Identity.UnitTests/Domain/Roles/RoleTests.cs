@@ -18,7 +18,7 @@ public sealed class RoleTests
             RoleId.Create(id).Value,
             RoleName.Create(" Developer ").Value,
             [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)],
-            isDefault);
+            RoleDefaultStatus.From(isDefault));
 
         result.Id.Value.ShouldBe(id);
         result.Name.Value.ShouldBe("Developer");

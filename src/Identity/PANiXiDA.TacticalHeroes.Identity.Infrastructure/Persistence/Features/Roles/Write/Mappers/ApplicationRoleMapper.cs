@@ -82,6 +82,6 @@ internal static class ApplicationRoleMapper
             id: idResult.Value,
             name: nameResult.Value,
             claims: domainClaims,
-            isDefault: role.IsDefault));
+            defaultStatus: RoleDefaultStatus.From(isDefault: role.IsDefault)));
     }
 }

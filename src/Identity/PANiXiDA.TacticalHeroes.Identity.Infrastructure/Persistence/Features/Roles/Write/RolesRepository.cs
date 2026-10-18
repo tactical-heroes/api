@@ -40,7 +40,10 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        await SetDefaultAsync(applicationRole, role.IsDefault, cancellationToken);
+        await SetDefaultAsync(
+            role: applicationRole,
+            isDefault: role.IsDefault,
+            cancellationToken: cancellationToken);
         if (transaction is not null)
         {
             await transaction.CommitAsync(cancellationToken);
@@ -91,7 +94,10 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        await SetDefaultAsync(applicationRole, role.IsDefault, cancellationToken);
+        await SetDefaultAsync(
+            role: applicationRole,
+            isDefault: role.IsDefault,
+            cancellationToken: cancellationToken);
         if (transaction is not null)
         {
             await transaction.CommitAsync(cancellationToken);
@@ -149,6 +155,16 @@ public sealed class RolesRepository(
         return Result.Success();
     }
 
+    private static Result DefaultRoleConflict()
+    {
+        return Result.Failure(error: Error.Conflict(message: "Select another default role first."));
+    }
+
+    private static Result RoleNotFound()
+    {
+        return Result.Failure(error: Error.NotFound(message: "Role was not found."));
+    }
+
     private Task LockRolesAsync(CancellationToken cancellationToken)
     {
         return dbContext.Database.ExecuteSqlRawAsync(
@@ -177,16 +193,6 @@ public sealed class RolesRepository(
 
         role.IsDefault = true;
         await dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private static Result DefaultRoleConflict()
-    {
-        return Result.Failure(error: Error.Conflict(message: "Select another default role first."));
-    }
-
-    private static Result RoleNotFound()
-    {
-        return Result.Failure(error: Error.NotFound(message: "Role was not found."));
     }
 
     private void SyncClaims(

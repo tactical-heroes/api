@@ -8,7 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 public sealed class DefaultRoleEndpointTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "Role requests should switch the default when a custom role is selected")]
+    [Theory(DisplayName = "Role requests should switch the default when custom role is selected")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task SaveRole_Should_SwitchDefault_When_CustomRoleIsSelected(bool create)
@@ -52,7 +52,7 @@ public sealed class DefaultRoleEndpointTests(FunctionalTestFixture fixture) : Fu
         user.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(id);
     }
 
-    [Theory(DisplayName = "Role requests should return conflict when the current default would be removed")]
+    [Theory(DisplayName = "Role requests should return conflict when current default would be removed")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task SaveRole_Should_ReturnConflict_When_CurrentDefaultWouldBeRemoved(bool delete)

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using Npgsql;
+
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
@@ -68,7 +70,7 @@ public sealed class SeedRolesAndClaimsTests(IntegrationTestFixture fixture) : In
         roles.Single(role => role.Name == "Player").IsDefault.ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Default role index should reject a second default when one already exists")]
+    [Fact(DisplayName = "Default role index should reject a second default when default exists")]
     public async Task SaveChangesAsync_Should_RejectSecondDefault_When_DefaultExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -79,6 +81,10 @@ public sealed class SeedRolesAndClaimsTests(IntegrationTestFixture fixture) : In
             .SingleAsync(role => role.Name == "Moderator", cancellationToken);
         moderator.IsDefault = true;
 
-        await Should.ThrowAsync<DbUpdateException>(() => dbContext.SaveChangesAsync(cancellationToken));
+        var exception = await Should.ThrowAsync<DbUpdateException>(
+            () => dbContext.SaveChangesAsync(cancellationToken));
+
+        var postgresException = exception.InnerException.ShouldBeOfType<PostgresException>();
+        postgresException.ConstraintName.ShouldBe("ix_asp_net_roles_is_default");
     }
 }

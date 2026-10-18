@@ -11,16 +11,18 @@ public sealed class Role : AggregateRoot<RoleId>
     private Role(
         RoleId id,
         RoleName name,
-        bool isDefault)
+        RoleDefaultStatus defaultStatus)
         : base(id)
     {
         Name = name;
-        IsDefault = isDefault;
+        DefaultStatus = defaultStatus;
     }
 
     public RoleName Name { get; private set; }
 
-    public bool IsDefault { get; private set; }
+    public RoleDefaultStatus DefaultStatus { get; private set; }
+
+    public bool IsDefault => DefaultStatus.IsDefault;
 
     public IReadOnlyCollection<RoleClaim> Claims => _claims.AsReadOnly();
 
@@ -28,9 +30,12 @@ public sealed class Role : AggregateRoot<RoleId>
         RoleId id,
         RoleName name,
         IEnumerable<RoleClaim> claims,
-        bool isDefault = false)
+        RoleDefaultStatus? defaultStatus = null)
     {
-        var role = new Role(id: id, name: name, isDefault: isDefault);
+        var role = new Role(
+            id: id,
+            name: name,
+            defaultStatus: defaultStatus ?? RoleDefaultStatus.From(isDefault: false));
 
         foreach (var claim in claims)
         {

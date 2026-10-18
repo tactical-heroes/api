@@ -41,7 +41,7 @@ public sealed class CreateRoleHandler(IRolesRepository rolesRepository)
             id: RoleId.New(),
             name: nameResult.Value,
             claims: claims,
-            isDefault: command.IsDefault);
+            defaultStatus: RoleDefaultStatus.From(isDefault: command.IsDefault));
 
         return rolesRepository.AddAsync(
             role: role,

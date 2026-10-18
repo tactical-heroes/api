@@ -99,7 +99,7 @@ public sealed class IdentityWriteDbContext(
             builder.Property(role => role.Name).HasMaxLength(RoleName.MaxLength).IsRequired();
             builder.Property(role => role.NormalizedName).HasMaxLength(RoleName.MaxLength).IsRequired();
 
-            builder.Property(role => role.IsDefault).HasDefaultValue(false);
+            builder.Property(role => role.IsDefault).HasDefaultValue(value: false);
             builder.HasIndex(role => role.IsDefault)
                 .IsUnique()
                 .HasFilter("is_default");

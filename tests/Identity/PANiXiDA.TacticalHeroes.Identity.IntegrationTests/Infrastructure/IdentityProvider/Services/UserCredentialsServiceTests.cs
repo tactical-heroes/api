@@ -62,7 +62,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
     }
 
-    [Fact(DisplayName = "Registration should assign the configured role when the default has a custom name")]
+    [Fact(DisplayName = "Registration should assign the configured role when default has custom name")]
     public async Task RegisterAsync_Should_AssignConfiguredRole_When_DefaultHasCustomName()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

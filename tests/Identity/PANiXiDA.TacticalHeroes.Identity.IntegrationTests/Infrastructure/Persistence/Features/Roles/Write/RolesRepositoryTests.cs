@@ -113,7 +113,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
     }
 
-    [Theory(DisplayName = "Role persistence should switch the default when a different role is selected")]
+    [Theory(DisplayName = "Role persistence should switch the default when different role is selected")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task SaveAsync_Should_SwitchDefault_When_DifferentRoleIsSelected(bool create)
@@ -150,7 +150,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Role persistence should retain the default when a duplicate name rejects the change")]
+    [Theory(DisplayName = "Role persistence should retain the default when duplicate name rejects change")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task SaveAsync_Should_RetainDefault_When_DuplicateNameRejectsChange(bool create)
@@ -181,7 +181,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         defaultName.ShouldBe("Player");
     }
 
-    [Theory(DisplayName = "Role persistence should reject removal when the role is the current default")]
+    [Theory(DisplayName = "Role persistence should reject removal when current default would be removed")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task SaveAsync_Should_ReturnConflict_When_CurrentDefaultWouldBeRemoved(bool delete)
