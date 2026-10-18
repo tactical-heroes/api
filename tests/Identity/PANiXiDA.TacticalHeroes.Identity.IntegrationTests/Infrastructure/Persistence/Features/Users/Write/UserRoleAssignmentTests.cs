@@ -125,6 +125,7 @@ public sealed class UserRoleAssignmentTests(IntegrationTestFixture fixture) : In
             .CurrentValue;
         var originalDisableBulk = options.DisableBulkOperations;
         options.DisableBulkOperations = disableBulk;
+
         try
         {
             var roles = await dbContext.Set<ApplicationRole>().ToDictionaryAsync(
