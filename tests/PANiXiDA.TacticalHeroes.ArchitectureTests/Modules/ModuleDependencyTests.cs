@@ -50,8 +50,6 @@ public sealed class ModuleDependencyTests
         var sourceAssembly = ArchitectureDefinition.s_productionAssemblies
             .Single(assembly => assembly.GetName().Name == sourceAssemblyName);
 
-        // ArchUnitNET 0.13.4 conflates same-named generated members across assemblies.
-        // Assembly references preserve the module boundary without excluding generated code.
         Assert.DoesNotContain(
             sourceAssembly.GetReferencedAssemblies(),
             reference => reference.Name == targetAssemblyName);
