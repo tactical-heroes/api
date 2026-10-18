@@ -56,8 +56,10 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: roleIdResult.Errors);
         }
 
-        var user = User.Register(email: emailResult.Value, userName: userNameResult.Value);
-        user.AssignRole(roleIdResult.Value);
+        var user = User.Register(
+            email: emailResult.Value,
+            userName: userNameResult.Value,
+            roleId: roleIdResult.Value);
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,
