@@ -131,9 +131,9 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
                 .SingleAsync(cancellationToken);
         var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-        (await repository.UpdateAsync(
-            IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken))
-            .IsSuccess.ShouldBeTrue();
+        var cleared = await repository.UpdateAsync(
+            IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken);
+        cleared.IsSuccess.ShouldBeTrue();
 
         if (create)
         {
