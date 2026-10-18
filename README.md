@@ -81,27 +81,12 @@ Frontend adaptation is separate.
 
 ## User Roles
 
-Identity migrations seed `Developer`, `Moderator`, and `Player`. Developer receives all current
-permissions and both sections; Moderator receives Compendium permissions and its section;
-Player has no administrative claims and is the initial default role. Startup does not reseed roles.
-Existing users are not reassigned automatically.
+Identity migrations seed `Developer` (all permissions/sections), `Moderator` (Compendium),
+and `Player` (no administrative claims). Registration assigns the role marked `isDefault`, initially Player.
+Role create/update requests require `isDefault`; clear the previous default before selecting another.
 
-Role names are arbitrary nonempty values up to 128 characters, trimmed and normalized to lowercase.
-Role create/update requests require `isDefault` before `claims`; list/details responses include the flag.
-Selecting a default while another role has the flag returns HTTP 409. To change it, clear the previous
-flag and then select the new role. Editing the current default is allowed; deleting it returns HTTP 409.
-The unique database index also prevents duplicate defaults in concurrent requests.
-Registration selects the role marked `isDefault`, independently of its name.
-
-User create/update requests require `roleIds` (GUID array), just like `claims`;
-get-details returns the selected IDs. Updates replace the complete role selection;
-`[]` means no roles. Omitted/null collections are rejected. Empty GUIDs,
-duplicates, and unknown role IDs are rejected before persistence. Use the existing
-roles list endpoint to populate selection options. Role changes rotate the security
-stamp and revoke the user's tokens. Changes to an assigned role's name or claims,
-and role deletion, also invalidate sessions for its members. Failed user updates preserve
-existing assignments and sessions. Role writes and session invalidation share the command transaction. Apply the Identity default-role and seed-data migrations;
-no configuration changes are required. Rolling back seed data preserves roles and assignments.
+User create/update requests require `roleIds`; updates replace all assignments, and `[]` clears them.
+Role assignment changes, role name/claim changes, and role deletion invalidate affected users' sessions.
 
 ## Request Validation
 
