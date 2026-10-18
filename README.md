@@ -86,9 +86,9 @@ lowercase role-name convention. Seeding preserves existing role IDs and claims;
 new roles have no permission/section claims. Public registration assigns Developer.
 Existing users are not reassigned automatically.
 
-User create/update requests accept optional `roleIds` (GUID array); get-details
-returns the selected IDs. On update, an omitted/null field preserves roles and `[]`
-clears them. On administrative creation, omitted/null means no roles. Empty GUIDs,
+User create/update requests require `roleIds` (GUID array), just like `claims`;
+get-details returns the selected IDs. Updates replace the complete role selection;
+`[]` means no roles. Omitted/null collections are rejected. Empty GUIDs,
 duplicates, and unknown role IDs are rejected before persistence. Use the existing
 roles list endpoint to populate selection options. Role changes rotate the security
 stamp and revoke the user's tokens. No database migration or new configuration is required.

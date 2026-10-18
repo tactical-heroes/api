@@ -22,7 +22,8 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
             "StrongPassword1!",
             isConfirmed,
             [],
-            "Active");
+            "Active",
+            RoleIds: []);
     }
 
     internal async Task<CreateUserResponse> CreateAsync(

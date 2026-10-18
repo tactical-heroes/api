@@ -52,8 +52,7 @@ public sealed class UsersRepository(
 
     public async Task<Result> UpdateAsync(
         User user,
-        CancellationToken cancellationToken,
-        bool replaceRoles = true)
+        CancellationToken cancellationToken)
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
@@ -64,16 +63,13 @@ public sealed class UsersRepository(
             return UserNotFound();
         }
 
-        if (replaceRoles)
+        var rolesResult = await ValidateRolesAsync(user, cancellationToken);
+        if (rolesResult.IsFailure)
         {
-            var rolesResult = await ValidateRolesAsync(user, cancellationToken);
-            if (rolesResult.IsFailure)
-            {
-                return rolesResult;
-            }
+            return rolesResult;
         }
 
-        var rolesChanged = replaceRoles && SyncRoles(applicationUser, user);
+        var rolesChanged = SyncRoles(applicationUser, user);
         ApplicationUserMapper.MapToDbModel(
             user: user,
             dbModel: applicationUser,

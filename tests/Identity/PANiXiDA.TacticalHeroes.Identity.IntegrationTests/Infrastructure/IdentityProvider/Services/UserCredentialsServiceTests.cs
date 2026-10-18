@@ -8,7 +8,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
@@ -48,7 +48,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.Email.ShouldBe("register@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
-        (await userManager.GetRolesAsync(user)).ShouldBe([RoleNames.Developer]);
+        (await userManager.GetRolesAsync(user)).ShouldBe([RoleNames.Developer.Name]);
 
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
         var trackedUser = aggregateTracker.GetAll()
@@ -102,8 +102,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             dbContext.Set<ApplicationRole>().Add(new ApplicationRole
             {
                 Id = Guid.Empty,
-                Name = RoleNames.Developer,
-                NormalizedName = RoleNames.Developer.ToUpperInvariant()
+                Name = RoleNames.Developer.Name,
+                NormalizedName = RoleNames.Developer.Name.ToUpperInvariant()
             });
             await dbContext.SaveChangesAsync(cancellationToken);
         }

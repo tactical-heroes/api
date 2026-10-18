@@ -53,7 +53,6 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
 
         return usersRepository.UpdateAsync(
             user: user,
-            cancellationToken: cancellationToken,
-            replaceRoles: command.RoleIds is not null);
+            cancellationToken: cancellationToken);
     }
 }

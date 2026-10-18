@@ -9,8 +9,7 @@ public interface IUsersRepository
 
     Task<Result> UpdateAsync(
         User user,
-        CancellationToken cancellationToken,
-        bool replaceRoles = true);
+        CancellationToken cancellationToken);
 
     Task<Result> DeleteAsync(
         Guid id,

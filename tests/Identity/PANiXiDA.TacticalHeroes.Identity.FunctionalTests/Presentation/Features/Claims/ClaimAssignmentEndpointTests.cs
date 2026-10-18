@@ -106,7 +106,8 @@ public sealed class ClaimAssignmentEndpointTests(FunctionalTestFixture fixture) 
                     UserName: request.UserName,
                     IsConfirmed: request.IsConfirmed,
                     Claims: claims,
-                    Status: request.Status),
+                    Status: request.Status,
+                    RoleIds: []),
                 cancellationToken);
         }
         var details = await client.GetDetailsAsync(user.Id, cancellationToken);

@@ -35,7 +35,8 @@ public sealed class CreateUserHandlerTests
                 "StrongPassword1!",
                 true,
                 claims,
-                "Active"),
+                "Active",
+                RoleIds: []),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -74,7 +75,8 @@ public sealed class CreateUserHandlerTests
                 "StrongPassword1!",
                 false,
                 [new Claim(claimType, claimValue)],
-                status),
+                status,
+                RoleIds: []),
             cancellationToken);
 
         result.IsFailure.ShouldBeTrue();

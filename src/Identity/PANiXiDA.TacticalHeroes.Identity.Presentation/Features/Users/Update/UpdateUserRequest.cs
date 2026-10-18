@@ -8,4 +8,4 @@ public sealed record UpdateUserRequest(
     bool IsConfirmed,
     IReadOnlyCollection<Claim> Claims,
     string Status,
-    IReadOnlyCollection<Guid>? RoleIds = null);
+    IReadOnlyCollection<Guid> RoleIds);

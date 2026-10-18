@@ -17,7 +17,8 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
             "StrongPassword1!",
             true,
             [new Claim("permission", "compendium.heroes.read")],
-            "Active");
+            "Active",
+            RoleIds: []);
 
         var response = await client.CreateAsync(cancellationToken, request);
         var user = await UserDatabaseTestHelper.FindAsync(

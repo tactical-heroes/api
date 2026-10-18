@@ -4,17 +4,22 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users;
 
 public sealed class UserRoleAssignmentsTests
 {
-    [Theory(DisplayName = "Role assignments should accept empty selections when roles are omitted")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Create_Should_ReturnEmptySelection_When_RolesAreOmitted(bool nullValue)
+    [Fact(DisplayName = "Role assignments should accept empty selections when roles are empty")]
+    public void Create_Should_ReturnEmptySelection_When_RolesAreEmpty()
     {
-        IReadOnlyCollection<Guid>? roles = nullValue ? null : [];
-
-        var result = UserRoleAssignments.Create(roles);
+        var result = UserRoleAssignments.Create([]);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Role assignments should reject a missing selection when roles are null")]
+    public void Create_Should_ReturnValidationError_When_RolesAreNull()
+    {
+        var result = UserRoleAssignments.Create(null!);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "Role IDs are required.")
+            .ShouldHaveField(nameof(User.RoleIds));
     }
 
     [Fact(DisplayName = "Role assignments should preserve identifiers when roles are valid")]

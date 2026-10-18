@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
@@ -27,7 +28,7 @@ public sealed class IdentityRoleSeederTests(IntegrationTestFixture fixture) : In
             .Include(role => role.Claims)
             .AsNoTracking()
             .ToArrayAsync(cancellationToken);
-        roles.Select(role => role.Name).ShouldBe(RoleNames.All, ignoreOrder: true);
+        roles.Select(role => role.Name).ShouldBe(RoleNames.GetAll().Select(role => role.Name), ignoreOrder: true);
         roles.ShouldAllBe(role => role.Id != Guid.Empty && role.CreatedAt != default && role.UpdatedAt != default);
         roles.ShouldAllBe(role => string.Equals(
             role.NormalizedName, role.Name!.ToUpperInvariant(), StringComparison.Ordinal));
@@ -42,14 +43,14 @@ public sealed class IdentityRoleSeederTests(IntegrationTestFixture fixture) : In
         var seeder = scope.ServiceProvider.GetRequiredService<IdentityRoleSeeder>();
         var manager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         await seeder.SeedAsync(cancellationToken);
-        var role = await manager.FindByNameAsync(RoleNames.Developer);
+        var role = await manager.FindByNameAsync(RoleNames.Developer.Name);
         role.ShouldNotBeNull();
         var id = role.Id;
         (await manager.AddClaimAsync(role, new Claim("permission", "identity.users.read"))).Succeeded.ShouldBeTrue();
 
         await seeder.SeedAsync(cancellationToken);
 
-        var existing = await manager.FindByNameAsync(RoleNames.Developer);
+        var existing = await manager.FindByNameAsync(RoleNames.Developer.Name);
         existing.ShouldNotBeNull();
         existing.Id.ShouldBe(id);
         (await manager.GetClaimsAsync(existing)).ShouldHaveSingleItem().Value.ShouldBe("identity.users.read");

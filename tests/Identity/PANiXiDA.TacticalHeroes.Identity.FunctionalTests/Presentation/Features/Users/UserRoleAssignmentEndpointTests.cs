@@ -30,10 +30,9 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
         user.Roles.Select(role => role.RoleId).ShouldBe(selected, ignoreOrder: true);
     }
 
-    [Theory(DisplayName = "User edits should replace clear or preserve roles when role selections vary")]
+    [Theory(DisplayName = "User edits should replace or clear roles when role selections vary")]
     [InlineData("replace")]
     [InlineData("clear")]
-    [InlineData("omit")]
     public async Task PutUser_Should_ApplyRoleSelection_When_RoleSelectionsVary(string mode)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -43,7 +42,7 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
         var client = new UserApiTestClient(Fixture);
         var created = await client.CreateAsync(
             cancellationToken, UserApiTestClient.CreateDefaultRequest() with { RoleIds = [developerId] });
-        IReadOnlyCollection<Guid>? selected = mode == "omit" ? null : mode == "clear" ? [] : [moderatorId];
+        IReadOnlyCollection<Guid> selected = mode == "clear" ? [] : [moderatorId];
         var payload = JsonSerializer.SerializeToNode(
             new UpdateUserRequest(
                 Email: "edited@example.com",
@@ -54,10 +53,6 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
                 RoleIds: selected),
             JsonOptions)!
             .AsObject();
-        if (mode == "omit")
-        {
-            payload.Remove("roleIds");
-        }
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{created.Id}")
         {
             Content = JsonContent.Create(payload, options: JsonOptions)
@@ -68,10 +63,14 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         details.Email.ShouldBe("edited@example.com");
-        details.RoleIds.ShouldBe(mode == "omit" ? [developerId] : selected!, ignoreOrder: true);
+        details.RoleIds.ShouldBe(selected, ignoreOrder: true);
     }
 
     [Theory(DisplayName = "User requests should reject invalid role selections when role selection is invalid")]
+    [InlineData(false, "omitted")]
+    [InlineData(true, "omitted")]
+    [InlineData(false, "null")]
+    [InlineData(true, "null")]
     [InlineData(false, "missing")]
     [InlineData(true, "missing")]
     [InlineData(false, "empty")]
@@ -92,6 +91,14 @@ public sealed class UserRoleAssignmentEndpointTests(FunctionalTestFixture fixtur
         var payload = JsonSerializer.SerializeToNode(
             UserApiTestClient.CreateDefaultRequest() with { RoleIds = roleIds }, JsonOptions)!
             .AsObject();
+        if (invalid == "omitted")
+        {
+            payload.Remove("roleIds");
+        }
+        else if (invalid == "null")
+        {
+            payload["roleIds"] = null;
+        }
         var path = "/api/v1/users";
         Guid? existingId = null;
         if (update)

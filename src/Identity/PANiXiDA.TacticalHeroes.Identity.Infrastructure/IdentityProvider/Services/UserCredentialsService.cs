@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
@@ -42,7 +43,7 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var developerRole = await roleManager.FindByNameAsync(RoleNames.Developer);
+        var developerRole = await roleManager.FindByNameAsync(RoleNames.Developer.Name);
         if (developerRole is null)
         {
             return Result.Failure<Guid>(error: Error.NotFound(message: "Developer role was not found."));

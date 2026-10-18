@@ -20,7 +20,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
                 "updated-hero",
                 false,
                 [new Claim("permission", "compendium.heroes.update")],
-                "Blocked"),
+                "Blocked",
+                RoleIds: []),
             cancellationToken);
         var user = await UserDatabaseTestHelper.FindAsync(
             Fixture,

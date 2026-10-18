@@ -18,7 +18,8 @@ public sealed class CreateUserCommandValidatorTests
                 "StrongPassword1!",
                 true,
                 [new Claim("permission", "compendium.heroes.read")],
-                "Active"));
+                "Active",
+                RoleIds: []));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -29,7 +30,14 @@ public sealed class CreateUserCommandValidatorTests
         var validator = new CreateUserCommandValidator();
 
         var result = validator.Validate(
-            new CreateUserCommand("invalid", "", "", false, [new Claim("", "")], "Deleted"));
+            new CreateUserCommand(
+                "invalid",
+                "",
+                "",
+                false,
+                [new Claim("", "")],
+                "Deleted",
+                []));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateUserCommand.Email));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateUserCommand.UserName));

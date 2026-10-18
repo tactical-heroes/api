@@ -18,7 +18,8 @@ public sealed class UpdateUserCommandValidatorTests
                 "hero",
                 true,
                 [new Claim("permission", "compendium.heroes.update")],
-                "Blocked"));
+                "Blocked",
+                RoleIds: []));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -35,7 +36,8 @@ public sealed class UpdateUserCommandValidatorTests
                 "",
                 false,
                 [new Claim("", "")],
-                "Deleted"));
+                "Deleted",
+                RoleIds: []));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Id));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Email));

@@ -5,6 +5,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
@@ -19,7 +20,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class UserRoleAssignmentTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
     [Theory(DisplayName = "User updates should synchronize roles and sessions when role assignments vary")]
-    [InlineData("omit")]
     [InlineData("same")]
     [InlineData("replace")]
     [InlineData("add")]
@@ -35,15 +35,15 @@ public sealed class UserRoleAssignmentTests(IntegrationTestFixture fixture) : In
             role => role.Name!, role => role.Id, cancellationToken);
         var userId = Guid.CreateVersion7();
         var created = await repository.AddAsync(
-            CreateUser(userId, [roles[RoleNames.Developer]]), "StrongPassword1!", cancellationToken);
+            CreateUser(userId, [roles[RoleNames.Developer.Name]]), "StrongPassword1!", cancellationToken);
         created.IsSuccess.ShouldBeTrue();
         var originalStamp = (await dbContext.Set<ApplicationUser>()
             .SingleAsync(user => user.Id == userId, cancellationToken)).SecurityStamp;
         var targetRoles = mode switch
         {
-            "same" => new[] { roles[RoleNames.Developer] },
-            "replace" => [roles[RoleNames.Moderator]],
-            "add" => [roles[RoleNames.Developer], roles[RoleNames.Player]],
+            "same" => new[] { roles[RoleNames.Developer.Name] },
+            "replace" => [roles[RoleNames.Moderator.Name]],
+            "add" => [roles[RoleNames.Developer.Name], roles[RoleNames.Player.Name]],
             _ => []
         };
         var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
@@ -62,16 +62,14 @@ public sealed class UserRoleAssignmentTests(IntegrationTestFixture fixture) : In
 
         var result = await repository.UpdateAsync(
             user: CreateUser(userId, targetRoles),
-            cancellationToken: cancellationToken,
-            replaceRoles: mode != "omit");
+            cancellationToken: cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         var user = await dbContext.Set<ApplicationUser>()
             .Include(item => item.Roles)
             .AsNoTracking()
             .SingleAsync(item => item.Id == userId, cancellationToken);
-        var expectedRoles = mode == "omit" ? [roles[RoleNames.Developer]] : targetRoles;
-        user.Roles.Select(role => role.RoleId).ShouldBe(expectedRoles, ignoreOrder: true);
+        user.Roles.Select(role => role.RoleId).ShouldBe(targetRoles, ignoreOrder: true);
         var changed = mode is "replace" or "add" or "clear";
         (user.SecurityStamp != originalStamp).ShouldBe(changed);
         var tokens = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()

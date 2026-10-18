@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
@@ -9,8 +9,9 @@ internal sealed class IdentityRoleSeeder(RoleManager<ApplicationRole> roleManage
 {
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
-        foreach (var name in RoleNames.All)
+        foreach (var role in RoleNames.GetAll())
         {
+            var name = role.Name;
             cancellationToken.ThrowIfCancellationRequested();
             if (await roleManager.FindByNameAsync(name) is not null)
             {
