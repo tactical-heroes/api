@@ -125,8 +125,10 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var previous = await dbContext.Set<ApplicationRole>().SingleAsync(role => role.IsDefault, cancellationToken);
         var targetId = create
             ? Guid.CreateVersion7()
-            : await dbContext.Set<ApplicationRole>().Where(role => role.Name == "Moderator")
-                .Select(role => role.Id).SingleAsync(cancellationToken);
+            : await dbContext.Set<ApplicationRole>()
+                .Where(role => role.Name == "Moderator")
+                .Select(role => role.Id)
+                .SingleAsync(cancellationToken);
         var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
@@ -139,8 +141,10 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             (await repository.UpdateAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
         }
 
-        var defaults = await dbContext.Set<ApplicationRole>().AsNoTracking()
-            .Where(item => item.IsDefault).ToArrayAsync(cancellationToken);
+        var defaults = await dbContext.Set<ApplicationRole>()
+            .AsNoTracking()
+            .Where(item => item.IsDefault)
+            .ToArrayAsync(cancellationToken);
         defaults.ShouldHaveSingleItem().Id.ShouldBe(targetId);
         previous.IsDefault.ShouldBeFalse();
         (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
@@ -157,8 +161,10 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         var targetId = create
             ? Guid.CreateVersion7()
-            : await dbContext.Set<ApplicationRole>().Where(role => role.Name == "Moderator")
-                .Select(role => role.Id).SingleAsync(cancellationToken);
+            : await dbContext.Set<ApplicationRole>()
+                .Where(role => role.Name == "Moderator")
+                .Select(role => role.Id)
+                .SingleAsync(cancellationToken);
         var role = IntegrationTestData.CreateRole(targetId, "Developer", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
@@ -167,8 +173,11 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             : (await repository.UpdateAsync(role, cancellationToken)).IsFailure;
 
         result.ShouldBeTrue();
-        var defaultName = await dbContext.Set<ApplicationRole>().AsNoTracking().Where(item => item.IsDefault)
-            .Select(item => item.Name).SingleAsync(cancellationToken);
+        var defaultName = await dbContext.Set<ApplicationRole>()
+            .AsNoTracking()
+            .Where(item => item.IsDefault)
+            .Select(item => item.Name)
+            .SingleAsync(cancellationToken);
         defaultName.ShouldBe("Player");
     }
 

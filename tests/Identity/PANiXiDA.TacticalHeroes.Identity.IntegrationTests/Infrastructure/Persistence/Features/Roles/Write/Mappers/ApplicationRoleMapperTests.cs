@@ -39,8 +39,8 @@ public sealed class ApplicationRoleMapperTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.Name.Value.ShouldBe("Developer");
         result.Value.IsDefault.ShouldBe(isDefault);
-        ApplicationRoleMapper.ToDbModel(result.Value, DateTime.UtcNow, DateTime.UtcNow)
-            .IsDefault.ShouldBe(isDefault);
+        var mapped = ApplicationRoleMapper.ToDbModel(result.Value, DateTime.UtcNow, DateTime.UtcNow);
+        mapped.IsDefault.ShouldBe(isDefault);
         var claim = result.Value.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");

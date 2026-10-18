@@ -21,7 +21,8 @@ public sealed class DefaultRoleEndpointTests(FunctionalTestFixture fixture) : Fu
         Guid id;
         if (create)
         {
-            id = (await client.CreateAsync(cancellationToken,
+            id = (await client.CreateAsync(
+                cancellationToken,
                 new CreateRoleRequest("CustomDefault", [], IsDefault: true))).Id;
         }
         else
@@ -39,7 +40,8 @@ public sealed class DefaultRoleEndpointTests(FunctionalTestFixture fixture) : Fu
         details.Name.ShouldBe("RenamedDefault");
         details.IsDefault.ShouldBeTrue();
         (await client.GetDetailsAsync(previous.Id, cancellationToken)).IsDefault.ShouldBeFalse();
-        using var response = await Client.PostAsJsonAsync("/api/v1/auth/register",
+        using var response = await Client.PostAsJsonAsync(
+            "/api/v1/auth/register",
             new RegisterUserRequest("default@example.com", "new-user", "StrongPassword1!"),
             JsonOptions, cancellationToken);
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
@@ -59,11 +61,13 @@ public sealed class DefaultRoleEndpointTests(FunctionalTestFixture fixture) : Fu
         var client = new RoleApiTestClient(Fixture);
         var roles = await client.GetListAsync(cancellationToken);
         var current = roles.Items.Single(role => role.IsDefault);
-        using var request = new HttpRequestMessage(delete ? HttpMethod.Delete : HttpMethod.Put,
+        using var request = new HttpRequestMessage(
+            delete ? HttpMethod.Delete : HttpMethod.Put,
             $"/api/v1/roles/{current.Id}");
         if (!delete)
         {
-            request.Content = JsonContent.Create(new UpdateRoleRequest("Player", [], IsDefault: false),
+            request.Content = JsonContent.Create(
+                new UpdateRoleRequest("Player", [], IsDefault: false),
                 options: JsonOptions);
         }
 
