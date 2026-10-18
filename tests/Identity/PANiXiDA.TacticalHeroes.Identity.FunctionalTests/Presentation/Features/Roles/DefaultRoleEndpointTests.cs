@@ -43,7 +43,8 @@ public sealed class DefaultRoleEndpointTests(FunctionalTestFixture fixture) : Fu
         using var response = await Client.PostAsJsonAsync(
             "/api/v1/auth/register",
             new RegisterUserRequest("default@example.com", "new-user", "StrongPassword1!"),
-            JsonOptions, cancellationToken);
+            JsonOptions,
+            cancellationToken);
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         var registered = await response.Content.ReadFromJsonAsync<RegisterUserResponse>(JsonOptions, cancellationToken);
         registered.ShouldNotBeNull();
