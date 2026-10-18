@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Enumerations;
-
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
 using RoleNameValue = PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects.RoleName;
