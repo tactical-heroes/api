@@ -1,11 +1,16 @@
 using System.Security.Claims;
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using OpenIddict.Abstractions;
+using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Roles;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Write;
@@ -113,37 +118,24 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
     }
 
-    [Theory(DisplayName = "Role persistence should assign the default when previous flag is cleared")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SaveAsync_Should_AssignDefault_When_PreviousFlagIsCleared(bool create)
+    [Fact(DisplayName = "AddAsync should assign the default when previous flag is cleared")]
+    public async Task AddAsync_Should_AssignDefault_When_PreviousFlagIsCleared()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await Fixture.SeedRolesAsync(cancellationToken);
         await using var scope = Fixture.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         var previous = await dbContext.Set<ApplicationRole>().SingleAsync(role => role.IsDefault, cancellationToken);
-        var targetId = create
-            ? Guid.CreateVersion7()
-            : await dbContext.Set<ApplicationRole>()
-                .Where(role => role.Name == "Moderator")
-                .Select(role => role.Id)
-                .SingleAsync(cancellationToken);
+        var targetId = Guid.CreateVersion7();
         var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var cleared = await repository.UpdateAsync(
             IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken);
         cleared.IsSuccess.ShouldBeTrue();
 
-        if (create)
-        {
-            (await repository.AddAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
-        }
-        else
-        {
-            (await repository.UpdateAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
-        }
+        var result = await repository.AddAsync(role, cancellationToken);
 
+        result.IsSuccess.ShouldBeTrue();
         var defaults = await dbContext.Set<ApplicationRole>()
             .AsNoTracking()
             .Where(item => item.IsDefault)
@@ -153,29 +145,75 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Role persistence should retain the default when duplicate name rejects change")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SaveAsync_Should_RetainDefault_When_DuplicateNameRejectsChange(bool create)
+    [Fact(DisplayName = "UpdateAsync should assign the default when previous flag is cleared")]
+    public async Task UpdateAsync_Should_AssignDefault_When_PreviousFlagIsCleared()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await Fixture.SeedRolesAsync(cancellationToken);
         await using var scope = Fixture.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-        var targetId = create
-            ? Guid.CreateVersion7()
-            : await dbContext.Set<ApplicationRole>()
-                .Where(role => role.Name == "Moderator")
-                .Select(role => role.Id)
-                .SingleAsync(cancellationToken);
+        var previous = await dbContext.Set<ApplicationRole>().SingleAsync(role => role.IsDefault, cancellationToken);
+        var targetId = await dbContext.Set<ApplicationRole>()
+            .Where(role => role.Name == "Moderator")
+            .Select(role => role.Id)
+            .SingleAsync(cancellationToken);
+        var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var cleared = await repository.UpdateAsync(
+            IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken);
+        cleared.IsSuccess.ShouldBeTrue();
+
+        var result = await repository.UpdateAsync(role, cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var defaults = await dbContext.Set<ApplicationRole>()
+            .AsNoTracking()
+            .Where(item => item.IsDefault)
+            .ToArrayAsync(cancellationToken);
+        defaults.ShouldHaveSingleItem().Id.ShouldBe(targetId);
+        previous.IsDefault.ShouldBeFalse();
+        (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "AddAsync should retain the default when duplicate name rejects change")]
+    public async Task AddAsync_Should_RetainDefault_When_DuplicateNameRejectsChange()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var targetId = Guid.CreateVersion7();
         var role = IntegrationTestData.CreateRole(targetId, "Developer", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
-        var result = create
-            ? (await repository.AddAsync(role, cancellationToken)).IsFailure
-            : (await repository.UpdateAsync(role, cancellationToken)).IsFailure;
+        var result = await repository.AddAsync(role, cancellationToken);
 
-        result.ShouldBeTrue();
+        result.IsFailure.ShouldBeTrue();
+        var defaultName = await dbContext.Set<ApplicationRole>()
+            .AsNoTracking()
+            .Where(item => item.IsDefault)
+            .Select(item => item.Name)
+            .SingleAsync(cancellationToken);
+        defaultName.ShouldBe("Player");
+    }
+
+    [Fact(DisplayName = "UpdateAsync should retain the default when duplicate name rejects change")]
+    public async Task UpdateAsync_Should_RetainDefault_When_DuplicateNameRejectsChange()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var targetId = await dbContext.Set<ApplicationRole>()
+            .Where(role => role.Name == "Moderator")
+            .Select(role => role.Id)
+            .SingleAsync(cancellationToken);
+        var role = IntegrationTestData.CreateRole(targetId, "Developer", [], isDefault: true);
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+
+        var result = await repository.UpdateAsync(role, cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
         var defaultName = await dbContext.Set<ApplicationRole>()
             .AsNoTracking()
             .Where(item => item.IsDefault)
@@ -255,6 +293,151 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+    }
+
+    [Theory(DisplayName = "UpdateAsync should invalidate affected sessions when role changes vary")]
+    [InlineData("claims")]
+    [InlineData("name")]
+    [InlineData("unchanged")]
+    [InlineData("default")]
+    public async Task UpdateAsync_Should_InvalidateAffectedSessions_When_RoleChangesVary(string change)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var roleId = Guid.CreateVersion7();
+        var role = IntegrationTestData.CreateRole(roleId, "original", [("permission", "compendium.heroes.read")]);
+        (await repository.AddAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
+        var stamps = new Dictionary<Guid, string?>();
+        var affected = new HashSet<Guid>();
+        for (var index = 0; index < 3; index++)
+        {
+            var user = new ApplicationUser
+            {
+                Id = Guid.CreateVersion7(),
+                Email = $"user{index}@example.com",
+                UserName = $"user{index}",
+                EmailConfirmed = true,
+                Roles = index < 2 ? [new ApplicationUserRole { RoleId = roleId }] : []
+            };
+            (await userManager.CreateAsync(user, "StrongPassword1!")).Succeeded.ShouldBeTrue();
+            stamps.Add(user.Id, user.SecurityStamp);
+            if (index < 2)
+            {
+                affected.Add(user.Id);
+            }
+            foreach (var type in new[]
+            {
+                OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
+            })
+            {
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = user.Id.ToString(),
+                        Status = OpenIddictConstants.Statuses.Valid,
+                        Type = type
+                    },
+                    cancellationToken);
+            }
+        }
+        var target = IntegrationTestData.CreateRole(
+            id: roleId,
+            name: change == "name" ? "renamed" : "original",
+            claims: [("permission", change == "claims" ? "compendium.heroes.update" : "compendium.heroes.read")],
+            isDefault: change == "default");
+
+        var result = await repository.UpdateAsync(target, cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var users = await dbContext.Set<ApplicationUser>()
+            .AsNoTracking()
+            .ToArrayAsync(cancellationToken);
+        var tokens = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .ToArrayAsync(cancellationToken);
+        tokens.Length.ShouldBe(6);
+        var authorizationChanged = change is "claims" or "name";
+        foreach (var user in users)
+        {
+            var revoked = authorizationChanged && affected.Contains(user.Id);
+            (user.SecurityStamp != stamps[user.Id]).ShouldBe(revoked);
+            tokens.Where(token => token.Subject == user.Id.ToString()).ShouldAllBe(token => token.Status == (revoked
+                ? OpenIddictConstants.Statuses.Revoked
+                : OpenIddictConstants.Statuses.Valid));
+        }
+    }
+
+    [Fact(DisplayName = "DeleteAsync should invalidate affected sessions when role has members")]
+    public async Task DeleteAsync_Should_InvalidateAffectedSessions_When_RoleHasMembers()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var roleId = Guid.CreateVersion7();
+        var role = IntegrationTestData.CreateRole(roleId, "original", [("permission", "compendium.heroes.read")]);
+        (await repository.AddAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
+        var stamps = new Dictionary<Guid, string?>();
+        var affected = new HashSet<Guid>();
+        for (var index = 0; index < 3; index++)
+        {
+            var user = new ApplicationUser
+            {
+                Id = Guid.CreateVersion7(),
+                Email = $"user{index}@example.com",
+                UserName = $"user{index}",
+                EmailConfirmed = true,
+                Roles = index < 2 ? [new ApplicationUserRole { RoleId = roleId }] : []
+            };
+            (await userManager.CreateAsync(user, "StrongPassword1!")).Succeeded.ShouldBeTrue();
+            stamps.Add(user.Id, user.SecurityStamp);
+            if (index < 2)
+            {
+                affected.Add(user.Id);
+            }
+            foreach (var type in new[]
+            {
+                OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
+            })
+            {
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = user.Id.ToString(),
+                        Status = OpenIddictConstants.Statuses.Valid,
+                        Type = type
+                    },
+                    cancellationToken);
+            }
+        }
+
+        var result = await repository.DeleteAsync(roleId, cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var users = await dbContext.Set<ApplicationUser>()
+            .AsNoTracking()
+            .ToArrayAsync(cancellationToken);
+        var tokens = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .ToArrayAsync(cancellationToken);
+        tokens.Length.ShouldBe(6);
+        foreach (var user in users)
+        {
+            var revoked = affected.Contains(user.Id);
+            (user.SecurityStamp != stamps[user.Id]).ShouldBe(revoked);
+            tokens.Where(token => token.Subject == user.Id.ToString()).ShouldAllBe(token => token.Status == (revoked
+                ? OpenIddictConstants.Statuses.Revoked
+                : OpenIddictConstants.Statuses.Valid));
+        }
+        (await dbContext.Set<ApplicationUserRole>().AnyAsync(cancellationToken)).ShouldBeFalse();
     }
 
     private async Task<Guid> AddRoleAsync(

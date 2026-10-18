@@ -5,6 +5,8 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
+
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Create;
 
 public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
@@ -114,5 +116,44 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
         details.Name.ShouldBe("Player");
+    }
+
+    [Theory(DisplayName = "POST roles should reject unknown managed claims when managed claim is unknown")]
+    [InlineData("permission")]
+    [InlineData("section")]
+    public async Task PostRoles_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/roles")
+        {
+            Content = JsonContent.Create(
+                new CreateRoleRequest("Moderator", false, [new Claim(type, "unknown")]),
+                options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
+        using var problem = JsonDocument.Parse(body);
+        problem.RootElement.GetProperty("errors")
+            .GetProperty("claims[0].Value")
+            .EnumerateArray()
+            .Select(error => error.GetString())
+            .ShouldBe(["Claim value is not present in its catalog."]);
+    }
+
+    [Fact(DisplayName = "POST roles should persist a section without permissions when section is known")]
+    public async Task PostRoles_Should_PersistSectionOnly_When_SectionIsKnown()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new RoleApiTestClient(Fixture);
+        Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
+
+        var role = await client.RecreateAsync(
+            cancellationToken, new CreateRoleRequest("Moderator", false, claims));
+        var details = await client.GetDetailsAsync(role.Id, cancellationToken);
+
+        details.Claims.ShouldBe(claims);
     }
 }

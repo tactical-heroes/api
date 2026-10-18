@@ -12,6 +12,8 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
+
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Update;
 
 public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
@@ -205,5 +207,48 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         persistedUser.ShouldNotBeNull();
         persistedUser.SecurityStamp.ShouldBe(originalUser.SecurityStamp);
         persistedUser.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(role.Id);
+    }
+
+    [Theory(DisplayName = "PUT role should reject unknown managed claims when managed claim is unknown")]
+    [InlineData("permission")]
+    [InlineData("section")]
+    public async Task PutRole_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new RoleApiTestClient(Fixture);
+        var existing = await client.RecreateAsync(cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/roles/{existing.Id}")
+        {
+            Content = JsonContent.Create(
+                new UpdateRoleRequest("Moderator", false, [new Claim(type, "unknown")]),
+                options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
+        using var problem = JsonDocument.Parse(body);
+        problem.RootElement.GetProperty("errors")
+            .GetProperty("claims[0].Value")
+            .EnumerateArray()
+            .Select(error => error.GetString())
+            .ShouldBe(["Claim value is not present in its catalog."]);
+        var details = await client.GetDetailsAsync(existing.Id, cancellationToken);
+        details.Claims.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "PUT role should persist a section without permissions when section is known")]
+    public async Task PutRole_Should_PersistSectionOnly_When_SectionIsKnown()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new RoleApiTestClient(Fixture);
+        Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
+        var role = await client.RecreateAsync(cancellationToken);
+
+        await client.UpdateAsync(role.Id, new UpdateRoleRequest("Moderator", false, claims), cancellationToken);
+        var details = await client.GetDetailsAsync(role.Id, cancellationToken);
+
+        details.Claims.ShouldBe(claims);
     }
 }

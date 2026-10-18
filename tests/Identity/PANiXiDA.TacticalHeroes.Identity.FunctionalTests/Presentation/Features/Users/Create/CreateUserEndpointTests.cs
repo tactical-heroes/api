@@ -5,6 +5,8 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Rol
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
+
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Create;
 
 public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
@@ -97,5 +99,100 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
+    }
+
+    [Theory(DisplayName = "POST users should reject unknown managed claims when managed claim is unknown")]
+    [InlineData("permission")]
+    [InlineData("section")]
+    public async Task PostUsers_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/users")
+        {
+            Content = JsonContent.Create(
+                UserApiTestClient.CreateDefaultRequest() with { Claims = [new Claim(type, "unknown")] },
+                options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
+        using var problem = JsonDocument.Parse(body);
+        problem.RootElement.GetProperty("errors")
+            .GetProperty("claims[0].Value")
+            .EnumerateArray()
+            .Select(error => error.GetString())
+            .ShouldBe(["Claim value is not present in its catalog."]);
+    }
+
+    [Fact(DisplayName = "POST users should persist a section without permissions when section is known")]
+    public async Task PostUsers_Should_PersistSectionOnly_When_SectionIsKnown()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UserApiTestClient(Fixture);
+        Claim[] claims = [new(ApplicationClaimTypes.Section, "compendium")];
+        var request = UserApiTestClient.CreateDefaultRequest() with { Claims = claims };
+
+        var user = await client.CreateAsync(cancellationToken, request);
+        var details = await client.GetDetailsAsync(user.Id, cancellationToken);
+
+        details.Claims.ShouldBe(claims);
+    }
+
+    [Theory(DisplayName = "POST users should return domain validation errors when status is invalid")]
+    [InlineData("", "User status is required.")]
+    [InlineData("   ", "User status is required.")]
+    [InlineData("Deleted", "User status 'Deleted' is invalid.")]
+    public async Task PostUsers_Should_ReturnValidationProblem_When_StatusIsInvalid(
+        string status,
+        string expectedMessage)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var payload = JsonSerializer.SerializeToNode(
+            UserApiTestClient.CreateDefaultRequest() with { Status = status }, JsonOptions)!
+            .AsObject();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/users")
+        {
+            Content = JsonContent.Create(payload, options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
+        using var problem = JsonDocument.Parse(responseBody);
+        var errors = problem.RootElement.GetProperty("errors")
+            .GetProperty("status")
+            .EnumerateArray()
+            .Select(error => error.GetString())
+            .ToArray();
+        errors.ShouldBe([expectedMessage]);
+    }
+
+    [Theory(DisplayName = "POST users should return bad request when status is missing or null")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PostUsers_Should_ReturnBadRequest_When_StatusIsMissingOrNull(bool omitStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var payload = JsonSerializer.SerializeToNode(UserApiTestClient.CreateDefaultRequest(), JsonOptions)!.AsObject();
+        if (omitStatus)
+        {
+            payload.Remove("status");
+        }
+        else
+        {
+            payload["status"] = null;
+        }
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/users")
+        {
+            Content = JsonContent.Create(payload, options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
     }
 }

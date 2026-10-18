@@ -5,6 +5,8 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Rol
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
+
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Update;
 
 public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
@@ -126,5 +128,126 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         var details = await client.GetDetailsAsync(user.Id, cancellationToken);
         details.Email.ShouldBe("hero@example.com");
         details.RoleIds.ShouldBe([developerId]);
+    }
+
+    [Theory(DisplayName = "PUT user should reject unknown managed claims when managed claim is unknown")]
+    [InlineData("permission")]
+    [InlineData("section")]
+    public async Task PutUser_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UserApiTestClient(Fixture);
+        var existing = await client.CreateAsync(cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{existing.Id}")
+        {
+            Content = JsonContent.Create(
+                new UpdateUserRequest(
+                    Email: "hero@example.com",
+                    UserName: "hero",
+                    IsConfirmed: true,
+                    Claims: [new Claim(type, "unknown")],
+                    Status: "Active",
+                    RoleIds: []),
+                options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, body);
+        using var problem = JsonDocument.Parse(body);
+        problem.RootElement.GetProperty("errors")
+            .GetProperty("claims[0].Value")
+            .EnumerateArray()
+            .Select(error => error.GetString())
+            .ShouldBe(["Claim value is not present in its catalog."]);
+        var details = await client.GetDetailsAsync(existing.Id, cancellationToken);
+        details.Claims.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "PUT user should persist a section without permissions when section is known")]
+    public async Task PutUser_Should_PersistSectionOnly_When_SectionIsKnown()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UserApiTestClient(Fixture);
+        Claim[] claims = [new(ApplicationClaimTypes.Section, "compendium")];
+        var request = UserApiTestClient.CreateDefaultRequest();
+        var user = await client.CreateAsync(cancellationToken, request);
+
+        await client.UpdateAsync(
+            user.Id,
+            new UpdateUserRequest(
+                Email: request.Email,
+                UserName: request.UserName,
+                IsConfirmed: request.IsConfirmed,
+                Claims: claims,
+                Status: request.Status,
+                RoleIds: []),
+            cancellationToken);
+        var details = await client.GetDetailsAsync(user.Id, cancellationToken);
+
+        details.Claims.ShouldBe(claims);
+    }
+
+    [Theory(DisplayName = "PUT user should return domain validation errors when status is invalid")]
+    [InlineData("", "User status is required.")]
+    [InlineData("   ", "User status is required.")]
+    [InlineData("Deleted", "User status 'Deleted' is invalid.")]
+    public async Task PutUser_Should_ReturnValidationProblem_When_StatusIsInvalid(
+        string status,
+        string expectedMessage)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UserApiTestClient(Fixture);
+        var user = await client.CreateAsync(cancellationToken);
+        var payload = JsonSerializer.SerializeToNode(
+            UserApiTestClient.CreateDefaultRequest() with { Status = status }, JsonOptions)!
+            .AsObject();
+        payload.Remove("password");
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.Id}")
+        {
+            Content = JsonContent.Create(payload, options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
+        using var problem = JsonDocument.Parse(responseBody);
+        var errors = problem.RootElement.GetProperty("errors")
+            .GetProperty("status")
+            .EnumerateArray()
+            .Select(error => error.GetString())
+            .ToArray();
+        errors.ShouldBe([expectedMessage]);
+    }
+
+    [Theory(DisplayName = "PUT user should return bad request when status is missing or null")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PutUser_Should_ReturnBadRequest_When_StatusIsMissingOrNull(bool omitStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var client = new UserApiTestClient(Fixture);
+        var user = await client.CreateAsync(cancellationToken);
+        var payload = JsonSerializer.SerializeToNode(UserApiTestClient.CreateDefaultRequest(), JsonOptions)!.AsObject();
+        if (omitStatus)
+        {
+            payload.Remove("status");
+        }
+        else
+        {
+            payload["status"] = null;
+        }
+        payload.Remove("password");
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.Id}")
+        {
+            Content = JsonContent.Create(payload, options: JsonOptions)
+        };
+
+        using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
     }
 }
