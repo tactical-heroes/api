@@ -29,7 +29,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .SingleAsync(item => item.Id == roleId, cancellationToken);
 
-        role.Name.ShouldBe("Developer");
+        role.Name.ShouldBe("developer");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.read");
     }
 
@@ -64,7 +64,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .SingleAsync(item => item.Id == roleId, cancellationToken);
 
-        role.Name.ShouldBe("Moderator");
+        role.Name.ShouldBe("moderator");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
     }
 

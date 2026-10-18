@@ -4,13 +4,13 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles.ValueObjects;
 
 public sealed class RoleNameTests
 {
-    [Fact(DisplayName = "Role name should trim a valid value when role name is valid")]
-    public void Create_Should_TrimValue_When_RoleNameIsValid()
+    [Fact(DisplayName = "Role name should normalize a valid value when role name is valid")]
+    public void Create_Should_NormalizeValue_When_RoleNameIsValid()
     {
         var result = RoleName.Create("  CustomManager  ");
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBe("CustomManager");
+        result.Value.Value.ShouldBe("custommanager");
     }
 
     [Theory(DisplayName = "Role name should reject an empty value when role name is empty")]
@@ -21,7 +21,7 @@ public sealed class RoleNameTests
     {
         var result = RoleName.Create(value!);
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "Role name is required.")
+        result.ShouldHaveSingleError(ErrorType.Validation, "Role name cannot be empty.")
             .ShouldHaveField(nameof(RoleName));
     }
 
@@ -43,6 +43,6 @@ public sealed class RoleNameTests
 
         var result = roleName.ToString();
 
-        result.ShouldBe("RoleName { Value = CustomManager }");
+        result.ShouldBe("RoleName { Value = custommanager }");
     }
 }

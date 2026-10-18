@@ -38,7 +38,7 @@ public sealed class DefaultRoleEndpointTests(FunctionalTestFixture fixture) : Fu
         var roles = await client.GetListAsync(cancellationToken);
         roles.Items.Single(role => role.IsDefault).Id.ShouldBe(id);
         var details = await client.GetDetailsAsync(id, cancellationToken);
-        details.Name.ShouldBe("RenamedDefault");
+        details.Name.ShouldBe("renameddefault");
         details.IsDefault.ShouldBeTrue();
         (await client.GetDetailsAsync(previous.Id, cancellationToken)).IsDefault.ShouldBeFalse();
         using var response = await Client.PostAsJsonAsync(

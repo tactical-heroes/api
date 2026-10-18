@@ -24,7 +24,7 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         role.ShouldNotBeNull();
-        role.Name.ShouldBe("Moderator");
+        role.Name.ShouldBe("moderator");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.update");
     }
 }

@@ -26,7 +26,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         role.ShouldNotBeNull();
-        role.Name.ShouldBe("CustomManager");
+        role.Name.ShouldBe("custommanager");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.update");
     }
 }

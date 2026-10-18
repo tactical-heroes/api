@@ -37,7 +37,7 @@ public sealed class ApplicationRoleMapperTests
         var result = ApplicationRoleMapper.ToDomain(dbModel);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Name.Value.ShouldBe("Developer");
+        result.Value.Name.Value.ShouldBe("developer");
         result.Value.IsDefault.ShouldBe(isDefault);
         var mapped = ApplicationRoleMapper.ToDbModel(result.Value, DateTime.UtcNow, DateTime.UtcNow);
         mapped.IsDefault.ShouldBe(isDefault);

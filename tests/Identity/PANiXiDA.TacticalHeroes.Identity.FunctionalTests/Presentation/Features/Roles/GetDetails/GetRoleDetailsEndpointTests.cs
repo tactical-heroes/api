@@ -13,6 +13,6 @@ public sealed class GetRoleDetailsEndpointTests(FunctionalTestFixture fixture)
         var response = await client.GetDetailsAsync(createdRole.Id, cancellationToken);
 
         response.Id.ShouldBe(createdRole.Id);
-        response.Name.ShouldBe("Moderator");
+        response.Name.ShouldBe("moderator");
     }
 }
