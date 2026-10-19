@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
@@ -6,7 +7,9 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
 
-public sealed class CreateRoleHandler(IRolesRepository rolesRepository)
+public sealed class CreateRoleHandler(
+    IRolesRepository rolesRepository,
+    IRolesReadRepository rolesReadRepository)
     : ICommandHandler<CreateRoleCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> HandleAsync(
@@ -40,13 +43,9 @@ public sealed class CreateRoleHandler(IRolesRepository rolesRepository)
 
         if (command.IsDefault)
         {
-            var defaultRoleResult = await rolesRepository.GetDefaultAsync(cancellationToken);
-            if (defaultRoleResult.IsFailure)
-            {
-                return Result.Failure<Guid>(errors: defaultRoleResult.Errors);
-            }
+            var defaultRoleId = await rolesReadRepository.GetDefaultIdAsync(cancellationToken);
 
-            if (defaultRoleResult.Value is not null)
+            if (defaultRoleId is not null)
             {
                 return Result.Failure<Guid>(
                     error: Error.Conflict(message: "Default role already exists."));

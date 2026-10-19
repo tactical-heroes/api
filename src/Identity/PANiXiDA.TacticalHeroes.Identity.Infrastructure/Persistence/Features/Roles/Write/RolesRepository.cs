@@ -17,23 +17,6 @@ public sealed class RolesRepository(
     TimeProvider timeProvider)
     : IRolesRepository
 {
-    public async Task<Result<Role?>> GetDefaultAsync(CancellationToken cancellationToken)
-    {
-        var applicationRole = await roleManager.Roles
-            .AsNoTracking()
-            .Include(role => role.Claims)
-            .SingleOrDefaultAsync(role => role.IsDefault, cancellationToken);
-        if (applicationRole is null)
-        {
-            return Result.Success<Role?>(value: null);
-        }
-
-        var roleResult = ApplicationRoleMapper.ToDomain(role: applicationRole);
-        return roleResult.IsSuccess
-            ? Result.Success<Role?>(value: roleResult.Value)
-            : Result.Failure<Role?>(errors: roleResult.Errors);
-    }
-
     public async Task<Result<Guid>> AddAsync(
         Role role,
         CancellationToken cancellationToken)

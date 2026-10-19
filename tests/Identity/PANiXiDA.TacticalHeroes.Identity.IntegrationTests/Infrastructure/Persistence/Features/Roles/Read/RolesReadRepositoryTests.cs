@@ -73,6 +73,39 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
     }
 
+    [Fact(DisplayName = "GetDefaultIdAsync should return null when default is missing")]
+    public async Task GetDefaultIdAsync_Should_ReturnNull_When_DefaultIsMissing()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync("Moderator", cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var result = await repository.GetDefaultIdAsync(cancellationToken);
+
+        result.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "GetDefaultIdAsync should return the configured role id when default exists")]
+    public async Task GetDefaultIdAsync_Should_ReturnConfiguredRoleId_When_DefaultExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync("Moderator", cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var writeRepository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var roleId = Guid.CreateVersion7();
+        var created = await writeRepository.AddAsync(
+            IntegrationTestData.CreateRole(
+                roleId, "CustomDefault", [("permission", "compendium.heroes.read")], isDefault: true),
+            cancellationToken);
+        created.IsSuccess.ShouldBeTrue();
+        var readRepository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var result = await readRepository.GetDefaultIdAsync(cancellationToken);
+
+        result.ShouldBe(roleId);
+    }
+
     private async Task<Guid> AddRoleAsync(
         string name,
         CancellationToken cancellationToken)

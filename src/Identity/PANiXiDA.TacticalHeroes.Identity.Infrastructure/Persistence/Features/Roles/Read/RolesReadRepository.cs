@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
@@ -12,6 +14,14 @@ public sealed class RolesReadRepository(IdentityReadDbContext dbContext) :
     EfReadRepository<IdentityReadDbContext, Guid, RoleReadDbModel>(dbContext),
     IRolesReadRepository
 {
+    public Task<Guid?> GetDefaultIdAsync(CancellationToken cancellationToken)
+    {
+        return Query
+            .Where(role => role.IsDefault)
+            .Select(role => (Guid?)role.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public Task<PaginationResult<RoleListItemReadModel>> GetPageAsync(
         PaginationParameters paginationParameters,
         SortingParameters sortingParameters,

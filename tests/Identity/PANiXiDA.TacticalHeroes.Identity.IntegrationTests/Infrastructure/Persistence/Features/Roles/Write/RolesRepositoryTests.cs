@@ -237,59 +237,6 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         existing.Name.ShouldBe("Player");
     }
 
-    [Fact(DisplayName = "GetDefaultAsync should return null when default is missing")]
-    public async Task GetDefaultAsync_Should_ReturnNull_When_DefaultIsMissing()
-    {
-        await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-
-        var result = await repository.GetDefaultAsync(TestContext.Current.CancellationToken);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBeNull();
-    }
-
-    [Fact(DisplayName = "GetDefaultAsync should return a role with claims when default exists")]
-    public async Task GetDefaultAsync_Should_ReturnRoleWithClaims_When_DefaultExists()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-        var role = IntegrationTestData.CreateRole(
-            Guid.CreateVersion7(), "CustomDefault", [("permission", "compendium.heroes.read")], isDefault: true);
-        (await repository.AddAsync(role, cancellationToken)).IsSuccess.ShouldBeTrue();
-
-        var result = await repository.GetDefaultAsync(cancellationToken);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.Id.ShouldBe(role.Id);
-        result.Value.IsDefault.ShouldBeTrue();
-        result.Value.Claims.ShouldHaveSingleItem().Value.Value.ShouldBe("compendium.heroes.read");
-    }
-
-    [Fact(DisplayName = "GetDefaultAsync should return validation errors when stored default is invalid")]
-    public async Task GetDefaultAsync_Should_ReturnValidationErrors_When_StoredDefaultIsInvalid()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var scope = Fixture.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-        dbContext.Set<ApplicationRole>().Add(new ApplicationRole
-        {
-            Id = Guid.Empty,
-            Name = "InvalidDefault",
-            NormalizedName = "INVALIDDEFAULT",
-            IsDefault = true
-        });
-        await dbContext.SaveChangesAsync(cancellationToken);
-        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-
-        var result = await repository.GetDefaultAsync(cancellationToken);
-
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-    }
-
     private async Task<Guid> AddRoleAsync(
         string name,
         IReadOnlyCollection<Claim> claims,

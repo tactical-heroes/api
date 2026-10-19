@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
@@ -11,7 +12,6 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
@@ -20,7 +20,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Servi
 
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
-    RoleManager<ApplicationRole> roleManager,
+    IRolesReadRepository rolesReadRepository,
     IOpenIddictTokenManager tokenManager,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
@@ -42,15 +42,14 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var defaultRole = await roleManager.Roles
-            .SingleOrDefaultAsync(role => role.IsDefault, cancellationToken);
-        if (defaultRole is null)
+        var defaultRoleId = await rolesReadRepository.GetDefaultIdAsync(cancellationToken);
+        if (defaultRoleId is null)
         {
             return Result.Failure<Guid>(
                 error: Error.NotFound(message: "Default role was not found."));
         }
 
-        var roleIdResult = RoleId.Create(value: defaultRole.Id);
+        var roleIdResult = RoleId.Create(value: defaultRoleId.Value);
         if (roleIdResult.IsFailure)
         {
             return Result.Failure<Guid>(errors: roleIdResult.Errors);

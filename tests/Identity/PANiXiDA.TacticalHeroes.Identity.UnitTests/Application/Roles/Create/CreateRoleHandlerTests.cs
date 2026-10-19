@@ -1,9 +1,9 @@
 using System.Security.Claims;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Create;
 
@@ -18,7 +18,8 @@ public sealed class CreateRoleHandlerTests
         var roleId = Guid.CreateVersion7();
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IRolesRepository>();
-        repository.GetDefaultAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<Role?>(value: null));
+        var readRepository = Substitute.For<IRolesReadRepository>();
+        readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)null);
         repository.AddAsync(
             Arg.Is<Role>(role => role.Name.Value == "developer"
                 && role.IsDefault == isDefault
@@ -27,7 +28,7 @@ public sealed class CreateRoleHandlerTests
             Arg
                 .Any<CancellationToken>())
             .Returns(Result.Success(roleId));
-        var handler = new CreateRoleHandler(repository);
+        var handler = new CreateRoleHandler(repository, readRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -35,6 +36,7 @@ public sealed class CreateRoleHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await readRepository.Received(isDefault ? 1 : 0).GetDefaultIdAsync(cancellationToken);
         result.Value.ShouldBe(roleId);
         await repository.Received(1).AddAsync(
             Arg.Is<Role>(role => role.Name.Value == "developer"
@@ -54,8 +56,9 @@ public sealed class CreateRoleHandlerTests
         string claimValue)
     {
         var repository = Substitute.For<IRolesRepository>();
-        repository.GetDefaultAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<Role?>(value: null));
-        var handler = new CreateRoleHandler(repository);
+        var readRepository = Substitute.For<IRolesReadRepository>();
+        readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)null);
+        var handler = new CreateRoleHandler(repository, readRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -71,30 +74,15 @@ public sealed class CreateRoleHandlerTests
     public async Task HandleAsync_Should_ReturnConflict_When_AnotherDefaultExists()
     {
         var repository = Substitute.For<IRolesRepository>();
-        var current = Role.Create(
-            RoleId.New(), RoleName.Create("Player").Value, RoleDefaultFlag.Create(true).Value, []);
-        repository.GetDefaultAsync(Arg.Any<CancellationToken>()).Returns(Result.Success<Role?>(current));
-        var handler = new CreateRoleHandler(repository);
+        var readRepository = Substitute.For<IRolesReadRepository>();
+        var currentId = Guid.CreateVersion7();
+        readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)currentId);
+        var handler = new CreateRoleHandler(repository, readRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(new CreateRoleCommand("CustomDefault", true, []), cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
-        await repository.DidNotReceiveWithAnyArgs().AddAsync(null!, cancellationToken);
-    }
-
-    [Fact(DisplayName = "Create role handler should propagate errors when default lookup fails")]
-    public async Task HandleAsync_Should_PropagateErrors_When_DefaultLookupFails()
-    {
-        var repository = Substitute.For<IRolesRepository>();
-        var error = Error.Validation(message: "Invalid default role.");
-        repository.GetDefaultAsync(Arg.Any<CancellationToken>()).Returns(Result.Failure<Role?>(error));
-        var handler = new CreateRoleHandler(repository);
-        var cancellationToken = TestContext.Current.CancellationToken;
-
-        var result = await handler.HandleAsync(new CreateRoleCommand("CustomDefault", true, []), cancellationToken);
-
-        result.Errors.ShouldBe([error]);
         await repository.DidNotReceiveWithAnyArgs().AddAsync(null!, cancellationToken);
     }
 }
