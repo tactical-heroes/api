@@ -104,7 +104,7 @@ public sealed class RolesRepository(
 
         if (applicationRole.IsDefault)
         {
-            return DefaultRoleConflict();
+            return Result.Failure(error: Error.Conflict(message: "Unset the default role before deleting it."));
         }
 
         var roleResult = ApplicationRoleMapper.ToDomain(role: applicationRole);
@@ -124,11 +124,6 @@ public sealed class RolesRepository(
         aggregateTracker.Track(roleResult.Value);
 
         return Result.Success();
-    }
-
-    private static Result DefaultRoleConflict()
-    {
-        return Result.Failure(error: Error.Conflict(message: "Unset the default role before deleting it."));
     }
 
     private static Result RoleNotFound()
