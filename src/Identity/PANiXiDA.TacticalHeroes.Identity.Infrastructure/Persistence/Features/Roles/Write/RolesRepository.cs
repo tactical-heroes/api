@@ -7,15 +7,12 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 
 public sealed class RolesRepository(
     IdentityWriteDbContext dbContext,
     RoleManager<ApplicationRole> roleManager,
-    UserManager<ApplicationUser> userManager,
-    IOpenIddictTokenManager tokenManager,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IRolesRepository
@@ -72,9 +69,6 @@ public sealed class RolesRepository(
             return RoleNotFound();
         }
 
-        var currentClaims = applicationRole.Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)).ToHashSet();
-        var authorizationChanged = !string.Equals(applicationRole.Name, role.Name.Value, StringComparison.Ordinal)
-            || !currentClaims.SetEquals(role.Claims.Select(claim => (claim.Type.Value, claim.Value.Value)));
         ApplicationRoleMapper.MapToDbModel(
             role: role,
             dbModel: applicationRole,
@@ -88,16 +82,6 @@ public sealed class RolesRepository(
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
-        }
-
-        if (authorizationChanged)
-        {
-            var users = await GetAssignedUsersAsync(role.Id.Value, cancellationToken);
-            var revocationResult = await RevokeSessionsAsync(users, cancellationToken);
-            if (revocationResult.IsFailure)
-            {
-                return revocationResult;
-            }
         }
 
         aggregateTracker.Track(role);
@@ -130,18 +114,11 @@ public sealed class RolesRepository(
             return Result.Failure(errors: roleResult.Errors);
         }
 
-        var users = await GetAssignedUsersAsync(id, cancellationToken);
         var identityResult = await roleManager.DeleteAsync(applicationRole);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
-        }
-
-        var revocationResult = await RevokeSessionsAsync(users, cancellationToken);
-        if (revocationResult.IsFailure)
-        {
-            return revocationResult;
         }
 
         aggregateTracker.Track(roleResult.Value);
@@ -157,31 +134,6 @@ public sealed class RolesRepository(
     private static Result RoleNotFound()
     {
         return Result.Failure(error: Error.NotFound(message: "Role was not found."));
-    }
-
-    private Task<ApplicationUser[]> GetAssignedUsersAsync(Guid roleId, CancellationToken cancellationToken)
-    {
-        return dbContext.Set<ApplicationUser>()
-            .Where(user => user.Roles.Any(role => role.RoleId == roleId))
-            .ToArrayAsync(cancellationToken);
-    }
-
-    private async Task<Result> RevokeSessionsAsync(
-        IReadOnlyCollection<ApplicationUser> users,
-        CancellationToken cancellationToken)
-    {
-        foreach (var user in users)
-        {
-            var identityResult = await userManager.UpdateSecurityStampAsync(user);
-            if (!identityResult.Succeeded)
-            {
-                return IdentityResultMapper.ToResult(result: identityResult);
-            }
-
-            await tokenManager.RevokeBySubjectAsync(user.Id.ToString(), cancellationToken);
-        }
-
-        return Result.Success();
     }
 
     private void SyncClaims(

@@ -86,7 +86,7 @@ and `Player` (no administrative claims). Registration assigns the role marked `i
 Role create/update requests require `isDefault`; clear the previous default before selecting another.
 
 User create/update requests require `roleIds`; updates replace all assignments, and `[]` clears them.
-Role assignment changes, role name/claim changes, and role deletion invalidate affected users' sessions.
+Automatic token/session revocation for role changes is deferred to [#73](https://github.com/tactical-heroes/api/issues/73).
 
 ## Request Validation
 

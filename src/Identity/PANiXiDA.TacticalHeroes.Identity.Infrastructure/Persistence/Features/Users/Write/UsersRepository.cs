@@ -69,7 +69,7 @@ public sealed class UsersRepository(
             return rolesResult;
         }
 
-        var rolesChanged = SyncRoles(applicationUser, user);
+        SyncRoles(applicationUser, user);
         ApplicationUserMapper.MapToDbModel(
             user: user,
             dbModel: applicationUser,
@@ -78,18 +78,16 @@ public sealed class UsersRepository(
             applicationUser: applicationUser,
             user: user);
 
-        var identityResult = rolesChanged
-            ? await userManager.UpdateSecurityStampAsync(applicationUser)
-            : await userManager.UpdateAsync(applicationUser);
+        if (user.Status.IsBlocked)
+        {
+            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
+        }
+
+        var identityResult = await userManager.UpdateAsync(applicationUser);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
-        }
-
-        if (user.Status.IsBlocked || rolesChanged)
-        {
-            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
         }
 
         aggregateTracker.Track(user);
@@ -199,12 +197,12 @@ public sealed class UsersRepository(
         return Result.Success();
     }
 
-    private bool SyncRoles(ApplicationUser applicationUser, User user)
+    private void SyncRoles(ApplicationUser applicationUser, User user)
     {
         var roleIds = user.RoleIds.Select(roleId => roleId.Value).ToHashSet();
         if (roleIds.SetEquals(applicationUser.Roles.Select(role => role.RoleId)))
         {
-            return false;
+            return;
         }
 
         foreach (var currentRole in applicationUser.Roles.Where(role => !roleIds.Contains(role.RoleId)).ToArray())
@@ -216,8 +214,6 @@ public sealed class UsersRepository(
         {
             applicationUser.Roles.Add(new ApplicationUserRole { UserId = applicationUser.Id, RoleId = roleId });
         }
-
-        return true;
     }
 
     private void SyncClaims(
