@@ -324,11 +324,13 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     публичное состояние которых рекурсивно состоит только из разрешённых типов.
     Любые типы из Domain и `IReadModel` во входных параметрах запрещены.
 
-54. `ReadRepositoryMethods_Should_ReturnReadModels_When_Declared` — каждый
+54. `ReadRepositoryMethods_Should_ReturnReadModelsOrIdentifiers_When_Declared` — каждый
     дополнительный метод read repository должен возвращать реализацию
-    `IReadModel`. Допускаются обёртки `Task`, `Result`, коллекции и модели
-    пагинации. Базовые методы `ExistsByIdAsync` и `AnyAsync`, возвращающие
-    `bool`, к этому правилу не относятся.
+    `IReadModel` либо идентификатор того же типа, что указан в `IReadRepository<TId>`.
+    Для `IReadModel` допускаются обёртки `Task`, `Result`, коллекции и модели
+    пагинации; для идентификатора — nullable и `Task`. Произвольные примитивы
+    вместо read model запрещены. Базовые методы `ExistsByIdAsync` и `AnyAsync`,
+    возвращающие `bool`, к этому правилу не относятся.
 
 55. `ReadModels_Should_EndWithReadModel_When_Declared` — каждый конкретный
     тип, реализующий `IReadModel`, должен оканчиваться на `ReadModel`.

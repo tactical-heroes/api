@@ -77,17 +77,22 @@ public sealed class ReadRepositoryConventionTests
                 + string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read repository methods should return read models when declared")]
-    public void ReadRepositoryMethods_Should_ReturnReadModels_When_Declared()
+    [Fact(DisplayName = "Read repository methods should return read models or identifiers when declared")]
+    public void ReadRepositoryMethods_Should_ReturnReadModelsOrIdentifiers_When_Declared()
     {
         var methods = GetDeclaredReadRepositoryMethods();
         var violations = methods
-            .Where(target => !ReadSideConvention.IsReadModelResult(
-                target.Method.ReturnType))
+            .Where(target =>
+                !ReadSideConvention.IsReadModelResult(target.Method.ReturnType)
+                    && !IsIdentifierResult(
+                        target.Method.ReturnType,
+                        GetClosedReadRepositoryContract(target.Repository)!
+                            .GetGenericArguments()[0]))
             .Select(target =>
                 $"{target.Repository.FullName}.{target.Method.Name} must "
                     + $"return an IReadModel, optionally wrapped in Task, a "
-                    + $"Result, a collection, or a pagination model; found "
+                    + $"Result, a collection, or a pagination model, or the "
+                    + $"repository identifier, optionally nullable or wrapped in Task; found "
                     + $"'{target.Method.ReturnType}'.")
             .ToArray();
 
@@ -96,6 +101,27 @@ public sealed class ReadRepositoryConventionTests
             violations.Length == 0,
             $"Read repository result type violations:{Environment.NewLine}"
                 + string.Join(Environment.NewLine, violations));
+    }
+
+    [Theory(DisplayName = "Identifier result check should match repository identifier when result type is examined")]
+    [InlineData(typeof(Guid), true)]
+    [InlineData(typeof(Guid?), true)]
+    [InlineData(typeof(Task<Guid>), true)]
+    [InlineData(typeof(Task<Guid?>), true)]
+    [InlineData(typeof(string), false)]
+    [InlineData(typeof(Task<string>), false)]
+    [InlineData(typeof(Guid[]), false)]
+    [InlineData(typeof(Task<Guid[]>), false)]
+    [InlineData(typeof(Task), false)]
+    public void IsIdentifierResult_Should_MatchRepositoryIdentifier_When_ResultTypeIsExamined(
+        Type resultType,
+        bool expected)
+    {
+        var identifierType = typeof(Guid);
+
+        var result = IsIdentifierResult(resultType, identifierType);
+
+        Assert.Equal(expected, result);
     }
 
     [Fact(DisplayName = "Read repositories should match plural aggregate names when declared")]
@@ -188,6 +214,17 @@ public sealed class ReadRepositoryConventionTests
         Assert.True(
             violations.Length == 0,
             string.Join(Environment.NewLine, violations));
+    }
+
+    private static bool IsIdentifierResult(Type resultType, Type identifierType)
+    {
+        if (resultType.IsGenericType
+            && resultType.GetGenericTypeDefinition() == typeof(Task<>))
+        {
+            resultType = resultType.GetGenericArguments()[0];
+        }
+
+        return (Nullable.GetUnderlyingType(resultType) ?? resultType) == identifierType;
     }
 
     private static ReadRepository[] GetReadRepositories()
