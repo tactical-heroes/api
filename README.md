@@ -77,16 +77,7 @@ independently of API permissions; enabling permission checks on existing operati
 is separate work. Existing assignments need explicit section grants for UI visibility.
 
 The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
-Frontend adaptation is separate.
-
-## User Roles
-
-Identity migrations seed `Developer` (all permissions/sections), `Moderator` (Compendium),
-and `Player` (no administrative claims). Registration assigns the role marked `isDefault`, initially Player.
-Role create/update requests require `isDefault`; clear the previous default before selecting another.
-
-User create/update requests require `roleIds`; updates replace all assignments, and `[]` clears them.
-Automatic token/session revocation for role changes is deferred to [#73](https://github.com/tactical-heroes/api/issues/73).
+Frontend adaptation is separate; no database migration is required.
 
 ## Request Validation
 
