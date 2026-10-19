@@ -44,6 +44,11 @@ public sealed class UpdateRoleHandler(
 
         if (command.IsDefault)
         {
+            if (!await rolesReadRepository.ExistsByIdAsync(idResult.Value.Value, cancellationToken))
+            {
+                return Result.Failure(error: Error.NotFound(message: "Role was not found."));
+            }
+
             var defaultRoleId = await rolesReadRepository.GetDefaultIdAsync(cancellationToken);
 
             if (defaultRoleId is not null && defaultRoleId != idResult.Value.Value)

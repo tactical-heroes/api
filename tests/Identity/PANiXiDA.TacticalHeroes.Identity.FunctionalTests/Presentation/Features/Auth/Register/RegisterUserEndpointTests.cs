@@ -67,4 +67,24 @@ public sealed class RegisterUserEndpointTests(FunctionalTestFixture fixture)
         details.Name.ShouldBe("renameddefault");
         details.IsDefault.ShouldBeTrue();
     }
+
+    [Fact(DisplayName = "POST auth register should return not found when default role is missing")]
+    public async Task PostRegister_Should_ReturnNotFound_When_DefaultRoleIsMissing()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var roles = new RoleApiTestClient(Fixture);
+        var current = (await roles.GetListAsync(cancellationToken)).Items.Single(role => role.IsDefault);
+        await roles.UpdateAsync(current.Id, new UpdateRoleRequest(current.Name, false, []), cancellationToken);
+
+        using var response = await Client.PostAsJsonAsync(
+            "/api/v1/auth/register",
+            new RegisterUserRequest("missing-default@example.com", "new-user", "StrongPassword1!"),
+            JsonOptions,
+            cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        var users = await new UserApiTestClient(Fixture).GetListAsync(
+            cancellationToken, email: "missing-default@example.com");
+        users.TotalCount.ShouldBe(0);
+    }
 }

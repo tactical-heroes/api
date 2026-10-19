@@ -156,4 +156,23 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
         status.GetProperty("type").GetString().ShouldBe("string");
         status.TryGetProperty("maxLength", out _).ShouldBeFalse();
     }
+
+    [Fact(DisplayName = "GET Identity OpenAPI document should declare registration not found when requested")]
+    public async Task GetIdentityOpenApiDocument_Should_DeclareRegistrationNotFound_When_Requested()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var client = Fixture.CreateClient(Environments.Development);
+
+        using var response = await client.GetAsync("/openapi/identity-v1.json", cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
+        using var document = JsonDocument.Parse(responseBody);
+        document.RootElement.GetProperty("paths")
+            .GetProperty("/api/v1/auth/register")
+            .GetProperty("post")
+            .GetProperty("responses")
+            .TryGetProperty("404", out _)
+            .ShouldBeTrue();
+    }
 }

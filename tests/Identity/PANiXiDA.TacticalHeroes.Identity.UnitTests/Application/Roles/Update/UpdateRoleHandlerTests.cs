@@ -19,6 +19,7 @@ public sealed class UpdateRoleHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IRolesRepository>();
         var readRepository = Substitute.For<IRolesReadRepository>();
+        readRepository.ExistsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)null);
         repository.UpdateAsync(
             Arg.Is<Role>(
@@ -59,6 +60,7 @@ public sealed class UpdateRoleHandlerTests
     {
         var repository = Substitute.For<IRolesRepository>();
         var readRepository = Substitute.For<IRolesReadRepository>();
+        readRepository.ExistsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)null);
         var handler = new UpdateRoleHandler(repository, readRepository);
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -77,6 +79,7 @@ public sealed class UpdateRoleHandlerTests
     {
         var repository = Substitute.For<IRolesRepository>();
         var readRepository = Substitute.For<IRolesReadRepository>();
+        readRepository.ExistsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
         var currentId = Guid.CreateVersion7();
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)currentId);
         var handler = new UpdateRoleHandler(repository, readRepository);
@@ -94,6 +97,7 @@ public sealed class UpdateRoleHandlerTests
     {
         var repository = Substitute.For<IRolesRepository>();
         var readRepository = Substitute.For<IRolesReadRepository>();
+        readRepository.ExistsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
         var currentId = Guid.CreateVersion7();
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)currentId);
         repository.UpdateAsync(Arg.Any<Role>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
@@ -106,5 +110,26 @@ public sealed class UpdateRoleHandlerTests
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
             Arg.Is<Role>(role => role.Id.Value == currentId && role.IsDefault), cancellationToken);
+    }
+
+    [Theory(DisplayName = "Update role handler should return not found when target role is missing")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_ReturnNotFound_When_TargetRoleIsMissing(bool defaultExists)
+    {
+        var repository = Substitute.For<IRolesRepository>();
+        var readRepository = Substitute.For<IRolesReadRepository>();
+        readRepository.ExistsByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(false);
+        readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>())
+            .Returns(defaultExists ? Guid.CreateVersion7() : (Guid?)null);
+        var handler = new UpdateRoleHandler(repository, readRepository);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var result = await handler.HandleAsync(
+            new UpdateRoleCommand(Guid.CreateVersion7(), "MissingRole", true, []), cancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+        await readRepository.DidNotReceiveWithAnyArgs().GetDefaultIdAsync(cancellationToken);
+        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
     }
 }
