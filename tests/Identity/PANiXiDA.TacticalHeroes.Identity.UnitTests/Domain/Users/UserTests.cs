@@ -13,16 +13,19 @@ public sealed class UserTests
     [Fact(DisplayName = "Register should create an unconfirmed user with normalized email when email is valid")]
     public void Register_Should_CreateUnconfirmedUser_When_EmailIsValid()
     {
+        var roleId = RoleId.New();
+
         var result = User.Register(
-            Email.Create(value: " HERO@Example.COM ").Value,
-            UserName.Create(value: " hero ").Value);
+            email: Email.Create(value: " HERO@Example.COM ").Value,
+            userName: UserName.Create(value: " hero ").Value,
+            roleId: roleId);
 
         result.Id.Value.ShouldNotBe(Guid.Empty);
         result.Email.Value.ShouldBe("hero@example.com");
         result.UserName.Value.ShouldBe("hero");
         result.Status.ShouldBe(UserStatus.Active);
         result.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
-        result.RoleIds.ShouldBeEmpty();
+        result.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
         result.Claims.ShouldBeEmpty();
         result.GetDomainEvents().ShouldBeEmpty();
     }
@@ -229,6 +232,13 @@ public sealed class UserTests
 
     private static User CreateUser()
     {
-        return User.Register(Email.Create(value: "hero@example.com").Value, UserName.Create(value: " hero ").Value);
+        return User.Create(
+            id: UserId.New(),
+            email: Email.Create(value: "hero@example.com").Value,
+            userName: UserName.Create(value: " hero ").Value,
+            status: UserStatus.Active,
+            confirmationStatus: UserConfirmationStatus.Unconfirmed(),
+            roleIds: [],
+            claims: []);
     }
 }

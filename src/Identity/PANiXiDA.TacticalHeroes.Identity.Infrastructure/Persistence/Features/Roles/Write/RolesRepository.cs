@@ -85,6 +85,11 @@ public sealed class RolesRepository(
             return RoleNotFound();
         }
 
+        if (applicationRole.IsDefault)
+        {
+            return Result.Failure(error: Error.Conflict(message: "Unset the default role before deleting it."));
+        }
+
         var roleResult = ApplicationRoleMapper.ToDomain(role: applicationRole);
 
         if (roleResult.IsFailure)

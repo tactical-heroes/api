@@ -32,6 +32,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
+        await Fixture.SeedRolesAsync(cancellationToken);
+
         var result = await service.RegisterAsync(
             " REGISTER@Example.COM ",
             " registered-hero ",
@@ -44,6 +46,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         user.Email.ShouldBe("register@example.com");
         user.UserName.ShouldBe("registered-hero");
         user.EmailConfirmed.ShouldBeFalse();
+        (await userManager.GetRolesAsync(user)).ShouldBe(["Player"]);
 
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
         var trackedUser = aggregateTracker.GetAll()
@@ -57,6 +60,27 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .ShouldHaveSingleItem();
         domainEvent.Email.ShouldBe(user.Email);
         domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact(DisplayName = "Registration should assign the configured role when default has custom name")]
+    public async Task RegisterAsync_Should_AssignConfiguredRole_When_DefaultHasCustomName()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var role = await dbContext.Set<ApplicationRole>().SingleAsync(item => item.IsDefault, cancellationToken);
+        role.Name = "Newcomer";
+        role.NormalizedName = "NEWCOMER";
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.RegisterAsync("newcomer@example.com", "newcomer", Password, cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var user = await dbContext.Set<ApplicationUser>().Include(item => item.Roles)
+            .SingleAsync(item => item.Id == result.Value, cancellationToken);
+        user.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(role.Id);
     }
 
     [Theory(
@@ -82,6 +106,33 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         (await userManager.Users.AnyAsync(cancellationToken)).ShouldBeFalse();
         aggregateTracker.GetAll().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Registration should reject invalid default role configuration when default role is invalid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RegisterAsync_Should_RejectInvalidDefaultRole_When_DefaultRoleIsInvalid(bool emptyRoleId)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        if (emptyRoleId)
+        {
+            dbContext.Set<ApplicationRole>().Add(new ApplicationRole
+            {
+                Id = Guid.Empty,
+                Name = "Player",
+                NormalizedName = "PLAYER",
+                IsDefault = true
+            });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.RegisterAsync("hero@example.com", "hero", Password, cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        (await dbContext.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeFalse();
     }
 
     [Fact(DisplayName = "LoginAsync should load user and all claims in one read query when credentials are valid")]

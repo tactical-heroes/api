@@ -2,4 +2,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
 
 public sealed record RoleListItemReadModel(
     Guid Id,
-    string Name) : IReadModel;
+    string Name,
+    bool IsDefault) : IReadModel;

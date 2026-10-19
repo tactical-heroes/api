@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
@@ -17,7 +18,8 @@ public sealed class CreateUserHandler(IUsersRepository usersRepository)
         var emailResult = Email.Create(value: command.Email);
         var userNameResult = UserName.Create(value: command.UserName);
         var statusResult = UserStatus.Create(value: command.Status);
-        var validationResult = Result.Combine(emailResult, userNameResult, statusResult);
+        var roleIdsResult = RoleId.Create(command.RoleIds);
+        var validationResult = Result.Combine(emailResult, userNameResult, statusResult, roleIdsResult);
 
         if (validationResult.IsFailure)
         {
@@ -46,7 +48,7 @@ public sealed class CreateUserHandler(IUsersRepository usersRepository)
             userName: userNameResult.Value,
             status: statusResult.Value,
             confirmationStatus: UserConfirmationStatus.From(isConfirmed: command.IsConfirmed),
-            roleIds: [],
+            roleIds: roleIdsResult.Value,
             claims: claims);
 
         return usersRepository.AddAsync(

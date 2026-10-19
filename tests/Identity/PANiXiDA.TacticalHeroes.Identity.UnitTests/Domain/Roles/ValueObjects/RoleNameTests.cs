@@ -7,18 +7,19 @@ public sealed class RoleNameTests
     [Fact(DisplayName = "Role name should normalize a valid value when role name is valid")]
     public void Create_Should_NormalizeValue_When_RoleNameIsValid()
     {
-        var result = RoleName.Create("  ADMIN  ");
+        var result = RoleName.Create("  CustomManager  ");
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Value.ShouldBe("admin");
+        result.Value.Value.ShouldBe("custommanager");
     }
 
     [Theory(DisplayName = "Role name should reject an empty value when role name is empty")]
+    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_Should_ReturnValidationFailure_When_RoleNameIsEmpty(string value)
+    public void Create_Should_ReturnValidationFailure_When_RoleNameIsEmpty(string? value)
     {
-        var result = RoleName.Create(value);
+        var result = RoleName.Create(value!);
 
         result.ShouldHaveSingleError(ErrorType.Validation, "Role name cannot be empty.")
             .ShouldHaveField(nameof(RoleName));
@@ -38,10 +39,10 @@ public sealed class RoleNameTests
     [Fact(DisplayName = "Role name should format its value when converted to string")]
     public void ToString_Should_FormatValue_When_ConvertedToString()
     {
-        var roleName = RoleName.Create("admin").Value;
+        var roleName = RoleName.Create("CustomManager").Value;
 
         var result = roleName.ToString();
 
-        result.ShouldBe("RoleName { Value = admin }");
+        result.ShouldBe("RoleName { Value = custommanager }");
     }
 }

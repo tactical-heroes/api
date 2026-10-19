@@ -7,18 +7,22 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles;
 
 public sealed class RoleTests
 {
-    [Fact(DisplayName = "Create should restore persisted role state when persisted values are valid")]
-    public void Create_Should_RestoreState_When_PersistedValuesAreValid()
+    [Theory(DisplayName = "Create should restore persisted role state when persisted values are valid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Create_Should_RestoreState_When_PersistedValuesAreValid(bool isDefault)
     {
         var id = Guid.CreateVersion7();
 
         var result = Role.Create(
             RoleId.Create(id).Value,
-            RoleName.Create(" ADMIN ").Value,
+            RoleName.Create(" Developer ").Value,
+            RoleDefaultFlag.Create(isDefault).Value,
             [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)]);
 
         result.Id.Value.ShouldBe(id);
-        result.Name.Value.ShouldBe("admin");
+        result.Name.Value.ShouldBe("developer");
+        result.IsDefault.ShouldBe(isDefault);
         var claim = result.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");
@@ -29,7 +33,8 @@ public sealed class RoleTests
     {
         var claim = RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value);
         List<RoleClaim> claims = [claim];
-        var role = Role.Create(RoleId.New(), RoleName.Create("admin").Value, claims);
+        var role = Role.Create(
+            RoleId.New(), RoleName.Create("Developer").Value, RoleDefaultFlag.Create(false).Value, claims);
 
         claims.Clear();
 
@@ -89,6 +94,6 @@ public sealed class RoleTests
 
     private static Role CreateRole()
     {
-        return Role.Create(RoleId.New(), RoleName.Create("admin").Value, []);
+        return Role.Create(RoleId.New(), RoleName.Create("Developer").Value, RoleDefaultFlag.Create(false).Value, []);
     }
 }

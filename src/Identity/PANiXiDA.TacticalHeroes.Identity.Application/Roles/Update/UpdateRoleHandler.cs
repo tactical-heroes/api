@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
@@ -6,20 +7,23 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 
-public sealed class UpdateRoleHandler(IRolesRepository rolesRepository)
+public sealed class UpdateRoleHandler(
+    IRolesRepository rolesRepository,
+    IRolesReadRepository rolesReadRepository)
     : ICommandHandler<UpdateRoleCommand, Result>
 {
-    public Task<Result> HandleAsync(
+    public async Task<Result> HandleAsync(
         UpdateRoleCommand command,
         CancellationToken cancellationToken)
     {
         var idResult = RoleId.Create(value: command.Id);
         var nameResult = RoleName.Create(value: command.Name);
-        var validationResult = Result.Combine(idResult, nameResult);
+        var defaultFlagResult = RoleDefaultFlag.Create(value: command.IsDefault);
+        var validationResult = Result.Combine(idResult, nameResult, defaultFlagResult);
 
         if (validationResult.IsFailure)
         {
-            return Task.FromResult(Result.Failure(errors: validationResult.Errors));
+            return Result.Failure(errors: validationResult.Errors);
         }
 
         var claims = new List<RoleClaim>();
@@ -32,18 +36,30 @@ public sealed class UpdateRoleHandler(IRolesRepository rolesRepository)
 
             if (claimResult.IsFailure)
             {
-                return Task.FromResult(Result.Failure(errors: claimResult.Errors));
+                return Result.Failure(errors: claimResult.Errors);
             }
 
             claims.Add(RoleClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
+        if (command.IsDefault)
+        {
+            var defaultRoleId = await rolesReadRepository.GetDefaultIdAsync(cancellationToken);
+
+            if (defaultRoleId is not null && defaultRoleId != idResult.Value.Value)
+            {
+                return Result.Failure(
+                    error: Error.Conflict(message: "Default role already exists."));
+            }
+        }
+
         var role = Role.Create(
             id: idResult.Value,
             name: nameResult.Value,
+            defaultFlag: defaultFlagResult.Value,
             claims: claims);
 
-        return rolesRepository.UpdateAsync(
+        return await rolesRepository.UpdateAsync(
             role: role,
             cancellationToken: cancellationToken);
     }

@@ -13,22 +13,22 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("admin", cancellationToken);
+        var roleId = await AddRoleAsync("Developer", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
         var details = await repository.GetDetailsByIdAsync(roleId, cancellationToken);
 
         details.ShouldNotBeNull();
-        details.Name.ShouldBe("admin");
+        details.Name.ShouldBe("developer");
     }
 
     [Fact(DisplayName = "GetPageAsync should return roles sorted by name when roles exist")]
     public async Task GetPageAsync_Should_ReturnSortedPage_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddRoleAsync("viewer", cancellationToken);
-        await AddRoleAsync("admin", cancellationToken);
+        await AddRoleAsync("Player", cancellationToken);
+        await AddRoleAsync("Developer", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -38,14 +38,14 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
-        page.Items.Select(item => item.Name).ShouldBe(["admin", "viewer"]);
+        page.Items.Select(item => item.Name).ShouldBe(["developer", "player"]);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing role when role exists")]
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("exists-role", cancellationToken);
+        var roleId = await AddRoleAsync("Moderator", cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -65,12 +65,45 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
         }
 
-        await AddRoleAsync("any-role", cancellationToken);
+        await AddRoleAsync("Moderator", cancellationToken);
 
         await using var populatedScope = Fixture.CreateScope();
         var populatedRepository =
             populatedScope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
         (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "GetDefaultIdAsync should return null when default is missing")]
+    public async Task GetDefaultIdAsync_Should_ReturnNull_When_DefaultIsMissing()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync("Moderator", cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var result = await repository.GetDefaultIdAsync(cancellationToken);
+
+        result.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "GetDefaultIdAsync should return the configured role id when default exists")]
+    public async Task GetDefaultIdAsync_Should_ReturnConfiguredRoleId_When_DefaultExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync("Moderator", cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var writeRepository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var roleId = Guid.CreateVersion7();
+        var created = await writeRepository.AddAsync(
+            IntegrationTestData.CreateRole(
+                roleId, "CustomDefault", [("permission", "compendium.heroes.read")], isDefault: true),
+            cancellationToken);
+        created.IsSuccess.ShouldBeTrue();
+        var readRepository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var result = await readRepository.GetDefaultIdAsync(cancellationToken);
+
+        result.ShouldBe(roleId);
     }
 
     private async Task<Guid> AddRoleAsync(

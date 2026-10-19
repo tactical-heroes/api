@@ -102,14 +102,13 @@ public sealed class LayerDependencyTests
         }
     }
 
-    [Fact(DisplayName = "Contracts layer should only be used by infrastructure and presentation when validated")]
-    public void ContractsLayer_Should_OnlyBeUsedByInfrastructureAndPresentation_When_Validated()
+    [Fact(DisplayName = "Contracts layer should only be used by infrastructure presentation and host when validated")]
+    public void ContractsLayer_Should_OnlyBeUsedByInfrastructurePresentationAndHost_When_Validated()
     {
         var forbiddenSources = new[]
         {
             ArchitectureDefinition.s_domainLayer,
             ArchitectureDefinition.s_applicationLayer,
-            ArchitectureDefinition.s_hostLayer,
             ArchitectureDefinition.TypesInAssembly(ArchitectureDefinition.CommonAssemblyName)
         };
 

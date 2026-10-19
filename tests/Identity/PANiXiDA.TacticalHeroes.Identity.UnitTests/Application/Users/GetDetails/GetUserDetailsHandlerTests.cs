@@ -16,7 +16,8 @@ public sealed class GetUserDetailsHandlerTests
             true,
             "Active",
             "Active",
-            []);
+            [],
+            RoleIds: []);
         var usersReadRepository = Substitute.For<IUsersReadRepository>();
         usersReadRepository.GetDetailsByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(readModel);

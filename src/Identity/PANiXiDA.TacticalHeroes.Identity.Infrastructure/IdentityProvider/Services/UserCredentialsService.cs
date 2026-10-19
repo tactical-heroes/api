@@ -4,6 +4,8 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
@@ -18,6 +20,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Servi
 
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
+    IRolesReadRepository rolesReadRepository,
     IOpenIddictTokenManager tokenManager,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
@@ -39,7 +42,23 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var user = User.Register(email: emailResult.Value, userName: userNameResult.Value);
+        var defaultRoleId = await rolesReadRepository.GetDefaultIdAsync(cancellationToken);
+        if (defaultRoleId is null)
+        {
+            return Result.Failure<Guid>(
+                error: Error.NotFound(message: "Default role was not found."));
+        }
+
+        var roleIdResult = RoleId.Create(value: defaultRoleId.Value);
+        if (roleIdResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: roleIdResult.Errors);
+        }
+
+        var user = User.Register(
+            email: emailResult.Value,
+            userName: userNameResult.Value,
+            roleId: roleIdResult.Value);
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,

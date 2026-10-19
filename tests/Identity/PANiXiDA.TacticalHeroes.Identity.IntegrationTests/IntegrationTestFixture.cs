@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +9,7 @@ using OpenIddict.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
@@ -73,6 +75,17 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     public AsyncServiceScope CreateScope()
     {
         return _serviceProvider.CreateAsyncScope();
+    }
+
+    public async Task SeedRolesAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var migration = new SeedRolesAndClaims();
+        foreach (var operation in migration.UpOperations.Cast<SqlOperation>())
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(operation.Sql, cancellationToken);
+        }
     }
 
     public Task ResetDatabaseAsync(CancellationToken cancellationToken)

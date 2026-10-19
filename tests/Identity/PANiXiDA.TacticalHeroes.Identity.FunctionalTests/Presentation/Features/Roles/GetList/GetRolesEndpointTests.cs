@@ -1,5 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
-
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.GetList;
 
 public sealed class GetRolesEndpointTests(FunctionalTestFixture fixture)
@@ -10,12 +8,10 @@ public sealed class GetRolesEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        await client.CreateAsync(cancellationToken, new CreateRoleRequest("viewer", []));
-        await client.CreateAsync(cancellationToken, new CreateRoleRequest("admin", []));
 
         var response = await client.GetListAsync(cancellationToken);
 
-        response.TotalCount.ShouldBe(2);
-        response.Items.Select(role => role.Name).ShouldBe(["admin", "viewer"]);
+        response.TotalCount.ShouldBe(3);
+        response.Items.Select(role => role.Name).ShouldBe(["Developer", "Moderator", "Player"]);
     }
 }

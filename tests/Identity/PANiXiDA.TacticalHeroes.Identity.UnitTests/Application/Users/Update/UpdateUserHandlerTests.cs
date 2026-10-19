@@ -34,7 +34,8 @@ public sealed class UpdateUserHandlerTests
                 "hero",
                 true,
                 claims,
-                "Blocked"),
+                "Blocked",
+                RoleIds: []),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -72,11 +73,62 @@ public sealed class UpdateUserHandlerTests
                 userName,
                 false,
                 [new Claim(claimType, claimValue)],
-                status),
+                status,
+                RoleIds: []),
             cancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should pass assigned role IDs to persistence when role ids are provided")]
+    public async Task HandleAsync_Should_PassRoleIds_When_RoleIdsAreProvided()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var roleId = Guid.CreateVersion7();
+        var repository = Substitute.For<IUsersRepository>();
+        repository.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        var handler = new UpdateUserHandler(repository);
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [roleId]),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await repository.Received(1).UpdateAsync(
+            Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
+            cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailure_When_RoleIdIsInvalid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var repository = Substitute.For<IUsersRepository>();
+        var handler = new UpdateUserHandler(repository);
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [Guid.Empty]),
+            cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        repository.ReceivedCalls().ShouldBeEmpty();
     }
 }

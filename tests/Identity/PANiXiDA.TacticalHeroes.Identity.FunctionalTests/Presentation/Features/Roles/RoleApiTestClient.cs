@@ -10,11 +10,27 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 
 internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
 {
+    internal async Task<CreateRoleResponse> RecreateAsync(
+        CancellationToken cancellationToken,
+        CreateRoleRequest? request = null)
+    {
+        request ??= new CreateRoleRequest("Moderator", false, []);
+        var roles = await GetListAsync(cancellationToken);
+        var existing = roles.Items.SingleOrDefault(role => string.Equals(
+            role.Name, request.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            await DeleteAsync(existing.Id, cancellationToken);
+        }
+
+        return await CreateAsync(cancellationToken, request);
+    }
+
     internal async Task<CreateRoleResponse> CreateAsync(
         CancellationToken cancellationToken,
         CreateRoleRequest? request = null)
     {
-        request ??= new CreateRoleRequest("admin", []);
+        request ??= new CreateRoleRequest("Moderator", false, []);
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, RolesPath)
         {
             Content = JsonContent.Create(request, options: TestJsonSerializerOptions.Web)

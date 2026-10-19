@@ -20,15 +20,15 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
    проект `Contracts` не должен содержать `ProjectReference`, включая ссылки
    на `Common` и Contracts других модулей.
 
-3. `ContractsLayer_Should_OnlyBeUsedByInfrastructureAndPresentation_When_Validated` — типы
-   `Contracts` могут использоваться в `Infrastructure`, `Presentation` и внутри
-   самих контрактов. Для `Domain`, `Application`, `Host` и `Common` зависимости
-   на типы контрактов запрещены.
+3. `ContractsLayer_Should_OnlyBeUsedByInfrastructurePresentationAndHost_When_Validated` — типы
+   `Contracts` могут использоваться в `Infrastructure`, `Presentation`, `Host` и внутри
+   самих контрактов. Host использует контракты в сгенерированных обработчиках Wolverine.
+   Для `Domain`, `Application` и `Common` зависимости на типы контрактов запрещены.
 
-4. `ProductionProjectReferences_Should_UseContractsOnlyFromInfrastructureAndPresentation_When_Validated`
-   — среди production-проектов только `Infrastructure` и `Presentation` могут
-   содержать прямые ссылки на `Contracts` своего или другого модуля. Проверка
-   охватывает также Host и Common; ссылки тестовых проектов не ограничиваются.
+4. `ProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated`
+   — среди production-проектов только `Infrastructure`, `Presentation` и `Host` могут
+   содержать прямые ссылки на `Contracts` своего или другого модуля. Ссылки тестовых
+   проектов не ограничиваются.
 
 5. `CommonLayer_Should_NotDependOnModuleLayersOrHost_When_Validated` — типы
    `Common` не должны зависеть от слоёв модулей или `Host`.
@@ -324,11 +324,13 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     публичное состояние которых рекурсивно состоит только из разрешённых типов.
     Любые типы из Domain и `IReadModel` во входных параметрах запрещены.
 
-54. `ReadRepositoryMethods_Should_ReturnReadModels_When_Declared` — каждый
+54. `ReadRepositoryMethods_Should_ReturnReadModelsOrIdentifiers_When_Declared` — каждый
     дополнительный метод read repository должен возвращать реализацию
-    `IReadModel`. Допускаются обёртки `Task`, `Result`, коллекции и модели
-    пагинации. Базовые методы `ExistsByIdAsync` и `AnyAsync`, возвращающие
-    `bool`, к этому правилу не относятся.
+    `IReadModel` либо идентификатор того же типа, что указан в `IReadRepository<TId>`.
+    Для `IReadModel` допускаются обёртки `Task`, `Result`, коллекции и модели
+    пагинации; для идентификатора — nullable и `Task`. Произвольные примитивы
+    вместо read model запрещены. Базовые методы `ExistsByIdAsync` и `AnyAsync`,
+    возвращающие `bool`, к этому правилу не относятся.
 
 55. `ReadModels_Should_EndWithReadModel_When_Declared` — каждый конкретный
     тип, реализующий `IReadModel`, должен оканчиваться на `ReadModel`.
