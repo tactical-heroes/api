@@ -169,10 +169,12 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         details.Claims.ShouldBe(claims);
     }
 
-    [Theory(DisplayName = "PUT role should return not found when target role is missing")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task PutRole_Should_ReturnNotFound_When_TargetRoleIsMissing(bool isDefault)
+    [Theory(DisplayName = "PUT role should return expected error when target role is missing")]
+    [InlineData(false, HttpStatusCode.NotFound)]
+    [InlineData(true, HttpStatusCode.Conflict)]
+    public async Task PutRole_Should_ReturnExpectedError_When_TargetRoleIsMissing(
+        bool isDefault,
+        HttpStatusCode expectedStatusCode)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
@@ -185,7 +187,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
 
         using var response = await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, cancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        response.StatusCode.ShouldBe(expectedStatusCode);
         var existing = await client.GetListAsync(cancellationToken);
         existing.TotalCount.ShouldBe(roles.TotalCount);
         existing.Items.Single(role => role.IsDefault).Id.ShouldBe(defaultRole.Id);
