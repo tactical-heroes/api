@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
@@ -53,5 +54,22 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
         using var response = await Client.GetAsync("/api/v1/claims/permissions", TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Theory(DisplayName = "GET permissions should require edit permission when authenticated")]
+    [InlineData("unrelated", HttpStatusCode.Forbidden)]
+    [InlineData("identity.roles.update", HttpStatusCode.OK)]
+    public async Task GetPermissions_Should_RequireEditPermission_When_Authenticated(
+        string permission, HttpStatusCode expectedStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/claims/permissions");
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+
+        using var response = await Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expectedStatus, await response.Content.ReadAsStringAsync(cancellationToken));
     }
 }

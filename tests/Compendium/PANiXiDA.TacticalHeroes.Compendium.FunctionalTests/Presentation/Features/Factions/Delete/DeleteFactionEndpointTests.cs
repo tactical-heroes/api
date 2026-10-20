@@ -17,4 +17,15 @@ public sealed class DeleteFactionEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
+
+    [Fact(DisplayName = "DELETE faction should return forbidden when only read permission is granted")]
+    public async Task DeleteFaction_Should_ReturnForbidden_When_OnlyReadPermissionIsGranted()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/factions/{Guid.CreateVersion7()}");
+        request.Headers.Add("X-Test-Permissions", "compendium.factions.read");
+
+        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
 }

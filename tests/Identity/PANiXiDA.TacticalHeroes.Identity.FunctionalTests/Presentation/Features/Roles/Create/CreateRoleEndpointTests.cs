@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
@@ -140,5 +141,30 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
             .EnumerateArray()
             .Select(error => error.GetString())
             .ShouldBe(["Claim value is not present in its catalog."]);
+    }
+
+    [Theory(DisplayName = "POST roles should enforce permission and claim contract when creating role")]
+    [InlineData("identity.roles.read", "custom", HttpStatusCode.Forbidden)]
+    [InlineData("identity.roles.create", "section", HttpStatusCode.BadRequest)]
+    [InlineData("identity.roles.create", " SECTION ", HttpStatusCode.BadRequest)]
+    [InlineData("identity.roles.create", "custom", HttpStatusCode.BadRequest)]
+    public async Task PostRoles_Should_EnforcePermissionAndClaimContract_When_CreatingRole(
+        string permission, string claimType, HttpStatusCode expected)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/roles")
+        {
+            Content = JsonContent.Create(
+                new CreateRoleRequest(
+                    "PermissionTest", false, [new(claimType, "identity")]),
+                options: JsonOptions)
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+
+        using var response = await Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expected, await response.Content.ReadAsStringAsync(cancellationToken));
     }
 }
