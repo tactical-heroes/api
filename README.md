@@ -41,11 +41,28 @@ Identity repositories remain asynchronous and defer writes to `IUnitOfWork.SaveC
 The command pipeline saves successful operations; direct callers must save explicitly.
 Login saves its security state through a separate unit of work so failed attempts survive a rejected command.
 
-Run the API:
+Before the first run, configure `ConnectionStrings__PostgreSqlConnectionString`
+for a local PostgreSQL database in the shell used by both the migrator and the API.
+Configure the matching Identity client secrets as described in [Token Validation](#token-validation).
+Run the migrator:
 
 ```bash
-dotnet run --project src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj
+dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
+
+Run the API with the HTTPS profile matching the configured Identity issuer:
+
+```bash
+dotnet run --project src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj --launch-profile https
+```
+
+Open `https://localhost:7091/scalar`; `/health` checks host availability.
+Email flows require SMTP on `localhost:1025` (for example, Mailpit).
+File operations require the `FileManager:AWS` and `FileManager:S3Storage` settings
+for an accessible S3 bucket.
+
+Local builds ignore Wolverine's `Internal/Generated` cache. Docker generates fresh
+handlers and includes them with `IncludeWolverineGeneratedCode=true` when publishing.
 
 In the `Development` environment, open `/scalar` to explore the Identity and
 Compendium APIs. For protected endpoints, enter an access token in the Bearer
@@ -57,12 +74,6 @@ The host's `ScalarConfiguration:BearerAuthenticationSchemes` setting maps
 `OpenIddict.Server.AspNetCore` (UserInfo) to Bearer authentication in OpenAPI.
 This setting describes authentication in the documentation; endpoint access rules
 remain unchanged.
-
-Run the EF migrator:
-
-```bash
-dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
-```
 
 ## Claim Catalogs
 
