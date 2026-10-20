@@ -23,8 +23,8 @@ public static partial class Permissions
 
             private static PermissionDefinition DefineUnitPermission(string action, string displayName) =>
                 PermissionDefinition.Create(
-                    moduleCode: Compendium.Code,
-                    moduleDisplayName: Compendium.DisplayName,
+                    moduleCode: Code,
+                    moduleDisplayName: DisplayName,
                     resourceCode: ResourceCode,
                     resourceDisplayName: ResourceName,
                     action: action,

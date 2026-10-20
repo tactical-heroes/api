@@ -23,8 +23,8 @@ public static partial class Permissions
 
             private static PermissionDefinition DefineRolePermission(string action, string displayName) =>
                 PermissionDefinition.Create(
-                    moduleCode: Identity.Code,
-                    moduleDisplayName: Identity.DisplayName,
+                    moduleCode: Code,
+                    moduleDisplayName: DisplayName,
                     resourceCode: ResourceCode,
                     resourceDisplayName: ResourceName,
                     action: action,
