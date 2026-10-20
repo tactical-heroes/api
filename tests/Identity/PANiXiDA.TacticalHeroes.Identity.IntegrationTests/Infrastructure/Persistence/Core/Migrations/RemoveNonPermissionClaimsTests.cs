@@ -10,10 +10,10 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
 
-public sealed class RemoveSectionClaimsTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
+public sealed class RemoveNonPermissionClaimsTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Up should remove only section claims when assignments exist")]
-    public async Task Up_Should_RemoveOnlySectionClaims_When_AssignmentsExist()
+    [Fact(DisplayName = "Up should retain only permission claims when assignments exist")]
+    public async Task Up_Should_RetainOnlyPermissionClaims_When_AssignmentsExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await Fixture.SeedRolesAsync(cancellationToken);
@@ -23,6 +23,9 @@ public sealed class RemoveSectionClaimsTests(IntegrationTestFixture fixture) : I
             .SingleAsync(item => item.Name == "Developer", cancellationToken);
         role.Claims.Add(new ApplicationRoleClaim { ClaimType = " SECTION ", ClaimValue = "custom-module" });
         role.Claims.Add(new ApplicationRoleClaim { ClaimType = "custom", ClaimValue = "section" });
+        role.Claims.Add(new ApplicationRoleClaim { ClaimType = string.Empty, ClaimValue = "permission" });
+        role.Claims.Add(new ApplicationRoleClaim { ClaimType = " ", ClaimValue = "permission" });
+        role.Claims.Add(new ApplicationRoleClaim { ClaimType = " PERMISSION ", ClaimValue = "retired.permission" });
         var user = new ApplicationUser
         {
             Id = Guid.CreateVersion7(),
@@ -33,7 +36,10 @@ public sealed class RemoveSectionClaimsTests(IntegrationTestFixture fixture) : I
                 new ApplicationUserClaim { ClaimType = "section", ClaimValue = "identity" },
                 new ApplicationUserClaim { ClaimType = " SECTION ", ClaimValue = "compendium" },
                 new ApplicationUserClaim { ClaimType = "permission", ClaimValue = "identity.users.read" },
-                new ApplicationUserClaim { ClaimType = "custom", ClaimValue = "section" }
+                new ApplicationUserClaim { ClaimType = "custom", ClaimValue = "section" },
+                new ApplicationUserClaim { ClaimType = string.Empty, ClaimValue = "permission" },
+                new ApplicationUserClaim { ClaimType = " ", ClaimValue = "permission" },
+                new ApplicationUserClaim { ClaimType = " PERMISSION ", ClaimValue = "retired.permission" }
             ]
         };
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -42,7 +48,7 @@ public sealed class RemoveSectionClaimsTests(IntegrationTestFixture fixture) : I
         await context.SaveChangesAsync(cancellationToken);
         var userId = user.Id;
 
-        var migration = new RemoveSectionClaims();
+        var migration = new RemoveNonPermissionClaims();
         foreach (var operation in migration.UpOperations.Cast<SqlOperation>())
         {
             await context.Database.ExecuteSqlRawAsync(operation.Sql, cancellationToken);
@@ -52,10 +58,12 @@ public sealed class RemoveSectionClaimsTests(IntegrationTestFixture fixture) : I
         context.ChangeTracker.Clear();
         var userClaims = await context.Set<ApplicationUserClaim>()
             .Where(claim => claim.UserId == userId).ToArrayAsync(cancellationToken);
-        userClaims.Select(claim => claim.ClaimType).ShouldBe(["permission", "custom"], ignoreOrder: true);
+        userClaims.Select(claim => claim.ClaimType).ShouldBe(["permission", " PERMISSION "], ignoreOrder: true);
+        userClaims.Select(claim => claim.ClaimValue)
+            .ShouldBe(["identity.users.read", "retired.permission"], ignoreOrder: true);
         var roleClaims = await context.Set<ApplicationRoleClaim>().ToArrayAsync(cancellationToken);
-        roleClaims.ShouldNotContain(claim => claim.ClaimType!.Trim().Equals("section", StringComparison.OrdinalIgnoreCase));
+        roleClaims.ShouldAllBe(claim => claim.ClaimType!.Trim().Equals("permission", StringComparison.OrdinalIgnoreCase));
         roleClaims.Count(claim => claim.ClaimType == "permission").ShouldBe(32);
-        roleClaims.ShouldContain(claim => claim.ClaimType == "custom" && claim.ClaimValue == "section");
+        roleClaims.ShouldContain(claim => claim.ClaimType == " PERMISSION " && claim.ClaimValue == "retired.permission");
     }
 }

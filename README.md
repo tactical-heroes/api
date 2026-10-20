@@ -81,8 +81,8 @@ own session and protocol checks.
 `/connect/authorize` checks only user availability without loading roles or claims;
 `/connect/token` loads current user and role claims when issuing tokens.
 
-`RemoveSectionClaims` removes all user and role section assignments, preserving
-permissions and custom claims. Its rollback cannot reconstruct deleted assignments.
+`RemoveNonPermissionClaims` deletes all user and role claims except `permission`.
+Its rollback cannot reconstruct deleted assignments.
 The `/api/v1/claims/sections` endpoint and `sectionCode` catalog field are removed;
 permission codes remain unchanged. Deploy this API and its migration before the
 matching frontend, then sign in again to obtain permissions in the ID token.
