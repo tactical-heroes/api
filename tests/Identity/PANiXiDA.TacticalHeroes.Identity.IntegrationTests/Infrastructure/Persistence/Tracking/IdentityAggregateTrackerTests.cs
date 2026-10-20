@@ -13,7 +13,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 
 public sealed class IdentityAggregateTrackerTests
 {
-    [Theory(DisplayName = "Tracker should collect and clear Identity and EF roots when both adapters share a scope")]
+    [Theory(DisplayName = "Tracker should collect and clear Identity and EF roots when adapters share scope")]
     [InlineData(false)]
     [InlineData(true)]
     public void GetAll_Should_CombineIdentityAndEfRoots_When_AdaptersShareScope(bool trackRole)

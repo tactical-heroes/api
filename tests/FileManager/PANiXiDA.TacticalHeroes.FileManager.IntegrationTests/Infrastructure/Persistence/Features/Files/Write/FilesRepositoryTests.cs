@@ -20,7 +20,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Add should stage a tracked file until the unit of work saves it")]
+    [Fact(DisplayName = "Add should stage a tracked file when unit of work has not saved")]
     public async Task Add_Should_StageTrackedFile_When_UnitOfWorkHasNotSaved()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
