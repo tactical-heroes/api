@@ -13,7 +13,6 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.I
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Stores;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -64,8 +63,7 @@ internal static class IdentityProviderServiceCollectionExtensions
                 options.Tokens.PasswordResetTokenProvider = identityProviderOptions.TokenProviders.PasswordReset;
             })
             .AddRoles<ApplicationRole>()
-            .AddUserStore<ApplicationUserStore>()
-            .AddRoleStore<ApplicationRoleStore>()
+            .AddEntityFrameworkStores<IdentityWriteDbContext>()
             .AddSignInManager()
             .AddTokenProvider<EmailConfirmationTokenProvider>(identityProviderOptions.TokenProviders.EmailConfirmation)
             .AddTokenProvider<PasswordResetTokenProvider>(identityProviderOptions.TokenProviders.PasswordReset)

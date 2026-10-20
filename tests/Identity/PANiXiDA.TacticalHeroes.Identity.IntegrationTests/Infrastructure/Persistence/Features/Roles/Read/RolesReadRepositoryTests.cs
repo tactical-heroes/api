@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Roles;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Read;
@@ -100,8 +99,6 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
                 roleId, "CustomDefault", [("permission", "compendium.heroes.read")], isDefault: true),
             cancellationToken);
         created.IsSuccess.ShouldBeTrue();
-        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
-            .SaveChangesAsync(cancellationToken);
         var readRepository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
 
         var result = await readRepository.GetDefaultIdAsync(cancellationToken);
@@ -120,8 +117,6 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
-            .SaveChangesAsync(cancellationToken);
 
         return result.Value;
     }

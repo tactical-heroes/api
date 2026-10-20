@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.Core.Application.Persistence;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 
@@ -71,8 +69,6 @@ public sealed class AuthorizeEndpointTests(FunctionalTestFixture fixture)
             ? await manager.DeleteAsync(applicationUser)
             : await manager.UpdateAsync(applicationUser);
         updateResult.Succeeded.ShouldBeTrue();
-        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
-            .SaveChangesAsync(cancellationToken);
 
         using var response = await client.GetAsync(authorizePath, cancellationToken);
 

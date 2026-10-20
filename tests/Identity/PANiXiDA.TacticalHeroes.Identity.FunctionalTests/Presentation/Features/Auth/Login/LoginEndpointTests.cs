@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 
@@ -71,8 +69,7 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
                 Options.Create(new PasswordHasherOptions { IterationCount = 1 }));
             originalHash = hasher.HashPassword(user, Password);
             user.PasswordHash = originalHash;
-            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
-                .SaveChangesAsync(cancellationToken);
+            (await manager.UpdateAsync(user)).Succeeded.ShouldBeTrue();
         }
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(

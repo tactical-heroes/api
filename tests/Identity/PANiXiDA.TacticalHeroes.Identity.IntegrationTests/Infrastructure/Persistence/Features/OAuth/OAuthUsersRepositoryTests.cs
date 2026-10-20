@@ -229,19 +229,14 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext));
-        var cancellationToken = TestContext.Current.CancellationToken;
 
         var createRoleResult = await roleManager.CreateAsync(role: role);
         createRoleResult.Succeeded.ShouldBeTrue();
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var createUserResult = await userManager.CreateAsync(user: user, password: Password);
         createUserResult.Succeeded.ShouldBeTrue();
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var assignRoleResult = await userManager.AddToRoleAsync(user, role.Name!);
         assignRoleResult.Succeeded.ShouldBeTrue();
-        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

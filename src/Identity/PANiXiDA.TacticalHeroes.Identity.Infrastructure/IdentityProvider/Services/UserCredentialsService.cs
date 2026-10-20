@@ -13,7 +13,6 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
@@ -104,7 +103,6 @@ public sealed class UserCredentialsService(
     {
         await using var scope = serviceScopeFactory.CreateAsyncScope();
         var loginManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext));
         var normalizedEmail = loginManager.NormalizeEmail(email);
         var applicationUser = await loginManager.Users
             .WithAuthorizationGraph()
@@ -138,7 +136,6 @@ public sealed class UserCredentialsService(
                 return IdentityResultMapper.ToResult<AuthenticatedUserReadModel>(result: failureResult);
             }
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
             return InvalidCredentials();
         }
 
@@ -148,8 +145,6 @@ public sealed class UserCredentialsService(
         {
             return IdentityResultMapper.ToResult<AuthenticatedUserReadModel>(result: resetResult);
         }
-
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         if (!applicationUser.EmailConfirmed)
         {
