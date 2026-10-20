@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using OpenIddict.Validation.SystemNetHttp;
 
 using PANiXiDA.Core.Application.Messaging.EventBus;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 
 using Wolverine;
@@ -37,6 +38,7 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
         {
+            services.AddScoped<IOAuthClientsRepository, PermissionTestClientsRepository>();
             services.ConfigureAll<HttpClientFactoryOptions>(options =>
                 options.HttpMessageHandlerBuilderActions.Add(handler =>
                 {

@@ -30,7 +30,8 @@ public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
             "forgot@example.test",
             "forgot-hero",
             CurrentPassword,
-            cancellationToken);
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client,

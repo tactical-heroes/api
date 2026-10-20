@@ -19,7 +19,8 @@ public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
             "revoke@example.test",
             "revoke-hero",
             "StrongPassword1!",
-            cancellationToken);
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client,

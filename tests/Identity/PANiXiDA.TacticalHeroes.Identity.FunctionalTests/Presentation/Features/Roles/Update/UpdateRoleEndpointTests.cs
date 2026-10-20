@@ -4,8 +4,6 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAu
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
-using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
-
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Update;
 
 public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
@@ -129,6 +127,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     [Theory(DisplayName = "PUT role should reject unknown managed claims when managed claim is unknown")]
     [InlineData("permission")]
     [InlineData("section")]
+    [InlineData("custom")]
     public async Task PutRole_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -153,20 +152,6 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             .ShouldBe(["Claim value is not present in its catalog."]);
         var details = await client.GetDetailsAsync(existing.Id, cancellationToken);
         details.Claims.ShouldBeEmpty();
-    }
-
-    [Fact(DisplayName = "PUT role should persist a section without permissions when section is known")]
-    public async Task PutRole_Should_PersistSectionOnly_When_SectionIsKnown()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var client = new RoleApiTestClient(Fixture);
-        Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
-        var role = await client.RecreateAsync(cancellationToken);
-
-        await client.UpdateAsync(role.Id, new UpdateRoleRequest("Moderator", false, claims), cancellationToken);
-        var details = await client.GetDetailsAsync(role.Id, cancellationToken);
-
-        details.Claims.ShouldBe(claims);
     }
 
     [Theory(DisplayName = "PUT role should return expected error when target role is missing")]

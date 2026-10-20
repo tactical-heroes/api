@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
@@ -10,8 +12,10 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 public sealed class UpdateRoleHandler(
     IRolesRepository rolesRepository,
     IRolesReadRepository rolesReadRepository)
-    : ICommandHandler<UpdateRoleCommand, Result>
+    : ICommandHandler<UpdateRoleCommand, Result>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Roles.Update.Code];
+
     public async Task<Result> HandleAsync(
         UpdateRoleCommand command,
         CancellationToken cancellationToken)

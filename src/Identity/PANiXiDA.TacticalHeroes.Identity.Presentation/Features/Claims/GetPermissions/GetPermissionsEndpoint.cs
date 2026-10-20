@@ -12,7 +12,8 @@ internal sealed class GetPermissionsEndpoint : IEndpoint<ClaimsEndpoints>
     {
         builder.MapGet(builder.Route, HandleAsync)
             .Produces<GetPermissionsResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> HandleAsync(

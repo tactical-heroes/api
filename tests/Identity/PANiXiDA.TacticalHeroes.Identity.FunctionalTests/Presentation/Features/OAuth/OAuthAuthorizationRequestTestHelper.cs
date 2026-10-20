@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
@@ -44,7 +45,8 @@ internal static class OAuthAuthorizationRequestTestHelper
         string email,
         string userName,
         string password,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Claim>? claims = null)
     {
         var api = new UserApiTestClient(fixture);
 
@@ -55,7 +57,8 @@ internal static class OAuthAuthorizationRequestTestHelper
                 userName,
                 isConfirmed: true) with
             {
-                Password = password
+                Password = password,
+                Claims = claims ?? []
             });
     }
 

@@ -16,6 +16,7 @@ internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
             .Produces<CreateRoleResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status409Conflict);
     }
 

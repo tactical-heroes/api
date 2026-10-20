@@ -7,6 +7,14 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
 public sealed class GetPermissionsHandler
     : IQueryHandler<GetPermissionsQuery, Result<IReadOnlyCollection<PermissionReadModel>>>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AnyPermissions { get; } =
+    [
+        PermissionCatalog.Identity.Roles.Create.Code,
+        PermissionCatalog.Identity.Roles.Update.Code,
+        PermissionCatalog.Identity.Users.Create.Code,
+        PermissionCatalog.Identity.Users.Update.Code
+    ];
+
     public Task<Result<IReadOnlyCollection<PermissionReadModel>>> HandleAsync(
         GetPermissionsQuery query,
         CancellationToken cancellationToken)
@@ -16,7 +24,8 @@ public sealed class GetPermissionsHandler
             .. PermissionCatalog.All.Select(permission => new PermissionReadModel(
                 Code: permission.Code,
                 DisplayName: permission.DisplayName,
-                SectionCode: permission.SectionCode,
+                ModuleCode: permission.ModuleCode,
+                ModuleDisplayName: permission.ModuleDisplayName,
                 ResourceCode: permission.ResourceCode,
                 ResourceDisplayName: permission.ResourceDisplayName))
         ];

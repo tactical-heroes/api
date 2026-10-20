@@ -27,4 +27,19 @@ public sealed class GetFactionsEndpointTests(FunctionalTestFixture fixture)
         response.Items.Select(faction => faction.Name)
             .ShouldBe(["Northern Alliance", "Southern Alliance"]);
     }
+
+    [Theory(DisplayName = "GET factions should require read permission when authenticated")]
+    [InlineData("unrelated", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.factions.read", HttpStatusCode.OK)]
+    public async Task GetFactions_Should_RequireReadPermission_When_Authenticated(
+        string permission, HttpStatusCode expectedStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/factions?pageNumber=1&pageSize=20");
+        request.Headers.Add("X-Test-Permissions", permission);
+
+        using var response = await Fixture.Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expectedStatus, await response.Content.ReadAsStringAsync(cancellationToken));
+    }
 }

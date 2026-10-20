@@ -15,7 +15,8 @@ internal sealed class CreateFactionEndpoint : IEndpoint<FactionsEndpoints>
         builder.MapPost(builder.Route, HandleAsync)
             .Produces<CreateFactionResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> HandleAsync(

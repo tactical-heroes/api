@@ -2,6 +2,8 @@ using System.Security.Claims;
 
 using OpenIddict.Server.AspNetCore;
 
+using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 internal static class OAuthAuthorizationPrincipalFactory
@@ -47,6 +49,11 @@ internal static class OAuthAuthorizationPrincipalFactory
     {
         return claim.Type switch
         {
+            ApplicationClaimTypes.Permission =>
+            [
+                OpenIddictConstants.Destinations.AccessToken,
+                OpenIddictConstants.Destinations.IdentityToken
+            ],
             OpenIddictConstants.Claims.Subject =>
             [
                 OpenIddictConstants.Destinations.AccessToken,

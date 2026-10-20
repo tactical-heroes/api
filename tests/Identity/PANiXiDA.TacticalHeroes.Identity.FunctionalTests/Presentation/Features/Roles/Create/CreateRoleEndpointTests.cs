@@ -1,11 +1,10 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
-
-using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Create;
 
@@ -121,6 +120,7 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
     [Theory(DisplayName = "POST roles should reject unknown managed claims when managed claim is unknown")]
     [InlineData("permission")]
     [InlineData("section")]
+    [InlineData("custom")]
     public async Task PostRoles_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -143,17 +143,28 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
             .ShouldBe(["Claim value is not present in its catalog."]);
     }
 
-    [Fact(DisplayName = "POST roles should persist a section without permissions when section is known")]
-    public async Task PostRoles_Should_PersistSectionOnly_When_SectionIsKnown()
+    [Theory(DisplayName = "POST roles should enforce permission and claim contract when creating role")]
+    [InlineData("identity.roles.read", "custom", HttpStatusCode.Forbidden)]
+    [InlineData("identity.roles.create", "section", HttpStatusCode.BadRequest)]
+    [InlineData("identity.roles.create", " SECTION ", HttpStatusCode.BadRequest)]
+    [InlineData("identity.roles.create", "custom", HttpStatusCode.BadRequest)]
+    public async Task PostRoles_Should_EnforcePermissionAndClaimContract_When_CreatingRole(
+        string permission, string claimType, HttpStatusCode expected)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var client = new RoleApiTestClient(Fixture);
-        Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/roles")
+        {
+            Content = JsonContent.Create(
+                new CreateRoleRequest(
+                    "PermissionTest", false, [new(claimType, "identity")]),
+                options: JsonOptions)
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
 
-        var role = await client.RecreateAsync(
-            cancellationToken, new CreateRoleRequest("Moderator", false, claims));
-        var details = await client.GetDetailsAsync(role.Id, cancellationToken);
+        using var response = await Client.SendAsync(request, cancellationToken);
 
-        details.Claims.ShouldBe(claims);
+        response.StatusCode.ShouldBe(expected, await response.Content.ReadAsStringAsync(cancellationToken));
     }
 }

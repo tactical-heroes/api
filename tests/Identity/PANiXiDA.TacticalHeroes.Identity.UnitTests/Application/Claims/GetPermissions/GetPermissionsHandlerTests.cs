@@ -19,7 +19,7 @@ public sealed class GetPermissionsHandlerTests
         {
             var readModel = result.Value.Single(item => item.Code == permission.Code);
             readModel.DisplayName.ShouldBe(permission.DisplayName);
-            readModel.SectionCode.ShouldBe(permission.SectionCode);
+            readModel.ModuleCode.ShouldBe(permission.ModuleCode);
             readModel.ResourceCode.ShouldBe(permission.ResourceCode);
             readModel.ResourceDisplayName.ShouldBe(permission.ResourceDisplayName);
         }

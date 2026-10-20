@@ -14,6 +14,7 @@ internal sealed class GetUserDetailsEndpoint : IEndpoint<UsersEndpoints>
             .Produces<GetUserDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 

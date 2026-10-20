@@ -77,7 +77,8 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
             "request-logging@example.test",
             "request-logging-hero",
             "StrongPassword1!",
-            cancellationToken);
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             oauthClient,
