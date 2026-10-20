@@ -10,7 +10,7 @@ public sealed class PermissionAuthorizationTests(FunctionalTestFixture fixture) 
     [Theory(DisplayName = "Get should require permission when authenticated")]
     [InlineData("/api/v1/users?pageNumber=1&pageSize=20", "identity.users.read")]
     [InlineData("/api/v1/roles?pageNumber=1&pageSize=20", "identity.roles.read")]
-    [InlineData("/api/v1/users/statuses", "identity.users.update")]
+    [InlineData("/api/v1/users/statuses", "identity.users.read")]
     [InlineData("/api/v1/claims/permissions", "identity.roles.update")]
     public async Task Get_Should_RequirePermission_When_Authenticated(string path, string permission)
     {
@@ -30,6 +30,24 @@ public sealed class PermissionAuthorizationTests(FunctionalTestFixture fixture) 
         allowedResponse.StatusCode.ShouldBe(
             HttpStatusCode.OK,
             await allowedResponse.Content.ReadAsStringAsync(cancellationToken));
+    }
+
+    [Theory(DisplayName = "Get should return forbidden when only form permission is granted")]
+    [InlineData("/api/v1/roles?pageNumber=1&pageSize=20", "identity.users.create")]
+    [InlineData("/api/v1/roles?pageNumber=1&pageSize=20", "identity.users.update")]
+    [InlineData("/api/v1/users/statuses", "identity.users.create")]
+    [InlineData("/api/v1/users/statuses", "identity.users.update")]
+    public async Task Get_Should_ReturnForbidden_When_OnlyFormPermissionIsGranted(string path, string permission)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+
+        using var response = await Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Theory(DisplayName = "Post should enforce permission and claim contract when creating role")]

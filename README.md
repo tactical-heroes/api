@@ -72,9 +72,9 @@ create or update users or roles.
 
 User and role requests assign `{ type, value: item.code }` through `claims`.
 Unknown permission values and retired `section` claim types return HTTP 400.
-Administrative use cases require their corresponding permissions. Lookup queries
-also accept permissions for the forms that consume them. Authentication and OAuth
-flows use their own session and protocol checks.
+Administrative use cases require their corresponding permissions. Resource lookups
+require the corresponding read permission. Authentication and OAuth flows use their
+own session and protocol checks.
 `/connect/authorize` checks only user availability without loading roles or claims;
 `/connect/token` loads current user and role claims when issuing tokens.
 

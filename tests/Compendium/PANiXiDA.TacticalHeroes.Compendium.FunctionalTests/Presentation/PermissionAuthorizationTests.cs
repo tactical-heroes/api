@@ -6,7 +6,7 @@ public sealed class PermissionAuthorizationTests(FunctionalTestFixture fixture) 
     [InlineData("/api/v1/factions?pageNumber=1&pageSize=20", "compendium.factions.read")]
     [InlineData("/api/v1/heroes?pageNumber=1&pageSize=20", "compendium.heroes.read")]
     [InlineData("/api/v1/units?pageNumber=1&pageSize=20", "compendium.units.read")]
-    [InlineData("/api/v1/factions/select-options?limit=20", "compendium.heroes.create")]
+    [InlineData("/api/v1/factions/select-options?limit=20", "compendium.factions.read")]
     public async Task Get_Should_RequirePermission_When_Authenticated(string path, string permission)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -21,6 +21,21 @@ public sealed class PermissionAuthorizationTests(FunctionalTestFixture fixture) 
         allowedResponse.StatusCode.ShouldBe(
             HttpStatusCode.OK,
             await allowedResponse.Content.ReadAsStringAsync(cancellationToken));
+    }
+
+    [Theory(DisplayName = "Get should return forbidden when only form permission is granted")]
+    [InlineData("compendium.heroes.create")]
+    [InlineData("compendium.heroes.update")]
+    [InlineData("compendium.units.create")]
+    [InlineData("compendium.units.update")]
+    public async Task Get_Should_ReturnForbidden_When_OnlyFormPermissionIsGranted(string permission)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/factions/select-options?limit=20");
+        request.Headers.Add("X-Test-Permissions", permission);
+
+        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Theory(DisplayName = "Delete should return forbidden when only read permission is granted")]

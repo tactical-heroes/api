@@ -8,14 +8,7 @@ public sealed class GetFactionSelectOptionsHandler(IFactionsReadRepository facti
     IQueryHandler<GetFactionSelectOptionsQuery, Result<IReadOnlyList<FactionSelectOptionReadModel>>>,
     IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AnyPermissions { get; } =
-    [
-        Permissions.Factions.Read.Code,
-        Permissions.Heroes.Create.Code,
-        Permissions.Heroes.Update.Code,
-        Permissions.Units.Create.Code,
-        Permissions.Units.Update.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Factions.Read.Code];
 
     public async Task<Result<IReadOnlyList<FactionSelectOptionReadModel>>> HandleAsync(
         GetFactionSelectOptionsQuery query,
