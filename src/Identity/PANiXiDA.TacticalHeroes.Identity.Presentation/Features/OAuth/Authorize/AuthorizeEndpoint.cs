@@ -69,7 +69,7 @@ internal sealed class AuthorizeEndpoint : IEndpoint<OAuthEndpoints>
         }
 
         var principal = OAuthAuthorizationPrincipalFactory.Create(
-            claims: userResult.Value.Claims,
+            source: authenticationResult.Principal,
             scopes: openIddictRequest.GetScopes(),
             audience: tokenOptions.Value.Audience);
 

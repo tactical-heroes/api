@@ -21,6 +21,21 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         .ThenInclude(role => role!.Claims)
         .AsSingleQuery();
 
+    public async Task<Result> CheckAvailabilityByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Set<UserReadDbModel>()
+            .AsNoTracking()
+            .Where(user => user.Id == userId)
+            .Select(user => new { user.Status, user.EmailConfirmed })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return user is null
+            ? Result.Failure(error: Error.NotFound(message: "User was not found."))
+            : EnsureAvailable(status: user.Status, isConfirmed: user.EmailConfirmed);
+    }
+
     public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -34,7 +49,9 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 error: Error.NotFound(message: "User was not found."));
         }
 
-        var availabilityResult = EnsureAvailable(applicationUser);
+        var availabilityResult = EnsureAvailable(
+            status: applicationUser.Status,
+            isConfirmed: applicationUser.EmailConfirmed);
 
         return availabilityResult.IsFailure
             ? Result.Failure<ExchangeTokenReadModel>(errors: availabilityResult.Errors)
@@ -56,7 +73,9 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 error: Error.NotFound(message: "User was not found."));
         }
 
-        var availabilityResult = EnsureAvailable(applicationUser);
+        var availabilityResult = EnsureAvailable(
+            status: applicationUser.Status,
+            isConfirmed: applicationUser.EmailConfirmed);
 
         if (availabilityResult.IsFailure)
         {
@@ -81,18 +100,18 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 Roles: roles));
     }
 
-    private static Result EnsureAvailable(UserReadDbModel applicationUser)
+    private static Result EnsureAvailable(string status, bool isConfirmed)
     {
         if (
             string.Equals(
-                applicationUser.Status,
+                status,
                 UserStatus.Blocked.Name,
                 StringComparison.Ordinal))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }
 
-        return applicationUser.EmailConfirmed
+        return isConfirmed
             ? Result.Success()
             : Result.Failure(error: Error.Forbidden(message: "User is not confirmed."));
     }

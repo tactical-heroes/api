@@ -1,6 +1,8 @@
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
@@ -8,6 +10,8 @@ using OpenIddict.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
@@ -17,6 +21,86 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
     private const string Password = "StrongPassword1!";
+
+    [Fact(
+        DisplayName = "CheckAvailabilityByUserIdAsync should query only availability columns when user has authorization graph")]
+    public async Task
+        CheckAvailabilityByUserIdAsync_Should_QueryOnlyAvailabilityColumns_When_UserHasAuthorizationGraph()
+    {
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "availability-role",
+            Claims = [new ApplicationRoleClaim { ClaimType = "permission", ClaimValue = "identity.users.read" }]
+        };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "availability@example.test",
+            UserName = "availability-user",
+            Status = UserStatus.Active.Name,
+            EmailConfirmed = true,
+            Claims = [new ApplicationUserClaim { ClaimType = "custom", ClaimValue = "private" }]
+        };
+        await AddAsync(role, user);
+        var commands = new List<string>();
+        var options = new DbContextOptionsBuilder<IdentityReadDbContext>()
+            .UseNpgsql(Fixture.ConnectionString)
+            .UseSnakeCaseNamingConvention()
+            .LogTo(commands.Add, [RelationalEventId.CommandExecuted])
+            .Options;
+        await using var dbContext = new IdentityReadDbContext(options);
+        var repository = new OAuthUsersRepository(dbContext);
+
+        var result = await repository.CheckAvailabilityByUserIdAsync(user.Id, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var sql = commands.ShouldHaveSingleItem();
+        sql.ShouldContain("email_confirmed");
+        sql.ShouldContain("status");
+        sql.ShouldNotContain("asp_net_roles");
+        sql.ShouldNotContain("asp_net_user_roles");
+        sql.ShouldNotContain("asp_net_user_claims");
+        sql.ShouldNotContain("asp_net_role_claims");
+        sql.ShouldNotContain("password_hash");
+    }
+
+    [Theory(DisplayName = "CheckAvailabilityByUserIdAsync should return forbidden when user is unavailable")]
+    [InlineData("Blocked", true)]
+    [InlineData("Active", false)]
+    public async Task CheckAvailabilityByUserIdAsync_Should_ReturnForbidden_When_UserIsUnavailable(
+        string status,
+        bool isConfirmed)
+    {
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "unavailable@example.test",
+            UserName = "unavailable-user",
+            Status = status,
+            EmailConfirmed = isConfirmed
+        };
+        await AddAsync(new ApplicationRole { Id = Guid.CreateVersion7(), Name = "unavailable-role" }, user);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+
+        var result = await repository.CheckAvailabilityByUserIdAsync(user.Id, TestContext.Current.CancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Forbidden);
+    }
+
+    [Fact(DisplayName = "CheckAvailabilityByUserIdAsync should return not found when user does not exist")]
+    public async Task CheckAvailabilityByUserIdAsync_Should_ReturnNotFound_When_UserDoesNotExist()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+
+        var result = await repository.CheckAvailabilityByUserIdAsync(
+            Guid.CreateVersion7(),
+            TestContext.Current.CancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+    }
 
     [Fact(DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query when user exists")]
     public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists()
