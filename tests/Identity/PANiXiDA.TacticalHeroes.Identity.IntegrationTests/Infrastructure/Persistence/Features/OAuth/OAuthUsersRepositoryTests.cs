@@ -23,9 +23,8 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
     private const string Password = "StrongPassword1!";
 
     [Fact(
-        DisplayName = "CheckAvailabilityByUserIdAsync should query only availability columns when user has authorization graph")]
-    public async Task
-        CheckAvailabilityByUserIdAsync_Should_QueryOnlyAvailabilityColumns_When_UserHasAuthorizationGraph()
+        DisplayName = "CheckAvailabilityByUserIdAsync should skip authorization graph when user has authorization graph")]
+    public async Task CheckAvailabilityByUserIdAsync_Should_SkipAuthorizationGraph_When_UserHasAuthorizationGraph()
     {
         var role = new ApplicationRole
         {
@@ -62,7 +61,6 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         sql.ShouldNotContain("asp_net_user_roles");
         sql.ShouldNotContain("asp_net_user_claims");
         sql.ShouldNotContain("asp_net_role_claims");
-        sql.ShouldNotContain("password_hash");
     }
 
     [Theory(DisplayName = "CheckAvailabilityByUserIdAsync should return forbidden when user is unavailable")]

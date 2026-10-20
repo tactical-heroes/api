@@ -27,13 +27,11 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
     {
         var user = await dbContext.Set<UserReadDbModel>()
             .AsNoTracking()
-            .Where(user => user.Id == userId)
-            .Select(user => new { user.Status, user.EmailConfirmed })
-            .SingleOrDefaultAsync(cancellationToken);
+            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
         return user is null
             ? Result.Failure(error: Error.NotFound(message: "User was not found."))
-            : EnsureAvailable(status: user.Status, isConfirmed: user.EmailConfirmed);
+            : EnsureAvailable(user);
     }
 
     public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
@@ -49,9 +47,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 error: Error.NotFound(message: "User was not found."));
         }
 
-        var availabilityResult = EnsureAvailable(
-            status: applicationUser.Status,
-            isConfirmed: applicationUser.EmailConfirmed);
+        var availabilityResult = EnsureAvailable(applicationUser);
 
         return availabilityResult.IsFailure
             ? Result.Failure<ExchangeTokenReadModel>(errors: availabilityResult.Errors)
@@ -73,9 +69,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 error: Error.NotFound(message: "User was not found."));
         }
 
-        var availabilityResult = EnsureAvailable(
-            status: applicationUser.Status,
-            isConfirmed: applicationUser.EmailConfirmed);
+        var availabilityResult = EnsureAvailable(applicationUser);
 
         if (availabilityResult.IsFailure)
         {
@@ -100,18 +94,18 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
                 Roles: roles));
     }
 
-    private static Result EnsureAvailable(string status, bool isConfirmed)
+    private static Result EnsureAvailable(UserReadDbModel applicationUser)
     {
         if (
             string.Equals(
-                status,
+                applicationUser.Status,
                 UserStatus.Blocked.Name,
                 StringComparison.Ordinal))
         {
             return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
         }
 
-        return isConfirmed
+        return applicationUser.EmailConfirmed
             ? Result.Success()
             : Result.Failure(error: Error.Forbidden(message: "User is not confirmed."));
     }
