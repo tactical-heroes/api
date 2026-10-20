@@ -7,10 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
 public sealed class DeleteUserHandler(IUsersRepository usersRepository)
     : ICommandHandler<DeleteUserCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.IdentityUsers.Delete.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityUsers.Delete.Code];
 
     public Task<Result> HandleAsync(
         DeleteUserCommand command,

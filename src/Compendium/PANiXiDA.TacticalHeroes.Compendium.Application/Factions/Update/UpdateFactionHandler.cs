@@ -9,10 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Update;
 public sealed class UpdateFactionHandler(IFactionsRepository factionsRepository)
     : ICommandHandler<UpdateFactionCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.Factions.Update.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Factions.Update.Code];
 
     public async Task<Result> HandleAsync(
         UpdateFactionCommand command,

@@ -13,10 +13,7 @@ public sealed class CreateUnitHandler(
     IFactionsRepository factionsRepository)
     : ICommandHandler<CreateUnitCommand, Result<Guid>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.Units.Create.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Units.Create.Code];
 
     public async Task<Result<Guid>> HandleAsync(
         CreateUnitCommand command,

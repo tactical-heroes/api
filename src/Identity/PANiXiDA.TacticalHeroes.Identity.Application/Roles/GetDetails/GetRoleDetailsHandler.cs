@@ -7,10 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
 public sealed class GetRoleDetailsHandler(IRolesReadRepository rolesReadRepository)
     : IQueryHandler<GetRoleDetailsQuery, Result<RoleDetailsReadModel>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.IdentityRoles.Read.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityRoles.Read.Code];
 
     public async Task<Result<RoleDetailsReadModel>> HandleAsync(
         GetRoleDetailsQuery query,

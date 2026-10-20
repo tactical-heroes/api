@@ -13,10 +13,7 @@ public sealed class CreateHeroHandler(
     IFactionsRepository factionsRepository)
     : ICommandHandler<CreateHeroCommand, Result<Guid>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.Heroes.Create.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Heroes.Create.Code];
 
     public async Task<Result<Guid>> HandleAsync(
         CreateHeroCommand command,

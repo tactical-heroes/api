@@ -8,10 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Delete;
 public sealed class DeleteUnitHandler(IUnitsRepository unitsRepository)
     : ICommandHandler<DeleteUnitCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.Units.Delete.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Units.Delete.Code];
 
     public async Task<Result> HandleAsync(
         DeleteUnitCommand command,

@@ -8,10 +8,7 @@ public sealed class GetFactionDetailsHandler(
     IFactionsReadRepository factionsReadRepository)
     : IQueryHandler<GetFactionDetailsQuery, Result<FactionDetailsReadModel>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.Factions.Read.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Factions.Read.Code];
 
     public async Task<Result<FactionDetailsReadModel>> HandleAsync(
         GetFactionDetailsQuery query,

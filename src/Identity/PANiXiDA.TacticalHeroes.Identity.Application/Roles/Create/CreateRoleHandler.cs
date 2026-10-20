@@ -14,10 +14,7 @@ public sealed class CreateRoleHandler(
     IRolesReadRepository rolesReadRepository)
     : ICommandHandler<CreateRoleCommand, Result<Guid>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } =
-    [
-        Permissions.IdentityRoles.Create.Code
-    ];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityRoles.Create.Code];
 
     public async Task<Result<Guid>> HandleAsync(
         CreateRoleCommand command,
