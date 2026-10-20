@@ -45,7 +45,7 @@ public sealed class CreateUserCommandValidatorTests
         result.Errors
             .Count(error =>
                 error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
-            .ShouldBe(2);
+            .ShouldBe(3);
         result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateUserCommand.Status));
     }
 

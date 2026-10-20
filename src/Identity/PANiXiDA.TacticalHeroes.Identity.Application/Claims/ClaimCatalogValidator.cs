@@ -16,16 +16,7 @@ public sealed class ClaimCatalogValidator : AbstractValidator<Claim>
 
     private static bool IsKnownValue(string type, string value)
     {
-        if (string.Equals(type, ApplicationClaimTypes.Permission, StringComparison.OrdinalIgnoreCase))
-        {
-            return PermissionCatalog.All.Any(permission => permission.Code == value);
-        }
-
-        if (string.Equals(type, ApplicationClaimTypes.Section, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        return true;
+        return string.Equals(type, ApplicationClaimTypes.Permission, StringComparison.OrdinalIgnoreCase)
+            && PermissionCatalog.All.Any(permission => permission.Code == value);
     }
 }

@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 public sealed class GetFactionsHandler(IFactionsReadRepository factionsReadRepository)
     : IQueryHandler<GetFactionsQuery, Result<PaginationResult<FactionListItemReadModel>>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Factions.Read.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Factions.Read.Code];
 
     public async Task<Result<PaginationResult<FactionListItemReadModel>>> HandleAsync(
         GetFactionsQuery query,

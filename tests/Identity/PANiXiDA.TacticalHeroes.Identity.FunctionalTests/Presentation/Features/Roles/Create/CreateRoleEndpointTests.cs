@@ -119,6 +119,7 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
     [Theory(DisplayName = "POST roles should reject unknown managed claims when managed claim is unknown")]
     [InlineData("permission")]
     [InlineData("section")]
+    [InlineData("custom")]
     public async Task PostRoles_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -139,19 +140,5 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
             .EnumerateArray()
             .Select(error => error.GetString())
             .ShouldBe(["Claim value is not present in its catalog."]);
-    }
-
-    [Fact(DisplayName = "POST roles should persist custom claims when no permissions are assigned")]
-    public async Task PostRoles_Should_PersistCustomClaim_When_NoPermissionsAreAssigned()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var client = new RoleApiTestClient(Fixture);
-        Claim[] claims = [new("custom", "identity")];
-
-        var role = await client.RecreateAsync(
-            cancellationToken, new CreateRoleRequest("Moderator", false, claims));
-        var details = await client.GetDetailsAsync(role.Id, cancellationToken);
-
-        details.Claims.ShouldBe(claims);
     }
 }

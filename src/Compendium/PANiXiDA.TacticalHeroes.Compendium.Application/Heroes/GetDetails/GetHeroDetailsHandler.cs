@@ -8,7 +8,7 @@ public sealed class GetHeroDetailsHandler(
     IHeroesReadRepository heroesReadRepository)
     : IQueryHandler<GetHeroDetailsQuery, Result<HeroDetailsReadModel>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Heroes.Read.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Heroes.Read.Code];
 
     public async Task<Result<HeroDetailsReadModel>> HandleAsync(
         GetHeroDetailsQuery query,

@@ -131,6 +131,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     [Theory(DisplayName = "PUT user should reject unknown managed claims when managed claim is unknown")]
     [InlineData("permission")]
     [InlineData("section")]
+    [InlineData("custom")]
     public async Task PutUser_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -161,30 +162,6 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             .ShouldBe(["Claim value is not present in its catalog."]);
         var details = await client.GetDetailsAsync(existing.Id, cancellationToken);
         details.Claims.ShouldBeEmpty();
-    }
-
-    [Fact(DisplayName = "PUT user should persist custom claims when no permissions are assigned")]
-    public async Task PutUser_Should_PersistCustomClaim_When_NoPermissionsAreAssigned()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var client = new UserApiTestClient(Fixture);
-        Claim[] claims = [new("custom", "compendium")];
-        var request = UserApiTestClient.CreateDefaultRequest();
-        var user = await client.CreateAsync(cancellationToken, request);
-
-        await client.UpdateAsync(
-            user.Id,
-            new UpdateUserRequest(
-                Email: request.Email,
-                UserName: request.UserName,
-                IsConfirmed: request.IsConfirmed,
-                Claims: claims,
-                Status: request.Status,
-                RoleIds: []),
-            cancellationToken);
-        var details = await client.GetDetailsAsync(user.Id, cancellationToken);
-
-        details.Claims.ShouldBe(claims);
     }
 
     [Theory(DisplayName = "PUT user should return domain validation errors when status is invalid")]

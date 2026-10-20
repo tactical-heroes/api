@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Block;
 public sealed class BlockUserHandler(IUsersRepository usersRepository)
     : ICommandHandler<BlockUserCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityUsers.Update.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
 
     public Task<Result> HandleAsync(
         BlockUserCommand command,

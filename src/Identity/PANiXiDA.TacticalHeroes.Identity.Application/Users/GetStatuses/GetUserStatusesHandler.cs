@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
 public sealed class GetUserStatusesHandler
     : IQueryHandler<GetUserStatusesQuery, Result<IReadOnlyCollection<UserStatusReadModel>>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityUsers.Read.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Read.Code];
 
     public Task<Result<IReadOnlyCollection<UserStatusReadModel>>> HandleAsync(
         GetUserStatusesQuery query,

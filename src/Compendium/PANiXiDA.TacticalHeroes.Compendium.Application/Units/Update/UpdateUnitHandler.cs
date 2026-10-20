@@ -13,7 +13,7 @@ public sealed class UpdateUnitHandler(
     IFactionsRepository factionsRepository)
     : ICommandHandler<UpdateUnitCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Units.Update.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Units.Update.Code];
 
     public async Task<Result> HandleAsync(
         UpdateUnitCommand command,

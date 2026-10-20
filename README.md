@@ -64,6 +64,8 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 
 Common provides `Permissions.All`, grouped by module and resource. Module names
 are display metadata and do not grant access.
+Named permissions follow the same hierarchy, for example
+`Permissions.Identity.Roles.Read` and `Permissions.Compendium.Factions.Read`.
 
 `GET /api/v1/claims/permissions` returns `{ "type": "permission", "items": [...] }`.
 Items include `code`, `displayName`, `moduleCode`, `moduleDisplayName`,
@@ -71,7 +73,8 @@ Items include `code`, `displayName`, `moduleCode`, `moduleDisplayName`,
 create or update users or roles.
 
 User and role requests assign `{ type, value: item.code }` through `claims`.
-Unknown permission values and retired `section` claim types return HTTP 400.
+Only `permission` claims with known catalog values can be assigned. Other claim
+types and unknown permission values return HTTP 400.
 Administrative use cases require their corresponding permissions. Resource lookups
 require the corresponding read permission. Authentication and OAuth flows use their
 own session and protocol checks.

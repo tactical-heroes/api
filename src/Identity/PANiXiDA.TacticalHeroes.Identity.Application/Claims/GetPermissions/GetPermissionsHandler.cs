@@ -9,10 +9,10 @@ public sealed class GetPermissionsHandler
 {
     public static IReadOnlyCollection<string> AnyPermissions { get; } =
     [
-        PermissionCatalog.IdentityRoles.Create.Code,
-        PermissionCatalog.IdentityRoles.Update.Code,
-        PermissionCatalog.IdentityUsers.Create.Code,
-        PermissionCatalog.IdentityUsers.Update.Code
+        PermissionCatalog.Identity.Roles.Create.Code,
+        PermissionCatalog.Identity.Roles.Update.Code,
+        PermissionCatalog.Identity.Users.Create.Code,
+        PermissionCatalog.Identity.Users.Update.Code
     ];
 
     public Task<Result<IReadOnlyCollection<PermissionReadModel>>> HandleAsync(

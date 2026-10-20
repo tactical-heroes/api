@@ -54,7 +54,7 @@ public sealed class PermissionAuthorizationTests(FunctionalTestFixture fixture) 
     [InlineData("identity.roles.read", "custom", HttpStatusCode.Forbidden)]
     [InlineData("identity.roles.create", "section", HttpStatusCode.BadRequest)]
     [InlineData("identity.roles.create", " SECTION ", HttpStatusCode.BadRequest)]
-    [InlineData("identity.roles.create", "custom", HttpStatusCode.Created)]
+    [InlineData("identity.roles.create", "custom", HttpStatusCode.BadRequest)]
     public async Task Post_Should_EnforcePermissionAndClaimContract_When_CreatingRole(
         string permission, string claimType, HttpStatusCode expected)
     {

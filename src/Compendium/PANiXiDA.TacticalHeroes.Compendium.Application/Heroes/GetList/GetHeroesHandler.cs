@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
 public sealed class GetHeroesHandler(IHeroesReadRepository heroesReadRepository)
     : IQueryHandler<GetHeroesQuery, Result<PaginationResult<HeroListItemReadModel>>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Heroes.Read.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Heroes.Read.Code];
 
     public async Task<Result<PaginationResult<HeroListItemReadModel>>> HandleAsync(
         GetHeroesQuery query,

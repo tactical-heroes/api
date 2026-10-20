@@ -14,7 +14,7 @@ public sealed class UpdateRoleHandler(
     IRolesReadRepository rolesReadRepository)
     : ICommandHandler<UpdateRoleCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityRoles.Update.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Roles.Update.Code];
 
     public async Task<Result> HandleAsync(
         UpdateRoleCommand command,

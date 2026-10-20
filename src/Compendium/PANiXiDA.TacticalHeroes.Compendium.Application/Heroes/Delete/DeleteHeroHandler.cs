@@ -8,7 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Delete;
 public sealed class DeleteHeroHandler(IHeroesRepository heroesRepository)
     : ICommandHandler<DeleteHeroCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Heroes.Delete.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Heroes.Delete.Code];
 
     public async Task<Result> HandleAsync(
         DeleteHeroCommand command,

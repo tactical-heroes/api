@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 public sealed class GetUsersHandler(IUsersReadRepository usersReadRepository)
     : IQueryHandler<GetUsersQuery, Result<PaginationResult<UserListItemReadModel>>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityUsers.Read.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Read.Code];
 
     public async Task<Result<PaginationResult<UserListItemReadModel>>> HandleAsync(
         GetUsersQuery query,

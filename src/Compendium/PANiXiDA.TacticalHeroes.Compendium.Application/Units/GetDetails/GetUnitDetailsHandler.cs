@@ -8,7 +8,7 @@ public sealed class GetUnitDetailsHandler(
     IUnitsReadRepository unitsReadRepository)
     : IQueryHandler<GetUnitDetailsQuery, Result<UnitDetailsReadModel>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Units.Read.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Units.Read.Code];
 
     public async Task<Result<UnitDetailsReadModel>> HandleAsync(
         GetUnitDetailsQuery query,

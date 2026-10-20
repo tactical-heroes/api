@@ -13,7 +13,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 public sealed class UpdateUserHandler(IUsersRepository usersRepository)
     : ICommandHandler<UpdateUserCommand, Result>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.IdentityUsers.Update.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
 
     public Task<Result> HandleAsync(
         UpdateUserCommand command,

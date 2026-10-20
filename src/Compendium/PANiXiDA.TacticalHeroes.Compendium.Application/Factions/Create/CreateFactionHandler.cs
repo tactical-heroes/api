@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 public sealed class CreateFactionHandler(IFactionsRepository factionsRepository)
     : ICommandHandler<CreateFactionCommand, Result<Guid>>, IRequireAuthorization
 {
-    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Factions.Create.Code];
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Factions.Create.Code];
 
     public async Task<Result<Guid>> HandleAsync(
         CreateFactionCommand command,

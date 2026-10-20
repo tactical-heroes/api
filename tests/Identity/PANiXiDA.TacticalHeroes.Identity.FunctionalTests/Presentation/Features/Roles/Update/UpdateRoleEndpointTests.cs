@@ -127,6 +127,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     [Theory(DisplayName = "PUT role should reject unknown managed claims when managed claim is unknown")]
     [InlineData("permission")]
     [InlineData("section")]
+    [InlineData("custom")]
     public async Task PutRole_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -151,20 +152,6 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             .ShouldBe(["Claim value is not present in its catalog."]);
         var details = await client.GetDetailsAsync(existing.Id, cancellationToken);
         details.Claims.ShouldBeEmpty();
-    }
-
-    [Fact(DisplayName = "PUT role should persist custom claims when no permissions are assigned")]
-    public async Task PutRole_Should_PersistCustomClaim_When_NoPermissionsAreAssigned()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var client = new RoleApiTestClient(Fixture);
-        Claim[] claims = [new("custom", "identity")];
-        var role = await client.RecreateAsync(cancellationToken);
-
-        await client.UpdateAsync(role.Id, new UpdateRoleRequest("Moderator", false, claims), cancellationToken);
-        var details = await client.GetDetailsAsync(role.Id, cancellationToken);
-
-        details.Claims.ShouldBe(claims);
     }
 
     [Theory(DisplayName = "PUT role should return expected error when target role is missing")]

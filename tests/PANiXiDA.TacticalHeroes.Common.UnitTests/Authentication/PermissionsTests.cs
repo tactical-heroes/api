@@ -10,6 +10,7 @@ public sealed class PermissionsTests
     public void All_Should_ContainEveryDeclaredPermissionExactlyOnce_When_CatalogIsRead()
     {
         var declaredPermissions = typeof(Permissions).GetNestedTypes()
+            .SelectMany(module => module.GetNestedTypes())
             .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
             .Where(field => field.FieldType == typeof(PermissionDefinition))
             .Select(field => (PermissionDefinition)field.GetValue(null)!)
@@ -84,6 +85,6 @@ public sealed class PermissionsTests
 
         permissions.IsReadOnly.ShouldBeTrue();
         Should.Throw<NotSupportedException>(() => permissions.Clear());
-        Should.Throw<NotSupportedException>(() => permissions[0] = Permissions.IdentityRoles.Update);
+        Should.Throw<NotSupportedException>(() => permissions[0] = Permissions.Identity.Roles.Update);
     }
 }
