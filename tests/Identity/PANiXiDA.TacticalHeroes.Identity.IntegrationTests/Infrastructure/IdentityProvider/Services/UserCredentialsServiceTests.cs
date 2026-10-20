@@ -41,6 +41,10 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        var context = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        (await context.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeFalse();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var user = await userManager.FindByIdAsync(result.Value.ToString());
         user.ShouldNotBeNull();
         user.Email.ShouldBe("register@example.com");
@@ -78,6 +82,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var result = await service.RegisterAsync("newcomer@example.com", "newcomer", Password, cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var user = await dbContext.Set<ApplicationUser>().Include(item => item.Roles)
             .SingleAsync(item => item.Id == result.Value, cancellationToken);
         user.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(role.Id);
@@ -250,6 +256,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             Password,
             "NewStrongPassword1!",
             cancellationToken);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var loginResult = await service.LoginAsync(
             user.Email,
             "NewStrongPassword1!",
@@ -282,6 +290,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(TestContext.Current.CancellationToken);
         (await userManager.IsEmailConfirmedAsync(persistedUser)).ShouldBeTrue();
     }
 
@@ -365,6 +375,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(TestContext.Current.CancellationToken);
         (await userManager.CheckPasswordAsync(persistedUser, Password)).ShouldBeFalse();
         (await userManager.CheckPasswordAsync(persistedUser, NewPassword)).ShouldBeTrue();
     }
@@ -411,6 +423,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -503,10 +517,15 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext));
+        var cancellationToken = TestContext.Current.CancellationToken;
 
         (await roleManager.CreateAsync(role: role)).Succeeded.ShouldBeTrue();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         (await userManager.CreateAsync(user: user, password: Password)).Succeeded.ShouldBeTrue();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         (await userManager.AddToRoleAsync(user, role.Name!)).Succeeded.ShouldBeTrue();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private async Task AddUserAsync(ApplicationUser user)
@@ -515,5 +534,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         (await userManager.CreateAsync(user: user, password: Password)).Succeeded.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 }

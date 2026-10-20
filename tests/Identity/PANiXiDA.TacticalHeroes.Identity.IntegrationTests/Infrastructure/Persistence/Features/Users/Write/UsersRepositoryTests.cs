@@ -72,6 +72,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -105,6 +107,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             (await repository.DeleteAsync(userId, cancellationToken)).IsSuccess.ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -144,6 +148,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             (await repository.BlockAsync(userId, cancellationToken)).IsSuccess.ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         (await ReadStatusAsync(userId, cancellationToken)).ShouldBe(UserStatus.Blocked.Name);
@@ -165,6 +171,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             (await repository.UnblockAsync(userId, cancellationToken)).IsSuccess.ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         (await ReadStatusAsync(userId, cancellationToken)).ShouldBe(UserStatus.Active.Name);
@@ -188,6 +196,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var created = await repository.AddAsync(
             CreateUser(userId, [roles["Developer"]]), "StrongPassword1!", cancellationToken);
         created.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var targetRoles = mode switch
         {
             "same" => new[] { roles["Developer"] },
@@ -201,6 +211,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken: cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var user = await dbContext.Set<ApplicationUser>()
             .Include(item => item.Roles)
             .AsNoTracking()
@@ -235,6 +247,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var id = Guid.CreateVersion7();
         var created = await repository.AddAsync(CreateUser(id, []), Password, cancellationToken);
         created.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var invalidUser = CreateUser(id, [Guid.CreateVersion7()]);
 
         var result = await repository.UpdateAsync(invalidUser, cancellationToken);
@@ -260,6 +274,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var created = await repository.AddAsync(
             CreateUser(id, [roles["Player"]]), "StrongPassword1!", cancellationToken);
         created.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var other = IntegrationTestData.CreateUser(
             id: Guid.CreateVersion7(),
             email: "occupied@example.com",
@@ -269,6 +285,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             userName: "occupied",
             status: UserStatus.Active);
         (await repository.AddAsync(other, "StrongPassword1!", cancellationToken)).IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var original = await dbContext.Set<ApplicationUser>()
             .AsNoTracking()
             .SingleAsync(user => user.Id == id, cancellationToken);
@@ -329,6 +347,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         return result.Value;
     }

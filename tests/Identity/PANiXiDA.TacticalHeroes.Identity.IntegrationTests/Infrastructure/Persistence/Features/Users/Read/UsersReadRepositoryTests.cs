@@ -8,6 +8,8 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
 
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Read;
 
 public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
@@ -137,6 +139,8 @@ public sealed class UsersReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         return result.Value;
     }

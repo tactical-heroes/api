@@ -24,7 +24,7 @@ internal static class ServiceCollectionExtensions
     {
         serviceCollection.TryAddScoped<AggregateTracker>();
         serviceCollection.Replace(ServiceDescriptor.Scoped<IAggregateTracker, IdentityAggregateTracker>());
-        serviceCollection.TryAddKeyedScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>(
+        serviceCollection.TryAddKeyedScoped<IUnitOfWork, IdentityUnitOfWork>(
             typeof(IdentityWriteDbContext));
 
         serviceCollection.AddDbContext<IdentityWriteDbContext>(options =>

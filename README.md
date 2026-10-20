@@ -37,6 +37,10 @@ each assembly (`ParallelMode.None`). CI still runs separate test projects in
 parallel. Database resets clear only the module schema and preserve migration
 history and Wolverine's messaging tables, which remain in use by background workers.
 
+Identity repositories remain asynchronous and defer writes to `IUnitOfWork.SaveChangesAsync`.
+The command pipeline saves successful operations; direct callers must save explicitly.
+Login saves its security state through a separate unit of work so failed attempts survive a rejected command.
+
 Run the API:
 
 ```bash

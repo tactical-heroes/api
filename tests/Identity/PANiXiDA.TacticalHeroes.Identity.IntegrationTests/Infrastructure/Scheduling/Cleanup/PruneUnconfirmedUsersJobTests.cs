@@ -45,6 +45,8 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
             (await userManager.CreateAsync(user: staleUnconfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
             (await userManager.CreateAsync(user: recentUnconfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
             (await userManager.CreateAsync(user: staleConfirmedUser, password: Password)).Succeeded.ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(TestContext.Current.CancellationToken);
 
             await SetCreatedAtAsync(dbContext, staleUnconfirmedUser, s_nowUtc.AddDays(-8));
             await SetCreatedAtAsync(dbContext, recentUnconfirmedUser, s_nowUtc.AddDays(-1));
@@ -96,6 +98,8 @@ public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture
                 password: Password))
                 .Succeeded
                 .ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(TestContext.Current.CancellationToken);
             await SetCreatedAtAsync(
                 dbContext: dbContext,
                 user: staleUnconfirmedUser,

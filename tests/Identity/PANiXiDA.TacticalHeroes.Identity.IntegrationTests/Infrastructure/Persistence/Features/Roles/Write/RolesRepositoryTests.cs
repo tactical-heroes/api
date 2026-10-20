@@ -54,6 +54,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken))
                 .IsSuccess
                 .ShouldBeTrue();
+                await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                    .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -78,6 +80,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
             (await repository.DeleteAsync(roleId, cancellationToken)).IsSuccess.ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -103,6 +107,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken))
             .IsSuccess
             .ShouldBeTrue();
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         var result = await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
@@ -127,10 +133,14 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var cleared = await repository.UpdateAsync(
             IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken);
         cleared.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         var result = await repository.AddAsync(role, cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var defaults = await dbContext.Set<ApplicationRole>()
             .AsNoTracking()
             .Where(item => item.IsDefault)
@@ -138,6 +148,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         defaults.ShouldHaveSingleItem().Id.ShouldBe(targetId);
         previous.IsDefault.ShouldBeFalse();
         (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
     }
 
     [Fact(DisplayName = "UpdateAsync should assign the default when previous flag is cleared")]
@@ -157,10 +169,14 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var cleared = await repository.UpdateAsync(
             IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken);
         cleared.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         var result = await repository.UpdateAsync(role, cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var defaults = await dbContext.Set<ApplicationRole>()
             .AsNoTracking()
             .Where(item => item.IsDefault)
@@ -168,6 +184,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         defaults.ShouldHaveSingleItem().Id.ShouldBe(targetId);
         previous.IsDefault.ShouldBeFalse();
         (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
     }
 
     [Fact(DisplayName = "AddAsync should retain the default when duplicate name rejects change")]
@@ -252,6 +270,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         return result.Value;
     }
