@@ -23,7 +23,9 @@ internal sealed class ApplicationRoleStore : RoleStore<
         AutoSaveChanges = false;
     }
 
-    [SuppressMessage("Major Code Smell", "S1006:Method overrides should not change parameter defaults",
+    [SuppressMessage(
+        "Major Code Smell",
+        "S1006:Method overrides should not change parameter defaults",
         Justification = "Cancellation tokens are required by the repository convention.")]
     public override Task<IdentityResult> UpdateAsync(
         ApplicationRole role,
