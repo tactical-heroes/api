@@ -22,9 +22,9 @@ internal sealed class TestAuthenticationHandler(
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var permissions = Request.Headers.TryGetValue("X-Test-Permissions", out var values)
+        string[] permissions = Request.Headers.TryGetValue("X-Test-Permissions", out var values)
             ? values.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries)
-            : Permissions.All.Select(permission => permission.Code).ToArray();
+            : [.. Permissions.All.Select(permission => permission.Code)];
         Claim[] claims =
         [
             new(ClaimTypes.NameIdentifier, Guid.CreateVersion7().ToString()),

@@ -30,9 +30,9 @@ internal sealed class PermissionTestClientsRepository(
         }
 
         var request = accessor.HttpContext!.Request;
-        var permissions = request.Headers.TryGetValue(PermissionsHeader, out var values)
+        string[] permissions = request.Headers.TryGetValue(PermissionsHeader, out var values)
             ? values.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries)
-            : Permissions.All.Select(permission => permission.Code).ToArray();
+            : [.. Permissions.All.Select(permission => permission.Code)];
 
         IReadOnlyCollection<Claim> claims =
         [
