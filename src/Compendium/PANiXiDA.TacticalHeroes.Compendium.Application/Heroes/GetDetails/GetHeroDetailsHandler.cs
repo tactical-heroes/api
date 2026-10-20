@@ -1,11 +1,15 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
 
 public sealed class GetHeroDetailsHandler(
     IHeroesReadRepository heroesReadRepository)
-    : IQueryHandler<GetHeroDetailsQuery, Result<HeroDetailsReadModel>>
+    : IQueryHandler<GetHeroDetailsQuery, Result<HeroDetailsReadModel>>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Heroes.Read.Code];
+
     public async Task<Result<HeroDetailsReadModel>> HandleAsync(
         GetHeroDetailsQuery query,
         CancellationToken cancellationToken)

@@ -66,22 +66,30 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 
 ## Claim Catalogs
 
-Common provides `Permissions.All` and `Sections.All`; claim types come from
-`PANiXiDA.Core.Application.Authentication.ClaimTypes`.
+Common provides `Permissions.All`, grouped by module and resource. Module names
+are display metadata and do not grant access.
+Named permissions follow the same hierarchy, for example
+`Permissions.Identity.Roles.Read` and `Permissions.Compendium.Factions.Read`.
 
-Authenticated catalogs return `{ "type": "...", "items": [...] }`:
-
-- `GET /api/v1/claims/permissions` — type `permission`, operation codes and
-  section/resource display metadata.
-- `GET /api/v1/claims/sections` — type `section`, section codes and display names.
+`GET /api/v1/claims/permissions` returns `{ "type": "permission", "items": [...] }`.
+Items include `code`, `displayName`, `moduleCode`, `moduleDisplayName`,
+`resourceCode` and `resourceDisplayName`. The catalog requires permission to
+create or update users or roles.
 
 User and role requests assign `{ type, value: item.code }` through `claims`.
-Unknown permission/section values return HTTP 400. Sections control UI visibility
-independently of API permissions; enabling permission checks on existing operations
-is separate work. Existing assignments need explicit section grants for UI visibility.
+Only `permission` claims with known catalog values can be assigned. Other claim
+types and unknown permission values return HTTP 400.
+Administrative use cases require their corresponding permissions. Resource lookups
+require the corresponding read permission. Authentication and OAuth flows use their
+own session and protocol checks.
+`/connect/authorize` checks only user availability without loading roles or claims;
+`/connect/token` loads current user and role claims when issuing tokens.
 
-The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
-Frontend adaptation is separate; no database migration is required.
+`RemoveNonPermissionClaims` deletes all user and role claims except `permission`.
+Its rollback cannot reconstruct deleted assignments.
+The `/api/v1/claims/sections` endpoint and `sectionCode` catalog field are removed;
+permission codes remain unchanged. Deploy this API and its migration before the
+matching frontend, then sign in again to obtain permissions in the ID token.
 
 ## Request Validation
 

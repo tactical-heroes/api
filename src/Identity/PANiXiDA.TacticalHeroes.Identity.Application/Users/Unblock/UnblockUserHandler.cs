@@ -1,10 +1,14 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
 
 public sealed class UnblockUserHandler(IUsersRepository usersRepository)
-    : ICommandHandler<UnblockUserCommand, Result>
+    : ICommandHandler<UnblockUserCommand, Result>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
+
     public Task<Result> HandleAsync(
         UnblockUserCommand command,
         CancellationToken cancellationToken)

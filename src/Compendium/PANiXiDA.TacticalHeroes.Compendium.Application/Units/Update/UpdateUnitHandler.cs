@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
@@ -9,8 +11,10 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 public sealed class UpdateUnitHandler(
     IUnitsRepository unitsRepository,
     IFactionsRepository factionsRepository)
-    : ICommandHandler<UpdateUnitCommand, Result>
+    : ICommandHandler<UpdateUnitCommand, Result>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Units.Update.Code];
+
     public async Task<Result> HandleAsync(
         UpdateUnitCommand command,
         CancellationToken cancellationToken)

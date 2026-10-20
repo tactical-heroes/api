@@ -34,6 +34,6 @@ public sealed class UpdateRoleCommandValidatorTests
         result.Errors
             .Count(error =>
                 error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
-            .ShouldBe(2);
+            .ShouldBe(3);
     }
 }

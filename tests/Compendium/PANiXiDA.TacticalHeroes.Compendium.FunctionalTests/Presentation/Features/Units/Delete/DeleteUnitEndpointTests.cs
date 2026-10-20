@@ -59,4 +59,15 @@ public sealed class DeleteUnitEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
         nextResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
+
+    [Fact(DisplayName = "DELETE unit should return forbidden when only read permission is granted")]
+    public async Task DeleteUnit_Should_ReturnForbidden_When_OnlyReadPermissionIsGranted()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/units/{Guid.CreateVersion7()}");
+        request.Headers.Add("X-Test-Permissions", "compendium.units.read");
+
+        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
 }

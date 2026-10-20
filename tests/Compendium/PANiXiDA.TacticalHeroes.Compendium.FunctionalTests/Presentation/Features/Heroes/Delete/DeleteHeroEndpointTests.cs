@@ -20,4 +20,15 @@ public sealed class DeleteHeroEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
+
+    [Fact(DisplayName = "DELETE hero should return forbidden when only read permission is granted")]
+    public async Task DeleteHero_Should_ReturnForbidden_When_OnlyReadPermissionIsGranted()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/heroes/{Guid.CreateVersion7()}");
+        request.Headers.Add("X-Test-Permissions", "compendium.heroes.read");
+
+        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
 }

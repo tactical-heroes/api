@@ -13,7 +13,8 @@ internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
         builder.MapGet(builder.Route, HandleAsync)
             .Produces<PaginationResult<RoleListItemResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> HandleAsync(

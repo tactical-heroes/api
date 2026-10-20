@@ -15,7 +15,8 @@ internal sealed class CreateHeroEndpoint : IEndpoint<HeroesEndpoints>
         builder.MapPost(builder.Route, HandleAsync)
             .Produces<CreateHeroResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> HandleAsync(

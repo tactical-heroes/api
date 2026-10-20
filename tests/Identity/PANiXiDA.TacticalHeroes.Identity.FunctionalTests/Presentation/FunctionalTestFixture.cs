@@ -102,7 +102,8 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         var migration = new SeedRolesAndClaims();
-        foreach (var operation in migration.UpOperations.Cast<SqlOperation>())
+        var operations = migration.UpOperations.Concat(new RemoveNonPermissionClaims().UpOperations);
+        foreach (var operation in operations.Cast<SqlOperation>())
         {
             await dbContext.Database.ExecuteSqlRawAsync(operation.Sql, cancellationToken);
         }

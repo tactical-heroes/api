@@ -5,8 +5,6 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Rol
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
-using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
-
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Create;
 
 public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
@@ -104,6 +102,7 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
     [Theory(DisplayName = "POST users should reject unknown managed claims when managed claim is unknown")]
     [InlineData("permission")]
     [InlineData("section")]
+    [InlineData("custom")]
     public async Task PostUsers_Should_ReturnBadRequest_When_ManagedClaimIsUnknown(string type)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -124,20 +123,6 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
             .EnumerateArray()
             .Select(error => error.GetString())
             .ShouldBe(["Claim value is not present in its catalog."]);
-    }
-
-    [Fact(DisplayName = "POST users should persist a section without permissions when section is known")]
-    public async Task PostUsers_Should_PersistSectionOnly_When_SectionIsKnown()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var client = new UserApiTestClient(Fixture);
-        Claim[] claims = [new(ApplicationClaimTypes.Section, "compendium")];
-        var request = UserApiTestClient.CreateDefaultRequest() with { Claims = claims };
-
-        var user = await client.CreateAsync(cancellationToken, request);
-        var details = await client.GetDetailsAsync(user.Id, cancellationToken);
-
-        details.Claims.ShouldBe(claims);
     }
 
     [Theory(DisplayName = "POST users should return domain validation errors when status is invalid")]

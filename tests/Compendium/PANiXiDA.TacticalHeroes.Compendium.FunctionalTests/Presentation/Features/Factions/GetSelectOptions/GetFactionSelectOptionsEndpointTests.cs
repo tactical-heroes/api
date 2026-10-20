@@ -119,4 +119,23 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         options.GetArrayLength().ShouldBe(1);
         options[0].GetProperty("id").GetGuid().ShouldBe(faction.Id);
     }
+
+    [Theory(DisplayName = "GET faction select options should require read permission when authenticated")]
+    [InlineData("unrelated", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.heroes.create", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.heroes.update", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.units.create", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.units.update", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.factions.read", HttpStatusCode.OK)]
+    public async Task GetFactionSelectOptions_Should_RequireReadPermission_When_Authenticated(
+        string permission, HttpStatusCode expectedStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/factions/select-options?limit=20");
+        request.Headers.Add("X-Test-Permissions", permission);
+
+        using var response = await Fixture.Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expectedStatus, await response.Content.ReadAsStringAsync(cancellationToken));
+    }
 }

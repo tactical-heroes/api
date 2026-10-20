@@ -21,6 +21,19 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         .ThenInclude(role => role!.Claims)
         .AsSingleQuery();
 
+    public async Task<Result> CheckAvailabilityByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Set<UserReadDbModel>()
+            .AsNoTracking()
+            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
+
+        return user is null
+            ? Result.Failure(error: Error.NotFound(message: "User was not found."))
+            : EnsureAvailable(user);
+    }
+
     public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
