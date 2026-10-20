@@ -41,7 +41,11 @@ RUN dotnet run --project "./PANiXiDA.TacticalHeroes.Host.csproj" \
     --no-restore \
     --no-launch-profile \
     -- codegen write
-RUN dotnet publish "./PANiXiDA.TacticalHeroes.Host.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:IncludeWolverineGeneratedCode=true
+RUN dotnet publish "./PANiXiDA.TacticalHeroes.Host.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/publish \
+    /p:UseAppHost=false \
+    /p:IncludeWolverineGeneratedCode=true
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
