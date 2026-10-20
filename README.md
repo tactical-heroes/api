@@ -62,22 +62,25 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 
 ## Claim Catalogs
 
-Common provides `Permissions.All` and `Sections.All`; claim types come from
-`PANiXiDA.Core.Application.Authentication.ClaimTypes`.
+Common provides `Permissions.All`, grouped by module and resource. Module names
+are display metadata and do not grant access.
 
-Authenticated catalogs return `{ "type": "...", "items": [...] }`:
-
-- `GET /api/v1/claims/permissions` — type `permission`, operation codes and
-  section/resource display metadata.
-- `GET /api/v1/claims/sections` — type `section`, section codes and display names.
+`GET /api/v1/claims/permissions` returns `{ "type": "permission", "items": [...] }`.
+Items include `code`, `displayName`, `moduleCode`, `moduleDisplayName`,
+`resourceCode` and `resourceDisplayName`. The catalog requires permission to
+create or update users or roles.
 
 User and role requests assign `{ type, value: item.code }` through `claims`.
-Unknown permission/section values return HTTP 400. Sections control UI visibility
-independently of API permissions; enabling permission checks on existing operations
-is separate work. Existing assignments need explicit section grants for UI visibility.
+Unknown permission values and retired `section` claim types return HTTP 400.
+Administrative use cases require their corresponding permissions. Lookup queries
+also accept permissions for the forms that consume them. Authentication and OAuth
+flows use their own session and protocol checks.
 
-The old `/api/v1/permissions` route is replaced by `/api/v1/claims/permissions`.
-Frontend adaptation is separate; no database migration is required.
+`RemoveSectionClaims` removes all user and role section assignments, preserving
+permissions and custom claims. Its rollback cannot reconstruct deleted assignments.
+The `/api/v1/claims/sections` endpoint and `sectionCode` catalog field are removed;
+permission codes remain unchanged. Deploy this API and its migration before the
+matching frontend, then sign in again to obtain permissions in the ID token.
 
 ## Request Validation
 

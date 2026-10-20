@@ -5,8 +5,6 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
-using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
-
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Create;
 
 public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
@@ -143,12 +141,12 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
             .ShouldBe(["Claim value is not present in its catalog."]);
     }
 
-    [Fact(DisplayName = "POST roles should persist a section without permissions when section is known")]
-    public async Task PostRoles_Should_PersistSectionOnly_When_SectionIsKnown()
+    [Fact(DisplayName = "POST roles should persist custom claims when no permissions are assigned")]
+    public async Task PostRoles_Should_PersistCustomClaim_When_NoPermissionsAreAssigned()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
+        Claim[] claims = [new("custom", "identity")];
 
         var role = await client.RecreateAsync(
             cancellationToken, new CreateRoleRequest("Moderator", false, claims));

@@ -4,8 +4,6 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAu
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
-using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
-
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Update;
 
 public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
@@ -155,12 +153,12 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         details.Claims.ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "PUT role should persist a section without permissions when section is known")]
-    public async Task PutRole_Should_PersistSectionOnly_When_SectionIsKnown()
+    [Fact(DisplayName = "PUT role should persist custom claims when no permissions are assigned")]
+    public async Task PutRole_Should_PersistCustomClaim_When_NoPermissionsAreAssigned()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        Claim[] claims = [new(ApplicationClaimTypes.Section, "identity")];
+        Claim[] claims = [new("custom", "identity")];
         var role = await client.RecreateAsync(cancellationToken);
 
         await client.UpdateAsync(role.Id, new UpdateRoleRequest("Moderator", false, claims), cancellationToken);

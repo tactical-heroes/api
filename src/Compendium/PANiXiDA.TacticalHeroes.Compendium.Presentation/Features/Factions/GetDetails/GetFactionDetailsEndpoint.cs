@@ -13,6 +13,8 @@ internal sealed class GetFactionDetailsEndpoint : IEndpoint<FactionsEndpoints>
         builder.MapGet(builder.Route, HandleAsync)
             .Produces<GetFactionDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 

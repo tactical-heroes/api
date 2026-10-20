@@ -5,8 +5,6 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Rol
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
-using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
-
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Create;
 
 public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
@@ -126,12 +124,12 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
             .ShouldBe(["Claim value is not present in its catalog."]);
     }
 
-    [Fact(DisplayName = "POST users should persist a section without permissions when section is known")]
-    public async Task PostUsers_Should_PersistSectionOnly_When_SectionIsKnown()
+    [Fact(DisplayName = "POST users should persist custom claims when no permissions are assigned")]
+    public async Task PostUsers_Should_PersistCustomClaim_When_NoPermissionsAreAssigned()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        Claim[] claims = [new(ApplicationClaimTypes.Section, "compendium")];
+        Claim[] claims = [new("custom", "compendium")];
         var request = UserApiTestClient.CreateDefaultRequest() with { Claims = claims };
 
         var user = await client.CreateAsync(cancellationToken, request);

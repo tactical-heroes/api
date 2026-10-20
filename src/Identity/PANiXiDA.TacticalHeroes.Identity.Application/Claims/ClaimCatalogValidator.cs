@@ -2,7 +2,6 @@ using System.Security.Claims;
 
 using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
-using SectionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Sections.Sections;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Claims;
 
@@ -24,7 +23,7 @@ public sealed class ClaimCatalogValidator : AbstractValidator<Claim>
 
         if (string.Equals(type, ApplicationClaimTypes.Section, StringComparison.OrdinalIgnoreCase))
         {
-            return SectionCatalog.All.Any(section => section.Code == value);
+            return false;
         }
 
         return true;

@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
@@ -9,8 +11,13 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
 public sealed class CreateUnitHandler(
     IUnitsRepository unitsRepository,
     IFactionsRepository factionsRepository)
-    : ICommandHandler<CreateUnitCommand, Result<Guid>>
+    : ICommandHandler<CreateUnitCommand, Result<Guid>>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } =
+    [
+        Permissions.Units.Create.Code
+    ];
+
     public async Task<Result<Guid>> HandleAsync(
         CreateUnitCommand command,
         CancellationToken cancellationToken)

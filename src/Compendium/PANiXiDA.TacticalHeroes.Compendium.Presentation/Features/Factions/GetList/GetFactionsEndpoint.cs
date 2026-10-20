@@ -12,7 +12,9 @@ internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
     {
         builder.MapGet(builder.Route, HandleAsync)
             .Produces<PaginationResult<FactionListItemResponse>>(StatusCodes.Status200OK)
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest);
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> HandleAsync(

@@ -1,10 +1,17 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetList;
 
 public sealed class GetUnitsHandler(IUnitsReadRepository unitsReadRepository)
-    : IQueryHandler<GetUnitsQuery, Result<PaginationResult<UnitListItemReadModel>>>
+    : IQueryHandler<GetUnitsQuery, Result<PaginationResult<UnitListItemReadModel>>>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } =
+    [
+        Permissions.Units.Read.Code
+    ];
+
     public async Task<Result<PaginationResult<UnitListItemReadModel>>> HandleAsync(
         GetUnitsQuery query,
         CancellationToken cancellationToken)

@@ -1,5 +1,3 @@
-using SectionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Sections.Sections;
-
 namespace PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 
 public static partial class Permissions
@@ -23,7 +21,8 @@ public static partial class Permissions
 
         private static PermissionDefinition DefineFactionPermission(string action, string displayName) =>
             PermissionDefinition.Create(
-                sectionCode: SectionCatalog.Compendium.Code,
+                moduleCode: Compendium.Code,
+                moduleDisplayName: Compendium.DisplayName,
                 resourceCode: ResourceCode,
                 resourceDisplayName: ResourceName,
                 action: action,

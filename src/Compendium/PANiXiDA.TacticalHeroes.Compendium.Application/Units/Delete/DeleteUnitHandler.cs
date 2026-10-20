@@ -1,11 +1,18 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Delete;
 
 public sealed class DeleteUnitHandler(IUnitsRepository unitsRepository)
-    : ICommandHandler<DeleteUnitCommand, Result>
+    : ICommandHandler<DeleteUnitCommand, Result>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } =
+    [
+        Permissions.Units.Delete.Code
+    ];
+
     public async Task<Result> HandleAsync(
         DeleteUnitCommand command,
         CancellationToken cancellationToken)

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation;
 
 internal sealed class TestAuthenticationHandler(
@@ -20,10 +22,14 @@ internal sealed class TestAuthenticationHandler(
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        var permissions = Request.Headers.TryGetValue("X-Test-Permissions", out var values)
+            ? values.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries)
+            : Permissions.All.Select(permission => permission.Code).ToArray();
         Claim[] claims =
         [
             new(ClaimTypes.NameIdentifier, Guid.CreateVersion7().ToString()),
-            new(ClaimTypes.Name, "compendium-tests")
+            new(ClaimTypes.Name, "compendium-tests"),
+            .. permissions.Select(permission => new Claim("permission", permission))
         ];
         var identity = new ClaimsIdentity(claims, SchemeName);
         var principal = new ClaimsPrincipal(identity);

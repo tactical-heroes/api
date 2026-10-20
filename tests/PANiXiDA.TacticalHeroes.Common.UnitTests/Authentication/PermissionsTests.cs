@@ -1,7 +1,6 @@
 using System.Reflection;
 
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Common.Authentication.Sections;
 
 namespace PANiXiDA.TacticalHeroes.Common.UnitTests.Authentication;
 
@@ -26,7 +25,7 @@ public sealed class PermissionsTests
         Permissions.All.ShouldAllBe(permission =>
             !string.IsNullOrWhiteSpace(permission.Code)
                 && !string.IsNullOrWhiteSpace(permission.DisplayName)
-                && !string.IsNullOrWhiteSpace(permission.SectionCode)
+                && !string.IsNullOrWhiteSpace(permission.ModuleCode)
                 && !string.IsNullOrWhiteSpace(permission.ResourceCode)
                 && !string.IsNullOrWhiteSpace(permission.ResourceDisplayName));
     }
@@ -49,15 +48,15 @@ public sealed class PermissionsTests
             ignoreOrder: true);
     }
 
-    [Fact(DisplayName = "All should reference known sections when catalog is read")]
-    public void All_Should_ReferenceKnownSections_When_CatalogIsRead()
+    [Fact(DisplayName = "All should reference named modules when catalog is read")]
+    public void All_Should_ReferenceNamedModules_When_CatalogIsRead()
     {
         var permissions = Permissions.All;
 
         foreach (var permission in permissions)
         {
-            Sections.All.Count(section => section.Code == permission.SectionCode).ShouldBe(1);
-            permission.Code.ShouldStartWith($"{permission.SectionCode}.{permission.ResourceCode}.");
+            permission.ModuleDisplayName.ShouldNotBeNullOrWhiteSpace();
+            permission.Code.ShouldStartWith($"{permission.ModuleCode}.{permission.ResourceCode}.");
         }
     }
 
@@ -65,7 +64,7 @@ public sealed class PermissionsTests
     public void All_Should_UseConsistentResourceNames_When_CatalogIsGrouped()
     {
         var resources = Permissions.All
-            .GroupBy(permission => (permission.SectionCode, permission.ResourceCode))
+            .GroupBy(permission => (permission.ModuleCode, permission.ResourceCode))
             .ToArray();
 
         resources.Length.ShouldBe(5);

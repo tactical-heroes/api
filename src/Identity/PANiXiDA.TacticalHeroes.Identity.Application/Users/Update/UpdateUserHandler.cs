@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
@@ -9,8 +11,13 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 
 public sealed class UpdateUserHandler(IUsersRepository usersRepository)
-    : ICommandHandler<UpdateUserCommand, Result>
+    : ICommandHandler<UpdateUserCommand, Result>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } =
+    [
+        Permissions.IdentityUsers.Update.Code
+    ];
+
     public Task<Result> HandleAsync(
         UpdateUserCommand command,
         CancellationToken cancellationToken)

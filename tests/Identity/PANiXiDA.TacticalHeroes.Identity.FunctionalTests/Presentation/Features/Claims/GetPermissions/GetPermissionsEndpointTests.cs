@@ -27,7 +27,7 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
         foreach (var item in document.RootElement.GetProperty("items").EnumerateArray())
         {
             item.EnumerateObject().Select(property => property.Name).ShouldBe(
-                ["code", "displayName", "sectionCode", "resourceCode", "resourceDisplayName"],
+                ["code", "displayName", "moduleCode", "moduleDisplayName", "resourceCode", "resourceDisplayName"],
                 ignoreOrder: true);
         }
 
@@ -41,7 +41,7 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
         {
             var item = permissions.Items.Single(item => item.Code == permission.Code);
             item.DisplayName.ShouldBe(permission.DisplayName);
-            item.SectionCode.ShouldBe(permission.SectionCode);
+            item.ModuleCode.ShouldBe(permission.ModuleCode);
             item.ResourceCode.ShouldBe(permission.ResourceCode);
             item.ResourceDisplayName.ShouldBe(permission.ResourceDisplayName);
         }

@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
@@ -10,8 +12,13 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
 public sealed class CreateRoleHandler(
     IRolesRepository rolesRepository,
     IRolesReadRepository rolesReadRepository)
-    : ICommandHandler<CreateRoleCommand, Result<Guid>>
+    : ICommandHandler<CreateRoleCommand, Result<Guid>>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } =
+    [
+        Permissions.IdentityRoles.Create.Code
+    ];
+
     public async Task<Result<Guid>> HandleAsync(
         CreateRoleCommand command,
         CancellationToken cancellationToken)

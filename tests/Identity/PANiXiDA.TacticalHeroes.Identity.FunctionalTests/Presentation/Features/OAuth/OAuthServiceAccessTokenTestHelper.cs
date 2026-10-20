@@ -28,7 +28,8 @@ internal static class OAuthServiceAccessTokenTestHelper
 
     internal static async Task<string> IssueAccessTokenAsync(
         FunctionalTestFixture fixture,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<string>? permissions = null)
     {
         using var scope = fixture.Services.CreateScope();
         var options = scope.ServiceProvider
@@ -56,10 +57,13 @@ internal static class OAuthServiceAccessTokenTestHelper
 
         using var content = new FormUrlEncodedContent(parameters);
 
-        using var response = await fixture.Client.PostAsync(
-            TokenPath,
-            content,
-            cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Post, TokenPath) { Content = content };
+        if (permissions is not null)
+        {
+            request.Headers.Add(PermissionTestClientsRepository.PermissionsHeader, string.Join(',', permissions));
+        }
+
+        using var response = await fixture.Client.SendAsync(request, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);

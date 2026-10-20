@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
@@ -9,8 +11,13 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 
 public sealed class CreateUserHandler(IUsersRepository usersRepository)
-    : ICommandHandler<CreateUserCommand, Result<Guid>>
+    : ICommandHandler<CreateUserCommand, Result<Guid>>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } =
+    [
+        Permissions.IdentityUsers.Create.Code
+    ];
+
     public Task<Result<Guid>> HandleAsync(
         CreateUserCommand command,
         CancellationToken cancellationToken)

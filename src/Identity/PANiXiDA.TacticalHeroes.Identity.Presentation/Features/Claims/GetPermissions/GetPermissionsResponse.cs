@@ -5,6 +5,7 @@ public sealed record GetPermissionsResponse(string Type, IReadOnlyCollection<Per
 public sealed record PermissionResponse(
     string Code,
     string DisplayName,
-    string SectionCode,
+    string ModuleCode,
+    string ModuleDisplayName,
     string ResourceCode,
     string ResourceDisplayName);

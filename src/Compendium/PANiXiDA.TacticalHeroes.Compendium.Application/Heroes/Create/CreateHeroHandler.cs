@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
@@ -9,8 +11,13 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Create;
 public sealed class CreateHeroHandler(
     IHeroesRepository heroesRepository,
     IFactionsRepository factionsRepository)
-    : ICommandHandler<CreateHeroCommand, Result<Guid>>
+    : ICommandHandler<CreateHeroCommand, Result<Guid>>, IRequireAuthorization
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } =
+    [
+        Permissions.Heroes.Create.Code
+    ];
+
     public async Task<Result<Guid>> HandleAsync(
         CreateHeroCommand command,
         CancellationToken cancellationToken)
