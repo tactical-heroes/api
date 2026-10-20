@@ -62,8 +62,8 @@ Email flows require SMTP on `localhost:1025` (for example, Mailpit).
 File operations require the `FileManager:AWS` and `FileManager:S3Storage` settings
 for an accessible S3 bucket.
 
-Local builds ignore Wolverine's `Internal/Generated` cache. Docker generates fresh
-handlers and includes them with `IncludeWolverineGeneratedCode=true` when publishing.
+If Wolverine's generated handlers become outdated, delete the host's
+`Internal/Generated` directory and rebuild.
 
 In the `Development` environment, open `/scalar` to explore the Identity and
 Compendium APIs. For protected endpoints, enter an access token in the Bearer

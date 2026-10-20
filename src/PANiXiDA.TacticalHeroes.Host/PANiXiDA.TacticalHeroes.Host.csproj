@@ -35,8 +35,4 @@
     <ItemGroup>
         <Using Include="PANiXiDA.Core.Observability" />
     </ItemGroup>
-
-    <ItemGroup Condition="'$(IncludeWolverineGeneratedCode)' != 'true'">
-        <Compile Remove="Internal/Generated/**/*.cs" />
-    </ItemGroup>
 </Project>
