@@ -41,16 +41,17 @@ Identity repositories remain asynchronous and defer writes to `IUnitOfWork.SaveC
 The command pipeline saves successful operations; direct callers must save explicitly.
 Login saves its security state through a separate unit of work so failed attempts survive a rejected command.
 
-Before the first run, configure `ConnectionStrings__PostgreSqlConnectionString`
-for a local PostgreSQL database in the shell used by both the migrator and the API.
-Configure the matching Identity client secrets as described in [Token Validation](#token-validation).
-Run the migrator:
+Local configuration targets PostgreSQL at `localhost:5432`. Set its credentials
+in the host and migrator connection strings to match your local server.
+Development includes matching Identity client secrets. Run the migrator before
+the first launch:
 
 ```bash
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
-Run the API with the HTTPS profile matching the configured Identity issuer:
+In Visual Studio, select `PANiXiDA.TacticalHeroes.Host` as the startup project,
+choose the `https` profile and press **F5**. The equivalent CLI command is:
 
 ```bash
 dotnet run --project src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj --launch-profile https
@@ -135,8 +136,9 @@ OpenIddictValidationOptions__ClientSecret
 Identity__Provider__Clients__1__ClientSecret
 ```
 
-For local development, set the corresponding configuration keys with .NET User
-Secrets. Each protected API request
+Development includes a local introspection secret matching the service client.
+To override it, set both corresponding configuration keys with .NET User Secrets.
+Each protected API request
 contacts Identity, so token revocation takes effect on the next request and Identity
 must be reachable.
 
