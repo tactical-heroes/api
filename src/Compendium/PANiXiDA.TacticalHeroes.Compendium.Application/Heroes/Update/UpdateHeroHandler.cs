@@ -80,9 +80,7 @@ public sealed class UpdateHeroHandler(
             luck: luckResult.Value,
             factionId: factionIdResult.Value);
 
-        await heroesRepository.UpdateAsync(
-            aggregateRoot: hero,
-            cancellationToken: cancellationToken);
+        heroesRepository.Update(aggregateRoot: hero);
 
         return Result.Success();
     }

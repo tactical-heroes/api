@@ -57,9 +57,7 @@ public sealed class CreateHeroHandler(
             luck: luckResult.Value,
             factionId: factionIdResult.Value);
 
-        await heroesRepository.AddAsync(
-            aggregateRoot: hero,
-            cancellationToken: cancellationToken);
+        heroesRepository.Add(aggregateRoot: hero);
 
         return Result.Success(value: hero.Id.Value);
     }

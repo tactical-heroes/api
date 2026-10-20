@@ -5,10 +5,8 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Write;
 
 public sealed class HeroesRepository(
-    CompendiumWriteDbContext dbContext,
-    IAggregateTracker aggregateTracker)
+    CompendiumWriteDbContext dbContext)
     :
         EfRepository<CompendiumWriteDbContext, HeroId, Hero>(
-            dbContext,
-            aggregateTracker),
+            dbContext),
         IHeroesRepository;

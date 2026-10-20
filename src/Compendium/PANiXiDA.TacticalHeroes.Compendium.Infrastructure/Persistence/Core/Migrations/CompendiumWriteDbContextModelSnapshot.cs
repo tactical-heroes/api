@@ -19,7 +19,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("compendium")
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseHiLo(modelBuilder, "EntityFrameworkHiLoSequence");
@@ -59,6 +59,12 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasColumnOrder(2);
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("pk_factions");
@@ -110,6 +116,12 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasColumnOrder(2);
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Hero.Stats#HeroCombatStats", b1 =>
                         {
@@ -189,6 +201,12 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasColumnOrder(2);
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "RangedAttack", "PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit.RangedAttack#UnitRangedAttack", b1 =>
                         {

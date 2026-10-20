@@ -74,7 +74,9 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
             stored.CompleteUpload(
                 FileContentType.Create("image/png").Value,
                 FileSize.Create(4096).Value);
-            await repository.UpdateAsync(stored, cancellationToken);
+            repository.Update(stored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         var entry = writeContext.Entry(stored);
@@ -114,14 +116,17 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
             allowedFileType: FileType.Avatar,
             userId: null).Value;
         await using var scope = Fixture.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
-            .AddAsync(folder, cancellationToken);
+        scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         if (assigned)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
             var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
             stored!.MoveTo(folder).IsSuccess.ShouldBeTrue();
-            await repository.UpdateAsync(stored, cancellationToken);
+            repository.Update(stored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         var context = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
@@ -148,7 +153,9 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
             personal ? UserId.Create(Guid.CreateVersion7()).Value : null).Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-        await repository.AddAsync(file, cancellationToken);
+        repository.Add(file);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         return file;
     }

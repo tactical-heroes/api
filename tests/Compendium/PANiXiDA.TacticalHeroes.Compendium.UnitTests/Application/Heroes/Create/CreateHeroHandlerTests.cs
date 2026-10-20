@@ -29,14 +29,14 @@ public sealed class CreateHeroHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await heroesRepository.Received(1).AddAsync(
-            Arg.Is<Hero>(hero =>
+        heroesRepository.Received(1).Add(
+            Arg.Is<Hero>(
+                hero =>
                 hero.Id.Value == result.Value
                     && hero.Name.Value == "Orrin"
                     && hero.Stats.Attack == 8
                     && hero.Stats.MaximumDamage == 7
-                    && hero.FactionId == faction.Id),
-            cancellationToken);
+                    && hero.FactionId == faction.Id));
     }
 
     [Fact(DisplayName = "Create hero handler should return not found when faction does not exist")]
@@ -59,8 +59,7 @@ public sealed class CreateHeroHandlerTests
         result.ShouldHaveSingleError(
             ErrorType.NotFound,
             "Faction was not found.");
-        await heroesRepository.DidNotReceiveWithAnyArgs()
-            .AddAsync(null!, TestContext.Current.CancellationToken);
+        heroesRepository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
     [Fact(DisplayName = "Create hero handler should reject invalid values without saving when command is invalid")]
@@ -86,7 +85,6 @@ public sealed class CreateHeroHandlerTests
         result.IsFailure.ShouldBeTrue();
         result.Errors.Count.ShouldBeGreaterThanOrEqualTo(5);
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        await repository.DidNotReceiveWithAnyArgs()
-            .AddAsync(null!, TestContext.Current.CancellationToken);
+        repository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 }

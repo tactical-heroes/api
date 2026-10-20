@@ -27,9 +27,7 @@ public sealed class DeleteUnitHandler(IUnitsRepository unitsRepository)
                 error: Error.NotFound(message: "Unit was not found."));
         }
 
-        await unitsRepository.DeleteAsync(
-            aggregateRoot: unit,
-            cancellationToken: cancellationToken);
+        unitsRepository.Delete(aggregateRoot: unit);
 
         return Result.Success();
     }

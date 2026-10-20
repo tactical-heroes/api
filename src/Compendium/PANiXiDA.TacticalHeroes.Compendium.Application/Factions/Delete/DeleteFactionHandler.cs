@@ -27,9 +27,7 @@ public sealed class DeleteFactionHandler(IFactionsRepository factionsRepository)
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        await factionsRepository.DeleteAsync(
-            aggregateRoot: faction,
-            cancellationToken: cancellationToken);
+        factionsRepository.Delete(aggregateRoot: faction);
 
         return Result.Success();
     }

@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 public sealed class CreateFactionHandler(IFactionsRepository factionsRepository)
     : ICommandHandler<CreateFactionCommand, Result<Guid>>
 {
-    public async Task<Result<Guid>> HandleAsync(
+    public Task<Result<Guid>> HandleAsync(
         CreateFactionCommand command,
         CancellationToken cancellationToken)
     {
@@ -19,17 +19,15 @@ public sealed class CreateFactionHandler(IFactionsRepository factionsRepository)
 
         if (validationResult.IsFailure)
         {
-            return Result.Failure<Guid>(errors: validationResult.Errors);
+            return Task.FromResult(Result.Failure<Guid>(errors: validationResult.Errors));
         }
 
         var faction = Faction.Create(
             name: nameResult.Value,
             description: descriptionResult.Value);
 
-        await factionsRepository.AddAsync(
-            aggregateRoot: faction,
-            cancellationToken: cancellationToken);
+        factionsRepository.Add(aggregateRoot: faction);
 
-        return Result.Success(value: faction.Id.Value);
+        return Task.FromResult(Result.Success(value: faction.Id.Value));
     }
 }

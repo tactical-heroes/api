@@ -234,7 +234,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
 
         foreach (var faction in factions)
         {
-            await repository.AddAsync(faction, cancellationToken);
+            repository.Add(faction);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

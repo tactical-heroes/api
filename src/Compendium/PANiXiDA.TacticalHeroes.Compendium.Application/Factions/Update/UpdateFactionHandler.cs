@@ -43,9 +43,7 @@ public sealed class UpdateFactionHandler(IFactionsRepository factionsRepository)
             name: nameResult.Value,
             description: descriptionResult.Value);
 
-        await factionsRepository.UpdateAsync(
-            aggregateRoot: faction,
-            cancellationToken: cancellationToken);
+        factionsRepository.Update(aggregateRoot: faction);
 
         return Result.Success();
     }

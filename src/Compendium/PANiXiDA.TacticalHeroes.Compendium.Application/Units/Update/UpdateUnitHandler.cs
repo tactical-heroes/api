@@ -87,9 +87,7 @@ public sealed class UpdateUnitHandler(
             luck: luckResult.Value,
             factionId: factionIdResult.Value);
 
-        await unitsRepository.UpdateAsync(
-            aggregateRoot: unit,
-            cancellationToken: cancellationToken);
+        unitsRepository.Update(aggregateRoot: unit);
 
         return Result.Success();
     }

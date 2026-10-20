@@ -64,9 +64,7 @@ public sealed class CreateUnitHandler(
             luck: luckResult.Value,
             factionId: factionIdResult.Value);
 
-        await unitsRepository.AddAsync(
-            aggregateRoot: unit,
-            cancellationToken: cancellationToken);
+        unitsRepository.Add(aggregateRoot: unit);
 
         return Result.Success(value: unit.Id.Value);
     }

@@ -27,9 +27,7 @@ public sealed class DeleteHeroHandler(IHeroesRepository heroesRepository)
                 error: Error.NotFound(message: "Hero was not found."));
         }
 
-        await heroesRepository.DeleteAsync(
-            aggregateRoot: hero,
-            cancellationToken: cancellationToken);
+        heroesRepository.Delete(aggregateRoot: hero);
 
         return Result.Success();
     }

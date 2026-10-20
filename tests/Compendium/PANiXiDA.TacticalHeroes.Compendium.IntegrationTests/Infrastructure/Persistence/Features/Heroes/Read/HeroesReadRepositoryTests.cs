@@ -127,11 +127,11 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
         var dbContext = scope.ServiceProvider
             .GetRequiredService<CompendiumWriteDbContext>();
 
-        await factionsRepository.AddAsync(faction, cancellationToken);
+        factionsRepository.Add(faction);
 
         foreach (var hero in heroes)
         {
-            await heroesRepository.AddAsync(hero, cancellationToken);
+            heroesRepository.Add(hero);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
