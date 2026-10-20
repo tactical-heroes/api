@@ -27,7 +27,7 @@ internal sealed class ApplicationUserStore : UserStore<
 
     public override Task<IdentityResult> UpdateAsync(
         ApplicationUser user,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();

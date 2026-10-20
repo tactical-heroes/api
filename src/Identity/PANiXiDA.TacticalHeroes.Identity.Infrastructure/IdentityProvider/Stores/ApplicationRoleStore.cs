@@ -23,7 +23,7 @@ internal sealed class ApplicationRoleStore : RoleStore<
 
     public override Task<IdentityResult> UpdateAsync(
         ApplicationRole role,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ThrowIfDisposed();

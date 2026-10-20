@@ -2,9 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Roles;
-
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Roles;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Read;
 

@@ -54,8 +54,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken))
                 .IsSuccess
                 .ShouldBeTrue();
-                await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
-                    .SaveChangesAsync(cancellationToken);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -107,8 +107,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken))
             .IsSuccess
             .ShouldBeTrue();
-            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
-                .SaveChangesAsync(cancellationToken);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(IdentityWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var result = await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
