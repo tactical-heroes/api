@@ -10,8 +10,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class GetRoleSelectOptionsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "GET role select options should describe an array contract when OpenAPI is requested")]
-    public async Task GetRoleSelectOptions_Should_DescribeArrayContract_When_OpenApiIsRequested()
+    [Fact(DisplayName = "GET role select options should describe an array contract when document is requested")]
+    public async Task GetRoleSelectOptions_Should_DescribeArrayContract_When_DocumentIsRequested()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         using var client = Fixture.CreateClient(Environments.Development);
