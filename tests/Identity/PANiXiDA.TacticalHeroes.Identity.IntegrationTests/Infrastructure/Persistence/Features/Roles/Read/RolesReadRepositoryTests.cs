@@ -9,6 +9,51 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Fact(DisplayName = "GetSelectOptionsAsync should return empty options when no roles exist")]
+    public async Task GetSelectOptionsAsync_Should_ReturnEmptyOptions_When_NoRolesExist()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(TestContext.Current.CancellationToken);
+
+        options.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "GetSelectOptionsAsync should return sorted options with default flag when roles exist")]
+    public async Task GetSelectOptionsAsync_Should_ReturnSortedOptionsWithDefaultFlag_When_RolesExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var playerId = await AddRoleAsync("Player", cancellationToken, isDefault: true);
+        var developerId = await AddRoleAsync("Developer", cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(cancellationToken);
+
+        options.Select(option => option.Name).ShouldBe(["developer", "player"]);
+        options.Select(option => option.Id).ShouldBe([developerId, playerId]);
+        options.Select(option => option.IsDefault).ShouldBe([false, true]);
+    }
+
+    [Fact(DisplayName = "GetSelectOptionsAsync should return all options when more than one list page exists")]
+    public async Task GetSelectOptionsAsync_Should_ReturnAllOptions_When_MoreThanOneListPageExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        for (int index = 0; index < 101; index++)
+        {
+            await AddRoleAsync($"Role {index:D3}", cancellationToken);
+        }
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(cancellationToken);
+
+        options.Count.ShouldBe(101);
+        options[0].Name.ShouldBe("role 000");
+        options[^1].Name.ShouldBe("role 100");
+    }
+
     [Fact(DisplayName = "GetDetailsByIdAsync should return role details when role exists")]
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_RoleExists()
     {
@@ -108,12 +153,13 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
 
     private async Task<Guid> AddRoleAsync(
         string name,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool isDefault = false)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var result = await repository.AddAsync(
-            IntegrationTestData.CreateRole(Guid.CreateVersion7(), name, []),
+            IntegrationTestData.CreateRole(Guid.CreateVersion7(), name, [], isDefault),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
