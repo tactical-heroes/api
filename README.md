@@ -37,32 +37,11 @@ each assembly (`ParallelMode.None`). CI still runs separate test projects in
 parallel. Database resets clear only the module schema and preserve migration
 history and Wolverine's messaging tables, which remain in use by background workers.
 
-Identity repositories remain asynchronous. ASP.NET Core Identity saves user and role
-changes automatically.
-
-Local configuration targets PostgreSQL at `localhost:5432`. Set its credentials
-in the host and migrator connection strings to match your local server.
-Development includes matching Identity client secrets. Run the migrator before
-the first launch:
+Run the API:
 
 ```bash
-dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
+dotnet run --project src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj
 ```
-
-In Visual Studio, select `PANiXiDA.TacticalHeroes.Host` as the startup project,
-choose the `https` profile and press **F5**. The equivalent CLI command is:
-
-```bash
-dotnet run --project src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj --launch-profile https
-```
-
-Open `https://localhost:7091/scalar`; `/health` checks host availability.
-Email flows require SMTP on `localhost:1025` (for example, Mailpit).
-File operations require the `FileManager:AWS` and `FileManager:S3Storage` settings
-for an accessible S3 bucket.
-
-If Wolverine's generated handlers become outdated, delete the host's
-`Internal/Generated` directory and rebuild.
 
 In the `Development` environment, open `/scalar` to explore the Identity and
 Compendium APIs. For protected endpoints, enter an access token in the Bearer
@@ -74,6 +53,12 @@ The host's `ScalarConfiguration:BearerAuthenticationSchemes` setting maps
 `OpenIddict.Server.AspNetCore` (UserInfo) to Bearer authentication in OpenAPI.
 This setting describes authentication in the documentation; endpoint access rules
 remain unchanged.
+
+Run the EF migrator:
+
+```bash
+dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
+```
 
 ## Claim Catalogs
 
@@ -135,9 +120,8 @@ OpenIddictValidationOptions__ClientSecret
 Identity__Provider__Clients__1__ClientSecret
 ```
 
-Development includes a local introspection secret matching the service client.
-To override it, set both corresponding configuration keys with .NET User Secrets.
-Each protected API request
+For local development, set the corresponding configuration keys with .NET User
+Secrets. Each protected API request
 contacts Identity, so token revocation takes effect on the next request and Identity
 must be reachable.
 
