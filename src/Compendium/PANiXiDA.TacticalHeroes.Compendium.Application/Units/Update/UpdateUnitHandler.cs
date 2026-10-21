@@ -11,7 +11,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 public sealed class UpdateUnitHandler(
     IUnitsRepository unitsRepository,
     IFactionsRepository factionsRepository)
-    : ICommandHandler<UpdateUnitCommand, Result>, IRequireAuthorization
+    : ICommandHandler<UpdateUnitCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Units.Update.Code];
 

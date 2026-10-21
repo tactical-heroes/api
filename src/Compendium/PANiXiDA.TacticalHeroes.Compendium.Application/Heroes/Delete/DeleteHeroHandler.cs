@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Delete;
 
 public sealed class DeleteHeroHandler(IHeroesRepository heroesRepository)
-    : ICommandHandler<DeleteHeroCommand, Result>, IRequireAuthorization
+    : ICommandHandler<DeleteHeroCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Heroes.Delete.Code];
 

@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Register;
 
 public sealed class RegisterUserHandler(IUserCredentialsService userCredentialsService)
-    : ICommandHandler<RegisterUserCommand, Result<Guid>>
+    : ICommandHandler<RegisterUserCommand, Result<Guid>>, IRequireTransaction
 {
     public Task<Result<Guid>> HandleAsync(
         RegisterUserCommand command,

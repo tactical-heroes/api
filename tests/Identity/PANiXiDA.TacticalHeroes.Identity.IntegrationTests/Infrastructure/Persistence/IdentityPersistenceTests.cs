@@ -18,7 +18,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 
 public sealed class IdentityPersistenceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Repositories should persist all writes without an explicit save")]
+    [Theory(DisplayName = "Repositories should persist all writes when no explicit save is called")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task Repositories_Should_PersistAllWrites_When_NoExplicitSaveIsCalled(bool role)
@@ -44,7 +44,7 @@ public sealed class IdentityPersistenceTests(IntegrationTestFixture fixture) : I
         (await ReadNameAsync(role, id, cancellationToken)).ShouldBeNull();
     }
 
-    [Theory(DisplayName = "Identity managers should persist claims without an explicit save")]
+    [Theory(DisplayName = "Identity managers should persist claims when no explicit save is called")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task AddClaimAsync_Should_PersistClaim_When_NoExplicitSaveIsCalled(bool role)
@@ -79,7 +79,7 @@ public sealed class IdentityPersistenceTests(IntegrationTestFixture fixture) : I
         persistedClaim.ShouldBe(claim.Value);
     }
 
-    [Theory(DisplayName = "Repositories should persist successive updates without an explicit save")]
+    [Theory(DisplayName = "Repositories should persist successive updates when no explicit save is called")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task UpdateAsync_Should_PersistSuccessiveUpdates_When_NoExplicitSaveIsCalled(bool role)

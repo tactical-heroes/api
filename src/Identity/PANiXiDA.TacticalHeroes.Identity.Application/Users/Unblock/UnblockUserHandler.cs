@@ -5,7 +5,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
 
 public sealed class UnblockUserHandler(IUsersRepository usersRepository)
-    : ICommandHandler<UnblockUserCommand, Result>, IRequireAuthorization
+    : ICommandHandler<UnblockUserCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
 

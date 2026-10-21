@@ -7,7 +7,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 
 public sealed class CreateFactionHandler(IFactionsRepository factionsRepository)
-    : ICommandHandler<CreateFactionCommand, Result<Guid>>, IRequireAuthorization
+    : ICommandHandler<CreateFactionCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Factions.Create.Code];
 

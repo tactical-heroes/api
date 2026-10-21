@@ -7,7 +7,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Update;
 
 public sealed class UpdateFactionHandler(IFactionsRepository factionsRepository)
-    : ICommandHandler<UpdateFactionCommand, Result>, IRequireAuthorization
+    : ICommandHandler<UpdateFactionCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Factions.Update.Code];
 

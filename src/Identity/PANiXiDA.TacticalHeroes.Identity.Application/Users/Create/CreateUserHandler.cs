@@ -11,7 +11,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 
 public sealed class CreateUserHandler(IUsersRepository usersRepository)
-    : ICommandHandler<CreateUserCommand, Result<Guid>>, IRequireAuthorization
+    : ICommandHandler<CreateUserCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Create.Code];
 

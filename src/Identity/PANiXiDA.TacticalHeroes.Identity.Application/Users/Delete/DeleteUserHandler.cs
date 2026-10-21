@@ -5,7 +5,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
 
 public sealed class DeleteUserHandler(IUsersRepository usersRepository)
-    : ICommandHandler<DeleteUserCommand, Result>, IRequireAuthorization
+    : ICommandHandler<DeleteUserCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Delete.Code];
 

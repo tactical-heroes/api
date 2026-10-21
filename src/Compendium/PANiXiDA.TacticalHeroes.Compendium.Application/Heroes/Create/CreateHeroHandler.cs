@@ -11,7 +11,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Create;
 public sealed class CreateHeroHandler(
     IHeroesRepository heroesRepository,
     IFactionsRepository factionsRepository)
-    : ICommandHandler<CreateHeroCommand, Result<Guid>>, IRequireAuthorization
+    : ICommandHandler<CreateHeroCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Heroes.Create.Code];
 
