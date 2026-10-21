@@ -16,8 +16,8 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "AddAsync should persist a valid unit when unit and faction are valid")]
-    public async Task AddAsync_Should_PersistUnit_When_UnitAndFactionAreValid()
+    [Fact(DisplayName = "Add should persist a valid unit when unit and faction are valid")]
+    public async Task Add_Should_PersistUnit_When_UnitAndFactionAreValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
@@ -101,10 +101,10 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         persistedUnit.FactionId.ShouldBe(faction.Id);
     }
 
-    [Theory(DisplayName = "UpdateAsync should persist unit changes when unit exists")]
+    [Theory(DisplayName = "Update should persist unit changes when unit exists")]
     [InlineData(16, 10)]
     [InlineData(null, null)]
-    public async Task UpdateAsync_Should_PersistChanges_When_UnitExists(
+    public async Task Update_Should_PersistChanges_When_UnitExists(
         int? shots,
         int? rangedAttackRange)
     {
@@ -145,7 +145,7 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
                 luck: UnitLuck.Create(value: 2).Value,
                 factionId: faction.Id);
 
-            await repository.UpdateAsync(unitToUpdate, cancellationToken);
+            repository.Update(unitToUpdate);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -165,8 +165,8 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         persistedUnit.Morale.Value.ShouldBe(3);
     }
 
-    [Fact(DisplayName = "DeleteAsync should soft delete an existing unit when unit exists")]
-    public async Task DeleteAsync_Should_SoftDeleteUnit_When_UnitExists()
+    [Fact(DisplayName = "Delete should soft delete an existing unit when unit exists")]
+    public async Task Delete_Should_SoftDeleteUnit_When_UnitExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
@@ -187,7 +187,7 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             persistedUnit.ShouldNotBeNull();
-            await repository.DeleteAsync(persistedUnit, cancellationToken);
+            repository.Delete(persistedUnit);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -213,11 +213,11 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         var dbContext = scope.ServiceProvider
             .GetRequiredService<CompendiumWriteDbContext>();
 
-        await factionsRepository.AddAsync(faction, cancellationToken);
+        factionsRepository.Add(faction);
 
         foreach (var unit in units)
         {
-            await unitsRepository.AddAsync(unit, cancellationToken);
+            unitsRepository.Add(unit);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

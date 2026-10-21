@@ -12,7 +12,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 public sealed class UpdateRoleHandler(
     IRolesRepository rolesRepository,
     IRolesReadRepository rolesReadRepository)
-    : ICommandHandler<UpdateRoleCommand, Result>, IRequireAuthorization
+    : ICommandHandler<UpdateRoleCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Roles.Update.Code];
 

@@ -23,7 +23,7 @@ public sealed class DeleteUnitHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).DeleteAsync(unit, cancellationToken);
+        repository.Received(1).Delete(unit);
     }
 
     [Fact(DisplayName = "Delete unit handler should return not found when unit does not exist")]

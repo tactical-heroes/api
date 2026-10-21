@@ -41,6 +41,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        var context = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        (await context.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeTrue();
         var user = await userManager.FindByIdAsync(result.Value.ToString());
         user.ShouldNotBeNull();
         user.Email.ShouldBe("register@example.com");
@@ -503,7 +505,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
         (await roleManager.CreateAsync(role: role)).Succeeded.ShouldBeTrue();
         (await userManager.CreateAsync(user: user, password: Password)).Succeeded.ShouldBeTrue();
         (await userManager.AddToRoleAsync(user, role.Name!)).Succeeded.ShouldBeTrue();

@@ -11,7 +11,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
 public sealed class CreateUnitHandler(
     IUnitsRepository unitsRepository,
     IFactionsRepository factionsRepository)
-    : ICommandHandler<CreateUnitCommand, Result<Guid>>, IRequireAuthorization
+    : ICommandHandler<CreateUnitCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Units.Create.Code];
 
@@ -68,9 +68,7 @@ public sealed class CreateUnitHandler(
             luck: luckResult.Value,
             factionId: factionIdResult.Value);
 
-        await unitsRepository.AddAsync(
-            aggregateRoot: unit,
-            cancellationToken: cancellationToken);
+        unitsRepository.Add(aggregateRoot: unit);
 
         return Result.Success(value: unit.Id.Value);
     }

@@ -14,8 +14,8 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "AddAsync should persist a valid hero when hero and faction are valid")]
-    public async Task AddAsync_Should_PersistHero_When_HeroAndFactionAreValid()
+    [Fact(DisplayName = "Add should persist a valid hero when hero and faction are valid")]
+    public async Task Add_Should_PersistHero_When_HeroAndFactionAreValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
@@ -65,8 +65,8 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
         persistedHero.FactionId.ShouldBe(faction.Id);
     }
 
-    [Fact(DisplayName = "UpdateAsync should persist hero changes when hero exists")]
-    public async Task UpdateAsync_Should_PersistChanges_When_HeroExists()
+    [Fact(DisplayName = "Update should persist hero changes when hero exists")]
+    public async Task Update_Should_PersistChanges_When_HeroExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
@@ -100,7 +100,7 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
                 luck: HeroLuck.Create(value: 3).Value,
                 factionId: faction.Id);
 
-            await repository.UpdateAsync(heroToUpdate, cancellationToken);
+            repository.Update(heroToUpdate);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -117,8 +117,8 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
         persistedHero.Morale.Value.ShouldBe(5);
     }
 
-    [Fact(DisplayName = "DeleteAsync should soft delete an existing hero when hero exists")]
-    public async Task DeleteAsync_Should_SoftDeleteHero_When_HeroExists()
+    [Fact(DisplayName = "Delete should soft delete an existing hero when hero exists")]
+    public async Task Delete_Should_SoftDeleteHero_When_HeroExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
@@ -139,7 +139,7 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             persistedHero.ShouldNotBeNull();
-            await repository.DeleteAsync(persistedHero, cancellationToken);
+            repository.Delete(persistedHero);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -165,11 +165,11 @@ public sealed class HeroesRepositoryTests(IntegrationTestFixture fixture)
         var dbContext = scope.ServiceProvider
             .GetRequiredService<CompendiumWriteDbContext>();
 
-        await factionsRepository.AddAsync(faction, cancellationToken);
+        factionsRepository.Add(faction);
 
         foreach (var hero in heroes)
         {
-            await heroesRepository.AddAsync(hero, cancellationToken);
+            heroesRepository.Add(hero);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

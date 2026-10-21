@@ -24,7 +24,7 @@ public sealed class DeleteFactionHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).DeleteAsync(faction, cancellationToken);
+        repository.Received(1).Delete(faction);
     }
 
     [Fact(

@@ -5,7 +5,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Delete;
 
 public sealed class DeleteRoleHandler(IRolesRepository rolesRepository)
-    : ICommandHandler<DeleteRoleCommand, Result>, IRequireAuthorization
+    : ICommandHandler<DeleteRoleCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Roles.Delete.Code];
 

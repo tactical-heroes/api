@@ -9,6 +9,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using var host = Host.CreateDefaultBuilder(args)
+    .UseContentRoot(AppContext.BaseDirectory)
     .ConfigureAppConfiguration((_, configuration) =>
     {
         configuration

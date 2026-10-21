@@ -77,9 +77,6 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
                 value => UserId.Create(value).Value)
             .IsRequired(required: false);
 
-        builder.Property<uint>("Version")
-            .IsRowVersion();
-
         builder.HasIndex(file => file.Status);
         builder.HasIndex(file => file.StorageKey).IsUnique();
         builder.HasIndex(file => file.FolderId);

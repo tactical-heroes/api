@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
 
 public sealed class ChangePasswordHandler(IUserCredentialsService userCredentialsService)
-    : ICommandHandler<ChangePasswordCommand, Result>
+    : ICommandHandler<ChangePasswordCommand, Result>, IRequireTransaction
 {
     public Task<Result> HandleAsync(
         ChangePasswordCommand command,

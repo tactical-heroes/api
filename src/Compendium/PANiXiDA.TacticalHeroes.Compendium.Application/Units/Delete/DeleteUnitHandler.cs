@@ -6,7 +6,7 @@ using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Delete;
 
 public sealed class DeleteUnitHandler(IUnitsRepository unitsRepository)
-    : ICommandHandler<DeleteUnitCommand, Result>, IRequireAuthorization
+    : ICommandHandler<DeleteUnitCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Units.Delete.Code];
 
@@ -31,9 +31,7 @@ public sealed class DeleteUnitHandler(IUnitsRepository unitsRepository)
                 error: Error.NotFound(message: "Unit was not found."));
         }
 
-        await unitsRepository.DeleteAsync(
-            aggregateRoot: unit,
-            cancellationToken: cancellationToken);
+        unitsRepository.Delete(aggregateRoot: unit);
 
         return Result.Success();
     }

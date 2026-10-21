@@ -38,7 +38,7 @@ public sealed class UpdateHeroHandlerTests
         hero.Stats.Attack.ShouldBe(10);
         hero.Stats.MaximumDamage.ShouldBe(9);
         hero.Morale.Value.ShouldBe(5);
-        await heroesRepository.Received(1).UpdateAsync(hero, cancellationToken);
+        heroesRepository.Received(1).Update(hero);
     }
 
     [Fact(DisplayName = "Update hero handler should return not found when hero does not exist")]
@@ -91,8 +91,7 @@ public sealed class UpdateHeroHandlerTests
             ErrorType.NotFound,
             "Faction was not found.");
         hero.Name.Value.ShouldBe("Orrin");
-        await heroesRepository.DidNotReceiveWithAnyArgs()
-            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+        heroesRepository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 
     [Fact(DisplayName = "Update hero handler should reject invalid values without saving when command is invalid")]
@@ -126,7 +125,6 @@ public sealed class UpdateHeroHandlerTests
         hero.Name.ShouldBeSameAs(originalName);
         hero.Stats.ShouldBeSameAs(originalStats);
         hero.FactionId.ShouldBe(faction.Id);
-        await repository.DidNotReceiveWithAnyArgs()
-            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+        repository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 }

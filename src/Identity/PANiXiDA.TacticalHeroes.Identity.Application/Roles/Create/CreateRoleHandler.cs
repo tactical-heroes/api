@@ -12,7 +12,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
 public sealed class CreateRoleHandler(
     IRolesRepository rolesRepository,
     IRolesReadRepository rolesReadRepository)
-    : ICommandHandler<CreateRoleCommand, Result<Guid>>, IRequireAuthorization
+    : ICommandHandler<CreateRoleCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Roles.Create.Code];
 

@@ -20,12 +20,12 @@ public sealed class CreateFactionHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).AddAsync(
-            Arg.Is<Faction>(faction =>
+        repository.Received(1).Add(
+            Arg.Is<Faction>(
+                faction =>
                 faction.Id.Value == result.Value
                     && faction.Name.Value == "Northern Alliance"
-                    && faction.Description.Value == "Defenders of the north."),
-            cancellationToken);
+                    && faction.Description.Value == "Defenders of the north."));
     }
 
     [Fact(DisplayName = "Create faction handler should reject invalid details without saving when command is invalid")]
@@ -40,7 +40,6 @@ public sealed class CreateFactionHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.Count.ShouldBe(2);
-        await repository.DidNotReceiveWithAnyArgs()
-            .AddAsync(null!, TestContext.Current.CancellationToken);
+        repository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 }

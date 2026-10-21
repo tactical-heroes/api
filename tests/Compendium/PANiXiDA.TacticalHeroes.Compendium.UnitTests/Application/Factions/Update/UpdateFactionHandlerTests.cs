@@ -29,7 +29,7 @@ public sealed class UpdateFactionHandlerTests
         result.IsSuccess.ShouldBeTrue();
         faction.Name.Value.ShouldBe("Southern Alliance");
         faction.Description.Value.ShouldBe("Defenders of the south.");
-        await repository.Received(1).UpdateAsync(faction, cancellationToken);
+        repository.Received(1).Update(faction);
     }
 
     [Fact(
@@ -75,7 +75,6 @@ public sealed class UpdateFactionHandlerTests
         result.Errors.Count.ShouldBe(2);
         faction.Name.ShouldBeSameAs(originalName);
         faction.Description.ShouldBeSameAs(originalDescription);
-        await repository.DidNotReceiveWithAnyArgs()
-            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+        repository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 }
