@@ -3,7 +3,6 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.OpenApi;
 
 using Microsoft.OpenApi;
 
@@ -21,7 +20,8 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
     {
         builder.MapGet(builder.Route, handler: HandleGetAsync)
             .AllowAnonymous()
-            .AddOpenApiOperationTransformer(AddLogoutQueryParametersAsync)
+            .AddOpenApiOperationTransformer((operation, _, cancellationToken) =>
+                AddLogoutQueryParametersAsync(operation, cancellationToken))
             .Produces(StatusCodes.Status302Found);
 
         builder.MapPost(builder.Route, handler: HandlePostAsync)
@@ -37,15 +37,13 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         return HandleAsync(httpContext);
     }
 
-    private static async Task AddLogoutQueryParametersAsync(
+    private static Task AddLogoutQueryParametersAsync(
         OpenApiOperation operation,
-        OpenApiOperationTransformerContext context,
         CancellationToken cancellationToken)
     {
-        OpenApiSchema stringSchema = await context.GetOrCreateSchemaAsync(
-            type: typeof(string),
-            parameterDescription: null,
-            cancellationToken: cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var stringSchema = new OpenApiSchema { Type = JsonSchemaType.String };
 
         operation.Parameters =
         [
@@ -55,6 +53,8 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
             CreateQueryParameter(OpenIddictConstants.Parameters.State, stringSchema),
             CreateQueryParameter(OpenIddictConstants.Parameters.UiLocales, stringSchema)
         ];
+
+        return Task.CompletedTask;
     }
 
     private static OpenApiParameter CreateQueryParameter(

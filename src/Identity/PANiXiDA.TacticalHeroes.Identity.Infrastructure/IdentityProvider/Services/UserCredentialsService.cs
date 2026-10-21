@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
@@ -25,7 +24,6 @@ public sealed class UserCredentialsService(
     IOpenIddictTokenManager tokenManager,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
-    IServiceScopeFactory serviceScopeFactory,
     TimeProvider timeProvider)
     : IUserCredentialsService
 {
@@ -101,10 +99,8 @@ public sealed class UserCredentialsService(
         string password,
         CancellationToken cancellationToken)
     {
-        await using var scope = serviceScopeFactory.CreateAsyncScope();
-        var loginManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var normalizedEmail = loginManager.NormalizeEmail(email);
-        var applicationUser = await loginManager.Users
+        var normalizedEmail = userManager.NormalizeEmail(email);
+        var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
             .SingleOrDefaultAsync(
                 user => user.NormalizedEmail == normalizedEmail,
@@ -121,15 +117,15 @@ public sealed class UserCredentialsService(
                 error: Error.Forbidden(message: "User is blocked."));
         }
 
-        if (await loginManager.IsLockedOutAsync(applicationUser))
+        if (await userManager.IsLockedOutAsync(applicationUser))
         {
             return Result.Failure<AuthenticatedUserReadModel>(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
-        if (!await loginManager.CheckPasswordAsync(applicationUser, password))
+        if (!await userManager.CheckPasswordAsync(applicationUser, password))
         {
-            var failureResult = await loginManager.AccessFailedAsync(applicationUser);
+            var failureResult = await userManager.AccessFailedAsync(applicationUser);
 
             if (!failureResult.Succeeded)
             {
@@ -139,7 +135,7 @@ public sealed class UserCredentialsService(
             return InvalidCredentials();
         }
 
-        var resetResult = await loginManager.ResetAccessFailedCountAsync(applicationUser);
+        var resetResult = await userManager.ResetAccessFailedCountAsync(applicationUser);
 
         if (!resetResult.Succeeded)
         {
@@ -154,7 +150,7 @@ public sealed class UserCredentialsService(
 
         var claims = IdentityClaimsFactory.Create(
             user: applicationUser,
-            identityOptions: loginManager.Options);
+            identityOptions: userManager.Options);
 
         return Result.Success(
             value: new AuthenticatedUserReadModel(

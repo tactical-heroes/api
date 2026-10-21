@@ -1,6 +1,12 @@
 using System.Text.Json;
 
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
+using Microsoft.OpenApi;
 
 using OpenIddict.Abstractions;
 
@@ -9,6 +15,42 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
+    [Fact(
+        DisplayName = "Logout OpenAPI transformer should describe query parameters when schema services are unavailable")]
+    public async Task TransformLogoutOperation_Should_DescribeQueryParameters_When_SchemaServicesAreUnavailable()
+    {
+        var endpoint = Fixture.Services.GetRequiredService<EndpointDataSource>().Endpoints
+            .Single(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == "Logout");
+        var transformer = endpoint.Metadata.GetOrderedMetadata<IOpenApiOperationTransformer>().Single();
+        await using var services = new ServiceCollection().BuildServiceProvider();
+        var context = new OpenApiOperationTransformerContext
+        {
+            DocumentName = "visual-studio",
+            Description = new ApiDescription(),
+            ApplicationServices = services
+        };
+        var operation = new OpenApiOperation();
+
+        await transformer.TransformAsync(operation, context, TestContext.Current.CancellationToken);
+
+        operation.Parameters.ShouldNotBeNull();
+        operation.Parameters.Select(parameter => parameter.Name).ShouldBe(
+            [
+                OpenIddictConstants.Parameters.ClientId,
+                OpenIddictConstants.Parameters.IdTokenHint,
+                OpenIddictConstants.Parameters.PostLogoutRedirectUri,
+                OpenIddictConstants.Parameters.State,
+                OpenIddictConstants.Parameters.UiLocales
+            ],
+            ignoreOrder: true);
+        foreach (var parameter in operation.Parameters)
+        {
+            parameter.In.ShouldBe(ParameterLocation.Query);
+            parameter.Required.ShouldBeFalse();
+            parameter.Schema.ShouldNotBeNull().Type.ShouldBe(JsonSchemaType.String);
+        }
+    }
+
     [Fact(DisplayName = "GET Identity OpenAPI document should require only mandatory PAR fields when requested")]
     public async Task GetIdentityOpenApiDocument_Should_RequireOnlyMandatoryParFields_When_Requested()
     {
