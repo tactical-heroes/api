@@ -11,7 +11,12 @@ internal sealed class PruneEmailRequestCooldownsJob(IdentityWriteDbContext dbCon
 {
     public static readonly JobKey Key = new(nameof(PruneEmailRequestCooldownsJob));
 
-    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken)
+    ValueTask IJob.Execute(IJobExecutionContext context, CancellationToken cancellationToken)
+    {
+        return new ValueTask(ExecuteAsync(cancellationToken));
+    }
+
+    internal async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         await dbContext.Database.ExecuteSqlRawAsync(
             "DELETE FROM identity.email_request_cooldowns WHERE expires_at <= clock_timestamp()",

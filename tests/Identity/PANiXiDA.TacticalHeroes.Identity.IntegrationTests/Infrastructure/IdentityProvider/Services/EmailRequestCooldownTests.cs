@@ -146,7 +146,7 @@ public sealed class EmailRequestCooldownTests(IntegrationTestFixture fixture) : 
             });
         await context.SaveChangesAsync(cancellationToken);
 
-        await new PruneEmailRequestCooldownsJob(context).Execute(null!, cancellationToken);
+        await new PruneEmailRequestCooldownsJob(context).ExecuteAsync(cancellationToken);
 
         var remaining = await context.Set<EmailRequestCooldown>().AsNoTracking().SingleAsync(cancellationToken);
         remaining.NormalizedEmail.ShouldBe("ACTIVE@EXAMPLE.TEST");

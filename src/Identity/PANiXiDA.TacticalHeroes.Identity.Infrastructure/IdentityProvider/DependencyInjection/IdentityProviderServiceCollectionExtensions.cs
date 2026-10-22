@@ -40,6 +40,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             .ValidateOnStart();
 
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
+        serviceCollection.AddScoped<UserEmailRequestService>();
         serviceCollection.AddScoped<EmailRequestCooldownStore>();
         serviceCollection.AddSingleton<
             IValidateOptions<EmailRequestCooldownOptions>, EmailRequestCooldownOptionsValidator>();
