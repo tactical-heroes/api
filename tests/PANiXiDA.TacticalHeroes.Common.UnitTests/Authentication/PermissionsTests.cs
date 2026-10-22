@@ -6,6 +6,26 @@ namespace PANiXiDA.TacticalHeroes.Common.UnitTests.Authentication;
 
 public sealed class PermissionsTests
 {
+    [Fact(DisplayName = "All should follow navigation order when modules and resources are grouped")]
+    public void All_Should_FollowNavigationOrder_When_ModulesAndResourcesAreGrouped()
+    {
+        var permissions = Permissions.All;
+
+        var resources = permissions
+            .Select(permission => (permission.ModuleCode, permission.ResourceCode))
+            .Distinct()
+            .ToArray();
+
+        resources.ShouldBe(
+        [
+            ("compendium", "factions"),
+            ("compendium", "heroes"),
+            ("compendium", "units"),
+            ("identity", "roles"),
+            ("identity", "users")
+        ]);
+    }
+
     [Fact(DisplayName = "All should contain every declared permission exactly once when catalog is read")]
     public void All_Should_ContainEveryDeclaredPermissionExactlyOnce_When_CatalogIsRead()
     {

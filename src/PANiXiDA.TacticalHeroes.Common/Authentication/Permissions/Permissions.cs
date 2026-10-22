@@ -4,14 +4,6 @@ public static partial class Permissions
 {
     public static IReadOnlyList<PermissionDefinition> All { get; } = Array.AsReadOnly(
     [
-        Identity.Users.Create,
-        Identity.Users.Read,
-        Identity.Users.Update,
-        Identity.Users.Delete,
-        Identity.Roles.Create,
-        Identity.Roles.Read,
-        Identity.Roles.Update,
-        Identity.Roles.Delete,
         Compendium.Factions.Create,
         Compendium.Factions.Read,
         Compendium.Factions.Update,
@@ -23,6 +15,14 @@ public static partial class Permissions
         Compendium.Units.Create,
         Compendium.Units.Read,
         Compendium.Units.Update,
-        Compendium.Units.Delete
+        Compendium.Units.Delete,
+        Identity.Roles.Create,
+        Identity.Roles.Read,
+        Identity.Roles.Update,
+        Identity.Roles.Delete,
+        Identity.Users.Create,
+        Identity.Users.Read,
+        Identity.Users.Update,
+        Identity.Users.Delete
     ]);
 }
