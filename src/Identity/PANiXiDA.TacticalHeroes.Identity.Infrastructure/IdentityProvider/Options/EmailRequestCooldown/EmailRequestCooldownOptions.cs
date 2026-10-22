@@ -5,6 +5,6 @@ public sealed class EmailRequestCooldownOptions
     public const string SectionName = "Identity:EmailRequestCooldown";
 
     public TimeSpan Confirmation { get; set; } = TimeSpan.FromMinutes(1);
-    public TimeSpan PasswordReset { get; set; } = TimeSpan.FromMinutes(1);
+    public TimeSpan AccountRecovery { get; set; } = TimeSpan.FromMinutes(1);
     public string CleanupCronSchedule { get; set; } = "0 0 * * * ?";
 }

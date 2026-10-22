@@ -112,7 +112,7 @@ the authenticated user subject, including requests from different sessions/IPs.
 These counters are local to each API replica. A shared IP limit must be configured
 on Envoy Gateway before treating it as a deployment-wide limit.
 
-`Identity:EmailRequestCooldown` configures `Confirmation`, `PasswordReset`, and
+`Identity:EmailRequestCooldown` configures `Confirmation`, `AccountRecovery`, and
 `CleanupCronSchedule` (Quartz). Both cooldowns default to one minute, and expired
 records are cleaned hourly. Registration's first confirmation email also starts
 the confirmation cooldown. Cooldowns use Identity-normalized email and separate

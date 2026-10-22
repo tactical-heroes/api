@@ -10,10 +10,10 @@ internal sealed class EmailRequestCooldownOptionsValidator : IValidateOptions<Em
     {
         var section = EmailRequestCooldownOptions.SectionName;
         List<string> failures = [];
-        if (options.Confirmation <= TimeSpan.Zero || options.PasswordReset <= TimeSpan.Zero)
+        if (options.Confirmation <= TimeSpan.Zero || options.AccountRecovery <= TimeSpan.Zero)
         {
             failures.Add(
-                $"{section} requires positive Confirmation and PasswordReset intervals.");
+                $"{section} requires positive Confirmation and AccountRecovery intervals.");
         }
 
         if (string.IsNullOrWhiteSpace(options.CleanupCronSchedule)

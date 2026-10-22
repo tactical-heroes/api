@@ -23,7 +23,7 @@ public sealed class EmailRequestCooldownStore(
 
         var interval = purpose == EmailRequestPurpose.Confirmation
             ? options.Value.Confirmation
-            : options.Value.PasswordReset;
+            : options.Value.AccountRecovery;
         var affected = await dbContext.Database.ExecuteSqlInterpolatedAsync(
             $"""
             INSERT INTO identity.email_request_cooldowns (normalized_email, purpose, expires_at)

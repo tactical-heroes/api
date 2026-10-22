@@ -10,7 +10,7 @@ public sealed class EmailRequestCooldownOptionsTests
 {
     [Theory(DisplayName = "Cooldown should fail startup validation when intervals or cleanup schedule are invalid")]
     [InlineData("Confirmation", "00:00:00")]
-    [InlineData("PasswordReset", "-00:00:01")]
+    [InlineData("AccountRecovery", "-00:00:01")]
     [InlineData("CleanupCronSchedule", "invalid")]
     [InlineData("CleanupCronSchedule", "")]
     public void Validate_Should_FailStartup_When_IntervalsOrCleanupScheduleAreInvalid(string key, string value)
