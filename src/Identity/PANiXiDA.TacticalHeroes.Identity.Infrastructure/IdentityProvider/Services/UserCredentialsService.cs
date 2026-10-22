@@ -181,7 +181,10 @@ public sealed class UserCredentialsService(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
-        var authorizationId = await GetValidCurrentAuthorizationIdAsync(userId, accessToken, cancellationToken);
+        var authorizationId = await GetValidCurrentAuthorizationIdAsync(
+            userId: userId,
+            accessToken: accessToken,
+            cancellationToken: cancellationToken);
         if (authorizationId is null)
         {
             return Result.Failure<AuthenticatedUserReadModel>(
@@ -385,6 +388,11 @@ public sealed class UserCredentialsService(
             StringComparison.Ordinal);
     }
 
+    private static Result UserNotFound()
+    {
+        return Result.Failure(error: Error.NotFound(message: "User was not found."));
+    }
+
     private AuthenticatedUserReadModel CreateAuthenticatedUserReadModel(ApplicationUser applicationUser)
     {
         return new AuthenticatedUserReadModel(
@@ -392,11 +400,6 @@ public sealed class UserCredentialsService(
             Email: applicationUser.Email!,
             UserName: applicationUser.UserName!,
             Claims: IdentityClaimsFactory.Create(applicationUser, userManager.Options));
-    }
-
-    private static Result UserNotFound()
-    {
-        return Result.Failure(error: Error.NotFound(message: "User was not found."));
     }
 
     private async Task<string?> GetValidCurrentAuthorizationIdAsync(
