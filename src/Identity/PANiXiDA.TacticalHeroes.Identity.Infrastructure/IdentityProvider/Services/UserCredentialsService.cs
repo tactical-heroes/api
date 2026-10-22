@@ -149,16 +149,7 @@ public sealed class UserCredentialsService(
                 error: Error.Forbidden(message: "User is not confirmed."));
         }
 
-        var claims = IdentityClaimsFactory.Create(
-            user: applicationUser,
-            identityOptions: userManager.Options);
-
-        return Result.Success(
-            value: new AuthenticatedUserReadModel(
-                Id: applicationUser.Id,
-                Email: applicationUser.Email!,
-                UserName: applicationUser.UserName!,
-                Claims: claims));
+        return Result.Success(value: CreateAuthenticatedUserReadModel(applicationUser));
     }
 
     public async Task<Result<AuthenticatedUserReadModel>> ChangePasswordAsync(
@@ -190,20 +181,8 @@ public sealed class UserCredentialsService(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
-        var authorizationId = await GetCurrentAuthorizationIdAsync(accessToken, cancellationToken);
-        var authorization = authorizationId is null
-            ? null
-            : await authorizationManager.FindByIdAsync(authorizationId, cancellationToken);
-        if (authorizationId is null
-            || authorization is null
-            || !await authorizationManager.HasStatusAsync(
-                authorization: authorization,
-                status: OpenIddictConstants.Statuses.Valid,
-                cancellationToken: cancellationToken)
-            || !string.Equals(
-                await authorizationManager.GetSubjectAsync(authorization, cancellationToken),
-                userId.ToString(),
-                StringComparison.Ordinal))
+        var authorizationId = await GetValidCurrentAuthorizationIdAsync(userId, accessToken, cancellationToken);
+        if (authorizationId is null)
         {
             return Result.Failure<AuthenticatedUserReadModel>(
                 error: Error.Unauthorized(message: "Current session is invalid."));
@@ -224,12 +203,7 @@ public sealed class UserCredentialsService(
             authorizationId: authorizationId,
             cancellationToken: cancellationToken);
 
-        return Result.Success(
-            value: new AuthenticatedUserReadModel(
-                Id: applicationUser.Id,
-                Email: applicationUser.Email!,
-                UserName: applicationUser.UserName!,
-                Claims: IdentityClaimsFactory.Create(applicationUser, userManager.Options)));
+        return Result.Success(value: CreateAuthenticatedUserReadModel(applicationUser));
     }
 
     public async Task<Result> ConfirmEmailAsync(
@@ -397,6 +371,15 @@ public sealed class UserCredentialsService(
         return IdentityResultMapper.ToResult(result: result);
     }
 
+    private AuthenticatedUserReadModel CreateAuthenticatedUserReadModel(ApplicationUser applicationUser)
+    {
+        return new AuthenticatedUserReadModel(
+            Id: applicationUser.Id,
+            Email: applicationUser.Email!,
+            UserName: applicationUser.UserName!,
+            Claims: IdentityClaimsFactory.Create(applicationUser, userManager.Options));
+    }
+
     private static bool IsBlocked(ApplicationUser applicationUser)
     {
         return string.Equals(
@@ -452,7 +435,8 @@ public sealed class UserCredentialsService(
         }
     }
 
-    private async Task<string?> GetCurrentAuthorizationIdAsync(
+    private async Task<string?> GetValidCurrentAuthorizationIdAsync(
+        Guid userId,
         string accessToken,
         CancellationToken cancellationToken)
     {
@@ -470,6 +454,23 @@ public sealed class UserCredentialsService(
             return null;
         }
 
-        return await tokenManager.GetAuthorizationIdAsync(token, cancellationToken);
+        var authorizationId = await tokenManager.GetAuthorizationIdAsync(token, cancellationToken);
+        var authorization = authorizationId is null
+            ? null
+            : await authorizationManager.FindByIdAsync(authorizationId, cancellationToken);
+        if (authorization is null
+            || !await authorizationManager.HasStatusAsync(
+                authorization: authorization,
+                status: OpenIddictConstants.Statuses.Valid,
+                cancellationToken: cancellationToken)
+            || !string.Equals(
+                await authorizationManager.GetSubjectAsync(authorization, cancellationToken),
+                userId.ToString(),
+                StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        return authorizationId;
     }
 }
