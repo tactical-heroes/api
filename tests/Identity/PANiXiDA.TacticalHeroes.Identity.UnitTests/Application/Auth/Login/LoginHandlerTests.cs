@@ -1,4 +1,5 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Login;
