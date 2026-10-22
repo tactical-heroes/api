@@ -29,8 +29,7 @@ internal static class IdentityClaimsFactory
             userName: user.UserName,
             email: user.Email,
             roleAssignmentsVersion: user.RoleAssignmentsVersion,
-            securityStamp: user.SecurityStamp,
-            securityStampClaimType: identityOptions.ClaimsIdentity.SecurityStampClaimType,
+            securityStamp: (Type: identityOptions.ClaimsIdentity.SecurityStampClaimType, Value: user.SecurityStamp),
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
             additionalClaims: additionalClaims);
     }
@@ -49,8 +48,7 @@ internal static class IdentityClaimsFactory
             userName: user.UserName,
             email: user.Email,
             roleAssignmentsVersion: user.RoleAssignmentsVersion,
-            securityStamp: user.SecurityStamp,
-            securityStampClaimType: s_defaultSecurityStampClaimType,
+            securityStamp: (Type: s_defaultSecurityStampClaimType, Value: user.SecurityStamp),
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
             additionalClaims: additionalClaims);
     }
@@ -60,8 +58,7 @@ internal static class IdentityClaimsFactory
         string? userName,
         string? email,
         long roleAssignmentsVersion,
-        string? securityStamp,
-        string securityStampClaimType,
+        (string Type, string? Value) securityStamp,
         IEnumerable<string?> roleNames,
         IEnumerable<(string? Type, string? Value)> additionalClaims)
     {
@@ -72,7 +69,7 @@ internal static class IdentityClaimsFactory
 
         AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Name, value: userName);
         AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Email, value: email);
-        AddIfPresent(claims: claims, type: securityStampClaimType, value: securityStamp);
+        AddIfPresent(claims: claims, type: securityStamp.Type, value: securityStamp.Value);
         claims.Add(new Claim(
             RoleAssignmentsVersionClaimType, roleAssignmentsVersion.ToString(CultureInfo.InvariantCulture)));
 
