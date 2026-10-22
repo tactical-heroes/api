@@ -72,6 +72,16 @@ public sealed class AuthorizeEndpointTests(FunctionalTestFixture fixture)
 
         using var response = await client.GetAsync(authorizePath, cancellationToken);
 
+        if (isDeleted)
+        {
+            response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+            response.Headers.Location.ShouldNotBeNull();
+            response.Headers.Location.GetLeftPart(UriPartial.Path).ShouldBe("https://localhost:5173/login");
+            response.Headers.Location.Query.ShouldContain(
+                $"returnUrl={Uri.EscapeDataString($"https://localhost{authorizePath}")}");
+            return;
+        }
+
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         response.Headers.Location.ShouldBeNull();
     }
