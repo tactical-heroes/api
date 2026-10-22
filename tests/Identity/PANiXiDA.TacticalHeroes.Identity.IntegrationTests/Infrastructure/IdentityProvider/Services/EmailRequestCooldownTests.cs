@@ -92,10 +92,11 @@ public sealed class EmailRequestCooldownTests(IntegrationTestFixture fixture) : 
 
         (await store.TryAcquireAsync("FIRST@EXAMPLE.TEST", EmailRequestPurpose.Confirmation, cancellationToken))
             .ShouldBeTrue();
-        var expiresAt = (await context.Set<EmailRequestCooldown>().AsNoTracking().SingleAsync(cancellationToken)).ExpiresAt;
+        var cooldowns = context.Set<EmailRequestCooldown>().AsNoTracking();
+        var expiresAt = (await cooldowns.SingleAsync(cancellationToken)).ExpiresAt;
         (await store.TryAcquireAsync("FIRST@EXAMPLE.TEST", EmailRequestPurpose.Confirmation, cancellationToken))
             .ShouldBeFalse();
-        (await context.Set<EmailRequestCooldown>().AsNoTracking().SingleAsync(cancellationToken)).ExpiresAt.ShouldBe(expiresAt);
+        (await cooldowns.SingleAsync(cancellationToken)).ExpiresAt.ShouldBe(expiresAt);
         (await store.TryAcquireAsync("FIRST@EXAMPLE.TEST", EmailRequestPurpose.PasswordReset, cancellationToken))
             .ShouldBeTrue();
         (await store.TryAcquireAsync("SECOND@EXAMPLE.TEST", EmailRequestPurpose.Confirmation, cancellationToken))

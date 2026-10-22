@@ -8,7 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 
 public sealed class EmailRequestCooldownOptionsTests
 {
-    [Theory(DisplayName = "Email cooldown should fail startup validation when intervals or cleanup schedule are invalid")]
+    [Theory(DisplayName = "Cooldown should fail startup validation when intervals or cleanup schedule are invalid")]
     [InlineData("Confirmation", "00:00:00")]
     [InlineData("PasswordReset", "-00:00:01")]
     [InlineData("CleanupCronSchedule", "invalid")]

@@ -58,6 +58,7 @@ internal static class AuthRateLimitingServiceCollectionExtensions
             limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             limiter.OnRejected = async (context, cancellationToken) =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
                 {
                     context.HttpContext.Response.Headers.RetryAfter =

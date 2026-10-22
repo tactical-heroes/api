@@ -18,7 +18,7 @@ public sealed class EmailCooldownEndpointTests(FunctionalTestFixture fixture) : 
         string endpoint, bool confirmed, bool blocked, HttpStatusCode expected)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await CreateUserAsync(confirmed, blocked, cancellationToken);
+        await CreateUserAsync(confirmed, blocked);
 
         foreach (var email in new[] { "known@example.test", "unknown@example.test" })
         {
@@ -40,7 +40,7 @@ public sealed class EmailCooldownEndpointTests(FunctionalTestFixture fixture) : 
         string endpoint, bool confirmed, HttpStatusCode expected)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await CreateUserAsync(confirmed, blocked: false, cancellationToken);
+        await CreateUserAsync(confirmed, blocked: false);
 
         foreach (var email in new[] { "known@example.test", "KNOWN@EXAMPLE.TEST", "unknown@example.test" })
         {
@@ -55,7 +55,7 @@ public sealed class EmailCooldownEndpointTests(FunctionalTestFixture fixture) : 
         Fixture.EventBus.Count<EmailConfirmationRequested>().ShouldBe(confirmed ? 0 : 1);
     }
 
-    private async Task CreateUserAsync(bool confirmed, bool blocked, CancellationToken cancellationToken)
+    private async Task CreateUserAsync(bool confirmed, bool blocked)
     {
         await using var scope = Fixture.Services.CreateAsyncScope();
         var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();

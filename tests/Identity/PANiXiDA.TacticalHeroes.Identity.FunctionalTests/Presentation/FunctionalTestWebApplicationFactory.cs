@@ -7,9 +7,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
-using OpenIddict.Validation.SystemNetHttp;
-
 using Npgsql;
+
+using OpenIddict.Validation.SystemNetHttp;
 
 using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;

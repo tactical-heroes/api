@@ -74,7 +74,7 @@ public sealed class EmailCooldownOutboxTests(FunctionalTestFixture fixture) : Fu
         public override async ValueTask<int> SavedChangesAsync(
             SaveChangesCompletedEventData eventData,
             int result,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             if (eventData.Context is IdentityWriteDbContext context && context.Database.CurrentTransaction is not null)
             {
