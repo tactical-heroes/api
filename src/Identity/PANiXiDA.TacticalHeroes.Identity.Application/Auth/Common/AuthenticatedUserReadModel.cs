@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
 public sealed record AuthenticatedUserReadModel(
     Guid Id,

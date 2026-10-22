@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
 

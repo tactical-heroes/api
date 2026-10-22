@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
