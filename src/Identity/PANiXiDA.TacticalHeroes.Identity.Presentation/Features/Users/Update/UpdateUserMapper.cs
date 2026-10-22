@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
@@ -11,5 +12,11 @@ internal static partial class UpdateUserMapper
 {
     internal static partial UpdateUserCommand ToCommand(
         UpdateUserRequest request,
-        Guid id);
+        Guid id,
+        string? currentAccessToken);
+
+    internal static ExchangeTokenQuery ToSessionQuery(Guid userId)
+    {
+        return new ExchangeTokenQuery(UserId: userId);
+    }
 }

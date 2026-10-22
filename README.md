@@ -81,6 +81,19 @@ own session and protocol checks.
 `/connect/authorize` checks only user availability without loading roles or claims;
 `/connect/token` loads current user and role claims when issuing tokens.
 
+Changing `roleIds` in `PUT /api/v1/users/{id}` revokes the user's existing access
+tokens, authorizations and login cookies. When the user changes their own roles,
+the current authorization and its refresh tokens are preserved; the client must
+refresh its tokens after the successful update to receive the new permissions.
+A matching Identity login cookie sent with the request is renewed as well.
+Other sessions must sign in again. An unchanged role set does not revoke sessions.
+
+`AddRoleAssignmentsVersion` adds a version counter to users so access tokens issued
+by an overlapping refresh cannot retain obsolete roles. Apply this migration before
+starting the updated API. Existing tokens remain valid until their user's role set
+changes. Direct user claims, role claims, and role renaming/deletion are outside
+this invalidation flow.
+
 `RemoveNonPermissionClaims` deletes all user and role claims except `permission`.
 Its rollback cannot reconstruct deleted assignments.
 The `/api/v1/claims/sections` endpoint and `sectionCode` catalog field are removed;

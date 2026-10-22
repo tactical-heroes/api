@@ -65,6 +65,7 @@ public sealed class IdentityWriteDbContext(
             builder.ToTable("asp_net_users", Schema);
 
             builder.Property(user => user.Id).ValueGeneratedNever();
+            builder.Property(user => user.RoleAssignmentsVersion).HasDefaultValue(0L);
             builder.Property(user => user.Status)
                 .HasMaxLength(UserStatus.MaxNameLength)
                 .HasDefaultValue(UserStatus.Active.Name)

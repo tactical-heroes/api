@@ -160,7 +160,7 @@ public sealed class IdentityPersistenceTests(IntegrationTestFixture fixture) : I
         result.IsSuccess.ShouldBeTrue();
     }
 
-    private static Task<Result> UpdateAsync(
+    private static async Task<Result> UpdateAsync(
         IServiceProvider provider,
         bool role,
         Guid id,
@@ -168,9 +168,9 @@ public sealed class IdentityPersistenceTests(IntegrationTestFixture fixture) : I
         CancellationToken cancellationToken)
     {
         return role
-            ? provider.GetRequiredService<IRolesRepository>().UpdateAsync(
+            ? await provider.GetRequiredService<IRolesRepository>().UpdateAsync(
                 RoleTestData.CreateRole(id, name, []), cancellationToken)
-            : provider.GetRequiredService<IUsersRepository>().UpdateAsync(
+            : await provider.GetRequiredService<IUsersRepository>().UpdateAsync(
                 UserTestData.CreateUser(id, "hero@example.com", true, [], [], name, UserStatus.Active),
                 cancellationToken);
     }

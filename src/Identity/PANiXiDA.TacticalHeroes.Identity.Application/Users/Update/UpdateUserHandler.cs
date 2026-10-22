@@ -11,11 +11,11 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 
 public sealed class UpdateUserHandler(IUsersRepository usersRepository)
-    : ICommandHandler<UpdateUserCommand, Result>, IRequireAuthorization, IRequireTransaction
+    : ICommandHandler<UpdateUserCommand, Result<bool>>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
 
-    public Task<Result> HandleAsync(
+    public Task<Result<bool>> HandleAsync(
         UpdateUserCommand command,
         CancellationToken cancellationToken)
     {
@@ -28,7 +28,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
 
         if (validationResult.IsFailure)
         {
-            return Task.FromResult(Result.Failure(errors: validationResult.Errors));
+            return Task.FromResult(Result.Failure<bool>(errors: validationResult.Errors));
         }
 
         var claims = new List<UserClaim>();
@@ -41,7 +41,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
 
             if (claimResult.IsFailure)
             {
-                return Task.FromResult(Result.Failure(errors: claimResult.Errors));
+                return Task.FromResult(Result.Failure<bool>(errors: claimResult.Errors));
             }
 
             claims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
@@ -58,6 +58,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
 
         return usersRepository.UpdateAsync(
             user: user,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken,
+            currentAccessToken: command.CurrentAccessToken);
     }
 }

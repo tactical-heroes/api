@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +10,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claim
 
 internal static class IdentityClaimsFactory
 {
+    internal const string RoleAssignmentsVersionClaimType = "role_assignments_version";
+
     private static readonly string s_defaultSecurityStampClaimType =
         new IdentityOptions().ClaimsIdentity.SecurityStampClaimType;
 
@@ -25,6 +28,7 @@ internal static class IdentityClaimsFactory
             id: user.Id,
             userName: user.UserName,
             email: user.Email,
+            roleAssignmentsVersion: user.RoleAssignmentsVersion,
             securityStamp: user.SecurityStamp,
             securityStampClaimType: identityOptions.ClaimsIdentity.SecurityStampClaimType,
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
@@ -44,6 +48,7 @@ internal static class IdentityClaimsFactory
             id: user.Id,
             userName: user.UserName,
             email: user.Email,
+            roleAssignmentsVersion: user.RoleAssignmentsVersion,
             securityStamp: user.SecurityStamp,
             securityStampClaimType: s_defaultSecurityStampClaimType,
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
@@ -54,6 +59,7 @@ internal static class IdentityClaimsFactory
         Guid id,
         string? userName,
         string? email,
+        long roleAssignmentsVersion,
         string? securityStamp,
         string securityStampClaimType,
         IEnumerable<string?> roleNames,
@@ -67,6 +73,8 @@ internal static class IdentityClaimsFactory
         AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Name, value: userName);
         AddIfPresent(claims: claims, type: OpenIddictConstants.Claims.Email, value: email);
         AddIfPresent(claims: claims, type: securityStampClaimType, value: securityStamp);
+        claims.Add(new Claim(
+            RoleAssignmentsVersionClaimType, roleAssignmentsVersion.ToString(CultureInfo.InvariantCulture)));
 
         claims.AddRange(
             roleNames

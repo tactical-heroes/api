@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -17,6 +18,7 @@ public sealed class UsersRepository(
     IdentityWriteDbContext dbContext,
     UserManager<ApplicationUser> userManager,
     IOpenIddictTokenManager tokenManager,
+    RoleAssignmentSessionService roleAssignmentSessionService,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IUsersRepository
@@ -50,9 +52,10 @@ public sealed class UsersRepository(
         return Result.Success(value: applicationUser.Id);
     }
 
-    public async Task<Result> UpdateAsync(
+    public async Task<Result<bool>> UpdateAsync(
         User user,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? currentAccessToken = null)
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
@@ -60,13 +63,38 @@ public sealed class UsersRepository(
 
         if (applicationUser is null)
         {
-            return UserNotFound();
+            return Result.Failure<bool>(UserNotFound().Errors);
         }
 
         var rolesResult = await ValidateRolesAsync(user, cancellationToken);
         if (rolesResult.IsFailure)
         {
-            return rolesResult;
+            return Result.Failure<bool>(rolesResult.Errors);
+        }
+
+        var rolesChanged = !user.RoleIds
+            .Select(roleId => roleId.Value)
+            .ToHashSet()
+            .SetEquals(applicationUser.Roles.Select(role => role.RoleId));
+        string? preservedAuthorizationId = null;
+        if (rolesChanged)
+        {
+            if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+            {
+                var sessionResult = await roleAssignmentSessionService.GetCurrentAuthorizationIdAsync(
+                    userId: user.Id.Value,
+                    accessToken: currentAccessToken,
+                    cancellationToken: cancellationToken);
+                if (sessionResult.IsFailure)
+                {
+                    return Result.Failure<bool>(sessionResult.Errors);
+                }
+
+                preservedAuthorizationId = sessionResult.Value;
+            }
+
+            applicationUser.RoleAssignmentsVersion++;
+            applicationUser.SecurityStamp = Guid.NewGuid().ToString();
         }
 
         SyncRoles(applicationUser, user);
@@ -78,7 +106,7 @@ public sealed class UsersRepository(
             applicationUser: applicationUser,
             user: user);
 
-        if (user.Status.IsBlocked)
+        if (user.Status.IsBlocked && !rolesChanged)
         {
             await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
         }
@@ -87,12 +115,20 @@ public sealed class UsersRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult(result: identityResult);
+            return IdentityResultMapper.ToResult<bool>(result: identityResult);
+        }
+
+        if (rolesChanged)
+        {
+            await roleAssignmentSessionService.RevokeAsync(
+                userId: user.Id.Value,
+                preservedAuthorizationId: preservedAuthorizationId,
+                cancellationToken: cancellationToken);
         }
 
         aggregateTracker.Track(user);
 
-        return Result.Success();
+        return Result.Success(rolesChanged);
     }
 
     public async Task<Result> DeleteAsync(
