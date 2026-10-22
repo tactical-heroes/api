@@ -17,6 +17,8 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPost(builder.Route, HandleAsync)
+            .RequireRateLimiting(AuthRateLimitPolicies.ChangePassword)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)

@@ -12,6 +12,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.EmailRequests;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
@@ -25,6 +26,7 @@ public sealed class UserCredentialsService(
     IOpenIddictAuthorizationManager authorizationManager,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
+    EmailRequestCooldownStore emailCooldown,
     TimeProvider timeProvider)
     : IUserCredentialsService
 {
@@ -71,6 +73,14 @@ public sealed class UserCredentialsService(
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
+        }
+
+        if (!await emailCooldown.TryAcquireAsync(
+            normalizedEmail: applicationUser.NormalizedEmail!,
+            purpose: EmailRequestPurpose.Confirmation,
+            cancellationToken: cancellationToken))
+        {
+            return Result.Success(value: applicationUser.Id);
         }
 
         var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
@@ -267,6 +277,14 @@ public sealed class UserCredentialsService(
             return Result.Success();
         }
 
+        if (!await emailCooldown.TryAcquireAsync(
+            normalizedEmail: applicationUser.NormalizedEmail!,
+            purpose: EmailRequestPurpose.Confirmation,
+            cancellationToken: cancellationToken))
+        {
+            return Result.Success();
+        }
+
         var userResult = ApplicationUserMapper.ToDomain(user: applicationUser);
 
         if (userResult.IsFailure)
@@ -305,6 +323,14 @@ public sealed class UserCredentialsService(
         if (applicationUser is null
             || !applicationUser.EmailConfirmed
             || IsBlocked(applicationUser))
+        {
+            return Result.Success();
+        }
+
+        if (!await emailCooldown.TryAcquireAsync(
+            normalizedEmail: applicationUser.NormalizedEmail!,
+            purpose: EmailRequestPurpose.PasswordReset,
+            cancellationToken: cancellationToken))
         {
             return Result.Success();
         }

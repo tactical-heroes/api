@@ -23,6 +23,30 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.EmailRequests.EmailRequestCooldown", b =>
+                {
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<int>("Purpose")
+                        .HasColumnType("integer")
+                        .HasColumnName("purpose");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.HasKey("NormalizedEmail", "Purpose")
+                        .HasName("pk_email_request_cooldowns");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_email_request_cooldowns_expires_at");
+
+                    b.ToTable("email_request_cooldowns", "identity");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")

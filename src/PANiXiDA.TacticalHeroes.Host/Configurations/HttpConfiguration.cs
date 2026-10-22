@@ -1,3 +1,5 @@
+using System.Net;
+
 using PANiXiDA.Core.Presentation.Http.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Host.Common;
@@ -25,12 +27,22 @@ internal static class HttpConfiguration
             CompendiumPresentationAssembly.Instance,
             FileManagerPresentationAssembly.Instance);
 
+        builder.Services.PostConfigure<ForwardedHeadersOptions>(options =>
+        {
+            if (options.KnownProxies.Count == 0 && options.KnownIPNetworks.Count == 0)
+            {
+                options.KnownProxies.Add(IPAddress.Loopback);
+                options.KnownProxies.Add(IPAddress.IPv6Loopback);
+            }
+        });
+
         return builder;
     }
 
     internal static WebApplication UseHttp(this WebApplication app)
     {
         HttpServiceCollectionExtensions.UseHttp(app);
+        app.UseRateLimiter();
 
         return app;
     }

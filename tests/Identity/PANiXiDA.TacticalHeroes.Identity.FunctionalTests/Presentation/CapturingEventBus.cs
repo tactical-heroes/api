@@ -35,4 +35,9 @@ internal sealed class CapturingEventBus : IEventBus
 
         return events[0];
     }
+
+    public int Count<TEvent>()
+    {
+        return _events.OfType<TEvent>().Count();
+    }
 }

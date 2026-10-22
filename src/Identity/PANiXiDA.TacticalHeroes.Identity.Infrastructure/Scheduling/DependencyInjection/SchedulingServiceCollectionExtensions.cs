@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.EmailRequestCooldown;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
@@ -18,6 +19,9 @@ internal static class SchedulingServiceCollectionExtensions
         var cleanupSection = configuration.GetSection(IdentityCleanupOptions.SectionName);
         var cleanupOptions = cleanupSection.Get<IdentityCleanupOptions>() ??
             new IdentityCleanupOptions();
+        var emailCooldownOptions = configuration.GetSection(EmailRequestCooldownOptions.SectionName)
+            .Get<EmailRequestCooldownOptions>()
+            ?? new EmailRequestCooldownOptions();
 
         serviceCollection.AddSingleton<
             IValidateOptions<IdentityCleanupOptions>,
@@ -29,6 +33,12 @@ internal static class SchedulingServiceCollectionExtensions
 
         serviceCollection.AddQuartz(options =>
         {
+            options.AddJob<PruneEmailRequestCooldownsJob>(job => job.WithIdentity(PruneEmailRequestCooldownsJob.Key));
+            options.AddTrigger(trigger => trigger
+                .ForJob(PruneEmailRequestCooldownsJob.Key)
+                .WithIdentity($"{nameof(PruneEmailRequestCooldownsJob)}Trigger")
+                .WithCronSchedule(emailCooldownOptions.CleanupCronSchedule));
+
             if (!cleanupOptions.PruneUnconfirmedUsersEnabled)
             {
                 return;
