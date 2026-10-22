@@ -14,7 +14,8 @@ public sealed class GetPermissionsHandlerTests
         var result = await handler.HandleAsync(new GetPermissionsQuery(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Count.ShouldBe(PermissionCatalog.All.Count);
+        result.Value.Select(permission => permission.Code)
+            .ShouldBe(PermissionCatalog.All.Select(permission => permission.Code));
         foreach (var permission in PermissionCatalog.All)
         {
             var readModel = result.Value.Single(item => item.Code == permission.Code);

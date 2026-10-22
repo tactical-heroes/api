@@ -37,7 +37,8 @@ public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) :
             cancellationToken);
         permissions.ShouldNotBeNull();
         permissions.Type.ShouldBe(ApplicationClaimTypes.Permission);
-        permissions.Items.Count.ShouldBe(PermissionCatalog.All.Count);
+        permissions.Items.Select(permission => permission.Code)
+            .ShouldBe(PermissionCatalog.All.Select(permission => permission.Code));
         foreach (var permission in PermissionCatalog.All)
         {
             var item = permissions.Items.Single(item => item.Code == permission.Code);
