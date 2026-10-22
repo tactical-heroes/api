@@ -12,6 +12,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Tracking;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
 
@@ -21,7 +22,8 @@ internal static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.TryAddScoped<IAggregateTracker, AggregateTracker>();
+        serviceCollection.TryAddScoped<AggregateTracker>();
+        serviceCollection.Replace(ServiceDescriptor.Scoped<IAggregateTracker, IdentityAggregateTracker>());
         serviceCollection.TryAddKeyedScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>(
             typeof(IdentityWriteDbContext));
 
@@ -33,8 +35,10 @@ internal static class ServiceCollectionExtensions
                     message: $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
 
             options
-                .UseNpgsql(connectionString, npgsqlOptions =>
-                    npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
+                .UseNpgsql(
+                    connectionString,
+                    npgsqlOptions =>
+                        npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });

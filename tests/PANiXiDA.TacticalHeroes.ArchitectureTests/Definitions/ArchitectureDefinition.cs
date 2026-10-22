@@ -13,6 +13,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
 internal static class ArchitectureDefinition
 {
+    internal const string CommonAssemblyName = "PANiXiDA.TacticalHeroes.Common";
+
     private const string ContractsLayerSuffix = ".Contracts";
     private const string DomainLayerSuffix = ".Domain";
     private const string ApplicationLayerSuffix = ".Application";
@@ -65,11 +67,14 @@ internal static class ArchitectureDefinition
 
         s_contractsLayer = Types().That().ResideInAssemblyMatching(ContractsAssemblyNamePattern).As("Contracts layer");
 
-        s_applicationLayer = Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern).As("Application layer");
+        s_applicationLayer = Types().That().ResideInAssemblyMatching(ApplicationAssemblyNamePattern)
+            .As("Application layer");
 
-        s_infrastructureLayer = Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern).As("Infrastructure layer");
+        s_infrastructureLayer = Types().That().ResideInAssemblyMatching(InfrastructureAssemblyNamePattern)
+            .As("Infrastructure layer");
 
-        s_presentationLayer = Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern).As("Presentation layer");
+        s_presentationLayer = Types().That().ResideInAssemblyMatching(PresentationAssemblyNamePattern)
+            .As("Presentation layer");
 
         s_hostLayer = Types().That().ResideInAssemblyMatching(AssemblyNamePattern(HostLayerSuffix)).As("Host layer");
     }
@@ -130,25 +135,26 @@ internal static class ArchitectureDefinition
             .GetProperty("libraries")
             .EnumerateObject()
             .Where(library =>
-                library.Value.TryGetProperty("type", out var type) &&
-                type.GetString() == "project")
+                library.Value.TryGetProperty("type", out var type)
+                    && type.GetString() == "project")
             .Select(library => library.Name.Split('/')[0])
             .Where(assemblyName => assemblyName != executingAssemblyName)];
     }
 
     private static bool IsArchitecturalAssemblyName(string assemblyName)
     {
-        return IsLayerAssemblyName(assemblyName) ||
-               assemblyName.EndsWith(HostLayerSuffix, StringComparison.Ordinal);
+        return IsLayerAssemblyName(assemblyName)
+            || assemblyName == CommonAssemblyName
+            || assemblyName.EndsWith(HostLayerSuffix, StringComparison.Ordinal);
     }
 
     private static bool IsLayerAssemblyName(string assemblyName)
     {
-        return assemblyName.EndsWith(ContractsLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(DomainLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(ApplicationLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(InfrastructureLayerSuffix, StringComparison.Ordinal) ||
-               assemblyName.EndsWith(PresentationLayerSuffix, StringComparison.Ordinal);
+        return assemblyName.EndsWith(ContractsLayerSuffix, StringComparison.Ordinal)
+            || assemblyName.EndsWith(DomainLayerSuffix, StringComparison.Ordinal)
+            || assemblyName.EndsWith(ApplicationLayerSuffix, StringComparison.Ordinal)
+            || assemblyName.EndsWith(InfrastructureLayerSuffix, StringComparison.Ordinal)
+            || assemblyName.EndsWith(PresentationLayerSuffix, StringComparison.Ordinal);
     }
 
     private static ReflectionAssembly LoadAssembly(string assemblyName)

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
+using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
@@ -22,7 +23,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
     [InlineData(0, true)]
     [InlineData(1, true)]
     [InlineData(3, true)]
-    public async Task AddAsync_Should_RestoreFolder_When_DepthAndOwnershipVary(int depth, bool personal)
+    public async Task Add_Should_RestoreFolder_When_DepthAndOwnershipVary(int depth, bool personal)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         UserId? userId = personal ? UserId.Create(Guid.CreateVersion7()).Value : null;
@@ -49,12 +50,15 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         restored.UserId.ShouldBe(userId);
         restored.ParentId.ShouldBe(folder.ParentId);
         scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
-            .ChangeTracker.Entries<Folder>().ShouldHaveSingleItem()
-            .Entity.ShouldBeSameAs(restored);
+            .ChangeTracker
+            .Entries<Folder>()
+            .ShouldHaveSingleItem()
+            .Entity
+            .ShouldBeSameAs(restored);
     }
 
     [Fact(DisplayName = "Folder repository should preserve placement when folder is renamed")]
-    public async Task UpdateAsync_Should_PersistNameAndPreservePlacement_When_FolderIsRenamed()
+    public async Task Update_Should_PersistNameAndPreservePlacement_When_FolderIsRenamed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
@@ -71,7 +75,9 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
             var restored = await repository.GetByIdAsync(folder.Id, cancellationToken);
             restored!.Rename(FolderName.Create("Heroes").Value);
 
-            await repository.UpdateAsync(restored, cancellationToken);
+            repository.Update(restored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -85,7 +91,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Fact(DisplayName = "Folder repository should reject a stale rename when another rename was saved first")]
-    public async Task UpdateAsync_Should_ThrowConcurrencyException_When_AnotherRenameWasSavedFirst()
+    public async Task SaveChangesAsync_Should_ThrowConcurrencyException_When_AnotherRenameWasSavedFirst()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var folder = Folder.Create(
@@ -100,12 +106,18 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var firstFolder = await firstRepository.GetByIdAsync(folder.Id, cancellationToken);
         var secondFolder = await secondRepository.GetByIdAsync(folder.Id, cancellationToken);
         firstFolder!.Rename(FolderName.Create("Players").Value);
-        await firstRepository.UpdateAsync(firstFolder, cancellationToken);
+        firstRepository.Update(firstFolder);
+        await firstScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         secondFolder!.Rename(FolderName.Create("Heroes").Value);
 
-        Func<Task> saveStaleFolder = () => secondRepository.UpdateAsync(secondFolder, cancellationToken);
+        secondRepository.Update(secondFolder);
+        Func<Task> saveStaleFolder = () => secondScope.ServiceProvider
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
-        await saveStaleFolder.ShouldThrowAsync<DbUpdateConcurrencyException>();
+        var exception = await saveStaleFolder.ShouldThrowAsync<ConcurrencyException>();
+        exception.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
         await using var verificationScope = Fixture.CreateScope();
         var persistedFolder = await verificationScope.ServiceProvider
             .GetRequiredService<IFoldersRepository>()
@@ -117,7 +129,7 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Fact(DisplayName = "Folder repository should reject an orphan when parent does not exist")]
-    public async Task AddAsync_Should_RejectOrphan_When_ParentDoesNotExist()
+    public async Task Add_Should_RejectOrphan_When_ParentDoesNotExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var parent = Folder.Create(
@@ -130,7 +142,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
 
         var exception = await saveOrphan.ShouldThrowAsync<DbUpdateException>();
         exception.InnerException.ShouldBeOfType<PostgresException>()
-            .SqlState.ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
+            .SqlState
+            .ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
         await using var scope = Fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         (await context.Set<Folder>().AnyAsync(cancellationToken)).ShouldBeFalse();
@@ -164,6 +177,8 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
 
-        await repository.AddAsync(folder, cancellationToken);
+        repository.Add(folder);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
     }
 }

@@ -45,8 +45,8 @@ public sealed class EndpointVerticalSliceConventionTests
         Assert.NotEmpty(endpointGroups);
         Assert.True(
             violations.Length == 0,
-            $"Endpoint group convention violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Endpoint group convention violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoints should reside in feature slices under their generic groups when declared")]
@@ -60,8 +60,8 @@ public sealed class EndpointVerticalSliceConventionTests
         Assert.NotEmpty(endpoints);
         Assert.True(
             violations.Length == 0,
-            $"Endpoint vertical slice violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Endpoint vertical slice violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Endpoints should end with Endpoint when declared")]
@@ -79,8 +79,8 @@ public sealed class EndpointVerticalSliceConventionTests
         Assert.NotEmpty(endpoints);
         Assert.True(
             violations.Length == 0,
-            $"Endpoint naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Endpoint naming violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static IEnumerable<string> GetEndpointGroupViolations(
@@ -93,16 +93,16 @@ public sealed class EndpointVerticalSliceConventionTests
                     '.',
                     StringSplitOptions.RemoveEmptyEntries);
 
-        if (relativeNamespaceSegments.Length != 2 ||
-            !string.Equals(
+        if (relativeNamespaceSegments.Length != 2
+            || !string.Equals(
                 relativeNamespaceSegments[0],
                 FeaturesNamespaceSegment,
                 StringComparison.Ordinal))
         {
             return
             [
-                $"{endpointGroup.FullName} must reside directly under " +
-                $"'{FeaturesNamespaceSegment}/<AggregatePlural>'."
+                $"{endpointGroup.FullName} must reside directly under "
+                    + $"'{FeaturesNamespaceSegment}/<AggregatePlural>'."
             ];
         }
 
@@ -119,23 +119,23 @@ public sealed class EndpointVerticalSliceConventionTests
         var violations = new List<string>();
 
         if (!string.Equals(
-                endpointGroup.Name,
-                expectedTypeName,
-                StringComparison.Ordinal))
+            endpointGroup.Name,
+            expectedTypeName,
+            StringComparison.Ordinal))
         {
             violations.Add(
-                $"{endpointGroup.FullName} must be named " +
-                $"'{expectedTypeName}'.");
+                $"{endpointGroup.FullName} must be named "
+                    + $"'{expectedTypeName}'.");
         }
 
         if (!string.Equals(
-                groupName,
-                featureName,
-                StringComparison.Ordinal))
+            groupName,
+            featureName,
+            StringComparison.Ordinal))
         {
             violations.Add(
-                $"{endpointGroup.FullName}.Name must be " +
-                $"'{featureName}'.");
+                $"{endpointGroup.FullName}.Name must be "
+                    + $"'{featureName}'.");
         }
 
         violations.AddRange(
@@ -157,19 +157,19 @@ public sealed class EndpointVerticalSliceConventionTests
                 $"Endpoint '{endpoint.FullName}' does not have a namespace.");
         var groupNamespace = endpointGroup.Namespace
             ?? throw new InvalidOperationException(
-                $"Endpoint group '{endpointGroup.FullName}' does not have a " +
-                $"namespace.");
+                $"Endpoint group '{endpointGroup.FullName}' does not have a "
+                    + $"namespace.");
         var expectedNamespacePrefix = groupNamespace + ".";
 
         if (!endpointNamespace.StartsWith(
-                expectedNamespacePrefix,
-                StringComparison.Ordinal))
+            expectedNamespacePrefix,
+            StringComparison.Ordinal))
         {
             return
             [
-                $"{endpoint.FullName} must reside in a feature folder " +
-                $"below its generic endpoint group " +
-                $"'{endpointGroup.FullName}'."
+                $"{endpoint.FullName} must reside in a feature folder "
+                    + $"below its generic endpoint group "
+                    + $"'{endpointGroup.FullName}'."
             ];
         }
 
@@ -183,8 +183,8 @@ public sealed class EndpointVerticalSliceConventionTests
         {
             return
             [
-                $"{endpoint.FullName} must reside in a concrete feature " +
-                $"folder below '{groupNamespace}'."
+                $"{endpoint.FullName} must reside in a concrete feature "
+                    + $"folder below '{groupNamespace}'."
             ];
         }
 

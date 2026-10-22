@@ -37,4 +37,19 @@ public sealed class GetUnitsEndpointTests(FunctionalTestFixture fixture)
         response.Items.ShouldAllBe(unit => unit.FactionId == faction.Id);
         response.Items.ShouldAllBe(unit => unit.FactionName == FactionName);
     }
+
+    [Theory(DisplayName = "GET units should require read permission when authenticated")]
+    [InlineData("unrelated", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.units.read", HttpStatusCode.OK)]
+    public async Task GetUnits_Should_RequireReadPermission_When_Authenticated(
+        string permission, HttpStatusCode expectedStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/units?pageNumber=1&pageSize=20");
+        request.Headers.Add("X-Test-Permissions", permission);
+
+        using var response = await Fixture.Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expectedStatus, await response.Content.ReadAsStringAsync(cancellationToken));
+    }
 }

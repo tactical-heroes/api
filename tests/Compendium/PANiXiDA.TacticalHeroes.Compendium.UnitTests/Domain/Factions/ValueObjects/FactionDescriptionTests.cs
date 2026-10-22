@@ -22,20 +22,21 @@ public sealed class FactionDescriptionTests
         var result = FactionDescription.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                "Faction description cannot be empty.")
+            ErrorType.Validation,
+            "Faction description cannot be empty.")
             .ShouldHaveField(nameof(FactionDescription));
     }
 
-    [Fact(DisplayName = "Faction description should reject a value over the maximum length when description is too long")]
+    [Fact(
+        DisplayName = "Faction description should reject a value over the maximum length when description is too long")]
     public void Create_Should_ReturnValidationFailure_When_DescriptionIsTooLong()
     {
         var result = FactionDescription.Create(
             new string('a', FactionDescription.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Faction description cannot be longer than {FactionDescription.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Faction description cannot be longer than {FactionDescription.MaxLength} characters.")
             .ShouldHaveField(nameof(FactionDescription));
     }
 

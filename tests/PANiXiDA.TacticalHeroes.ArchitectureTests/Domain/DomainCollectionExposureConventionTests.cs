@@ -9,7 +9,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 
 public sealed class DomainCollectionExposureConventionTests
 {
-    [Fact(DisplayName = "Aggregate roots and entities should return protected collections when collections are exposed")]
+    [Fact(
+        DisplayName = "Aggregate roots and entities should return protected collections when collections are exposed")]
     public async Task AggregateRootsAndEntities_Should_ReturnProtectedCollections_When_CollectionsAreExposed()
     {
         var returns = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetCollectionReturnsAsync);
@@ -22,10 +23,10 @@ public sealed class DomainCollectionExposureConventionTests
         Assert.NotEmpty(returns);
         Assert.True(
             violations.Length == 0,
-            "Domain collections must be returned through standard read-only wrappers, " +
-            "immutable collections, or frozen collections. A read-only interface " +
-            $"alone does not protect mutable storage:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            "Domain collections must be returned through standard read-only wrappers, "
+                + "immutable collections, or frozen collections. A read-only interface "
+                + $"alone does not protect mutable storage:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Collection exposure should validate protection when member shapes vary")]
@@ -35,29 +36,49 @@ public sealed class DomainCollectionExposureConventionTests
     [InlineData("IEnumerable<int> IView.Values => _values;", false)]
     [InlineData("public object Values => _values;", false)]
     [InlineData("public object Values => _values.AsReadOnly();", true)]
-    [InlineData("public Task<IReadOnlyCollection<int>> GetValues() => Task.FromResult<IReadOnlyCollection<int>>(_values);", false)]
+    [InlineData(
+        "public Task<IReadOnlyCollection<int>> GetValues() => Task.FromResult<IReadOnlyCollection<int>>(_values);",
+        false)]
     [InlineData("public Task<ReadOnlyCollection<int>> GetValues() => Task.FromResult(_values.AsReadOnly());", true)]
-    [InlineData("public IReadOnlyCollection<IReadOnlyCollection<int>> Values => ImmutableArray.Create<IReadOnlyCollection<int>>(_values);", false)]
-    [InlineData("public IReadOnlyCollection<ReadOnlyCollection<int>> Values => ImmutableArray.Create(_values.AsReadOnly());", true)]
+    [InlineData(
+        "public IReadOnlyCollection<IReadOnlyCollection<int>> Values => ImmutableArray.Create<IReadOnlyCollection<int>>(_values);",
+        false)]
+    [InlineData(
+        "public IReadOnlyCollection<ReadOnlyCollection<int>> Values => ImmutableArray.Create(_values.AsReadOnly());",
+        true)]
     [InlineData("public (IReadOnlyCollection<int> Items, int Count) GetValues() => (_values, _values.Count);", false)]
-    [InlineData("public (IReadOnlyCollection<int> Items, int Count) GetValues() => (_values.AsReadOnly(), _values.Count);", true)]
+    [InlineData(
+        "public (IReadOnlyCollection<int> Items, int Count) GetValues() => (_values.AsReadOnly(), _values.Count);",
+        true)]
     [InlineData("public IReadOnlyCollection<int> Values => GetRaw(); private List<int> GetRaw() => _values;", false)]
-    [InlineData("public IReadOnlyCollection<int> Values => GetProtected(); private ReadOnlyCollection<int> GetProtected() => _values.AsReadOnly();", true)]
+    [InlineData(
+        "public IReadOnlyCollection<int> Values => GetProtected(); private ReadOnlyCollection<int> GetProtected() => _values.AsReadOnly();",
+        true)]
     [InlineData("public IReadOnlyCollection<int> Values => _values.Count > 0 ? _values.AsReadOnly() : null;", true)]
     [InlineData("public Memory<int> Values => new Memory<int>(_values.ToArray());", false)]
     [InlineData("public Span<int> Values => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_values);", false)]
     [InlineData("public ReadOnlyMemory<int> Values => new ReadOnlyMemory<int>(_values.ToArray());", true)]
     [InlineData("public ReadOnlySpan<int> Values => new ReadOnlySpan<int>(_values.ToArray());", true)]
-    [InlineData("public ReadOnlySpan<int> Values => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_values);", true)]
+    [InlineData(
+        "public ReadOnlySpan<int> Values => System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_values);",
+        true)]
     [InlineData("public ReadOnlyMemory<int> Values => new Memory<int>(_values.ToArray());", true)]
     [InlineData("public ReadOnlySpan<int> Values => _values.ToArray();", true)]
     [InlineData("public IEnumerable<IReadOnlyCollection<int>> GetValues() { yield return _values; }", false)]
     [InlineData("public IEnumerable<object> GetValues() { yield return _values; }", false)]
-    [InlineData("public IEnumerable<IReadOnlyCollection<int>> GetValues() { yield return _values.AsReadOnly(); }", true)]
+    [InlineData(
+        "public IEnumerable<IReadOnlyCollection<int>> GetValues() { yield return _values.AsReadOnly(); }",
+        true)]
     [InlineData("public IEnumerable<int> GetValues() { foreach (var value in _values) yield return value; }", true)]
-    [InlineData("public async IAsyncEnumerable<IReadOnlyCollection<int>> GetValues() { await Task.Yield(); yield return _values; }", false)]
-    [InlineData("public async IAsyncEnumerable<IReadOnlyCollection<int>> GetValues() { await Task.Yield(); yield return _values.AsReadOnly(); }", true)]
-    [InlineData("public IReadOnlyCollection<int> Values => _values.Count > 0 ? _values.AsReadOnly() : throw new InvalidOperationException();", true)]
+    [InlineData(
+        "public async IAsyncEnumerable<IReadOnlyCollection<int>> GetValues() { await Task.Yield(); yield return _values; }",
+        false)]
+    [InlineData(
+        "public async IAsyncEnumerable<IReadOnlyCollection<int>> GetValues() { await Task.Yield(); yield return _values.AsReadOnly(); }",
+        true)]
+    [InlineData(
+        "public IReadOnlyCollection<int> Values => _values.Count > 0 ? _values.AsReadOnly() : throw new InvalidOperationException();",
+        true)]
     [InlineData("public IReadOnlyCollection<int> Values { get { return _values; } }", false)]
     [InlineData("public IReadOnlyCollection<int> Values { get { return _values.AsReadOnly(); } }", true)]
     [InlineData("public IReadOnlyCollection<int> this[int index] => _values;", false)]
@@ -102,7 +123,9 @@ public sealed class DomainCollectionExposureConventionTests
             .OfType<CollectionReturn>()
             .ToArray();
 
-        Assert.DoesNotContain(compilation.GetDiagnostics(cancellationToken), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(
+            compilation.GetDiagnostics(cancellationToken),
+            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         Assert.NotEmpty(returns);
         Assert.Equal(expected, returns.All(result => result.IsProtected));
     }
@@ -184,11 +207,12 @@ public sealed class DomainCollectionExposureConventionTests
             operation = conversion;
         }
 
-        if (member is null || !IsExposed(member) ||
-            returnType is null ||
-            !DomainCollectionConvention.ContainsCollection(returnType, semanticModel.Compilation) &&
-            !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation) ||
-            !member.ContainingType.AllInterfaces.Any(type =>
+        if (member is null
+            || !IsExposed(member)
+            || returnType is null
+            || !DomainCollectionConvention.ContainsCollection(returnType, semanticModel.Compilation)
+                && !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation)
+            || !member.ContainingType.AllInterfaces.Any(type =>
                 SymbolEqualityComparer.Default.Equals(type, entity)))
         {
             return null;
@@ -198,25 +222,25 @@ public sealed class DomainCollectionExposureConventionTests
             ? DomainCollectionConvention.IsProtectedCollectionType(returnType, semanticModel.Compilation)
             : DomainCollectionConvention.IsProtectedCollection(operation, semanticModel.Compilation);
 
-        if (node is YieldStatementSyntax &&
-            !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation))
+        if (node is YieldStatementSyntax
+            && !DomainCollectionConvention.ReturnsCollection(operation, semanticModel.Compilation))
         {
             isProtected = true;
         }
 
         return new CollectionReturn(
-            Location: $"{Path.GetRelativePath(repositoryRoot, node.SyntaxTree.FilePath)}:" +
-                      $"{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1} " +
-                      $"{member.Name}",
+            Location: $"{Path.GetRelativePath(repositoryRoot, node.SyntaxTree.FilePath)}:"
+                + $"{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1} "
+                + $"{member.Name}",
             IsProtected: member is not IFieldSymbol { IsReadOnly: false } && isProtected);
     }
 
     private static bool IsExposed(ISymbol member)
     {
         return member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or
-                   Accessibility.ProtectedOrInternal ||
-               member is IPropertySymbol { ExplicitInterfaceImplementations.IsEmpty: false } or
-                   IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false };
+                   Accessibility.ProtectedOrInternal
+            || member is IPropertySymbol { ExplicitInterfaceImplementations.IsEmpty: false } or
+                IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false };
     }
 
     private sealed record CollectionReturn(string Location, bool IsProtected);

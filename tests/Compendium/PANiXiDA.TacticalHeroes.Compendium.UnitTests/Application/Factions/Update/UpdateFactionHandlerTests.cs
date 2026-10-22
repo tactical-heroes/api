@@ -29,16 +29,17 @@ public sealed class UpdateFactionHandlerTests
         result.IsSuccess.ShouldBeTrue();
         faction.Name.Value.ShouldBe("Southern Alliance");
         faction.Description.Value.ShouldBe("Defenders of the south.");
-        await repository.Received(1).UpdateAsync(faction, cancellationToken);
+        repository.Received(1).Update(faction);
     }
 
-    [Fact(DisplayName = "Update faction handler should return not found for a missing faction when faction does not exist")]
+    [Fact(
+        DisplayName = "Update faction handler should return not found for a missing faction when faction does not exist")]
     public async Task HandleAsync_Should_ReturnNotFound_When_FactionDoesNotExist()
     {
         var repository = Substitute.For<IFactionsRepository>();
         repository.GetByIdAsync(
-                Arg.Any<FactionId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<FactionId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new UpdateFactionHandler(repository);
 
@@ -74,7 +75,6 @@ public sealed class UpdateFactionHandlerTests
         result.Errors.Count.ShouldBe(2);
         faction.Name.ShouldBeSameAs(originalName);
         faction.Description.ShouldBeSameAs(originalDescription);
-        await repository.DidNotReceiveWithAnyArgs()
-            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+        repository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 }

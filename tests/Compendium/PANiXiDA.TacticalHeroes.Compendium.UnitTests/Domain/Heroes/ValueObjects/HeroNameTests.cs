@@ -21,8 +21,8 @@ public sealed class HeroNameTests
         var result = HeroName.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                "Hero name cannot be empty.")
+            ErrorType.Validation,
+            "Hero name cannot be empty.")
             .ShouldHaveField(nameof(HeroName));
     }
 
@@ -33,8 +33,8 @@ public sealed class HeroNameTests
             new string('a', HeroName.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Hero name cannot be longer than {HeroName.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Hero name cannot be longer than {HeroName.MaxLength} characters.")
             .ShouldHaveField(nameof(HeroName));
     }
 

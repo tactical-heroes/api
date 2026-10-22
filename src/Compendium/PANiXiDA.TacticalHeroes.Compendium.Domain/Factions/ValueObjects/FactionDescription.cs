@@ -25,7 +25,8 @@ public sealed partial class FactionDescription : ValueObject
         return normalizedValue.Length <= MaxLength
             ? Result.Success(value: new FactionDescription(value: normalizedValue))
             : Result.Failure<FactionDescription>(
-                error: Error.Validation(
+                error: Error
+                    .Validation(
                         message: $"Faction description cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(FactionDescription)));
     }

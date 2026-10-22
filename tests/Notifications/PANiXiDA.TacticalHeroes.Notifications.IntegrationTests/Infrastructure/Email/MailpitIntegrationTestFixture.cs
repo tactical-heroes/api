@@ -89,8 +89,8 @@ public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
                 "api/v1/messages",
                 cancellationToken);
 
-            if (lastMessages.Contains(subject, StringComparison.Ordinal) &&
-                lastMessages.Contains(recipientEmail, StringComparison.Ordinal))
+            if (lastMessages.Contains(subject, StringComparison.Ordinal)
+                && lastMessages.Contains(recipientEmail, StringComparison.Ordinal))
             {
                 return;
             }

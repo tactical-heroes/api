@@ -22,7 +22,8 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
             "StrongPassword1!",
             isConfirmed,
             [],
-            "Active");
+            "Active",
+            RoleIds: []);
     }
 
     internal async Task<CreateUserResponse> CreateAsync(
@@ -63,8 +64,8 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<GetUserDetailsResponse>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("User details were not returned.");
     }
 
@@ -91,8 +92,8 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<PaginationResult<UserListItemResponse>>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("User page was not returned.");
     }
 
@@ -109,8 +110,8 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
 
         return await response.Content.ReadFromJsonAsync<IReadOnlyCollection<UserStatusResponse>>(
-                TestJsonSerializerOptions.Web,
-                cancellationToken)
+            TestJsonSerializerOptions.Web,
+            cancellationToken)
             ?? throw new InvalidOperationException("User statuses were not returned.");
     }
 

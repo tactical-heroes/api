@@ -24,8 +24,8 @@ internal sealed class IdentityProviderPasswordOptionsValidator
                 failures.Add($"{IdentityProviderOptions.SectionName}:Password:RequiredLength must be positive.");
             }
 
-            if (options.Password.RequiredUniqueChars < 0 ||
-                options.Password.RequiredUniqueChars > options.Password.RequiredLength)
+            if (options.Password.RequiredUniqueChars < 0
+                || options.Password.RequiredUniqueChars > options.Password.RequiredLength)
             {
                 failures.Add(
                     $"{IdentityProviderOptions.SectionName}:Password:RequiredUniqueChars must be between 0 and RequiredLength.");

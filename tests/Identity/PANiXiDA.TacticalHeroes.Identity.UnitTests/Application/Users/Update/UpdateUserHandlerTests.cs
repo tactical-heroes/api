@@ -16,7 +16,12 @@ public sealed class UpdateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Blocked && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            Arg.Is<User>(user => user.Id.Value == userId
+                && user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
+                && user.Status == UserStatus.Blocked
+                && user.ConfirmationStatus.IsConfirmed
+                && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository);
@@ -29,16 +34,23 @@ public sealed class UpdateUserHandlerTests
                 "hero",
                 true,
                 claims,
-                "Blocked"),
+                "Blocked",
+                RoleIds: []),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId && user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Blocked && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            Arg.Is<User>(user => user.Id.Value == userId
+                && user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
+                && user.Status == UserStatus.Blocked
+                && user.ConfirmationStatus.IsConfirmed
+                && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             cancellationToken);
     }
 
-    [Theory(DisplayName = "Update user handler should reject invalid values without persistence when command is invalid")]
+    [Theory(
+        DisplayName = "Update user handler should reject invalid values without persistence when command is invalid")]
     [InlineData("invalid-email", "hero", "Active", "permission", "heroes.read")]
     [InlineData("hero@example.com", "", "Active", "permission", "heroes.read")]
     [InlineData("hero@example.com", "hero", "Unknown", "permission", "heroes.read")]
@@ -55,11 +67,68 @@ public sealed class UpdateUserHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new UpdateUserCommand(Guid.CreateVersion7(), email, userName, false, [new Claim(claimType, claimValue)], status),
+            new UpdateUserCommand(
+                Guid.CreateVersion7(),
+                email,
+                userName,
+                false,
+                [new Claim(claimType, claimValue)],
+                status,
+                RoleIds: []),
             cancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should pass assigned role IDs to persistence when role ids are provided")]
+    public async Task HandleAsync_Should_PassRoleIds_When_RoleIdsAreProvided()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var roleId = Guid.CreateVersion7();
+        var repository = Substitute.For<IUsersRepository>();
+        repository.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        var handler = new UpdateUserHandler(repository);
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [roleId]),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await repository.Received(1).UpdateAsync(
+            Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
+            cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailure_When_RoleIdIsInvalid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var repository = Substitute.For<IUsersRepository>();
+        var handler = new UpdateUserHandler(repository);
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [Guid.Empty]),
+            cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        repository.ReceivedCalls().ShouldBeEmpty();
     }
 }

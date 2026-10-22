@@ -39,8 +39,8 @@ public sealed class ApplicationVerticalSliceConventionTests
         Assert.NotEmpty(useCases);
         Assert.True(
             violations.Length == 0,
-            $"Application use case location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Application use case location violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Application use case types should have expected role suffixes when declared")]
@@ -59,9 +59,9 @@ public sealed class ApplicationVerticalSliceConventionTests
         Assert.NotEmpty(useCases);
         Assert.True(
             violations.Length == 0,
-            $"Application use case role suffix violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Application use case role suffix violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Application use case parts should share one feature folder when declared")]
@@ -82,9 +82,9 @@ public sealed class ApplicationVerticalSliceConventionTests
         Assert.NotEmpty(useCases);
         Assert.True(
             violations.Length == 0,
-            $"Application use case colocation violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Application use case colocation violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Abstractions namespaces should contain only abstractions when declared")]
@@ -93,8 +93,8 @@ public sealed class ApplicationVerticalSliceConventionTests
         var repositoryRoot = FindRepositoryRoot();
         var abstractionTypes = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly =>
-                IsLayerAssembly(assembly, DomainAssemblySuffix) ||
-                IsLayerAssembly(assembly, ApplicationAssemblySuffix))
+                IsLayerAssembly(assembly, DomainAssemblySuffix)
+                    || IsLayerAssembly(assembly, ApplicationAssemblySuffix))
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => HasNamespaceSegment(
                 type,
@@ -102,20 +102,20 @@ public sealed class ApplicationVerticalSliceConventionTests
             .ToArray();
         var violations = abstractionTypes
             .Where(type =>
-                !type.IsInterface &&
-                !type.IsAbstract &&
-                !typeof(Delegate).IsAssignableFrom(type))
+                !type.IsInterface
+                    && !type.IsAbstract
+                    && !typeof(Delegate).IsAssignableFrom(type))
             .Select(type =>
-                $"{type.FullName} is concrete and must not be declared in " +
-                $"an '{AbstractionsNamespaceSegment}' namespace.")
+                $"{type.FullName} is concrete and must not be declared in "
+                    + $"an '{AbstractionsNamespaceSegment}' namespace.")
             .Concat(abstractionTypes
                 .Where(type => !File.Exists(GetExpectedSourceFilePath(
                     repositoryRoot,
                     GetModule(type),
                     type)))
                 .Select(type =>
-                    $"{type.FullName} must have a matching source file in " +
-                    $"its '{AbstractionsNamespaceSegment}' directory."))
+                    $"{type.FullName} must have a matching source file in "
+                        + $"its '{AbstractionsNamespaceSegment}' directory."))
             .Concat(GetAbstractionSourceFiles(repositoryRoot)
                 .Where(sourceFile => !abstractionTypes.Any(type =>
                     string.Equals(
@@ -126,16 +126,16 @@ public sealed class ApplicationVerticalSliceConventionTests
                         sourceFile,
                         StringComparison.OrdinalIgnoreCase)))
                 .Select(sourceFile =>
-                    $"'{Path.GetRelativePath(repositoryRoot, sourceFile)}' " +
-                    $"must declare only an abstraction in an " +
-                    $"'{AbstractionsNamespaceSegment}' namespace."))
+                    $"'{Path.GetRelativePath(repositoryRoot, sourceFile)}' "
+                        + $"must declare only an abstraction in an "
+                        + $"'{AbstractionsNamespaceSegment}' namespace."))
             .ToArray();
 
         Assert.NotEmpty(abstractionTypes);
         Assert.True(
             violations.Length == 0,
-            $"Abstractions namespace violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Abstractions namespace violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static IEnumerable<string> GetUseCaseLocationViolations(
@@ -146,8 +146,8 @@ public sealed class ApplicationVerticalSliceConventionTests
         if (useCase.RelativeNamespaceSegments.Length < 2)
         {
             violations.Add(
-                $"{useCase.RequestType.FullName} must reside in a concrete " +
-                $"feature folder below at least one grouping folder.");
+                $"{useCase.RequestType.FullName} must reside in a concrete "
+                    + $"feature folder below at least one grouping folder.");
         }
 
         return violations;
@@ -161,12 +161,12 @@ public sealed class ApplicationVerticalSliceConventionTests
         var expectedRequestSuffix = GetRequestSuffix(useCase.RequestType);
 
         if (!useCase.RequestType.Name.EndsWith(
-                expectedRequestSuffix,
-                StringComparison.Ordinal))
+            expectedRequestSuffix,
+            StringComparison.Ordinal))
         {
             violations.Add(
-                $"{useCase.RequestType.FullName} must end with " +
-                $"'{expectedRequestSuffix}'.");
+                $"{useCase.RequestType.FullName} must end with "
+                    + $"'{expectedRequestSuffix}'.");
         }
 
         violations.AddRange(applicationTypes
@@ -207,15 +207,15 @@ public sealed class ApplicationVerticalSliceConventionTests
         if (handlers.Length != 1)
         {
             violations.Add(
-                $"{useCase.RequestType.FullName} must have exactly one " +
-                $"handler, found: {FormatTypes(handlers)}.");
+                $"{useCase.RequestType.FullName} must have exactly one "
+                    + $"handler, found: {FormatTypes(handlers)}.");
         }
 
         if (validators.Length != 1)
         {
             violations.Add(
-                $"{useCase.RequestType.FullName} must have exactly one " +
-                $"validator, found: {FormatTypes(validators)}.");
+                $"{useCase.RequestType.FullName} must have exactly one "
+                    + $"validator, found: {FormatTypes(validators)}.");
         }
 
         var requestSuffix = GetRequestSuffix(useCase.RequestType);
@@ -230,30 +230,30 @@ public sealed class ApplicationVerticalSliceConventionTests
                 !string.Equals(
                     handler.Name,
                     expectedHandlerName,
-                    StringComparison.Ordinal) ||
-                !string.Equals(
-                    handler.Namespace,
-                    useCase.RequestType.Namespace,
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal)
+                    || !string.Equals(
+                        handler.Namespace,
+                        useCase.RequestType.Namespace,
+                        StringComparison.Ordinal))
             .Select(handler =>
-                $"{handler.FullName} must be named '{expectedHandlerName}' " +
-                $"and share namespace '{useCase.RequestType.Namespace}' with " +
-                $"{useCase.RequestType.Name}."));
+                $"{handler.FullName} must be named '{expectedHandlerName}' "
+                    + $"and share namespace '{useCase.RequestType.Namespace}' with "
+                    + $"{useCase.RequestType.Name}."));
         violations.AddRange(validators
             .Where(validator =>
                 !string.Equals(
                     validator.Name,
                     expectedValidatorName,
-                    StringComparison.Ordinal) ||
-                !string.Equals(
-                    validator.Namespace,
-                    useCase.RequestType.Namespace,
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal)
+                    || !string.Equals(
+                        validator.Namespace,
+                        useCase.RequestType.Namespace,
+                        StringComparison.Ordinal))
             .Select(validator =>
-                $"{validator.FullName} must be named " +
-                $"'{expectedValidatorName}' and share namespace " +
-                $"'{useCase.RequestType.Namespace}' with " +
-                $"{useCase.RequestType.Name}."));
+                $"{validator.FullName} must be named "
+                    + $"'{expectedValidatorName}' and share namespace "
+                    + $"'{useCase.RequestType.Namespace}' with "
+                    + $"{useCase.RequestType.Name}."));
 
         var colocatedTypes = handlers
             .Concat(validators)
@@ -265,8 +265,8 @@ public sealed class ApplicationVerticalSliceConventionTests
                 useCase.Module,
                 type)))
             .Select(type =>
-                $"{type.FullName} must have a matching source file in its " +
-                $"Application feature folder."));
+                $"{type.FullName} must have a matching source file in its "
+                    + $"Application feature folder."));
 
         return violations;
     }
@@ -292,8 +292,8 @@ public sealed class ApplicationVerticalSliceConventionTests
                         {
                             var relativeNamespaceSegments =
                                 GetRelativeNamespace(
-                                        requestType,
-                                        module.ApplicationAssemblyName)
+                                    requestType,
+                                    module.ApplicationAssemblyName)
                                     .Split(
                                         '.',
                                         StringSplitOptions.RemoveEmptyEntries);
@@ -316,15 +316,15 @@ public sealed class ApplicationVerticalSliceConventionTests
             .ToDictionary(
                 assembly => assembly.GetName().Name
                     ?? throw new InvalidOperationException(
-                        $"Could not determine assembly name for " +
-                        $"'{assembly.FullName}'."),
+                        $"Could not determine assembly name for "
+                            + $"'{assembly.FullName}'."),
                 StringComparer.Ordinal);
 
         return
         [
             .. ArchitectureDefinition.s_modules
                 .SelectMany(module => productionAssemblies[
-                        module.ApplicationAssemblyName]
+                    module.ApplicationAssemblyName]
                     .GetTypes()
                     .Where(type => type.Namespace is not null)
                     .Select(type => new ApplicationType(module, type)))
@@ -337,9 +337,9 @@ public sealed class ApplicationVerticalSliceConventionTests
         [
             .. type.GetInterfaces()
                 .Where(candidate =>
-                    candidate.IsGenericType &&
-                    s_handlerInterfaceDefinitions.Contains(
-                        candidate.GetGenericTypeDefinition()))
+                    candidate.IsGenericType
+                        && s_handlerInterfaceDefinitions.Contains(
+                            candidate.GetGenericTypeDefinition()))
                 .Select(candidate => candidate.GetGenericArguments()[0])
         ];
     }
@@ -350,9 +350,9 @@ public sealed class ApplicationVerticalSliceConventionTests
              currentType is not null;
              currentType = currentType.BaseType)
         {
-            if (currentType.IsGenericType &&
-                currentType.GetGenericTypeDefinition() ==
-                typeof(AbstractValidator<>))
+            if (currentType.IsGenericType
+                && currentType.GetGenericTypeDefinition()
+                == typeof(AbstractValidator<>))
             {
                 return [currentType.GetGenericArguments()[0]];
             }
@@ -364,16 +364,16 @@ public sealed class ApplicationVerticalSliceConventionTests
     private static bool IsRequestType(Type type)
     {
         return type.GetInterfaces().Any(candidate =>
-            candidate.IsGenericType &&
-            s_requestInterfaceDefinitions.Contains(
-                candidate.GetGenericTypeDefinition()));
+            candidate.IsGenericType
+                && s_requestInterfaceDefinitions.Contains(
+                    candidate.GetGenericTypeDefinition()));
     }
 
     private static string GetRequestSuffix(Type requestType)
     {
         return requestType.GetInterfaces().Any(candidate =>
-            candidate.IsGenericType &&
-            candidate.GetGenericTypeDefinition() == typeof(ICommand<>))
+            candidate.IsGenericType
+                && candidate.GetGenericTypeDefinition() == typeof(ICommand<>))
             ? CommandSuffix
             : QuerySuffix;
     }
@@ -428,32 +428,32 @@ public sealed class ApplicationVerticalSliceConventionTests
         [
             .. ArchitectureDefinition.s_modules
                 .SelectMany(module => new[]
-                {
-                    module.DomainAssemblyName,
-                    module.ApplicationAssemblyName
-                }
-                .SelectMany(assemblyName =>
-                {
-                    var moduleDirectoryName =
-                        module.Name[(module.Name.LastIndexOf('.') + 1)..];
-                    var projectDirectory = Path.Combine(
-                        repositoryRoot,
-                        SourceDirectoryName,
-                        moduleDirectoryName,
-                        assemblyName);
+                    {
+                        module.DomainAssemblyName,
+                        module.ApplicationAssemblyName
+                    }
+                    .SelectMany(assemblyName =>
+                    {
+                        var moduleDirectoryName =
+                            module.Name[(module.Name.LastIndexOf('.') + 1)..];
+                        var projectDirectory = Path.Combine(
+                            repositoryRoot,
+                            SourceDirectoryName,
+                            moduleDirectoryName,
+                            assemblyName);
 
-                    return Directory
-                        .EnumerateFiles(
-                            projectDirectory,
-                            "*.cs",
-                            SearchOption.AllDirectories)
-                        .Where(path =>
-                            HasPathSegment(
-                                path,
-                                AbstractionsNamespaceSegment) &&
-                            !HasPathSegment(path, "bin") &&
-                            !HasPathSegment(path, "obj"));
-                }))
+                        return Directory
+                            .EnumerateFiles(
+                                projectDirectory,
+                                "*.cs",
+                                SearchOption.AllDirectories)
+                            .Where(path =>
+                                HasPathSegment(
+                                    path,
+                                    AbstractionsNamespaceSegment)
+                                    && !HasPathSegment(path, "bin")
+                                    && !HasPathSegment(path, "obj"));
+                    }))
                 .Order(StringComparer.OrdinalIgnoreCase)
         ];
     }
@@ -468,11 +468,11 @@ public sealed class ApplicationVerticalSliceConventionTests
             string.Equals(
                 module.DomainAssemblyName,
                 assemblyName,
-                StringComparison.Ordinal) ||
-            string.Equals(
-                module.ApplicationAssemblyName,
-                assemblyName,
-                StringComparison.Ordinal));
+                StringComparison.Ordinal)
+                || string.Equals(
+                    module.ApplicationAssemblyName,
+                    assemblyName,
+                    StringComparison.Ordinal));
     }
 
     private static bool HasPathSegment(
@@ -499,12 +499,12 @@ public sealed class ApplicationVerticalSliceConventionTests
         var namespacePrefix = assemblyName + ".";
 
         if (!typeNamespace.StartsWith(
-                namespacePrefix,
-                StringComparison.Ordinal))
+            namespacePrefix,
+            StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                $"Type '{type.FullName}' namespace must start with " +
-                $"'{namespacePrefix}'.");
+                $"Type '{type.FullName}' namespace must start with "
+                    + $"'{namespacePrefix}'.");
         }
 
         return typeNamespace[namespacePrefix.Length..];
@@ -529,16 +529,16 @@ public sealed class ApplicationVerticalSliceConventionTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+            $"Could not find repository root containing "
+                + $"the '{SourceDirectoryName}' directory.");
     }
 
     private sealed record ApplicationType(

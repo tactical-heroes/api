@@ -5,13 +5,14 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ForgotPass
 
 public sealed class ForgotPasswordHandlerTests
 {
-    [Fact(DisplayName = "Forgot password handler should delegate reset request to credentials service when credentials service succeeds")]
+    [Fact(
+        DisplayName = "Forgot password handler should delegate reset request to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var service = Substitute.For<IUserCredentialsService>();
         service.ForgotPasswordAsync(
-                "hero@example.com",
-                Arg.Any<CancellationToken>())
+            "hero@example.com",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new ForgotPasswordHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

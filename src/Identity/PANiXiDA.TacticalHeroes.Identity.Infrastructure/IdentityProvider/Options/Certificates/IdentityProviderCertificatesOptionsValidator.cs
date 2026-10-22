@@ -11,8 +11,11 @@ internal sealed class IdentityProviderCertificatesOptionsValidator(IHostEnvironm
 {
     public ValidateOptionsResult Validate(string? name, IdentityProviderOptions options)
     {
-        if (options.SigningCertificates is { Count: 0 } && options.EncryptionCertificates is { Count: 0 } &&
-            (environment is null || environment.IsDevelopment() || environment.IsEnvironment(EnvironmentConstants.Test)))
+        if (options.SigningCertificates is { Count: 0 }
+            && options.EncryptionCertificates is { Count: 0 }
+            && (environment is null
+                || environment.IsDevelopment()
+                || environment.IsEnvironment(EnvironmentConstants.Test)))
         {
             return ValidateOptionsResult.Success;
         }

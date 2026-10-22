@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
@@ -44,7 +45,8 @@ internal static class OAuthAuthorizationRequestTestHelper
         string email,
         string userName,
         string password,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Claim>? claims = null)
     {
         var api = new UserApiTestClient(fixture);
 
@@ -55,7 +57,8 @@ internal static class OAuthAuthorizationRequestTestHelper
                 userName,
                 isConfirmed: true) with
             {
-                Password = password
+                Password = password,
+                Claims = claims ?? []
             });
     }
 
@@ -80,19 +83,22 @@ internal static class OAuthAuthorizationRequestTestHelper
         CancellationToken cancellationToken,
         string redirectUri = RedirectUri)
     {
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.ResponseType] = OpenIddictConstants.ResponseTypes.Code,
+                [OpenIddictConstants.Parameters.ClientId] = ClientId,
+                [OpenIddictConstants.Parameters.RedirectUri] = redirectUri,
+                [OpenIddictConstants.Parameters.Scope] = string.Join(' ', scopes),
+                [OpenIddictConstants.Parameters.State] = "functional-test-state",
+                [OpenIddictConstants.Parameters.CodeChallenge] = CodeChallenge,
+                [OpenIddictConstants.Parameters.CodeChallengeMethod] = OpenIddictConstants.CodeChallengeMethods
+                    .Sha256
+            });
+
         using var response = await client.PostAsync(
             ParPath,
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.ResponseType] = OpenIddictConstants.ResponseTypes.Code,
-                    [OpenIddictConstants.Parameters.ClientId] = ClientId,
-                    [OpenIddictConstants.Parameters.RedirectUri] = redirectUri,
-                    [OpenIddictConstants.Parameters.Scope] = string.Join(' ', scopes),
-                    [OpenIddictConstants.Parameters.State] = "functional-test-state",
-                    [OpenIddictConstants.Parameters.CodeChallenge] = CodeChallenge,
-                    [OpenIddictConstants.Parameters.CodeChallengeMethod] = OpenIddictConstants.CodeChallengeMethods.Sha256
-                }),
+            content,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -122,17 +128,19 @@ internal static class OAuthAuthorizationRequestTestHelper
             email,
             password,
             cancellationToken);
+        using var content = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.AuthorizationCode,
+                [OpenIddictConstants.Parameters.ClientId] = ClientId,
+                [OpenIddictConstants.Parameters.Code] = authorizationCode,
+                [OpenIddictConstants.Parameters.CodeVerifier] = CodeVerifier,
+                [OpenIddictConstants.Parameters.RedirectUri] = RedirectUri
+            });
+
         using var response = await client.PostAsync(
             TokenPath,
-            new FormUrlEncodedContent(
-                new Dictionary<string, string>
-                {
-                    [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.AuthorizationCode,
-                    [OpenIddictConstants.Parameters.ClientId] = ClientId,
-                    [OpenIddictConstants.Parameters.Code] = authorizationCode,
-                    [OpenIddictConstants.Parameters.CodeVerifier] = CodeVerifier,
-                    [OpenIddictConstants.Parameters.RedirectUri] = RedirectUri
-                }),
+            content,
             cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -182,8 +190,8 @@ internal static class OAuthAuthorizationRequestTestHelper
         {
             var parts = parameter.Split('=', 2);
 
-            if (parts.Length == 2 &&
-                string.Equals(Uri.UnescapeDataString(parts[0]), name, StringComparison.Ordinal))
+            if (parts.Length == 2
+                && string.Equals(Uri.UnescapeDataString(parts[0]), name, StringComparison.Ordinal))
             {
                 return Uri.UnescapeDataString(parts[1].Replace("+", " ", StringComparison.Ordinal));
             }

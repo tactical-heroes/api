@@ -9,14 +9,19 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 
 public sealed class CreateUserHandlerTests
 {
-    [Fact(DisplayName = "Create user handler should delegate creation to the write repository when repository succeeds")]
+    [Fact(
+        DisplayName = "Create user handler should delegate creation to the write repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnUserId_When_RepositorySucceeds()
     {
         var userId = Guid.CreateVersion7();
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.read")];
         var repository = Substitute.For<IUsersRepository>();
         repository.AddAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Active && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
+            Arg.Is<User>(user => user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
+                && user.Status == UserStatus.Active
+                && user.ConfirmationStatus.IsConfirmed
+                && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
             "StrongPassword1!",
             Arg.Any<CancellationToken>())
             .Returns(Result.Success(userId));
@@ -30,18 +35,24 @@ public sealed class CreateUserHandlerTests
                 "StrongPassword1!",
                 true,
                 claims,
-                "Active"),
+                "Active",
+                RoleIds: []),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(userId);
         await repository.Received(1).AddAsync(
-            Arg.Is<User>(user => user.Email.Value == "hero@example.com" && user.UserName.Value == "hero" && user.Status == UserStatus.Active && user.ConfirmationStatus.IsConfirmed && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
+            Arg.Is<User>(user => user.Email.Value == "hero@example.com"
+                && user.UserName.Value == "hero"
+                && user.Status == UserStatus.Active
+                && user.ConfirmationStatus.IsConfirmed
+                && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
             "StrongPassword1!",
             cancellationToken);
     }
 
-    [Theory(DisplayName = "Create user handler should reject invalid values without persistence when command is invalid")]
+    [Theory(
+        DisplayName = "Create user handler should reject invalid values without persistence when command is invalid")]
     [InlineData("invalid-email", "hero", "Active", "permission", "heroes.read")]
     [InlineData("hero@example.com", "", "Active", "permission", "heroes.read")]
     [InlineData("hero@example.com", "hero", "Unknown", "permission", "heroes.read")]
@@ -58,11 +69,69 @@ public sealed class CreateUserHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new CreateUserCommand(email, userName, "StrongPassword1!", false, [new Claim(claimType, claimValue)], status),
+            new CreateUserCommand(
+                email,
+                userName,
+                "StrongPassword1!",
+                false,
+                [new Claim(claimType, claimValue)],
+                status,
+                RoleIds: []),
             cancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         await repository.DidNotReceiveWithAnyArgs().AddAsync(null!, string.Empty, cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should pass assigned role IDs to persistence when role ids are provided")]
+    public async Task HandleAsync_Should_PassRoleIds_When_RoleIdsAreProvided()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var roleId = Guid.CreateVersion7();
+        var repository = Substitute.For<IUsersRepository>();
+        repository.AddAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(Guid.CreateVersion7()));
+        var handler = new CreateUserHandler(repository);
+
+        var result = await handler.HandleAsync(
+            new CreateUserCommand(
+                Email: "hero@example.com",
+                UserName: "hero",
+                Password: "StrongPassword1!",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [roleId]),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await repository.Received(1).AddAsync(
+            Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
+            "StrongPassword1!",
+            cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailure_When_RoleIdIsInvalid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var repository = Substitute.For<IUsersRepository>();
+        var handler = new CreateUserHandler(repository);
+
+        var result = await handler.HandleAsync(
+            new CreateUserCommand(
+                Email: "hero@example.com",
+                UserName: "hero",
+                Password: "StrongPassword1!",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [Guid.Empty]),
+            cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        repository.ReceivedCalls().ShouldBeEmpty();
     }
 }

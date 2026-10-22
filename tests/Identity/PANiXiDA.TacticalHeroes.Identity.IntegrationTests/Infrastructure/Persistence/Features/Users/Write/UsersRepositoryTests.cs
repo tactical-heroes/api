@@ -3,9 +3,11 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
 
@@ -57,7 +59,16 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-            var result = await repository.UpdateAsync(IntegrationTestData.CreateUser(id: userId, email: "updated@example.com", isConfirmed: true, roleIds: [], claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(claim => (claim.Type, claim.Value)), userName: "updated-hero", status: UserStatus.Blocked),
+            var result = await repository.UpdateAsync(
+                IntegrationTestData.CreateUser(
+                    id: userId,
+                    email: "updated@example.com",
+                    isConfirmed: true,
+                    roleIds: [],
+                    claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(
+                        claim => (claim.Type, claim.Value)),
+                    userName: "updated-hero",
+                    status: UserStatus.Blocked),
                 cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
@@ -100,7 +111,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var dbContext =
             verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         (await dbContext.Set<ApplicationUser>()
-                .AnyAsync(item => item.Id == userId, cancellationToken))
+            .AnyAsync(item => item.Id == userId, cancellationToken))
             .ShouldBeFalse();
     }
 
@@ -159,6 +170,142 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         (await ReadStatusAsync(userId, cancellationToken)).ShouldBe(UserStatus.Active.Name);
     }
 
+    [Theory(DisplayName = "User updates should synchronize roles when role assignments vary")]
+    [InlineData("same")]
+    [InlineData("replace")]
+    [InlineData("add")]
+    [InlineData("clear")]
+    public async Task UpdateAsync_Should_SynchronizeRoles_When_RoleAssignmentsVary(string mode)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        await Fixture.SeedRolesAsync(cancellationToken);
+        var roles = await dbContext.Set<ApplicationRole>().ToDictionaryAsync(
+            role => role.Name!, role => role.Id, StringComparer.OrdinalIgnoreCase, cancellationToken);
+        var userId = Guid.CreateVersion7();
+        var created = await repository.AddAsync(
+            CreateUser(userId, [roles["Developer"]]), "StrongPassword1!", cancellationToken);
+        created.IsSuccess.ShouldBeTrue();
+        var targetRoles = mode switch
+        {
+            "same" => new[] { roles["Developer"] },
+            "replace" => [roles["Moderator"]],
+            "add" => [roles["Developer"], roles["Player"]],
+            _ => []
+        };
+
+        var result = await repository.UpdateAsync(
+            user: CreateUser(userId, targetRoles),
+            cancellationToken: cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var user = await dbContext.Set<ApplicationUser>()
+            .Include(item => item.Roles)
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == userId, cancellationToken);
+        user.Roles.Select(role => role.RoleId).ShouldBe(targetRoles, ignoreOrder: true);
+    }
+
+    [Fact(DisplayName = "AddAsync should reject unknown roles before writes when role does not exist")]
+    public async Task AddAsync_Should_RejectRolesBeforeWrites_When_RoleDoesNotExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var id = Guid.CreateVersion7();
+        var invalidUser = CreateUser(id, [Guid.CreateVersion7()]);
+
+        var result = await repository.AddAsync(invalidUser, Password, cancellationToken);
+
+        result.IsSuccess.ShouldBeFalse();
+        (await dbContext.Set<ApplicationUser>().CountAsync(cancellationToken)).ShouldBe(0);
+        (await dbContext.Set<ApplicationUserRole>().AnyAsync(cancellationToken)).ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "UpdateAsync should reject unknown roles before writes when role does not exist")]
+    public async Task UpdateAsync_Should_RejectRolesBeforeWrites_When_RoleDoesNotExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var id = Guid.CreateVersion7();
+        var created = await repository.AddAsync(CreateUser(id, []), Password, cancellationToken);
+        created.IsSuccess.ShouldBeTrue();
+        var invalidUser = CreateUser(id, [Guid.CreateVersion7()]);
+
+        var result = await repository.UpdateAsync(invalidUser, cancellationToken);
+
+        result.IsSuccess.ShouldBeFalse();
+        (await dbContext.Set<ApplicationUser>().CountAsync(cancellationToken)).ShouldBe(1);
+        (await dbContext.Set<ApplicationUserRole>().AnyAsync(cancellationToken)).ShouldBeFalse();
+    }
+
+    [Theory(DisplayName = "User updates should preserve state when identity validation fails")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UpdateAsync_Should_PreserveState_When_IdentityValidationFails(bool duplicateEmail)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var roles = await dbContext.Set<ApplicationRole>().ToDictionaryAsync(
+            role => role.Name!, role => role.Id, cancellationToken);
+        var id = Guid.CreateVersion7();
+        var created = await repository.AddAsync(
+            CreateUser(id, [roles["Player"]]), "StrongPassword1!", cancellationToken);
+        created.IsSuccess.ShouldBeTrue();
+        var other = IntegrationTestData.CreateUser(
+            id: Guid.CreateVersion7(),
+            email: "occupied@example.com",
+            isConfirmed: true,
+            roleIds: [],
+            claims: [],
+            userName: "occupied",
+            status: UserStatus.Active);
+        (await repository.AddAsync(other, "StrongPassword1!", cancellationToken)).IsSuccess.ShouldBeTrue();
+        var original = await dbContext.Set<ApplicationUser>()
+            .AsNoTracking()
+            .SingleAsync(user => user.Id == id, cancellationToken);
+        var updated = IntegrationTestData.CreateUser(
+            id: id,
+            email: duplicateEmail ? "occupied@example.com" : "hero@example.com",
+            isConfirmed: false,
+            roleIds: [roles["Developer"]],
+            claims: [("permission", "identity.users.read")],
+            userName: duplicateEmail ? "hero" : "occupied",
+            status: UserStatus.Active);
+
+        var result = await repository.UpdateAsync(updated, cancellationToken);
+
+        result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
+        var persisted = await dbContext.Set<ApplicationUser>()
+            .Include(user => user.Roles)
+            .Include(user => user.Claims)
+            .AsNoTracking()
+            .SingleAsync(user => user.Id == id, cancellationToken);
+        persisted.Email.ShouldBe(original.Email);
+        persisted.UserName.ShouldBe(original.UserName);
+        persisted.EmailConfirmed.ShouldBe(original.EmailConfirmed);
+        persisted.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(roles["Player"]);
+        persisted.Claims.ShouldBeEmpty();
+    }
+
+    private static User CreateUser(Guid id, IReadOnlyCollection<Guid> roleIds) =>
+        IntegrationTestData.CreateUser(
+            id: id,
+            email: "hero@example.com",
+            isConfirmed: true,
+            roleIds: roleIds,
+            claims: [],
+            userName: "hero",
+            status: UserStatus.Active);
+
     private async Task<Guid> AddUserAsync(
         string email,
         string userName,
@@ -169,9 +316,17 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
-        var result = await repository.AddAsync(IntegrationTestData.CreateUser(id: Guid.CreateVersion7(), email: email, isConfirmed: isConfirmed, roleIds: [], claims: claims.Select(claim => (claim.Type, claim.Value)), userName: userName, status: UserStatus.Create(value: status).Value),
-                Password,
-                cancellationToken);
+        var result = await repository.AddAsync(
+            IntegrationTestData.CreateUser(
+                id: Guid.CreateVersion7(),
+                email: email,
+                isConfirmed: isConfirmed,
+                roleIds: [],
+                claims: claims.Select(claim => (claim.Type, claim.Value)),
+                userName: userName,
+                status: UserStatus.Create(value: status).Value),
+            Password,
+            cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
 

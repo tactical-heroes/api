@@ -12,7 +12,8 @@ internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
     {
         builder.MapGet(builder.Route, HandleAsync)
             .Produces<IReadOnlyCollection<UserStatusResponse>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> HandleAsync(

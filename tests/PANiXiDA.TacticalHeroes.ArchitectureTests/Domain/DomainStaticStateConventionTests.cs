@@ -10,20 +10,25 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 
 public sealed class DomainStaticStateConventionTests
 {
-    private const BindingFlags StaticMemberFlags = BindingFlags.Static | BindingFlags.Public |
-                                                   BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+    private const BindingFlags StaticMemberFlags = BindingFlags.Static
+        | BindingFlags.Public
+        | BindingFlags.NonPublic
+        | BindingFlags.DeclaredOnly;
 
     [Fact(DisplayName = "Domain types should contain only immutable static state when authored members are declared")]
     public async Task DomainTypes_Should_ContainOnlyImmutableStaticState_When_AuthoredMembersAreDeclared()
     {
         var results = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetStaticStateResultsAsync);
         var violations = results.SelectMany(result => result.Violations)
-            .Distinct().Order(StringComparer.Ordinal).ToArray();
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 
         Assert.NotEmpty(results);
-        Assert.True(violations.Length == 0,
-            $"Domain static state must be immutable:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+        Assert.True(
+            violations.Length == 0,
+            $"Domain static state must be immutable:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Static state should reject shared mutation when authored member shapes vary")]
@@ -66,15 +71,20 @@ public sealed class DomainStaticStateConventionTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
-            .Split(Path.PathSeparator).Select(path => MetadataReference.CreateFromFile(path));
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path));
         var compilation = CSharpCompilation.Create(
-            assemblyName: $"StaticStateProbe_{Guid.NewGuid():N}", syntaxTrees: [tree], references: references,
+            assemblyName: $"StaticStateProbe_{Guid.NewGuid():N}",
+            syntaxTrees: [tree],
+            references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         using var stream = new MemoryStream();
         var emission = compilation.Emit(stream, cancellationToken: cancellationToken);
         Assert.True(emission.Success, string.Join(Environment.NewLine, emission.Diagnostics));
         var assembly = Assembly.Load(stream.ToArray());
-        var membersToCheck = GetAuthoredStaticMembers(tree.GetRoot(cancellationToken), compilation.GetSemanticModel(tree));
+        var membersToCheck = GetAuthoredStaticMembers(
+            tree.GetRoot(cancellationToken),
+            compilation.GetSemanticModel(tree));
 
         var results = membersToCheck.Select(member => CheckMember(assembly, member)).ToArray();
 
@@ -128,7 +138,7 @@ public sealed class DomainStaticStateConventionTests
             if (symbol is IPropertySymbol)
             {
                 foreach (var field in owner.GetMembers().OfType<IFieldSymbol>().Where(field =>
-                             SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, symbol)))
+                    SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, symbol)))
                 {
                     yield return new StaticMember(typeName, field.MetadataName);
                 }
@@ -175,7 +185,8 @@ public sealed class DomainStaticStateConventionTests
             case PropertyInfo { SetMethod: not null }:
                 yield return $"{name} must not declare a static setter.";
                 break;
-            case PropertyInfo { GetMethod: { } getter } when DomainImmutableStateConvention.ReturnsWritableReference(getter):
+            case PropertyInfo { GetMethod: { } getter } when DomainImmutableStateConvention.ReturnsWritableReference(
+                getter):
             case MethodInfo method when DomainImmutableStateConvention.ReturnsWritableReference(method):
                 yield return $"{name} must not return a writable reference.";
                 break;

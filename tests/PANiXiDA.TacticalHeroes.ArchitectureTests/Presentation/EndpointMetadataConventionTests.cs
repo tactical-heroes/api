@@ -23,12 +23,13 @@ public sealed partial class EndpointMetadataConventionTests
                 StringComparison.Ordinal) == true)
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => type is { IsClass: true, IsAbstract: false })
-            .Select(type => new
-            {
-                Type = type,
-                IsEndpoint = typeof(IEndpoint).IsAssignableFrom(type),
-                IsEndpointGroup = typeof(IEndpointGroup).IsAssignableFrom(type)
-            })
+            .Select(
+                type => new
+                {
+                    Type = type,
+                    IsEndpoint = typeof(IEndpoint).IsAssignableFrom(type),
+                    IsEndpointGroup = typeof(IEndpointGroup).IsAssignableFrom(type)
+                })
             .Where(metadata => metadata.IsEndpoint || metadata.IsEndpointGroup)
             .OrderBy(metadata => metadata.Type.FullName, StringComparer.Ordinal)
             .ToArray();
@@ -79,30 +80,31 @@ public sealed partial class EndpointMetadataConventionTests
             PresentationArchitectureConvention.GetEndpointGroups();
         var violations = endpointGroups
             .SelectMany(endpointGroup =>
-                s_endpointGroupMetadataPropertyNames.Select(propertyName => new
-                {
-                    EndpointGroup = endpointGroup,
-                    Property = endpointGroup.GetProperty(
-                        propertyName,
-                        BindingFlags.Instance | BindingFlags.Public),
-                    PropertyName = propertyName
-                }))
+                s_endpointGroupMetadataPropertyNames.Select(
+                    propertyName => new
+                    {
+                        EndpointGroup = endpointGroup,
+                        Property = endpointGroup.GetProperty(
+                            propertyName,
+                            BindingFlags.Instance | BindingFlags.Public),
+                        PropertyName = propertyName
+                    }))
             .Where(candidate =>
-                candidate.Property is null ||
-                !candidate.Property.CanRead ||
-                candidate.Property.SetMethod is not null)
+                candidate.Property is null
+                    || !candidate.Property.CanRead
+                    || candidate.Property.SetMethod is not null)
             .Select(candidate =>
-                $"{candidate.EndpointGroup.FullName}." +
-                $"{candidate.PropertyName} must be a get-only public " +
-                $"property.")
+                $"{candidate.EndpointGroup.FullName}."
+                    + $"{candidate.PropertyName} must be a get-only public "
+                    + $"property.")
             .ToArray();
 
         Assert.NotEmpty(endpointGroups);
         Assert.True(
             violations.Length == 0,
-            $"Endpoint group metadata mutability violations:" +
-            $"{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Endpoint group metadata mutability violations:"
+                + $"{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [GeneratedRegex(
@@ -144,7 +146,7 @@ public sealed partial class EndpointMetadataConventionTests
         return route
             .Split('/', StringSplitOptions.RemoveEmptyEntries)
             .All(segment =>
-                RouteSegmentPattern().IsMatch(segment) ||
-                RouteParameterPattern().IsMatch(segment));
+                RouteSegmentPattern().IsMatch(segment)
+                    || RouteParameterPattern().IsMatch(segment));
     }
 }

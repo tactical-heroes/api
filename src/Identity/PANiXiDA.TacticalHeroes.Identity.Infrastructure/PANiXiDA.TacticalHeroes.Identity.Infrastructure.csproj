@@ -10,7 +10,6 @@
         <PackageReference Include="OpenIddict.Quartz" />
         <PackageReference Include="OpenIddict.Server.AspNetCore" />
         <PackageReference Include="OpenIddict.Validation.AspNetCore" />
-        <PackageReference Include="OpenIddict.Validation.ServerIntegration" />
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine" />
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Persistence.Ef" />
         <PackageReference Include="PANiXiDA.Core.ResultPattern" />

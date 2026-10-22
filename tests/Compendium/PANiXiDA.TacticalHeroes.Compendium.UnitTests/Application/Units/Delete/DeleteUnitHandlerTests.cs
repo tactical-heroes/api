@@ -23,7 +23,7 @@ public sealed class DeleteUnitHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).DeleteAsync(unit, cancellationToken);
+        repository.Received(1).Delete(unit);
     }
 
     [Fact(DisplayName = "Delete unit handler should return not found when unit does not exist")]
@@ -31,8 +31,8 @@ public sealed class DeleteUnitHandlerTests
     {
         var repository = Substitute.For<IUnitsRepository>();
         repository.GetByIdAsync(
-                Arg.Any<UnitId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<UnitId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Unit?)null);
         var handler = new DeleteUnitHandler(repository);
 

@@ -326,6 +326,12 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_default");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -344,6 +350,11 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
 
                     b.HasKey("Id")
                         .HasName("pk_asp_net_roles");
+
+                    b.HasIndex("IsDefault")
+                        .IsUnique()
+                        .HasDatabaseName("ix_asp_net_roles_is_default")
+                        .HasFilter("is_default");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()

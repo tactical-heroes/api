@@ -47,11 +47,12 @@ public sealed class IdentityReadDbContext(
         modelBuilder.Entity<UserRoleReadDbModel>(builder =>
         {
             builder.ToTable("asp_net_user_roles", Schema);
-            builder.HasKey(userRole => new
-            {
-                userRole.UserId,
-                userRole.RoleId
-            });
+            builder.HasKey(
+                userRole => new
+                {
+                    userRole.UserId,
+                    userRole.RoleId
+                });
         });
     }
 
@@ -76,12 +77,13 @@ public sealed class IdentityReadDbContext(
         modelBuilder.Entity<UserTokenReadDbModel>(builder =>
         {
             builder.ToTable("asp_net_user_tokens", Schema);
-            builder.HasKey(token => new
-            {
-                token.UserId,
-                token.LoginProvider,
-                token.Name
-            });
+            builder.HasKey(
+                token => new
+                {
+                    token.UserId,
+                    token.LoginProvider,
+                    token.Name
+                });
         });
     }
 
@@ -90,11 +92,12 @@ public sealed class IdentityReadDbContext(
         modelBuilder.Entity<UserLoginReadDbModel>(builder =>
         {
             builder.ToTable("asp_net_user_logins", Schema);
-            builder.HasKey(login => new
-            {
-                login.LoginProvider,
-                login.ProviderKey
-            });
+            builder.HasKey(
+                login => new
+                {
+                    login.LoginProvider,
+                    login.ProviderKey
+                });
         });
     }
 }

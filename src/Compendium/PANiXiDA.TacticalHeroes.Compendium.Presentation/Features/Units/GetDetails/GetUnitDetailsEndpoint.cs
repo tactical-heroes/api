@@ -13,6 +13,8 @@ internal sealed class GetUnitDetailsEndpoint : IEndpoint<UnitsEndpoints>
         builder.MapGet(builder.Route, HandleAsync)
             .Produces<GetUnitDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 

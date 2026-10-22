@@ -16,8 +16,8 @@ public sealed class CreateUnitHandlerTests
         var unitsRepository = Substitute.For<IUnitsRepository>();
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-                faction.Id,
-                Arg.Any<CancellationToken>())
+            faction.Id,
+            Arg.Any<CancellationToken>())
             .Returns(faction);
         var handler = new CreateUnitHandler(
             unitsRepository,
@@ -29,14 +29,14 @@ public sealed class CreateUnitHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await unitsRepository.Received(1).AddAsync(
-            Arg.Is<Unit>(unit =>
-                unit.Id.Value == result.Value &&
-                unit.Name.Value == "Archer" &&
-                unit.Stats.Attack == 8 &&
-                unit.RangedAttack.Shots == 12 &&
-                unit.FactionId == faction.Id),
-            cancellationToken);
+        unitsRepository.Received(1).Add(
+            Arg.Is<Unit>(
+                unit =>
+                unit.Id.Value == result.Value
+                    && unit.Name.Value == "Archer"
+                    && unit.Stats.Attack == 8
+                    && unit.RangedAttack.Shots == 12
+                    && unit.FactionId == faction.Id));
     }
 
     [Fact(DisplayName = "Create unit handler should return not found when faction does not exist")]
@@ -45,8 +45,8 @@ public sealed class CreateUnitHandlerTests
         var unitsRepository = Substitute.For<IUnitsRepository>();
         var factionsRepository = Substitute.For<IFactionsRepository>();
         factionsRepository.GetByIdAsync(
-                Arg.Any<FactionId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<FactionId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Faction?)null);
         var handler = new CreateUnitHandler(
             unitsRepository,
@@ -59,8 +59,7 @@ public sealed class CreateUnitHandlerTests
         result.ShouldHaveSingleError(
             ErrorType.NotFound,
             "Faction was not found.");
-        await unitsRepository.DidNotReceiveWithAnyArgs()
-            .AddAsync(null!, TestContext.Current.CancellationToken);
+        unitsRepository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
     [Fact(DisplayName = "Create unit handler should reject invalid values without saving when command is invalid")]
@@ -88,7 +87,6 @@ public sealed class CreateUnitHandlerTests
         result.IsFailure.ShouldBeTrue();
         result.Errors.Count.ShouldBeGreaterThanOrEqualTo(7);
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        await repository.DidNotReceiveWithAnyArgs()
-            .AddAsync(null!, TestContext.Current.CancellationToken);
+        repository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 }

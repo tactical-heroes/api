@@ -17,14 +17,15 @@ internal sealed class MailKitEmailSender(
         EmailMessage message,
         CancellationToken cancellationToken)
     {
-        var email = new MimeMessage
+        using var email = new MimeMessage
         {
             Subject = message.Subject,
             Body = new BodyBuilder
             {
                 TextBody = message.TextBody,
                 HtmlBody = message.HtmlBody
-            }.ToMessageBody()
+            }
+                .ToMessageBody()
         };
 
         email.From.Add(new MailboxAddress(
@@ -41,8 +42,8 @@ internal sealed class MailKitEmailSender(
             options: options.Value.SocketOptions,
             cancellationToken: cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(options.Value.Username) &&
-            !string.IsNullOrWhiteSpace(options.Value.Password))
+        if (!string.IsNullOrWhiteSpace(options.Value.Username)
+            && !string.IsNullOrWhiteSpace(options.Value.Password))
         {
             await smtpClient.AuthenticateAsync(
                 userName: options.Value.Username,

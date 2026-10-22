@@ -21,7 +21,9 @@ internal static class OpenIddictServerBuilderExtensions
     {
         builder.Services.AddOptions<OpenIddictServerOptions>().ValidateOnStart();
 
-        var validation = new IdentityProviderCertificatesOptionsValidator(environment).Validate(name: null, options: options);
+        var validation = new IdentityProviderCertificatesOptionsValidator(environment).Validate(
+            name: null,
+            options: options);
 
         if (validation.Failed)
         {

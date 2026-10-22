@@ -5,6 +5,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Feature
 public sealed class FileReadDbModel : AuditableReadDbModel<Guid>
 {
     public string Name { get; set; } = string.Empty;
+    public string StorageKey { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public Guid? UserId { get; set; }
     public Guid? FolderId { get; set; }

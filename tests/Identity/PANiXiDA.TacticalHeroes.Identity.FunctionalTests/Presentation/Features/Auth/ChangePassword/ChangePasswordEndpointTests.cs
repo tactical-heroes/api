@@ -22,14 +22,29 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
 
-    [Fact(DisplayName = "Password change should preserve the current session and reject other sessions when current password is valid")]
+    [Fact(
+        DisplayName = "Password change should preserve current and reject other sessions when current password is valid")]
     public async Task PostChangePassword_Should_RevokeOtherSessions_When_CurrentPasswordIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "sessions@example.test", "sessions-hero", CurrentPassword, cancellationToken);
+            Fixture,
+            "sessions@example.test",
+            "sessions-hero",
+            CurrentPassword,
+            cancellationToken,
+            claims: [new(
+                "permission",
+                "identity.users.read")]);
         var otherUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "unaffected@example.test", "unaffected-hero", CurrentPassword, cancellationToken);
+            Fixture,
+            "unaffected@example.test",
+            "unaffected-hero",
+            CurrentPassword,
+            cancellationToken,
+            claims: [new(
+                "permission",
+                "identity.users.read")]);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var unrelated = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
@@ -42,14 +57,28 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         var pendingCode = await OAuthAuthorizationRequestTestHelper.LoginAndGetAuthorizationCodeAsync(
             other, "sessions@example.test", CurrentPassword, cancellationToken);
 
-        using var response = await ChangePasswordAsync(current, currentTokens.AccessToken,
-            CurrentPassword, NewPassword, cancellationToken);
+        using var response = await ChangePasswordAsync(
+            current,
+            currentTokens.AccessToken,
+            CurrentPassword,
+            NewPassword,
+            cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeTrue();
         await AssertAccessAsync(current, currentTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
-        await AssertAccessAsync(other, otherTokens.AccessToken, user.Id, HttpStatusCode.Unauthorized, cancellationToken);
-        await AssertAccessAsync(unrelated, unrelatedTokens.AccessToken, otherUser.Id, HttpStatusCode.OK, cancellationToken);
+        await AssertAccessAsync(
+            other,
+            otherTokens.AccessToken,
+            user.Id,
+            HttpStatusCode.Unauthorized,
+            cancellationToken);
+        await AssertAccessAsync(
+            unrelated,
+            unrelatedTokens.AccessToken,
+            otherUser.Id,
+            HttpStatusCode.OK,
+            cancellationToken);
         using var refresh = await RefreshAsync(current, currentTokens.RefreshToken, cancellationToken);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
         using var tokens = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(cancellationToken));
@@ -64,7 +93,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         nextRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
         using var rejectedRefresh = await RefreshAsync(other, otherTokens.RefreshToken, cancellationToken);
         await AssertInvalidGrantAsync(rejectedRefresh, cancellationToken);
-        using var rejectedCode = await other.PostAsync("/connect/token", new FormUrlEncodedContent(
+        using var rejectedCodeContent = new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
                 [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.AuthorizationCode,
@@ -72,7 +101,11 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
                 [OpenIddictConstants.Parameters.Code] = pendingCode,
                 [OpenIddictConstants.Parameters.CodeVerifier] = OAuthAuthorizationRequestTestHelper.CodeVerifier,
                 [OpenIddictConstants.Parameters.RedirectUri] = OAuthAuthorizationRequestTestHelper.RedirectUri
-            }), cancellationToken);
+            });
+        using var rejectedCode = await other.PostAsync(
+            "/connect/token",
+            rejectedCodeContent,
+            cancellationToken);
         await AssertInvalidGrantAsync(rejectedCode, cancellationToken);
         await AssertCookieAsync(current, OAuthAuthorizationRequestTestHelper.RedirectUri, cancellationToken);
         await AssertCookieAsync(other, "https://localhost:5173/login", cancellationToken);
@@ -89,7 +122,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "failed-change@example.test", "failed-change-hero", CurrentPassword, cancellationToken);
+            Fixture,
+            "failed-change@example.test",
+            "failed-change-hero",
+            CurrentPassword,
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var currentTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
@@ -97,8 +135,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         var otherTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             other, "failed-change@example.test", CurrentPassword, cancellationToken);
 
-        using var response = await ChangePasswordAsync(current, currentTokens.AccessToken,
-            currentPassword, newPassword, cancellationToken);
+        using var response = await ChangePasswordAsync(
+            current,
+            currentTokens.AccessToken,
+            currentPassword,
+            newPassword,
+            cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         await AssertAccessAsync(current, currentTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
@@ -110,19 +152,29 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         await AssertPasswordAsync(user.Id, CurrentPassword, NewPassword);
     }
 
-    [Fact(DisplayName = "Password change should preserve refresh without creating a login cookie when cookie is absent")]
+    [Fact(
+        DisplayName = "Password change should preserve refresh without creating a login cookie when cookie is absent")]
     public async Task PostChangePassword_Should_PreserveRefresh_When_CookieIsAbsent()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "bearer-change@example.test", "bearer-change-hero", CurrentPassword, cancellationToken);
+            Fixture,
+            "bearer-change@example.test",
+            "bearer-change-hero",
+            CurrentPassword,
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         using var browser = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             browser, "bearer-change@example.test", CurrentPassword, cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
 
-        using var response = await ChangePasswordAsync(client, tokens.AccessToken,
-            CurrentPassword, NewPassword, cancellationToken);
+        using var response = await ChangePasswordAsync(
+            client,
+            tokens.AccessToken,
+            CurrentPassword,
+            NewPassword,
+            cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
@@ -135,7 +187,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "exchange-session@example.test", "exchange-session-hero", CurrentPassword, cancellationToken);
+            Fixture,
+            "exchange-session@example.test",
+            "exchange-session-hero",
+            CurrentPassword,
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var currentTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
@@ -153,16 +210,22 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.TokenExchange);
             await applications.UpdateAsync(application, descriptor, cancellationToken);
         }
-        using var exchange = await other.PostAsync("/connect/token", new FormUrlEncodedContent(
+        using var exchangeContent = new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
                 [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.TokenExchange,
                 [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
                 [OpenIddictConstants.Parameters.SubjectToken] = otherTokens.AccessToken,
-                [OpenIddictConstants.Parameters.SubjectTokenType] = OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
-                [OpenIddictConstants.Parameters.RequestedTokenType] = OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                [OpenIddictConstants.Parameters.SubjectTokenType] = OpenIddictConstants.TokenTypeIdentifiers
+                        .AccessToken,
+                [OpenIddictConstants.Parameters.RequestedTokenType] = OpenIddictConstants.TokenTypeIdentifiers
+                        .AccessToken,
                 [OpenIddictConstants.Parameters.Scope] = OpenIddictConstants.Scopes.Profile
-            }), cancellationToken);
+            });
+        using var exchange = await other.PostAsync(
+            "/connect/token",
+            exchangeContent,
+            cancellationToken);
         var exchangeBody = await exchange.Content.ReadAsStringAsync(cancellationToken);
         exchange.StatusCode.ShouldBe(HttpStatusCode.OK, exchangeBody);
         using var exchanged = JsonDocument.Parse(exchangeBody);
@@ -181,8 +244,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         }
         await AssertAccessAsync(other, exchangedAccess, user.Id, HttpStatusCode.OK, cancellationToken);
 
-        using var response = await ChangePasswordAsync(current, currentTokens.AccessToken,
-            CurrentPassword, NewPassword, cancellationToken);
+        using var response = await ChangePasswordAsync(
+            current,
+            currentTokens.AccessToken,
+            CurrentPassword,
+            NewPassword,
+            cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         await AssertAccessAsync(other, exchangedAccess, user.Id, HttpStatusCode.Unauthorized, cancellationToken);
@@ -193,7 +260,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "cancel-change@example.test", "cancel-change-hero", CurrentPassword, cancellationToken);
+            Fixture,
+            "cancel-change@example.test",
+            "cancel-change-hero",
+            CurrentPassword,
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var currentTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
@@ -202,7 +274,8 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             other, "cancel-change@example.test", CurrentPassword, cancellationToken);
         using var requestCancellation = new CancellationTokenSource();
         var interceptor = new CancelAfterRevocationInterceptor(user.Id.ToString(), requestCancellation);
-        await using var factory = new FunctionalTestWebApplicationFactory()
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddSingleton<IInterceptor>(interceptor)));
         using var client = new HttpClient(factory.Server.CreateHandler(context =>
@@ -211,49 +284,72 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             BaseAddress = new Uri("https://localhost")
         };
 
-        using var response = await ChangePasswordAsync(client, currentTokens.AccessToken,
-            CurrentPassword, NewPassword, cancellationToken);
+        using var response = await ChangePasswordAsync(
+            client,
+            currentTokens.AccessToken,
+            CurrentPassword,
+            NewPassword,
+            cancellationToken);
 
-        ((int)response.StatusCode).ShouldBe(499);
-        interceptor.RevocationSavedInTransaction.ShouldBeTrue();
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        interceptor.RevocationSavedInTransaction.ShouldBeTrue(responseBody);
+        ((int)response.StatusCode).ShouldBe(499, responseBody);
         await AssertPasswordAsync(user.Id, CurrentPassword, NewPassword);
         await AssertAccessAsync(current, currentTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         await AssertAccessAsync(other, otherTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         await AssertCookieAsync(other, OAuthAuthorizationRequestTestHelper.RedirectUri, cancellationToken);
         using var refresh = await RefreshAsync(other, otherTokens.RefreshToken, cancellationToken);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
-        using var retry = await ChangePasswordAsync(current, currentTokens.AccessToken,
-            CurrentPassword, NewPassword, cancellationToken);
+        using var retry = await ChangePasswordAsync(
+            current,
+            currentTokens.AccessToken,
+            CurrentPassword,
+            NewPassword,
+            cancellationToken);
         retry.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         await AssertPasswordAsync(user.Id, NewPassword, CurrentPassword);
-        await AssertAccessAsync(other, otherTokens.AccessToken, user.Id, HttpStatusCode.Unauthorized, cancellationToken);
+        await AssertAccessAsync(
+            other,
+            otherTokens.AccessToken,
+            user.Id,
+            HttpStatusCode.Unauthorized,
+            cancellationToken);
     }
 
-    [Fact(DisplayName = "Token endpoint should reject the code when old cookie authorization finishes after password change")]
+    [Fact(
+        DisplayName = "Token endpoint should reject code when old cookie authorization finishes after password change")]
     public async Task PostToken_Should_RejectCode_When_OldCookieAuthorizationFinishesAfterPasswordChange()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "concurrent-change@example.test", "concurrent-change-hero", CurrentPassword, cancellationToken);
+            Fixture,
+            "concurrent-change@example.test",
+            "concurrent-change-hero",
+            CurrentPassword,
+            cancellationToken,
+            claims: [new("permission", "identity.users.read")]);
         var validated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseAuthorization = false;
-        await using var factory = new FunctionalTestWebApplicationFactory()
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
-                services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options =>
-                {
-                    var validatePrincipal = options.Events.OnValidatePrincipal;
-                    options.Events.OnValidatePrincipal = async context =>
+                services.PostConfigure<CookieAuthenticationOptions>(
+                    IdentityConstants.ApplicationScheme,
+                    options =>
                     {
-                        await validatePrincipal(context);
-                        if (pauseAuthorization && context.Request.Path == "/connect/authorize")
+                        var validatePrincipal = options.Events.OnValidatePrincipal;
+                        options.Events.OnValidatePrincipal = async context =>
                         {
-                            pauseAuthorization = false;
-                            validated.SetResult();
-                            await resume.Task.WaitAsync(context.HttpContext.RequestAborted);
-                        }
-                    };
-                })));
+                            await validatePrincipal(context);
+                            if (pauseAuthorization && context.Request.Path == "/connect/authorize")
+                            {
+                                pauseAuthorization = false;
+                                validated.SetResult();
+                                await resume.Task.WaitAsync(context.HttpContext.RequestAborted);
+                            }
+                        };
+                    })));
         var clientOptions = new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
@@ -272,8 +368,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         try
         {
             await validated.Task.WaitAsync(cancellationToken);
-            using var changed = await ChangePasswordAsync(current, currentTokens.AccessToken,
-                CurrentPassword, NewPassword, cancellationToken);
+            using var changed = await ChangePasswordAsync(
+                current,
+                currentTokens.AccessToken,
+                CurrentPassword,
+                NewPassword,
+                cancellationToken);
             changed.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         }
         finally
@@ -286,7 +386,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         var code = OAuthAuthorizationRequestTestHelper.GetQueryParameter(
             authorizeResponse.Headers.Location, OpenIddictConstants.Parameters.Code);
 
-        using var response = await other.PostAsync("/connect/token", new FormUrlEncodedContent(
+        using var responseContent = new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
                 [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.AuthorizationCode,
@@ -294,7 +394,11 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
                 [OpenIddictConstants.Parameters.Code] = code,
                 [OpenIddictConstants.Parameters.CodeVerifier] = OAuthAuthorizationRequestTestHelper.CodeVerifier,
                 [OpenIddictConstants.Parameters.RedirectUri] = OAuthAuthorizationRequestTestHelper.RedirectUri
-            }), cancellationToken);
+            });
+        using var response = await other.PostAsync(
+            "/connect/token",
+            responseContent,
+            cancellationToken);
 
         await AssertInvalidGrantAsync(response, cancellationToken);
     }
@@ -327,17 +431,18 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(statusCode);
     }
 
-    private static Task<HttpResponseMessage> RefreshAsync(
+    private static async Task<HttpResponseMessage> RefreshAsync(
         HttpClient client,
         string refreshToken,
         CancellationToken cancellationToken)
     {
-        return client.PostAsync("/connect/token", new FormUrlEncodedContent(new Dictionary<string, string>
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.RefreshToken,
             [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
             [OpenIddictConstants.Parameters.RefreshToken] = refreshToken
-        }), cancellationToken);
+        });
+        return await client.PostAsync("/connect/token", content, cancellationToken);
     }
 
     private static async Task AssertInvalidGrantAsync(
@@ -378,21 +483,21 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         public bool RevocationSavedInTransaction { get; private set; }
 
-        public override ValueTask<int> SavedChangesAsync(
+        public override async ValueTask<int> SavedChangesAsync(
             SaveChangesCompletedEventData eventData,
             int result,
             CancellationToken cancellationToken)
         {
             var context = eventData.Context;
             if (context?.ChangeTracker.Entries<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
-                .Any(entry => entry.Entity.Subject == subject &&
-                    entry.Entity.Status == OpenIddictConstants.Statuses.Revoked) == true)
+                .Any(entry => entry.Entity.Subject == subject
+                    && entry.Entity.Status == OpenIddictConstants.Statuses.Revoked) == true)
             {
                 RevocationSavedInTransaction = context.Database.CurrentTransaction is not null;
-                requestCancellation.Cancel();
+                await requestCancellation.CancelAsync();
             }
 
-            return ValueTask.FromResult(result);
+            return result;
         }
     }
 }

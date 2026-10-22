@@ -15,22 +15,68 @@ public sealed class ProjectReferenceDependencyTests
         var violations = modules
             .SelectMany(module => GetModuleAssemblyNames(module)
                 .SelectMany(sourceAssemblyName => GetProjectReferences(
-                        projectPaths[sourceAssemblyName])
+                    projectPaths[sourceAssemblyName])
                     .Where(targetAssemblyName => !IsAllowedDependency(
                         module,
                         sourceAssemblyName,
                         targetAssemblyName))
                     .Select(targetAssemblyName =>
-                        $"{sourceAssemblyName} must not reference " +
-                        $"{targetAssemblyName}.")))
+                        $"{sourceAssemblyName} must not reference "
+                            + $"{targetAssemblyName}.")))
             .Order(StringComparer.Ordinal)
             .ToArray();
 
         Assert.NotEmpty(modules);
         Assert.True(
             violations.Length == 0,
-            $"Forbidden module project references:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Forbidden module project references:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Contracts projects should not reference other projects when validated")]
+    public void ContractsProjects_Should_NotReferenceOtherProjects_When_Validated()
+    {
+        var projectPaths = GetProjectPaths(FindRepositoryRoot());
+        var modules = ArchitectureDefinition.s_modules;
+
+        Assert.NotEmpty(modules);
+        foreach (var module in modules)
+        {
+            Assert.Empty(GetProjectReferences(projectPaths[module.ContractsAssemblyName]));
+        }
+    }
+
+    [Fact(DisplayName = "Projects should use contracts only from infrastructure presentation and host when validated")]
+    public void ProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated()
+    {
+        var projectPaths = GetProjectPaths(FindRepositoryRoot());
+        var contractsAssemblyNames = ArchitectureDefinition.s_modules
+            .Select(module => module.ContractsAssemblyName)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var violations = projectPaths
+            .Where(project => !project.Key.EndsWith(".Infrastructure", StringComparison.Ordinal)
+                && !project.Key.EndsWith(".Presentation", StringComparison.Ordinal)
+                && !project.Key.EndsWith(".Host", StringComparison.Ordinal))
+            .SelectMany(project => GetProjectReferences(project.Value)
+                .Where(contractsAssemblyNames.Contains)
+                .Select(target => $"{project.Key} must not reference {target}."))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(contractsAssemblyNames);
+        Assert.True(
+            violations.Length == 0,
+            $"Forbidden Contracts project references:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Common project should not reference other projects when validated")]
+    public void CommonProject_Should_NotReferenceOtherProjects_When_Validated()
+    {
+        var projectPaths = GetProjectPaths(FindRepositoryRoot());
+
+        Assert.Empty(GetProjectReferences(projectPaths[ArchitectureDefinition.CommonAssemblyName]));
     }
 
     private static Dictionary<string, string> GetProjectPaths(
@@ -45,14 +91,15 @@ public sealed class ProjectReferenceDependencyTests
                 sourceRoot,
                 "*.csproj",
                 SearchOption.AllDirectories)
-            .Select(projectPath => new
-            {
-                Name = Path.GetFileNameWithoutExtension(projectPath)
-                    ?? throw new InvalidOperationException(
-                        $"Could not determine project name for " +
-                        $"'{projectPath}'."),
-                Path = projectPath
-            })
+            .Select(
+                projectPath => new
+                {
+                    Name = Path.GetFileNameWithoutExtension(projectPath)
+                        ?? throw new InvalidOperationException(
+                            $"Could not determine project name for "
+                                + $"'{projectPath}'."),
+                    Path = projectPath
+                })
             .ToDictionary(
                 project => project.Name,
                 project => project.Path,
@@ -94,12 +141,23 @@ public sealed class ProjectReferenceDependencyTests
         string sourceAssemblyName,
         string targetAssemblyName)
     {
-        if (targetAssemblyName.EndsWith(
-                ".Contracts",
-                StringComparison.Ordinal))
+        if (sourceAssemblyName == module.ContractsAssemblyName
+            || sourceAssemblyName == module.DomainAssemblyName)
         {
-            return sourceAssemblyName != module.ContractsAssemblyName &&
-                   sourceAssemblyName != module.DomainAssemblyName;
+            return false;
+        }
+
+        if (targetAssemblyName == ArchitectureDefinition.CommonAssemblyName)
+        {
+            return true;
+        }
+
+        if (targetAssemblyName.EndsWith(
+            ".Contracts",
+            StringComparison.Ordinal))
+        {
+            return sourceAssemblyName == module.InfrastructureAssemblyName
+                || sourceAssemblyName == module.PresentationAssemblyName;
         }
 
         if (sourceAssemblyName == module.ApplicationAssemblyName)
@@ -109,8 +167,8 @@ public sealed class ProjectReferenceDependencyTests
 
         if (sourceAssemblyName == module.InfrastructureAssemblyName)
         {
-            return targetAssemblyName == module.DomainAssemblyName ||
-                   targetAssemblyName == module.ApplicationAssemblyName;
+            return targetAssemblyName == module.DomainAssemblyName
+                || targetAssemblyName == module.ApplicationAssemblyName;
         }
 
         if (sourceAssemblyName == module.PresentationAssemblyName)
@@ -141,15 +199,15 @@ public sealed class ProjectReferenceDependencyTests
              directory = directory.Parent)
         {
             if (Directory.Exists(Path.Combine(
-                    directory.FullName,
-                    SourceDirectoryName)))
+                directory.FullName,
+                SourceDirectoryName)))
             {
                 return directory.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not find repository root containing " +
-            $"the '{SourceDirectoryName}' directory.");
+            $"Could not find repository root containing "
+                + $"the '{SourceDirectoryName}' directory.");
     }
 }

@@ -5,14 +5,15 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.GetClient
 
 public sealed class GetClientTokenPrincipalHandlerTests
 {
-    [Fact(DisplayName = "Client token principal handler should query the OAuth clients repository when repository succeeds")]
+    [Fact(
+        DisplayName = "Client token principal handler should query the OAuth clients repository when repository succeeds")]
     public async Task HandleAsync_Should_ReturnPrincipal_When_RepositorySucceeds()
     {
         var readModel = new OAuthClientTokenPrincipalReadModel([]);
         var repository = Substitute.For<IOAuthClientsRepository>();
         repository.GetTokenPrincipalByClientIdAsync(
-                "tactical-heroes-service",
-                Arg.Any<CancellationToken>())
+            "tactical-heroes-service",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success(readModel));
         var handler = new GetClientTokenPrincipalHandler(repository);
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -18,16 +18,17 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 public sealed class IdentityWriteDbContext(
     DbContextOptions<IdentityWriteDbContext> options,
     IEnumerable<IInterceptor> interceptors)
-    : IdentityDbContext<
-        ApplicationUser,
-        ApplicationRole,
-        Guid,
-        ApplicationUserClaim,
-        ApplicationUserRole,
-        ApplicationUserLogin,
-        ApplicationRoleClaim,
-        IdentityUserToken<Guid>>(options),
-    IDataProtectionKeyContext
+    :
+        IdentityDbContext<
+            ApplicationUser,
+            ApplicationRole,
+            Guid,
+            ApplicationUserClaim,
+            ApplicationUserRole,
+            ApplicationUserLogin,
+            ApplicationRoleClaim,
+            IdentityUserToken<Guid>>(options),
+        IDataProtectionKeyContext
 {
     private const string Schema = "identity";
 
@@ -98,6 +99,11 @@ public sealed class IdentityWriteDbContext(
             builder.Property(role => role.Name).HasMaxLength(RoleName.MaxLength).IsRequired();
             builder.Property(role => role.NormalizedName).HasMaxLength(RoleName.MaxLength).IsRequired();
 
+            builder.Property(role => role.IsDefault).HasDefaultValue(value: false);
+            builder.HasIndex(role => role.IsDefault)
+                .IsUnique()
+                .HasFilter("is_default");
+
             builder.HasMany(role => role.Users)
                 .WithOne(user => user.Role)
                 .HasForeignKey(user => user.RoleId)
@@ -112,11 +118,12 @@ public sealed class IdentityWriteDbContext(
         modelBuilder.Entity<ApplicationUserRole>(builder =>
         {
             builder.ToTable("asp_net_user_roles", Schema);
-            builder.HasKey(userRole => new
-            {
-                userRole.UserId,
-                userRole.RoleId
-            });
+            builder.HasKey(
+                userRole => new
+                {
+                    userRole.UserId,
+                    userRole.RoleId
+                });
         });
 
         modelBuilder.Entity<ApplicationUserClaim>(builder =>
@@ -128,12 +135,14 @@ public sealed class IdentityWriteDbContext(
             builder.Property(claim => claim.ClaimValue)
                 .HasMaxLength(ClaimValue.MaxLength)
                 .IsRequired();
-            builder.HasIndex(claim => new
-            {
-                claim.UserId,
-                claim.ClaimType,
-                claim.ClaimValue
-            }).IsUnique();
+            builder.HasIndex(
+                claim => new
+                {
+                    claim.UserId,
+                    claim.ClaimType,
+                    claim.ClaimValue
+                })
+                .IsUnique();
         });
 
         modelBuilder.Entity<ApplicationRoleClaim>(builder =>
@@ -145,12 +154,14 @@ public sealed class IdentityWriteDbContext(
             builder.Property(claim => claim.ClaimValue)
                 .HasMaxLength(ClaimValue.MaxLength)
                 .IsRequired();
-            builder.HasIndex(claim => new
-            {
-                claim.RoleId,
-                claim.ClaimType,
-                claim.ClaimValue
-            }).IsUnique();
+            builder.HasIndex(
+                claim => new
+                {
+                    claim.RoleId,
+                    claim.ClaimType,
+                    claim.ClaimValue
+                })
+                .IsUnique();
         });
 
         modelBuilder.Entity<ApplicationUserLogin>(builder =>

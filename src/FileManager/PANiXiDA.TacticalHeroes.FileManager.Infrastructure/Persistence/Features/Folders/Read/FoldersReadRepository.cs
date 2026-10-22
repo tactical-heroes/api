@@ -5,5 +5,6 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Fo
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read;
 
 public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
-    : EfReadRepository<FileManagerReadDbContext, Guid, FolderReadDbModel>(dbContext),
-    IFoldersReadRepository;
+    :
+        EfReadRepository<FileManagerReadDbContext, Guid, FolderReadDbModel>(dbContext),
+        IFoldersReadRepository;

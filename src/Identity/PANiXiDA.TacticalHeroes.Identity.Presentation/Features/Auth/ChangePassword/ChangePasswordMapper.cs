@@ -10,5 +10,5 @@ internal static partial class ChangePasswordMapper
     internal static partial ChangePasswordCommand ToCommand(
         ChangePasswordRequest request,
         Guid userId,
-        string authorizationId);
+        string accessToken);
 }

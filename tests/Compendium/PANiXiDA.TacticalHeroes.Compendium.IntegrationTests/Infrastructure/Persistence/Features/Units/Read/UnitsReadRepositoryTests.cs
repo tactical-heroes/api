@@ -131,11 +131,11 @@ public sealed class UnitsReadRepositoryTests(IntegrationTestFixture fixture)
         var dbContext = scope.ServiceProvider
             .GetRequiredService<CompendiumWriteDbContext>();
 
-        await factionsRepository.AddAsync(faction, cancellationToken);
+        factionsRepository.Add(faction);
 
         foreach (var unit in units)
         {
-            await unitsRepository.AddAsync(unit, cancellationToken);
+            unitsRepository.Add(unit);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

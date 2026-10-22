@@ -21,8 +21,8 @@ public sealed class UnitNameTests
         var result = UnitName.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                "Unit name cannot be empty.")
+            ErrorType.Validation,
+            "Unit name cannot be empty.")
             .ShouldHaveField(nameof(UnitName));
     }
 
@@ -33,8 +33,8 @@ public sealed class UnitNameTests
             new string('a', UnitName.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Unit name cannot be longer than {UnitName.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Unit name cannot be longer than {UnitName.MaxLength} characters.")
             .ShouldHaveField(nameof(UnitName));
     }
 

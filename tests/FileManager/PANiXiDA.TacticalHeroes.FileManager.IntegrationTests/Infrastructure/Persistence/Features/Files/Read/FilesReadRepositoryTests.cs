@@ -51,7 +51,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         after.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Read database model should restore all columns without tracking when upload state and ownership vary")]
+    [Theory(
+        DisplayName = "Read database model should restore all columns without tracking when upload state and ownership vary")]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -67,12 +68,15 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
         stored.ShouldNotBeNull();
         stored.UserId.ShouldBe(file.UserId);
+        stored.StorageKey.ShouldBe(file.StorageKey);
         if (completed)
         {
             stored.CompleteUpload(
                 FileContentType.Create("image/png").Value,
                 FileSize.Create(4096).Value);
-            await repository.UpdateAsync(stored, cancellationToken);
+            repository.Update(stored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         var entry = writeContext.Entry(stored);
@@ -84,6 +88,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
 
         model.Id.ShouldBe(file.Id.Value);
         model.Name.ShouldBe(file.Name.Value);
+        model.StorageKey.ShouldBe(file.StorageKey.Value);
         model.Type.ShouldBe(file.Type.Name);
         model.UserId.ShouldBe(file.UserId?.Value);
         model.FolderId.ShouldBeNull();
@@ -96,10 +101,12 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         readContext.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Read models should load file and folder navigations without tracking when folder is optional")]
+    [Theory(
+        DisplayName = "Read models should load file and folder navigations without tracking when folder is optional")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task ReadDbModel_Should_LoadFileAndFolderNavigationsWithoutTracking_When_FolderIsOptional(bool assigned)
+    public async Task ReadDbModel_Should_LoadFileAndFolderNavigationsWithoutTracking_When_FolderIsOptional(
+        bool assigned)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = await AddFileAsync(false, cancellationToken);
@@ -109,14 +116,17 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
             allowedFileType: FileType.Avatar,
             userId: null).Value;
         await using var scope = Fixture.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
-            .AddAsync(folder, cancellationToken);
+        scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         if (assigned)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
             var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
             stored!.MoveTo(folder).IsSuccess.ShouldBeTrue();
-            await repository.UpdateAsync(stored, cancellationToken);
+            repository.Update(stored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         var context = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
@@ -143,7 +153,9 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
             personal ? UserId.Create(Guid.CreateVersion7()).Value : null).Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-        await repository.AddAsync(file, cancellationToken);
+        repository.Add(file);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         return file;
     }

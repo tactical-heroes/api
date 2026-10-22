@@ -116,8 +116,8 @@ internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
         if (request.IsAuthorizationCodeGrantType())
         {
             var securityStamp = authenticationResult.Principal?.GetClaim(securityStampClaimType);
-            if (string.IsNullOrEmpty(securityStamp) ||
-                !principalResult.Value.Claims.Any(claim =>
+            if (string.IsNullOrEmpty(securityStamp)
+                || !principalResult.Value.Claims.Any(claim =>
                     claim.Type == securityStampClaimType && claim.Value == securityStamp))
             {
                 return OAuthErrorResults.InvalidGrant(description: invalidGrantDescription);

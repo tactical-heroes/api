@@ -34,13 +34,18 @@ public sealed class User : AggregateRoot<UserId>
 
     public static User Register(
         Email email,
-        UserName userName)
+        UserName userName,
+        RoleId roleId)
     {
-        return new User(
+        var user = new User(
             id: UserId.New(),
             email: email,
             userName: userName,
             status: UserStatus.Active);
+
+        user.AssignRole(roleId);
+
+        return user;
     }
 
     public static User Create(

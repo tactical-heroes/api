@@ -13,17 +13,19 @@ public sealed class AggregateFilterConventionTests
         var sourceTypes = await ProductionSourceDocumentDiscovery.GetItemsAsync(GetApplicationTypesAsync);
         var filters = sourceTypes
             .Select(source => source.Type)
-            .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct &&
-                (type.Name.EndsWith("Filter", StringComparison.Ordinal) ||
-                 type.AllInterfaces.Any(contract =>
-                     contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Filtering.IFilter" &&
-                     contract.ContainingAssembly.Name == "PANiXiDA.Core.Application")))
+            .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct
+                && (type.Name.EndsWith("Filter", StringComparison.Ordinal)
+                    || type.AllInterfaces.Any(contract =>
+                        contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Filtering.IFilter"
+                            && contract.ContainingAssembly.Name == "PANiXiDA.Core.Application")))
             .ToArray();
         var violations = filters
-            .Where(type => !type.IsRecord || type.TypeKind != TypeKind.Class || !type.IsSealed ||
-                type.DeclaringSyntaxReferences.Any(reference =>
-                    reference.GetSyntax() is RecordDeclarationSyntax declaration &&
-                    declaration.ClassOrStructKeyword.RawKind != 0))
+            .Where(type => !type.IsRecord
+                || type.TypeKind != TypeKind.Class
+                || !type.IsSealed
+                || type.DeclaringSyntaxReferences.Any(reference =>
+                    reference.GetSyntax() is RecordDeclarationSyntax declaration
+                        && declaration.ClassOrStructKeyword.RawKind != 0))
             .Select(type => $"{type.ToDisplayString()} must use 'sealed record' without 'class' or 'struct'.")
             .ToArray();
 
@@ -82,10 +84,13 @@ public sealed class AggregateFilterConventionTests
             yield break;
         }
 
-        if (!filter.Type.IsRecord || filter.Type.TypeKind != TypeKind.Class || filter.Type.IsAbstract ||
-            filter.Type.Arity != 0 || !filter.Type.AllInterfaces.Any(contract =>
-                contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Filtering.IFilter" &&
-                contract.ContainingAssembly.Name == "PANiXiDA.Core.Application"))
+        if (!filter.Type.IsRecord
+            || filter.Type.TypeKind != TypeKind.Class
+            || filter.Type.IsAbstract
+            || filter.Type.Arity != 0
+            || !filter.Type.AllInterfaces.Any(contract =>
+                contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.Filtering.IFilter"
+                    && contract.ContainingAssembly.Name == "PANiXiDA.Core.Application"))
         {
             yield return $"{filterName}: must be a concrete, non-generic record implementing IFilter.";
         }
@@ -104,11 +109,13 @@ public sealed class AggregateFilterConventionTests
             yield break;
         }
 
-        if (validator.Type.TypeKind != TypeKind.Class || validator.Type.IsAbstract ||
-            validator.Type.Arity != 0 || !validator.Type.AllInterfaces.Any(contract =>
-                contract.OriginalDefinition.ToDisplayString() == "FluentValidation.IValidator<T>" &&
-                contract.ContainingAssembly.Name == "FluentValidation" &&
-                SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], filter.Type)))
+        if (validator.Type.TypeKind != TypeKind.Class
+            || validator.Type.IsAbstract
+            || validator.Type.Arity != 0
+            || !validator.Type.AllInterfaces.Any(contract =>
+                contract.OriginalDefinition.ToDisplayString() == "FluentValidation.IValidator<T>"
+                    && contract.ContainingAssembly.Name == "FluentValidation"
+                    && SymbolEqualityComparer.Default.Equals(contract.TypeArguments[0], filter.Type)))
         {
             yield return $"{validatorName}: must be a concrete, non-generic IValidator<{pluralName}Filter>.";
         }
@@ -122,8 +129,8 @@ public sealed class AggregateFilterConventionTests
     private static ApplicationType? FindType(ApplicationType[] sourceTypes, ModuleArchitecture module, string name)
     {
         return sourceTypes.FirstOrDefault(source =>
-            source.Type.ContainingAssembly.Name == module.ApplicationAssemblyName &&
-            source.Type.ToDisplayString() == name);
+            source.Type.ContainingAssembly.Name == module.ApplicationAssemblyName
+                && source.Type.ToDisplayString() == name);
     }
 
     private static IEnumerable<string> GetLocationViolations(
@@ -132,13 +139,20 @@ public sealed class AggregateFilterConventionTests
         ApplicationType source)
     {
         var expectedPath = Path.Combine(
-            source.RepositoryRoot, "src", InfrastructurePersistenceConvention.GetModuleShortName(module),
-            module.ApplicationAssemblyName, pluralName, "Common", "Filters", $"{source.Type.Name}.cs");
+            source.RepositoryRoot,
+            "src",
+            InfrastructurePersistenceConvention.GetModuleShortName(module),
+            module.ApplicationAssemblyName,
+            pluralName,
+            "Common",
+            "Filters",
+            $"{source.Type.Name}.cs");
 
         if (!source.Type.DeclaringSyntaxReferences.Any(reference =>
-                string.Equals(reference.SyntaxTree.FilePath, expectedPath, StringComparison.Ordinal)))
+            string.Equals(reference.SyntaxTree.FilePath, expectedPath, StringComparison.Ordinal)))
         {
-            yield return $"{source.Type}: must be declared in '{Path.GetRelativePath(source.RepositoryRoot, expectedPath)}'.";
+            yield return
+                $"{source.Type}: must be declared in '{Path.GetRelativePath(source.RepositoryRoot, expectedPath)}'.";
         }
     }
 

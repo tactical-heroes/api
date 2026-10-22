@@ -15,10 +15,14 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
         await client.CreateAsync(cancellationToken, new CreateFactionRequest("Southern Alliance", "South."));
-        var northern = await client.CreateAsync(cancellationToken, new CreateFactionRequest("Northern Alliance", "North."));
+        var northern = await client.CreateAsync(
+            cancellationToken,
+            new CreateFactionRequest("Northern Alliance", "North."));
         await client.CreateAsync(cancellationToken, new CreateFactionRequest("Empire", "An alliance."));
 
-        using var response = await Fixture.Client.GetAsync($"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}&limit=1", cancellationToken);
+        using var response = await Fixture.Client.GetAsync(
+            $"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}&limit=1",
+            cancellationToken);
         var options = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -55,24 +59,29 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        using var response = await Fixture.Client.GetAsync($"/api/v1/factions/select-options?limit={limit}", cancellationToken);
+        using var response = await Fixture.Client
+            .GetAsync($"/api/v1/factions/select-options?limit={limit}", cancellationToken);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         problem.GetProperty("errors").EnumerateObject().ShouldNotBeEmpty();
     }
 
-    [Theory(DisplayName = "GetFactionSelectOptions should return validation problem when trimmed search is shorter than three characters")]
+    [Theory(
+        DisplayName = "GetFactionSelectOptions should return validation problem when trimmed search is shorter than three characters")]
     [InlineData("")]
     [InlineData("n")]
     [InlineData("no")]
     [InlineData("   ")]
     [InlineData(" no ")]
-    public async Task GetFactionSelectOptions_Should_ReturnValidationProblem_When_TrimmedSearchIsShorterThanThreeCharacters(string search)
+    public async Task
+        GetFactionSelectOptions_Should_ReturnValidationProblem_When_TrimmedSearchIsShorterThanThreeCharacters(
+            string search)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        using var response = await Fixture.Client.GetAsync($"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}", cancellationToken);
+        using var response = await Fixture.Client
+            .GetAsync($"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}", cancellationToken);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -85,7 +94,8 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var cancellationToken = TestContext.Current.CancellationToken;
         var search = new string('a', 129);
 
-        using var response = await Fixture.Client.GetAsync($"/api/v1/factions/select-options?search={search}", cancellationToken);
+        using var response = await Fixture.Client
+            .GetAsync($"/api/v1/factions/select-options?search={search}", cancellationToken);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -97,13 +107,35 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
-        var faction = await client.CreateAsync(cancellationToken, new CreateFactionRequest("Northern Alliance", "North."));
+        var faction = await client.CreateAsync(
+            cancellationToken,
+            new CreateFactionRequest("Northern Alliance", "North."));
 
-        using var response = await Fixture.Client.GetAsync("/api/v1/factions/select-options?limit=200", cancellationToken);
+        using var response = await Fixture.Client
+            .GetAsync("/api/v1/factions/select-options?limit=200", cancellationToken);
         var options = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         options.GetArrayLength().ShouldBe(1);
         options[0].GetProperty("id").GetGuid().ShouldBe(faction.Id);
+    }
+
+    [Theory(DisplayName = "GET faction select options should require read permission when authenticated")]
+    [InlineData("unrelated", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.heroes.create", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.heroes.update", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.units.create", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.units.update", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.factions.read", HttpStatusCode.OK)]
+    public async Task GetFactionSelectOptions_Should_RequireReadPermission_When_Authenticated(
+        string permission, HttpStatusCode expectedStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/factions/select-options?limit=20");
+        request.Headers.Add("X-Test-Permissions", permission);
+
+        using var response = await Fixture.Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expectedStatus, await response.Content.ReadAsStringAsync(cancellationToken));
     }
 }

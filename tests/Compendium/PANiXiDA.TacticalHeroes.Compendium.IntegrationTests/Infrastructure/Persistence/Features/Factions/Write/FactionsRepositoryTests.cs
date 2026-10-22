@@ -11,8 +11,8 @@ namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Per
 public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "AddAsync should persist a valid faction when faction is valid")]
-    public async Task AddAsync_Should_PersistFaction_When_FactionIsValid()
+    [Fact(DisplayName = "Add should persist a valid faction when faction is valid")]
+    public async Task Add_Should_PersistFaction_When_FactionIsValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = CreateFaction();
@@ -22,7 +22,7 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
             var repository = scope.ServiceProvider.GetRequiredService<IFactionsRepository>();
             var dbContext = scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
 
-            await repository.AddAsync(faction, cancellationToken);
+            repository.Add(faction);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -55,8 +55,8 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
         persistedFaction.Description.Value.ShouldBe("Defenders of the north.");
     }
 
-    [Fact(DisplayName = "UpdateAsync should persist faction changes when faction exists")]
-    public async Task UpdateAsync_Should_PersistChanges_When_FactionExists()
+    [Fact(DisplayName = "Update should persist faction changes when faction exists")]
+    public async Task Update_Should_PersistChanges_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = CreateFaction();
@@ -72,10 +72,10 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
 
             factionToUpdate.ShouldNotBeNull();
             factionToUpdate.Update(
-            name: FactionName.Create(value: "Southern Alliance").Value,
-            description: FactionDescription.Create(value: "Defenders of the south.").Value);
+                name: FactionName.Create(value: "Southern Alliance").Value,
+                description: FactionDescription.Create(value: "Defenders of the south.").Value);
 
-            await repository.UpdateAsync(factionToUpdate, cancellationToken);
+            repository.Update(factionToUpdate);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -92,8 +92,8 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
         persistedFaction.Description.Value.ShouldBe("Defenders of the south.");
     }
 
-    [Fact(DisplayName = "DeleteAsync should soft delete an existing faction when faction exists")]
-    public async Task DeleteAsync_Should_SoftDeleteFaction_When_FactionExists()
+    [Fact(DisplayName = "Delete should soft delete an existing faction when faction exists")]
+    public async Task Delete_Should_SoftDeleteFaction_When_FactionExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = CreateFaction();
@@ -108,7 +108,7 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
                 cancellationToken);
 
             persistedFaction.ShouldNotBeNull();
-            await repository.DeleteAsync(persistedFaction, cancellationToken);
+            repository.Delete(persistedFaction);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -136,7 +136,7 @@ public sealed class FactionsRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsRepository>();
         var dbContext = scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
 
-        await repository.AddAsync(faction, cancellationToken);
+        repository.Add(faction);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

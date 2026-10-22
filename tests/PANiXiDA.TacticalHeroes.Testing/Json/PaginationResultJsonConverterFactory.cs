@@ -7,8 +7,8 @@ public sealed class PaginationResultJsonConverterFactory : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert)
     {
-        return typeToConvert.IsGenericType &&
-               typeToConvert.GetGenericTypeDefinition() == typeof(PaginationResult<>);
+        return typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() == typeof(PaginationResult<>);
     }
 
     public override JsonConverter CreateConverter(

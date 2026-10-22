@@ -16,13 +16,15 @@ public sealed class PostgreSqlResetTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = new NpgsqlConnection(Fixture.ConnectionString);
         await connection.OpenAsync(cancellationToken);
-        await using var setup = new NpgsqlCommand("""
+        await using var setup = new NpgsqlCommand(
+            """
             CREATE SCHEMA IF NOT EXISTS wolverine;
             CREATE TABLE wolverine.reset_isolation_probe (id integer PRIMARY KEY);
             CREATE TABLE identity.reset_isolation_probe (id integer PRIMARY KEY);
             INSERT INTO wolverine.reset_isolation_probe VALUES (1);
             INSERT INTO identity.reset_isolation_probe VALUES (1);
-            """, connection);
+            """,
+            connection);
         await setup.ExecuteNonQueryAsync(cancellationToken);
 
         try
@@ -39,10 +41,12 @@ public sealed class PostgreSqlResetTests(IntegrationTestFixture fixture)
         finally
         {
             using var cleanupTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            await using var cleanup = new NpgsqlCommand("""
+            await using var cleanup = new NpgsqlCommand(
+                """
                 DROP TABLE identity.reset_isolation_probe;
                 DROP TABLE wolverine.reset_isolation_probe;
-                """, connection);
+                """,
+                connection);
             await cleanup.ExecuteNonQueryAsync(cleanupTimeout.Token);
         }
     }

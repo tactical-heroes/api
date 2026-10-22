@@ -22,11 +22,19 @@ public sealed class ReadModelConventionTests
         var components = ArchitectureDefinition.s_productionAssemblies
             .Where(assembly => assembly.GetName().Name?.EndsWith(".Infrastructure", StringComparison.Ordinal) == true)
             .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => !type.IsInterface &&
-                InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType) is not null)
+            .Where(type => !type.IsInterface
+                && InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType) is not null)
             .ToArray();
         var violations = components
-            .Where(type => type is not { IsClass: true, IsNotPublic: true, IsNested: false, IsSealed: true, IsAbstract: false })
+            .Where(
+                type => type is not
+                {
+                    IsClass: true,
+                    IsNotPublic: true,
+                    IsNested: false,
+                    IsSealed: true,
+                    IsAbstract: false
+                })
             .Select(type => $"{type.FullName} must be a top-level internal sealed class.")
             .ToArray();
 
@@ -41,18 +49,18 @@ public sealed class ReadModelConventionTests
     {
         var components = GetReadModelComponents(contractType);
         var violations = components
-            .Where(type => type.Name != GetReadModel(type, contractType).Name + suffix ||
-                InfrastructurePersistenceConvention.FindSourceFiles(type)
+            .Where(type => type.Name != GetReadModel(type, contractType).Name + suffix
+                || InfrastructurePersistenceConvention.FindSourceFiles(type)
                     .Any(path => Path.GetFileNameWithoutExtension(path) != type.Name))
-            .Select(type => $"{type.FullName} must be named '{GetReadModel(type, contractType).Name + suffix}' " +
-                "and declared in a file with the same name.")
+            .Select(type => $"{type.FullName} must be named '{GetReadModel(type, contractType).Name + suffix}' "
+                + "and declared in a file with the same name.")
             .ToArray();
 
         Assert.NotEmpty(components);
         Assert.True(
             violations.Length == 0,
-            $"Read model component naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Read model component naming violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Theory(DisplayName = "Read model components should reside in matching Application slices when declared")]
@@ -69,8 +77,8 @@ public sealed class ReadModelConventionTests
         Assert.NotEmpty(components);
         Assert.True(
             violations.Length == 0,
-            $"Read model component location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Read model component location violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read model sorting should share the mapper directory when declared")]
@@ -79,12 +87,17 @@ public sealed class ReadModelConventionTests
         var sortingTypes = GetReadModelComponents(typeof(IReadModelSorting<>));
         var mappers = GetReadModelComponents(typeof(IReadModelMapper<,,>));
         var violations = sortingTypes.Where(sorting => !mappers.Any(mapper =>
-                GetReadModel(mapper, typeof(IReadModelMapper<,,>)) == GetReadModel(sorting, typeof(IReadModelSorting<>)) &&
-                mapper.Namespace == sorting.Namespace &&
-                InfrastructurePersistenceConvention.FindSourceFiles(mapper).Select(Path.GetDirectoryName)
-                    .Intersect(InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
-                        StringComparer.OrdinalIgnoreCase).Any()))
-            .Select(type => $"{type.FullName} must share its directory and namespace with a mapper for the same read model.")
+            GetReadModel(mapper, typeof(IReadModelMapper<,,>)) == GetReadModel(sorting, typeof(IReadModelSorting<>))
+                && mapper.Namespace == sorting.Namespace
+                && InfrastructurePersistenceConvention.FindSourceFiles(mapper)
+                    .Select(Path.GetDirectoryName)
+                    .Intersect(
+                        InfrastructurePersistenceConvention.FindSourceFiles(sorting).Select(Path.GetDirectoryName),
+                        StringComparer.OrdinalIgnoreCase)
+                    .Any()))
+            .Select(
+                type =>
+                    $"{type.FullName} must share its directory and namespace with a mapper for the same read model.")
             .ToArray();
 
         Assert.NotEmpty(sortingTypes);
@@ -106,8 +119,8 @@ public sealed class ReadModelConventionTests
         Assert.NotEmpty(readDbModels);
         Assert.True(
             violations.Length == 0,
-            $"Read database model naming violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Read database model naming violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Read database models should reside in aggregate Read DbModels directories when declared")]
@@ -126,11 +139,12 @@ public sealed class ReadModelConventionTests
         Assert.NotEmpty(readDbModels);
         Assert.True(
             violations.Length == 0,
-            $"Read database model location violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Read database model location violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations when declared")]
+    [Fact(
+        DisplayName = "Read database model aggregate foreign keys should have bidirectional navigations when declared")]
     public void ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared()
     {
         var readDbModels = GetReadDatabaseModels();
@@ -143,8 +157,8 @@ public sealed class ReadModelConventionTests
 
         Assert.True(
             violations.Length == 0,
-            $"Read database model navigation violations:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, violations));
+            $"Read database model navigation violations:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
     }
 
     private static Type[] GetReadModelComponents(Type contractType)
@@ -159,7 +173,8 @@ public sealed class ReadModelConventionTests
 
     private static Type GetReadModel(Type type, Type contractType)
     {
-        return InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType)!.GetGenericArguments()[^1];
+        return InfrastructurePersistenceConvention.GetClosedGenericInterface(type, contractType)!
+            .GetGenericArguments()[^1];
     }
 
     private static async Task<ModelSource[]> GetApplicationModelsAsync(string repositoryRoot, Document document)
@@ -175,11 +190,15 @@ public sealed class ReadModelConventionTests
             [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()
                 .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
                 .OfType<INamedTypeSymbol>()
-                .Where(type => type.AllInterfaces.Any(contract => contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
+                .Where(type => type.AllInterfaces
+                    .Any(contract => contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
                 .Select(type => new ModelSource(type.ToDisplayString(), Path.GetDirectoryName(document.FilePath)!))];
     }
 
-    private static IEnumerable<string> GetComponentLocationViolations(Type component, Type contractType, ModelSource[] sources)
+    private static IEnumerable<string> GetComponentLocationViolations(
+        Type component,
+        Type contractType,
+        ModelSource[] sources)
     {
         var model = GetReadModel(component, contractType);
         var module = InfrastructurePersistenceConvention.GetModule(component);
@@ -195,7 +214,7 @@ public sealed class ReadModelConventionTests
             var slice = Path.GetFileName(source.Directory);
             var feature = Path.GetFileName(Path.GetDirectoryName(source.Directory));
             foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
-                         component, "Persistence", "Features", feature!, "Read", slice))
+                component, "Persistence", "Features", feature!, "Read", slice))
             {
                 yield return violation;
             }
@@ -217,11 +236,11 @@ public sealed class ReadModelConventionTests
                 InfrastructurePersistenceConvention
                     .GetClosedGenericBaseType(
                         type,
-                        typeof(ReadDbModel<>)) is not null ||
-                InfrastructurePersistenceConvention
-                    .GetClosedGenericBaseType(
-                        type,
-                        typeof(AuditableReadDbModel<>)) is not null);
+                        typeof(ReadDbModel<>)) is not null
+                    || InfrastructurePersistenceConvention
+                        .GetClosedGenericBaseType(
+                            type,
+                            typeof(AuditableReadDbModel<>)) is not null);
     }
 
     private static IEnumerable<string> GetMapperLocationViolations(
@@ -232,8 +251,8 @@ public sealed class ReadModelConventionTests
                 mapper,
                 typeof(IReadModelMapper<,,>))
             ?? throw new InvalidOperationException(
-                $"Could not determine read model mapper contract for " +
-                $"'{mapper.FullName}'.");
+                $"Could not determine read model mapper contract for "
+                    + $"'{mapper.FullName}'.");
         var readDbModelType = mapperContract.GetGenericArguments()[1];
         var aggregateName = readDbModelType.Name.EndsWith(
             ReadDbModelSuffix,
@@ -253,9 +272,9 @@ public sealed class ReadModelConventionTests
         {
             return
             [
-                $"{mapper.FullName} maps '{readDbModelType.FullName}', which " +
-                $"must correspond to an aggregate root in module " +
-                $"'{module.Name}'."
+                $"{mapper.FullName} maps '{readDbModelType.FullName}', which "
+                    + $"must correspond to an aggregate root in module "
+                    + $"'{module.Name}'."
             ];
         }
 
@@ -283,10 +302,10 @@ public sealed class ReadModelConventionTests
             .ToHashSet(StringComparer.Ordinal);
 
         foreach (var foreignKey in dependentReadDbModel
-                     .GetProperties()
-                     .Where(property =>
-                         property.Name.Length > "Id".Length &&
-                         property.Name.EndsWith("Id", StringComparison.Ordinal)))
+            .GetProperties()
+            .Where(property =>
+                property.Name.Length > "Id".Length
+                    && property.Name.EndsWith("Id", StringComparison.Ordinal)))
         {
             var aggregateName = foreignKey.Name[..^"Id".Length];
 
@@ -296,18 +315,18 @@ public sealed class ReadModelConventionTests
             }
 
             var principalReadDbModel = readDbModels.SingleOrDefault(type =>
-                type.Assembly == dependentReadDbModel.Assembly &&
-                string.Equals(
-                    type.Name,
-                    aggregateName + ReadDbModelSuffix,
-                    StringComparison.Ordinal));
+                type.Assembly == dependentReadDbModel.Assembly
+                    && string.Equals(
+                        type.Name,
+                        aggregateName + ReadDbModelSuffix,
+                        StringComparison.Ordinal));
 
             if (principalReadDbModel is null)
             {
                 yield return
-                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} " +
-                    $"references aggregate '{aggregateName}', but its " +
-                    $"{ReadDbModelSuffix} is not declared in the module.";
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} "
+                        + $"references aggregate '{aggregateName}', but its "
+                        + $"{ReadDbModelSuffix} is not declared in the module.";
                 continue;
             }
 
@@ -319,30 +338,30 @@ public sealed class ReadModelConventionTests
             if (referenceNavigation is null)
             {
                 yield return
-                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} " +
-                    $"must have a reference navigation to " +
-                    $"{principalReadDbModel.FullName}.";
+                    $"{dependentReadDbModel.FullName}.{foreignKey.Name} "
+                        + $"must have a reference navigation to "
+                        + $"{principalReadDbModel.FullName}.";
             }
             else if (new NullabilityInfoContext()
                          .Create(referenceNavigation)
                          .ReadState != NullabilityState.Nullable)
             {
                 yield return
-                    $"{dependentReadDbModel.FullName}." +
-                    $"{referenceNavigation.Name} reference navigation " +
-                    $"must be nullable.";
+                    $"{dependentReadDbModel.FullName}."
+                        + $"{referenceNavigation.Name} reference navigation "
+                        + $"must be nullable.";
             }
 
             if (!principalReadDbModel
-                    .GetProperties()
-                    .Any(property => IsCollectionOf(
-                        property.PropertyType,
-                        dependentReadDbModel)))
+                .GetProperties()
+                .Any(property => IsCollectionOf(
+                    property.PropertyType,
+                    dependentReadDbModel)))
             {
                 yield return
-                    $"{principalReadDbModel.FullName} must have a collection " +
-                    $"navigation to {dependentReadDbModel.FullName} for " +
-                    $"{dependentReadDbModel.FullName}.{foreignKey.Name}.";
+                    $"{principalReadDbModel.FullName} must have a collection "
+                        + $"navigation to {dependentReadDbModel.FullName} for "
+                        + $"{dependentReadDbModel.FullName}.{foreignKey.Name}.";
             }
         }
     }
@@ -355,9 +374,9 @@ public sealed class ReadModelConventionTests
             .GetInterfaces()
             .Append(propertyType)
             .Any(type =>
-                type.IsGenericType &&
-                type.GetGenericTypeDefinition() == typeof(ICollection<>) &&
-                type.GenericTypeArguments[0] == elementType);
+                type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(ICollection<>)
+                    && type.GenericTypeArguments[0] == elementType);
     }
 
     private sealed record ModelSource(string Name, string Directory);

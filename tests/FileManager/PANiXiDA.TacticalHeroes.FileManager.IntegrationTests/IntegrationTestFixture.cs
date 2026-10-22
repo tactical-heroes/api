@@ -36,7 +36,14 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
                 [PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable.Replace(
                     "__",
                     ConfigurationPath.KeyDelimiter,
-                    StringComparison.Ordinal)] = ConnectionString
+                    StringComparison.Ordinal)] = ConnectionString,
+                ["FileManager:AWS:ServiceURL"] = "https://s3.example.invalid",
+                ["FileManager:AWS:AuthenticationRegion"] = "us-east-1",
+                ["FileManager:AWS:ForcePathStyle"] = "true",
+                ["FileManager:S3Storage:BucketName"] = "file-manager-tests",
+                ["FileManager:S3Storage:KeyPrefix"] = "integration-tests",
+                ["FileManager:S3Storage:AccessKey"] = "test-access-key",
+                ["FileManager:S3Storage:SecretKey"] = "test-secret-key"
             })
             .Build();
 

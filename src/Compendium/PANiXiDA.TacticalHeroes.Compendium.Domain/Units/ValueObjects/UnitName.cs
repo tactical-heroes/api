@@ -25,7 +25,8 @@ public sealed partial class UnitName : ValueObject
         return normalizedValue.Length <= MaxLength
             ? Result.Success(value: new UnitName(value: normalizedValue))
             : Result.Failure<UnitName>(
-                error: Error.Validation(
+                error: Error
+                    .Validation(
                         message: $"Unit name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(UnitName)));
     }

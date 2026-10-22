@@ -1,4 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
+using System.Net.Http.Headers;
+
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.GetList;
 
@@ -10,12 +12,29 @@ public sealed class GetRolesEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        await client.CreateAsync(cancellationToken, new CreateRoleRequest("viewer", []));
-        await client.CreateAsync(cancellationToken, new CreateRoleRequest("admin", []));
 
         var response = await client.GetListAsync(cancellationToken);
 
-        response.TotalCount.ShouldBe(2);
-        response.Items.Select(role => role.Name).ShouldBe(["admin", "viewer"]);
+        response.TotalCount.ShouldBe(3);
+        response.Items.Select(role => role.Name).ShouldBe(["Developer", "Moderator", "Player"]);
+    }
+
+    [Theory(DisplayName = "GET roles should require read permission when authenticated")]
+    [InlineData("unrelated", HttpStatusCode.Forbidden)]
+    [InlineData("identity.users.create", HttpStatusCode.Forbidden)]
+    [InlineData("identity.users.update", HttpStatusCode.Forbidden)]
+    [InlineData("identity.roles.read", HttpStatusCode.OK)]
+    public async Task GetRoles_Should_RequireReadPermission_When_Authenticated(
+        string permission, HttpStatusCode expectedStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/roles?pageNumber=1&pageSize=20");
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+
+        using var response = await Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expectedStatus, await response.Content.ReadAsStringAsync(cancellationToken));
     }
 }

@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ForgotPassword;
 
 public sealed class ForgotPasswordHandler(IUserCredentialsService userCredentialsService)
-    : ICommandHandler<ForgotPasswordCommand, Result>
+    : ICommandHandler<ForgotPasswordCommand, Result>, IRequireTransaction
 {
     public Task<Result> HandleAsync(
         ForgotPasswordCommand command,

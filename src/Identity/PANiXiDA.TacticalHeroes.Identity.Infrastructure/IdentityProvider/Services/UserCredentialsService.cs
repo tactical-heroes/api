@@ -4,6 +4,8 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
@@ -18,6 +20,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Servi
 
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
+    IRolesReadRepository rolesReadRepository,
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IOptions<IdentityProviderOptions> options,
@@ -40,7 +43,23 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var user = User.Register(email: emailResult.Value, userName: userNameResult.Value);
+        var defaultRoleId = await rolesReadRepository.GetDefaultIdAsync(cancellationToken);
+        if (defaultRoleId is null)
+        {
+            return Result.Failure<Guid>(
+                error: Error.NotFound(message: "Default role was not found."));
+        }
+
+        var roleIdResult = RoleId.Create(value: defaultRoleId.Value);
+        if (roleIdResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: roleIdResult.Errors);
+        }
+
+        var user = User.Register(
+            email: emailResult.Value,
+            userName: userNameResult.Value,
+            roleId: roleIdResult.Value);
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,
@@ -144,7 +163,7 @@ public sealed class UserCredentialsService(
 
     public async Task<Result<AuthenticatedUserReadModel>> ChangePasswordAsync(
         Guid userId,
-        string authorizationId,
+        string accessToken,
         string currentPassword,
         string newPassword,
         CancellationToken cancellationToken)
@@ -171,13 +190,17 @@ public sealed class UserCredentialsService(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
-        var authorization = await authorizationManager.FindByIdAsync(authorizationId, cancellationToken);
-        if (authorization is null ||
-            !await authorizationManager.HasStatusAsync(
+        var authorizationId = await GetCurrentAuthorizationIdAsync(accessToken, cancellationToken);
+        var authorization = authorizationId is null
+            ? null
+            : await authorizationManager.FindByIdAsync(authorizationId, cancellationToken);
+        if (authorizationId is null
+            || authorization is null
+            || !await authorizationManager.HasStatusAsync(
                 authorization: authorization,
                 status: OpenIddictConstants.Statuses.Valid,
-                cancellationToken: cancellationToken) ||
-            !string.Equals(
+                cancellationToken: cancellationToken)
+            || !string.Equals(
                 await authorizationManager.GetSubjectAsync(authorization, cancellationToken),
                 userId.ToString(),
                 StringComparison.Ordinal))
@@ -260,9 +283,9 @@ public sealed class UserCredentialsService(
     {
         var applicationUser = await userManager.FindByEmailAsync(email);
 
-        if (applicationUser is null ||
-            applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+        if (applicationUser is null
+            || applicationUser.EmailConfirmed
+            || IsBlocked(applicationUser))
         {
             return Result.Success();
         }
@@ -302,9 +325,9 @@ public sealed class UserCredentialsService(
     {
         var applicationUser = await userManager.FindByEmailAsync(email);
 
-        if (applicationUser is null ||
-            !applicationUser.EmailConfirmed ||
-            IsBlocked(applicationUser))
+        if (applicationUser is null
+            || !applicationUser.EmailConfirmed
+            || IsBlocked(applicationUser))
         {
             return Result.Success();
         }
@@ -403,11 +426,12 @@ public sealed class UserCredentialsService(
         foreach (var authorization in authorizations)
         {
             if (!string.Equals(
-                    await authorizationManager.GetIdAsync(authorization, cancellationToken),
-                    authorizationId,
-                    StringComparison.Ordinal) &&
-                !await authorizationManager.TryRevokeAsync(authorization, cancellationToken))
+                await authorizationManager.GetIdAsync(authorization, cancellationToken),
+                authorizationId,
+                StringComparison.Ordinal)
+                && !await authorizationManager.TryRevokeAsync(authorization, cancellationToken))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 throw new InvalidOperationException("Failed to revoke a user authorization.");
             }
         }
@@ -417,13 +441,35 @@ public sealed class UserCredentialsService(
         foreach (var token in tokens)
         {
             if (!string.Equals(
-                    await tokenManager.GetAuthorizationIdAsync(token, cancellationToken),
-                    authorizationId,
-                    StringComparison.Ordinal) &&
-                !await tokenManager.TryRevokeAsync(token, cancellationToken))
+                await tokenManager.GetAuthorizationIdAsync(token, cancellationToken),
+                authorizationId,
+                StringComparison.Ordinal)
+                && !await tokenManager.TryRevokeAsync(token, cancellationToken))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 throw new InvalidOperationException("Failed to revoke a user token.");
             }
         }
+    }
+
+    private async Task<string?> GetCurrentAuthorizationIdAsync(
+        string accessToken,
+        CancellationToken cancellationToken)
+    {
+        var token = await tokenManager.FindByReferenceIdAsync(accessToken, cancellationToken);
+        if (token is null
+            || !await tokenManager.HasTypeAsync(
+                token: token,
+                type: OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                cancellationToken: cancellationToken)
+            || !await tokenManager.HasStatusAsync(
+                token: token,
+                status: OpenIddictConstants.Statuses.Valid,
+                cancellationToken: cancellationToken))
+        {
+            return null;
+        }
+
+        return await tokenManager.GetAuthorizationIdAsync(token, cancellationToken);
     }
 }

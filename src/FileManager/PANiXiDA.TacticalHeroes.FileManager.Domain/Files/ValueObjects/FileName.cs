@@ -29,10 +29,10 @@ public sealed partial class FileName : ValueObject
                     .WithField(nameof(FileName)));
         }
 
-        if (normalizedValue is "." or ".." ||
-            normalizedValue.Contains('/') ||
-            normalizedValue.Contains('\\') ||
-            value.Any(char.IsControl))
+        if (normalizedValue is "." or ".."
+            || normalizedValue.Contains('/')
+            || normalizedValue.Contains('\\')
+            || value.Any(char.IsControl))
         {
             return Result.Failure<FileName>(
                 Error.Validation("File name cannot contain paths or control characters.")

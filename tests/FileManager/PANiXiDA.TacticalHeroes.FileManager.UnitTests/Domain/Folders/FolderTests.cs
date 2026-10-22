@@ -48,7 +48,9 @@ public sealed class FolderTests
         }
         else
         {
-            result.ShouldHaveSingleError(ErrorType.Validation, owned
+            result.ShouldHaveSingleError(
+                ErrorType.Validation,
+                owned
                     ? "Only personal folders can have a user id."
                     : "Personal folders require a user id.")
                 .ShouldHaveField(nameof(Folder.UserId));

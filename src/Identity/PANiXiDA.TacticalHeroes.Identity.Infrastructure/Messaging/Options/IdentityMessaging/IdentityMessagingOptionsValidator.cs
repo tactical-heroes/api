@@ -53,9 +53,9 @@ internal sealed class IdentityMessagingOptionsValidator
         if (!Uri.TryCreate(
             uriString: sampleUrl,
             uriKind: UriKind.Absolute,
-            result: out var uri) ||
-            !IsHttpScheme(uri: uri) ||
-            string.IsNullOrWhiteSpace(uri.Host))
+            result: out var uri)
+            || !IsHttpScheme(uri: uri)
+            || string.IsNullOrWhiteSpace(uri.Host))
         {
             failures.Add($"{path} must be an absolute HTTP/HTTPS URL template with a host.");
         }
@@ -63,7 +63,7 @@ internal sealed class IdentityMessagingOptionsValidator
 
     private static bool IsHttpScheme(Uri uri)
     {
-        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
     }
 }

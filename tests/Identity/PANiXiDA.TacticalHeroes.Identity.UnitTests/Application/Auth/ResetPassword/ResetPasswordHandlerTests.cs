@@ -5,16 +5,17 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResetPassw
 
 public sealed class ResetPasswordHandlerTests
 {
-    [Fact(DisplayName = "Reset password handler should delegate password reset to credentials service when credentials service succeeds")]
+    [Fact(
+        DisplayName = "Reset password handler should delegate password reset to credentials service when credentials service succeeds")]
     public async Task HandleAsync_Should_ReturnSuccess_When_CredentialsServiceSucceeds()
     {
         var userId = Guid.CreateVersion7();
         var service = Substitute.For<IUserCredentialsService>();
         service.ResetPasswordAsync(
-                userId,
-                "password-reset-token",
-                "NewPassword1!",
-                Arg.Any<CancellationToken>())
+            userId,
+            "password-reset-token",
+            "NewPassword1!",
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new ResetPasswordHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;

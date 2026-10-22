@@ -34,10 +34,10 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
     {
         var userIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
 
-        var authorizationId = user.GetAuthorizationId();
+        var accessToken = await httpContext.GetTokenAsync(OpenIddictConstants.Parameters.AccessToken);
 
-        if (!Guid.TryParse(input: userIdValue, result: out var userId) ||
-            string.IsNullOrWhiteSpace(authorizationId))
+        if (!Guid.TryParse(input: userIdValue, result: out var userId)
+            || string.IsNullOrWhiteSpace(accessToken))
         {
             return TypedResults.Unauthorized();
         }
@@ -47,7 +47,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
             ChangePasswordMapper.ToCommand(
                 request: request,
                 userId: userId,
-                authorizationId: authorizationId),
+                accessToken: accessToken),
             cancellationToken);
 
         if (result.IsFailure)
@@ -55,8 +55,11 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
             return result.ToHttpProblem();
         }
 
-        if (cookie.Succeeded &&
-            string.Equals(cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject), userIdValue, StringComparison.Ordinal))
+        if (cookie.Succeeded
+            && string.Equals(
+                cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject),
+                userIdValue,
+                StringComparison.Ordinal))
         {
             await httpContext.SignInAsync(
                 scheme: IdentityConstants.ApplicationScheme,

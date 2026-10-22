@@ -8,4 +8,5 @@ public sealed record CreateUserCommand(
     string Password,
     bool IsConfirmed,
     IReadOnlyCollection<Claim> Claims,
-    string Status) : ICommand<Result<Guid>>;
+    string Status,
+    IReadOnlyCollection<Guid> RoleIds) : ICommand<Result<Guid>>;

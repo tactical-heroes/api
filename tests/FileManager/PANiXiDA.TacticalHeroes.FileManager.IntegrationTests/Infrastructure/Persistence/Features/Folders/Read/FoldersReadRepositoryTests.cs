@@ -26,7 +26,9 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
             allowedFileType: FileType.Avatar,
             userId: null).Value;
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
-        await repository.AddAsync(folder, cancellationToken);
+        repository.Add(folder);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
         var exists = await readRepository.ExistsByIdAsync(folder.Id.Value, cancellationToken);
         var missing = await readRepository.ExistsByIdAsync(Guid.CreateVersion7(), cancellationToken);
@@ -48,14 +50,17 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
             userId: null).Value;
 
         var before = await readRepository.AnyAsync(cancellationToken);
-        await repository.AddAsync(folder, cancellationToken);
+        repository.Add(folder);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         var after = await readRepository.AnyAsync(cancellationToken);
 
         before.ShouldBeFalse();
         after.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Folder read model should restore all columns without tracking when parent and ownership vary")]
+    [Theory(
+        DisplayName = "Folder read model should restore all columns without tracking when parent and ownership vary")]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -71,11 +76,15 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
             userId: userId).Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
-        await repository.AddAsync(folder, cancellationToken);
+        repository.Add(folder);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         if (nested)
         {
             folder = folder.CreateChild(FolderName.Create("Players").Value);
-            await repository.AddAsync(folder, cancellationToken);
+            repository.Add(folder);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         var writeContext = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
@@ -96,7 +105,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         readContext.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Folder read model should load parent and direct children without tracking when depth varies")]
+    [Theory(
+        DisplayName = "Folder read model should load parent and direct children without tracking when depth varies")]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
@@ -114,7 +124,9 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         foreach (var folder in folders)
         {
-            await repository.AddAsync(folder, cancellationToken);
+            repository.Add(folder);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         var readContext = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();

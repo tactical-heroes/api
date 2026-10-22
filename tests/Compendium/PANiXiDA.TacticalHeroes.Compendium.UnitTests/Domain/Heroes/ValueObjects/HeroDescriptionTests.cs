@@ -22,8 +22,8 @@ public sealed class HeroDescriptionTests
         var result = HeroDescription.Create(value);
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                "Hero description cannot be empty.")
+            ErrorType.Validation,
+            "Hero description cannot be empty.")
             .ShouldHaveField(nameof(HeroDescription));
     }
 
@@ -34,8 +34,8 @@ public sealed class HeroDescriptionTests
             new string('a', HeroDescription.MaxLength + 1));
 
         result.ShouldHaveSingleError(
-                ErrorType.Validation,
-                $"Hero description cannot be longer than {HeroDescription.MaxLength} characters.")
+            ErrorType.Validation,
+            $"Hero description cannot be longer than {HeroDescription.MaxLength} characters.")
             .ShouldHaveField(nameof(HeroDescription));
     }
 

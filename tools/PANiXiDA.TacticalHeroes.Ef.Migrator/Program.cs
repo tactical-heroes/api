@@ -9,6 +9,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 using var host = Host.CreateDefaultBuilder(args)
+    .UseContentRoot(AppContext.BaseDirectory)
     .ConfigureAppConfiguration((_, configuration) =>
     {
         configuration
@@ -25,8 +26,10 @@ using var host = Host.CreateDefaultBuilder(args)
         services.AddDbContext<IdentityWriteDbContext>(options =>
         {
             options
-                .UseNpgsql(connectionString, npgsqlOptions =>
-                    npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
+                .UseNpgsql(
+                    connectionString,
+                    npgsqlOptions =>
+                        npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "identity"))
                 .UseSnakeCaseNamingConvention()
                 .UseOpenIddict<Guid>();
         });

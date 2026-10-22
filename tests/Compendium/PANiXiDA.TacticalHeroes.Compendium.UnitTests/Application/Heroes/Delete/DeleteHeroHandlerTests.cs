@@ -23,7 +23,7 @@ public sealed class DeleteHeroHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).DeleteAsync(hero, cancellationToken);
+        repository.Received(1).Delete(hero);
     }
 
     [Fact(DisplayName = "Delete hero handler should return not found when hero does not exist")]
@@ -31,8 +31,8 @@ public sealed class DeleteHeroHandlerTests
     {
         var repository = Substitute.For<IHeroesRepository>();
         repository.GetByIdAsync(
-                Arg.Any<HeroId>(),
-                Arg.Any<CancellationToken>())
+            Arg.Any<HeroId>(),
+            Arg.Any<CancellationToken>())
             .Returns((Hero?)null);
         var handler = new DeleteHeroHandler(repository);
 

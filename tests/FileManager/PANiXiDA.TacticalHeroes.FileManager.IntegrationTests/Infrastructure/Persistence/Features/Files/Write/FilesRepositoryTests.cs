@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
+using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -19,12 +20,59 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Fact(DisplayName = "Add should stage a tracked file when unit of work has not saved")]
+    public async Task Add_Should_StageTrackedFile_When_UnitOfWorkHasNotSaved()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+        var tracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+        var file = CreateFile();
+
+        repository.Add(file);
+
+        context.Entry(file).State.ShouldBe(EntityState.Added);
+        tracker.GetAll().ShouldContain(file);
+        (await context.Set<File>().AnyAsync(cancellationToken)).ShouldBeFalse();
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        context.Entry(file).State.ShouldBe(EntityState.Unchanged);
+        context.Entry(file).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
+        (await context.Set<File>().AnyAsync(cancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "File repository should restore the persisted key when key uses an older format")]
+    public async Task GetByIdAsync_Should_RestorePersistedKey_When_KeyUsesAnOlderFormat()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var file = CreateFile();
+        await SaveNewFileAsync(file, cancellationToken);
+        const string StoredKey = "legacy/Original-File.png";
+        await using (var scope = Fixture.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            await context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET storage_key = {StoredKey} WHERE id = {file.Id.Value}",
+                cancellationToken);
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var restored = await verificationScope.ServiceProvider.GetRequiredService<IFilesRepository>()
+            .GetByIdAsync(file.Id, cancellationToken);
+
+        restored.ShouldNotBeNull();
+        restored.StorageKey.Value.ShouldBe(StoredKey);
+    }
+
     [Theory(DisplayName = "File repository should restore metadata and lifecycle when lifecycle state is saved")]
     [InlineData("PendingUpload")]
     [InlineData("Ready")]
     [InlineData("Deleting")]
     [InlineData("Deleted")]
-    public async Task AddAsync_Should_RestoreFile_When_LifecycleStateIsSaved(string status)
+    public async Task Add_Should_RestoreFile_When_LifecycleStateIsSaved(string status)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
@@ -53,6 +101,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(file.Id);
         restored.Name.ShouldBe(file.Name);
+        restored.StorageKey.ShouldBe(file.StorageKey);
         restored.Type.ShouldBe(FileType.Avatar);
         restored.FolderId.ShouldBeNull();
         restored.Status.Name.ShouldBe(status);
@@ -61,7 +110,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Fact(DisplayName = "File repository should persist content completion when upload completes")]
-    public async Task UpdateAsync_Should_PersistContent_When_UploadCompletes()
+    public async Task Update_Should_PersistContent_When_UploadCompletes()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
@@ -77,7 +126,9 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
                 contentType,
                 size);
             pendingFile.Rename(FileName.Create("new-avatar.png").Value);
-            await repository.UpdateAsync(pendingFile, cancellationToken);
+            repository.Update(pendingFile);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -88,12 +139,13 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Status.ShouldBe(FileStatus.Ready);
         restored.Name.Value.ShouldBe("new-avatar.png");
+        restored.StorageKey.ShouldBe(file.StorageKey);
         restored.ContentType.ShouldBe(contentType);
         restored.Size.ShouldBe(size);
     }
 
     [Fact(DisplayName = "File repository should preserve completed deletion and metadata when deletion completes")]
-    public async Task UpdateAsync_Should_PersistDeletion_When_DeletionCompletes()
+    public async Task Update_Should_PersistDeletion_When_DeletionCompletes()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
@@ -116,7 +168,9 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
                 restored!.BeginDeletion();
             }
 
-            await repository.UpdateAsync(restored, cancellationToken);
+            repository.Update(restored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -126,12 +180,13 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         deleted.ShouldNotBeNull();
         deleted.Status.ShouldBe(FileStatus.Deleted);
+        deleted.StorageKey.ShouldBe(file.StorageKey);
         deleted.ContentType.ShouldBe(file.ContentType);
         deleted.Size.ShouldBe(file.Size);
     }
 
     [Fact(DisplayName = "File repository should reject stale completion when deletion was saved first")]
-    public async Task UpdateAsync_Should_ThrowConcurrencyException_When_DeletionWasSavedFirst()
+    public async Task SaveChangesAsync_Should_ThrowConcurrencyException_When_DeletionWasSavedFirst()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
@@ -143,14 +198,20 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var deletingFile = await deletionRepository.GetByIdAsync(file.Id, cancellationToken);
         var completingFile = await completionRepository.GetByIdAsync(file.Id, cancellationToken);
         deletingFile!.BeginDeletion();
-        await deletionRepository.UpdateAsync(deletingFile, cancellationToken);
+        deletionRepository.Update(deletingFile);
+        await deletionScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
         completingFile!.CompleteUpload(
             FileContentType.Create("image/png").Value,
             FileSize.Create(4096).Value);
 
-        Func<Task> saveStaleFile = () => completionRepository.UpdateAsync(completingFile, cancellationToken);
+        completionRepository.Update(completingFile);
+        Func<Task> saveStaleFile = () => completionScope.ServiceProvider
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
 
-        await saveStaleFile.ShouldThrowAsync<DbUpdateConcurrencyException>();
+        var exception = await saveStaleFile.ShouldThrowAsync<ConcurrencyException>();
+        exception.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
         await using var verificationScope = Fixture.CreateScope();
         var persistedFile = await verificationScope.ServiceProvider
             .GetRequiredService<IFilesRepository>()
@@ -162,7 +223,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Fact(DisplayName = "File repository should restore folder placement when a file is assigned after creation")]
-    public async Task UpdateAsync_Should_RestoreFolderPlacement_When_AFileIsAssignedAfterCreation()
+    public async Task Update_Should_RestoreFolderPlacement_When_AFileIsAssignedAfterCreation()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
@@ -173,13 +234,16 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             userId: null).Value;
         await using (var scope = Fixture.CreateScope())
         {
-            await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
-                .AddAsync(folder, cancellationToken);
+            scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
             var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
             var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
             stored!.MoveTo(folder).IsSuccess.ShouldBeTrue();
 
-            await repository.UpdateAsync(stored, cancellationToken);
+            repository.Update(stored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -187,12 +251,13 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             .GetByIdAsync(file.Id, cancellationToken);
         restored.ShouldNotBeNull();
         restored.FolderId.ShouldBe(folder.Id);
+        restored.StorageKey.ShouldBe(file.StorageKey);
         restored.Type.ShouldBe(FileType.Avatar);
         restored.Status.ShouldBe(FileStatus.PendingUpload);
     }
 
     [Fact(DisplayName = "File repository should reject a dangling folder reference when folder does not exist")]
-    public async Task AddAsync_Should_RejectDanglingFolderReference_When_FolderDoesNotExist()
+    public async Task Add_Should_RejectDanglingFolderReference_When_FolderDoesNotExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
@@ -206,7 +271,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         var exception = await saveFile.ShouldThrowAsync<DbUpdateException>();
         exception.InnerException.ShouldBeOfType<PostgresException>()
-            .SqlState.ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
+            .SqlState
+            .ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
         await using var scope = Fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         (await context.Set<File>().AnyAsync(cancellationToken)).ShouldBeFalse();
@@ -225,6 +291,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
 
-        await repository.AddAsync(file, cancellationToken);
+        repository.Add(file);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(cancellationToken);
     }
 }

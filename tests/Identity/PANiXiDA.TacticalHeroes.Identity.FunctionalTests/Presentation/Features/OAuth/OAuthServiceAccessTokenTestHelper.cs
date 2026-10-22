@@ -26,9 +26,10 @@ internal static class OAuthServiceAccessTokenTestHelper
         return await fixture.Client.SendAsync(request, cancellationToken);
     }
 
-    private static async Task<string> IssueAccessTokenAsync(
+    internal static async Task<string> IssueAccessTokenAsync(
         FunctionalTestFixture fixture,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<string>? permissions = null)
     {
         using var scope = fixture.Services.CreateScope();
         var options = scope.ServiceProvider
@@ -38,10 +39,10 @@ internal static class OAuthServiceAccessTokenTestHelper
             string.Equals(
                 item.ClientType,
                 OpenIddictConstants.ClientTypes.Confidential,
-                StringComparison.Ordinal) &&
-            item.GrantTypes.Contains(
-                OpenIddictConstants.GrantTypes.ClientCredentials,
-                StringComparer.Ordinal));
+                StringComparison.Ordinal)
+                && item.GrantTypes.Contains(
+                    OpenIddictConstants.GrantTypes.ClientCredentials,
+                    StringComparer.Ordinal));
         var parameters = new Dictionary<string, string>
         {
             [OpenIddictConstants.Parameters.GrantType] = OpenIddictConstants.GrantTypes.ClientCredentials,
@@ -54,10 +55,15 @@ internal static class OAuthServiceAccessTokenTestHelper
             parameters[OpenIddictConstants.Parameters.Scope] = string.Join(' ', client.Scopes);
         }
 
-        using var response = await fixture.Client.PostAsync(
-            TokenPath,
-            new FormUrlEncodedContent(parameters),
-            cancellationToken);
+        using var content = new FormUrlEncodedContent(parameters);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, TokenPath) { Content = content };
+        if (permissions is not null)
+        {
+            request.Headers.Add(PermissionTestClientsRepository.PermissionsHeader, string.Join(',', permissions));
+        }
+
+        using var response = await fixture.Client.SendAsync(request, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
