@@ -371,13 +371,10 @@ public sealed class UserCredentialsService(
         return IdentityResultMapper.ToResult(result: result);
     }
 
-    private AuthenticatedUserReadModel CreateAuthenticatedUserReadModel(ApplicationUser applicationUser)
+    private static Result<AuthenticatedUserReadModel> InvalidCredentials()
     {
-        return new AuthenticatedUserReadModel(
-            Id: applicationUser.Id,
-            Email: applicationUser.Email!,
-            UserName: applicationUser.UserName!,
-            Claims: IdentityClaimsFactory.Create(applicationUser, userManager.Options));
+        return Result.Failure<AuthenticatedUserReadModel>(
+            error: Error.Unauthorized(message: "Invalid email or password."));
     }
 
     private static bool IsBlocked(ApplicationUser applicationUser)
@@ -388,51 +385,18 @@ public sealed class UserCredentialsService(
             StringComparison.Ordinal);
     }
 
-    private static Result<AuthenticatedUserReadModel> InvalidCredentials()
+    private AuthenticatedUserReadModel CreateAuthenticatedUserReadModel(ApplicationUser applicationUser)
     {
-        return Result.Failure<AuthenticatedUserReadModel>(
-            error: Error.Unauthorized(message: "Invalid email or password."));
+        return new AuthenticatedUserReadModel(
+            Id: applicationUser.Id,
+            Email: applicationUser.Email!,
+            UserName: applicationUser.UserName!,
+            Claims: IdentityClaimsFactory.Create(applicationUser, userManager.Options));
     }
 
     private static Result UserNotFound()
     {
         return Result.Failure(error: Error.NotFound(message: "User was not found."));
-    }
-
-    private async Task RevokeOtherSessionsAsync(
-        Guid userId,
-        string authorizationId,
-        CancellationToken cancellationToken)
-    {
-        var authorizations = await authorizationManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
-            .ToListAsync(cancellationToken);
-        foreach (var authorization in authorizations)
-        {
-            if (!string.Equals(
-                await authorizationManager.GetIdAsync(authorization, cancellationToken),
-                authorizationId,
-                StringComparison.Ordinal)
-                && !await authorizationManager.TryRevokeAsync(authorization, cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                throw new InvalidOperationException("Failed to revoke a user authorization.");
-            }
-        }
-
-        var tokens = await tokenManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
-            .ToListAsync(cancellationToken);
-        foreach (var token in tokens)
-        {
-            if (!string.Equals(
-                await tokenManager.GetAuthorizationIdAsync(token, cancellationToken),
-                authorizationId,
-                StringComparison.Ordinal)
-                && !await tokenManager.TryRevokeAsync(token, cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                throw new InvalidOperationException("Failed to revoke a user token.");
-            }
-        }
     }
 
     private async Task<string?> GetValidCurrentAuthorizationIdAsync(
@@ -472,5 +436,41 @@ public sealed class UserCredentialsService(
         }
 
         return authorizationId;
+    }
+
+    private async Task RevokeOtherSessionsAsync(
+        Guid userId,
+        string authorizationId,
+        CancellationToken cancellationToken)
+    {
+        var authorizations = await authorizationManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
+            .ToListAsync(cancellationToken);
+        foreach (var authorization in authorizations)
+        {
+            if (!string.Equals(
+                await authorizationManager.GetIdAsync(authorization, cancellationToken),
+                authorizationId,
+                StringComparison.Ordinal)
+                && !await authorizationManager.TryRevokeAsync(authorization, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new InvalidOperationException("Failed to revoke a user authorization.");
+            }
+        }
+
+        var tokens = await tokenManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
+            .ToListAsync(cancellationToken);
+        foreach (var token in tokens)
+        {
+            if (!string.Equals(
+                await tokenManager.GetAuthorizationIdAsync(token, cancellationToken),
+                authorizationId,
+                StringComparison.Ordinal)
+                && !await tokenManager.TryRevokeAsync(token, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new InvalidOperationException("Failed to revoke a user token.");
+            }
+        }
     }
 }
