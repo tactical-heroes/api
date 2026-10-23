@@ -524,12 +524,12 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         (await userManager.CheckPasswordAsync(persistedUser, NewPassword)).ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "ResetPasswordAsync should revoke only the user's tokens when reset succeeds")]
+    [Theory(DisplayName = "ResetPasswordAsync should revoke only the user's sessions when reset succeeds")]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Valid)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Valid)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Redeemed)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, OpenIddictConstants.Statuses.Valid)]
-    public async Task ResetPasswordAsync_Should_RevokeOnlyUserTokens_When_ResetSucceeds(
+    public async Task ResetPasswordAsync_Should_RevokeOnlyUserSessions_When_ResetSucceeds(
         string tokenType,
         string tokenStatus)
     {
@@ -547,8 +547,17 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             persistedUser.ShouldNotBeNull();
             var resetToken = await userManager.GeneratePasswordResetTokenAsync(persistedUser);
 
+            var authorizationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
             foreach (var subject in new[] { user.Id, user.Id, otherUserId })
             {
+                await authorizationManager.CreateAsync(
+                    new OpenIddictAuthorizationDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
                 await tokenManager.CreateAsync(
                     new OpenIddictTokenDescriptor
                     {
@@ -578,6 +587,16 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Select(token => token.Status)
             .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
         tokens.Single(token => token.Subject == otherUserId.ToString())
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+
+        var authorizations = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        authorizations.Where(authorization => authorization.Subject == user.Id.ToString())
+            .Select(authorization => authorization.Status)
+            .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
+        authorizations.Single(authorization => authorization.Subject == otherUserId.ToString())
             .Status
             .ShouldBe(OpenIddictConstants.Statuses.Valid);
     }

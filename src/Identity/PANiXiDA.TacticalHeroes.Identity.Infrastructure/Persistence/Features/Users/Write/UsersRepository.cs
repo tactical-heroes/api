@@ -104,11 +104,6 @@ public sealed class UsersRepository(
             applicationUser: applicationUser,
             user: user);
 
-        if (user.Status.IsBlocked && !rolesChanged)
-        {
-            await userSessionService.RevokeAllTokensAsync(user.Id.Value, cancellationToken);
-        }
-
         var identityResult = await userManager.UpdateAsync(applicationUser);
 
         if (!identityResult.Succeeded)
@@ -116,7 +111,7 @@ public sealed class UsersRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        if (rolesChanged)
+        if (rolesChanged || user.Status.IsBlocked)
         {
             await userSessionService.RevokeAsync(
                 userId: user.Id.Value,
@@ -149,7 +144,10 @@ public sealed class UsersRepository(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        await userSessionService.RevokeAllTokensAsync(id, cancellationToken);
+        await userSessionService.RevokeAsync(
+            userId: id,
+            preservedAuthorizationId: null,
+            cancellationToken: cancellationToken);
         var identityResult = await userManager.DeleteAsync(applicationUser);
 
         if (!identityResult.Succeeded)
@@ -195,7 +193,10 @@ public sealed class UsersRepository(
 
         if (status.IsBlocked)
         {
-            await userSessionService.RevokeAllTokensAsync(id, cancellationToken);
+            await userSessionService.RevokeAsync(
+                userId: id,
+                preservedAuthorizationId: null,
+                cancellationToken: cancellationToken);
         }
 
         applicationUser.Status = status.Name;

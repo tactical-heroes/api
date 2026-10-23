@@ -3,6 +3,9 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using OpenIddict.Abstractions;
+using OpenIddict.EntityFrameworkCore.Models;
+
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
@@ -245,9 +248,11 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Theory(DisplayName = "User updates should preserve state when identity validation fails")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task UpdateAsync_Should_PreserveState_When_IdentityValidationFails(bool duplicateEmail)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task UpdateAsync_Should_PreserveState_When_IdentityValidationFails(bool duplicateEmail, bool block)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await Fixture.SeedRolesAsync(cancellationToken);
@@ -269,6 +274,15 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             userName: "occupied",
             status: UserStatus.Active);
         (await repository.AddAsync(other, "StrongPassword1!", cancellationToken)).IsSuccess.ShouldBeTrue();
+        var authorizationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        await authorizationManager.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = id.ToString(),
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
         var original = await dbContext.Set<ApplicationUser>()
             .AsNoTracking()
             .SingleAsync(user => user.Id == id, cancellationToken);
@@ -276,10 +290,10 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             id: id,
             email: duplicateEmail ? "occupied@example.com" : "hero@example.com",
             isConfirmed: false,
-            roleIds: [roles["Developer"]],
+            roleIds: [roles[block ? "Player" : "Developer"]],
             claims: [("permission", "identity.users.read")],
             userName: duplicateEmail ? "hero" : "occupied",
-            status: UserStatus.Active);
+            status: block ? UserStatus.Blocked : UserStatus.Active);
 
         var result = await repository.UpdateAsync(updated, cancellationToken);
 
@@ -292,8 +306,13 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         persisted.Email.ShouldBe(original.Email);
         persisted.UserName.ShouldBe(original.UserName);
         persisted.EmailConfirmed.ShouldBe(original.EmailConfirmed);
+        persisted.Status.ShouldBe(original.Status);
         persisted.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(roles["Player"]);
         persisted.Claims.ShouldBeEmpty();
+        var authorization = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .SingleAsync(item => item.Subject == id.ToString(), cancellationToken);
+        authorization.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
     }
 
     private static User CreateUser(Guid id, IReadOnlyCollection<Guid> roleIds) =>

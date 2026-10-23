@@ -362,7 +362,10 @@ public sealed class UserCredentialsService(
 
         if (result.Succeeded)
         {
-            await userSessionService.RevokeAllTokensAsync(userId, cancellationToken);
+            await userSessionService.RevokeAsync(
+                userId: userId,
+                preservedAuthorizationId: null,
+                cancellationToken: cancellationToken);
         }
 
         return IdentityResultMapper.ToResult(result: result);

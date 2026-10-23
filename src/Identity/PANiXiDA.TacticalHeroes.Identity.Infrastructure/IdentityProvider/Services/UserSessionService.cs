@@ -46,11 +46,6 @@ public sealed class UserSessionService(
         return Result.Success(authorizationId);
     }
 
-    internal async Task RevokeAllTokensAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        await tokenManager.RevokeBySubjectAsync(userId.ToString(), cancellationToken);
-    }
-
     internal async Task RevokeAsync(
         Guid userId,
         string? preservedAuthorizationId,
