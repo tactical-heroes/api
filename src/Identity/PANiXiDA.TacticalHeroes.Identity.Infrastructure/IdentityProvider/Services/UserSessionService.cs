@@ -1,8 +1,11 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
 public sealed class UserSessionService(
     IOpenIddictTokenManager tokenManager,
-    IOpenIddictAuthorizationManager authorizationManager)
+    IOpenIddictAuthorizationManager authorizationManager,
+    ICurrentUserSessionRefresh? sessionRefresh = null)
 {
     internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
         Guid userId,
@@ -87,6 +90,11 @@ public sealed class UserSessionService(
                 cancellationToken.ThrowIfCancellationRequested();
                 throw new InvalidOperationException("Failed to revoke a user token.");
             }
+        }
+
+        if (preservedAuthorizationId is not null)
+        {
+            sessionRefresh?.RequireRefresh();
         }
     }
 
