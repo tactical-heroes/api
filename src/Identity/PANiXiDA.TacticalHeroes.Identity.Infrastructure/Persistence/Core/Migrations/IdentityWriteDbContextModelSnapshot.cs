@@ -461,12 +461,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migra
                         .HasColumnType("boolean")
                         .HasColumnName("phone_number_confirmed");
 
-                    b.Property<long>("RoleAssignmentsVersion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasDefaultValue(0L)
-                        .HasColumnName("role_assignments_version");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text")
                         .HasColumnName("security_stamp");

@@ -1,15 +1,14 @@
-using System.Globalization;
-
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using OpenIddict.Server;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Handlers;
 
-internal sealed class ValidateRoleAssignments(IdentityWriteDbContext dbContext)
+internal sealed class ValidateSecurityStamp(IdentityWriteDbContext dbContext, IOptions<IdentityOptions> identityOptions)
     : IOpenIddictServerHandler<OpenIddictServerEvents.ValidateTokenContext>
 {
     public async ValueTask HandleAsync(OpenIddictServerEvents.ValidateTokenContext context)
@@ -21,17 +20,18 @@ internal sealed class ValidateRoleAssignments(IdentityWriteDbContext dbContext)
             return;
         }
 
-        var version = await dbContext.Users
+        var securityStamp = await dbContext.Users
             .AsNoTracking()
             .Where(user => user.Id == userId)
-            .Select(user => (long?)user.RoleAssignmentsVersion)
+            .Select(user => user.SecurityStamp)
             .SingleOrDefaultAsync(context.CancellationToken);
-        var tokenVersion = context.Principal.GetClaim(IdentityClaimsFactory.RoleAssignmentsVersionClaimType) ?? "0";
-        if (version is null || tokenVersion != version.Value.ToString(CultureInfo.InvariantCulture))
+        var tokenStamp = context.Principal.GetClaim(identityOptions.Value.ClaimsIdentity.SecurityStampClaimType);
+        if (string.IsNullOrEmpty(securityStamp)
+            || !string.Equals(tokenStamp, securityStamp, StringComparison.Ordinal))
         {
             context.Reject(
                 error: OpenIddictConstants.Errors.InvalidToken,
-                description: "User role assignments have changed.");
+                description: "User security stamp is invalid.");
         }
     }
 }

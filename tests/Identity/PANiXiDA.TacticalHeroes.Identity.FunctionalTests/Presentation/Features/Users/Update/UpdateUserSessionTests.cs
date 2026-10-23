@@ -113,7 +113,6 @@ public sealed class UpdateUserSessionTests(FunctionalTestFixture fixture) : Func
         response.StatusCode.ShouldBe(invalid ? HttpStatusCode.BadRequest : HttpStatusCode.NoContent);
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
-        after.RoleAssignmentsVersion.ShouldBe(before.RoleAssignmentsVersion);
         await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.OK, ct);
         await AssertCookieAsync(current, true, ct);
         using var refresh = await RefreshAsync(current, tokens.RefreshToken, ct);
@@ -184,7 +183,6 @@ public sealed class UpdateUserSessionTests(FunctionalTestFixture fixture) : Func
         interceptor.SavedInTransaction.ShouldBeTrue();
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
-        after.RoleAssignmentsVersion.ShouldBe(before.RoleAssignmentsVersion);
         (await new UserApiTestClient(Fixture).GetDetailsAsync(user.Id, ct)).RoleIds.ShouldBeEmpty();
         await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.OK, ct);
         await AssertAccessAsync(other, otherTokens.AccessToken, HttpStatusCode.OK, ct);

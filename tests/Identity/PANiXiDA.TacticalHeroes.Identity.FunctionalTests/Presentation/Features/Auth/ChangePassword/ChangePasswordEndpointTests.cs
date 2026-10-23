@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
+using OpenIddict.Server;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -66,7 +67,8 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeTrue();
-        await AssertAccessAsync(current, currentTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
+        await AssertAccessAsync(
+            current, currentTokens.AccessToken, user.Id, HttpStatusCode.Unauthorized, cancellationToken);
         await AssertAccessAsync(
             other,
             otherTokens.AccessToken,
@@ -401,6 +403,73 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         await AssertInvalidGrantAsync(response, cancellationToken);
+    }
+
+    [Fact(
+        DisplayName = "Password change should reject stale access when concurrent refresh finishes after password change")]
+    public async Task PostChangePassword_Should_RejectStaleAccess_When_ConcurrentRefreshFinishesAfterPasswordChange()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture,
+            "refresh-change@example.test",
+            "refresh-change",
+            CurrentPassword,
+            ct,
+            claims: [new("permission", "identity.users.read")]);
+        var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pauseRefresh = false;
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.AddOpenIddict().AddServer(options =>
+                options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(handler => handler
+                    .SetOrder(OpenIddictServerHandlers.GenerateAccessToken.Descriptor.Order - 500)
+                    .UseInlineHandler(async context =>
+                    {
+                        if (pauseRefresh && context.Request.IsRefreshTokenGrantType())
+                        {
+                            pauseRefresh = false;
+                            paused.SetResult();
+                            await resume.Task.WaitAsync(context.CancellationToken);
+                        }
+                    })))));
+        using var current = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("https://localhost")
+        });
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            current, "refresh-change@example.test", CurrentPassword, ct);
+        pauseRefresh = true;
+        var pending = RefreshAsync(current, tokens.RefreshToken, ct);
+        try
+        {
+            await paused.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
+            using var changed = await ChangePasswordAsync(
+                current, tokens.AccessToken, CurrentPassword, NewPassword, ct);
+            changed.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        }
+        finally
+        {
+            resume.TrySetResult();
+        }
+
+        using var refresh = await pending;
+        refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
+        using var document = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(ct));
+        await AssertAccessAsync(
+            current,
+            document.RootElement.GetProperty("access_token").GetString()!,
+            user.Id,
+            HttpStatusCode.Unauthorized,
+            ct);
+        using var nextRefresh = await RefreshAsync(
+            current, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
+        nextRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
+        using var nextDocument = JsonDocument.Parse(await nextRefresh.Content.ReadAsStringAsync(ct));
+        await AssertAccessAsync(
+            current, nextDocument.RootElement.GetProperty("access_token").GetString()!, user.Id, HttpStatusCode.OK, ct);
     }
 
     private static async Task<HttpResponseMessage> ChangePasswordAsync(

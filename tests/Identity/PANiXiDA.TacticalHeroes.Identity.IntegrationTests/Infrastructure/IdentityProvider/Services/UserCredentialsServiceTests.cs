@@ -331,7 +331,9 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Include(token => token.Authorization)
             .ToListAsync(cancellationToken);
         persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId && token.Type == tokenType)
-            .ShouldAllBe(token => token.Status == tokenStatus);
+            .ShouldAllBe(token => token.Status == (tokenType == OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
+                ? tokenStatus
+                : OpenIddictConstants.Statuses.Revoked));
         persistedTokens.Where(
             token => token.Subject == user.Id.ToString() && token.Authorization?.Id.ToString() != currentId)
             .ShouldAllBe(token => token.Status == OpenIddictConstants.Statuses.Revoked);

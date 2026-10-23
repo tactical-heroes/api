@@ -3,27 +3,27 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 using OpenIddict.Abstractions;
 using OpenIddict.Server;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Handlers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.IdentityProvider.Handlers;
 
-public sealed class ValidateRoleAssignmentsTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
+public sealed class ValidateSecurityStampTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Token validation should compare role versions when user access token is validated")]
-    [InlineData(0, null, false, true)]
-    [InlineData(1, null, true, true)]
-    [InlineData(1, "0", true, true)]
-    [InlineData(1, "1", false, true)]
-    [InlineData(1, "0", false, false)]
-    public async Task HandleAsync_Should_ValidateVersion_When_UserAccessTokenIsValidated(
-        long version, string? tokenVersion, bool rejected, bool hasAuthorization)
+    [Theory(DisplayName = "Token validation should compare security stamps when user access token is validated")]
+    [InlineData(null, true, true, false)]
+    [InlineData("old-stamp", true, true, false)]
+    [InlineData("current", false, true, false)]
+    [InlineData("old-stamp", false, false, false)]
+    [InlineData("current", true, true, true)]
+    public async Task HandleAsync_Should_ValidateStamp_When_UserAccessTokenIsValidated(
+        string? tokenStamp, bool rejected, bool hasAuthorization, bool userDeleted)
     {
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
@@ -31,9 +31,8 @@ public sealed class ValidateRoleAssignmentsTests(IntegrationTestFixture fixture)
         var user = new ApplicationUser
         {
             Id = Guid.CreateVersion7(),
-            Email = "version@example.test",
-            UserName = "version-user",
-            RoleAssignmentsVersion = version
+            Email = "stamp@example.test",
+            UserName = "stamp-user"
         };
         (await manager.CreateAsync(user, "StrongPassword1!")).Succeeded.ShouldBeTrue();
         var principal = new ClaimsPrincipal(new ClaimsIdentity(
@@ -44,9 +43,17 @@ public sealed class ValidateRoleAssignmentsTests(IntegrationTestFixture fixture)
             principal.SetAuthorizationId(Guid.CreateVersion7().ToString());
         }
 
-        if (tokenVersion is not null)
+        var options = scope.ServiceProvider.GetRequiredService<IOptions<IdentityOptions>>();
+        if (tokenStamp is not null)
         {
-            principal.SetClaim(IdentityClaimsFactory.RoleAssignmentsVersionClaimType, tokenVersion);
+            principal.SetClaim(
+                options.Value.ClaimsIdentity.SecurityStampClaimType,
+                tokenStamp == "current" ? user.SecurityStamp : tokenStamp);
+        }
+
+        if (userDeleted)
+        {
+            (await manager.DeleteAsync(user)).Succeeded.ShouldBeTrue();
         }
 
         var context = new OpenIddictServerEvents.ValidateTokenContext(new OpenIddictServerTransaction
@@ -58,7 +65,8 @@ public sealed class ValidateRoleAssignmentsTests(IntegrationTestFixture fixture)
             Principal = principal,
             CancellationToken = ct
         };
-        var handler = new ValidateRoleAssignments(scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>());
+        var handler = new ValidateSecurityStamp(
+            scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>(), options);
 
         await handler.HandleAsync(context);
 

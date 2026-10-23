@@ -1,6 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
-public sealed class RoleAssignmentSessionService(
+public sealed class UserSessionService(
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager)
 {

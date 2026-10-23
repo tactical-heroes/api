@@ -2,8 +2,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.U
 
 public sealed class UserReadDbModel : ReadDbModel<Guid>
 {
-    public long RoleAssignmentsVersion { get; set; }
-
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string Status { get; set; } = string.Empty;

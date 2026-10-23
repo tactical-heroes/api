@@ -39,7 +39,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             .ValidateOnStart();
 
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
-        serviceCollection.AddScoped<RoleAssignmentSessionService>();
+        serviceCollection.AddScoped<UserSessionService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
         serviceCollection.AddDataProtection()
@@ -88,7 +88,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             .AddServer(options =>
             {
                 options.AddEventHandler<OpenIddictServerEvents.ValidateTokenContext>(builder => builder
-                    .UseScopedHandler<ValidateRoleAssignments>()
+                    .UseScopedHandler<ValidateSecurityStamp>()
                     .SetOrder(OpenIddictServerHandlers.Protection.ValidateAuthorizationEntry.Descriptor.Order + 1_000));
 
                 if (identityProviderOptions.Issuer is not null)

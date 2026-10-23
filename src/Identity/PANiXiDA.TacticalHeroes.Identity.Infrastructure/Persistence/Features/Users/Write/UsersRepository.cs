@@ -18,7 +18,7 @@ public sealed class UsersRepository(
     IdentityWriteDbContext dbContext,
     UserManager<ApplicationUser> userManager,
     IOpenIddictTokenManager tokenManager,
-    RoleAssignmentSessionService roleAssignmentSessionService,
+    UserSessionService userSessionService,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IUsersRepository
@@ -81,7 +81,7 @@ public sealed class UsersRepository(
         {
             if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
             {
-                var sessionResult = await roleAssignmentSessionService.GetCurrentAuthorizationIdAsync(
+                var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
                     userId: user.Id.Value,
                     accessToken: currentAccessToken,
                     cancellationToken: cancellationToken);
@@ -93,7 +93,6 @@ public sealed class UsersRepository(
                 preservedAuthorizationId = sessionResult.Value;
             }
 
-            applicationUser.RoleAssignmentsVersion++;
             applicationUser.SecurityStamp = Guid.NewGuid().ToString();
         }
 
@@ -120,7 +119,7 @@ public sealed class UsersRepository(
 
         if (rolesChanged)
         {
-            await roleAssignmentSessionService.RevokeAsync(
+            await userSessionService.RevokeAsync(
                 userId: user.Id.Value,
                 preservedAuthorizationId: preservedAuthorizationId,
                 cancellationToken: cancellationToken);
