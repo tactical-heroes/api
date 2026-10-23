@@ -41,6 +41,9 @@ public sealed class AuthenticatedUserReader(IdentityReadDbContext dbContext, IOp
         }
 
         return Result.Success(new AuthenticatedUserReadModel(
-            user.Id, user.Email, user.UserName, IdentityClaimsFactory.Create(user, identityOptions.Value)));
+            Id: user.Id,
+            Email: user.Email,
+            UserName: user.UserName,
+            Claims: IdentityClaimsFactory.Create(user, identityOptions.Value)));
     }
 }

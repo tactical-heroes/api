@@ -39,7 +39,10 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
             return result.ToHttpProblem();
         }
 
-        await cookieSession.RenewAsync(httpContext, session, cancellationToken);
+        await cookieSession.RenewAsync(
+            context: httpContext,
+            session: session,
+            cancellationToken: cancellationToken);
 
         return TypedResults.NoContent();
     }

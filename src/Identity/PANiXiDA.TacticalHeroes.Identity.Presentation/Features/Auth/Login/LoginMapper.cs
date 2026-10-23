@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 
 using Riok.Mapperly.Abstractions;
@@ -9,4 +10,9 @@ internal static partial class LoginMapper
 {
     [MapperIgnoreSource(nameof(LoginRequest.ReturnUrl))]
     internal static partial LoginCommand ToCommand(LoginRequest request);
+
+    internal static GetAuthenticatedUserQuery ToQuery(Guid userId)
+    {
+        return new GetAuthenticatedUserQuery(UserId: userId);
+    }
 }
