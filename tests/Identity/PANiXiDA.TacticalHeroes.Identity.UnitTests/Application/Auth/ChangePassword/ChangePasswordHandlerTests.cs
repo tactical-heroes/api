@@ -39,7 +39,7 @@ public sealed class ChangePasswordHandlerTests
             cancellationToken);
     }
 
-    [Theory(DisplayName = "Password change requires an access token from the current user")]
+    [Theory(DisplayName = "Password handler should return unauthorized when current access token is missing")]
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]

@@ -134,11 +134,11 @@ public sealed class UpdateUserHandlerTests
         repository.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "User update preserves the current access token only for the current user")]
+    [Theory(DisplayName = "User handler should pass the token only for self updates when user is updated")]
     [InlineData(true, "current-token", "current-token")]
     [InlineData(false, "current-token", null)]
     [InlineData(true, null, null)]
-    public async Task HandleAsync_Should_PassCurrentAccessToken_When_UpdatingCurrentUser(
+    public async Task HandleAsync_Should_PassTokenOnlyForSelfUpdate_When_UserIsUpdated(
         bool isCurrentUser, string? accessToken, string? expectedToken)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
