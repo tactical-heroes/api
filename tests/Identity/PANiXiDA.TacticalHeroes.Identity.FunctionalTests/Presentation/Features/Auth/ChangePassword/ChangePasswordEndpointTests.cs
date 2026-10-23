@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
@@ -158,7 +160,6 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        response.Headers.Contains("Set-Cookie").ShouldBeFalse();
         await AssertAccessAsync(current, currentTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         await AssertAccessAsync(other, otherTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         using var refresh = await RefreshAsync(other, otherTokens.RefreshToken, cancellationToken);
@@ -198,7 +199,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    [Fact(DisplayName = "Password change should skip cookie renewal when cookie belongs to another user")]
+    [Fact(DisplayName = "Password change should preserve cookie ownership when cookie belongs to another user")]
     public async Task PostChangePassword_Should_PreserveOtherCookie_When_CookieBelongsToAnotherUser()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -217,7 +218,16 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             browser, tokens.AccessToken, CurrentPassword, NewPassword, cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
-        response.Headers.Contains("Set-Cookie").ShouldBeFalse();
+        var options = Fixture.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(IdentityConstants.ApplicationScheme);
+        var cookies = response.Headers.TryGetValues("Set-Cookie", out var values) ? values : [];
+        foreach (var cookie in cookies.Select(value => SetCookieHeaderValue.Parse(value))
+            .Where(header => header.Name == options.Cookie.Name))
+        {
+            var ticket = options.TicketDataFormat.Unprotect(cookie.Value.ToString());
+            ticket.ShouldNotBeNull();
+            ticket.Principal.GetClaim(OpenIddictConstants.Claims.Subject).ShouldBe(cookieUser.Id.ToString());
+        }
         await AssertCookieAsync(browser, OAuthAuthorizationRequestTestHelper.RedirectUri, cancellationToken);
         await AssertPasswordAsync(cookieUser.Id, CurrentPassword, NewPassword);
         await AssertPasswordAsync(bearerUser.Id, NewPassword, CurrentPassword);
