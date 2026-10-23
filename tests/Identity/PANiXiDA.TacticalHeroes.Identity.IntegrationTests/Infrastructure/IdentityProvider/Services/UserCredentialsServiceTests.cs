@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +9,6 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -137,8 +134,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         (await dbContext.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "LoginAsync should load user and all claims in one read query when credentials are valid")]
-    public async Task LoginAsync_Should_LoadUserAndAllClaimsInOneReadQuery_When_CredentialsAreValid()
+    [Fact(DisplayName = "LoginAsync should return the user id in one read query when credentials are valid")]
+    public async Task LoginAsync_Should_ReturnUserIdInOneReadQuery_When_CredentialsAreValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var role = new ApplicationRole
@@ -184,12 +181,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Claims.ShouldContain(
-            new Claim(type: "permission", value: "identity.profile.read"),
-            IdentityClaimComparer.Instance);
-        result.Value.Claims.ShouldContain(
-            new Claim(type: "permission", value: "identity.users.manage"),
-            IdentityClaimComparer.Instance);
+        result.Value.ShouldBe(user.Id);
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
@@ -278,7 +270,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
 
         changeResult.IsSuccess.ShouldBeTrue();
         loginResult.IsSuccess.ShouldBeTrue();
-        loginResult.Value.Id.ShouldBe(user.Id);
+        loginResult.Value.ShouldBe(user.Id);
     }
 
     [Theory(
@@ -331,7 +323,9 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Include(token => token.Authorization)
             .ToListAsync(cancellationToken);
         persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId && token.Type == tokenType)
-            .ShouldAllBe(token => token.Status == tokenStatus);
+            .ShouldAllBe(token => token.Status == (tokenType == OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
+                ? tokenStatus
+                : OpenIddictConstants.Statuses.Revoked));
         persistedTokens.Where(
             token => token.Subject == user.Id.ToString() && token.Authorization?.Id.ToString() != currentId)
             .ShouldAllBe(token => token.Status == OpenIddictConstants.Statuses.Revoked);
@@ -530,12 +524,12 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         (await userManager.CheckPasswordAsync(persistedUser, NewPassword)).ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "ResetPasswordAsync should revoke only the user's tokens when reset succeeds")]
+    [Theory(DisplayName = "ResetPasswordAsync should revoke only the user's sessions when reset succeeds")]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Valid)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Valid)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Redeemed)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, OpenIddictConstants.Statuses.Valid)]
-    public async Task ResetPasswordAsync_Should_RevokeOnlyUserTokens_When_ResetSucceeds(
+    public async Task ResetPasswordAsync_Should_RevokeOnlyUserSessions_When_ResetSucceeds(
         string tokenType,
         string tokenStatus)
     {
@@ -553,8 +547,17 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             persistedUser.ShouldNotBeNull();
             var resetToken = await userManager.GeneratePasswordResetTokenAsync(persistedUser);
 
+            var authorizationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
             foreach (var subject in new[] { user.Id, user.Id, otherUserId })
             {
+                await authorizationManager.CreateAsync(
+                    new OpenIddictAuthorizationDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
                 await tokenManager.CreateAsync(
                     new OpenIddictTokenDescriptor
                     {
@@ -584,6 +587,16 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             .Select(token => token.Status)
             .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
         tokens.Single(token => token.Subject == otherUserId.ToString())
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+
+        var authorizations = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        authorizations.Where(authorization => authorization.Subject == user.Id.ToString())
+            .Select(authorization => authorization.Status)
+            .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
+        authorizations.Single(authorization => authorization.Subject == otherUserId.ToString())
             .Status
             .ShouldBe(OpenIddictConstants.Statuses.Valid);
     }

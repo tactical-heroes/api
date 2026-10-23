@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using OpenIddict.Abstractions;
 
@@ -49,7 +50,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
             .LogTo(commands.Add, [RelationalEventId.CommandExecuted])
             .Options;
         await using var dbContext = new IdentityReadDbContext(options);
-        var repository = new OAuthUsersRepository(dbContext);
+        var repository = new OAuthUsersRepository(dbContext, Options.Create(new IdentityOptions()));
 
         var result = await repository.CheckAvailabilityByUserIdAsync(user.Id, TestContext.Current.CancellationToken);
 
@@ -100,8 +101,12 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
     }
 
-    [Fact(DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query when user exists")]
-    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists()
+    [Theory(
+        DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query when user exists")]
+    [InlineData(null)]
+    [InlineData("custom_stamp")]
+    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists(
+        string? securityStampClaimType)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var role = new ApplicationRole
@@ -139,7 +144,11 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         Fixture.CommandCounter.Reset();
 
         await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+        var identityOptions = new IdentityOptions();
+        identityOptions.ClaimsIdentity.SecurityStampClaimType = securityStampClaimType
+            ?? identityOptions.ClaimsIdentity.SecurityStampClaimType;
+        var repository = new OAuthUsersRepository(
+            scope.ServiceProvider.GetRequiredService<IdentityReadDbContext>(), Options.Create(identityOptions));
 
         var result = await repository.GetExchangeTokenByUserIdAsync(
             user.Id,
@@ -155,6 +164,13 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         result.Value.Claims.ShouldContain(
             new Claim(type: OpenIddictConstants.Claims.Role, value: "admin"),
             IdentityClaimComparer.Instance);
+        result.Value.Claims.ShouldContain(claim =>
+            claim.Type == identityOptions.ClaimsIdentity.SecurityStampClaimType && claim.Value == user.SecurityStamp);
+        if (securityStampClaimType is not null)
+        {
+            result.Value.Claims.ShouldNotContain(claim =>
+                claim.Type == new IdentityOptions().ClaimsIdentity.SecurityStampClaimType);
+        }
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 

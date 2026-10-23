@@ -4,10 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using OpenIddict.Server;
 using OpenIddict.Validation.AspNetCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Common;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Handlers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
@@ -37,6 +39,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             .ValidateOnStart();
 
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
+        serviceCollection.AddScoped<UserSessionService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
         serviceCollection.AddDataProtection()
@@ -84,6 +87,10 @@ internal static class IdentityProviderServiceCollectionExtensions
             })
             .AddServer(options =>
             {
+                options.AddEventHandler<OpenIddictServerEvents.ValidateTokenContext>(builder => builder
+                    .UseScopedHandler<ValidateSecurityStampHandler>()
+                    .SetOrder(OpenIddictServerHandlers.Protection.ValidateAuthorizationEntry.Descriptor.Order + 1_000));
+
                 if (identityProviderOptions.Issuer is not null)
                 {
                     options.SetIssuer(identityProviderOptions.Issuer);

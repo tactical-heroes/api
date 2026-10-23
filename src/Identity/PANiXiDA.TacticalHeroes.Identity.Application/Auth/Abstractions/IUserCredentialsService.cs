@@ -1,5 +1,3 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
-
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 
 public interface IUserCredentialsService
@@ -10,12 +8,12 @@ public interface IUserCredentialsService
         string password,
         CancellationToken cancellationToken);
 
-    Task<Result<AuthenticatedUserReadModel>> LoginAsync(
+    Task<Result<Guid>> LoginAsync(
         string email,
         string password,
         CancellationToken cancellationToken);
 
-    Task<Result<AuthenticatedUserReadModel>> ChangePasswordAsync(
+    Task<Result> ChangePasswordAsync(
         Guid userId,
         string accessToken,
         string currentPassword,

@@ -10,7 +10,7 @@ public sealed class ChangePasswordCommandValidatorTests
         var validator = new ChangePasswordCommandValidator();
 
         var result = validator.Validate(
-            new ChangePasswordCommand(Guid.CreateVersion7(), "access-token", "CurrentPassword1!", "NewPassword1!"));
+            new ChangePasswordCommand("CurrentPassword1!", "NewPassword1!"));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -20,10 +20,8 @@ public sealed class ChangePasswordCommandValidatorTests
     {
         var validator = new ChangePasswordCommandValidator();
 
-        var result = validator.Validate(new ChangePasswordCommand(Guid.Empty, "", "", ""));
+        var result = validator.Validate(new ChangePasswordCommand("", ""));
 
-        result.Errors.ShouldContain(error => error.PropertyName == nameof(ChangePasswordCommand.UserId));
-        result.Errors.ShouldContain(error => error.PropertyName == nameof(ChangePasswordCommand.AccessToken));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(ChangePasswordCommand.CurrentPassword));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(ChangePasswordCommand.NewPassword));
     }

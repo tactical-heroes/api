@@ -51,9 +51,15 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
             return result.ToHttpProblem();
         }
 
+        var user = await mediator.QueryAsync(LoginMapper.ToQuery(result.Value), cancellationToken);
+        if (user.IsFailure)
+        {
+            return user.ToHttpProblem();
+        }
+
         await httpContext.SignInAsync(
             IdentityConstants.ApplicationScheme,
-            AuthenticatedUserPrincipalFactory.Create(user: result.Value));
+            AuthenticatedUserPrincipalFactory.Create(user: user.Value));
 
         return TypedResults.Redirect(url: request.ReturnUrl);
     }

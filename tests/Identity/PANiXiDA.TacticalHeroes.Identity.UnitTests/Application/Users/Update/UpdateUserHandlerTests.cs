@@ -1,5 +1,7 @@
 using System.Security.Claims;
 
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
@@ -24,7 +26,7 @@ public sealed class UpdateUserHandlerTests
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        var handler = new UpdateUserHandler(repository);
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -63,7 +65,7 @@ public sealed class UpdateUserHandlerTests
         string claimValue)
     {
         var repository = Substitute.For<IUsersRepository>();
-        var handler = new UpdateUserHandler(repository);
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -90,7 +92,7 @@ public sealed class UpdateUserHandlerTests
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        var handler = new UpdateUserHandler(repository);
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
 
         var result = await handler.HandleAsync(
             new UpdateUserCommand(
@@ -114,7 +116,7 @@ public sealed class UpdateUserHandlerTests
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var repository = Substitute.For<IUsersRepository>();
-        var handler = new UpdateUserHandler(repository);
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
 
         var result = await handler.HandleAsync(
             new UpdateUserCommand(
@@ -130,5 +132,31 @@ public sealed class UpdateUserHandlerTests
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         repository.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "User handler should pass the token only for self updates when user is updated")]
+    [InlineData(true, "current-token", "current-token")]
+    [InlineData(false, "current-token", null)]
+    [InlineData(true, null, null)]
+    public async Task HandleAsync_Should_PassTokenOnlyForSelfUpdate_When_UserIsUpdated(
+        bool isCurrentUser, string? accessToken, string? expectedToken)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = Guid.CreateVersion7();
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(isCurrentUser ? userId : Guid.CreateVersion7());
+        currentUser.AccessToken.Returns(accessToken);
+        var repository = Substitute.For<IUsersRepository>();
+        repository.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>(), Arg.Any<string?>())
+            .Returns(Result.Success());
+        var handler = new UpdateUserHandler(repository, currentUser);
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(userId, "hero@example.com", "hero", true, [], "Active", []),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await repository.Received(1).UpdateAsync(
+            Arg.Is<User>(user => user.Id.Value == userId), cancellationToken, expectedToken);
     }
 }

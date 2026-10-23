@@ -9,7 +9,8 @@ public interface IUsersRepository
 
     Task<Result> UpdateAsync(
         User user,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        string? currentAccessToken = null);
 
     Task<Result> DeleteAsync(
         Guid id,

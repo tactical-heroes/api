@@ -1,8 +1,4 @@
-using System.Security.Claims;
-
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
@@ -27,27 +23,14 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
 
     private static async Task<IResult> HandleAsync(
         ChangePasswordRequest request,
-        ClaimsPrincipal user,
         HttpContext httpContext,
+        CurrentUserCookieSession cookieSession,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
-
-        var accessToken = await httpContext.GetTokenAsync(OpenIddictConstants.Parameters.AccessToken);
-
-        if (!Guid.TryParse(input: userIdValue, result: out var userId)
-            || string.IsNullOrWhiteSpace(accessToken))
-        {
-            return TypedResults.Unauthorized();
-        }
-
-        var cookie = await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+        var session = await cookieSession.CaptureAsync(httpContext);
         var result = await mediator.SendAsync(
-            ChangePasswordMapper.ToCommand(
-                request: request,
-                userId: userId,
-                accessToken: accessToken),
+            ChangePasswordMapper.ToCommand(request: request),
             cancellationToken);
 
         if (result.IsFailure)
@@ -55,17 +38,10 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
             return result.ToHttpProblem();
         }
 
-        if (cookie.Succeeded
-            && string.Equals(
-                cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject),
-                userIdValue,
-                StringComparison.Ordinal))
-        {
-            await httpContext.SignInAsync(
-                scheme: IdentityConstants.ApplicationScheme,
-                principal: AuthenticatedUserPrincipalFactory.Create(result.Value),
-                properties: cookie.Properties);
-        }
+        await cookieSession.RenewAsync(
+            context: httpContext,
+            session: session,
+            cancellationToken: cancellationToken);
 
         return TypedResults.NoContent();
     }

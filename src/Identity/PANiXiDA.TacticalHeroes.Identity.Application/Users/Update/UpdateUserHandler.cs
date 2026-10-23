@@ -10,7 +10,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 
-public sealed class UpdateUserHandler(IUsersRepository usersRepository)
+public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrentUser currentUser)
     : ICommandHandler<UpdateUserCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
@@ -58,6 +58,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository)
 
         return usersRepository.UpdateAsync(
             user: user,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken,
+            currentAccessToken: currentUser.UserId == command.Id ? currentUser.AccessToken : null);
     }
 }

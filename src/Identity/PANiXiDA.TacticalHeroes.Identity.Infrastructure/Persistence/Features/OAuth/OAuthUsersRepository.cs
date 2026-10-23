@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
@@ -10,7 +12,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 
-public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
+public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext, IOptions<IdentityOptions> identityOptions)
     : IOAuthUsersRepository
 {
     private IQueryable<UserReadDbModel> Query => dbContext.Set<UserReadDbModel>()
@@ -53,7 +55,9 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
             ? Result.Failure<ExchangeTokenReadModel>(errors: availabilityResult.Errors)
             : Result.Success(
                 value: new ExchangeTokenReadModel(
-                    Claims: IdentityClaimsFactory.Create(user: applicationUser)));
+                    Claims: IdentityClaimsFactory.Create(
+                        user: applicationUser,
+                        identityOptions: identityOptions.Value)));
     }
 
     public async Task<Result<UserInfoReadModel>> GetUserInfoByUserIdAsync(

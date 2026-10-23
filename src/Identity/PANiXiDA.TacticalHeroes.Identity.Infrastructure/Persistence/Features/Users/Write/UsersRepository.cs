@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -16,7 +17,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.U
 public sealed class UsersRepository(
     IdentityWriteDbContext dbContext,
     UserManager<ApplicationUser> userManager,
-    IOpenIddictTokenManager tokenManager,
+    UserSessionService userSessionService,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IUsersRepository
@@ -52,7 +53,8 @@ public sealed class UsersRepository(
 
     public async Task<Result> UpdateAsync(
         User user,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? currentAccessToken = null)
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()
@@ -69,6 +71,30 @@ public sealed class UsersRepository(
             return rolesResult;
         }
 
+        var rolesChanged = !user.RoleIds
+            .Select(roleId => roleId.Value)
+            .ToHashSet()
+            .SetEquals(applicationUser.Roles.Select(role => role.RoleId));
+        string? preservedAuthorizationId = null;
+        if (rolesChanged)
+        {
+            if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+            {
+                var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
+                    userId: user.Id.Value,
+                    accessToken: currentAccessToken,
+                    cancellationToken: cancellationToken);
+                if (sessionResult.IsFailure)
+                {
+                    return Result.Failure(sessionResult.Errors);
+                }
+
+                preservedAuthorizationId = sessionResult.Value;
+            }
+
+            applicationUser.SecurityStamp = Guid.NewGuid().ToString();
+        }
+
         SyncRoles(applicationUser, user);
         ApplicationUserMapper.MapToDbModel(
             user: user,
@@ -78,16 +104,19 @@ public sealed class UsersRepository(
             applicationUser: applicationUser,
             user: user);
 
-        if (user.Status.IsBlocked)
-        {
-            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
-        }
-
         var identityResult = await userManager.UpdateAsync(applicationUser);
 
         if (!identityResult.Succeeded)
         {
             return IdentityResultMapper.ToResult(result: identityResult);
+        }
+
+        if (rolesChanged || user.Status.IsBlocked)
+        {
+            await userSessionService.RevokeAsync(
+                userId: user.Id.Value,
+                preservedAuthorizationId: preservedAuthorizationId,
+                cancellationToken: cancellationToken);
         }
 
         aggregateTracker.Track(user);
@@ -115,7 +144,10 @@ public sealed class UsersRepository(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        await RevokeAllTokensAsync(id, cancellationToken);
+        await userSessionService.RevokeAsync(
+            userId: id,
+            preservedAuthorizationId: null,
+            cancellationToken: cancellationToken);
         var identityResult = await userManager.DeleteAsync(applicationUser);
 
         if (!identityResult.Succeeded)
@@ -161,7 +193,10 @@ public sealed class UsersRepository(
 
         if (status.IsBlocked)
         {
-            await RevokeAllTokensAsync(id, cancellationToken);
+            await userSessionService.RevokeAsync(
+                userId: id,
+                preservedAuthorizationId: null,
+                cancellationToken: cancellationToken);
         }
 
         applicationUser.Status = status.Name;
@@ -169,13 +204,6 @@ public sealed class UsersRepository(
         var identityResult = await userManager.UpdateAsync(applicationUser);
 
         return IdentityResultMapper.ToResult(result: identityResult);
-    }
-
-    private async Task RevokeAllTokensAsync(
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        await tokenManager.RevokeBySubjectAsync(id.ToString(), cancellationToken);
     }
 
     private async Task<Result> ValidateRolesAsync(User user, CancellationToken cancellationToken)

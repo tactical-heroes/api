@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 
 internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
@@ -22,13 +24,26 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
     private static async Task<IResult> HandleAsync(
         Guid id,
         UpdateUserRequest request,
+        HttpContext httpContext,
+        CurrentUserCookieSession cookieSession,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
+        var session = await cookieSession.CaptureAsync(httpContext, targetUserId: id);
         var result = await mediator.SendAsync(
             UpdateUserMapper.ToCommand(request: request, id: id),
             cancellationToken);
 
-        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
+        if (result.IsFailure)
+        {
+            return result.ToHttpProblem();
+        }
+
+        await cookieSession.RenewAsync(
+            context: httpContext,
+            session: session,
+            cancellationToken: cancellationToken);
+
+        return TypedResults.NoContent();
     }
 }
