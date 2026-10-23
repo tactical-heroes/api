@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
@@ -19,11 +21,13 @@ public sealed class ChangePasswordHandlerTests
             "NewPassword1!",
             Arg.Any<CancellationToken>())
             .Returns(Result.Success(new AuthenticatedUserReadModel(userId, "hero@example.test", "hero", [])));
-        var handler = new ChangePasswordHandler(service);
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.AccessToken.Returns("access-token");
+        var handler = new ChangePasswordHandler(service, currentUser);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new ChangePasswordCommand(userId, "access-token", "CurrentPassword1!", "NewPassword1!"),
+            new ChangePasswordCommand(userId, "CurrentPassword1!", "NewPassword1!"),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -33,5 +37,25 @@ public sealed class ChangePasswordHandlerTests
             "CurrentPassword1!",
             "NewPassword1!",
             cancellationToken);
+    }
+
+    [Theory(DisplayName = "Password change requires an access token from the current user")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task HandleAsync_Should_ReturnUnauthorized_When_CurrentAccessTokenIsMissing(string? accessToken)
+    {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.AccessToken.Returns(accessToken);
+        var service = Substitute.For<IUserCredentialsService>();
+        var handler = new ChangePasswordHandler(service, currentUser);
+
+        var result = await handler.HandleAsync(
+            new ChangePasswordCommand(Guid.CreateVersion7(), "CurrentPassword1!", "NewPassword1!"),
+            TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Unauthorized);
+        service.ReceivedCalls().ShouldBeEmpty();
     }
 }

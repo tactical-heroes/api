@@ -34,10 +34,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
     {
         var userIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
 
-        var accessToken = await httpContext.GetTokenAsync(OpenIddictConstants.Parameters.AccessToken);
-
-        if (!Guid.TryParse(input: userIdValue, result: out var userId)
-            || string.IsNullOrWhiteSpace(accessToken))
+        if (!Guid.TryParse(input: userIdValue, result: out var userId))
         {
             return TypedResults.Unauthorized();
         }
@@ -46,8 +43,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
         var result = await mediator.SendAsync(
             ChangePasswordMapper.ToCommand(
                 request: request,
-                userId: userId,
-                accessToken: accessToken),
+                userId: userId),
             cancellationToken);
 
         if (result.IsFailure)

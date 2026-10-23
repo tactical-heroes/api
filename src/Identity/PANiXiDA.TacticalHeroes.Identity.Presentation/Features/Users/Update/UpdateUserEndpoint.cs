@@ -36,14 +36,11 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
     {
         var isCurrentUser = Guid.TryParse(user.GetClaim(OpenIddictConstants.Claims.Subject), out var currentUserId)
             && currentUserId == id;
-        var accessToken = isCurrentUser
-            ? await httpContext.GetTokenAsync(OpenIddictConstants.Parameters.AccessToken)
-            : null;
         var cookie = isCurrentUser
             ? await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme)
             : null;
         var result = await mediator.SendAsync(
-            UpdateUserMapper.ToCommand(request: request, id: id, currentAccessToken: accessToken),
+            UpdateUserMapper.ToCommand(request: request, id: id),
             cancellationToken);
 
         if (result.IsFailure)

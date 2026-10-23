@@ -12,8 +12,7 @@ internal static partial class UpdateUserMapper
 {
     internal static partial UpdateUserCommand ToCommand(
         UpdateUserRequest request,
-        Guid id,
-        string? currentAccessToken);
+        Guid id);
 
     internal static ExchangeTokenQuery ToSessionQuery(Guid userId)
     {
