@@ -23,6 +23,19 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
 
+    [Fact(DisplayName = "Password change should return unauthorized when caller is a service")]
+    public async Task PostChangePassword_Should_ReturnUnauthorized_When_CallerIsAService()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var accessToken = await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken);
+
+        using var response = await ChangePasswordAsync(
+            Fixture.Client, accessToken, CurrentPassword, NewPassword, cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        response.Headers.Contains("Set-Cookie").ShouldBeFalse();
+    }
+
     [Fact(
         DisplayName = "Password change should preserve current and reject other sessions when current password is valid")]
     public async Task PostChangePassword_Should_RevokeOtherSessions_When_CurrentPasswordIsValid()

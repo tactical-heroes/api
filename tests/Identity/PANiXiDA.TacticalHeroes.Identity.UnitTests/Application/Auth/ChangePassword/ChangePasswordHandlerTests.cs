@@ -22,12 +22,13 @@ public sealed class ChangePasswordHandlerTests
             Arg.Any<CancellationToken>())
             .Returns(Result.Success(new AuthenticatedUserReadModel(userId, "hero@example.test", "hero", [])));
         var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(userId);
         currentUser.AccessToken.Returns("access-token");
         var handler = new ChangePasswordHandler(service, currentUser);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
-            new ChangePasswordCommand(userId, "CurrentPassword1!", "NewPassword1!"),
+            new ChangePasswordCommand("CurrentPassword1!", "NewPassword1!"),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -46,12 +47,33 @@ public sealed class ChangePasswordHandlerTests
     public async Task HandleAsync_Should_ReturnUnauthorized_When_CurrentAccessTokenIsMissing(string? accessToken)
     {
         var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(Guid.CreateVersion7());
         currentUser.AccessToken.Returns(accessToken);
         var service = Substitute.For<IUserCredentialsService>();
         var handler = new ChangePasswordHandler(service, currentUser);
 
         var result = await handler.HandleAsync(
-            new ChangePasswordCommand(Guid.CreateVersion7(), "CurrentPassword1!", "NewPassword1!"),
+            new ChangePasswordCommand("CurrentPassword1!", "NewPassword1!"),
+            TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Unauthorized);
+        service.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Password handler should return unauthorized when current user id is invalid")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task HandleAsync_Should_ReturnUnauthorized_When_CurrentUserIdIsInvalid(bool isMissing)
+    {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(isMissing ? (Guid?)null : Guid.Empty);
+        currentUser.AccessToken.Returns("access-token");
+        var service = Substitute.For<IUserCredentialsService>();
+        var handler = new ChangePasswordHandler(service, currentUser);
+
+        var result = await handler.HandleAsync(
+            new ChangePasswordCommand("CurrentPassword1!", "NewPassword1!"),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
