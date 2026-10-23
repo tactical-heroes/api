@@ -1,12 +1,11 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 
 public sealed class LoginHandler(IUserCredentialsService userCredentialsService)
-    : ICommandHandler<LoginCommand, Result<AuthenticatedUserReadModel>>
+    : ICommandHandler<LoginCommand, Result<Guid>>
 {
-    public Task<Result<AuthenticatedUserReadModel>> HandleAsync(
+    public Task<Result<Guid>> HandleAsync(
         LoginCommand command,
         CancellationToken cancellationToken)
     {

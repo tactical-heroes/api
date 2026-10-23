@@ -1,14 +1,13 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
 
 public sealed class ChangePasswordHandler(IUserCredentialsService userCredentialsService, ICurrentUser currentUser)
-    : ICommandHandler<ChangePasswordCommand, Result<AuthenticatedUserReadModel>>, IRequireTransaction
+    : ICommandHandler<ChangePasswordCommand, Result>, IRequireTransaction
 {
-    public Task<Result<AuthenticatedUserReadModel>> HandleAsync(
+    public Task<Result> HandleAsync(
         ChangePasswordCommand command,
         CancellationToken cancellationToken)
     {
@@ -17,7 +16,7 @@ public sealed class ChangePasswordHandler(IUserCredentialsService userCredential
             || userId == Guid.Empty
             || string.IsNullOrWhiteSpace(accessToken))
         {
-            return Task.FromResult(Result.Failure<AuthenticatedUserReadModel>(
+            return Task.FromResult(Result.Failure(
                 error: Error.Unauthorized(message: "Current session is invalid.")));
         }
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common.Urls;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth;
@@ -51,9 +52,15 @@ internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
             return result.ToHttpProblem();
         }
 
+        var user = await mediator.QueryAsync(new GetAuthenticatedUserQuery(result.Value), cancellationToken);
+        if (user.IsFailure)
+        {
+            return user.ToHttpProblem();
+        }
+
         await httpContext.SignInAsync(
             IdentityConstants.ApplicationScheme,
-            AuthenticatedUserPrincipalFactory.Create(user: result.Value));
+            AuthenticatedUserPrincipalFactory.Create(user: user.Value));
 
         return TypedResults.Redirect(url: request.ReturnUrl);
     }

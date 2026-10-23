@@ -3,7 +3,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 
@@ -13,26 +12,8 @@ internal static class IdentityClaimsFactory
         new IdentityOptions().ClaimsIdentity.SecurityStampClaimType;
 
     internal static IReadOnlyCollection<Claim> Create(
-        ApplicationUser user,
-        IdentityOptions identityOptions)
-    {
-        var additionalClaims = user.Claims
-            .Select(claim => (claim.ClaimType, claim.ClaimValue))
-            .Concat(user.Roles.SelectMany(userRole =>
-                userRole.Role?.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)) ?? []));
-
-        return Create(
-            id: user.Id,
-            userName: user.UserName,
-            email: user.Email,
-            securityStamp: user.SecurityStamp,
-            securityStampClaimType: identityOptions.ClaimsIdentity.SecurityStampClaimType,
-            roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
-            additionalClaims: additionalClaims);
-    }
-
-    internal static IReadOnlyCollection<Claim> Create(
-        UserReadDbModel user)
+        UserReadDbModel user,
+        IdentityOptions? identityOptions = null)
     {
         var additionalClaims = user.Claims
             .Select(claim => (claim.ClaimType, claim.ClaimValue))
@@ -45,7 +26,8 @@ internal static class IdentityClaimsFactory
             userName: user.UserName,
             email: user.Email,
             securityStamp: user.SecurityStamp,
-            securityStampClaimType: s_defaultSecurityStampClaimType,
+            securityStampClaimType:
+                identityOptions?.ClaimsIdentity.SecurityStampClaimType ?? s_defaultSecurityStampClaimType,
             roleNames: user.Roles.Select(userRole => userRole.Role?.Name),
             additionalClaims: additionalClaims);
     }

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
@@ -40,21 +39,7 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
             return result.ToHttpProblem();
         }
 
-        if (session is not null)
-        {
-            var principal = await mediator.QueryAsync(UpdateUserMapper.ToSessionQuery(id), cancellationToken);
-            if (principal.IsSuccess)
-            {
-                await cookieSession.RenewAsync(
-                    httpContext,
-                    session,
-                    new AuthenticatedUserReadModel(
-                        Id: id,
-                        Email: request.Email,
-                        UserName: request.UserName,
-                        Claims: principal.Value.Claims));
-            }
-        }
+        await cookieSession.RenewAsync(httpContext, session, cancellationToken);
 
         return TypedResults.NoContent();
     }

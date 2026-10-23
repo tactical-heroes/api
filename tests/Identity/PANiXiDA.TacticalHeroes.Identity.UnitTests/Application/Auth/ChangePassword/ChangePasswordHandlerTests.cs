@@ -2,7 +2,6 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ChangePassword;
 
@@ -20,7 +19,7 @@ public sealed class ChangePasswordHandlerTests
             "CurrentPassword1!",
             "NewPassword1!",
             Arg.Any<CancellationToken>())
-            .Returns(Result.Success(new AuthenticatedUserReadModel(userId, "hero@example.test", "hero", [])));
+            .Returns(Result.Success());
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(userId);
         currentUser.AccessToken.Returns("access-token");

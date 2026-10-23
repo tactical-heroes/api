@@ -38,7 +38,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
             return result.ToHttpProblem();
         }
 
-        await cookieSession.RenewAsync(httpContext, session, result.Value);
+        await cookieSession.RenewAsync(httpContext, session, cancellationToken);
 
         return TypedResults.NoContent();
     }

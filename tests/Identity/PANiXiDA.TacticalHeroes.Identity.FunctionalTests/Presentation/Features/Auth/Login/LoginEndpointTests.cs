@@ -1,7 +1,13 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.Core.ResultPattern;
+
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
@@ -12,6 +18,43 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
     private const string Password = "StrongPassword1!";
+
+    [Theory(DisplayName = "POST auth login should create no session when authentication model is unavailable")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PostLogin_Should_CreateNoSession_When_AuthenticationModelIsUnavailable(bool validPassword)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "unavailable-auth@example.test", "unavailable-auth", Password, ct);
+        var reader = new UnavailableAuthenticatedUserReader();
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<IAuthenticatedUserReader>();
+            services.AddSingleton<IAuthenticatedUserReader>(reader);
+        }));
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("https://localhost")
+        });
+        var path = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
+            client, OAuthAuthorizationRequestTestHelper.DefaultScopes, ct);
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/v1/auth/login",
+            new LoginRequest(
+                "unavailable-auth@example.test",
+                validPassword ? Password : "WrongPassword1!",
+                $"https://localhost{path}"),
+            JsonOptions,
+            ct);
+
+        response.StatusCode.ShouldBe(validPassword ? HttpStatusCode.Forbidden : HttpStatusCode.Unauthorized);
+        response.Headers.Contains("Set-Cookie").ShouldBeFalse();
+        reader.UserId.ShouldBe(validPassword ? user.Id : null);
+    }
 
     [Fact(DisplayName = "POST auth login should persist lockout when invalid attempts reach the limit")]
     public async Task PostLogin_Should_PersistLockout_When_InvalidAttemptsReachTheLimit()
@@ -162,5 +205,17 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    private sealed class UnavailableAuthenticatedUserReader : IAuthenticatedUserReader
+    {
+        public Guid? UserId { get; private set; }
+
+        public Task<Result<AuthenticatedUserReadModel>> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            UserId = userId;
+            return Task.FromResult(
+                Result.Failure<AuthenticatedUserReadModel>(Error.Forbidden(message: "User is blocked.")));
+        }
     }
 }

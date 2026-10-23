@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Identity;
 
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
-internal sealed class CurrentUserCookieSession(ICurrentUser currentUser)
+internal sealed class CurrentUserCookieSession(ICurrentUser currentUser, IMediator mediator)
 {
     internal async Task<Snapshot?> CaptureAsync(HttpContext context, Guid? targetUserId = null)
     {
@@ -28,16 +28,22 @@ internal sealed class CurrentUserCookieSession(ICurrentUser currentUser)
         return new Snapshot(userId, cookie.Properties);
     }
 
-    internal Task RenewAsync(HttpContext context, Snapshot? session, AuthenticatedUserReadModel user)
+    internal async Task RenewAsync(HttpContext context, Snapshot? session, CancellationToken cancellationToken)
     {
-        if (session is null || session.UserId != user.Id || currentUser.UserId != user.Id)
+        if (session is null || currentUser.UserId != session.UserId)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        return context.SignInAsync(
+        var user = await mediator.QueryAsync(new GetAuthenticatedUserQuery(session.UserId), cancellationToken);
+        if (user.IsFailure || user.Value.Id != session.UserId)
+        {
+            return;
+        }
+
+        await context.SignInAsync(
             scheme: IdentityConstants.ApplicationScheme,
-            principal: AuthenticatedUserPrincipalFactory.Create(user),
+            principal: AuthenticatedUserPrincipalFactory.Create(user.Value),
             properties: session.Properties);
     }
 

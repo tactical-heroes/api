@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +9,6 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -137,8 +134,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         (await dbContext.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "LoginAsync should load user and all claims in one read query when credentials are valid")]
-    public async Task LoginAsync_Should_LoadUserAndAllClaimsInOneReadQuery_When_CredentialsAreValid()
+    [Fact(DisplayName = "LoginAsync should return the user id in one read query when credentials are valid")]
+    public async Task LoginAsync_Should_ReturnUserIdInOneReadQuery_When_CredentialsAreValid()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var role = new ApplicationRole
@@ -184,12 +181,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Claims.ShouldContain(
-            new Claim(type: "permission", value: "identity.profile.read"),
-            IdentityClaimComparer.Instance);
-        result.Value.Claims.ShouldContain(
-            new Claim(type: "permission", value: "identity.users.manage"),
-            IdentityClaimComparer.Instance);
+        result.Value.ShouldBe(user.Id);
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
@@ -278,7 +270,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
 
         changeResult.IsSuccess.ShouldBeTrue();
         loginResult.IsSuccess.ShouldBeTrue();
-        loginResult.Value.Id.ShouldBe(user.Id);
+        loginResult.Value.ShouldBe(user.Id);
     }
 
     [Theory(
