@@ -71,12 +71,16 @@ public sealed class UsersRepository(
             return rolesResult;
         }
 
-        var rolesChanged = !user.RoleIds
+        var authorizationChanged = !user.RoleIds
             .Select(roleId => roleId.Value)
             .ToHashSet()
-            .SetEquals(applicationUser.Roles.Select(role => role.RoleId));
+            .SetEquals(applicationUser.Roles.Select(role => role.RoleId))
+            || !user.Claims
+                .Select(claim => ((string?)claim.Type.Value, (string?)claim.Value.Value))
+                .ToHashSet()
+                .SetEquals(applicationUser.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)));
         string? preservedAuthorizationId = null;
-        if (rolesChanged)
+        if (authorizationChanged)
         {
             if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
             {
@@ -111,7 +115,7 @@ public sealed class UsersRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        if (rolesChanged || user.Status.IsBlocked)
+        if (authorizationChanged || user.Status.IsBlocked)
         {
             await userSessionService.RevokeAsync(
                 userId: user.Id.Value,

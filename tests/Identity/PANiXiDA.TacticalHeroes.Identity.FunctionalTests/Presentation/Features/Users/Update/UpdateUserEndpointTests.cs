@@ -244,15 +244,25 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
     }
 
-    [Theory(DisplayName = "PUT user should revoke sessions and refresh current permissions when roles change")]
-    [InlineData(true, true)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(false, false)]
-    public async Task PutUser_Should_InvalidateSessions_When_RolesChange(bool self, bool removeRole)
+    [Theory(DisplayName = "PUT user should revoke sessions and refresh current permissions when authorization changes")]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, true)]
+    public async Task PutUser_Should_InvalidateSessions_When_AuthorizationChanges(
+        bool self, bool removePermission, bool changeClaims)
     {
         var ct = TestContext.Current.CancellationToken;
-        var (user, roleId) = await CreateUserAsync(removeRole, ct);
+        var (user, roleId) = await CreateUserAsync(
+            !changeClaims && removePermission,
+            ct,
+            claims: changeClaims && removePermission
+                ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
+                : null);
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
             Fixture,
             "unrelated@example.test",
@@ -271,9 +281,12 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         using var response = await UpdateAsync(
             current,
             user.Id,
-            removeRole ? [] : [roleId],
+            changeClaims || removePermission ? [] : [roleId],
             self ? tokens.AccessToken : unrelatedTokens.AccessToken,
-            ct);
+            ct,
+            claims: changeClaims && !removePermission
+                ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
+                : null);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(ct));
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBe(self);
@@ -299,7 +312,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             await AssertAccessAsync(
                 current,
                 access,
-                removeRole ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
+                removePermission ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
                 ct,
                 "/api/v1/roles");
             using var nextRefresh = await RefreshAsync(
@@ -313,19 +326,20 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             await AssertAccessAsync(
                 current,
                 newTokens.AccessToken,
-                removeRole ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
+                removePermission ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
                 ct,
                 "/api/v1/roles");
         }
     }
 
-    [Theory(DisplayName = "PUT user should preserve sessions when update does not change roles")]
+    [Theory(DisplayName = "PUT user should preserve sessions when update does not change authorization")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PutUser_Should_PreserveSessions_When_UpdateDoesNotChangeRoles(bool invalid)
+    public async Task PutUser_Should_PreserveSessions_When_UpdateDoesNotChangeAuthorization(bool invalid)
     {
         var ct = TestContext.Current.CancellationToken;
-        var (user, roleId) = await CreateUserAsync(true, ct);
+        var (user, roleId) = await CreateUserAsync(
+            true, ct, [new("permission", "identity.roles.read"), new("permission", "identity.users.update")]);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(current, Email, Password, ct);
         var before = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
@@ -336,7 +350,12 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
                 Email: Email,
                 UserName: "updated-session",
                 IsConfirmed: true,
-                Claims: [new("permission", "identity.users.update")],
+                Claims:
+                [
+                    new("permission", "identity.users.update"),
+                    new("permission", "identity.roles.read"),
+                    new("permission", "identity.users.update")
+                ],
                 Status: "Active",
                 RoleIds: invalid ? [Guid.CreateVersion7()] : [roleId]))
         };
@@ -404,8 +423,10 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         refresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
-    [Fact(DisplayName = "PUT user should roll back roles and sessions when revocation is canceled")]
-    public async Task PutUser_Should_RollBackRolesAndSessions_When_RevocationIsCanceled()
+    [Theory(DisplayName = "PUT user should roll back authorization and sessions when revocation is canceled")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PutUser_Should_RollBackAuthorizationAndSessions_When_RevocationIsCanceled(bool changeClaims)
     {
         var ct = TestContext.Current.CancellationToken;
         var (user, roleId) = await CreateUserAsync(false, ct);
@@ -425,25 +446,49 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             BaseAddress = new Uri("https://localhost")
         };
 
-        using var response = await UpdateAsync(client, user.Id, [roleId], tokens.AccessToken, ct);
+        using var response = await UpdateAsync(
+            client,
+            user.Id,
+            changeClaims ? [] : [roleId],
+            tokens.AccessToken,
+            ct,
+            claims: changeClaims
+                ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
+                : null);
 
         ((int)response.StatusCode).ShouldBe(499, await response.Content.ReadAsStringAsync(ct));
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
         interceptor.SavedInTransaction.ShouldBeTrue();
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
+        after.Claims.Select(claim => claim.ClaimValue).ShouldBe(["identity.users.update"]);
         (await new UserApiTestClient(Fixture).GetDetailsAsync(user.Id, ct)).RoleIds.ShouldBeEmpty();
         await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.OK, ct);
         await AssertAccessAsync(other, otherTokens.AccessToken, HttpStatusCode.OK, ct);
-        using var retry = await UpdateAsync(current, user.Id, [roleId], tokens.AccessToken, ct);
+        using var retry = await UpdateAsync(
+            current,
+            user.Id,
+            changeClaims ? [] : [roleId],
+            tokens.AccessToken,
+            ct,
+            claims: changeClaims
+                ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
+                : null);
         retry.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
-    [Fact(DisplayName = "Access token should reject obsolete roles when concurrent refresh finishes after update")]
-    public async Task PutUser_Should_RejectStaleAccess_When_ConcurrentRefreshFinishesAfterUpdate()
+    [Theory(DisplayName = "Access token should reject stale permissions when concurrent refresh finishes after update")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PutUser_Should_RejectStaleAccess_When_ConcurrentRefreshFinishesAfterUpdate(bool changeClaims)
     {
         var ct = TestContext.Current.CancellationToken;
-        var (user, _) = await CreateUserAsync(true, ct);
+        var (user, _) = await CreateUserAsync(
+            !changeClaims,
+            ct,
+            claims: changeClaims
+                ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
+                : null);
         var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseRefresh = false;
@@ -533,7 +578,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             : "https://localhost:5173/login");
     }
 
-    private async Task<(CreateUserResponse User, Guid RoleId)> CreateUserAsync(bool assigned, CancellationToken ct)
+    private async Task<(CreateUserResponse User, Guid RoleId)> CreateUserAsync(
+        bool assigned, CancellationToken ct, IReadOnlyCollection<Claim>? claims = null)
     {
         var role = await new RoleApiTestClient(Fixture).CreateAsync(
             ct,
@@ -542,7 +588,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             ct,
             UserApiTestClient.CreateDefaultRequest(Email, "role-session") with
             {
-                Claims = [new("permission", "identity.users.update")],
+                Claims = claims ?? [new("permission", "identity.users.update")],
                 RoleIds = assigned ? [role.Id] : []
             });
         return (user, role.Id);
@@ -555,12 +601,18 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         string? accessToken,
         CancellationToken ct,
         string status = "Active",
-        bool isConfirmed = true)
+        bool isConfirmed = true,
+        IReadOnlyCollection<Claim>? claims = null)
     {
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{userId}")
         {
             Content = JsonContent.Create(new UpdateUserRequest(
-                Email, "role-session", isConfirmed, [new("permission", "identity.users.update")], status, roles))
+                Email,
+                "role-session",
+                isConfirmed,
+                claims ?? [new("permission", "identity.users.update")],
+                status,
+                roles))
         };
         if (accessToken is null)
         {

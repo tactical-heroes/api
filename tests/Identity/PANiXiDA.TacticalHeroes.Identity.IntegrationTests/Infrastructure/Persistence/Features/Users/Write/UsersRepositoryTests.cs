@@ -248,11 +248,13 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Theory(DisplayName = "User updates should preserve state when identity validation fails")]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public async Task UpdateAsync_Should_PreserveState_When_IdentityValidationFails(bool duplicateEmail, bool block)
+    [InlineData(false, "roles")]
+    [InlineData(true, "roles")]
+    [InlineData(false, "claims")]
+    [InlineData(true, "claims")]
+    [InlineData(false, "block")]
+    [InlineData(true, "block")]
+    public async Task UpdateAsync_Should_PreserveState_When_IdentityValidationFails(bool duplicateEmail, string change)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await Fixture.SeedRolesAsync(cancellationToken);
@@ -290,10 +292,10 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             id: id,
             email: duplicateEmail ? "occupied@example.com" : "hero@example.com",
             isConfirmed: false,
-            roleIds: [roles[block ? "Player" : "Developer"]],
+            roleIds: [roles[change == "roles" ? "Developer" : "Player"]],
             claims: [("permission", "identity.users.read")],
             userName: duplicateEmail ? "hero" : "occupied",
-            status: block ? UserStatus.Blocked : UserStatus.Active);
+            status: change == "block" ? UserStatus.Blocked : UserStatus.Active);
 
         var result = await repository.UpdateAsync(updated, cancellationToken);
 
@@ -307,12 +309,108 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         persisted.UserName.ShouldBe(original.UserName);
         persisted.EmailConfirmed.ShouldBe(original.EmailConfirmed);
         persisted.Status.ShouldBe(original.Status);
+        persisted.SecurityStamp.ShouldBe(original.SecurityStamp);
         persisted.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(roles["Player"]);
         persisted.Claims.ShouldBeEmpty();
         var authorization = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
             .AsNoTracking()
             .SingleAsync(item => item.Subject == id.ToString(), cancellationToken);
         authorization.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+    }
+
+    [Theory(DisplayName = "User updates should invalidate changed claims when claim selections vary")]
+    [InlineData("same")]
+    [InlineData("reorder")]
+    [InlineData("add")]
+    [InlineData("remove")]
+    [InlineData("type")]
+    [InlineData("value")]
+    public async Task UpdateAsync_Should_InvalidateChangedClaims_When_ClaimSelectionsVary(string mode)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var id = await AddUserAsync(
+            "hero@example.com",
+            "hero",
+            true,
+            [new("permission", "identity.users.read"), new("permission", "identity.roles.read")],
+            UserStatus.Active.Name,
+            ct);
+        var otherId = await AddUserAsync("other@example.com", "other", true, [], UserStatus.Active.Name, ct);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var authorizationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        foreach (var subject in new[] { id, otherId })
+        {
+            var authorization = await authorizationManager.CreateAsync(
+                new OpenIddictAuthorizationDescriptor
+                {
+                    Subject = subject.ToString(),
+                    Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                ct);
+            foreach (var type in new[]
+                     {
+                         OpenIddictConstants.TokenTypeHints.AccessToken,
+                         OpenIddictConstants.TokenTypeHints.RefreshToken
+                     })
+            {
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        AuthorizationId = await authorizationManager.GetIdAsync(authorization, ct),
+                        Type = type,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    ct);
+            }
+        }
+
+        var stamps = await dbContext.Set<ApplicationUser>().AsNoTracking()
+            .ToDictionaryAsync(user => user.Id, user => user.SecurityStamp, ct);
+        (string Type, string Value)[] claims = mode switch
+        {
+            "reorder" => [("permission", "identity.roles.read"), ("permission", "identity.users.read")],
+            "add" => [("permission", "identity.users.read"), ("permission", "identity.roles.read"), ("team", "heroes")],
+            "remove" => [("permission", "identity.users.read")],
+            "type" => [("permission", "identity.users.read"), ("custom", "identity.roles.read")],
+            "value" => [("permission", "identity.users.read"), ("permission", "identity.roles.update")],
+            _ => [("permission", "identity.users.read"), ("permission", "identity.roles.read")]
+        };
+        var updated = IntegrationTestData.CreateUser(
+            id: id,
+            email: "hero@example.com",
+            isConfirmed: true,
+            roleIds: [],
+            claims: claims,
+            userName: "hero",
+            status: UserStatus.Active);
+
+        var result = await repository.UpdateAsync(updated, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var changed = mode is not ("same" or "reorder");
+        var users = await dbContext.Set<ApplicationUser>().Include(user => user.Claims).AsNoTracking()
+            .ToDictionaryAsync(user => user.Id, ct);
+        (users[id].SecurityStamp != stamps[id]).ShouldBe(changed);
+        users[otherId].SecurityStamp.ShouldBe(stamps[otherId]);
+        users[id].Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)).ShouldBe(claims, ignoreOrder: true);
+        var authorizations = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(ct);
+        var tokens = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(ct);
+        var expected = changed ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid;
+        authorizations.Single(item => item.Subject == id.ToString()).Status.ShouldBe(expected);
+        tokens.Where(item => item.Subject == id.ToString()).ShouldAllBe(item => item.Status == expected);
+        authorizations.Single(item => item.Subject == otherId.ToString()).Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+        tokens.Where(item => item.Subject == otherId.ToString())
+            .ShouldAllBe(item => item.Status == OpenIddictConstants.Statuses.Valid);
     }
 
     private static User CreateUser(Guid id, IReadOnlyCollection<Guid> roleIds) =>
