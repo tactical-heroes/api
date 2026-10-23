@@ -11,8 +11,8 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Auth;
 
-public sealed class AuthenticatedUserReader(IdentityReadDbContext dbContext, IOptions<IdentityOptions> identityOptions)
-    : IAuthenticatedUserReader
+public sealed class AuthenticatedUserService(IdentityReadDbContext dbContext, IOptions<IdentityOptions> identityOptions)
+    : IAuthenticatedUserService
 {
     public async Task<Result<AuthenticatedUserReadModel>> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
     {

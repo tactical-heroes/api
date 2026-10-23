@@ -27,12 +27,12 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
         var ct = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
             Fixture, "unavailable-auth@example.test", "unavailable-auth", Password, ct);
-        var reader = new UnavailableAuthenticatedUserReader();
+        var service = new UnavailableAuthenticatedUserService();
         await using var baseFactory = new FunctionalTestWebApplicationFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
         {
-            services.RemoveAll<IAuthenticatedUserReader>();
-            services.AddSingleton<IAuthenticatedUserReader>(reader);
+            services.RemoveAll<IAuthenticatedUserService>();
+            services.AddSingleton<IAuthenticatedUserService>(service);
         }));
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -53,7 +53,7 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(validPassword ? HttpStatusCode.Forbidden : HttpStatusCode.Unauthorized);
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
-        reader.UserId.ShouldBe(validPassword ? user.Id : null);
+        service.UserId.ShouldBe(validPassword ? user.Id : null);
     }
 
     [Fact(DisplayName = "POST auth login should persist lockout when invalid attempts reach the limit")]
@@ -207,7 +207,7 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
-    private sealed class UnavailableAuthenticatedUserReader : IAuthenticatedUserReader
+    private sealed class UnavailableAuthenticatedUserService : IAuthenticatedUserService
     {
         public Guid? UserId { get; private set; }
 

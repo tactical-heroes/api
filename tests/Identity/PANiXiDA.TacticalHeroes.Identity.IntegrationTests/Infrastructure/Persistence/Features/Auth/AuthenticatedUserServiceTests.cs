@@ -16,9 +16,9 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Auth;
 
-public sealed class AuthenticatedUserReaderTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
+public sealed class AuthenticatedUserServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Authenticated user reader should load current identity in one query when user exists")]
+    [Fact(DisplayName = "Authenticated user service should load current identity in one query when user exists")]
     public async Task GetByIdAsync_Should_LoadCurrentIdentityInOneQuery_When_UserExists()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -26,16 +26,16 @@ public sealed class AuthenticatedUserReaderTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var options = new IdentityOptions();
         options.ClaimsIdentity.SecurityStampClaimType = "custom_stamp";
-        var reader = new AuthenticatedUserReader(
+        var service = new AuthenticatedUserService(
             scope.ServiceProvider.GetRequiredService<IdentityReadDbContext>(), Options.Create(options));
         Fixture.CommandCounter.Reset();
 
-        var result = await reader.GetByIdAsync(userId, ct);
+        var result = await service.GetByIdAsync(userId, ct);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Id.ShouldBe(userId);
-        result.Value.Email.ShouldBe("auth-reader@example.test");
-        result.Value.UserName.ShouldBe("auth-reader");
+        result.Value.Email.ShouldBe("auth-service@example.test");
+        result.Value.UserName.ShouldBe("auth-service");
         var claims = result.Value.Claims;
         claims.ShouldContain(new Claim("permission", "identity.users.read"), IdentityClaimComparer.Instance);
         claims.ShouldContain(new Claim("permission", "identity.roles.read"), IdentityClaimComparer.Instance);
@@ -45,7 +45,7 @@ public sealed class AuthenticatedUserReaderTests(IntegrationTestFixture fixture)
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
-    [Theory(DisplayName = "Authenticated user reader should reject unavailable accounts when user is unavailable")]
+    [Theory(DisplayName = "Authenticated user service should reject unavailable accounts when user is unavailable")]
     [InlineData("Blocked", true)]
     [InlineData("Active", false)]
     public async Task GetByIdAsync_Should_RejectUnavailableAccounts_When_UserIsUnavailable(
@@ -53,45 +53,45 @@ public sealed class AuthenticatedUserReaderTests(IntegrationTestFixture fixture)
     {
         var userId = await AddUserAsync(status, confirmed);
         await using var scope = Fixture.CreateScope();
-        var reader = scope.ServiceProvider.GetRequiredService<IAuthenticatedUserReader>();
+        var service = scope.ServiceProvider.GetRequiredService<IAuthenticatedUserService>();
 
-        var result = await reader.GetByIdAsync(userId, TestContext.Current.CancellationToken);
+        var result = await service.GetByIdAsync(userId, TestContext.Current.CancellationToken);
 
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Forbidden);
     }
 
-    [Fact(DisplayName = "Authenticated user reader should return not found when user does not exist")]
+    [Fact(DisplayName = "Authenticated user service should return not found when user does not exist")]
     public async Task GetByIdAsync_Should_ReturnNotFound_When_UserDoesNotExist()
     {
         await using var scope = Fixture.CreateScope();
-        var reader = scope.ServiceProvider.GetRequiredService<IAuthenticatedUserReader>();
+        var service = scope.ServiceProvider.GetRequiredService<IAuthenticatedUserService>();
 
-        var result = await reader.GetByIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+        var result = await service.GetByIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
     }
 
-    [Fact(DisplayName = "Authenticated user reader should return fresh claims when user changes between reads")]
+    [Fact(DisplayName = "Authenticated user service should return fresh claims when user changes between reads")]
     public async Task GetByIdAsync_Should_ReturnFreshClaims_When_UserChangesBetweenReads()
     {
         var userId = await AddUserAsync(UserStatus.Active.Name, true);
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
-        var reader = scope.ServiceProvider.GetRequiredService<IAuthenticatedUserReader>();
-        var before = await reader.GetByIdAsync(userId, ct);
+        var service = scope.ServiceProvider.GetRequiredService<IAuthenticatedUserService>();
+        var before = await service.GetByIdAsync(userId, ct);
         await using (var writer = Fixture.CreateScope())
         {
             var manager = writer.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var user = await manager.FindByIdAsync(userId.ToString());
             user.ShouldNotBeNull();
-            user.UserName = "updated-auth-reader";
+            user.UserName = "updated-auth-service";
             (await manager.UpdateAsync(user)).Succeeded.ShouldBeTrue();
             (await manager.UpdateSecurityStampAsync(user)).Succeeded.ShouldBeTrue();
         }
 
-        var after = await reader.GetByIdAsync(userId, ct);
+        var after = await service.GetByIdAsync(userId, ct);
 
-        after.Value.UserName.ShouldBe("updated-auth-reader");
+        after.Value.UserName.ShouldBe("updated-auth-service");
         var stampType = new IdentityOptions().ClaimsIdentity.SecurityStampClaimType;
         after.Value.Claims.Single(claim => claim.Type == stampType).Value
             .ShouldNotBe(before.Value.Claims.Single(claim => claim.Type == stampType).Value);
@@ -112,8 +112,8 @@ public sealed class AuthenticatedUserReaderTests(IntegrationTestFixture fixture)
         var user = new ApplicationUser
         {
             Id = Guid.CreateVersion7(),
-            Email = "auth-reader@example.test",
-            UserName = "auth-reader",
+            Email = "auth-service@example.test",
+            UserName = "auth-service",
             EmailConfirmed = confirmed,
             Status = status,
             Claims = [new ApplicationUserClaim { ClaimType = "permission", ClaimValue = "identity.users.read" }]

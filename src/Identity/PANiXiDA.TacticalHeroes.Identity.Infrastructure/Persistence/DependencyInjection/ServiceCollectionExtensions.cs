@@ -58,7 +58,7 @@ internal static class ServiceCollectionExtensions
         serviceCollection.AddDbContext<IdentityReadDbContext>((provider, options) =>
             options.AddInterceptors(provider.GetServices<IInterceptor>()));
         serviceCollection.AddScoped<IOAuthUsersRepository, OAuthUsersRepository>();
-        serviceCollection.AddScoped<IAuthenticatedUserReader, AuthenticatedUserReader>();
+        serviceCollection.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
         serviceCollection.AddScoped<IOAuthClientsRepository, OAuthClientsRepository>();
 
         return serviceCollection;

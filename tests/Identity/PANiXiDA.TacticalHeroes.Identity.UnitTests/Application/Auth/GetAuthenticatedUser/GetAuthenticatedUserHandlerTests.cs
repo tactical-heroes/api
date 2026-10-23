@@ -6,19 +6,19 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.GetAuthent
 
 public sealed class GetAuthenticatedUserHandlerTests
 {
-    [Fact(DisplayName = "Authenticated user handler should return the authentication model when reader succeeds")]
-    public async Task HandleAsync_Should_ReturnAuthenticationModel_When_ReaderSucceeds()
+    [Fact(DisplayName = "Authenticated user handler should return the authentication model when service succeeds")]
+    public async Task HandleAsync_Should_ReturnAuthenticationModel_When_ServiceSucceeds()
     {
         var userId = Guid.CreateVersion7();
         var user = new AuthenticatedUserReadModel(userId, "hero@example.test", "hero", []);
-        var reader = Substitute.For<IAuthenticatedUserReader>();
-        reader.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(Result.Success(user));
-        var handler = new GetAuthenticatedUserHandler(reader);
+        var service = Substitute.For<IAuthenticatedUserService>();
+        service.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(Result.Success(user));
+        var handler = new GetAuthenticatedUserHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(new GetAuthenticatedUserQuery(userId), cancellationToken);
 
         result.Value.ShouldBe(user);
-        await reader.Received(1).GetByIdAsync(userId, cancellationToken);
+        await service.Received(1).GetByIdAsync(userId, cancellationToken);
     }
 }
