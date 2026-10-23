@@ -18,7 +18,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Servi
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
     IRolesReadRepository rolesReadRepository,
-    IOpenIddictTokenManager tokenManager,
     UserSessionService userSessionService,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
@@ -363,7 +362,7 @@ public sealed class UserCredentialsService(
 
         if (result.Succeeded)
         {
-            await tokenManager.RevokeBySubjectAsync(userId.ToString(), cancellationToken);
+            await userSessionService.RevokeAllTokensAsync(userId, cancellationToken);
         }
 
         return IdentityResultMapper.ToResult(result: result);

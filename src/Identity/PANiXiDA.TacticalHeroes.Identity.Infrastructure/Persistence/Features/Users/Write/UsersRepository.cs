@@ -17,7 +17,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.U
 public sealed class UsersRepository(
     IdentityWriteDbContext dbContext,
     UserManager<ApplicationUser> userManager,
-    IOpenIddictTokenManager tokenManager,
     UserSessionService userSessionService,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
@@ -107,7 +106,7 @@ public sealed class UsersRepository(
 
         if (user.Status.IsBlocked && !rolesChanged)
         {
-            await RevokeAllTokensAsync(user.Id.Value, cancellationToken);
+            await userSessionService.RevokeAllTokensAsync(user.Id.Value, cancellationToken);
         }
 
         var identityResult = await userManager.UpdateAsync(applicationUser);
@@ -150,7 +149,7 @@ public sealed class UsersRepository(
             return Result.Failure(errors: userResult.Errors);
         }
 
-        await RevokeAllTokensAsync(id, cancellationToken);
+        await userSessionService.RevokeAllTokensAsync(id, cancellationToken);
         var identityResult = await userManager.DeleteAsync(applicationUser);
 
         if (!identityResult.Succeeded)
@@ -196,7 +195,7 @@ public sealed class UsersRepository(
 
         if (status.IsBlocked)
         {
-            await RevokeAllTokensAsync(id, cancellationToken);
+            await userSessionService.RevokeAllTokensAsync(id, cancellationToken);
         }
 
         applicationUser.Status = status.Name;
@@ -204,13 +203,6 @@ public sealed class UsersRepository(
         var identityResult = await userManager.UpdateAsync(applicationUser);
 
         return IdentityResultMapper.ToResult(result: identityResult);
-    }
-
-    private async Task RevokeAllTokensAsync(
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        await tokenManager.RevokeBySubjectAsync(id.ToString(), cancellationToken);
     }
 
     private async Task<Result> ValidateRolesAsync(User user, CancellationToken cancellationToken)
