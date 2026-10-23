@@ -35,6 +35,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             Fixture.Client, accessToken, CurrentPassword, NewPassword, cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
     }
 
@@ -82,6 +83,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeTrue();
+        response.Headers.GetValues("X-Session-Refresh-Required").ShouldBe(["true"]);
         await AssertAccessAsync(
             current, currentTokens.AccessToken, user.Id, HttpStatusCode.Unauthorized, cancellationToken);
         await AssertAccessAsync(
@@ -160,6 +162,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
         await AssertAccessAsync(current, currentTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         await AssertAccessAsync(other, otherTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         using var refresh = await RefreshAsync(other, otherTokens.RefreshToken, cancellationToken);
@@ -195,6 +198,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
+        response.Headers.GetValues("X-Session-Refresh-Required").ShouldBe(["true"]);
         using var refresh = await RefreshAsync(client, tokens.RefreshToken, cancellationToken);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }

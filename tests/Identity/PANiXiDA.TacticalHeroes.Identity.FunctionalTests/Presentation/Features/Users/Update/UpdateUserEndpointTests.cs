@@ -276,6 +276,11 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(ct));
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBe(self);
+        if (self)
+        {
+            response.Headers.GetValues("X-Session-Refresh-Required").ShouldBe(["true"]);
+        }
         await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.Unauthorized, ct);
         await AssertAccessAsync(other, otherTokens.AccessToken, HttpStatusCode.Unauthorized, ct);
         await AssertAccessAsync(unrelated, unrelatedTokens.AccessToken, HttpStatusCode.OK, ct);
@@ -340,6 +345,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         using var response = await current.SendAsync(request, ct);
 
         response.StatusCode.ShouldBe(invalid ? HttpStatusCode.BadRequest : HttpStatusCode.NoContent);
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
         if (!invalid)
         {
             var options = Fixture.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
@@ -372,6 +378,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
+        response.Headers.GetValues("X-Session-Refresh-Required").ShouldBe(["true"]);
         await AssertCookieAsync(browser, false, ct);
         using var refresh = await RefreshAsync(client, tokens.RefreshToken, ct);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -390,6 +397,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         using var response = await UpdateAsync(current, user.Id, [roleId], tokens.AccessToken, ct, status, isConfirmed);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(ct));
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
         await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.Unauthorized, ct);
         await AssertCookieAsync(current, false, ct);
         using var refresh = await RefreshAsync(current, tokens.RefreshToken, ct);
@@ -420,6 +428,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         using var response = await UpdateAsync(client, user.Id, [roleId], tokens.AccessToken, ct);
 
         ((int)response.StatusCode).ShouldBe(499, await response.Content.ReadAsStringAsync(ct));
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
         interceptor.SavedInTransaction.ShouldBeTrue();
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);

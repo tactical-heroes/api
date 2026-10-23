@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthSpa;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthToken;
@@ -15,6 +16,8 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         serviceCollection.AddScoped<CurrentUserCookieSession>();
+        serviceCollection.AddHttpContextAccessor();
+        serviceCollection.AddScoped<ICurrentUserSessionRefresh, HttpCurrentUserSessionRefresh>();
         serviceCollection.AddSingleton<IValidateOptions<OAuthSpaOptions>, OAuthSpaOptionsValidator>();
         serviceCollection.AddSingleton<IValidateOptions<OAuthTokenOptions>, OAuthTokenOptionsValidator>();
         serviceCollection
