@@ -10,7 +10,6 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.EmailRequests;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
@@ -57,13 +56,6 @@ public sealed class IdentityWriteDbContext(
         builder.UseOpenIddict<Guid>();
         ConfigureAspNetIdentity(builder);
         ConfigureOpenIddict(builder);
-        builder.Entity<EmailRequestCooldown>(entity =>
-        {
-            entity.ToTable("email_request_cooldowns", Schema);
-            entity.HasKey(cooldown => new { cooldown.NormalizedEmail, cooldown.Purpose });
-            entity.Property(cooldown => cooldown.NormalizedEmail).HasMaxLength(Email.MaxLength);
-            entity.HasIndex(cooldown => cooldown.ExpiresAt);
-        });
     }
 
     private static void ConfigureAspNetIdentity(ModelBuilder modelBuilder)

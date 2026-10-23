@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
@@ -10,7 +11,7 @@ using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.EmailRequests;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
@@ -22,7 +23,7 @@ public sealed class UserCredentialsService(
     IRolesReadRepository rolesReadRepository,
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager,
-    UserEmailRequestService emailRequests,
+    IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IUserCredentialsService
@@ -72,15 +73,26 @@ public sealed class UserCredentialsService(
             return IdentityResultMapper.ToResult<Guid>(result: identityResult);
         }
 
-        var confirmationResult = await emailRequests.RequestAsync(
-            applicationUser: applicationUser,
-            purpose: EmailRequestPurpose.Confirmation,
-            user: user,
-            cancellationToken: cancellationToken);
+        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+        var tokenResult = UserActionToken.Create(
+            value: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
 
-        return confirmationResult.IsSuccess
-            ? Result.Success(value: applicationUser.Id)
-            : Result.Failure<Guid>(errors: confirmationResult.Errors);
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: tokenResult.Errors);
+        }
+
+        var confirmationResult = user.RequestEmailConfirmation(tokenResult.Value);
+
+        if (confirmationResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: confirmationResult.Errors);
+        }
+
+        aggregateTracker.Track(user);
+
+        return Result.Success(value: applicationUser.Id);
     }
 
     public async Task<Result<AuthenticatedUserReadModel>> LoginAsync(
@@ -255,11 +267,33 @@ public sealed class UserCredentialsService(
             return Result.Success();
         }
 
-        return await emailRequests.RequestAsync(
-            applicationUser: applicationUser,
-            purpose: EmailRequestPurpose.Confirmation,
-            user: null,
-            cancellationToken: cancellationToken);
+        var userResult = ApplicationUserMapper.ToDomain(user: applicationUser);
+
+        if (userResult.IsFailure)
+        {
+            return Result.Failure(errors: userResult.Errors);
+        }
+
+        var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(applicationUser);
+        var tokenResult = UserActionToken.Create(
+            value: confirmationToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.EmailConfirmationTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure(errors: tokenResult.Errors);
+        }
+
+        var confirmationResult = userResult.Value.RequestEmailConfirmation(tokenResult.Value);
+
+        if (confirmationResult.IsFailure)
+        {
+            return confirmationResult;
+        }
+
+        aggregateTracker.Track(userResult.Value);
+
+        return Result.Success();
     }
 
     public async Task<Result> ForgotPasswordAsync(
@@ -275,11 +309,33 @@ public sealed class UserCredentialsService(
             return Result.Success();
         }
 
-        return await emailRequests.RequestAsync(
-            applicationUser: applicationUser,
-            purpose: EmailRequestPurpose.PasswordReset,
-            user: null,
-            cancellationToken: cancellationToken);
+        var userResult = ApplicationUserMapper.ToDomain(user: applicationUser);
+
+        if (userResult.IsFailure)
+        {
+            return Result.Failure(errors: userResult.Errors);
+        }
+
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(applicationUser);
+        var tokenResult = UserActionToken.Create(
+            value: resetToken,
+            expiresAtUtc: timeProvider.GetUtcNow().Add(options.Value.AccountRecoveryTokenLifetime));
+
+        if (tokenResult.IsFailure)
+        {
+            return Result.Failure(errors: tokenResult.Errors);
+        }
+
+        var requestResult = userResult.Value.RequestPasswordReset(tokenResult.Value);
+
+        if (requestResult.IsFailure)
+        {
+            return requestResult;
+        }
+
+        aggregateTracker.Track(userResult.Value);
+
+        return Result.Success();
     }
 
     public async Task<Result> ResetPasswordAsync(

@@ -20,7 +20,7 @@ using Wolverine;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
-internal sealed class FunctionalTestWebApplicationFactory(string environmentName = "Test", bool captureEvents = true)
+internal sealed class FunctionalTestWebApplicationFactory(string environmentName = "Test")
     : WebApplicationFactory<Program>
 {
     private int _introspectionRequestCount;
@@ -83,13 +83,10 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
                 services.Remove(seederHostedService);
             }
 
-            if (captureEvents)
-            {
-                services.RemoveAll<IEventBus>();
-                services.AddSingleton(EventBus);
-                services.AddSingleton<IEventBus>(serviceProvider =>
-                    serviceProvider.GetRequiredService<CapturingEventBus>());
-            }
+            services.RemoveAll<IEventBus>();
+            services.AddSingleton(EventBus);
+            services.AddSingleton<IEventBus>(serviceProvider =>
+                serviceProvider.GetRequiredService<CapturingEventBus>());
             services.RunWolverineInSoloMode();
         });
     }

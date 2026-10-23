@@ -19,7 +19,6 @@ public sealed class IdentityWriteDbContextMigrationTests(IntegrationTestFixture 
             "asp_net_user_tokens",
             "asp_net_users",
             "data_protection_keys",
-            "email_request_cooldowns",
             "open_iddict_applications",
             "open_iddict_authorizations",
             "open_iddict_scopes",

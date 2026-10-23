@@ -29,9 +29,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
 
         await using var scope = Fixture.CreateScope();
-        await using var transaction = await scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>()
-            .Database
-            .BeginTransactionAsync(TestContext.Current.CancellationToken);
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
@@ -78,9 +75,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         role.Name = "Newcomer";
         role.NormalizedName = "NEWCOMER";
         await dbContext.SaveChangesAsync(cancellationToken);
-        await using var transaction = await scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>()
-            .Database
-            .BeginTransactionAsync(TestContext.Current.CancellationToken);
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
 
         var result = await service.RegisterAsync("newcomer@example.com", "newcomer", Password, cancellationToken);
@@ -103,9 +97,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
-        await using var transaction = await scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>()
-            .Database
-            .BeginTransactionAsync(TestContext.Current.CancellationToken);
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
@@ -138,9 +129,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             });
             await dbContext.SaveChangesAsync(cancellationToken);
         }
-        await using var transaction = await scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>()
-            .Database
-            .BeginTransactionAsync(TestContext.Current.CancellationToken);
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
 
         var result = await service.RegisterAsync("hero@example.com", "hero", Password, cancellationToken);
@@ -468,9 +456,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         await AddUserAsync(user);
 
         await using var scope = Fixture.CreateScope();
-        await using var transaction = await scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>()
-            .Database
-            .BeginTransactionAsync(TestContext.Current.CancellationToken);
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
 
@@ -499,9 +484,6 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
         await AddUserAsync(user);
 
         await using var scope = Fixture.CreateScope();
-        await using var transaction = await scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>()
-            .Database
-            .BeginTransactionAsync(TestContext.Current.CancellationToken);
         var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
         var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
 

@@ -112,17 +112,9 @@ the authenticated user subject, including requests from different sessions/IPs.
 These counters are local to each API replica. A shared IP limit must be configured
 on Envoy Gateway before treating it as a deployment-wide limit.
 
-`Identity:EmailRequestCooldown` configures `Confirmation`, `AccountRecovery`, and
-`CleanupCronSchedule` (Quartz). Both cooldowns default to one minute, and expired
-records are cleaned hourly. Registration's first confirmation email also starts
-the confirmation cooldown. Cooldowns use Identity-normalized email and separate
-purposes, PostgreSQL time, and the Identity command transaction shared with the
-Wolverine outbox. A failed transaction rolls back both the cooldown and the queued
-event. SMTP delivery retries retain the existing notification behavior.
-
-Unknown/ineligible accounts and suppressed repeats keep the usual empty response:
-202 for `forgot-password`, 204 for `resend-confirmation-email`. Email cooldowns
-never add `Retry-After`; that header is reserved for HTTP request limits.
+Unknown/ineligible accounts keep the usual empty response: 202 for
+`forgot-password`, 204 for `resend-confirmation-email`. Each eligible request
+within the HTTP limit can queue another email.
 
 Before deploying behind Envoy, configure `ForwardedHeaders:KnownProxies` or
 `ForwardedHeaders:KnownIPNetworks` with the actual trusted proxy addresses/networks
@@ -134,7 +126,6 @@ the API trusts only loopback proxies. For example, environment variable names ar
 forwarded headers and preserve the actual client IP. This is required for correct
 IP limits and forwarded HTTPS handling.
 
-Apply the `AddEmailRequestCooldowns` Identity migration before starting the API.
 Lockout remains enabled independently of the request limits.
 
 ## Token Validation
