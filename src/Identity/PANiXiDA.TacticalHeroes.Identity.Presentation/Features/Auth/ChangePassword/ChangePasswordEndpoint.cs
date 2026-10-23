@@ -1,8 +1,8 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+
+using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
@@ -27,14 +27,12 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
 
     private static async Task<IResult> HandleAsync(
         ChangePasswordRequest request,
-        ClaimsPrincipal user,
+        ICurrentUser currentUser,
         HttpContext httpContext,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var userIdValue = user.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
-
-        if (!Guid.TryParse(input: userIdValue, result: out var userId))
+        if (currentUser.UserId is not { } userId)
         {
             return TypedResults.Unauthorized();
         }
@@ -52,10 +50,10 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
         }
 
         if (cookie.Succeeded
-            && string.Equals(
+            && Guid.TryParse(
                 cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject),
-                userIdValue,
-                StringComparison.Ordinal))
+                out var cookieUserId)
+            && cookieUserId == userId)
         {
             await httpContext.SignInAsync(
                 scheme: IdentityConstants.ApplicationScheme,

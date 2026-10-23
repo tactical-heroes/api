@@ -1,8 +1,8 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+
+using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
@@ -29,13 +29,12 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
     private static async Task<IResult> HandleAsync(
         Guid id,
         UpdateUserRequest request,
-        ClaimsPrincipal user,
+        ICurrentUser currentUser,
         HttpContext httpContext,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var isCurrentUser = Guid.TryParse(user.GetClaim(OpenIddictConstants.Claims.Subject), out var currentUserId)
-            && currentUserId == id;
+        var isCurrentUser = currentUser.UserId == id;
         var cookie = isCurrentUser
             ? await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme)
             : null;
