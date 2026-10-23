@@ -14,7 +14,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.IdentityProvider.Handlers;
 
-public sealed class ValidateSecurityStampTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
+public sealed class ValidateSecurityStampHandlerTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
     [Theory(DisplayName = "Token validation should compare security stamps when user access token is validated")]
     [InlineData(null, true, true, false)]
@@ -65,7 +65,7 @@ public sealed class ValidateSecurityStampTests(IntegrationTestFixture fixture) :
             Principal = principal,
             CancellationToken = ct
         };
-        var handler = new ValidateSecurityStamp(
+        var handler = new ValidateSecurityStampHandler(
             scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>(), options);
 
         await handler.HandleAsync(context);

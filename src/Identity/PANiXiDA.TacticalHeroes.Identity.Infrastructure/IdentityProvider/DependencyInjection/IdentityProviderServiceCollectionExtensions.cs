@@ -88,7 +88,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             .AddServer(options =>
             {
                 options.AddEventHandler<OpenIddictServerEvents.ValidateTokenContext>(builder => builder
-                    .UseScopedHandler<ValidateSecurityStamp>()
+                    .UseScopedHandler<ValidateSecurityStampHandler>()
                     .SetOrder(OpenIddictServerHandlers.Protection.ValidateAuthorizationEntry.Descriptor.Order + 1_000));
 
                 if (identityProviderOptions.Issuer is not null)

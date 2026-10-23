@@ -8,7 +8,9 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Handlers;
 
-internal sealed class ValidateSecurityStamp(IdentityWriteDbContext dbContext, IOptions<IdentityOptions> identityOptions)
+internal sealed class ValidateSecurityStampHandler(
+    IdentityWriteDbContext dbContext,
+    IOptions<IdentityOptions> identityOptions)
     : IOpenIddictServerHandler<OpenIddictServerEvents.ValidateTokenContext>
 {
     public async ValueTask HandleAsync(OpenIddictServerEvents.ValidateTokenContext context)
