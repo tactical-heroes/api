@@ -85,7 +85,8 @@ Changing `roleIds` in `PUT /api/v1/users/{id}` revokes the user's existing acces
 tokens, authorizations and login cookies. When the user changes their own roles,
 the current authorization and its refresh tokens are preserved; the client must
 refresh its tokens after the successful update to receive the new permissions.
-A matching Identity login cookie sent with the request is renewed as well.
+A matching Identity login cookie sent with a successful self-update is renewed,
+even when the role set is unchanged.
 Other sessions must sign in again. An unchanged role set does not revoke sessions.
 
 User access tokens are validated against the existing ASP.NET Core Identity

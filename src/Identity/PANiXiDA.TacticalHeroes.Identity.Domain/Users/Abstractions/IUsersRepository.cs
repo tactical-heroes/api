@@ -7,7 +7,7 @@ public interface IUsersRepository
         string password,
         CancellationToken cancellationToken);
 
-    Task<Result<bool>> UpdateAsync(
+    Task<Result> UpdateAsync(
         User user,
         CancellationToken cancellationToken,
         string? currentAccessToken = null);

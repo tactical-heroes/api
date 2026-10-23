@@ -52,7 +52,7 @@ public sealed class UsersRepository(
         return Result.Success(value: applicationUser.Id);
     }
 
-    public async Task<Result<bool>> UpdateAsync(
+    public async Task<Result> UpdateAsync(
         User user,
         CancellationToken cancellationToken,
         string? currentAccessToken = null)
@@ -63,13 +63,13 @@ public sealed class UsersRepository(
 
         if (applicationUser is null)
         {
-            return Result.Failure<bool>(UserNotFound().Errors);
+            return UserNotFound();
         }
 
         var rolesResult = await ValidateRolesAsync(user, cancellationToken);
         if (rolesResult.IsFailure)
         {
-            return Result.Failure<bool>(rolesResult.Errors);
+            return rolesResult;
         }
 
         var rolesChanged = !user.RoleIds
@@ -87,7 +87,7 @@ public sealed class UsersRepository(
                     cancellationToken: cancellationToken);
                 if (sessionResult.IsFailure)
                 {
-                    return Result.Failure<bool>(sessionResult.Errors);
+                    return Result.Failure(sessionResult.Errors);
                 }
 
                 preservedAuthorizationId = sessionResult.Value;
@@ -114,7 +114,7 @@ public sealed class UsersRepository(
 
         if (!identityResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<bool>(result: identityResult);
+            return IdentityResultMapper.ToResult(result: identityResult);
         }
 
         if (rolesChanged)
@@ -127,7 +127,7 @@ public sealed class UsersRepository(
 
         aggregateTracker.Track(user);
 
-        return Result.Success(rolesChanged);
+        return Result.Success();
     }
 
     public async Task<Result> DeleteAsync(

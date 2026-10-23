@@ -51,8 +51,7 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
             return result.ToHttpProblem();
         }
 
-        if (result.Value
-            && isCurrentUser
+        if (isCurrentUser
             && cookie?.Succeeded == true
             && cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject) == id.ToString())
         {

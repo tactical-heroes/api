@@ -23,7 +23,7 @@ public sealed class UpdateUserHandlerTests
                 && user.ConfirmationStatus.IsConfirmed
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             Arg.Any<CancellationToken>())
-            .Returns(Result.Success(false));
+            .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository);
         var cancellationToken = TestContext.Current.CancellationToken;
 
@@ -89,7 +89,7 @@ public sealed class UpdateUserHandlerTests
         var roleId = Guid.CreateVersion7();
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success(false));
+            .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository);
 
         var result = await handler.HandleAsync(

@@ -1,9 +1,13 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
@@ -103,14 +107,32 @@ public sealed class UpdateUserSessionTests(FunctionalTestFixture fixture) : Func
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(current, Email, Password, ct);
         var before = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
 
-        using var response = await UpdateAsync(
-            current,
-            user.Id,
-            invalid ? [Guid.CreateVersion7()] : [roleId],
-            tokens.AccessToken,
-            ct);
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.Id}")
+        {
+            Content = JsonContent.Create(new UpdateUserRequest(
+                Email: Email,
+                UserName: "updated-session",
+                IsConfirmed: true,
+                Claims: [new("permission", "identity.users.update")],
+                Status: "Active",
+                RoleIds: invalid ? [Guid.CreateVersion7()] : [roleId]))
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+
+        using var response = await current.SendAsync(request, ct);
 
         response.StatusCode.ShouldBe(invalid ? HttpStatusCode.BadRequest : HttpStatusCode.NoContent);
+        if (!invalid)
+        {
+            var options = Fixture.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+                .Get(IdentityConstants.ApplicationScheme);
+            var cookie = response.Headers.GetValues("Set-Cookie")
+                .Select(value => SetCookieHeaderValue.Parse(value))
+                .Single(header => header.Name == options.Cookie.Name);
+            var ticket = options.TicketDataFormat.Unprotect(cookie.Value.ToString());
+            ticket.ShouldNotBeNull();
+            ticket.Principal.GetClaim(OpenIddictConstants.Claims.Name).ShouldBe("updated-session");
+        }
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
         await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.OK, ct);
