@@ -158,6 +158,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        response.Headers.Contains("Set-Cookie").ShouldBeFalse();
         await AssertAccessAsync(current, currentTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         await AssertAccessAsync(other, otherTokens.AccessToken, user.Id, HttpStatusCode.OK, cancellationToken);
         using var refresh = await RefreshAsync(other, otherTokens.RefreshToken, cancellationToken);
@@ -195,6 +196,31 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
         using var refresh = await RefreshAsync(client, tokens.RefreshToken, cancellationToken);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact(DisplayName = "Password change should skip cookie renewal when cookie belongs to another user")]
+    public async Task PostChangePassword_Should_PreserveOtherCookie_When_CookieBelongsToAnotherUser()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var cookieUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "cookie-owner@example.test", "cookie-owner", CurrentPassword, cancellationToken);
+        var bearerUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "bearer-owner@example.test", "bearer-owner", CurrentPassword, cancellationToken);
+        using var browser = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        using var bearerClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            browser, "cookie-owner@example.test", CurrentPassword, cancellationToken);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            bearerClient, "bearer-owner@example.test", CurrentPassword, cancellationToken);
+
+        using var response = await ChangePasswordAsync(
+            browser, tokens.AccessToken, CurrentPassword, NewPassword, cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        response.Headers.Contains("Set-Cookie").ShouldBeFalse();
+        await AssertCookieAsync(browser, OAuthAuthorizationRequestTestHelper.RedirectUri, cancellationToken);
+        await AssertPasswordAsync(cookieUser.Id, CurrentPassword, NewPassword);
+        await AssertPasswordAsync(bearerUser.Id, NewPassword, CurrentPassword);
     }
 
     [Fact(DisplayName = "Password change should revoke exchanged tokens when another session changes password")]

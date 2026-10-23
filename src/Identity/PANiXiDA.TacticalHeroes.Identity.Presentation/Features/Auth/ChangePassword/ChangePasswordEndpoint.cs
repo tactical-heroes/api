@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
@@ -26,10 +24,11 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
     private static async Task<IResult> HandleAsync(
         ChangePasswordRequest request,
         HttpContext httpContext,
+        CurrentUserCookieSession cookieSession,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var cookie = await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+        var session = await cookieSession.CaptureAsync(httpContext);
         var result = await mediator.SendAsync(
             ChangePasswordMapper.ToCommand(request: request),
             cancellationToken);
@@ -39,17 +38,7 @@ internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
             return result.ToHttpProblem();
         }
 
-        if (cookie.Succeeded
-            && Guid.TryParse(
-                cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject),
-                out var cookieUserId)
-            && cookieUserId == result.Value.Id)
-        {
-            await httpContext.SignInAsync(
-                scheme: IdentityConstants.ApplicationScheme,
-                principal: AuthenticatedUserPrincipalFactory.Create(result.Value),
-                properties: cookie.Properties);
-        }
+        await cookieSession.RenewAsync(httpContext, session, result.Value);
 
         return TypedResults.NoContent();
     }

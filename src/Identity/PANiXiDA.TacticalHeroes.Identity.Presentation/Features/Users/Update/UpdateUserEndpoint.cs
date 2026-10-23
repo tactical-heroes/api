@@ -1,8 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-
-using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
@@ -29,15 +25,12 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
     private static async Task<IResult> HandleAsync(
         Guid id,
         UpdateUserRequest request,
-        ICurrentUser currentUser,
         HttpContext httpContext,
+        CurrentUserCookieSession cookieSession,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var isCurrentUser = currentUser.UserId == id;
-        var cookie = isCurrentUser
-            ? await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme)
-            : null;
+        var session = await cookieSession.CaptureAsync(httpContext, targetUserId: id);
         var result = await mediator.SendAsync(
             UpdateUserMapper.ToCommand(request: request, id: id),
             cancellationToken);
@@ -47,22 +40,19 @@ internal sealed class UpdateUserEndpoint : IEndpoint<UsersEndpoints>
             return result.ToHttpProblem();
         }
 
-        if (isCurrentUser
-            && cookie?.Succeeded == true
-            && cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject) == id.ToString())
+        if (session is not null)
         {
             var principal = await mediator.QueryAsync(UpdateUserMapper.ToSessionQuery(id), cancellationToken);
             if (principal.IsSuccess)
             {
-                await httpContext.SignInAsync(
-                    scheme: IdentityConstants.ApplicationScheme,
-                    principal: AuthenticatedUserPrincipalFactory.Create(
-                        new AuthenticatedUserReadModel(
-                            Id: id,
-                            Email: request.Email,
-                            UserName: request.UserName,
-                            Claims: principal.Value.Claims)),
-                    properties: cookie.Properties);
+                await cookieSession.RenewAsync(
+                    httpContext,
+                    session,
+                    new AuthenticatedUserReadModel(
+                        Id: id,
+                        Email: request.Email,
+                        UserName: request.UserName,
+                        Claims: principal.Value.Claims));
             }
         }
 

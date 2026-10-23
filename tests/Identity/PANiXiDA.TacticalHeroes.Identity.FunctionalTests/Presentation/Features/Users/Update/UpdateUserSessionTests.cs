@@ -133,6 +133,10 @@ public sealed class UpdateUserSessionTests(FunctionalTestFixture fixture) : Func
             ticket.ShouldNotBeNull();
             ticket.Principal.GetClaim(OpenIddictConstants.Claims.Name).ShouldBe("updated-session");
         }
+        else
+        {
+            response.Headers.Contains("Set-Cookie").ShouldBeFalse();
+        }
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
         await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.OK, ct);
