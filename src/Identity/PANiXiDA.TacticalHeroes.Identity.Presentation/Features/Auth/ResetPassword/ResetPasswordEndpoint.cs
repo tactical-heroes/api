@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
 
 internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
@@ -11,6 +13,8 @@ internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPost(builder.Route, HandleAsync)
+            .RequireRateLimiting(AuthRateLimitPolicies.ResetPassword)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
             .AllowAnonymous()
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)

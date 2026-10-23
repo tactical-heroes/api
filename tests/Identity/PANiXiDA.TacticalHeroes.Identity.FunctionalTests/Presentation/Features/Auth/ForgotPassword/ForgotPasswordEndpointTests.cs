@@ -20,6 +20,35 @@ public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
 
+    [Fact(DisplayName = "Forgot password should publish each request when eligible requests are repeated")]
+    public async Task PostForgotPassword_Should_PublishEachRequest_When_EligibleRequestsAreRepeated()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture,
+            "repeat@example.test",
+            "repeat-hero",
+            CurrentPassword,
+            cancellationToken);
+        Fixture.EventBus.Clear();
+
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            using var response = await Client.PostAsJsonAsync(
+                "/api/v1/auth/forgot-password",
+                new ForgotPasswordRequest("repeat@example.test"),
+                JsonOptions,
+                cancellationToken);
+
+            response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
+            response.Headers.RetryAfter.ShouldBeNull();
+            var passwordReset = Fixture.EventBus.Single<PasswordResetRequested>();
+            passwordReset.Email.ShouldBe("repeat@example.test");
+            passwordReset.PasswordResetToken.ShouldNotBeNullOrWhiteSpace();
+            Fixture.EventBus.Clear();
+        }
+    }
+
     [Fact(
         DisplayName = "Password reset should replace the password and revoke existing tokens when issued token is valid")]
     public async Task PasswordReset_Should_ReplacePasswordAndRevokeTokens_When_IssuedTokenIsValid()

@@ -7,11 +7,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
+using Npgsql;
+
 using OpenIddict.Validation.SystemNetHttp;
 
 using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common.Options.AuthRateLimit;
 
 using Wolverine;
 
@@ -29,15 +32,35 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environmentName);
-        builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
-            new Dictionary<string, string?>
+        builder.ConfigureAppConfiguration((_, configuration) =>
+        {
+            var connectionString = new NpgsqlConnectionStringBuilder(
+                configuration.Build().GetConnectionString("PostgreSqlConnectionString"))
             {
+                MaxPoolSize = 8,
+                ConnectionIdleLifetime = 1,
+                ConnectionPruningInterval = 1
+            };
+            configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:PostgreSqlConnectionString"] = connectionString.ConnectionString,
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
                 ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret"
-            }));
+            });
+        });
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
         {
+            services.PostConfigure<AuthRateLimitOptions>(options =>
+            {
+                options.Login.PermitLimit = int.MaxValue;
+                options.Register.PermitLimit = int.MaxValue;
+                options.ForgotPassword.PermitLimit = int.MaxValue;
+                options.ResetPassword.PermitLimit = int.MaxValue;
+                options.ResendConfirmationEmail.PermitLimit = int.MaxValue;
+                options.ConfirmEmail.PermitLimit = int.MaxValue;
+                options.ChangePassword.PermitLimit = int.MaxValue;
+            });
             services.AddScoped<IOAuthClientsRepository, PermissionTestClientsRepository>();
             services.ConfigureAll<HttpClientFactoryOptions>(options =>
                 options.HttpMessageHandlerBuilderActions.Add(handler =>

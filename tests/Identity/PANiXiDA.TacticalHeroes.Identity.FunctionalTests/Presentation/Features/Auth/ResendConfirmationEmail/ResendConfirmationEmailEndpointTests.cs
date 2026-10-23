@@ -24,15 +24,20 @@ public sealed class ResendConfirmationEmailEndpointTests(FunctionalTestFixture f
         registerResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
         Fixture.EventBus.Clear();
 
-        using var response = await Client.PostAsJsonAsync(
-            "/api/v1/auth/resend-confirmation-email",
-            new ResendConfirmationEmailRequest("resend@example.test"),
-            JsonOptions,
-            cancellationToken);
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            using var response = await Client.PostAsJsonAsync(
+                "/api/v1/auth/resend-confirmation-email",
+                new ResendConfirmationEmailRequest("resend@example.test"),
+                JsonOptions,
+                cancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
-        var confirmation = Fixture.EventBus.Single<EmailConfirmationRequested>();
-        confirmation.Email.ShouldBe("resend@example.test");
-        confirmation.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
+            response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+            response.Headers.RetryAfter.ShouldBeNull();
+            var confirmation = Fixture.EventBus.Single<EmailConfirmationRequested>();
+            confirmation.Email.ShouldBe("resend@example.test");
+            confirmation.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
+            Fixture.EventBus.Clear();
+        }
     }
 }

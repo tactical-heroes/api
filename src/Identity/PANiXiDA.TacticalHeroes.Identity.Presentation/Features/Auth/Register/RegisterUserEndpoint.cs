@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
@@ -13,6 +14,8 @@ internal sealed class RegisterUserEndpoint : IEndpoint<AuthEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPost(builder.Route, HandleAsync)
+            .RequireRateLimiting(AuthRateLimitPolicies.Register)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
             .AllowAnonymous()
             .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)

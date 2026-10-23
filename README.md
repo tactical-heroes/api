@@ -101,6 +101,33 @@ rules, including status restrictions, as schema constraints.
 EF repository concurrency exceptions handled by the mediator pipeline return HTTP 409
 with Problem Details. Reload the affected entity before retrying the operation.
 
+## Authentication Rate Limits
+
+`Identity:RateLimits` configures separate fixed windows (`PermitLimit`, `Window`)
+for `Login`, `Register`, `ForgotPassword`, `ResetPassword`,
+`ResendConfirmationEmail`, `ConfirmEmail`, and `ChangePassword`.
+Requests over the limit return HTTP 429 with `Retry-After`; no requests are queued.
+Anonymous endpoints partition by client IP, while password changes partition by
+the authenticated user subject, including requests from different sessions/IPs.
+These counters are local to each API replica. A shared IP limit must be configured
+on Envoy Gateway before treating it as a deployment-wide limit.
+
+Unknown/ineligible accounts keep the usual empty response: 202 for
+`forgot-password`, 204 for `resend-confirmation-email`. Each eligible request
+within the HTTP limit can queue another email.
+
+Before deploying behind Envoy, configure `ForwardedHeaders:KnownProxies` or
+`ForwardedHeaders:KnownIPNetworks` with the actual trusted proxy addresses/networks
+and set `ForwardLimit` for the real proxy chain. Without an explicit allowlist,
+the API trusts only loopback proxies. For example, environment variable names are
+`ForwardedHeaders__KnownProxies__0`, or
+`ForwardedHeaders__KnownIPNetworks__0__Prefix` and
+`ForwardedHeaders__KnownIPNetworks__0__PrefixLength`. Envoy must sanitize incoming
+forwarded headers and preserve the actual client IP. This is required for correct
+IP limits and forwarded HTTPS handling.
+
+Lockout remains enabled independently of the request limits.
+
 ## Token Validation
 
 Protected API endpoints validate Bearer tokens through HTTP introspection using

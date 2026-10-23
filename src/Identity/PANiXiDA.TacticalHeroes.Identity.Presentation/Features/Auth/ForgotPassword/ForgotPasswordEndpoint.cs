@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ForgotPassword;
 
 internal sealed class ForgotPasswordEndpoint : IEndpoint<AuthEndpoints>
@@ -11,6 +13,8 @@ internal sealed class ForgotPasswordEndpoint : IEndpoint<AuthEndpoints>
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPost(builder.Route, HandleAsync)
+            .RequireRateLimiting(AuthRateLimitPolicies.ForgotPassword)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
             .AllowAnonymous()
             .Produces(StatusCodes.Status202Accepted)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest);

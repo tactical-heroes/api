@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
+        serviceCollection.AddAuthRateLimiting(configuration);
         serviceCollection.AddSingleton<IValidateOptions<OAuthSpaOptions>, OAuthSpaOptionsValidator>();
         serviceCollection.AddSingleton<IValidateOptions<OAuthTokenOptions>, OAuthTokenOptionsValidator>();
         serviceCollection
