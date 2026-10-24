@@ -65,7 +65,7 @@ public sealed class RegisterUserEndpointTests(FunctionalTestFixture fixture)
         user.ShouldNotBeNull();
         user.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(created.Id);
         var details = await roles.GetDetailsAsync(created.Id, cancellationToken);
-        details.Name.ShouldBe("renameddefault");
+        details.Name.ShouldBe("RenamedDefault");
         details.IsDefault.ShouldBeTrue();
     }
 
