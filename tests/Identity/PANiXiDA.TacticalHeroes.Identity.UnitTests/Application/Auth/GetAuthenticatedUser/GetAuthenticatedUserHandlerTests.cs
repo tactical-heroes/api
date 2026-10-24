@@ -96,6 +96,7 @@ public sealed class GetAuthenticatedUserHandlerTests
             TestContext.Current.CancellationToken);
 
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
-        await sessions.DidNotReceiveWithAnyArgs().IsAuthorizationValidAsync(default, "", default);
+        await sessions.DidNotReceiveWithAnyArgs().IsAuthorizationValidAsync(
+            default, "", TestContext.Current.CancellationToken);
     }
 }
