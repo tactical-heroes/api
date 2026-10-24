@@ -8,10 +8,11 @@ public sealed class DeleteHeroEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new HeroesApiTestClient(Fixture);
-        var faction = await client.CreateFactionAsync(cancellationToken);
+        var faction = await client.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
         var createdHero = await client.CreateAsync(
-            faction.Id,
-            cancellationToken);
+            factionId: faction.Id,
+            request: null,
+            cancellationToken: cancellationToken);
 
         await client.DeleteAsync(createdHero.Id, cancellationToken);
         using var response = await client.GetDetailsResponseAsync(

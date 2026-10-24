@@ -12,22 +12,22 @@ public sealed class GetHeroesEndpointTests(FunctionalTestFixture fixture)
         var client = new HeroesApiTestClient(Fixture);
         const string FactionName = "Northern Alliance";
         var faction = await client.CreateFactionAsync(
-            cancellationToken,
             new CreateFactionRequest(
                 FactionName,
-                "Defenders of the north."));
+                "Defenders of the north."),
+            cancellationToken);
         await client.CreateAsync(
             faction.Id,
-            cancellationToken,
             HeroesApiTestClient.CreateRequest(
                 factionId: faction.Id,
-                name: "Orrin"));
+                name: "Orrin"),
+            cancellationToken);
         await client.CreateAsync(
             faction.Id,
-            cancellationToken,
             HeroesApiTestClient.CreateRequest(
                 factionId: faction.Id,
-                name: "Elara"));
+                name: "Elara"),
+            cancellationToken);
 
         var response = await client.GetListAsync(cancellationToken);
 

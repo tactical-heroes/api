@@ -13,11 +13,12 @@ public sealed class IntrospectEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var createdUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "introspect@example.test",
-            "introspect-hero",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "introspect@example.test",
+            userName: "introspect-hero",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client,

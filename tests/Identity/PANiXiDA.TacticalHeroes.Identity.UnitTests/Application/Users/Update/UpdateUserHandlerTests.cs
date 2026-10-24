@@ -18,13 +18,14 @@ public sealed class UpdateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId
+            user: Arg.Is<User>(user => user.Id.Value == userId
                 && user.Email.Value == "hero@example.com"
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
-            Arg.Any<CancellationToken>())
+            currentAccessToken: null,
+            cancellationToken: Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -42,13 +43,14 @@ public sealed class UpdateUserHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId
+            user: Arg.Is<User>(user => user.Id.Value == userId
                 && user.Email.Value == "hero@example.com"
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
-            cancellationToken);
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
     }
 
     [Theory(
@@ -81,7 +83,10 @@ public sealed class UpdateUserHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
+        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(
+            user: null!,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
     }
 
     [Fact(DisplayName = "User handler should pass assigned role IDs to persistence when role ids are provided")]
@@ -90,7 +95,10 @@ public sealed class UpdateUserHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var roleId = Guid.CreateVersion7();
         var repository = Substitute.For<IUsersRepository>();
-        repository.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+        repository.UpdateAsync(
+            user: Arg.Any<User>(),
+            currentAccessToken: null,
+            cancellationToken: Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
 
@@ -107,8 +115,9 @@ public sealed class UpdateUserHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
-            cancellationToken);
+            user: Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
     }
 
     [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]
@@ -147,7 +156,7 @@ public sealed class UpdateUserHandlerTests
         currentUser.UserId.Returns(isCurrentUser ? userId : Guid.CreateVersion7());
         currentUser.AccessToken.Returns(accessToken);
         var repository = Substitute.For<IUsersRepository>();
-        repository.UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>(), Arg.Any<string?>())
+        repository.UpdateAsync(Arg.Any<User>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new UpdateUserHandler(repository, currentUser);
 
@@ -157,6 +166,8 @@ public sealed class UpdateUserHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId), cancellationToken, expectedToken);
+            Arg.Is<User>(user => user.Id.Value == userId),
+            expectedToken,
+            cancellationToken);
     }
 }

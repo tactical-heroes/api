@@ -8,7 +8,7 @@ public sealed class GetRoleDetailsEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        var createdRole = await client.RecreateAsync(cancellationToken);
+        var createdRole = await client.RecreateAsync(request: null, cancellationToken: cancellationToken);
 
         var response = await client.GetDetailsAsync(createdRole.Id, cancellationToken);
 

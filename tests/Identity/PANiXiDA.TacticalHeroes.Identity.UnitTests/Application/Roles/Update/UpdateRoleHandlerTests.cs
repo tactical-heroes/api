@@ -1,5 +1,7 @@
 using System.Security.Claims;
 
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
@@ -19,6 +21,8 @@ public sealed class UpdateRoleHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IRolesRepository>();
         var readRepository = Substitute.For<IRolesReadRepository>();
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.AccessToken.Returns("current-access-token");
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)null);
         repository.UpdateAsync(
             Arg.Is<Role>(
@@ -27,9 +31,10 @@ public sealed class UpdateRoleHandlerTests
                     && role.IsDefault == isDefault
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            "current-access-token",
             Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        var handler = new UpdateRoleHandler(repository, readRepository);
+        var handler = new UpdateRoleHandler(repository, readRepository, currentUser);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -45,6 +50,7 @@ public sealed class UpdateRoleHandlerTests
                     && role.IsDefault == isDefault
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
+            "current-access-token",
             cancellationToken);
     }
 
@@ -60,7 +66,7 @@ public sealed class UpdateRoleHandlerTests
         var repository = Substitute.For<IRolesRepository>();
         var readRepository = Substitute.For<IRolesReadRepository>();
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)null);
-        var handler = new UpdateRoleHandler(repository, readRepository);
+        var handler = new UpdateRoleHandler(repository, readRepository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -69,7 +75,10 @@ public sealed class UpdateRoleHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
+        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(
+            role: null!,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
     }
 
     [Fact(DisplayName = "Update role handler should return conflict when another default exists")]
@@ -79,14 +88,17 @@ public sealed class UpdateRoleHandlerTests
         var readRepository = Substitute.For<IRolesReadRepository>();
         var currentId = Guid.CreateVersion7();
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)currentId);
-        var handler = new UpdateRoleHandler(repository, readRepository);
+        var handler = new UpdateRoleHandler(repository, readRepository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
             new UpdateRoleCommand(Guid.CreateVersion7(), "CustomDefault", true, []), cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
-        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
+        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(
+            role: null!,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
     }
 
     [Fact(DisplayName = "Update role handler should preserve the default when current default is edited")]
@@ -96,8 +108,9 @@ public sealed class UpdateRoleHandlerTests
         var readRepository = Substitute.For<IRolesReadRepository>();
         var currentId = Guid.CreateVersion7();
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)currentId);
-        repository.UpdateAsync(Arg.Any<Role>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
-        var handler = new UpdateRoleHandler(repository, readRepository);
+        repository.UpdateAsync(Arg.Any<Role>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        var handler = new UpdateRoleHandler(repository, readRepository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -105,6 +118,8 @@ public sealed class UpdateRoleHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<Role>(role => role.Id.Value == currentId && role.IsDefault), cancellationToken);
+            Arg.Is<Role>(role => role.Id.Value == currentId && role.IsDefault),
+            Arg.Any<string?>(),
+            cancellationToken);
     }
 }

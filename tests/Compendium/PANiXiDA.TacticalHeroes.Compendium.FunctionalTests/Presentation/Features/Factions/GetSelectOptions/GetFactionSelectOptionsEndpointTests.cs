@@ -14,11 +14,13 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
-        await client.CreateAsync(cancellationToken, new CreateFactionRequest("Southern Alliance", "South."));
+        await client.CreateAsync(
+            new CreateFactionRequest("Southern Alliance", "South."),
+            cancellationToken);
         var northern = await client.CreateAsync(
-            cancellationToken,
-            new CreateFactionRequest("Northern Alliance", "North."));
-        await client.CreateAsync(cancellationToken, new CreateFactionRequest("Empire", "An alliance."));
+            new CreateFactionRequest("Northern Alliance", "North."),
+            cancellationToken);
+        await client.CreateAsync(new CreateFactionRequest("Empire", "An alliance."), cancellationToken);
 
         using var response = await Fixture.Client.GetAsync(
             $"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}&limit=1",
@@ -39,7 +41,9 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var client = new FactionsApiTestClient(Fixture);
         for (int index = 0; index < 21; index++)
         {
-            await client.CreateAsync(cancellationToken, new CreateFactionRequest($"Faction {index:D2}", "A faction."));
+            await client.CreateAsync(
+                new CreateFactionRequest($"Faction {index:D2}", "A faction."),
+                cancellationToken);
         }
 
         using var response = await Fixture.Client.GetAsync("/api/v1/factions/select-options", cancellationToken);
@@ -108,8 +112,8 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
         var faction = await client.CreateAsync(
-            cancellationToken,
-            new CreateFactionRequest("Northern Alliance", "North."));
+            new CreateFactionRequest("Northern Alliance", "North."),
+            cancellationToken);
 
         using var response = await Fixture.Client
             .GetAsync("/api/v1/factions/select-options?limit=200", cancellationToken);

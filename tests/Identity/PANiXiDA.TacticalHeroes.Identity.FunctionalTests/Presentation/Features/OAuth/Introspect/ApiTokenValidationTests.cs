@@ -18,7 +18,12 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "validation@example.test", "validation-hero", "StrongPassword1!", cancellationToken);
+            fixture: Fixture,
+            email: "validation@example.test",
+            userName: "validation-hero",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             oauthClient, "validation@example.test", "StrongPassword1!", cancellationToken);
@@ -87,11 +92,12 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         var cancellationToken = TestContext.Current.CancellationToken;
         var options = Fixture.Services.GetRequiredService<IOptions<OpenIddictValidationOptions>>().Value;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "service-introspection@example.test",
-            "service-introspection-hero",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "service-introspection@example.test",
+            userName: "service-introspection-hero",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client, "service-introspection@example.test", "StrongPassword1!", cancellationToken);

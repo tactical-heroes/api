@@ -14,11 +14,12 @@ public sealed class AuthorizeEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "authorize@example.test",
-            "authorize-user",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "authorize@example.test",
+            userName: "authorize-user",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
 
         var code = await OAuthAuthorizationRequestTestHelper.LoginAndGetAuthorizationCodeAsync(
@@ -41,16 +42,18 @@ public sealed class AuthorizeEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "authorize-unavailable@example.test",
-            "authorize-unavailable-user",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "authorize-unavailable@example.test",
+            userName: "authorize-unavailable-user",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client,
-            OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
         using var loginResponse = await client.PostAsJsonAsync(
             "/api/v1/auth/login",
             new LoginRequest(
@@ -98,8 +101,8 @@ public sealed class AuthorizeEndpointTests(FunctionalTestFixture fixture)
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
             client,
             OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            cancellationToken,
-            redirectUri);
+            redirectUri,
+            cancellationToken);
 
         using var response = await client.GetAsync(authorizePath, cancellationToken);
 

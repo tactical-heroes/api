@@ -33,7 +33,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        var createdUser = await client.CreateAsync(cancellationToken);
+        var createdUser = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
 
         await client.UpdateAsync(
             createdUser.Id,
@@ -69,7 +69,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         var moderatorId = roles.Single(role => role.Name == "Moderator").Id;
         var client = new UserApiTestClient(Fixture);
         var created = await client.CreateAsync(
-            cancellationToken, UserApiTestClient.CreateDefaultRequest() with { RoleIds = [developerId] });
+            UserApiTestClient.CreateDefaultRequest() with { RoleIds = [developerId] },
+            cancellationToken);
         IReadOnlyCollection<Guid> selected = mode == "clear" ? [] : [moderatorId];
         var payload = JsonSerializer.SerializeToNode(
             new UpdateUserRequest(
@@ -113,7 +114,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             _ => [developerId, Guid.CreateVersion7()]
         };
         var user = await client.CreateAsync(
-            cancellationToken, UserApiTestClient.CreateDefaultRequest() with { RoleIds = [developerId] });
+            UserApiTestClient.CreateDefaultRequest() with { RoleIds = [developerId] },
+            cancellationToken);
         var payload = JsonSerializer.SerializeToNode(
             new UpdateUserRequest(
                 Email: "rejected@example.com",
@@ -154,7 +156,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        var existing = await client.CreateAsync(cancellationToken);
+        var existing = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{existing.Id}")
         {
             Content = JsonContent.Create(
@@ -192,7 +194,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        var user = await client.CreateAsync(cancellationToken);
+        var user = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
         var payload = JsonSerializer.SerializeToNode(
             UserApiTestClient.CreateDefaultRequest() with { Status = status }, JsonOptions)!
             .AsObject();
@@ -222,7 +224,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        var user = await client.CreateAsync(cancellationToken);
+        var user = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
         var payload = JsonSerializer.SerializeToNode(UserApiTestClient.CreateDefaultRequest(), JsonOptions)!.AsObject();
         if (omitStatus)
         {
@@ -258,18 +260,18 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         var (user, roleId) = await CreateUserAsync(
-            !changeClaims && removePermission,
-            ct,
+            assigned: !changeClaims && removePermission,
             claims: changeClaims && removePermission
                 ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
-                : null);
+                : null,
+            ct: ct);
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "unrelated@example.test",
-            "unrelated",
-            Password,
-            ct,
-            claims: [new("permission", "identity.users.update")]);
+            fixture: Fixture,
+            email: "unrelated@example.test",
+            userName: "unrelated",
+            password: Password,
+            claims: [new("permission", "identity.users.update")],
+            cancellationToken: ct);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var unrelated = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
@@ -279,14 +281,16 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             unrelated, "unrelated@example.test", Password, ct);
 
         using var response = await UpdateAsync(
-            current,
-            user.Id,
-            changeClaims || removePermission ? [] : [roleId],
-            self ? tokens.AccessToken : unrelatedTokens.AccessToken,
-            ct,
+            client: current,
+            userId: user.Id,
+            roles: changeClaims || removePermission ? [] : [roleId],
+            accessToken: self ? tokens.AccessToken : unrelatedTokens.AccessToken,
+            status: "Active",
+            isConfirmed: true,
             claims: changeClaims && !removePermission
                 ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
-                : null);
+                : null,
+            ct: ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(ct));
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBe(self);
@@ -294,9 +298,24 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         {
             response.Headers.GetValues("X-Session-Refresh-Required").ShouldBe(["true"]);
         }
-        await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.Unauthorized, ct);
-        await AssertAccessAsync(other, otherTokens.AccessToken, HttpStatusCode.Unauthorized, ct);
-        await AssertAccessAsync(unrelated, unrelatedTokens.AccessToken, HttpStatusCode.OK, ct);
+        await AssertAccessAsync(
+            client: current,
+            token: tokens.AccessToken,
+            status: HttpStatusCode.Unauthorized,
+            path: "/connect/userinfo",
+            ct: ct);
+        await AssertAccessAsync(
+            client: other,
+            token: otherTokens.AccessToken,
+            status: HttpStatusCode.Unauthorized,
+            path: "/connect/userinfo",
+            ct: ct);
+        await AssertAccessAsync(
+            client: unrelated,
+            token: unrelatedTokens.AccessToken,
+            status: HttpStatusCode.OK,
+            path: "/connect/userinfo",
+            ct: ct);
         await AssertCookieAsync(other, false, ct);
         using var otherRefresh = await RefreshAsync(other, otherTokens.RefreshToken, ct);
         otherRefresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -308,13 +327,18 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             response.Headers.Contains("Set-Cookie").ShouldBeTrue();
             using var document = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(ct));
             var access = document.RootElement.GetProperty("access_token").GetString()!;
-            await AssertAccessAsync(current, access, HttpStatusCode.OK, ct);
+            await AssertAccessAsync(
+                client: current,
+                token: access,
+                status: HttpStatusCode.OK,
+                path: "/connect/userinfo",
+                ct: ct);
             await AssertAccessAsync(
                 current,
                 access,
                 removePermission ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
-                ct,
-                "/api/v1/roles");
+                "/api/v1/roles",
+                ct);
             using var nextRefresh = await RefreshAsync(
                 current, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
             nextRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -327,8 +351,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
                 current,
                 newTokens.AccessToken,
                 removePermission ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
-                ct,
-                "/api/v1/roles");
+                "/api/v1/roles",
+                ct);
         }
     }
 
@@ -339,7 +363,9 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         var (user, roleId) = await CreateUserAsync(
-            true, ct, [new("permission", "identity.roles.read"), new("permission", "identity.users.update")]);
+            true,
+            [new("permission", "identity.roles.read"), new("permission", "identity.users.update")],
+            ct);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(current, Email, Password, ct);
         var before = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
@@ -378,7 +404,12 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         }
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
-        await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.OK, ct);
+        await AssertAccessAsync(
+            client: current,
+            token: tokens.AccessToken,
+            status: HttpStatusCode.OK,
+            path: "/connect/userinfo",
+            ct: ct);
         await AssertCookieAsync(current, true, ct);
         using var refresh = await RefreshAsync(current, tokens.RefreshToken, ct);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -388,12 +419,20 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     public async Task PutUser_Should_PreserveRefresh_When_CurrentCookieIsAbsent()
     {
         var ct = TestContext.Current.CancellationToken;
-        var (user, roleId) = await CreateUserAsync(false, ct);
+        var (user, roleId) = await CreateUserAsync(assigned: false, claims: null, ct: ct);
         using var browser = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(browser, Email, Password, ct);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
 
-        using var response = await UpdateAsync(client, user.Id, [roleId], tokens.AccessToken, ct);
+        using var response = await UpdateAsync(
+            client: client,
+            userId: user.Id,
+            roles: [roleId],
+            accessToken: tokens.AccessToken,
+            status: "Active",
+            isConfirmed: true,
+            claims: null,
+            ct: ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
@@ -409,15 +448,28 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     public async Task PutUser_Should_RevokeCurrentSession_When_UserBecomesUnavailable(string status, bool isConfirmed)
     {
         var ct = TestContext.Current.CancellationToken;
-        var (user, roleId) = await CreateUserAsync(false, ct);
+        var (user, roleId) = await CreateUserAsync(assigned: false, claims: null, ct: ct);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(current, Email, Password, ct);
 
-        using var response = await UpdateAsync(current, user.Id, [roleId], tokens.AccessToken, ct, status, isConfirmed);
+        using var response = await UpdateAsync(
+            client: current,
+            userId: user.Id,
+            roles: [roleId],
+            accessToken: tokens.AccessToken,
+            status: status,
+            isConfirmed: isConfirmed,
+            claims: null,
+            ct: ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(ct));
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
-        await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.Unauthorized, ct);
+        await AssertAccessAsync(
+            client: current,
+            token: tokens.AccessToken,
+            status: HttpStatusCode.Unauthorized,
+            path: "/connect/userinfo",
+            ct: ct);
         await AssertCookieAsync(current, false, ct);
         using var refresh = await RefreshAsync(current, tokens.RefreshToken, ct);
         refresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -429,7 +481,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     public async Task PutUser_Should_RollBackAuthorizationAndSessions_When_RevocationIsCanceled(bool changeClaims)
     {
         var ct = TestContext.Current.CancellationToken;
-        var (user, roleId) = await CreateUserAsync(false, ct);
+        var (user, roleId) = await CreateUserAsync(assigned: false, claims: null, ct: ct);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(current, Email, Password, ct);
@@ -447,14 +499,16 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         };
 
         using var response = await UpdateAsync(
-            client,
-            user.Id,
-            changeClaims ? [] : [roleId],
-            tokens.AccessToken,
-            ct,
+            client: client,
+            userId: user.Id,
+            roles: changeClaims ? [] : [roleId],
+            accessToken: tokens.AccessToken,
+            status: "Active",
+            isConfirmed: true,
             claims: changeClaims
                 ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
-                : null);
+                : null,
+            ct: ct);
 
         ((int)response.StatusCode).ShouldBe(499, await response.Content.ReadAsStringAsync(ct));
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
@@ -463,17 +517,29 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
         after.Claims.Select(claim => claim.ClaimValue).ShouldBe(["identity.users.update"]);
         (await new UserApiTestClient(Fixture).GetDetailsAsync(user.Id, ct)).RoleIds.ShouldBeEmpty();
-        await AssertAccessAsync(current, tokens.AccessToken, HttpStatusCode.OK, ct);
-        await AssertAccessAsync(other, otherTokens.AccessToken, HttpStatusCode.OK, ct);
+        await AssertAccessAsync(
+            client: current,
+            token: tokens.AccessToken,
+            status: HttpStatusCode.OK,
+            path: "/connect/userinfo",
+            ct: ct);
+        await AssertAccessAsync(
+            client: other,
+            token: otherTokens.AccessToken,
+            status: HttpStatusCode.OK,
+            path: "/connect/userinfo",
+            ct: ct);
         using var retry = await UpdateAsync(
-            current,
-            user.Id,
-            changeClaims ? [] : [roleId],
-            tokens.AccessToken,
-            ct,
+            client: current,
+            userId: user.Id,
+            roles: changeClaims ? [] : [roleId],
+            accessToken: tokens.AccessToken,
+            status: "Active",
+            isConfirmed: true,
             claims: changeClaims
                 ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
-                : null);
+                : null,
+            ct: ct);
         retry.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
@@ -484,11 +550,11 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         var (user, _) = await CreateUserAsync(
-            !changeClaims,
-            ct,
+            assigned: !changeClaims,
             claims: changeClaims
                 ? [new("permission", "identity.users.update"), new("permission", "identity.roles.read")]
-                : null);
+                : null,
+            ct: ct);
         var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseRefresh = false;
@@ -517,7 +583,15 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         try
         {
             await paused.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
-            using var update = await UpdateAsync(current, user.Id, [], tokens.AccessToken, ct);
+            using var update = await UpdateAsync(
+                client: current,
+                userId: user.Id,
+                roles: [],
+                accessToken: tokens.AccessToken,
+                status: "Active",
+                isConfirmed: true,
+                claims: null,
+                ct: ct);
             update.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         }
         finally
@@ -532,8 +606,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             current,
             document.RootElement.GetProperty("access_token").GetString()!,
             HttpStatusCode.Unauthorized,
-            ct,
-            "/api/v1/roles");
+            "/api/v1/roles",
+            ct);
         using var nextRefresh = await RefreshAsync(
             current, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
         nextRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -542,8 +616,8 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             current,
             nextDocument.RootElement.GetProperty("access_token").GetString()!,
             HttpStatusCode.Forbidden,
-            ct,
-            "/api/v1/roles");
+            "/api/v1/roles",
+            ct);
     }
 
     private static async Task<HttpResponseMessage> RefreshAsync(
@@ -559,7 +633,11 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     }
 
     private static async Task AssertAccessAsync(
-        HttpClient client, string token, HttpStatusCode status, CancellationToken ct, string path = "/connect/userinfo")
+        HttpClient client,
+        string token,
+        HttpStatusCode status,
+        string path,
+        CancellationToken ct)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -570,7 +648,10 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     private static async Task AssertCookieAsync(HttpClient client, bool valid, CancellationToken ct)
     {
         var path = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client, OAuthAuthorizationRequestTestHelper.DefaultScopes, ct);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: ct);
         using var response = await client.GetAsync(path, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
         response.Headers.Location!.AbsoluteUri.ShouldStartWith(valid
@@ -579,18 +660,20 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     }
 
     private async Task<(CreateUserResponse User, Guid RoleId)> CreateUserAsync(
-        bool assigned, CancellationToken ct, IReadOnlyCollection<Claim>? claims = null)
+        bool assigned,
+        IReadOnlyCollection<Claim>? claims,
+        CancellationToken ct)
     {
         var role = await new RoleApiTestClient(Fixture).CreateAsync(
-            ct,
-            new CreateRoleRequest("SessionRole", false, [new("permission", "identity.roles.read")]));
+            new CreateRoleRequest("SessionRole", false, [new("permission", "identity.roles.read")]),
+            ct);
         var user = await new UserApiTestClient(Fixture).CreateAsync(
-            ct,
             UserApiTestClient.CreateDefaultRequest(Email, "role-session") with
             {
                 Claims = claims ?? [new("permission", "identity.users.update")],
                 RoleIds = assigned ? [role.Id] : []
-            });
+            },
+            ct);
         return (user, role.Id);
     }
 
@@ -599,10 +682,10 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         Guid userId,
         IReadOnlyCollection<Guid> roles,
         string? accessToken,
-        CancellationToken ct,
-        string status = "Active",
-        bool isConfirmed = true,
-        IReadOnlyCollection<Claim>? claims = null)
+        string status,
+        bool isConfirmed,
+        IReadOnlyCollection<Claim>? claims,
+        CancellationToken ct)
     {
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{userId}")
         {

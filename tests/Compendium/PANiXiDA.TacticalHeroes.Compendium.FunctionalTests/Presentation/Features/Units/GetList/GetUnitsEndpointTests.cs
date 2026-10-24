@@ -12,22 +12,22 @@ public sealed class GetUnitsEndpointTests(FunctionalTestFixture fixture)
         var client = new UnitsApiTestClient(Fixture);
         const string FactionName = "Northern Alliance";
         var faction = await client.CreateFactionAsync(
-            cancellationToken,
             new CreateFactionRequest(
                 FactionName,
-                "Defenders of the north."));
+                "Defenders of the north."),
+            cancellationToken);
         await client.CreateAsync(
             faction.Id,
-            cancellationToken,
             UnitsApiTestClient.CreateRequest(
                 factionId: faction.Id,
-                name: "Marksman"));
+                name: "Marksman"),
+            cancellationToken);
         await client.CreateAsync(
             faction.Id,
-            cancellationToken,
             UnitsApiTestClient.CreateRequest(
                 factionId: faction.Id,
-                name: "Archer"));
+                name: "Archer"),
+            cancellationToken);
 
         var response = await client.GetListAsync(cancellationToken);
 

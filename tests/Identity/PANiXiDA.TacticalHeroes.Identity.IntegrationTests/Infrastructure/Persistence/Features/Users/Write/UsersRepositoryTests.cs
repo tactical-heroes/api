@@ -63,7 +63,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
             var result = await repository.UpdateAsync(
-                IntegrationTestData.CreateUser(
+                user: IntegrationTestData.CreateUser(
                     id: userId,
                     email: "updated@example.com",
                     isConfirmed: true,
@@ -72,7 +72,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
                         claim => (claim.Type, claim.Value)),
                     userName: "updated-hero",
                     status: UserStatus.Blocked),
-                cancellationToken);
+                currentAccessToken: null,
+                cancellationToken: cancellationToken);
 
             result.IsSuccess.ShouldBeTrue();
         }
@@ -201,6 +202,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
 
         var result = await repository.UpdateAsync(
             user: CreateUser(userId, targetRoles),
+            currentAccessToken: null,
             cancellationToken: cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -240,7 +242,10 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         created.IsSuccess.ShouldBeTrue();
         var invalidUser = CreateUser(id, [Guid.CreateVersion7()]);
 
-        var result = await repository.UpdateAsync(invalidUser, cancellationToken);
+        var result = await repository.UpdateAsync(
+            user: invalidUser,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
 
         result.IsSuccess.ShouldBeFalse();
         (await dbContext.Set<ApplicationUser>().CountAsync(cancellationToken)).ShouldBe(1);
@@ -297,7 +302,10 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             userName: duplicateEmail ? "hero" : "occupied",
             status: change == "block" ? UserStatus.Blocked : UserStatus.Active);
 
-        var result = await repository.UpdateAsync(updated, cancellationToken);
+        var result = await repository.UpdateAsync(
+            user: updated,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
         var persisted = await dbContext.Set<ApplicationUser>()
@@ -389,7 +397,10 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             userName: "hero",
             status: UserStatus.Active);
 
-        var result = await repository.UpdateAsync(updated, ct);
+        var result = await repository.UpdateAsync(
+            user: updated,
+            currentAccessToken: null,
+            cancellationToken: ct);
 
         result.IsSuccess.ShouldBeTrue();
         var changed = mode is not ("same" or "reorder");

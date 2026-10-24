@@ -58,7 +58,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrent
 
         return usersRepository.UpdateAsync(
             user: user,
-            cancellationToken: cancellationToken,
-            currentAccessToken: currentUser.UserId == command.Id ? currentUser.AccessToken : null);
+            currentAccessToken: currentUser.UserId == command.Id ? currentUser.AccessToken : null,
+            cancellationToken: cancellationToken);
     }
 }

@@ -24,8 +24,14 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetSelectOptionsAsync_Should_ReturnSortedOptionsWithDefaultFlag_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var playerId = await AddRoleAsync("Player", cancellationToken, isDefault: true);
-        var developerId = await AddRoleAsync("Developer", cancellationToken);
+        var playerId = await AddRoleAsync(
+            name: "Player",
+            isDefault: true,
+            cancellationToken: cancellationToken);
+        var developerId = await AddRoleAsync(
+            name: "Developer",
+            isDefault: false,
+            cancellationToken: cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
 
@@ -42,7 +48,10 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         for (int index = 0; index < 101; index++)
         {
-            await AddRoleAsync($"Role {index:D3}", cancellationToken);
+            await AddRoleAsync(
+                name: $"Role {index:D3}",
+                isDefault: false,
+                cancellationToken: cancellationToken);
         }
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -58,7 +67,10 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("Developer", cancellationToken);
+        var roleId = await AddRoleAsync(
+            name: "Developer",
+            isDefault: false,
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -72,8 +84,8 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetPageAsync_Should_ReturnSortedPage_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddRoleAsync("Player", cancellationToken);
-        await AddRoleAsync("Developer", cancellationToken);
+        await AddRoleAsync(name: "Player", isDefault: false, cancellationToken: cancellationToken);
+        await AddRoleAsync(name: "Developer", isDefault: false, cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -90,7 +102,10 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("Moderator", cancellationToken);
+        var roleId = await AddRoleAsync(
+            name: "Moderator",
+            isDefault: false,
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -110,7 +125,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
         }
 
-        await AddRoleAsync("Moderator", cancellationToken);
+        await AddRoleAsync(name: "Moderator", isDefault: false, cancellationToken: cancellationToken);
 
         await using var populatedScope = Fixture.CreateScope();
         var populatedRepository =
@@ -122,7 +137,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetDefaultIdAsync_Should_ReturnNull_When_DefaultIsMissing()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddRoleAsync("Moderator", cancellationToken);
+        await AddRoleAsync(name: "Moderator", isDefault: false, cancellationToken: cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
 
@@ -135,7 +150,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetDefaultIdAsync_Should_ReturnConfiguredRoleId_When_DefaultExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddRoleAsync("Moderator", cancellationToken);
+        await AddRoleAsync(name: "Moderator", isDefault: false, cancellationToken: cancellationToken);
         await using var scope = Fixture.CreateScope();
         var writeRepository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var roleId = Guid.CreateVersion7();
@@ -153,8 +168,8 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
 
     private async Task<Guid> AddRoleAsync(
         string name,
-        CancellationToken cancellationToken,
-        bool isDefault = false)
+        bool isDefault,
+        CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();

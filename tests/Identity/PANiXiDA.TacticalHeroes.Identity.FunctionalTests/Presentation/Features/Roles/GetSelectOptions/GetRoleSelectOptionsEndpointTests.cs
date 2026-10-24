@@ -68,7 +68,10 @@ public sealed class GetRoleSelectOptionsEndpointTests(FunctionalTestFixture fixt
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/roles/select-options");
         request.Headers.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(
+                Fixture,
+                [permission],
+                cancellationToken));
 
         using var response = await Client.SendAsync(request, cancellationToken);
 

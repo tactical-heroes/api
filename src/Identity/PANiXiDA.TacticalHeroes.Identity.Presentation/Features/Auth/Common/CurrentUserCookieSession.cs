@@ -28,6 +28,13 @@ internal sealed class CurrentUserCookieSession(ICurrentUser currentUser, IMediat
         return new Snapshot(userId, cookie.Properties);
     }
 
+    internal Task RenewIfRequiredAsync(HttpContext context, Snapshot? session, CancellationToken cancellationToken)
+    {
+        return HttpCurrentUserSessionRefresh.IsRequired(context)
+            ? RenewAsync(context: context, session: session, cancellationToken: cancellationToken)
+            : Task.CompletedTask;
+    }
+
     internal async Task RenewAsync(HttpContext context, Snapshot? session, CancellationToken cancellationToken)
     {
         if (session is null || currentUser.UserId != session.UserId)

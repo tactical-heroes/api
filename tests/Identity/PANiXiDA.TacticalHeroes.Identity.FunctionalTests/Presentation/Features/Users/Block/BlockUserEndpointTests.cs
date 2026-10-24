@@ -13,11 +13,11 @@ public sealed class BlockUserEndpointTests(FunctionalTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
         var createdUser = await client.CreateAsync(
-            cancellationToken,
             UserApiTestClient.CreateDefaultRequest() with
             {
                 Claims = [new("permission", "identity.users.read")]
-            });
+            },
+            cancellationToken);
         using var userClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             userClient,

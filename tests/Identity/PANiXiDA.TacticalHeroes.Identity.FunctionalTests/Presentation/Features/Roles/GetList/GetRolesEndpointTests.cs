@@ -31,7 +31,10 @@ public sealed class GetRolesEndpointTests(FunctionalTestFixture fixture)
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/roles?pageNumber=1&pageSize=20");
         request.Headers.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(
+                Fixture,
+                [permission],
+                cancellationToken));
 
         using var response = await Client.SendAsync(request, cancellationToken);
 

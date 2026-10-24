@@ -13,11 +13,12 @@ public sealed class GetUserInfoEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var createdUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "userinfo@example.test",
-            "userinfo-hero",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "userinfo@example.test",
+            userName: "userinfo-hero",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client,
