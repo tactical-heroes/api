@@ -11,7 +11,8 @@ public sealed class GetAuthenticatedUserQueryValidatorTests
     {
         var validator = new GetAuthenticatedUserQueryValidator();
 
-        var result = validator.Validate(new GetAuthenticatedUserQuery(valid ? Guid.CreateVersion7() : Guid.Empty));
+        var result = validator.Validate(new GetAuthenticatedUserQuery(
+            valid ? Guid.CreateVersion7() : Guid.Empty, "stamp"));
 
         result.IsValid.ShouldBe(valid);
     }

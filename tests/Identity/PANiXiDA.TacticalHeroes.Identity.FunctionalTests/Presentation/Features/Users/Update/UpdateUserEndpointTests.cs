@@ -15,7 +15,9 @@ using OpenIddict.Server;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
@@ -27,6 +29,60 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
     private const string Email = "role-session@example.test";
+
+    [Theory(DisplayName = "PUT user should not restore a cookie when password reset races claims read")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PutUser_Should_NotRestoreCookie_When_PasswordResetRacesClaimsRead(bool readBeforePause)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (user, _) = await CreateUserAsync(assigned: false, claims: null, ct: ct);
+        var reached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pause = false;
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory.WithAuthenticatedUserReadPause(
+            reached, resume, readBeforePause, () => pause);
+        using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = false
+        });
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(browser, Email, Password, ct);
+        pause = true;
+
+        var pending = UpdateAsync(
+            client: browser,
+            userId: user.Id,
+            roles: [],
+            accessToken: tokens.AccessToken,
+            status: "Active",
+            isConfirmed: true,
+            claims: [new("permission", "identity.users.update"), new("permission", "identity.roles.read")],
+            ct: ct);
+        try
+        {
+            await reached.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
+            await using var scope = Fixture.Services.CreateAsyncScope();
+            var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var stored = await manager.FindByIdAsync(user.Id.ToString());
+            stored.ShouldNotBeNull();
+            var token = await manager.GeneratePasswordResetTokenAsync(stored);
+            using var reset = await Client.PostAsJsonAsync(
+                "/api/v1/auth/reset-password", new ResetPasswordRequest(user.Id, token, "OtherStrongPassword2!"), ct);
+            reset.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        }
+        finally
+        {
+            resume.TrySetResult();
+        }
+        using var response = await pending;
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        await AssertCookieAsync(browser, false, ct);
+        using var refresh = await RefreshAsync(browser, tokens.RefreshToken, ct);
+        refresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
 
     [Fact(DisplayName = "PUT user should update persisted user state when request is valid")]
     public async Task PutUser_Should_UpdatePostgreSql_When_RequestIsValid()
