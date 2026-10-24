@@ -116,17 +116,10 @@ public sealed class UsersRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        if (authorizationChanged && !user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+        if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
         {
-            await userSessionService.InvalidateAccessTokensAsync(
-                userId: user.Id.Value,
-                refreshCurrentSession: preservedAuthorizationId is not null,
-                cancellationToken: cancellationToken);
-        }
-        else if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
-        {
-            await userSessionService.RevokeAsync(
-                userId: user.Id.Value,
+            await InvalidateSessionsAsync(
+                user: user,
                 preservedAuthorizationId: preservedAuthorizationId,
                 cancellationToken: cancellationToken);
         }
@@ -189,6 +182,25 @@ public sealed class UsersRepository(
     private static Result UserNotFound()
     {
         return Result.Failure(error: Error.NotFound(message: "User was not found."));
+    }
+
+    private Task InvalidateSessionsAsync(
+        User user,
+        string? preservedAuthorizationId,
+        CancellationToken cancellationToken)
+    {
+        if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+        {
+            return userSessionService.InvalidateAccessTokensAsync(
+                userId: user.Id.Value,
+                refreshCurrentSession: preservedAuthorizationId is not null,
+                cancellationToken: cancellationToken);
+        }
+
+        return userSessionService.RevokeAsync(
+            userId: user.Id.Value,
+            preservedAuthorizationId: preservedAuthorizationId,
+            cancellationToken: cancellationToken);
     }
 
     private async Task<Result> UpdateStatusAsync(
