@@ -41,7 +41,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             service: actor == "service",
             ct: ct);
 
-        await sessions.AssertRevokedAsync(response, actor == "self", change != "remove", name.ToLowerInvariant(), ct);
+        await sessions.AssertRevokedAsync(response, actor == "self", change != "remove", name, ct);
     }
 
     [Theory(DisplayName = "PUT role should preserve sessions when authorization is unchanged or update fails")]
