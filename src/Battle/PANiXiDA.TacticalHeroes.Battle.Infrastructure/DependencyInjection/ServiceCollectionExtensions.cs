@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
+
 namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
@@ -9,8 +11,10 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        ArgumentNullException.ThrowIfNull(serviceCollection);
-        ArgumentNullException.ThrowIfNull(configuration);
+        serviceCollection.AddPostgreSqlEfRepository<
+            BattleWriteDbContext,
+            BattleReadDbContext>(
+                configuration);
 
         return serviceCollection;
     }
