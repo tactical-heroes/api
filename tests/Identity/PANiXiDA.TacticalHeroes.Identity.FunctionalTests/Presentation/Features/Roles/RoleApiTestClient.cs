@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
+using Microsoft.IdentityModel.JsonWebTokens;
+
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
@@ -292,30 +294,38 @@ internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
             await AssertCookieAsync(Member, false, ct);
             await AssertCookieAsync(Unrelated, true, ct);
             using var otherRefresh = await RefreshAsync(Other, OtherTokens.RefreshToken, ct);
-            otherRefresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+            otherRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
             using var memberRefresh = await RefreshAsync(Member, MemberTokens.RefreshToken, ct);
-            memberRefresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+            memberRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
             using var refresh = await RefreshAsync(Current, CurrentTokens.RefreshToken, ct);
-            refresh.StatusCode.ShouldBe(self ? HttpStatusCode.OK : HttpStatusCode.BadRequest);
-            if (self)
+            refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
+            foreach (var (session, tokenResponse) in new[]
+                     {
+                         (Current, refresh), (Other, otherRefresh), (Member, memberRefresh)
+                     })
             {
-                using var document = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(ct));
+                using var document = JsonDocument.Parse(await tokenResponse.Content.ReadAsStringAsync(ct));
+                var identityToken = new JsonWebToken(document.RootElement.GetProperty("id_token").GetString()!);
+                identityToken.Claims.Any(claim => claim.Type == "permission" && claim.Value == "identity.roles.read")
+                    .ShouldBe(hasPermission);
                 var access = document.RootElement.GetProperty("access_token").GetString()!;
                 await AssertAccessAsync(
-                    Current,
+                    session,
                     access,
                     hasPermission ? HttpStatusCode.OK : HttpStatusCode.Forbidden,
                     "/api/v1/roles",
                     ct);
-                using var request = new HttpRequestMessage(HttpMethod.Get, "/connect/userinfo");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
-                using var userInfo = await Current.SendAsync(request, ct);
-                userInfo.StatusCode.ShouldBe(HttpStatusCode.OK);
-                var user = await userInfo.Content.ReadFromJsonAsync<GetUserInfoResponse>(cancellationToken: ct);
-                user.ShouldNotBeNull();
-                (user.Role ?? []).ShouldBe(roleName is null ? [] : [roleName]);
+                using (var request = new HttpRequestMessage(HttpMethod.Get, "/connect/userinfo"))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+                    using var userInfo = await session.SendAsync(request, ct);
+                    userInfo.StatusCode.ShouldBe(HttpStatusCode.OK);
+                    var user = await userInfo.Content.ReadFromJsonAsync<GetUserInfoResponse>(cancellationToken: ct);
+                    user.ShouldNotBeNull();
+                    (user.Role ?? []).ShouldBe(roleName is null ? [] : [roleName]);
+                }
                 using var next = await RefreshAsync(
-                    Current, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
+                    session, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
                 next.StatusCode.ShouldBe(HttpStatusCode.OK);
             }
         }

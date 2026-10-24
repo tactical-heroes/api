@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.Net.Http.Headers;
 
 using OpenIddict.Abstractions;
@@ -246,7 +247,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, responseBody);
     }
 
-    [Theory(DisplayName = "PUT user should revoke sessions and refresh current permissions when authorization changes")]
+    [Theory(DisplayName = "PUT user should invalidate access and preserve refresh when authorization changes")]
     [InlineData(true, true, false)]
     [InlineData(true, false, false)]
     [InlineData(false, true, false)]
@@ -255,7 +256,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     [InlineData(true, false, true)]
     [InlineData(false, true, true)]
     [InlineData(false, false, true)]
-    public async Task PutUser_Should_InvalidateSessions_When_AuthorizationChanges(
+    public async Task PutUser_Should_InvalidateAccessAndPreserveRefresh_When_AuthorizationChanges(
         bool self, bool removePermission, bool changeClaims)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -318,41 +319,37 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             ct: ct);
         await AssertCookieAsync(other, false, ct);
         using var otherRefresh = await RefreshAsync(other, otherTokens.RefreshToken, ct);
-        otherRefresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        otherRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
         using var refresh = await RefreshAsync(current, tokens.RefreshToken, ct);
-        refresh.StatusCode.ShouldBe(self ? HttpStatusCode.OK : HttpStatusCode.BadRequest);
+        refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
         await AssertCookieAsync(current, self, ct);
         if (self)
         {
             response.Headers.Contains("Set-Cookie").ShouldBeTrue();
-            using var document = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(ct));
+        }
+
+        foreach (var (session, tokenResponse) in new[] { (current, refresh), (other, otherRefresh) })
+        {
+            using var document = JsonDocument.Parse(await tokenResponse.Content.ReadAsStringAsync(ct));
+            var identityToken = new JsonWebToken(document.RootElement.GetProperty("id_token").GetString()!);
+            identityToken.Claims.Any(claim => claim.Type == "permission" && claim.Value == "identity.roles.read")
+                .ShouldBe(!removePermission);
             var access = document.RootElement.GetProperty("access_token").GetString()!;
             await AssertAccessAsync(
-                client: current,
+                client: session,
                 token: access,
                 status: HttpStatusCode.OK,
                 path: "/connect/userinfo",
                 ct: ct);
             await AssertAccessAsync(
-                current,
+                session,
                 access,
                 removePermission ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
                 "/api/v1/roles",
                 ct);
             using var nextRefresh = await RefreshAsync(
-                current, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
+                session, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
             nextRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
-        }
-        else
-        {
-            var newTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
-                current, Email, Password, ct);
-            await AssertAccessAsync(
-                current,
-                newTokens.AccessToken,
-                removePermission ? HttpStatusCode.Forbidden : HttpStatusCode.OK,
-                "/api/v1/roles",
-                ct);
         }
     }
 
@@ -798,7 +795,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         public override async ValueTask<int> SavedChangesAsync(
             SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken)
         {
-            if (eventData.Context?.ChangeTracker.Entries<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            if (eventData.Context?.ChangeTracker.Entries<OpenIddictEntityFrameworkCoreToken<Guid>>()
                 .Any(entry => entry.Entity.Subject == subject
                     && entry.Entity.Status == OpenIddictConstants.Statuses.Revoked) == true)
             {

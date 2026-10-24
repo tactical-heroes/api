@@ -16,14 +16,14 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Bulk revocation should use three updates when member counts sessions and preservation vary")]
+    [Theory(DisplayName = "Bulk access invalidation should use two updates when membership varies")]
     [InlineData(2, 1, false)]
     [InlineData(2, 8, false)]
     [InlineData(2, 1, true)]
     [InlineData(2, 8, true)]
     [InlineData(64, 1, false)]
     [InlineData(64, 1, true)]
-    public async Task RevokeRoleMembersAsync_Should_UseThreeUpdates_When_MemberCountsSessionsAndPreservationVary(
+    public async Task InvalidateRoleMemberAccessTokensAsync_Should_UseTwoUpdates_When_MembershipVaries(
         int memberCount, int count, bool preserve)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -114,14 +114,14 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         await using var bulkContext = new IdentityWriteDbContext(options, []);
         var service = new UserSessionService(tokens, authorizations, bulkContext);
 
-        await service.RevokeRoleMembersAsync(
+        await service.InvalidateRoleMemberAccessTokensAsync(
             roleId: role.Id,
-            preservedAuthorizationId: preserve ? currentId : null,
+            refreshCurrentSession: preserve,
             cancellationToken: ct);
 
-        counter.Count.ShouldBe(3);
+        counter.Count.ShouldBe(2);
         counter.ReadCount.ShouldBe(0);
-        counter.SubqueryCount.ShouldBe(3);
+        counter.SubqueryCount.ShouldBe(2);
         var persistedUsers = await bulkContext.Users.AsNoTracking().ToDictionaryAsync(user => user.Id, ct);
         foreach (var user in users.Take(memberCount))
         {
@@ -134,11 +134,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             .ToListAsync(ct);
         foreach (var authorization in persistedAuthorizations)
         {
-            var valid = authorization.Subject == users[^1].Id.ToString()
-                || (preserve && authorization.Id.ToString() == currentId);
-            authorization.Status.ShouldBe(valid
-                ? OpenIddictConstants.Statuses.Valid
-                : OpenIddictConstants.Statuses.Revoked);
+            authorization.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
         }
         var persistedTokens = await bulkContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
             .Include(token => token.Authorization)
@@ -147,15 +143,13 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         foreach (var token in persistedTokens)
         {
             var valid = token.Subject == users[^1].Id.ToString()
-                || (preserve
-                    && token.Authorization?.Id.ToString() == currentId
-                    && token.Type is OpenIddictConstants.TokenTypeHints.RefreshToken
-                        or OpenIddictConstants.TokenTypeIdentifiers.RefreshToken);
+                || token.Type is not (OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+                    or OpenIddictConstants.TokenTypeHints.AccessToken);
             token.Status.ShouldBe(valid ? OpenIddictConstants.Statuses.Valid : OpenIddictConstants.Statuses.Revoked);
         }
         var currentTokens = persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId);
-        currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(preserve ? 2 : 0);
-        (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeFalse();
+        currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(3);
+        (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeTrue();
     }
 
     private sealed class BulkUpdateCounter : DbCommandInterceptor

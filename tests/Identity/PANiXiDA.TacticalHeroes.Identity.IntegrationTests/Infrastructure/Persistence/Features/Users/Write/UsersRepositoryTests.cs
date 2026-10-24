@@ -420,8 +420,14 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .ToListAsync(ct);
         var expected = changed ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid;
-        authorizations.Single(item => item.Subject == id.ToString()).Status.ShouldBe(expected);
-        tokens.Where(item => item.Subject == id.ToString()).ShouldAllBe(item => item.Status == expected);
+        authorizations.Single(item => item.Subject == id.ToString()).Status.ShouldBe(
+            mode == "unconfirm" ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid);
+        foreach (var token in tokens.Where(item => item.Subject == id.ToString()))
+        {
+            token.Status.ShouldBe(mode == "unconfirm" || token.Type == OpenIddictConstants.TokenTypeHints.AccessToken
+                ? expected
+                : OpenIddictConstants.Statuses.Valid);
+        }
         authorizations.Single(item => item.Subject == otherId.ToString()).Status
             .ShouldBe(OpenIddictConstants.Statuses.Valid);
         tokens.Where(item => item.Subject == otherId.ToString())

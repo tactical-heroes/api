@@ -339,7 +339,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             {
                 Subject = userId.ToString(),
                 AuthorizationId = await authorizations.GetIdAsync(authorization, ct),
-                Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
                 Status = OpenIddictConstants.Statuses.Valid
             },
             ct);

@@ -144,14 +144,47 @@ public sealed class UserSessionService(
         }
     }
 
-    internal async Task RevokeRoleMembersAsync(
+    internal async Task InvalidateAccessTokensAsync(
+        Guid userId,
+        bool refreshCurrentSession,
+        CancellationToken cancellationToken)
+    {
+        var tokens = await tokenManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
+            .ToListAsync(cancellationToken);
+        foreach (var token in tokens)
+        {
+            if (!await tokenManager.HasTypeAsync(
+                token: token,
+                type: OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                cancellationToken: cancellationToken)
+                && !await tokenManager.HasTypeAsync(
+                    token: token,
+                    type: OpenIddictConstants.TokenTypeHints.AccessToken,
+                    cancellationToken: cancellationToken))
+            {
+                continue;
+            }
+
+            if (!await tokenManager.TryRevokeAsync(token, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new InvalidOperationException("Failed to revoke a user access token.");
+            }
+        }
+
+        if (refreshCurrentSession)
+        {
+            sessionRefresh?.RequireRefresh();
+        }
+    }
+
+    internal async Task InvalidateRoleMemberAccessTokensAsync(
         Guid roleId,
-        string? preservedAuthorizationId,
+        bool refreshCurrentSession,
         CancellationToken cancellationToken)
     {
         var userIds = GetRoleMemberIds(roleId);
         var subjects = userIds.Select(id => id.ToString());
-        Guid? preservedId = preservedAuthorizationId is null ? null : Guid.Parse(preservedAuthorizationId);
         await dbContext.Users.Where(user => userIds.Contains(user.Id))
             .ExecuteUpdateAsync(
                 setters => setters
@@ -159,23 +192,10 @@ public sealed class UserSessionService(
                     .SetProperty(user => user.ConcurrencyStamp, _ => Guid.NewGuid().ToString()),
                 cancellationToken);
 
-        await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
-            .Where(authorization => subjects.Contains(authorization.Subject!))
-            .Where(authorization => !preservedId.HasValue || authorization.Id != preservedId.Value)
-            .Where(authorization => authorization.Status != OpenIddictConstants.Statuses.Revoked)
-            .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(authorization => authorization.Status, OpenIddictConstants.Statuses.Revoked)
-                    .SetProperty(authorization => authorization.ConcurrencyToken, _ => Guid.NewGuid().ToString()),
-                cancellationToken);
-
         await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
             .Where(token => subjects.Contains(token.Subject!))
-            .Where(token => !preservedId.HasValue
-                || token.Authorization == null
-                || token.Authorization.Id != preservedId.Value
-                || (token.Type != OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
-                    && token.Type != OpenIddictConstants.TokenTypeHints.RefreshToken))
+            .Where(token => token.Type == OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+                || token.Type == OpenIddictConstants.TokenTypeHints.AccessToken)
             .Where(token => token.Status != OpenIddictConstants.Statuses.Revoked)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -183,7 +203,7 @@ public sealed class UserSessionService(
                     .SetProperty(token => token.ConcurrencyToken, _ => Guid.NewGuid().ToString()),
                 cancellationToken);
 
-        if (preservedAuthorizationId is not null)
+        if (refreshCurrentSession)
         {
             sessionRefresh?.RequireRefresh();
         }

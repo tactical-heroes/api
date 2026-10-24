@@ -116,7 +116,14 @@ public sealed class UsersRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
+        if (authorizationChanged && !user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+        {
+            await userSessionService.InvalidateAccessTokensAsync(
+                userId: user.Id.Value,
+                refreshCurrentSession: preservedAuthorizationId is not null,
+                cancellationToken: cancellationToken);
+        }
+        else if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
         {
             await userSessionService.RevokeAsync(
                 userId: user.Id.Value,

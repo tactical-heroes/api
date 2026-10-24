@@ -81,6 +81,13 @@ own session and protocol checks.
 `/connect/authorize` checks only user availability without loading roles or claims;
 `/connect/token` loads current user and role claims when issuing tokens.
 
+Changes to user permissions, role assignments, role permissions or role names
+invalidate affected access tokens while retaining authorization grants and refresh
+tokens. Refresh issues new access and ID tokens with current claims. Security stamps
+still reject stale access tokens issued concurrently with a permission change.
+Blocking, deleting or unconfirming a user continues to revoke their sessions.
+Previously revoked refresh tokens and authorization grants are never reactivated.
+
 `RemoveNonPermissionClaims` deletes all user and role claims except `permission`.
 Its rollback cannot reconstruct deleted assignments.
 The `/api/v1/claims/sections` endpoint and `sectionCode` catalog field are removed;
