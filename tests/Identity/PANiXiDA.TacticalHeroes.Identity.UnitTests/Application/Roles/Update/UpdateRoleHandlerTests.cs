@@ -27,7 +27,7 @@ public sealed class UpdateRoleHandlerTests
         repository.UpdateAsync(
             Arg.Is<Role>(
                 role => role.Id.Value == roleId
-                    && role.Name.Value == "developer"
+                    && role.Name.Value == "Developer"
                     && role.IsDefault == isDefault
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
@@ -46,7 +46,7 @@ public sealed class UpdateRoleHandlerTests
         await repository.Received(1).UpdateAsync(
             Arg.Is<Role>(
                 role => role.Id.Value == roleId
-                    && role.Name.Value == "developer"
+                    && role.Name.Value == "Developer"
                     && role.IsDefault == isDefault
                     && role.Claims.Any(
                         claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),

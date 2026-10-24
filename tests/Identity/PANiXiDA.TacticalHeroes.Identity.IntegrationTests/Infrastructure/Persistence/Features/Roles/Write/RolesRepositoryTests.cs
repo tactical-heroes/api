@@ -39,7 +39,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .SingleAsync(item => item.Id == roleId, cancellationToken);
 
-        role.Name.ShouldBe("developer");
+        role.Name.ShouldBe("Developer");
+        role.NormalizedName.ShouldBe("DEVELOPER");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.read");
     }
 
@@ -75,7 +76,8 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .SingleAsync(item => item.Id == roleId, cancellationToken);
 
-        role.Name.ShouldBe("moderator");
+        role.Name.ShouldBe("Moderator");
+        role.NormalizedName.ShouldBe("MODERATOR");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("heroes.manage");
     }
 
@@ -103,8 +105,11 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBeFalse();
     }
 
-    [Fact(DisplayName = "Roles repository should return conflict for a duplicate role when role name already exists")]
-    public async Task AddAsync_Should_ReturnConflict_When_RoleNameAlreadyExists()
+    [Theory(DisplayName = "Roles repository should return conflict when role name differs only by casing")]
+    [InlineData("Developer")]
+    [InlineData("developer")]
+    [InlineData("DEVELOPER")]
+    public async Task AddAsync_Should_ReturnConflict_When_RoleNameDiffersOnlyByCasing(string name)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
@@ -121,11 +126,38 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var result = await repository.AddAsync(
             IntegrationTestData.CreateRole(
                 id: Guid.CreateVersion7(),
-                name: "Developer",
+                name: name,
                 claims: []),
             cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
+    }
+
+    [Theory(DisplayName = "UpdateAsync should return conflict when another role name differs only by casing")]
+    [InlineData("Developer")]
+    [InlineData("developer")]
+    [InlineData("DEVELOPER")]
+    public async Task UpdateAsync_Should_ReturnConflict_When_AnotherRoleNameDiffersOnlyByCasing(string name)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync("Developer", [], cancellationToken);
+        var roleId = await AddRoleAsync("Moderator", [], cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+
+        var result = await repository.UpdateAsync(
+            role: IntegrationTestData.CreateRole(roleId, name, []),
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
+
+        result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var role = await dbContext.Set<ApplicationRole>()
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == roleId, cancellationToken);
+        role.Name.ShouldBe("Moderator");
+        role.NormalizedName.ShouldBe("MODERATOR");
     }
 
     [Fact(DisplayName = "AddAsync should assign the default when previous flag is cleared")]
@@ -332,7 +364,7 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var user = await persisted.Users.AsNoTracking().SingleAsync(user => user.Id == userId, ct);
         user.SecurityStamp.ShouldBe(before.SecurityStamp);
         var role = await persisted.Set<ApplicationRole>().Include(item => item.Claims).SingleAsync(ct);
-        role.Name.ShouldBe("sessionrole");
+        role.Name.ShouldBe("SessionRole");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("identity.roles.read");
         (await persisted.Set<ApplicationUserRole>().SingleAsync(ct)).RoleId.ShouldBe(roleId);
         (await persisted.Set<OpenIddictEntityFrameworkCoreToken<Guid>>().SingleAsync(ct))

@@ -20,15 +20,15 @@ public sealed partial class RoleName : ValueObject
                     .WithField(nameof(RoleName)));
         }
 
-        var normalizedValue = value.Trim().ToLowerInvariant();
+        var trimmedValue = value.Trim();
 
-        if (normalizedValue.Length > MaxLength)
+        if (trimmedValue.Length > MaxLength)
         {
             return Result.Failure<RoleName>(
                 error: Error.Validation(message: $"Role name cannot be longer than {MaxLength} characters.")
                     .WithField(nameof(RoleName)));
         }
 
-        return Result.Success(value: new RoleName(value: normalizedValue));
+        return Result.Success(value: new RoleName(value: trimmedValue));
     }
 }
