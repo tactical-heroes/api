@@ -81,7 +81,7 @@ public sealed class UsersRepository(
                 .ToHashSet()
                 .SetEquals(applicationUser.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)));
         string? preservedAuthorizationId = null;
-        if (authorizationChanged || confirmationRevoked)
+        if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
         {
             if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
             {
@@ -202,6 +202,7 @@ public sealed class UsersRepository(
                 userId: id,
                 preservedAuthorizationId: null,
                 cancellationToken: cancellationToken);
+            applicationUser.SecurityStamp = Guid.NewGuid().ToString();
         }
 
         applicationUser.Status = status.Name;
