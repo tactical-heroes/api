@@ -261,6 +261,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     [InlineData(true, "block")]
     [InlineData(false, "confirmation")]
     [InlineData(true, "confirmation")]
+    [InlineData(false, "email")]
+    [InlineData(true, "email")]
     public async Task UpdateAsync_Should_PreserveState_When_IdentityValidationFails(bool duplicateEmail, string change)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -295,12 +297,14 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var original = await dbContext.Set<ApplicationUser>()
             .AsNoTracking()
             .SingleAsync(user => user.Id == id, cancellationToken);
+        var email = duplicateEmail ? "occupied@example.com"
+            : change == "email" ? "changed@example.com" : "hero@example.com";
         var updated = IntegrationTestData.CreateUser(
             id: id,
-            email: duplicateEmail ? "occupied@example.com" : "hero@example.com",
-            isConfirmed: false,
+            email: email,
+            isConfirmed: change == "email",
             roleIds: [roles[change == "roles" ? "Developer" : "Player"]],
-            claims: change == "confirmation" ? [] : [("permission", "identity.users.read")],
+            claims: change is "confirmation" or "email" ? [] : [("permission", "identity.users.read")],
             userName: duplicateEmail ? "hero" : "occupied",
             status: change == "block" ? UserStatus.Blocked : UserStatus.Active);
 
@@ -328,7 +332,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         authorization.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
     }
 
-    [Theory(DisplayName = "User updates should invalidate sessions when claims or confirmation change")]
+    [Theory(DisplayName = "User updates should invalidate changed sessions when session inputs vary")]
     [InlineData("same")]
     [InlineData("reorder")]
     [InlineData("add")]
@@ -336,7 +340,9 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("type")]
     [InlineData("value")]
     [InlineData("unconfirm")]
-    public async Task UpdateAsync_Should_InvalidateSessions_When_ClaimsOrConfirmationChange(string mode)
+    [InlineData("email")]
+    [InlineData("same-email")]
+    public async Task UpdateAsync_Should_InvalidateChangedSessions_When_SessionInputsVary(string mode)
     {
         var ct = TestContext.Current.CancellationToken;
         var id = await AddUserAsync(
@@ -391,9 +397,15 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             "value" => [("permission", "identity.users.read"), ("permission", "identity.roles.update")],
             _ => [("permission", "identity.users.read"), ("permission", "identity.roles.read")]
         };
+        var email = mode switch
+        {
+            "email" => "changed@example.com",
+            "same-email" => " HERO@EXAMPLE.COM ",
+            _ => "hero@example.com"
+        };
         var updated = IntegrationTestData.CreateUser(
             id: id,
-            email: "hero@example.com",
+            email: email,
             isConfirmed: mode != "unconfirm",
             roleIds: [],
             claims: claims,
@@ -406,10 +418,11 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken: ct);
 
         result.IsSuccess.ShouldBeTrue();
-        var changed = mode is not ("same" or "reorder");
+        var changed = mode is not ("same" or "reorder" or "same-email");
         var users = await dbContext.Set<ApplicationUser>().Include(user => user.Claims).AsNoTracking()
             .ToDictionaryAsync(user => user.Id, ct);
         (users[id].SecurityStamp != stamps[id]).ShouldBe(changed);
+        users[id].Email.ShouldBe(mode == "email" ? "changed@example.com" : "hero@example.com");
         users[id].EmailConfirmed.ShouldBe(mode != "unconfirm");
         users[otherId].SecurityStamp.ShouldBe(stamps[otherId]);
         users[id].Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)).ShouldBe(claims, ignoreOrder: true);
