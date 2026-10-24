@@ -12,48 +12,9 @@ public sealed class UserSessionService(
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IdentityWriteDbContext dbContext,
-    ICurrentUserSessionRefresh? sessionRefresh = null)
+    ICurrentUserSessionRefresh? sessionRefresh = null) : IUserSessionService
 {
-    internal async Task<Result<string?>> GetCurrentRoleAuthorizationIdAsync(
-        Guid roleId,
-        string? accessToken,
-        CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(accessToken))
-        {
-            return Result.Success<string?>(value: null);
-        }
-
-        var token = await tokenManager.FindByReferenceIdAsync(accessToken, cancellationToken);
-        if (token is null)
-        {
-            return InvalidSession();
-        }
-
-        if (await tokenManager.GetAuthorizationIdAsync(token, cancellationToken) is null)
-        {
-            return Result.Success<string?>(value: null);
-        }
-
-        if (!Guid.TryParse(await tokenManager.GetSubjectAsync(token, cancellationToken), out var userId))
-        {
-            return InvalidSession();
-        }
-
-        var result = await GetCurrentAuthorizationIdAsync(
-            userId: userId,
-            accessToken: accessToken,
-            cancellationToken: cancellationToken);
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
-        var isMember = await GetRoleMemberIds(roleId).ContainsAsync(userId, cancellationToken);
-        return Result.Success(isMember ? result.Value : null);
-    }
-
-    internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
+    public async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
         Guid userId,
         string? accessToken,
         CancellationToken cancellationToken)
@@ -93,6 +54,65 @@ public sealed class UserSessionService(
         }
 
         return Result.Success(authorizationId);
+    }
+
+    public Task<bool> IsAuthorizationValidAsync(
+        Guid userId,
+        string authorizationId,
+        CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(authorizationId, out var id))
+        {
+            return Task.FromResult(false);
+        }
+
+        var subject = userId.ToString();
+        return dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .AnyAsync(
+                authorization => authorization.Id == id
+                    && authorization.Subject == subject
+                    && authorization.Status == OpenIddictConstants.Statuses.Valid,
+                cancellationToken);
+    }
+
+    internal async Task<Result<string?>> GetCurrentRoleAuthorizationIdAsync(
+        Guid roleId,
+        string? accessToken,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            return Result.Success<string?>(value: null);
+        }
+
+        var token = await tokenManager.FindByReferenceIdAsync(accessToken, cancellationToken);
+        if (token is null)
+        {
+            return InvalidSession();
+        }
+
+        if (await tokenManager.GetAuthorizationIdAsync(token, cancellationToken) is null)
+        {
+            return Result.Success<string?>(value: null);
+        }
+
+        if (!Guid.TryParse(await tokenManager.GetSubjectAsync(token, cancellationToken), out var userId))
+        {
+            return InvalidSession();
+        }
+
+        var result = await GetCurrentAuthorizationIdAsync(
+            userId: userId,
+            accessToken: accessToken,
+            cancellationToken: cancellationToken);
+        if (result.IsFailure)
+        {
+            return result;
+        }
+
+        var isMember = await GetRoleMemberIds(roleId).ContainsAsync(userId, cancellationToken);
+        return Result.Success(isMember ? result.Value : null);
     }
 
     internal async Task RevokeAsync(

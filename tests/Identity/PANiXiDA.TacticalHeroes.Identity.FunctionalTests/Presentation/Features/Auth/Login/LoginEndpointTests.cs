@@ -11,6 +11,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.Login;
 
@@ -18,6 +19,70 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
     private const string Password = "StrongPassword1!";
+
+    [Theory(DisplayName = "POST auth login should not restore a session when password reset races claims read")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PostLogin_Should_NotRestoreSession_When_PasswordResetRacesClaimsRead(bool readBeforePause)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            fixture: Fixture,
+            email: "login-reset-race@example.test",
+            userName: "login-reset-race",
+            password: Password,
+            claims: null,
+            cancellationToken: ct);
+        var reached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory.WithAuthenticatedUserReadPause(
+            reached, resume, readBeforePause, () => true);
+        using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = false
+        });
+        var path = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
+            browser,
+            OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            OAuthAuthorizationRequestTestHelper.RedirectUri,
+            ct);
+
+        var pending = browser.PostAsJsonAsync(
+            "/api/v1/auth/login",
+            new LoginRequest("login-reset-race@example.test", Password, $"https://localhost{path}"),
+            ct);
+        try
+        {
+            await reached.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
+            await using var scope = Fixture.Services.CreateAsyncScope();
+            var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var stored = await manager.FindByIdAsync(user.Id.ToString());
+            stored.ShouldNotBeNull();
+            var token = await manager.GeneratePasswordResetTokenAsync(stored);
+            using var reset = await Client.PostAsJsonAsync(
+                "/api/v1/auth/reset-password", new ResetPasswordRequest(user.Id, token, "OtherStrongPassword2!"), ct);
+            reset.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        }
+        finally
+        {
+            resume.TrySetResult();
+        }
+        using var response = await pending;
+        var nextPath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
+            browser,
+            OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            OAuthAuthorizationRequestTestHelper.RedirectUri,
+            ct);
+        using var authorization = await browser.GetAsync(nextPath, ct);
+
+        response.StatusCode.ShouldBe(readBeforePause ? HttpStatusCode.Redirect : HttpStatusCode.Unauthorized);
+        authorization.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        var requiresLogin = authorization.Headers.Location!.AbsoluteUri.StartsWith(
+            "https://localhost:5173/login", StringComparison.Ordinal);
+        requiresLogin.ShouldBeTrue();
+    }
 
     [Theory(DisplayName = "POST auth login should create no session when authentication model is unavailable")]
     [InlineData(true)]
@@ -162,6 +227,11 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        using var authorization = await client.GetAsync(authorizePath, cancellationToken);
+        authorization.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        var usesCookie = authorization.Headers.Location!.AbsoluteUri.StartsWith(
+            OAuthAuthorizationRequestTestHelper.RedirectUri, StringComparison.Ordinal);
+        usesCookie.ShouldBeTrue();
         await using var verification = Fixture.Services.CreateAsyncScope();
         var verificationManager = verification.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var verifiedUser = await verificationManager.FindByIdAsync(created.Id.ToString());

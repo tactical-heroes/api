@@ -8,5 +8,7 @@ public sealed class GetAuthenticatedUserQueryValidator : AbstractValidator<GetAu
     {
         RuleFor(query => query.UserId)
             .MustBeValidDomainValue(UserId.Create);
+
+        RuleFor(query => query.SecurityStamp).NotEmpty();
     }
 }
