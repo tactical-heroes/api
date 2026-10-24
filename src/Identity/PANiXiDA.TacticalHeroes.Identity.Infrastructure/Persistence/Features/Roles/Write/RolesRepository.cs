@@ -8,7 +8,6 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 
@@ -58,10 +57,9 @@ public sealed class RolesRepository(
             || !role.Claims.Select(claim => ((string?)claim.Type.Value, (string?)claim.Value.Value))
                 .ToHashSet()
                 .SetEquals(applicationRole.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)));
-        var userIds = GetMemberIds(role.Id.Value);
         var sessionResult = authorizationChanged
-            ? await userSessionService.GetCurrentAuthorizationIdAsync(
-                userIds: userIds,
+            ? await userSessionService.GetCurrentRoleAuthorizationIdAsync(
+                roleId: role.Id.Value,
                 accessToken: currentAccessToken,
                 cancellationToken: cancellationToken)
             : Result.Success<string?>(value: null);
@@ -87,8 +85,8 @@ public sealed class RolesRepository(
 
         if (authorizationChanged)
         {
-            await userSessionService.RevokeManyAsync(
-                userIds: userIds,
+            await userSessionService.RevokeRoleMembersAsync(
+                roleId: role.Id.Value,
                 preservedAuthorizationId: sessionResult.Value,
                 cancellationToken: cancellationToken);
         }
@@ -121,9 +119,8 @@ public sealed class RolesRepository(
             return Result.Failure(errors: roleResult.Errors);
         }
 
-        var userIds = GetMemberIds(id);
-        var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
-            userIds: userIds,
+        var sessionResult = await userSessionService.GetCurrentRoleAuthorizationIdAsync(
+            roleId: id,
             accessToken: currentAccessToken,
             cancellationToken: cancellationToken);
         if (sessionResult.IsFailure)
@@ -131,8 +128,8 @@ public sealed class RolesRepository(
             return Result.Failure(sessionResult.Errors);
         }
 
-        await userSessionService.RevokeManyAsync(
-            userIds: userIds,
+        await userSessionService.RevokeRoleMembersAsync(
+            roleId: id,
             preservedAuthorizationId: sessionResult.Value,
             cancellationToken: cancellationToken);
 
@@ -160,13 +157,6 @@ public sealed class RolesRepository(
             .Include(role => role.Claims)
             .AsSplitQuery()
             .SingleOrDefaultAsync(cancellationToken);
-    }
-
-    private IQueryable<Guid> GetMemberIds(Guid roleId)
-    {
-        return dbContext.Set<ApplicationUserRole>()
-            .Where(userRole => userRole.RoleId == roleId)
-            .Select(userRole => userRole.UserId);
     }
 
     private void SyncClaims(

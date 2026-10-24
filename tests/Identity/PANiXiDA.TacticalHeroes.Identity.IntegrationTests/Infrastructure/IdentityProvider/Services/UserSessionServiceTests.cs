@@ -23,7 +23,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
     [InlineData(2, 8, true)]
     [InlineData(64, 1, false)]
     [InlineData(64, 1, true)]
-    public async Task RevokeManyAsync_Should_UseThreeUpdates_When_MemberCountsSessionsAndPreservationVary(
+    public async Task RevokeRoleMembersAsync_Should_UseThreeUpdates_When_MemberCountsSessionsAndPreservationVary(
         int memberCount, int count, bool preserve)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -114,10 +114,8 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         await using var bulkContext = new IdentityWriteDbContext(options, []);
         var service = new UserSessionService(tokens, authorizations, bulkContext);
 
-        await service.RevokeManyAsync(
-            userIds: bulkContext.Set<ApplicationUserRole>()
-                .Where(link => link.RoleId == role.Id)
-                .Select(link => link.UserId),
+        await service.RevokeRoleMembersAsync(
+            roleId: role.Id,
             preservedAuthorizationId: preserve ? currentId : null,
             cancellationToken: ct);
 

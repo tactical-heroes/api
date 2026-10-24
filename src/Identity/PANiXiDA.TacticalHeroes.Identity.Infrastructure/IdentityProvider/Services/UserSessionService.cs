@@ -4,6 +4,7 @@ using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
@@ -13,8 +14,8 @@ public sealed class UserSessionService(
     IdentityWriteDbContext dbContext,
     ICurrentUserSessionRefresh? sessionRefresh = null)
 {
-    internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
-        IQueryable<Guid> userIds,
+    internal async Task<Result<string?>> GetCurrentRoleAuthorizationIdAsync(
+        Guid roleId,
         string? accessToken,
         CancellationToken cancellationToken)
     {
@@ -48,7 +49,8 @@ public sealed class UserSessionService(
             return result;
         }
 
-        return Result.Success(await userIds.ContainsAsync(userId, cancellationToken) ? result.Value : null);
+        var isMember = await GetRoleMemberIds(roleId).ContainsAsync(userId, cancellationToken);
+        return Result.Success(isMember ? result.Value : null);
     }
 
     internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
@@ -142,11 +144,12 @@ public sealed class UserSessionService(
         }
     }
 
-    internal async Task RevokeManyAsync(
-        IQueryable<Guid> userIds,
+    internal async Task RevokeRoleMembersAsync(
+        Guid roleId,
         string? preservedAuthorizationId,
         CancellationToken cancellationToken)
     {
+        var userIds = GetRoleMemberIds(roleId);
         var subjects = userIds.Select(id => id.ToString());
         Guid? preservedId = preservedAuthorizationId is null ? null : Guid.Parse(preservedAuthorizationId);
         await dbContext.Users.Where(user => userIds.Contains(user.Id))
@@ -189,5 +192,12 @@ public sealed class UserSessionService(
     private static Result<string?> InvalidSession()
     {
         return Result.Failure<string?>(Error.Unauthorized(message: "Current session is invalid."));
+    }
+
+    private IQueryable<Guid> GetRoleMemberIds(Guid roleId)
+    {
+        return dbContext.Set<ApplicationUserRole>()
+            .Where(userRole => userRole.RoleId == roleId)
+            .Select(userRole => userRole.UserId);
     }
 }
