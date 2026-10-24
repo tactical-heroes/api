@@ -838,6 +838,23 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
             : "https://localhost:5173/login");
     }
 
+    private static async Task<HttpResponseMessage> UpdateEmailAsync(
+        HttpClient client,
+        Guid userId,
+        string accessToken,
+        string email,
+        CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{userId}")
+        {
+            Content = JsonContent.Create(new UpdateUserRequest(
+                email, "role-session", true, [new("permission", "identity.users.update")], "Active", []))
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        return await client.SendAsync(request, ct);
+    }
+
     private async Task<(CreateUserResponse User, Guid RoleId)> CreateUserAsync(
         bool assigned,
         IReadOnlyCollection<Claim>? claims,
@@ -882,23 +899,6 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         }
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        return await client.SendAsync(request, ct);
-    }
-
-    private static async Task<HttpResponseMessage> UpdateEmailAsync(
-        HttpClient client,
-        Guid userId,
-        string accessToken,
-        string email,
-        CancellationToken ct)
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{userId}")
-        {
-            Content = JsonContent.Create(new UpdateUserRequest(
-                email, "role-session", true, [new("permission", "identity.users.update")], "Active", []))
-        };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
         return await client.SendAsync(request, ct);
     }
 
