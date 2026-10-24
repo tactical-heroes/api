@@ -9,24 +9,27 @@ using OpenIddict.EntityFrameworkCore.Models;
 
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.IdentityProvider.Services;
 
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Bulk revocation should use three updates when session counts and preservation vary")]
-    [InlineData(1, false)]
-    [InlineData(8, false)]
-    [InlineData(1, true)]
-    [InlineData(8, true)]
-    public async Task RevokeManyAsync_Should_UseThreeUpdates_When_SessionCountsAndPreservationVary(
-        int count, bool preserve)
+    [Theory(DisplayName = "Bulk revocation should use three updates when member counts sessions and preservation vary")]
+    [InlineData(2, 1, false)]
+    [InlineData(2, 8, false)]
+    [InlineData(2, 1, true)]
+    [InlineData(2, 8, true)]
+    [InlineData(64, 1, false)]
+    [InlineData(64, 1, true)]
+    public async Task RevokeManyAsync_Should_UseThreeUpdates_When_MemberCountsSessionsAndPreservationVary(
+        int memberCount, int count, bool preserve)
     {
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
-        var users = Enumerable.Range(0, 3)
+        var users = Enumerable.Range(0, memberCount + 1)
             .Select(index => new ApplicationUser
             {
                 Id = Guid.CreateVersion7(),
@@ -41,6 +44,18 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             })
             .ToArray();
         dbContext.AddRange(users);
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "members",
+            NormalizedName = "MEMBERS"
+        };
+        dbContext.Add(role);
+        dbContext.AddRange(users.Take(memberCount).Select(user => new ApplicationUserRole
+        {
+            UserId = user.Id,
+            RoleId = role.Id
+        }));
         await dbContext.SaveChangesAsync(ct);
         var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
         var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
@@ -100,22 +115,28 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         var service = new UserSessionService(tokens, authorizations, bulkContext);
 
         await service.RevokeManyAsync(
-            userIds: [users[0].Id, users[1].Id],
+            userIds: bulkContext.Set<ApplicationUserRole>()
+                .Where(link => link.RoleId == role.Id)
+                .Select(link => link.UserId),
             preservedAuthorizationId: preserve ? currentId : null,
             cancellationToken: ct);
 
         counter.Count.ShouldBe(3);
+        counter.ReadCount.ShouldBe(0);
+        counter.SubqueryCount.ShouldBe(3);
         var persistedUsers = await bulkContext.Users.AsNoTracking().ToDictionaryAsync(user => user.Id, ct);
-        persistedUsers[users[0].Id].SecurityStamp.ShouldNotBe(originalStamps[users[0].Id]);
-        persistedUsers[users[1].Id].SecurityStamp.ShouldNotBe(originalStamps[users[1].Id]);
+        foreach (var user in users.Take(memberCount))
+        {
+            persistedUsers[user.Id].SecurityStamp.ShouldNotBe(originalStamps[user.Id]);
+        }
         persistedUsers[users[0].Id].SecurityStamp.ShouldNotBe(persistedUsers[users[1].Id].SecurityStamp);
-        persistedUsers[users[2].Id].SecurityStamp.ShouldBe(originalStamps[users[2].Id]);
+        persistedUsers[users[^1].Id].SecurityStamp.ShouldBe(originalStamps[users[^1].Id]);
         var persistedAuthorizations = await bulkContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
             .AsNoTracking()
             .ToListAsync(ct);
         foreach (var authorization in persistedAuthorizations)
         {
-            var valid = authorization.Subject == users[2].Id.ToString()
+            var valid = authorization.Subject == users[^1].Id.ToString()
                 || (preserve && authorization.Id.ToString() == currentId);
             authorization.Status.ShouldBe(valid
                 ? OpenIddictConstants.Statuses.Valid
@@ -127,7 +148,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             .ToListAsync(ct);
         foreach (var token in persistedTokens)
         {
-            var valid = token.Subject == users[2].Id.ToString()
+            var valid = token.Subject == users[^1].Id.ToString()
                 || (preserve
                     && token.Authorization?.Id.ToString() == currentId
                     && token.Type is OpenIddictConstants.TokenTypeHints.RefreshToken
@@ -142,6 +163,19 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
     private sealed class BulkUpdateCounter : DbCommandInterceptor
     {
         internal int Count { get; private set; }
+        internal int ReadCount { get; private set; }
+        internal int SubqueryCount { get; private set; }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken)
+        {
+            ReadCount++;
+
+            return ValueTask.FromResult(result);
+        }
 
         public override ValueTask<int> NonQueryExecutedAsync(
             DbCommand command,
@@ -152,6 +186,10 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             if (command.CommandText.StartsWith("UPDATE", StringComparison.Ordinal))
             {
                 Count++;
+                if (command.CommandText.Contains("asp_net_user_roles", StringComparison.Ordinal))
+                {
+                    SubqueryCount++;
+                }
             }
 
             return ValueTask.FromResult(result);

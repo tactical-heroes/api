@@ -14,11 +14,11 @@ public sealed class UserSessionService(
     ICurrentUserSessionRefresh? sessionRefresh = null)
 {
     internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
-        IReadOnlyCollection<Guid> userIds,
+        IQueryable<Guid> userIds,
         string? accessToken,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(accessToken) || userIds.Count == 0)
+        if (string.IsNullOrWhiteSpace(accessToken))
         {
             return Result.Success<string?>(value: null);
         }
@@ -48,7 +48,7 @@ public sealed class UserSessionService(
             return result;
         }
 
-        return Result.Success(userIds.Contains(userId) ? result.Value : null);
+        return Result.Success(await userIds.ContainsAsync(userId, cancellationToken) ? result.Value : null);
     }
 
     internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
@@ -143,16 +143,11 @@ public sealed class UserSessionService(
     }
 
     internal async Task RevokeManyAsync(
-        Guid[] userIds,
+        IQueryable<Guid> userIds,
         string? preservedAuthorizationId,
         CancellationToken cancellationToken)
     {
-        if (userIds.Length == 0)
-        {
-            return;
-        }
-
-        var subjects = userIds.Select(id => id.ToString()).ToArray();
+        var subjects = userIds.Select(id => id.ToString());
         Guid? preservedId = preservedAuthorizationId is null ? null : Guid.Parse(preservedAuthorizationId);
         await dbContext.Users.Where(user => userIds.Contains(user.Id))
             .ExecuteUpdateAsync(

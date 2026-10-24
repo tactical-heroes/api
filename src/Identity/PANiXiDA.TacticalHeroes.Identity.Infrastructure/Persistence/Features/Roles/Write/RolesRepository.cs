@@ -58,11 +58,13 @@ public sealed class RolesRepository(
             || !role.Claims.Select(claim => ((string?)claim.Type.Value, (string?)claim.Value.Value))
                 .ToHashSet()
                 .SetEquals(applicationRole.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)));
-        var userIds = authorizationChanged ? await GetMemberIdsAsync(role.Id.Value, cancellationToken) : [];
-        var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
-            userIds: userIds,
-            accessToken: currentAccessToken,
-            cancellationToken: cancellationToken);
+        var userIds = GetMemberIds(role.Id.Value);
+        var sessionResult = authorizationChanged
+            ? await userSessionService.GetCurrentAuthorizationIdAsync(
+                userIds: userIds,
+                accessToken: currentAccessToken,
+                cancellationToken: cancellationToken)
+            : Result.Success<string?>(value: null);
         if (sessionResult.IsFailure)
         {
             return Result.Failure(sessionResult.Errors);
@@ -83,10 +85,13 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        await userSessionService.RevokeManyAsync(
-            userIds: userIds,
-            preservedAuthorizationId: sessionResult.Value,
-            cancellationToken: cancellationToken);
+        if (authorizationChanged)
+        {
+            await userSessionService.RevokeManyAsync(
+                userIds: userIds,
+                preservedAuthorizationId: sessionResult.Value,
+                cancellationToken: cancellationToken);
+        }
         aggregateTracker.Track(role);
 
         return Result.Success();
@@ -116,7 +121,7 @@ public sealed class RolesRepository(
             return Result.Failure(errors: roleResult.Errors);
         }
 
-        var userIds = await GetMemberIdsAsync(id, cancellationToken);
+        var userIds = GetMemberIds(id);
         var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
             userIds: userIds,
             accessToken: currentAccessToken,
@@ -126,6 +131,11 @@ public sealed class RolesRepository(
             return Result.Failure(sessionResult.Errors);
         }
 
+        await userSessionService.RevokeManyAsync(
+            userIds: userIds,
+            preservedAuthorizationId: sessionResult.Value,
+            cancellationToken: cancellationToken);
+
         var identityResult = await roleManager.DeleteAsync(applicationRole);
 
         if (!identityResult.Succeeded)
@@ -133,10 +143,6 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
-        await userSessionService.RevokeManyAsync(
-            userIds: userIds,
-            preservedAuthorizationId: sessionResult.Value,
-            cancellationToken: cancellationToken);
         aggregateTracker.Track(roleResult.Value);
 
         return Result.Success();
@@ -156,13 +162,11 @@ public sealed class RolesRepository(
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    private Task<Guid[]> GetMemberIdsAsync(Guid roleId, CancellationToken cancellationToken)
+    private IQueryable<Guid> GetMemberIds(Guid roleId)
     {
         return dbContext.Set<ApplicationUserRole>()
             .Where(userRole => userRole.RoleId == roleId)
-            .OrderBy(userRole => userRole.UserId)
-            .Select(userRole => userRole.UserId)
-            .ToArrayAsync(cancellationToken);
+            .Select(userRole => userRole.UserId);
     }
 
     private void SyncClaims(
