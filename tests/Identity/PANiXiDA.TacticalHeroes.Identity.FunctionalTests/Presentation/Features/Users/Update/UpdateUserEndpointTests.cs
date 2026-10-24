@@ -885,7 +885,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         return await client.SendAsync(request, ct);
     }
 
-    private async Task<HttpResponseMessage> UpdateEmailAsync(
+    private static async Task<HttpResponseMessage> UpdateEmailAsync(
         HttpClient client,
         Guid userId,
         string accessToken,
