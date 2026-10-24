@@ -24,7 +24,10 @@ public sealed class GetAuthenticatedUserHandler(IAuthenticatedUserService servic
         }
 
         var isValid = query.AuthorizationId is { } authorizationId
-            ? await sessions.IsAuthorizationValidAsync(query.UserId, authorizationId, cancellationToken)
+            ? await sessions.IsAuthorizationValidAsync(
+                userId: query.UserId,
+                authorizationId: authorizationId,
+                cancellationToken: cancellationToken)
             : string.Equals(query.SecurityStamp, user.Value.SecurityStamp, StringComparison.Ordinal);
 
         return isValid ? user : InvalidSession();

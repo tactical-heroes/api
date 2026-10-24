@@ -42,7 +42,11 @@ internal sealed class CurrentUserCookieSession(
             accessToken: currentUser.AccessToken,
             cancellationToken: context.RequestAborted);
         return authorization.IsSuccess
-            ? new Snapshot(userId, securityStamp, authorization.Value, cookie.Properties)
+            ? new Snapshot(
+                UserId: userId,
+                SecurityStamp: securityStamp,
+                AuthorizationId: authorization.Value,
+                Properties: cookie.Properties)
             : null;
     }
 
@@ -61,7 +65,10 @@ internal sealed class CurrentUserCookieSession(
         }
 
         var user = await mediator.QueryAsync(
-            new GetAuthenticatedUserQuery(session.UserId, session.SecurityStamp, session.AuthorizationId),
+            new GetAuthenticatedUserQuery(
+                UserId: session.UserId,
+                SecurityStamp: session.SecurityStamp,
+                AuthorizationId: session.AuthorizationId),
             cancellationToken);
         if (user.IsFailure || user.Value.Id != session.UserId)
         {

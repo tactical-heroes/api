@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
@@ -16,6 +17,76 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
+    [Theory(DisplayName = "Session lookup should enforce ownership and validity when current token state varies")]
+    [InlineData("valid")]
+    [InlineData("foreign-token")]
+    [InlineData("foreign-authorization")]
+    [InlineData("revoked-token")]
+    [InlineData("revoked-authorization")]
+    [InlineData("wrong-type")]
+    [InlineData("missing-token")]
+    [InlineData("no-token")]
+    [InlineData("empty-token")]
+    public async Task GetCurrentAuthorizationIdAsync_Should_EnforceOwnershipAndValidity_When_CurrentTokenStateVaries(
+        string mode)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = Guid.CreateVersion7();
+        var foreignId = Guid.CreateVersion7();
+        var referenceId = Guid.CreateVersion7().ToString("N");
+        await using var scope = Fixture.CreateScope();
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await authorizations.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = (mode == "foreign-authorization" ? foreignId : userId).ToString(),
+                Status = mode == "revoked-authorization"
+                    ? OpenIddictConstants.Statuses.Revoked
+                    : OpenIddictConstants.Statuses.Valid,
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc
+            },
+            ct);
+        var authorizationId = await authorizations.GetIdAsync(authorization, ct);
+        authorizationId.ShouldNotBeNull();
+        var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        await tokens.CreateAsync(
+            new OpenIddictTokenDescriptor
+            {
+                Subject = (mode == "foreign-token" ? foreignId : userId).ToString(),
+                AuthorizationId = authorizationId,
+                ReferenceId = referenceId,
+                Status = mode == "revoked-token"
+                    ? OpenIddictConstants.Statuses.Revoked
+                    : OpenIddictConstants.Statuses.Valid,
+                Type = mode == "wrong-type"
+                    ? OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
+                    : OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+            },
+            ct);
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        service.ShouldBeSameAs(scope.ServiceProvider.GetRequiredService<UserSessionService>());
+        var token = mode switch
+        {
+            "no-token" => null,
+            "empty-token" => "",
+            "missing-token" => Guid.CreateVersion7().ToString("N"),
+            _ => referenceId
+        };
+
+        var result = await service.GetCurrentAuthorizationIdAsync(userId, token, ct);
+
+        var isAllowed = mode is "valid" or "no-token" or "empty-token";
+        result.IsSuccess.ShouldBe(isAllowed);
+        if (isAllowed)
+        {
+            result.Value.ShouldBe(mode == "valid" ? authorizationId : null);
+        }
+        else
+        {
+            result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
+        }
+    }
+
     [Fact(DisplayName = "Session validation should reject a cached authorization when database status is revoked")]
     public async Task IsAuthorizationValidAsync_Should_RejectCachedAuthorization_When_DatabaseStatusIsRevoked()
     {

@@ -63,7 +63,7 @@ public sealed class UserSessionService(
     {
         if (!Guid.TryParse(authorizationId, out var id))
         {
-            return Task.FromResult(false);
+            return Task.FromResult(result: false);
         }
 
         var subject = userId.ToString();
