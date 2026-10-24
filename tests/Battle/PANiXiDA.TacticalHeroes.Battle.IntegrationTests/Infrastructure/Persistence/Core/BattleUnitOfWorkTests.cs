@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Battle.IntegrationTests.Infrastructure.Persist
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class BattleUnitOfWorkTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Unit of work should use the Battle write context when a transaction is started")]
+    [Fact(DisplayName = "Unit of work should use the Battle write context when transaction is started")]
     public async Task BeginTransactionAsync_Should_UseBattleWriteContext_When_TransactionIsStarted()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
