@@ -516,19 +516,24 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     }
 
     [Theory(DisplayName = "PUT user should revoke current session when user becomes unavailable")]
-    [InlineData("Blocked", true)]
-    [InlineData("Active", false)]
-    public async Task PutUser_Should_RevokeCurrentSession_When_UserBecomesUnavailable(string status, bool isConfirmed)
+    [InlineData("Blocked", true, false)]
+    [InlineData("Blocked", true, true)]
+    [InlineData("Active", false, true)]
+    public async Task PutUser_Should_RevokeCurrentSession_When_UserBecomesUnavailable(
+        string status, bool isConfirmed, bool changeRoles)
     {
         var ct = TestContext.Current.CancellationToken;
         var (user, roleId) = await CreateUserAsync(assigned: false, claims: null, ct: ct);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(current, Email, Password, ct);
+        var otherTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(other, Email, Password, ct);
+        var before = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
 
         using var response = await UpdateAsync(
             client: current,
             userId: user.Id,
-            roles: [roleId],
+            roles: changeRoles ? [roleId] : [],
             accessToken: tokens.AccessToken,
             status: status,
             isConfirmed: isConfirmed,
@@ -537,15 +542,43 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(ct));
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
+        var unavailable = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
+        unavailable!.SecurityStamp.ShouldNotBe(before!.SecurityStamp);
+        if (status == "Blocked")
+        {
+            await new UserApiTestClient(Fixture).UnblockAsync(user.Id, ct);
+            var active = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
+            active!.SecurityStamp.ShouldBe(unavailable.SecurityStamp);
+        }
         await AssertAccessAsync(
             client: current,
             token: tokens.AccessToken,
             status: HttpStatusCode.Unauthorized,
             path: "/connect/userinfo",
             ct: ct);
+        await AssertAccessAsync(
+            client: other,
+            token: otherTokens.AccessToken,
+            status: HttpStatusCode.Unauthorized,
+            path: "/connect/userinfo",
+            ct: ct);
         await AssertCookieAsync(current, false, ct);
+        await AssertCookieAsync(other, false, ct);
         using var refresh = await RefreshAsync(current, tokens.RefreshToken, ct);
         refresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        using var otherRefresh = await RefreshAsync(other, otherTokens.RefreshToken, ct);
+        otherRefresh.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        if (status == "Blocked")
+        {
+            var newTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+                current, Email, Password, ct);
+            await AssertAccessAsync(
+                client: current,
+                token: newTokens.AccessToken,
+                status: HttpStatusCode.OK,
+                path: "/connect/userinfo",
+                ct: ct);
+        }
     }
 
     [Theory(DisplayName = "PUT user should roll back authorization and sessions when revocation is canceled")]
