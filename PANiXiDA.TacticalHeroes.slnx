@@ -18,6 +18,13 @@
     <Project Path="src/PANiXiDA.TacticalHeroes.Common/PANiXiDA.TacticalHeroes.Common.csproj" />
     <Project Path="src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj" />
   </Folder>
+  <Folder Name="/src/Battle/">
+    <Project Path="src/Battle/PANiXiDA.TacticalHeroes.Battle.Application/PANiXiDA.TacticalHeroes.Battle.Application.csproj" />
+    <Project Path="src/Battle/PANiXiDA.TacticalHeroes.Battle.Contracts/PANiXiDA.TacticalHeroes.Battle.Contracts.csproj" />
+    <Project Path="src/Battle/PANiXiDA.TacticalHeroes.Battle.Domain/PANiXiDA.TacticalHeroes.Battle.Domain.csproj" />
+    <Project Path="src/Battle/PANiXiDA.TacticalHeroes.Battle.Infrastructure/PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj" />
+    <Project Path="src/Battle/PANiXiDA.TacticalHeroes.Battle.Presentation/PANiXiDA.TacticalHeroes.Battle.Presentation.csproj" />
+  </Folder>
   <Folder Name="/src/Compendium/">
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Application/PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Contracts/PANiXiDA.TacticalHeroes.Compendium.Contracts.csproj" />
@@ -50,6 +57,11 @@
     <Project Path="tests/Identity/PANiXiDA.TacticalHeroes.Identity.FunctionalTests/PANiXiDA.TacticalHeroes.Identity.FunctionalTests.csproj" />
     <Project Path="tests/Identity/PANiXiDA.TacticalHeroes.Identity.IntegrationTests/PANiXiDA.TacticalHeroes.Identity.IntegrationTests.csproj" />
     <Project Path="tests/Identity/PANiXiDA.TacticalHeroes.Identity.UnitTests/PANiXiDA.TacticalHeroes.Identity.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Battle/">
+    <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.FunctionalTests/PANiXiDA.TacticalHeroes.Battle.FunctionalTests.csproj" />
+    <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.IntegrationTests/PANiXiDA.TacticalHeroes.Battle.IntegrationTests.csproj" />
+    <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.UnitTests/PANiXiDA.TacticalHeroes.Battle.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/Compendium/">
     <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.csproj" />

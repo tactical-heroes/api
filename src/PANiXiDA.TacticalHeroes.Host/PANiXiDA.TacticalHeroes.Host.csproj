@@ -13,6 +13,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Application\PANiXiDA.TacticalHeroes.Battle.Application.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Contracts\PANiXiDA.TacticalHeroes.Battle.Contracts.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Domain\PANiXiDA.TacticalHeroes.Battle.Domain.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Infrastructure\PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Presentation\PANiXiDA.TacticalHeroes.Battle.Presentation.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Application\PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
