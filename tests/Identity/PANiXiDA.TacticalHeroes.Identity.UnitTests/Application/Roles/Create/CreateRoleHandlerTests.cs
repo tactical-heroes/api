@@ -21,7 +21,7 @@ public sealed class CreateRoleHandlerTests
         var readRepository = Substitute.For<IRolesReadRepository>();
         readRepository.GetDefaultIdAsync(Arg.Any<CancellationToken>()).Returns((Guid?)null);
         repository.AddAsync(
-            Arg.Is<Role>(role => role.Name.Value == "developer"
+            Arg.Is<Role>(role => role.Name.Value == "Developer"
                 && role.IsDefault == isDefault
                 && role.Claims.Any(
                     claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
@@ -39,7 +39,7 @@ public sealed class CreateRoleHandlerTests
         await readRepository.Received(isDefault ? 1 : 0).GetDefaultIdAsync(cancellationToken);
         result.Value.ShouldBe(roleId);
         await repository.Received(1).AddAsync(
-            Arg.Is<Role>(role => role.Name.Value == "developer"
+            Arg.Is<Role>(role => role.Name.Value == "Developer"
                 && role.IsDefault == isDefault
                 && role.Claims.Any(
                     claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),

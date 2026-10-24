@@ -180,7 +180,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         await client.UpdateAsync(
             createdRole.Id,
             new UpdateRoleRequest(
-                "CustomManager",
+                " CustomManager ",
                 false,
                 [new Claim("permission", "compendium.heroes.update")]),
             cancellationToken);
@@ -190,7 +190,8 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             cancellationToken);
 
         role.ShouldNotBeNull();
-        role.Name.ShouldBe("custommanager");
+        role.Name.ShouldBe("CustomManager");
+        role.NormalizedName.ShouldBe("CUSTOMMANAGER");
         role.Claims.ShouldHaveSingleItem().ClaimValue.ShouldBe("compendium.heroes.update");
     }
 
@@ -207,7 +208,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         await client.UpdateAsync(id, new UpdateRoleRequest("CustomDefault", true, []), cancellationToken);
 
         var details = await client.GetDetailsAsync(id, cancellationToken);
-        details.Name.ShouldBe("customdefault");
+        details.Name.ShouldBe("CustomDefault");
         details.IsDefault.ShouldBeTrue();
         (await client.GetListAsync(cancellationToken)).Items.Single(role => role.IsDefault).Id.ShouldBe(id);
         (await client.GetDetailsAsync(previous.Id, cancellationToken)).IsDefault.ShouldBeFalse();

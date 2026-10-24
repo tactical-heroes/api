@@ -21,7 +21,7 @@ public sealed class RoleTests
             [RoleClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value)]);
 
         result.Id.Value.ShouldBe(id);
-        result.Name.Value.ShouldBe("developer");
+        result.Name.Value.ShouldBe("Developer");
         result.IsDefault.ShouldBe(isDefault);
         var claim = result.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");

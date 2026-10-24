@@ -37,7 +37,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
 
         var options = await repository.GetSelectOptionsAsync(cancellationToken);
 
-        options.Select(option => option.Name).ShouldBe(["developer", "player"]);
+        options.Select(option => option.Name).ShouldBe(["Developer", "Player"]);
         options.Select(option => option.Id).ShouldBe([developerId, playerId]);
         options.Select(option => option.IsDefault).ShouldBe([false, true]);
     }
@@ -59,8 +59,8 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         var options = await repository.GetSelectOptionsAsync(cancellationToken);
 
         options.Count.ShouldBe(101);
-        options[0].Name.ShouldBe("role 000");
-        options[^1].Name.ShouldBe("role 100");
+        options[0].Name.ShouldBe("Role 000");
+        options[^1].Name.ShouldBe("Role 100");
     }
 
     [Fact(DisplayName = "GetDetailsByIdAsync should return role details when role exists")]
@@ -77,7 +77,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         var details = await repository.GetDetailsByIdAsync(roleId, cancellationToken);
 
         details.ShouldNotBeNull();
-        details.Name.ShouldBe("developer");
+        details.Name.ShouldBe("Developer");
     }
 
     [Fact(DisplayName = "GetPageAsync should return roles sorted by name when roles exist")]
@@ -95,7 +95,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
-        page.Items.Select(item => item.Name).ShouldBe(["developer", "player"]);
+        page.Items.Select(item => item.Name).ShouldBe(["Developer", "Player"]);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing role when role exists")]
