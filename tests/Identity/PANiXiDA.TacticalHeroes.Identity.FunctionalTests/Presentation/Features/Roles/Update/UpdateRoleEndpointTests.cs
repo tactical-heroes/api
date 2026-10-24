@@ -26,7 +26,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     public async Task PutRole_Should_RefreshAffectedUsers_When_RoleAuthorizationChanges(string change, string actor)
     {
         var ct = TestContext.Current.CancellationToken;
-        using var sessions = new RoleSessionTestHelper(Fixture);
+        using var sessions = new RoleApiTestClient.SessionScenario(Fixture);
         await sessions.InitializeAsync(change != "add", ct);
         var name = change == "rename" ? "RenamedRole" : "SessionRole";
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/roles/{sessions.RoleId}")
@@ -50,7 +50,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     public async Task PutRole_Should_PreserveSessions_When_AuthorizationIsUnchangedOrUpdateFails(bool invalid)
     {
         var ct = TestContext.Current.CancellationToken;
-        using var sessions = new RoleSessionTestHelper(Fixture);
+        using var sessions = new RoleApiTestClient.SessionScenario(Fixture);
         await sessions.InitializeAsync(true, ct);
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/roles/{sessions.RoleId}")
         {
@@ -64,14 +64,14 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(invalid ? HttpStatusCode.Conflict : HttpStatusCode.NoContent);
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
-        await RoleSessionTestHelper.AssertAccessAsync(
+        await RoleApiTestClient.SessionScenario.AssertAccessAsync(
             client: sessions.Current,
             token: sessions.CurrentTokens.AccessToken,
             status: HttpStatusCode.OK,
             path: "/connect/userinfo",
             ct: ct);
-        await RoleSessionTestHelper.AssertCookieAsync(sessions.Current, true, ct);
-        using var refresh = await RoleSessionTestHelper.RefreshAsync(
+        await RoleApiTestClient.SessionScenario.AssertCookieAsync(sessions.Current, true, ct);
+        using var refresh = await RoleApiTestClient.SessionScenario.RefreshAsync(
             sessions.Other, sessions.OtherTokens.RefreshToken, ct);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -80,7 +80,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     public async Task PutRole_Should_PreserveRefresh_When_CurrentCookieIsAbsent()
     {
         var ct = TestContext.Current.CancellationToken;
-        using var sessions = new RoleSessionTestHelper(Fixture);
+        using var sessions = new RoleApiTestClient.SessionScenario(Fixture);
         await sessions.InitializeAsync(true, ct);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/roles/{sessions.RoleId}")
@@ -94,8 +94,9 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.GetValues("X-Session-Refresh-Required").ShouldBe(["true"]);
         response.Headers.Contains("Set-Cookie").ShouldBeFalse();
-        await RoleSessionTestHelper.AssertCookieAsync(sessions.Current, false, ct);
-        using var refresh = await RoleSessionTestHelper.RefreshAsync(client, sessions.CurrentTokens.RefreshToken, ct);
+        await RoleApiTestClient.SessionScenario.AssertCookieAsync(sessions.Current, false, ct);
+        using var refresh = await RoleApiTestClient.SessionScenario.RefreshAsync(
+            client, sessions.CurrentTokens.RefreshToken, ct);
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
@@ -103,7 +104,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     public async Task PutRole_Should_RejectStaleAccess_When_ConcurrentRefreshFinishesAfterUpdate()
     {
         var ct = TestContext.Current.CancellationToken;
-        using var sessions = new RoleSessionTestHelper(Fixture);
+        using var sessions = new RoleApiTestClient.SessionScenario(Fixture);
         await sessions.InitializeAsync(true, ct);
         var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -128,7 +129,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
             AllowAutoRedirect = false
         });
 
-        var pending = RoleSessionTestHelper.RefreshAsync(client, sessions.CurrentTokens.RefreshToken, ct);
+        var pending = RoleApiTestClient.SessionScenario.RefreshAsync(client, sessions.CurrentTokens.RefreshToken, ct);
         try
         {
             await paused.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
@@ -151,17 +152,17 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         using var refresh = await pending;
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK, await refresh.Content.ReadAsStringAsync(ct));
         using var document = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(ct));
-        await RoleSessionTestHelper.AssertAccessAsync(
+        await RoleApiTestClient.SessionScenario.AssertAccessAsync(
             client: client,
             token: document.RootElement.GetProperty("access_token").GetString()!,
             status: HttpStatusCode.Unauthorized,
             path: "/connect/userinfo",
             ct: ct);
-        using var next = await RoleSessionTestHelper.RefreshAsync(
+        using var next = await RoleApiTestClient.SessionScenario.RefreshAsync(
             client, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
         next.StatusCode.ShouldBe(HttpStatusCode.OK);
         using var nextDocument = JsonDocument.Parse(await next.Content.ReadAsStringAsync(ct));
-        await RoleSessionTestHelper.AssertAccessAsync(
+        await RoleApiTestClient.SessionScenario.AssertAccessAsync(
             client,
             nextDocument.RootElement.GetProperty("access_token").GetString()!,
             HttpStatusCode.Forbidden,

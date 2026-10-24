@@ -13,7 +13,7 @@ public sealed class DeleteRoleEndpointTests(FunctionalTestFixture fixture)
     public async Task DeleteRole_Should_RefreshAffectedUsers_When_AnAssignedRoleIsDeleted(string actor)
     {
         var ct = TestContext.Current.CancellationToken;
-        using var sessions = new RoleSessionTestHelper(Fixture);
+        using var sessions = new RoleApiTestClient.SessionScenario(Fixture);
         await sessions.InitializeAsync(true, ct);
         using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/roles/{sessions.RoleId}");
 
