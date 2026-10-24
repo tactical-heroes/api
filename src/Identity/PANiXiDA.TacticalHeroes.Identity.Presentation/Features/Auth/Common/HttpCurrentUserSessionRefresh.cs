@@ -11,10 +11,12 @@ internal sealed class HttpCurrentUserSessionRefresh(IHttpContextAccessor httpCon
 
     private static readonly object s_refreshRequiredKey = new();
 
+    internal static bool IsRequired(HttpContext context) => context.Items.ContainsKey(s_refreshRequiredKey);
+
     public void RequireRefresh()
     {
         var context = httpContextAccessor.HttpContext;
-        if (context is null || context.Items.ContainsKey(s_refreshRequiredKey))
+        if (context is null || IsRequired(context))
         {
             return;
         }

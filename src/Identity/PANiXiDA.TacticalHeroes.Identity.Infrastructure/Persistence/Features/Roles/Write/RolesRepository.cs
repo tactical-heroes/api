@@ -4,15 +4,18 @@ using Microsoft.EntityFrameworkCore;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 
 public sealed class RolesRepository(
     IdentityWriteDbContext dbContext,
     RoleManager<ApplicationRole> roleManager,
+    UserSessionService userSessionService,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IRolesRepository
@@ -41,15 +44,28 @@ public sealed class RolesRepository(
 
     public async Task<Result> UpdateAsync(
         Role role,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? currentAccessToken = null)
     {
-        var applicationRole = await roleManager.Roles
-            .Include(item => item.Claims)
-            .SingleOrDefaultAsync(item => item.Id == role.Id.Value, cancellationToken);
+        var applicationRole = await FindForUpdateAsync(role.Id.Value, cancellationToken);
 
         if (applicationRole is null)
         {
             return RoleNotFound();
+        }
+
+        var authorizationChanged = !string.Equals(applicationRole.Name, role.Name.Value, StringComparison.Ordinal)
+            || !role.Claims.Select(claim => ((string?)claim.Type.Value, (string?)claim.Value.Value))
+                .ToHashSet()
+                .SetEquals(applicationRole.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)));
+        var userIds = authorizationChanged ? await GetMemberIdsAsync(role.Id.Value, cancellationToken) : [];
+        var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
+            userIds: userIds,
+            accessToken: currentAccessToken,
+            cancellationToken: cancellationToken);
+        if (sessionResult.IsFailure)
+        {
+            return Result.Failure(sessionResult.Errors);
         }
 
         ApplicationRoleMapper.MapToDbModel(
@@ -67,6 +83,10 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
+        await userSessionService.RevokeManyAsync(
+            userIds: userIds,
+            preservedAuthorizationId: sessionResult.Value,
+            cancellationToken: cancellationToken);
         aggregateTracker.Track(role);
 
         return Result.Success();
@@ -74,11 +94,10 @@ public sealed class RolesRepository(
 
     public async Task<Result> DeleteAsync(
         Guid id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? currentAccessToken = null)
     {
-        var applicationRole = await roleManager.Roles
-            .Include(role => role.Claims)
-            .SingleOrDefaultAsync(role => role.Id == id, cancellationToken);
+        var applicationRole = await FindForUpdateAsync(id, cancellationToken);
 
         if (applicationRole is null)
         {
@@ -97,6 +116,16 @@ public sealed class RolesRepository(
             return Result.Failure(errors: roleResult.Errors);
         }
 
+        var userIds = await GetMemberIdsAsync(id, cancellationToken);
+        var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
+            userIds: userIds,
+            accessToken: currentAccessToken,
+            cancellationToken: cancellationToken);
+        if (sessionResult.IsFailure)
+        {
+            return Result.Failure(sessionResult.Errors);
+        }
+
         var identityResult = await roleManager.DeleteAsync(applicationRole);
 
         if (!identityResult.Succeeded)
@@ -104,9 +133,31 @@ public sealed class RolesRepository(
             return IdentityResultMapper.ToResult(result: identityResult);
         }
 
+        await userSessionService.RevokeManyAsync(
+            userIds: userIds,
+            preservedAuthorizationId: sessionResult.Value,
+            cancellationToken: cancellationToken);
         aggregateTracker.Track(roleResult.Value);
 
         return Result.Success();
+    }
+
+    private Task<ApplicationRole?> FindForUpdateAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return dbContext.Set<ApplicationRole>()
+            .FromSqlInterpolated($"SELECT * FROM identity.asp_net_roles WHERE id = {id} FOR UPDATE")
+            .Include(role => role.Claims)
+            .AsSplitQuery()
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    private Task<Guid[]> GetMemberIdsAsync(Guid roleId, CancellationToken cancellationToken)
+    {
+        return dbContext.Set<ApplicationUserRole>()
+            .Where(userRole => userRole.RoleId == roleId)
+            .OrderBy(userRole => userRole.UserId)
+            .Select(userRole => userRole.UserId)
+            .ToArrayAsync(cancellationToken);
     }
 
     private static Result RoleNotFound()

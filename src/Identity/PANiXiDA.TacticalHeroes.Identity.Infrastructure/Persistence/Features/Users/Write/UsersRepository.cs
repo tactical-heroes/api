@@ -218,9 +218,12 @@ public sealed class UsersRepository(
             return Result.Success();
         }
 
-        var count = await dbContext.Set<ApplicationRole>()
-            .CountAsync(role => roleIds.Contains(role.Id), cancellationToken);
-        if (count != roleIds.Length)
+        var existingRoleIds = await dbContext.Set<ApplicationRole>()
+            .FromSqlInterpolated(
+                $"SELECT * FROM identity.asp_net_roles WHERE id = ANY ({roleIds}) ORDER BY id FOR SHARE")
+            .Select(role => role.Id)
+            .ToArrayAsync(cancellationToken);
+        if (existingRoleIds.Length != roleIds.Length)
         {
             return Result.Failure(error: Error.Validation(message: "One or more roles were not found.")
                 .WithField(nameof(User.RoleIds)));

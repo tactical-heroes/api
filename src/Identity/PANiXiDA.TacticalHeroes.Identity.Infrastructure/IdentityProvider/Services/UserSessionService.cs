@@ -1,12 +1,56 @@
+using Microsoft.EntityFrameworkCore;
+
+using OpenIddict.EntityFrameworkCore.Models;
+
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
 public sealed class UserSessionService(
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager,
+    IdentityWriteDbContext dbContext,
     ICurrentUserSessionRefresh? sessionRefresh = null)
 {
+    internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
+        IReadOnlyCollection<Guid> userIds,
+        string? accessToken,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(accessToken) || userIds.Count == 0)
+        {
+            return Result.Success<string?>(value: null);
+        }
+
+        var token = await tokenManager.FindByReferenceIdAsync(accessToken, cancellationToken);
+        if (token is null)
+        {
+            return InvalidSession();
+        }
+
+        if (await tokenManager.GetAuthorizationIdAsync(token, cancellationToken) is null)
+        {
+            return Result.Success<string?>(value: null);
+        }
+
+        if (!Guid.TryParse(await tokenManager.GetSubjectAsync(token, cancellationToken), out var userId))
+        {
+            return InvalidSession();
+        }
+
+        var result = await GetCurrentAuthorizationIdAsync(
+            userId: userId,
+            accessToken: accessToken,
+            cancellationToken: cancellationToken);
+        if (result.IsFailure)
+        {
+            return result;
+        }
+
+        return Result.Success(userIds.Contains(userId) ? result.Value : null);
+    }
+
     internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
         Guid userId,
         string? accessToken,
@@ -91,6 +135,55 @@ public sealed class UserSessionService(
                 throw new InvalidOperationException("Failed to revoke a user token.");
             }
         }
+
+        if (preservedAuthorizationId is not null)
+        {
+            sessionRefresh?.RequireRefresh();
+        }
+    }
+
+    internal async Task RevokeManyAsync(
+        Guid[] userIds,
+        string? preservedAuthorizationId,
+        CancellationToken cancellationToken)
+    {
+        if (userIds.Length == 0)
+        {
+            return;
+        }
+
+        var subjects = userIds.Select(id => id.ToString()).ToArray();
+        Guid? preservedId = preservedAuthorizationId is null ? null : Guid.Parse(preservedAuthorizationId);
+        await dbContext.Users.Where(user => userIds.Contains(user.Id))
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(user => user.SecurityStamp, _ => Guid.NewGuid().ToString())
+                    .SetProperty(user => user.ConcurrencyStamp, _ => Guid.NewGuid().ToString()),
+                cancellationToken);
+
+        await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .Where(authorization => subjects.Contains(authorization.Subject!))
+            .Where(authorization => !preservedId.HasValue || authorization.Id != preservedId.Value)
+            .Where(authorization => authorization.Status != OpenIddictConstants.Statuses.Revoked)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(authorization => authorization.Status, OpenIddictConstants.Statuses.Revoked)
+                    .SetProperty(authorization => authorization.ConcurrencyToken, _ => Guid.NewGuid().ToString()),
+                cancellationToken);
+
+        await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .Where(token => subjects.Contains(token.Subject!))
+            .Where(token => !preservedId.HasValue
+                || token.Authorization == null
+                || token.Authorization.Id != preservedId.Value
+                || (token.Type != OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
+                    && token.Type != OpenIddictConstants.TokenTypeHints.RefreshToken))
+            .Where(token => token.Status != OpenIddictConstants.Statuses.Revoked)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(token => token.Status, OpenIddictConstants.Statuses.Revoked)
+                    .SetProperty(token => token.ConcurrencyToken, _ => Guid.NewGuid().ToString()),
+                cancellationToken);
 
         if (preservedAuthorizationId is not null)
         {
