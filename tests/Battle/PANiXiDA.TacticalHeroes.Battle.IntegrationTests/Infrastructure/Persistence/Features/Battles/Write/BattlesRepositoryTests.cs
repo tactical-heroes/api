@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.Core.Application.Persistence.Errors;
+
 using PANiXiDA.TacticalHeroes.Battle.Application.Battles.Abstractions;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Abstractions;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
@@ -83,8 +85,9 @@ public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)
         second.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
         secondRepository.Update(second);
         Func<Task> saveStale = () => GetUnitOfWork(secondScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        var exception = await Should.ThrowAsync<ConcurrencyException>(saveStale);
 
-        await Should.ThrowAsync<PANiXiDA.Core.Application.Persistence.Errors.ConcurrencyException>(saveStale);
+        exception.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
     }
 
     private static IUnitOfWork GetUnitOfWork(IServiceProvider services)

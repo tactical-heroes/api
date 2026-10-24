@@ -4,7 +4,17 @@ namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.ValueObjects;
 
 public sealed class DamageTests
 {
-    [Theory(DisplayName = "Damage should preserve its value when value is non-negative")]
+    [Fact(DisplayName = "Domain value should describe its state when converted to text")]
+    public void ToString_Should_DescribeState_When_ConvertedToText()
+    {
+        var value = Damage.Create(543).Value;
+
+        var text = value.ToString();
+
+        text.ShouldBe("Damage { Value = 543 }");
+    }
+
+    [Theory(DisplayName = "Damage should preserve its value when value is non negative")]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(long.MaxValue)]
@@ -19,6 +29,8 @@ public sealed class DamageTests
     [Fact(DisplayName = "Damage should reject its value when value is negative")]
     public void Create_Should_ReturnFailure_When_ValueIsNegative()
     {
-        Damage.Create(-1).IsFailure.ShouldBeTrue();
+        var result = Damage.Create(-1);
+
+        result.IsFailure.ShouldBeTrue();
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
@@ -15,9 +16,9 @@ internal sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
             .HasConversion(id => id.Value, value => UnitId.Create(value).Value)
             .ValueGeneratedNever();
         builder.Property(unit => unit.BattleId)
-            .HasConversion(
-                id => id.GetValueOrDefault().Value,
-                value => (BattleId?)BattleId.Create(value).Value)
+            .HasConversion(new ValueConverter<BattleId, Guid>(
+                id => id.Value,
+                value => BattleId.Create(value).Value))
             .IsRequired();
 
         builder.ComplexProperty(

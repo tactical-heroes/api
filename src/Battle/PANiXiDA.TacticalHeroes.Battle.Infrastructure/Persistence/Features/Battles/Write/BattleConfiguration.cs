@@ -21,6 +21,8 @@ internal sealed class BattleConfiguration : AuditableEntityConfiguration<BattleA
             .HasForeignKey(unit => unit.BattleId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Navigation(battle => battle.Units).UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(battle => battle.Units)
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .AutoInclude();
     }
 }

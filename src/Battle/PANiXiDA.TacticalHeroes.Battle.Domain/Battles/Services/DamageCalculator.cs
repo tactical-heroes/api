@@ -24,7 +24,7 @@ public static class DamageCalculator
         var statsModifier = 1 + StatsModifierCoefficient * Math.Abs(difference);
         var baseDamage = (decimal)roll.Value * attackerStack.Count;
         var modifiedDamage = difference >= 0 ? baseDamage * statsModifier : baseDamage / statsModifier;
-        var roundedDamage = decimal.Round(modifiedDamage, 0, MidpointRounding.AwayFromZero);
+        var roundedDamage = decimal.Round(d: modifiedDamage, decimals: 0, mode: MidpointRounding.AwayFromZero);
 
         return roundedDamage > long.MaxValue
             ? Result.Failure<Damage>(Error.Validation("Calculated damage exceeds the supported range."))

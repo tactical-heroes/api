@@ -18,6 +18,6 @@ public sealed partial class UnitCombatStats : ValueObject
         return attack < 0 || defense < 0 || maxHealth <= 0
             ? Result.Failure<UnitCombatStats>(Error.Validation(
                 "Attack and defense must be non-negative, and maximum health must be positive."))
-            : Result.Success(new UnitCombatStats(attack, defense, maxHealth));
+            : Result.Success(new UnitCombatStats(attack: attack, defense: defense, maxHealth: maxHealth));
     }
 }

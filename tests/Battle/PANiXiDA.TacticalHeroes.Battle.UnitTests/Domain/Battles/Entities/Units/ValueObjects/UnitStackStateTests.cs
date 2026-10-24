@@ -4,6 +4,16 @@ namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.Entities.Units
 
 public sealed class UnitStackStateTests
 {
+    [Fact(DisplayName = "Domain value should describe its state when converted to text")]
+    public void ToString_Should_DescribeState_When_ConvertedToText()
+    {
+        var value = UnitStackState.Create(3, 4).Value;
+
+        var text = value.ToString();
+
+        text.ShouldBe("UnitStackState { Count = 3, CurrentUnitHealth = 4 }");
+    }
+
     [Theory(DisplayName = "Stack state should reject inconsistent count and health when values are invalid")]
     [InlineData(-1, 1)]
     [InlineData(1, -1)]
@@ -11,7 +21,9 @@ public sealed class UnitStackStateTests
     [InlineData(1, 0)]
     public void Create_Should_ReturnFailure_When_ValuesAreInvalid(int count, int health)
     {
-        UnitStackState.Create(count, health).IsFailure.ShouldBeTrue();
+        var result = UnitStackState.Create(count, health);
+
+        result.IsFailure.ShouldBeTrue();
     }
 
     [Theory(DisplayName = "Stack state should preserve living or destroyed state when values are valid")]

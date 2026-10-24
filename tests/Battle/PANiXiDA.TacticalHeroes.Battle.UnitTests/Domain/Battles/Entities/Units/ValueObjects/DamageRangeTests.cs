@@ -5,12 +5,24 @@ namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.Entities.Units
 
 public sealed class DamageRangeTests
 {
+    [Fact(DisplayName = "Domain value should describe its state when converted to text")]
+    public void ToString_Should_DescribeState_When_ConvertedToText()
+    {
+        var value = DamageRange.Create(2, 4).Value;
+
+        var text = value.ToString();
+
+        text.ShouldBe("DamageRange { Minimum = 2, Maximum = 4 }");
+    }
+
     [Theory(DisplayName = "Damage range should reject its bounds when bounds are invalid")]
     [InlineData(-1, 1)]
     [InlineData(2, 1)]
     public void Create_Should_ReturnFailure_When_BoundsAreInvalid(int minimum, int maximum)
     {
-        DamageRange.Create(minimum, maximum).IsFailure.ShouldBeTrue();
+        var result = DamageRange.Create(minimum, maximum);
+
+        result.IsFailure.ShouldBeTrue();
     }
 
     [Fact(DisplayName = "Damage range should preserve inclusive bounds when bounds are valid")]

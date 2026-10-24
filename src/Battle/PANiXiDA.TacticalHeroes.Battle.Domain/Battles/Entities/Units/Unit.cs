@@ -31,7 +31,7 @@ public sealed class Unit : Entity<UnitId>
 
     public static Result<Unit> Create(UnitCombatStats stats, DamageRange damageRange, UnitStackState stackState)
     {
-        return Create(UnitId.New(), stats, damageRange, stackState);
+        return Create(id: UnitId.New(), stats: stats, damageRange: damageRange, stackState: stackState);
     }
 
     public static Result<Unit> Create(
@@ -47,7 +47,7 @@ public sealed class Unit : Entity<UnitId>
 
         return stackState.CurrentUnitHealth > stats.MaxHealth
             ? Result.Failure<Unit>(Error.Validation("Current unit health cannot exceed maximum health."))
-            : Result.Success(new Unit(id, stats, damageRange, stackState));
+            : Result.Success(new Unit(id: id, stats: stats, damageRange: damageRange, stackState: stackState));
     }
 
     internal void AssignToBattle(BattleId battleId)
@@ -78,10 +78,10 @@ public sealed class Unit : Entity<UnitId>
         var currentUnitHealth = remainingHealth == 0 ? 0 : (int)((remainingHealth - 1) % Stats.MaxHealth + 1);
         var remainingStack = UnitStackState.Create(remainingCount, currentUnitHealth).Value;
         var result = DamageResult.Create(
-            damage,
-            Damage.Create(appliedDamage).Value,
-            Count - remainingCount,
-            remainingStack);
+            calculatedDamage: damage,
+            appliedDamage: Damage.Create(appliedDamage).Value,
+            killedCount: Count - remainingCount,
+            remainingStack: remainingStack);
 
         StackState = remainingStack;
 

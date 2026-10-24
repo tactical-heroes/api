@@ -25,6 +25,10 @@ public sealed partial class DamageResult : ValueObject
     {
         return appliedDamage.Value > calculatedDamage.Value || killedCount < 0
             ? Result.Failure<DamageResult>(Error.Validation("Applied damage and casualties must be valid."))
-            : Result.Success(new DamageResult(calculatedDamage, appliedDamage, killedCount, remainingStack));
+            : Result.Success(new DamageResult(
+                calculatedDamage: calculatedDamage,
+                appliedDamage: appliedDamage,
+                killedCount: killedCount,
+                remainingStack: remainingStack));
     }
 }

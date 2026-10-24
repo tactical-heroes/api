@@ -63,7 +63,11 @@ public sealed class Battle : AggregateRoot<BattleId>
         }
 
         var damage = DamageCalculator.Calculate(
-            attacker.Stats, attacker.StackState, attacker.DamageRange, defender.Stats, roll);
+            attackerStats: attacker.Stats,
+            attackerStack: attacker.StackState,
+            damageRange: attacker.DamageRange,
+            defenderStats: defender.Stats,
+            roll: roll);
         if (damage.IsFailure)
         {
             return Result.Failure<DamageResult>(damage.Errors);
@@ -72,7 +76,11 @@ public sealed class Battle : AggregateRoot<BattleId>
         var result = defender.TakeDamage(damage.Value);
         if (result.IsSuccess && result.Value.AppliedDamage.Value > 0)
         {
-            AddDomainEvent(new UnitDamaged(Id, attackerId, defenderId, result.Value));
+            AddDomainEvent(new UnitDamaged(
+                BattleId: Id,
+                AttackerId: attackerId,
+                DefenderId: defenderId,
+                Result: result.Value));
         }
 
         return result;
