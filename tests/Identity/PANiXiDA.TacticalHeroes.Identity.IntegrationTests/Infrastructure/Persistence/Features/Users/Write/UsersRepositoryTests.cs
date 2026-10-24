@@ -259,6 +259,8 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     [InlineData(true, "claims")]
     [InlineData(false, "block")]
     [InlineData(true, "block")]
+    [InlineData(false, "confirmation")]
+    [InlineData(true, "confirmation")]
     public async Task UpdateAsync_Should_PreserveState_When_IdentityValidationFails(bool duplicateEmail, string change)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -298,7 +300,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             email: duplicateEmail ? "occupied@example.com" : "hero@example.com",
             isConfirmed: false,
             roleIds: [roles[change == "roles" ? "Developer" : "Player"]],
-            claims: [("permission", "identity.users.read")],
+            claims: change == "confirmation" ? [] : [("permission", "identity.users.read")],
             userName: duplicateEmail ? "hero" : "occupied",
             status: change == "block" ? UserStatus.Blocked : UserStatus.Active);
 
@@ -326,14 +328,15 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         authorization.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
     }
 
-    [Theory(DisplayName = "User updates should invalidate changed claims when claim selections vary")]
+    [Theory(DisplayName = "User updates should invalidate sessions when claims or confirmation change")]
     [InlineData("same")]
     [InlineData("reorder")]
     [InlineData("add")]
     [InlineData("remove")]
     [InlineData("type")]
     [InlineData("value")]
-    public async Task UpdateAsync_Should_InvalidateChangedClaims_When_ClaimSelectionsVary(string mode)
+    [InlineData("unconfirm")]
+    public async Task UpdateAsync_Should_InvalidateSessions_When_ClaimsOrConfirmationChange(string mode)
     {
         var ct = TestContext.Current.CancellationToken;
         var id = await AddUserAsync(
@@ -391,7 +394,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var updated = IntegrationTestData.CreateUser(
             id: id,
             email: "hero@example.com",
-            isConfirmed: true,
+            isConfirmed: mode != "unconfirm",
             roleIds: [],
             claims: claims,
             userName: "hero",
@@ -407,6 +410,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         var users = await dbContext.Set<ApplicationUser>().Include(user => user.Claims).AsNoTracking()
             .ToDictionaryAsync(user => user.Id, ct);
         (users[id].SecurityStamp != stamps[id]).ShouldBe(changed);
+        users[id].EmailConfirmed.ShouldBe(mode != "unconfirm");
         users[otherId].SecurityStamp.ShouldBe(stamps[otherId]);
         users[id].Claims.Select(claim => (claim.ClaimType!, claim.ClaimValue!)).ShouldBe(claims, ignoreOrder: true);
         var authorizations = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
