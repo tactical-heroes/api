@@ -66,7 +66,7 @@ public sealed class UpdateRoleHandler(
 
         return await rolesRepository.UpdateAsync(
             role: role,
-            cancellationToken: cancellationToken,
-            currentAccessToken: currentUser.AccessToken);
+            currentAccessToken: currentUser.AccessToken,
+            cancellationToken: cancellationToken);
     }
 }

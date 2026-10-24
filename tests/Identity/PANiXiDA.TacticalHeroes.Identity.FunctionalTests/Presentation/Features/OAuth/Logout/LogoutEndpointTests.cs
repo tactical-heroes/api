@@ -13,16 +13,18 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "logout@example.test",
-            "logout-hero",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "logout@example.test",
+            userName: "logout-hero",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client,
-            OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
         using var loginResponse = await client.PostAsJsonAsync(
             "/api/v1/auth/login",
             new LoginRequest(
@@ -56,9 +58,10 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
             cookie.Contains(".AspNetCore.Identity.Application=;", StringComparison.Ordinal));
 
         var nextAuthorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client,
-            OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
         using var authorizeResponse = await client.GetAsync(nextAuthorizePath, cancellationToken);
 
         authorizeResponse.StatusCode.ShouldBe(HttpStatusCode.Redirect);

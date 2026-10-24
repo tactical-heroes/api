@@ -10,11 +10,10 @@ public sealed class CreateHeroEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new HeroesApiTestClient(Fixture);
-        var faction = await client.CreateFactionAsync(cancellationToken);
+        var faction = await client.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
 
         var createdHero = await client.CreateAsync(
             faction.Id,
-            cancellationToken,
             new CreateHeroRequest(
                 Name: "  Orrin  ",
                 Description: "  A seasoned northern commander.  ",
@@ -25,7 +24,8 @@ public sealed class CreateHeroEndpointTests(FunctionalTestFixture fixture)
                 Initiative: 10.5,
                 Morale: 4,
                 Luck: 2,
-                FactionId: faction.Id));
+                FactionId: faction.Id),
+            cancellationToken);
         var hero = await client.GetDetailsAsync(
             createdHero.Id,
             cancellationToken);

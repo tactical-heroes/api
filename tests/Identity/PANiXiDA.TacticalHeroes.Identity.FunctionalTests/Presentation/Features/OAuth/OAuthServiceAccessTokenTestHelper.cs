@@ -21,15 +21,18 @@ internal static class OAuthServiceAccessTokenTestHelper
     {
         request.Headers.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            await IssueAccessTokenAsync(fixture, cancellationToken));
+            await IssueAccessTokenAsync(
+                fixture: fixture,
+                permissions: null,
+                cancellationToken: cancellationToken));
 
         return await fixture.Client.SendAsync(request, cancellationToken);
     }
 
     internal static async Task<string> IssueAccessTokenAsync(
         FunctionalTestFixture fixture,
-        CancellationToken cancellationToken,
-        IReadOnlyCollection<string>? permissions = null)
+        IReadOnlyCollection<string>? permissions,
+        CancellationToken cancellationToken)
     {
         using var scope = fixture.Services.CreateScope();
         var options = scope.ServiceProvider

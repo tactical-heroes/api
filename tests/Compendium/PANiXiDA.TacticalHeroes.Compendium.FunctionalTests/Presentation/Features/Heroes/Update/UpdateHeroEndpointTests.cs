@@ -10,11 +10,16 @@ public sealed class UpdateHeroEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new HeroesApiTestClient(Fixture);
-        var originalFaction = await client.CreateFactionAsync(cancellationToken);
-        var targetFaction = await client.CreateFactionAsync(cancellationToken);
+        var originalFaction = await client.CreateFactionAsync(
+            request: null,
+            cancellationToken: cancellationToken);
+        var targetFaction = await client.CreateFactionAsync(
+            request: null,
+            cancellationToken: cancellationToken);
         var createdHero = await client.CreateAsync(
-            originalFaction.Id,
-            cancellationToken);
+            factionId: originalFaction.Id,
+            request: null,
+            cancellationToken: cancellationToken);
 
         await client.UpdateAsync(
             createdHero.Id,

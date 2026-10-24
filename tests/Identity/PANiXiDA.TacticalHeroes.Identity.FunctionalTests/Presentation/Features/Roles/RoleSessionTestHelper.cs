@@ -24,14 +24,61 @@ internal sealed class RoleSessionTestHelper(FunctionalTestFixture fixture) : IDi
     internal OAuthTokenResponse MemberTokens { get; private set; } = null!;
     internal OAuthTokenResponse UnrelatedTokens { get; private set; } = null!;
 
+    public void Dispose()
+    {
+        Current.Dispose();
+        Other.Dispose();
+        Member.Dispose();
+        Unrelated.Dispose();
+    }
+
+    internal static async Task<HttpResponseMessage> RefreshAsync(
+        HttpClient client, string refreshToken, CancellationToken ct)
+    {
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["grant_type"] = "refresh_token",
+            ["client_id"] = OAuthAuthorizationRequestTestHelper.ClientId,
+            ["refresh_token"] = refreshToken
+        });
+        return await client.PostAsync("/connect/token", content, ct);
+    }
+
+    internal static async Task AssertAccessAsync(
+        HttpClient client,
+        string token,
+        HttpStatusCode status,
+        string path,
+        CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var response = await client.SendAsync(request, ct);
+        response.StatusCode.ShouldBe(status, await response.Content.ReadAsStringAsync(ct));
+    }
+
+    internal static async Task AssertCookieAsync(HttpClient client, bool valid, CancellationToken ct)
+    {
+        var path = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: ct);
+        using var response = await client.GetAsync(path, ct);
+        response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        response.Headers.Location!.AbsoluteUri.ShouldStartWith(valid
+            ? OAuthAuthorizationRequestTestHelper.RedirectUri
+            : "https://localhost:5173/login");
+    }
+
     internal async Task InitializeAsync(bool hasPermission, CancellationToken ct)
     {
         var role = await new RoleApiTestClient(fixture).CreateAsync(
-            ct,
             new CreateRoleRequest(
                 "SessionRole",
                 false,
-                hasPermission ? [new("permission", "identity.roles.read")] : []));
+                hasPermission ? [new("permission", "identity.roles.read")] : []),
+            ct);
         RoleId = role.Id;
         var users = new UserApiTestClient(fixture);
         foreach (var (email, name, assigned) in new[]
@@ -42,12 +89,12 @@ internal sealed class RoleSessionTestHelper(FunctionalTestFixture fixture) : IDi
                  })
         {
             var user = await users.CreateAsync(
-                ct,
                 UserApiTestClient.CreateDefaultRequest(email, name) with
                 {
                     RoleIds = assigned ? [RoleId] : [],
                     Claims = [new("permission", "identity.roles.update"), new("permission", "identity.roles.delete")]
-                });
+                },
+                ct);
             if (email == Email)
             {
                 UserId = user.Id;
@@ -63,7 +110,10 @@ internal sealed class RoleSessionTestHelper(FunctionalTestFixture fixture) : IDi
     }
 
     internal Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, bool self, CancellationToken ct, bool service = false)
+        HttpRequestMessage request,
+        bool self,
+        bool service,
+        CancellationToken ct)
     {
         if (service)
         {
@@ -85,10 +135,30 @@ internal sealed class RoleSessionTestHelper(FunctionalTestFixture fixture) : IDi
             response.Headers.GetValues("X-Session-Refresh-Required").ShouldBe(["true"]);
             response.Headers.Contains("Set-Cookie").ShouldBeTrue();
         }
-        await AssertAccessAsync(Current, CurrentTokens.AccessToken, HttpStatusCode.Unauthorized, ct);
-        await AssertAccessAsync(Other, OtherTokens.AccessToken, HttpStatusCode.Unauthorized, ct);
-        await AssertAccessAsync(Member, MemberTokens.AccessToken, HttpStatusCode.Unauthorized, ct);
-        await AssertAccessAsync(Unrelated, UnrelatedTokens.AccessToken, HttpStatusCode.OK, ct);
+        await AssertAccessAsync(
+            client: Current,
+            token: CurrentTokens.AccessToken,
+            status: HttpStatusCode.Unauthorized,
+            path: "/connect/userinfo",
+            ct: ct);
+        await AssertAccessAsync(
+            client: Other,
+            token: OtherTokens.AccessToken,
+            status: HttpStatusCode.Unauthorized,
+            path: "/connect/userinfo",
+            ct: ct);
+        await AssertAccessAsync(
+            client: Member,
+            token: MemberTokens.AccessToken,
+            status: HttpStatusCode.Unauthorized,
+            path: "/connect/userinfo",
+            ct: ct);
+        await AssertAccessAsync(
+            client: Unrelated,
+            token: UnrelatedTokens.AccessToken,
+            status: HttpStatusCode.OK,
+            path: "/connect/userinfo",
+            ct: ct);
         await AssertCookieAsync(Current, self, ct);
         await AssertCookieAsync(Other, false, ct);
         await AssertCookieAsync(Member, false, ct);
@@ -104,7 +174,11 @@ internal sealed class RoleSessionTestHelper(FunctionalTestFixture fixture) : IDi
             using var document = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(ct));
             var access = document.RootElement.GetProperty("access_token").GetString()!;
             await AssertAccessAsync(
-                Current, access, hasPermission ? HttpStatusCode.OK : HttpStatusCode.Forbidden, ct, "/api/v1/roles");
+                Current,
+                access,
+                hasPermission ? HttpStatusCode.OK : HttpStatusCode.Forbidden,
+                "/api/v1/roles",
+                ct);
             using var request = new HttpRequestMessage(HttpMethod.Get, "/connect/userinfo");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
             using var userInfo = await Current.SendAsync(request, ct);
@@ -116,45 +190,5 @@ internal sealed class RoleSessionTestHelper(FunctionalTestFixture fixture) : IDi
                 Current, document.RootElement.GetProperty("refresh_token").GetString()!, ct);
             next.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
-    }
-
-    internal static async Task<HttpResponseMessage> RefreshAsync(
-        HttpClient client, string refreshToken, CancellationToken ct)
-    {
-        using var content = new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            ["grant_type"] = "refresh_token",
-            ["client_id"] = OAuthAuthorizationRequestTestHelper.ClientId,
-            ["refresh_token"] = refreshToken
-        });
-        return await client.PostAsync("/connect/token", content, ct);
-    }
-
-    internal static async Task AssertAccessAsync(
-        HttpClient client, string token, HttpStatusCode status, CancellationToken ct, string path = "/connect/userinfo")
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Get, path);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        using var response = await client.SendAsync(request, ct);
-        response.StatusCode.ShouldBe(status, await response.Content.ReadAsStringAsync(ct));
-    }
-
-    internal static async Task AssertCookieAsync(HttpClient client, bool valid, CancellationToken ct)
-    {
-        var path = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client, OAuthAuthorizationRequestTestHelper.DefaultScopes, ct);
-        using var response = await client.GetAsync(path, ct);
-        response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
-        response.Headers.Location!.AbsoluteUri.ShouldStartWith(valid
-            ? OAuthAuthorizationRequestTestHelper.RedirectUri
-            : "https://localhost:5173/login");
-    }
-
-    public void Dispose()
-    {
-        Current.Dispose();
-        Other.Dispose();
-        Member.Dispose();
-        Unrelated.Dispose();
     }
 }

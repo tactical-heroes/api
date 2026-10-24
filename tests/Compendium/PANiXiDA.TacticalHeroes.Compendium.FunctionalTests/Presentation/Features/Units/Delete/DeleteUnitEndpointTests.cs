@@ -13,10 +13,11 @@ public sealed class DeleteUnitEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);
-        var faction = await client.CreateFactionAsync(cancellationToken);
+        var faction = await client.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
         var createdUnit = await client.CreateAsync(
-            faction.Id,
-            cancellationToken);
+            factionId: faction.Id,
+            request: null,
+            cancellationToken: cancellationToken);
 
         await client.DeleteAsync(createdUnit.Id, cancellationToken);
         using var response = await client.GetDetailsResponseAsync(
@@ -31,8 +32,11 @@ public sealed class DeleteUnitEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var api = new UnitsApiTestClient(Fixture);
-        var faction = await api.CreateFactionAsync(cancellationToken);
-        var unit = await api.CreateAsync(faction.Id, cancellationToken);
+        var faction = await api.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
+        var unit = await api.CreateAsync(
+            factionId: faction.Id,
+            request: null,
+            cancellationToken: cancellationToken);
         var interceptor = new DeleteUnitBeforeSaveInterceptor(unit.Id, Fixture.Services);
         await using var testFactory = new FunctionalTestWebApplicationFactory();
         await using var factory = testFactory.WithWebHostBuilder(builder =>

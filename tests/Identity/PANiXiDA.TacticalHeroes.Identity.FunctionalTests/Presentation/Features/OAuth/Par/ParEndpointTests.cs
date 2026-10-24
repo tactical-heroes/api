@@ -9,9 +9,10 @@ public sealed class ParEndpointTests(FunctionalTestFixture fixture)
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
 
         var requestUri = await OAuthAuthorizationRequestTestHelper.PushAuthorizationRequestAsync(
-            client,
-            OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            TestContext.Current.CancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         requestUri.ShouldNotBeNullOrWhiteSpace();
         requestUri.ShouldStartWith("urn:ietf:params:oauth:request_uri:");

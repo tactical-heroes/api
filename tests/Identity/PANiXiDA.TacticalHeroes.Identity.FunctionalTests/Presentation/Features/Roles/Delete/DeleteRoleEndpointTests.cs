@@ -17,7 +17,11 @@ public sealed class DeleteRoleEndpointTests(FunctionalTestFixture fixture)
         await sessions.InitializeAsync(true, ct);
         using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/roles/{sessions.RoleId}");
 
-        using var response = await sessions.SendAsync(request, actor == "self", ct, service: actor == "service");
+        using var response = await sessions.SendAsync(
+            request: request,
+            self: actor == "self",
+            service: actor == "service",
+            ct: ct);
 
         await sessions.AssertRevokedAsync(response, actor == "self", false, null, ct);
         (await RoleDatabaseTestHelper.FindAsync(Fixture, sessions.RoleId, ct)).ShouldBeNull();
@@ -29,7 +33,7 @@ public sealed class DeleteRoleEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        var createdRole = await client.RecreateAsync(cancellationToken);
+        var createdRole = await client.RecreateAsync(request: null, cancellationToken: cancellationToken);
 
         await client.DeleteAsync(createdRole.Id, cancellationToken);
         var role = await RoleDatabaseTestHelper.FindAsync(

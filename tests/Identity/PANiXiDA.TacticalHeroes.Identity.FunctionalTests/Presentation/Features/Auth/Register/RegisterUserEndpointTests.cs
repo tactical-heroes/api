@@ -48,7 +48,8 @@ public sealed class RegisterUserEndpointTests(FunctionalTestFixture fixture)
         var previous = (await roles.GetListAsync(cancellationToken)).Items.Single(role => role.IsDefault);
         await roles.UpdateAsync(previous.Id, new UpdateRoleRequest(previous.Name, false, []), cancellationToken);
         var created = await roles.CreateAsync(
-            cancellationToken, new CreateRoleRequest("CustomDefault", true, []));
+            new CreateRoleRequest("CustomDefault", true, []),
+            cancellationToken);
         await roles.UpdateAsync(created.Id, new UpdateRoleRequest("RenamedDefault", true, []), cancellationToken);
 
         using var response = await Client.PostAsJsonAsync(
@@ -84,7 +85,10 @@ public sealed class RegisterUserEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         var users = await new UserApiTestClient(Fixture).GetListAsync(
-            cancellationToken, email: "missing-default@example.com");
+            email: "missing-default@example.com",
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: cancellationToken);
         users.TotalCount.ShouldBe(0);
     }
 }

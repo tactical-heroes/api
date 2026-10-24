@@ -24,9 +24,9 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         var unit = IntegrationTestData.CreateUnit(faction);
 
         await AddFactionAndUnitsAsync(
-            faction,
-            cancellationToken,
-            unit);
+            faction: faction,
+            units: [unit],
+            cancellationToken: cancellationToken);
 
         await using var verificationScope = Fixture.CreateScope();
         var dbContext = verificationScope.ServiceProvider
@@ -56,7 +56,7 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var faction = IntegrationTestData.CreateFaction();
         var unit = IntegrationTestData.CreateUnit(faction);
-        await AddFactionAndUnitsAsync(faction, cancellationToken, unit);
+        await AddFactionAndUnitsAsync(faction: faction, units: [unit], cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
@@ -86,9 +86,9 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         var faction = IntegrationTestData.CreateFaction();
         var unit = IntegrationTestData.CreateUnit(faction);
         await AddFactionAndUnitsAsync(
-            faction,
-            cancellationToken,
-            unit);
+            faction: faction,
+            units: [unit],
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUnitsRepository>();
@@ -112,9 +112,9 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         var faction = IntegrationTestData.CreateFaction();
         var unit = IntegrationTestData.CreateUnit(faction);
         await AddFactionAndUnitsAsync(
-            faction,
-            cancellationToken,
-            unit);
+            faction: faction,
+            units: [unit],
+            cancellationToken: cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -172,9 +172,9 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
         var faction = IntegrationTestData.CreateFaction();
         var unit = IntegrationTestData.CreateUnit(faction);
         await AddFactionAndUnitsAsync(
-            faction,
-            cancellationToken,
-            unit);
+            faction: faction,
+            units: [unit],
+            cancellationToken: cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
@@ -202,8 +202,8 @@ public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
 
     private async Task AddFactionAndUnitsAsync(
         Faction faction,
-        CancellationToken cancellationToken,
-        params Unit[] units)
+        Unit[] units,
+        CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
         var factionsRepository = scope.ServiceProvider

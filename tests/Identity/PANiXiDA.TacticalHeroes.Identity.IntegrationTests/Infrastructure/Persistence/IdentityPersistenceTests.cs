@@ -38,7 +38,10 @@ public sealed class IdentityPersistenceTests(IntegrationTestFixture fixture) : I
         (await ReadNameAsync(role, id, cancellationToken)).ShouldBe("updated");
 
         var deletion = role
-            ? await provider.GetRequiredService<IRolesRepository>().DeleteAsync(id, cancellationToken)
+            ? await provider.GetRequiredService<IRolesRepository>().DeleteAsync(
+                id: id,
+                currentAccessToken: null,
+                cancellationToken: cancellationToken)
             : await provider.GetRequiredService<IUsersRepository>().DeleteAsync(id, cancellationToken);
         deletion.IsSuccess.ShouldBeTrue();
         (await ReadNameAsync(role, id, cancellationToken)).ShouldBeNull();
@@ -169,10 +172,13 @@ public sealed class IdentityPersistenceTests(IntegrationTestFixture fixture) : I
     {
         return role
             ? await provider.GetRequiredService<IRolesRepository>().UpdateAsync(
-                RoleTestData.CreateRole(id, name, []), cancellationToken)
+                role: RoleTestData.CreateRole(id, name, []),
+                currentAccessToken: null,
+                cancellationToken: cancellationToken)
             : await provider.GetRequiredService<IUsersRepository>().UpdateAsync(
-                UserTestData.CreateUser(id, "hero@example.com", true, [], [], name, UserStatus.Active),
-                cancellationToken);
+                user: UserTestData.CreateUser(id, "hero@example.com", true, [], [], name, UserStatus.Active),
+                currentAccessToken: null,
+                cancellationToken: cancellationToken);
     }
 
     private async Task<string?> ReadNameAsync(bool role, Guid id, CancellationToken cancellationToken)

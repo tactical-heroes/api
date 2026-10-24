@@ -8,7 +8,7 @@ public sealed class UnblockUserEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        var createdUser = await client.CreateAsync(cancellationToken);
+        var createdUser = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
         await client.BlockAsync(createdUser.Id, cancellationToken);
 
         await client.UnblockAsync(createdUser.Id, cancellationToken);

@@ -13,15 +13,17 @@ public sealed class GetUsersEndpointTests(FunctionalTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
         await client.CreateAsync(
-            cancellationToken,
-            UserApiTestClient.CreateDefaultRequest("first@example.com", "first-hero"));
+            UserApiTestClient.CreateDefaultRequest("first@example.com", "first-hero"),
+            cancellationToken);
         var secondUser = await client.CreateAsync(
-            cancellationToken,
-            UserApiTestClient.CreateDefaultRequest("second@example.com", "second-hero"));
+            UserApiTestClient.CreateDefaultRequest("second@example.com", "second-hero"),
+            cancellationToken);
 
         var response = await client.GetListAsync(
-            cancellationToken,
-            email: "ECOND");
+            email: "ECOND",
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: cancellationToken);
 
         response.TotalCount.ShouldBe(1);
         var user = response.Items.ShouldHaveSingleItem();
@@ -39,7 +41,10 @@ public sealed class GetUsersEndpointTests(FunctionalTestFixture fixture)
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users?pageNumber=1&pageSize=20");
         request.Headers.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(
+                Fixture,
+                [permission],
+                cancellationToken));
 
         using var response = await Client.SendAsync(request, cancellationToken);
 

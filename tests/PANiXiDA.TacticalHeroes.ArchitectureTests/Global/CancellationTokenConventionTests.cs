@@ -7,6 +7,94 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class CancellationTokenConventionTests
 {
+    [Fact(DisplayName = "Cancellation token parameters should be last when signatures are declared")]
+    public async Task CancellationTokenParameters_Should_BeLast_When_SignaturesAreDeclared()
+    {
+        var analysis = await CancellationTokenSourceDiscovery.GetAnalysisAsync();
+        var violations = analysis.Parameters
+            .Where(parameter => !parameter.IsLast && !parameter.HasExternallyDefinedSignature)
+            .Select(parameter =>
+                $"{parameter.RelativePath}:{parameter.LineNumber}: "
+                    + $"cancellation token parameter '{parameter.Name}' must be last.")
+            .ToArray();
+
+        Assert.NotEmpty(analysis.Parameters);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Cancellation token arguments should be last when calls are written")]
+    public async Task CancellationTokenArguments_Should_BeLast_When_CallsAreWritten()
+    {
+        var analysis = await CancellationTokenSourceDiscovery.GetAnalysisAsync();
+        var violations = analysis.Invocations
+            .Where(invocation => !invocation.PassesTokenLast)
+            .Select(invocation =>
+                $"{invocation.RelativePath}:{invocation.LineNumber}: "
+                    + $"'{invocation.Expression}' must pass the cancellation token last.")
+            .ToArray();
+
+        Assert.NotEmpty(analysis.Invocations);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Theory(DisplayName = "Cancellation token ordering should detect misplaced tokens when source shapes vary")]
+    [InlineData("void Run(int value, Cancellation token) { }", false, false)]
+    [InlineData("void Run(Cancellation token, int value) { }", true, false)]
+    [InlineData("void Run(Cancellation token, int value = 0) { }", true, false)]
+    [InlineData("public Sample(Cancellation token, int value) { }", true, false)]
+    [InlineData("public class Inner(Cancellation token, int value);", true, false)]
+    [InlineData("void Run() { void Local(Cancellation token, int value) { } }", true, false)]
+    [InlineData("public delegate void Callback(Cancellation token, int value);", true, false)]
+    [InlineData("void Run() { System.Action<Cancellation, int> action = (token, value) => { }; }", true, false)]
+    [InlineData("void Run(Cancellation token) { Execute(1, token); }", false, false)]
+    [InlineData("void Run(Cancellation token) { Execute(token: token, value: 1); }", false, true)]
+    [InlineData("void Run(Cancellation token) { Execute(value: 1, token: token); }", false, false)]
+    [InlineData(
+        "class Inner { public Inner(int value, Cancellation token) { } } "
+            + "void Run(Cancellation token) { _ = new Inner(token: token, value: 1); }",
+        false,
+        true)]
+    [InlineData("public struct CancellationToken { } void Run(CancellationToken token, int value) { }", false, false)]
+    [InlineData("interface IContract { void Run(Cancellation token, int value); }", true, false)]
+    [InlineData(
+        "void Run(Cancellation token) { Many(token, 1, 2); } "
+            + "void Many(Cancellation token, params int[] values) { }",
+        true,
+        true)]
+    [InlineData("void Run(Cancellation token) { Execute(token: token!, value: 1); }", false, true)]
+    public void CancellationTokenOrdering_Should_DetectMisplacedTokens_When_SourceShapesVary(
+        string member, bool parameterViolation, bool argumentViolation)
+    {
+        var source = $$"""
+                       using Cancellation = System.Threading.CancellationToken;
+                       public class Sample
+                       {
+                           void Execute(int value, Cancellation token) { }
+                           {{member}}
+                       }
+                       """;
+        var ct = TestContext.Current.CancellationToken;
+        var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: ct);
+        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path));
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "CancellationTokenOrderProbe",
+            syntaxTrees: [tree],
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        Assert.DoesNotContain(
+            compilation.GetDiagnostics(ct), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        var root = tree.GetRoot(ct);
+        var model = compilation.GetSemanticModel(tree);
+
+        var parameters = CancellationTokenSourceDiscovery.GetParameters("Probe.cs", model, root);
+        var invocations = CancellationTokenSourceDiscovery.GetInvocations("Probe.cs", model, root);
+
+        Assert.Equal(parameterViolation, parameters.Any(item => !item.IsLast && !item.HasExternallyDefinedSignature));
+        Assert.Equal(argumentViolation, invocations.Any(item => !item.PassesTokenLast));
+    }
+
     [Fact(DisplayName = "Cancellation token sentinels should not be used when declared")]
     public async Task CancellationTokenSentinels_Should_NotBeUsed_When_Declared()
     {
@@ -116,6 +204,43 @@ internal static class CancellationTokenSourceDiscovery
         return s_analysis.Value;
     }
 
+    internal static CancellationTokenParameter[] GetParameters(
+        string relativePath,
+        SemanticModel semanticModel,
+        SyntaxNode root)
+    {
+        return
+        [
+            .. root
+                .DescendantNodes()
+                .OfType<ParameterSyntax>()
+                .Select(parameter => GetParameter(
+                    relativePath,
+                    semanticModel,
+                    parameter))
+                .OfType<CancellationTokenParameter>()
+        ];
+    }
+
+    internal static CancellationTokenInvocation[] GetInvocations(
+        string relativePath,
+        SemanticModel semanticModel,
+        SyntaxNode root)
+    {
+        return
+        [
+            .. root
+                .DescendantNodes()
+                .Where(node => node is InvocationExpressionSyntax or BaseObjectCreationExpressionSyntax
+                    or ConstructorInitializerSyntax)
+                .Select(invocation => GetInvocation(
+                    relativePath,
+                    semanticModel,
+                    invocation))
+                .OfType<CancellationTokenInvocation>()
+        ];
+    }
+
     private static async Task<CancellationTokenAnalysis> CreateAnalysisAsync()
     {
         var documents = await ProductionSourceDocumentDiscovery
@@ -189,24 +314,6 @@ internal static class CancellationTokenSourceDiscovery
         ];
     }
 
-    private static CancellationTokenParameter[] GetParameters(
-        string relativePath,
-        SemanticModel semanticModel,
-        SyntaxNode root)
-    {
-        return
-        [
-            .. root
-                .DescendantNodes()
-                .OfType<ParameterSyntax>()
-                .Select(parameter => GetParameter(
-                    relativePath,
-                    semanticModel,
-                    parameter))
-                .OfType<CancellationTokenParameter>()
-        ];
-    }
-
     private static CancellationTokenParameter? GetParameter(
         string relativePath,
         SemanticModel semanticModel,
@@ -232,6 +339,7 @@ internal static class CancellationTokenSourceDiscovery
             HasExternallyDefinedSignature:
                 method is not null
                     && HasExternallyDefinedSignature(method),
+            IsLast: method is null || parameterSymbol.Ordinal == method.Parameters.Length - 1,
             IsUsed: callable is not null
                 && callable
                     .DescendantNodes()
@@ -262,36 +370,24 @@ internal static class CancellationTokenSourceDiscovery
         ];
     }
 
-    private static CancellationTokenInvocation[] GetInvocations(
-        string relativePath,
-        SemanticModel semanticModel,
-        SyntaxNode root)
-    {
-        return
-        [
-            .. root
-                .DescendantNodes()
-                .OfType<InvocationExpressionSyntax>()
-                .Select(invocation => GetInvocation(
-                    relativePath,
-                    semanticModel,
-                    invocation))
-                .OfType<CancellationTokenInvocation>()
-        ];
-    }
-
     private static CancellationTokenInvocation? GetInvocation(
         string relativePath,
         SemanticModel semanticModel,
-        InvocationExpressionSyntax invocation)
+        SyntaxNode invocation)
     {
-        if (semanticModel.GetOperation(invocation) is not
-            IInvocationOperation operation)
+        var operation = semanticModel.GetOperation(invocation);
+        var method = operation switch
+        {
+            IInvocationOperation call => call.TargetMethod,
+            IObjectCreationOperation creation => creation.Constructor,
+            _ => null
+        };
+        if (method is null)
         {
             return null;
         }
 
-        var tokenParameters = operation.TargetMethod.Parameters
+        var tokenParameters = method.Parameters
             .Where(parameter => IsCancellationToken(parameter.Type))
             .ToArray();
 
@@ -300,20 +396,39 @@ internal static class CancellationTokenSourceDiscovery
             return null;
         }
 
-        var explicitlyPassedParameters = operation.Arguments
-            .Where(argument => !argument.IsImplicit)
+        var arguments = operation switch
+        {
+            IInvocationOperation call => call.Arguments,
+            IObjectCreationOperation creation => creation.Arguments,
+            _ => []
+        };
+        var sourceArguments = invocation.ChildNodes().OfType<ArgumentListSyntax>()
+            .SelectMany(list => list.Arguments)
+            .ToArray();
+        var explicitArguments = arguments
+            .Where(argument => sourceArguments.Any(source => source.Span.Contains(argument.Syntax.Span)))
+            .ToArray();
+        var explicitlyPassedParameters = explicitArguments
+            .OrderBy(argument => argument.Syntax.SpanStart)
             .Select(argument => argument.Parameter)
             .OfType<IParameterSymbol>()
             .ToArray();
+        var lastArgument = sourceArguments.LastOrDefault();
 
         return new CancellationTokenInvocation(
             RelativePath: relativePath,
             LineNumber: GetLineNumber(invocation),
             Position: invocation.SpanStart,
-            Expression: invocation.Expression.ToString(),
+            Expression: invocation is InvocationExpressionSyntax callExpression
+                ? callExpression.Expression.ToString()
+                : method.ToDisplayString(),
             HasAvailableToken: semanticModel
                 .LookupSymbols(invocation.SpanStart)
                 .Any(IsCancellationTokenValue),
+            PassesTokenLast: !explicitArguments.Any(argument => argument.Parameter is { } parameter
+                && IsCancellationToken(parameter.Type)
+                && lastArgument is not null
+                && argument.Syntax.SpanStart < lastArgument.SpanStart),
             PassesAllTokens: tokenParameters.All(parameter =>
                 explicitlyPassedParameters.Any(passedParameter =>
                     SymbolEqualityComparer.Default.Equals(
@@ -436,6 +551,7 @@ internal sealed record CancellationTokenParameter(
     string Name,
     bool HasImplementation,
     bool HasExternallyDefinedSignature,
+    bool IsLast,
     bool IsUsed);
 
 internal sealed record CancellationTokenSentinel(
@@ -450,4 +566,5 @@ internal sealed record CancellationTokenInvocation(
     int Position,
     string Expression,
     bool HasAvailableToken,
+    bool PassesTokenLast,
     bool PassesAllTokens);

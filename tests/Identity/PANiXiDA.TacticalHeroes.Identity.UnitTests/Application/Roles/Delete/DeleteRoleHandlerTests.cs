@@ -15,7 +15,7 @@ public sealed class DeleteRoleHandlerTests
         var repository = Substitute.For<IRolesRepository>();
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.AccessToken.Returns("current-access-token");
-        repository.DeleteAsync(roleId, Arg.Any<CancellationToken>(), "current-access-token")
+        repository.DeleteAsync(roleId, "current-access-token", Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         var handler = new DeleteRoleHandler(repository, currentUser);
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -23,6 +23,6 @@ public sealed class DeleteRoleHandlerTests
         var result = await handler.HandleAsync(new DeleteRoleCommand(roleId), cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        await repository.Received(1).DeleteAsync(roleId, cancellationToken, "current-access-token");
+        await repository.Received(1).DeleteAsync(roleId, "current-access-token", cancellationToken);
     }
 }

@@ -37,11 +37,12 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
         const string NewPassword = "NewStrongPassword1!";
         var cancellationToken = TestContext.Current.CancellationToken;
         var createdUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "canceled-reset@example.test",
-            "canceled-reset-hero",
-            CurrentPassword,
-            cancellationToken);
+            fixture: Fixture,
+            email: "canceled-reset@example.test",
+            userName: "canceled-reset-hero",
+            password: CurrentPassword,
+            claims: null,
+            cancellationToken: cancellationToken);
         string passwordHash;
         string securityStamp;
         string refreshTokenId;

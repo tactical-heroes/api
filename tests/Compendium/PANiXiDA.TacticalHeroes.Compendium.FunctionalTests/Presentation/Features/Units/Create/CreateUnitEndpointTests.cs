@@ -14,7 +14,7 @@ public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);
-        var faction = await client.CreateFactionAsync(cancellationToken);
+        var faction = await client.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
         var request = UnitsApiTestClient.CreateRequest(faction.Id, "Swordsman");
         var payload = JsonSerializer.SerializeToNode(request, TestJsonSerializerOptions.Web)!.AsObject();
         payload.Remove(fieldName);
@@ -32,7 +32,7 @@ public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);
-        var faction = await client.CreateFactionAsync(cancellationToken);
+        var faction = await client.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
         var request = UnitsApiTestClient.CreateRequest(faction.Id, "Swordsman") with
         {
             Shots = null,
@@ -62,11 +62,10 @@ public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);
-        var faction = await client.CreateFactionAsync(cancellationToken);
+        var faction = await client.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
 
         var createdUnit = await client.CreateAsync(
             faction.Id,
-            cancellationToken,
             new CreateUnitRequest(
                 Name: "  Archer  ",
                 Description: "  A disciplined ranged unit.  ",
@@ -81,7 +80,8 @@ public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
                 Luck: 1,
                 FactionId: faction.Id,
                 Shots: 12,
-                RangedAttackRange: 8));
+                RangedAttackRange: 8),
+            cancellationToken);
         var unit = await client.GetDetailsAsync(
             createdUnit.Id,
             cancellationToken);

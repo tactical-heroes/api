@@ -53,8 +53,8 @@ public sealed class UsersRepository(
 
     public async Task<Result> UpdateAsync(
         User user,
-        CancellationToken cancellationToken,
-        string? currentAccessToken = null)
+        string? currentAccessToken,
+        CancellationToken cancellationToken)
     {
         var applicationUser = await userManager.Users
             .WithAuthorizationGraph()

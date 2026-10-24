@@ -29,7 +29,10 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     public async Task PostChangePassword_Should_ReturnUnauthorized_When_CallerIsAService()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var accessToken = await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken);
+        var accessToken = await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(
+            fixture: Fixture,
+            permissions: null,
+            cancellationToken: cancellationToken);
 
         using var response = await ChangePasswordAsync(
             Fixture.Client, accessToken, CurrentPassword, NewPassword, cancellationToken);
@@ -45,23 +48,23 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "sessions@example.test",
-            "sessions-hero",
-            CurrentPassword,
-            cancellationToken,
+            fixture: Fixture,
+            email: "sessions@example.test",
+            userName: "sessions-hero",
+            password: CurrentPassword,
             claims: [new(
                 "permission",
-                "identity.users.read")]);
+                "identity.users.read")],
+            cancellationToken: cancellationToken);
         var otherUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "unaffected@example.test",
-            "unaffected-hero",
-            CurrentPassword,
-            cancellationToken,
+            fixture: Fixture,
+            email: "unaffected@example.test",
+            userName: "unaffected-hero",
+            password: CurrentPassword,
             claims: [new(
                 "permission",
-                "identity.users.read")]);
+                "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var unrelated = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
@@ -141,12 +144,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "failed-change@example.test",
-            "failed-change-hero",
-            CurrentPassword,
-            cancellationToken,
-            claims: [new("permission", "identity.users.read")]);
+            fixture: Fixture,
+            email: "failed-change@example.test",
+            userName: "failed-change-hero",
+            password: CurrentPassword,
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var currentTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
@@ -178,12 +181,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "bearer-change@example.test",
-            "bearer-change-hero",
-            CurrentPassword,
-            cancellationToken,
-            claims: [new("permission", "identity.users.read")]);
+            fixture: Fixture,
+            email: "bearer-change@example.test",
+            userName: "bearer-change-hero",
+            password: CurrentPassword,
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var browser = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             browser, "bearer-change@example.test", CurrentPassword, cancellationToken);
@@ -208,9 +211,19 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var cookieUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "cookie-owner@example.test", "cookie-owner", CurrentPassword, cancellationToken);
+            fixture: Fixture,
+            email: "cookie-owner@example.test",
+            userName: "cookie-owner",
+            password: CurrentPassword,
+            claims: null,
+            cancellationToken: cancellationToken);
         var bearerUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "bearer-owner@example.test", "bearer-owner", CurrentPassword, cancellationToken);
+            fixture: Fixture,
+            email: "bearer-owner@example.test",
+            userName: "bearer-owner",
+            password: CurrentPassword,
+            claims: null,
+            cancellationToken: cancellationToken);
         using var browser = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var bearerClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
@@ -242,12 +255,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "exchange-session@example.test",
-            "exchange-session-hero",
-            CurrentPassword,
-            cancellationToken,
-            claims: [new("permission", "identity.users.read")]);
+            fixture: Fixture,
+            email: "exchange-session@example.test",
+            userName: "exchange-session-hero",
+            password: CurrentPassword,
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var currentTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
@@ -315,12 +328,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "cancel-change@example.test",
-            "cancel-change-hero",
-            CurrentPassword,
-            cancellationToken,
-            claims: [new("permission", "identity.users.read")]);
+            fixture: Fixture,
+            email: "cancel-change@example.test",
+            userName: "cancel-change-hero",
+            password: CurrentPassword,
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var currentTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
@@ -377,12 +390,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "concurrent-change@example.test",
-            "concurrent-change-hero",
-            CurrentPassword,
-            cancellationToken,
-            claims: [new("permission", "identity.users.read")]);
+            fixture: Fixture,
+            email: "concurrent-change@example.test",
+            userName: "concurrent-change-hero",
+            password: CurrentPassword,
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         var validated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseAuthorization = false;
@@ -417,7 +430,10 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             other, "concurrent-change@example.test", CurrentPassword, cancellationToken);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            other, OAuthAuthorizationRequestTestHelper.DefaultScopes, cancellationToken);
+            client: other,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
         pauseAuthorization = true;
         var pendingAuthorization = other.GetAsync(authorizePath, cancellationToken);
         try
@@ -464,12 +480,12 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "refresh-change@example.test",
-            "refresh-change",
-            CurrentPassword,
-            ct,
-            claims: [new("permission", "identity.users.read")]);
+            fixture: Fixture,
+            email: "refresh-change@example.test",
+            userName: "refresh-change",
+            password: CurrentPassword,
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: ct);
         var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseRefresh = false;
@@ -582,7 +598,10 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         CancellationToken cancellationToken)
     {
         var path = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client, OAuthAuthorizationRequestTestHelper.DefaultScopes, cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
         using var response = await client.GetAsync(path, cancellationToken);
         response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
         response.Headers.Location.ShouldNotBeNull();

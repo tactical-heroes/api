@@ -8,10 +8,11 @@ public sealed class GetUnitDetailsEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UnitsApiTestClient(Fixture);
-        var faction = await client.CreateFactionAsync(cancellationToken);
+        var faction = await client.CreateFactionAsync(request: null, cancellationToken: cancellationToken);
         var createdUnit = await client.CreateAsync(
-            faction.Id,
-            cancellationToken);
+            factionId: faction.Id,
+            request: null,
+            cancellationToken: cancellationToken);
 
         var unit = await client.GetDetailsAsync(
             createdUnit.Id,

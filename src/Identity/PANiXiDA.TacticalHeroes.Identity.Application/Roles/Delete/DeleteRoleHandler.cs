@@ -15,7 +15,7 @@ public sealed class DeleteRoleHandler(IRolesRepository rolesRepository, ICurrent
     {
         return rolesRepository.DeleteAsync(
             id: command.Id,
-            cancellationToken: cancellationToken,
-            currentAccessToken: currentUser.AccessToken);
+            currentAccessToken: currentUser.AccessToken,
+            cancellationToken: cancellationToken);
     }
 }

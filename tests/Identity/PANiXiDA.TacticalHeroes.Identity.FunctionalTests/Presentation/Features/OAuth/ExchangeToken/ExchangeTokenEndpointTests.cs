@@ -20,11 +20,12 @@ public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "exchange@example.test",
-            "exchange-hero",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "exchange@example.test",
+            userName: "exchange-hero",
+            password: "StrongPassword1!",
+            claims: null,
+            cancellationToken: cancellationToken);
         await using var baseFactory = new FunctionalTestWebApplicationFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.Configure<IdentityOptions>(options =>

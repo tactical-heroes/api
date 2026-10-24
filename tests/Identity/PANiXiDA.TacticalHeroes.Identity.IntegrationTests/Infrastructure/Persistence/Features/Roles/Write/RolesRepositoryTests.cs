@@ -56,12 +56,13 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         {
             var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
             (await repository.UpdateAsync(
-                IntegrationTestData.CreateRole(
+                role: IntegrationTestData.CreateRole(
                     id: roleId,
                     name: "Moderator",
                     claims: ((Claim[])[new Claim("permission", "heroes.manage")]).Select(
                         claim => (claim.Type, claim.Value))),
-                cancellationToken))
+                currentAccessToken: null,
+                cancellationToken: cancellationToken))
                 .IsSuccess
                 .ShouldBeTrue();
         }
@@ -87,7 +88,11 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
-            (await repository.DeleteAsync(roleId, cancellationToken)).IsSuccess.ShouldBeTrue();
+            var result = await repository.DeleteAsync(
+                id: roleId,
+                currentAccessToken: null,
+                cancellationToken: cancellationToken);
+            result.IsSuccess.ShouldBeTrue();
         }
 
         await using var verificationScope = Fixture.CreateScope();
@@ -135,7 +140,9 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var cleared = await repository.UpdateAsync(
-            IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken);
+            role: IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false),
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
         cleared.IsSuccess.ShouldBeTrue();
 
         var result = await repository.AddAsync(role, cancellationToken);
@@ -147,7 +154,12 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .ToArrayAsync(cancellationToken);
         defaults.ShouldHaveSingleItem().Id.ShouldBe(targetId);
         previous.IsDefault.ShouldBeFalse();
-        (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
+        (await repository.DeleteAsync(
+            id: previous.Id,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken))
+            .IsSuccess
+            .ShouldBeTrue();
     }
 
     [Fact(DisplayName = "UpdateAsync should assign the default when previous flag is cleared")]
@@ -165,10 +177,15 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var role = IntegrationTestData.CreateRole(targetId, "CustomDefault", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var cleared = await repository.UpdateAsync(
-            IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false), cancellationToken);
+            role: IntegrationTestData.CreateRole(previous.Id, previous.Name!, [], isDefault: false),
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
         cleared.IsSuccess.ShouldBeTrue();
 
-        var result = await repository.UpdateAsync(role, cancellationToken);
+        var result = await repository.UpdateAsync(
+            role: role,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         var defaults = await dbContext.Set<ApplicationRole>()
@@ -177,7 +194,12 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
             .ToArrayAsync(cancellationToken);
         defaults.ShouldHaveSingleItem().Id.ShouldBe(targetId);
         previous.IsDefault.ShouldBeFalse();
-        (await repository.DeleteAsync(previous.Id, cancellationToken)).IsSuccess.ShouldBeTrue();
+        (await repository.DeleteAsync(
+            id: previous.Id,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken))
+            .IsSuccess
+            .ShouldBeTrue();
     }
 
     [Fact(DisplayName = "AddAsync should retain the default when duplicate name rejects change")]
@@ -216,7 +238,10 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var role = IntegrationTestData.CreateRole(targetId, "Developer", [], isDefault: true);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
-        var result = await repository.UpdateAsync(role, cancellationToken);
+        var result = await repository.UpdateAsync(
+            role: role,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         var defaultName = await dbContext.Set<ApplicationRole>()
@@ -237,7 +262,10 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var role = await dbContext.Set<ApplicationRole>().SingleAsync(item => item.IsDefault, cancellationToken);
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
-        var result = await repository.DeleteAsync(role.Id, cancellationToken);
+        var result = await repository.DeleteAsync(
+            id: role.Id,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
 
         result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
         var existing = await dbContext.Set<ApplicationRole>()
@@ -287,8 +315,11 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         await using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
 
         var result = delete
-            ? await roles.DeleteAsync(roleId, ct)
-            : await roles.UpdateAsync(IntegrationTestData.CreateRole(roleId, "RenamedRole", []), ct);
+            ? await roles.DeleteAsync(id: roleId, currentAccessToken: null, cancellationToken: ct)
+            : await roles.UpdateAsync(
+                role: IntegrationTestData.CreateRole(roleId, "RenamedRole", []),
+                currentAccessToken: null,
+                cancellationToken: ct);
         var revoked = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
             .AsNoTracking()
             .SingleAsync(ct);
@@ -337,8 +368,11 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var roles = roleScope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
         var pending = delete
-            ? roles.DeleteAsync(roleId, ct)
-            : roles.UpdateAsync(IntegrationTestData.CreateRole(roleId, "RenamedRole", []), ct);
+            ? roles.DeleteAsync(id: roleId, currentAccessToken: null, cancellationToken: ct)
+            : roles.UpdateAsync(
+                role: IntegrationTestData.CreateRole(roleId, "RenamedRole", []),
+                currentAccessToken: null,
+                cancellationToken: ct);
         var waited = await WaitForLockAsync(pending, backendId, ct);
         await assignmentTransaction.CommitAsync(ct);
         var result = await pending;
@@ -370,7 +404,9 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         await using var firstTransaction = await firstDb.Database.BeginTransactionAsync(ct);
         var firstRoles = firstScope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var changed = await firstRoles.UpdateAsync(
-            IntegrationTestData.CreateRole(roleId, "ConcurrentRole", [("permission", "identity.roles.read")]), ct);
+            role: IntegrationTestData.CreateRole(roleId, "ConcurrentRole", [("permission", "identity.roles.read")]),
+            currentAccessToken: null,
+            cancellationToken: ct);
         changed.IsSuccess.ShouldBeTrue();
         var intermediate = await firstDb.Users.AsNoTracking().SingleAsync(user => user.Id == userId, ct);
         await using var secondScope = Fixture.CreateScope();
@@ -379,7 +415,10 @@ public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
         var backendId = ((NpgsqlConnection)secondDb.Database.GetDbConnection()).ProcessID;
         var secondRoles = secondScope.ServiceProvider.GetRequiredService<IRolesRepository>();
 
-        var pending = secondRoles.UpdateAsync(IntegrationTestData.CreateRole(roleId, "ConcurrentRole", []), ct);
+        var pending = secondRoles.UpdateAsync(
+            role: IntegrationTestData.CreateRole(roleId, "ConcurrentRole", []),
+            currentAccessToken: null,
+            cancellationToken: ct);
         var waited = await WaitForLockAsync(pending, backendId, ct);
         await firstTransaction.CommitAsync(ct);
         var result = await pending;

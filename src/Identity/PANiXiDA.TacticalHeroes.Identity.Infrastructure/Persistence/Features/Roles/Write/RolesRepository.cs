@@ -44,8 +44,8 @@ public sealed class RolesRepository(
 
     public async Task<Result> UpdateAsync(
         Role role,
-        CancellationToken cancellationToken,
-        string? currentAccessToken = null)
+        string? currentAccessToken,
+        CancellationToken cancellationToken)
     {
         var applicationRole = await FindForUpdateAsync(role.Id.Value, cancellationToken);
 
@@ -94,8 +94,8 @@ public sealed class RolesRepository(
 
     public async Task<Result> DeleteAsync(
         Guid id,
-        CancellationToken cancellationToken,
-        string? currentAccessToken = null)
+        string? currentAccessToken,
+        CancellationToken cancellationToken)
     {
         var applicationRole = await FindForUpdateAsync(id, cancellationToken);
 
@@ -142,6 +142,11 @@ public sealed class RolesRepository(
         return Result.Success();
     }
 
+    private static Result RoleNotFound()
+    {
+        return Result.Failure(error: Error.NotFound(message: "Role was not found."));
+    }
+
     private Task<ApplicationRole?> FindForUpdateAsync(Guid id, CancellationToken cancellationToken)
     {
         return dbContext.Set<ApplicationRole>()
@@ -158,11 +163,6 @@ public sealed class RolesRepository(
             .OrderBy(userRole => userRole.UserId)
             .Select(userRole => userRole.UserId)
             .ToArrayAsync(cancellationToken);
-    }
-
-    private static Result RoleNotFound()
-    {
-        return Result.Failure(error: Error.NotFound(message: "Role was not found."));
     }
 
     private void SyncClaims(

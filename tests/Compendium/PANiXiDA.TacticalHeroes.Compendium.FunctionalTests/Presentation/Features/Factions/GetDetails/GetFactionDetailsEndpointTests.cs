@@ -11,10 +11,10 @@ public sealed class GetFactionDetailsEndpointTests(FunctionalTestFixture fixture
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
         var createdFaction = await client.CreateAsync(
-            cancellationToken,
             new CreateFactionRequest(
                 "Northern Alliance",
-                "Defenders of the north."));
+                "Defenders of the north."),
+            cancellationToken);
 
         var faction = await client.GetDetailsAsync(
             createdFaction.Id,

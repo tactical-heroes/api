@@ -11,8 +11,8 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
 {
     internal async Task<CreateRoleResponse> RecreateAsync(
-        CancellationToken cancellationToken,
-        CreateRoleRequest? request = null)
+        CreateRoleRequest? request,
+        CancellationToken cancellationToken)
     {
         request ??= new CreateRoleRequest("Moderator", false, []);
         var roles = await GetListAsync(cancellationToken);
@@ -23,12 +23,12 @@ internal sealed class RoleApiTestClient(FunctionalTestFixture fixture)
             await DeleteAsync(existing.Id, cancellationToken);
         }
 
-        return await CreateAsync(cancellationToken, request);
+        return await CreateAsync(request, cancellationToken);
     }
 
     internal async Task<CreateRoleResponse> CreateAsync(
-        CancellationToken cancellationToken,
-        CreateRoleRequest? request = null)
+        CreateRoleRequest? request,
+        CancellationToken cancellationToken)
     {
         request ??= new CreateRoleRequest("Moderator", false, []);
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, RolesPath)

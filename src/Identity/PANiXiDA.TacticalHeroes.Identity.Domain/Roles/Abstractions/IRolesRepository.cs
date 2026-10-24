@@ -8,11 +8,11 @@ public interface IRolesRepository
 
     Task<Result> UpdateAsync(
         Role role,
-        CancellationToken cancellationToken,
-        string? currentAccessToken = null);
+        string? currentAccessToken,
+        CancellationToken cancellationToken);
 
     Task<Result> DeleteAsync(
         Guid id,
-        CancellationToken cancellationToken,
-        string? currentAccessToken = null);
+        string? currentAccessToken,
+        CancellationToken cancellationToken);
 }

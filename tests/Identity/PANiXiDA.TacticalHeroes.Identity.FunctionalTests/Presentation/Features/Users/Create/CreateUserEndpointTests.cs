@@ -24,7 +24,7 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
             "Active",
             RoleIds: []);
 
-        var response = await client.CreateAsync(cancellationToken, request);
+        var response = await client.CreateAsync(request, cancellationToken);
         var user = await UserDatabaseTestHelper.FindAsync(
             Fixture,
             response.Id,
@@ -51,7 +51,8 @@ public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
         var client = new UserApiTestClient(Fixture);
 
         var created = await client.CreateAsync(
-            cancellationToken, UserApiTestClient.CreateDefaultRequest() with { RoleIds = selected });
+            UserApiTestClient.CreateDefaultRequest() with { RoleIds = selected },
+            cancellationToken);
         var details = await client.GetDetailsAsync(created.Id, cancellationToken);
 
         details.RoleIds.ShouldBe(selected, ignoreOrder: true);

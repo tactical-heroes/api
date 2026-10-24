@@ -20,9 +20,9 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
         var faction = IntegrationTestData.CreateFaction();
         var hero = IntegrationTestData.CreateHero(faction);
         await AddFactionAndHeroesAsync(
-            faction,
-            cancellationToken,
-            hero);
+            faction: faction,
+            heroes: [hero],
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider
@@ -51,10 +51,9 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
         var elara = IntegrationTestData.CreateHero(faction, "Elara");
         var orrin = IntegrationTestData.CreateHero(faction, "Orrin");
         await AddFactionAndHeroesAsync(
-            faction,
-            cancellationToken,
-            orrin,
-            elara);
+            faction: faction,
+            heroes: [orrin, elara],
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider
@@ -78,9 +77,9 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
         var faction = IntegrationTestData.CreateFaction();
         var hero = IntegrationTestData.CreateHero(faction);
         await AddFactionAndHeroesAsync(
-            faction,
-            cancellationToken,
-            hero);
+            faction: faction,
+            heroes: [hero],
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider
@@ -104,9 +103,9 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
 
         var faction = IntegrationTestData.CreateFaction();
         await AddFactionAndHeroesAsync(
-            faction,
-            cancellationToken,
-            IntegrationTestData.CreateHero(faction));
+            faction: faction,
+            heroes: [IntegrationTestData.CreateHero(faction)],
+            cancellationToken: cancellationToken);
 
         await using var populatedScope = Fixture.CreateScope();
         var populatedRepository = populatedScope.ServiceProvider
@@ -116,8 +115,8 @@ public sealed class HeroesReadRepositoryTests(IntegrationTestFixture fixture)
 
     private async Task AddFactionAndHeroesAsync(
         Faction faction,
-        CancellationToken cancellationToken,
-        params Hero[] heroes)
+        Hero[] heroes,
+        CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
         var factionsRepository = scope.ServiceProvider

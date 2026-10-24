@@ -26,7 +26,12 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         var user = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "unavailable-auth@example.test", "unavailable-auth", Password, ct);
+            fixture: Fixture,
+            email: "unavailable-auth@example.test",
+            userName: "unavailable-auth",
+            password: Password,
+            claims: null,
+            cancellationToken: ct);
         var service = new UnavailableAuthenticatedUserService();
         await using var baseFactory = new FunctionalTestWebApplicationFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
@@ -40,7 +45,10 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
             BaseAddress = new Uri("https://localhost")
         });
         var path = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client, OAuthAuthorizationRequestTestHelper.DefaultScopes, ct);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: ct);
 
         using var response = await client.PostAsJsonAsync(
             "/api/v1/auth/login",
@@ -61,7 +69,12 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var created = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "lockout@example.test", "lockout-hero", Password, cancellationToken);
+            fixture: Fixture,
+            email: "lockout@example.test",
+            userName: "lockout-hero",
+            password: Password,
+            claims: null,
+            cancellationToken: cancellationToken);
         int attemptLimit;
         await using (var scope = Fixture.Services.CreateAsyncScope())
         {
@@ -70,7 +83,10 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
         }
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client, OAuthAuthorizationRequestTestHelper.DefaultScopes, cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
 
         for (var attempt = 0; attempt < attemptLimit; attempt++)
         {
@@ -101,7 +117,12 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var created = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture, "reset-attempts@example.test", "reset-attempts-hero", Password, cancellationToken);
+            fixture: Fixture,
+            email: "reset-attempts@example.test",
+            userName: "reset-attempts-hero",
+            password: Password,
+            claims: null,
+            cancellationToken: cancellationToken);
         string originalHash;
         await using (var scope = Fixture.Services.CreateAsyncScope())
         {
@@ -116,7 +137,10 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
         }
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client, OAuthAuthorizationRequestTestHelper.DefaultScopes, cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
         using var failedResponse = await client.PostAsJsonAsync(
             "/api/v1/auth/login",
             new LoginRequest("reset-attempts@example.test", "WrongPassword1!", $"https://localhost{authorizePath}"),
@@ -152,16 +176,18 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "login@example.test",
-            "login-hero",
-            Password,
-            cancellationToken);
+            fixture: Fixture,
+            email: "login@example.test",
+            userName: "login-hero",
+            password: Password,
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client,
-            OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
 
         using var response = await client.PostAsJsonAsync(
             "/api/v1/auth/login",
@@ -184,16 +210,18 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "invalid-login@example.test",
-            "invalid-login-hero",
-            Password,
-            cancellationToken);
+            fixture: Fixture,
+            email: "invalid-login@example.test",
+            userName: "invalid-login-hero",
+            password: Password,
+            claims: null,
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client,
-            OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            cancellationToken);
+            client: client,
+            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
 
         using var response = await client.PostAsJsonAsync(
             "/api/v1/auth/login",

@@ -18,11 +18,11 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
         var client = new RoleApiTestClient(Fixture);
 
         var response = await client.RecreateAsync(
-            cancellationToken,
             new CreateRoleRequest(
                 " Moderator ",
                 false,
-                [new Claim("permission", "compendium.heroes.update")]));
+                [new Claim("permission", "compendium.heroes.update")]),
+            cancellationToken);
         var role = await RoleDatabaseTestHelper.FindAsync(
             Fixture,
             response.Id,
@@ -43,7 +43,8 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
         await client.UpdateAsync(previous.Id, new UpdateRoleRequest(previous.Name, false, []), cancellationToken);
 
         var created = await client.CreateAsync(
-            cancellationToken, new CreateRoleRequest("CustomDefault", true, []));
+            new CreateRoleRequest("CustomDefault", true, []),
+            cancellationToken);
 
         var details = await client.GetDetailsAsync(created.Id, cancellationToken);
         details.IsDefault.ShouldBeTrue();
@@ -161,7 +162,10 @@ public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
         };
         request.Headers.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken, [permission]));
+            await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(
+                Fixture,
+                [permission],
+                cancellationToken));
 
         using var response = await Client.SendAsync(request, cancellationToken);
 

@@ -8,7 +8,7 @@ public sealed class DeleteFactionEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
-        var createdFaction = await client.CreateAsync(cancellationToken);
+        var createdFaction = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
 
         await client.DeleteAsync(createdFaction.Id, cancellationToken);
         using var response = await client.GetDetailsResponseAsync(
