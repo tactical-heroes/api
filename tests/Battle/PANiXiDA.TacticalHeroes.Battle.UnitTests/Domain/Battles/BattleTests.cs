@@ -1,5 +1,4 @@
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
 using PANiXiDA.TacticalHeroes.Battle.UnitTests.Battles;
 
@@ -90,7 +89,7 @@ public sealed class BattleTests
         var defender = BattleTestData.CreateUnit(currentHealth: 4);
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        var result = battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(7).Value).Value;
+        var result = battle.Attack(attacker.Id, defender.Id).Value;
 
         attacker.TotalHealth.ShouldBe(10);
         defender.Count.ShouldBe(2);
@@ -114,7 +113,7 @@ public sealed class BattleTests
         var defender = BattleTestData.CreateUnit(count: 1, currentHealth: 4);
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(7).Value);
+        battle.Attack(attacker.Id, defender.Id);
 
         var domainEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();
         domainEvent.CalculatedDamage.ShouldBe(7);
@@ -130,7 +129,7 @@ public sealed class BattleTests
         var unit = BattleTestData.CreateUnit();
         var battle = BattleAggregate.Create([unit, BattleTestData.CreateUnit()]).Value;
 
-        var result = battle.Attack(unit.Id, unit.Id, DamageRoll.Create(1).Value);
+        var result = battle.Attack(unit.Id, unit.Id);
 
         result.IsFailure.ShouldBeTrue();
         unit.TotalHealth.ShouldBe(30);
@@ -146,7 +145,7 @@ public sealed class BattleTests
         var foreign = BattleTestData.CreateUnit();
         BattleAggregate.Create([foreign, BattleTestData.CreateUnit()]);
 
-        var result = battle.Attack(attacker.Id, foreign.Id, DamageRoll.Create(1).Value);
+        var result = battle.Attack(attacker.Id, foreign.Id);
 
         result.IsFailure.ShouldBeTrue();
         defender.TotalHealth.ShouldBe(30);
@@ -163,24 +162,24 @@ public sealed class BattleTests
         var defender = BattleTestData.CreateUnit(count: destroyedAttacker ? 1 : 0);
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        var result = battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
+        var result = battle.Attack(attacker.Id, defender.Id);
 
         result.IsFailure.ShouldBeTrue();
         battle.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Attack should preserve state when roll is outside damage range")]
-    public void Attack_Should_PreserveState_When_RollIsOutsideDamageRange()
+    [Fact(DisplayName = "Attack should select damage within bounds when random damage is configured")]
+    public void Attack_Should_SelectDamageWithinBounds_When_RandomDamageIsConfigured()
     {
-        var attacker = BattleTestData.CreateUnit();
+        var attacker = BattleTestData.CreateUnit(minimumDamage: 2, maximumDamage: 4, count: 1);
         var defender = BattleTestData.CreateUnit();
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        var result = battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(2).Value);
+        var result = battle.Attack(attacker.Id, defender.Id).Value;
 
-        result.IsFailure.ShouldBeTrue();
-        defender.TotalHealth.ShouldBe(30);
-        battle.GetDomainEvents().ShouldBeEmpty();
+        result.CalculatedDamage.Value.ShouldBeInRange(2L, 4L);
+        result.AppliedDamage.ShouldBe(result.CalculatedDamage);
+        defender.TotalHealth.ShouldBe(30 - result.AppliedDamage.Value);
     }
 
     [Fact(DisplayName = "Attack should avoid damage events when calculated damage is zero")]
@@ -190,7 +189,7 @@ public sealed class BattleTests
         var defender = BattleTestData.CreateUnit();
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        var result = battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(0).Value);
+        var result = battle.Attack(attacker.Id, defender.Id);
 
         result.IsSuccess.ShouldBeTrue();
         defender.TotalHealth.ShouldBe(30);
@@ -204,9 +203,9 @@ public sealed class BattleTests
         var defender = BattleTestData.CreateUnit();
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
+        battle.Attack(attacker.Id, defender.Id);
         var firstEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();
-        battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
+        battle.Attack(attacker.Id, defender.Id);
 
         firstEvent.CurrentUnitHealth.ShouldBe(9);
         defender.CurrentUnitHealth.ShouldBe(8);

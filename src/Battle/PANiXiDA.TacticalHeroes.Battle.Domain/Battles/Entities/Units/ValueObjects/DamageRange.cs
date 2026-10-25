@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Abstractions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Services;
 
 namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 
@@ -20,17 +20,8 @@ public sealed partial class DamageRange : ValueObject
             : Result.Success(new DamageRange(minimum, maximum));
     }
 
-    public Result<DamageRoll> Roll(IRandomSource randomSource)
+    public int Roll()
     {
-        if (Minimum == Maximum)
-        {
-            return DamageRoll.Create(Minimum);
-        }
-
-        var value = randomSource.NextInt64(Minimum, (long)Maximum + 1);
-
-        return value < Minimum || value > Maximum
-            ? Result.Failure<DamageRoll>(Error.Validation("Random source returned a value outside the damage range."))
-            : DamageRoll.Create((int)value);
+        return DamageRandomizer.Roll(Minimum, Maximum);
     }
 }

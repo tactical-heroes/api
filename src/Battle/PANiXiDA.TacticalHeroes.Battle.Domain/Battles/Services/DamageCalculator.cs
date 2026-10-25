@@ -12,9 +12,9 @@ public static class DamageCalculator
         UnitStackState attackerStack,
         DamageRange damageRange,
         UnitCombatStats defenderStats,
-        DamageRoll roll)
+        int roll)
     {
-        if (attackerStack.Count == 0 || roll.Value < damageRange.Minimum || roll.Value > damageRange.Maximum)
+        if (attackerStack.Count == 0 || roll < damageRange.Minimum || roll > damageRange.Maximum)
         {
             return Result.Failure<Damage>(Error.Validation(
                 "A living attacker and a roll within its damage range are required."));
@@ -22,7 +22,7 @@ public static class DamageCalculator
 
         var difference = attackerStats.Attack - defenderStats.Defense;
         var statsModifier = 1 + StatsModifierCoefficient * Math.Abs(difference);
-        var baseDamage = (decimal)roll.Value * attackerStack.Count;
+        var baseDamage = (decimal)roll * attackerStack.Count;
         var modifiedDamage = difference >= 0 ? baseDamage * statsModifier : baseDamage / statsModifier;
         var roundedDamage = decimal.Round(d: modifiedDamage, decimals: 0, mode: MidpointRounding.AwayFromZero);
 

@@ -1,5 +1,4 @@
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Services;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
@@ -37,7 +36,7 @@ public sealed class Battle : AggregateRoot<BattleId>
         return Result.Success(battle);
     }
 
-    public Result<DamageResult> Attack(UnitId attackerId, UnitId defenderId, DamageRoll roll)
+    public Result<DamageResult> Attack(UnitId attackerId, UnitId defenderId)
     {
         if (attackerId == defenderId)
         {
@@ -57,7 +56,7 @@ public sealed class Battle : AggregateRoot<BattleId>
             attackerStack: attacker.StackState,
             damageRange: attacker.DamageRange,
             defenderStats: defender.Stats,
-            roll: roll);
+            roll: attacker.DamageRange.Roll());
         if (damage.IsFailure)
         {
             return Result.Failure<DamageResult>(damage.Errors);

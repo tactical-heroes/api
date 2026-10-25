@@ -19,7 +19,7 @@ public sealed class DamageCalculatorTests
             UnitStackState.Create(count, 10).Value,
             DamageRange.Create(0, 2).Value,
             UnitCombatStats.Create(0, defense, 10).Value,
-            DamageRoll.Create(roll).Value);
+            roll);
 
         result.Value.Value.ShouldBe(expected);
     }
@@ -32,12 +32,13 @@ public sealed class DamageCalculatorTests
             UnitStackState.Create(10, 10).Value,
             DamageRange.Create(1, 1).Value,
             UnitCombatStats.Create(0, 0, 10).Value,
-            DamageRoll.Create(1).Value);
+            1);
 
         result.Value.Value.ShouldBe(11);
     }
 
     [Theory(DisplayName = "Damage should reject the calculation when roll is outside range")]
+    [InlineData(-1)]
     [InlineData(0)]
     [InlineData(4)]
     public void Calculate_Should_ReturnFailure_When_RollIsOutsideRange(int roll)
@@ -47,7 +48,7 @@ public sealed class DamageCalculatorTests
             UnitStackState.Create(1, 10).Value,
             DamageRange.Create(1, 3).Value,
             UnitCombatStats.Create(0, 0, 10).Value,
-            DamageRoll.Create(roll).Value);
+            roll);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -62,7 +63,7 @@ public sealed class DamageCalculatorTests
             UnitStackState.Create(0, 0).Value,
             DamageRange.Create(1, 1).Value,
             stats,
-            DamageRoll.Create(1).Value);
+            1);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -77,7 +78,7 @@ public sealed class DamageCalculatorTests
             UnitStackState.Create(int.MaxValue, int.MaxValue).Value,
             DamageRange.Create(int.MaxValue, int.MaxValue).Value,
             stats,
-            DamageRoll.Create(int.MaxValue).Value);
+            int.MaxValue);
 
         result.Value.Value.ShouldBe((long)int.MaxValue * int.MaxValue);
     }
@@ -90,7 +91,7 @@ public sealed class DamageCalculatorTests
             UnitStackState.Create(int.MaxValue, 10).Value,
             DamageRange.Create(int.MaxValue, int.MaxValue).Value,
             UnitCombatStats.Create(0, 0, 10).Value,
-            DamageRoll.Create(int.MaxValue).Value);
+            int.MaxValue);
 
         result.IsFailure.ShouldBeTrue();
     }

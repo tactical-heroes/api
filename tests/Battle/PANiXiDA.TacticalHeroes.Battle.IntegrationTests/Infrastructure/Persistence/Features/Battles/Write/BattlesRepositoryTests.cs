@@ -38,7 +38,7 @@ public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)
             var restored = (await repository.GetByIdAsync(battle.Id, cancellationToken))!;
             restored.Units.Count.ShouldBe(2);
             restored.Units.ShouldAllBe(unit => unit.BattleId == battle.Id);
-            restored.Attack(attacker.Id, defender.Id, DamageRoll.Create(7).Value).IsSuccess.ShouldBeTrue();
+            restored.Attack(attacker.Id, defender.Id).IsSuccess.ShouldBeTrue();
             repository.Update(restored);
             await GetUnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
         }
@@ -79,10 +79,10 @@ public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)
         var first = (await firstRepository.GetByIdAsync(battle.Id, cancellationToken))!;
         var second = (await secondRepository.GetByIdAsync(battle.Id, cancellationToken))!;
 
-        first.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
+        first.Attack(attacker.Id, defender.Id);
         firstRepository.Update(first);
         await GetUnitOfWork(firstScope.ServiceProvider).SaveChangesAsync(cancellationToken);
-        second.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
+        second.Attack(attacker.Id, defender.Id);
         secondRepository.Update(second);
         Task SaveStale()
         {

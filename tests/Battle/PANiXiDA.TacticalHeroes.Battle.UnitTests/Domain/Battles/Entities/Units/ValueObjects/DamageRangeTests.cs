@@ -1,4 +1,3 @@
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Abstractions;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.Entities.Units.ValueObjects;
@@ -34,39 +33,29 @@ public sealed class DamageRangeTests
         range.Maximum.ShouldBe(int.MaxValue);
     }
 
-    [Fact(DisplayName = "Damage roll should include the largest integer when random source returns upper bound")]
-    public void Roll_Should_SupportMaximumInteger_When_RandomSourceReturnsUpperBound()
+    [Theory(DisplayName = "Damage range should preserve the value when damage is fixed")]
+    [InlineData(0)]
+    [InlineData(2)]
+    [InlineData(int.MaxValue)]
+    public void Roll_Should_PreserveValue_When_DamageIsFixed(int value)
     {
-        var range = DamageRange.Create(0, int.MaxValue).Value;
-        var random = Substitute.For<IRandomSource>();
-        random.NextInt64(0, (long)int.MaxValue + 1).Returns(int.MaxValue);
+        var range = DamageRange.Create(value, value).Value;
 
-        var result = range.Roll(random);
+        var result = range.Roll();
 
-        result.Value.Value.ShouldBe(int.MaxValue);
+        result.ShouldBe(value);
     }
 
-    [Theory(DisplayName = "Damage roll should reject the random output when random source violates bounds")]
-    [InlineData(-1)]
-    [InlineData(4)]
-    public void Roll_Should_ReturnFailure_When_RandomSourceViolatesBounds(long value)
+    [Theory(DisplayName = "Damage range should keep rolls within bounds when damage varies")]
+    [InlineData(0, 1)]
+    [InlineData(3, 5)]
+    [InlineData(0, int.MaxValue)]
+    public void Roll_Should_KeepRollsWithinBounds_When_DamageVaries(int minimum, int maximum)
     {
-        var range = DamageRange.Create(0, 3).Value;
-        var random = Substitute.For<IRandomSource>();
-        random.NextInt64(0, 4).Returns(value);
+        var range = DamageRange.Create(minimum, maximum).Value;
 
-        range.Roll(random).IsFailure.ShouldBeTrue();
-    }
+        var results = Enumerable.Range(0, 64).Select(_ => range.Roll()).ToArray();
 
-    [Fact(DisplayName = "Damage roll should avoid consuming randomness when damage is fixed")]
-    public void Roll_Should_NotConsumeRandomness_When_DamageIsFixed()
-    {
-        var range = DamageRange.Create(2, 2).Value;
-        var random = Substitute.For<IRandomSource>();
-
-        var result = range.Roll(random);
-
-        result.Value.Value.ShouldBe(2);
-        random.DidNotReceiveWithAnyArgs().NextInt64(default, default);
+        results.ShouldAllBe(value => value >= minimum && value <= maximum);
     }
 }
