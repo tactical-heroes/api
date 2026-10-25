@@ -71,17 +71,19 @@ public sealed class UsersRepository(
             return rolesResult;
         }
 
+        var emailChanged = !string.Equals(applicationUser.Email, user.Email.Value, StringComparison.Ordinal);
         var confirmationRevoked = applicationUser.EmailConfirmed && !user.ConfirmationStatus.IsConfirmed;
-        var authorizationChanged = !user.RoleIds
-            .Select(roleId => roleId.Value)
-            .ToHashSet()
-            .SetEquals(applicationUser.Roles.Select(role => role.RoleId))
+        var authorizationChanged = emailChanged
+            || !user.RoleIds
+                .Select(roleId => roleId.Value)
+                .ToHashSet()
+                .SetEquals(applicationUser.Roles.Select(role => role.RoleId))
             || !user.Claims
                 .Select(claim => ((string?)claim.Type.Value, (string?)claim.Value.Value))
                 .ToHashSet()
                 .SetEquals(applicationUser.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)));
         string? preservedAuthorizationId = null;
-        if (authorizationChanged || confirmationRevoked)
+        if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
         {
             if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
             {
@@ -221,6 +223,7 @@ public sealed class UsersRepository(
                 userId: id,
                 preservedAuthorizationId: null,
                 cancellationToken: cancellationToken);
+            applicationUser.SecurityStamp = Guid.NewGuid().ToString();
         }
 
         applicationUser.Status = status.Name;
