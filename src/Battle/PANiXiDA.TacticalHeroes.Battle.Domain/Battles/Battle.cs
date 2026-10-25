@@ -18,16 +18,6 @@ public sealed class Battle : AggregateRoot<BattleId>
 
     public static Result<Battle> Create(IEnumerable<Unit> units)
     {
-        return Create(BattleId.New(), units);
-    }
-
-    public static Result<Battle> Create(BattleId id, IEnumerable<Unit> units)
-    {
-        if (id.Value == Guid.Empty)
-        {
-            return Result.Failure<Battle>(Error.Validation("Battle id cannot be empty."));
-        }
-
         var participants = units.ToArray();
         if (participants.Length < 2
             || participants.Any(unit => unit is null || unit.BattleId.HasValue)
@@ -37,7 +27,7 @@ public sealed class Battle : AggregateRoot<BattleId>
                 "A battle requires at least two distinct, unassigned units."));
         }
 
-        var battle = new Battle(id);
+        var battle = new Battle(BattleId.New());
         foreach (var unit in participants)
         {
             unit.AssignToBattle(battle.Id);

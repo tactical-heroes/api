@@ -31,23 +31,13 @@ public sealed class Unit : Entity<UnitId>
 
     public static Result<Unit> Create(UnitCombatStats stats, DamageRange damageRange, UnitStackState stackState)
     {
-        return Create(id: UnitId.New(), stats: stats, damageRange: damageRange, stackState: stackState);
-    }
-
-    public static Result<Unit> Create(
-        UnitId id,
-        UnitCombatStats stats,
-        DamageRange damageRange,
-        UnitStackState stackState)
-    {
-        if (id.Value == Guid.Empty)
-        {
-            return Result.Failure<Unit>(Error.Validation("Unit id cannot be empty."));
-        }
-
         return stackState.CurrentUnitHealth > stats.MaxHealth
             ? Result.Failure<Unit>(Error.Validation("Current unit health cannot exceed maximum health."))
-            : Result.Success(new Unit(id: id, stats: stats, damageRange: damageRange, stackState: stackState));
+            : Result.Success(new Unit(
+                id: UnitId.New(),
+                stats: stats,
+                damageRange: damageRange,
+                stackState: stackState));
     }
 
     internal void AssignToBattle(BattleId battleId)

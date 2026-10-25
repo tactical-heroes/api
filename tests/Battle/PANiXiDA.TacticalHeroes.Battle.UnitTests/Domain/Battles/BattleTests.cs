@@ -1,4 +1,3 @@
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
@@ -10,29 +9,15 @@ namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles;
 
 public sealed class BattleTests
 {
-    [Fact(DisplayName = "Battle should preserve its identity when an existing identifier is supplied")]
-    public void Create_Should_PreserveIdentity_When_AnExistingIdentifierIsSupplied()
+    [Fact(DisplayName = "Battle should generate its identity when a battle is created")]
+    public void Create_Should_GenerateIdentity_When_ABattleIsCreated()
     {
-        var id = BattleId.New();
+        Unit[] units = [BattleTestData.CreateUnit(), BattleTestData.CreateUnit()];
 
-        var battle = BattleAggregate.Create(
-            id, [BattleTestData.CreateUnit(), BattleTestData.CreateUnit()]).Value;
+        var battle = BattleAggregate.Create(units).Value;
 
-        battle.Id.ShouldBe(id);
-        battle.Units.ShouldAllBe(unit => unit.BattleId == id);
-    }
-
-    [Fact(DisplayName = "Battle should reject its identity when identifier is empty")]
-    public void Create_Should_ReturnFailure_When_IdentifierIsEmpty()
-    {
-        var first = BattleTestData.CreateUnit();
-        var second = BattleTestData.CreateUnit();
-
-        var result = BattleAggregate.Create(default, [first, second]);
-
-        result.IsFailure.ShouldBeTrue();
-        first.BattleId.ShouldBeNull();
-        second.BattleId.ShouldBeNull();
+        battle.Id.Value.ShouldNotBe(Guid.Empty);
+        battle.Units.ShouldAllBe(unit => unit.BattleId == battle.Id);
     }
 
     [Fact(DisplayName = "Battle should assign its units when participants are distinct")]
@@ -60,19 +45,6 @@ public sealed class BattleTests
 
         result.IsFailure.ShouldBeTrue();
         unit.BattleId.ShouldBeNull();
-    }
-
-    [Fact(DisplayName = "Battle should reject identities when different participants share an identifier")]
-    public void Create_Should_RejectIdentities_When_DifferentParticipantsShareAnIdentifier()
-    {
-        var first = BattleTestData.CreateUnit();
-        var second = Unit.Create(first.Id, first.Stats, first.DamageRange, first.StackState).Value;
-
-        var result = BattleAggregate.Create([first, second]);
-
-        result.IsFailure.ShouldBeTrue();
-        first.BattleId.ShouldBeNull();
-        second.BattleId.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Battle should preserve participants when a participant is null")]

@@ -8,31 +8,19 @@ namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.Entities.Units
 
 public sealed class UnitTests
 {
-    [Fact(DisplayName = "Unit should preserve identity and wounds when an existing state is supplied")]
-    public void Create_Should_PreserveIdentityAndWounds_When_AnExistingStateIsSupplied()
+    [Fact(DisplayName = "Unit should preserve wounds when a wounded stack is supplied")]
+    public void Create_Should_PreserveWounds_When_AWoundedStackIsSupplied()
     {
-        var id = UnitId.New();
+        var stats = UnitCombatStats.Create(0, 0, 10).Value;
+        var damageRange = DamageRange.Create(1, 1).Value;
+        var stackState = UnitStackState.Create(3, 4).Value;
 
-        var result = Unit.Create(
-            id,
-            UnitCombatStats.Create(0, 0, 10).Value,
-            DamageRange.Create(1, 1).Value,
-            UnitStackState.Create(3, 4).Value).Value;
+        var unit = Unit.Create(stats, damageRange, stackState).Value;
 
-        result.Id.ShouldBe(id);
-        result.TotalHealth.ShouldBe(24);
-    }
-
-    [Fact(DisplayName = "Unit should reject its identity when identifier is empty")]
-    public void Create_Should_ReturnFailure_When_IdentifierIsEmpty()
-    {
-        var result = Unit.Create(
-            default,
-            UnitCombatStats.Create(0, 0, 10).Value,
-            DamageRange.Create(1, 1).Value,
-            UnitStackState.Create(1, 10).Value);
-
-        result.IsFailure.ShouldBeTrue();
+        unit.Id.Value.ShouldNotBe(Guid.Empty);
+        unit.Count.ShouldBe(3);
+        unit.CurrentUnitHealth.ShouldBe(4);
+        unit.TotalHealth.ShouldBe(24);
     }
 
     [Fact(DisplayName = "Unit should reject excessive health when current health exceeds maximum")]
