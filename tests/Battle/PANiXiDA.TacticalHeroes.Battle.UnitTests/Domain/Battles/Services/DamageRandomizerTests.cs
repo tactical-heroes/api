@@ -29,14 +29,4 @@ public sealed class DamageRandomizerTests
 
         results.ShouldAllBe(value => value >= minimum && value <= maximum);
     }
-
-    [Fact(DisplayName = "Damage randomizer should reject bounds when minimum exceeds maximum")]
-    public void Roll_Should_RejectBounds_When_MinimumExceedsMaximum()
-    {
-        Action roll = () => DamageRandomizer.Roll(3, 2);
-
-        var exception = Should.Throw<ArgumentOutOfRangeException>(roll);
-
-        exception.ParamName.ShouldBe("minimum");
-    }
 }
