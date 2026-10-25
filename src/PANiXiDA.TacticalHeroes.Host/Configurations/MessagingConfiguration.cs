@@ -1,9 +1,11 @@
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.DependencyInjection;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants;
 
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
+using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
 using CompendiumApplicationAssembly = PANiXiDA.TacticalHeroes.Compendium.Application.ApplicationAssembly;
 using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Identity.Application.ApplicationAssembly;
 
@@ -27,7 +29,10 @@ internal static class MessagingConfiguration
                     typeof(IdentityWriteDbContext).Assembly)
                 .AddModule<CompendiumWriteDbContext>(
                     CompendiumApplicationAssembly.Instance,
-                    typeof(CompendiumWriteDbContext).Assembly));
+                    typeof(CompendiumWriteDbContext).Assembly)
+                .AddModule<BattleWriteDbContext>(
+                    BattleApplicationAssembly.Instance,
+                    typeof(BattleWriteDbContext).Assembly));
 
         return builder;
     }

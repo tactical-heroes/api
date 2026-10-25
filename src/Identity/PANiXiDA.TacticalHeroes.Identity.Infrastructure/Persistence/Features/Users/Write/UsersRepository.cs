@@ -71,17 +71,20 @@ public sealed class UsersRepository(
             return rolesResult;
         }
 
+        var emailChanged = !string.Equals(applicationUser.Email, user.Email.Value, StringComparison.Ordinal);
         var confirmationRevoked = applicationUser.EmailConfirmed && !user.ConfirmationStatus.IsConfirmed;
-        var authorizationChanged = !user.RoleIds
-            .Select(roleId => roleId.Value)
-            .ToHashSet()
-            .SetEquals(applicationUser.Roles.Select(role => role.RoleId))
+        var authorizationChanged = emailChanged
+            || !string.Equals(applicationUser.UserName, user.UserName.Value, StringComparison.Ordinal)
+            || !user.RoleIds
+                .Select(roleId => roleId.Value)
+                .ToHashSet()
+                .SetEquals(applicationUser.Roles.Select(role => role.RoleId))
             || !user.Claims
                 .Select(claim => ((string?)claim.Type.Value, (string?)claim.Value.Value))
                 .ToHashSet()
                 .SetEquals(applicationUser.Claims.Select(claim => (claim.ClaimType, claim.ClaimValue)));
         string? preservedAuthorizationId = null;
-        if (authorizationChanged || confirmationRevoked)
+        if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
         {
             if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
             {
@@ -118,8 +121,9 @@ public sealed class UsersRepository(
 
         if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
         {
-            await userSessionService.RevokeAsync(
-                userId: user.Id.Value,
+            await InvalidateSessionsAsync(
+                user: user,
+                emailChanged: emailChanged,
                 preservedAuthorizationId: preservedAuthorizationId,
                 cancellationToken: cancellationToken);
         }
@@ -184,6 +188,26 @@ public sealed class UsersRepository(
         return Result.Failure(error: Error.NotFound(message: "User was not found."));
     }
 
+    private Task InvalidateSessionsAsync(
+        User user,
+        bool emailChanged,
+        string? preservedAuthorizationId,
+        CancellationToken cancellationToken)
+    {
+        if (!emailChanged && !user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+        {
+            return userSessionService.InvalidateAccessTokensAsync(
+                userId: user.Id.Value,
+                refreshCurrentSession: preservedAuthorizationId is not null,
+                cancellationToken: cancellationToken);
+        }
+
+        return userSessionService.RevokeAsync(
+            userId: user.Id.Value,
+            preservedAuthorizationId: preservedAuthorizationId,
+            cancellationToken: cancellationToken);
+    }
+
     private async Task<Result> UpdateStatusAsync(
         Guid id,
         UserStatus status,
@@ -202,6 +226,7 @@ public sealed class UsersRepository(
                 userId: id,
                 preservedAuthorizationId: null,
                 cancellationToken: cancellationToken);
+            applicationUser.SecurityStamp = Guid.NewGuid().ToString();
         }
 
         applicationUser.Status = status.Name;

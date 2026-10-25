@@ -157,14 +157,124 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         valid.ShouldBeFalse();
     }
 
-    [Theory(DisplayName = "Bulk revocation should use three updates when member counts sessions and preservation vary")]
+    [Theory(
+        DisplayName = "Session revocation should affect one grant when ownership matches and transaction completes")]
+    [InlineData("valid")]
+    [InlineData("rollback")]
+    [InlineData("foreign-user")]
+    [InlineData("foreign-client")]
+    [InlineData("missing")]
+    [InlineData("malformed")]
+    [InlineData("revoked")]
+    public async Task RevokeSessionAsync_Should_AffectOneGrant_When_OwnershipAndTransactionVary(string mode)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = Guid.CreateVersion7();
+        var foreignId = Guid.CreateVersion7();
+        await using var scope = Fixture.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var applications = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var application = await applications.CreateAsync(
+            new OpenIddictApplicationDescriptor { ClientId = "logout-test" },
+            ct);
+        var applicationId = await applications.GetIdAsync(application, ct);
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var ids = new List<string>();
+        foreach (var subject in new[] { userId, userId, foreignId })
+        {
+            var authorization = await authorizations.CreateAsync(
+                new OpenIddictAuthorizationDescriptor
+                {
+                    Subject = subject.ToString(),
+                    ApplicationId = applicationId,
+                    Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                ct);
+            var id = await authorizations.GetIdAsync(authorization, ct);
+            id.ShouldNotBeNull();
+            ids.Add(id);
+            foreach (var type in new[]
+                     {
+                         OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.IdentityToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode
+                     })
+            {
+                await tokens.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        ApplicationId = applicationId,
+                        AuthorizationId = id,
+                        Type = type,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    ct);
+            }
+        }
+        if (mode == "revoked")
+        {
+            var authorization = await authorizations.FindByIdAsync(ids[0], ct);
+            (await authorizations.TryRevokeAsync(authorization!, ct)).ShouldBeTrue();
+        }
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        service.ShouldBeSameAs(scope.ServiceProvider.GetRequiredService<UserSessionService>());
+        var selected = mode switch
+        {
+            "missing" => Guid.CreateVersion7().ToString(),
+            "malformed" => "invalid",
+            _ => ids[0]
+        };
+
+        var result = await service.RevokeSessionAsync(
+            mode == "foreign-user" ? foreignId : userId,
+            selected,
+            mode == "foreign-client" ? "other-client" : "logout-test",
+            ct);
+        if (mode == "rollback")
+        {
+            await transaction.RollbackAsync(ct);
+        }
+        else
+        {
+            await transaction.CommitAsync(ct);
+        }
+
+        var success = mode is "valid" or "rollback" or "revoked";
+        result.IsSuccess.ShouldBe(success);
+        var stored = await db.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>().AsNoTracking().ToArrayAsync(ct);
+        foreach (var authorization in stored)
+        {
+            var revoked = authorization.Id.ToString() == ids[0] && mode is "valid" or "revoked";
+            authorization.Status.ShouldBe(revoked
+                ? OpenIddictConstants.Statuses.Revoked
+                : OpenIddictConstants.Statuses.Valid);
+        }
+        var storedTokens = await db.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .Include(token => token.Authorization)
+            .AsNoTracking()
+            .ToArrayAsync(ct);
+        foreach (var token in storedTokens)
+        {
+            var revoked = token.Authorization!.Id.ToString() == ids[0] && mode is "valid" or "revoked";
+            token.Status.ShouldBe(revoked
+                ? OpenIddictConstants.Statuses.Revoked
+                : OpenIddictConstants.Statuses.Valid);
+        }
+    }
+
+    [Theory(DisplayName = "Bulk access invalidation should use two updates when membership varies")]
     [InlineData(2, 1, false)]
     [InlineData(2, 8, false)]
     [InlineData(2, 1, true)]
     [InlineData(2, 8, true)]
     [InlineData(64, 1, false)]
     [InlineData(64, 1, true)]
-    public async Task RevokeRoleMembersAsync_Should_UseThreeUpdates_When_MemberCountsSessionsAndPreservationVary(
+    public async Task InvalidateRoleMemberAccessTokensAsync_Should_UseTwoUpdates_When_MembershipVaries(
         int memberCount, int count, bool preserve)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -255,14 +365,14 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         await using var bulkContext = new IdentityWriteDbContext(options, []);
         var service = new UserSessionService(tokens, authorizations, bulkContext);
 
-        await service.RevokeRoleMembersAsync(
+        await service.InvalidateRoleMemberAccessTokensAsync(
             roleId: role.Id,
-            preservedAuthorizationId: preserve ? currentId : null,
+            refreshCurrentSession: preserve,
             cancellationToken: ct);
 
-        counter.Count.ShouldBe(3);
+        counter.Count.ShouldBe(2);
         counter.ReadCount.ShouldBe(0);
-        counter.SubqueryCount.ShouldBe(3);
+        counter.SubqueryCount.ShouldBe(2);
         var persistedUsers = await bulkContext.Users.AsNoTracking().ToDictionaryAsync(user => user.Id, ct);
         foreach (var user in users.Take(memberCount))
         {
@@ -275,11 +385,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             .ToListAsync(ct);
         foreach (var authorization in persistedAuthorizations)
         {
-            var valid = authorization.Subject == users[^1].Id.ToString()
-                || (preserve && authorization.Id.ToString() == currentId);
-            authorization.Status.ShouldBe(valid
-                ? OpenIddictConstants.Statuses.Valid
-                : OpenIddictConstants.Statuses.Revoked);
+            authorization.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
         }
         var persistedTokens = await bulkContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
             .Include(token => token.Authorization)
@@ -288,15 +394,13 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         foreach (var token in persistedTokens)
         {
             var valid = token.Subject == users[^1].Id.ToString()
-                || (preserve
-                    && token.Authorization?.Id.ToString() == currentId
-                    && token.Type is OpenIddictConstants.TokenTypeHints.RefreshToken
-                        or OpenIddictConstants.TokenTypeIdentifiers.RefreshToken);
+                || token.Type is not (OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+                    or OpenIddictConstants.TokenTypeHints.AccessToken);
             token.Status.ShouldBe(valid ? OpenIddictConstants.Statuses.Valid : OpenIddictConstants.Statuses.Revoked);
         }
         var currentTokens = persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId);
-        currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(preserve ? 2 : 0);
-        (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeFalse();
+        currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(3);
+        (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeTrue();
     }
 
     private sealed class BulkUpdateCounter : DbCommandInterceptor

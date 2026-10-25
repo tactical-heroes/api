@@ -1,5 +1,6 @@
 using System.Net.Mime;
 
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -32,9 +33,11 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
     }
 
     private static Task<IResult> HandleGetAsync(
-        HttpContext httpContext)
+        HttpContext httpContext,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return HandleAsync(httpContext);
+        return HandleAsync(httpContext: httpContext, mediator: mediator, cancellationToken: cancellationToken);
     }
 
     private static async Task AddLogoutQueryParametersAsync(
@@ -70,14 +73,53 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
     }
 
     private static Task<IResult> HandlePostAsync(
-        HttpContext httpContext)
+        HttpContext httpContext,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return HandleAsync(httpContext);
+        return HandleAsync(httpContext: httpContext, mediator: mediator, cancellationToken: cancellationToken);
     }
 
     private static async Task<IResult> HandleAsync(
-        HttpContext httpContext)
+        HttpContext httpContext,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
+        var authentication = await httpContext.AuthenticateAsync(
+            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        var principal = authentication.Principal;
+        var authorizationId = principal?.GetAuthorizationId();
+        if (!string.IsNullOrEmpty(httpContext.GetOpenIddictServerRequest()?.IdTokenHint) && authorizationId is null)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        if (principal is not null && authorizationId is not null)
+        {
+            var audiences = principal.GetAudiences();
+            if (!Guid.TryParse(principal.GetClaim(OpenIddictConstants.Claims.Subject), out var userId)
+                || audiences.Length != 1)
+            {
+                return TypedResults.Unauthorized();
+            }
+
+            var cookie = await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+            if (cookie.Succeeded
+                && (!Guid.TryParse(cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject), out var cookieUserId)
+                    || cookieUserId != userId))
+            {
+                return TypedResults.StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            var result = await mediator.SendAsync(
+                LogoutMapper.ToCommand(userId: userId, authorizationId: authorizationId, clientId: audiences[0]),
+                cancellationToken);
+            if (result.IsFailure)
+            {
+                return result.ToHttpProblem();
+            }
+        }
+
         await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
         return TypedResults.SignOut(

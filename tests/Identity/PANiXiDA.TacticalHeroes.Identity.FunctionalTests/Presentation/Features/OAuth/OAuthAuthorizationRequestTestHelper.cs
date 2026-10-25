@@ -152,7 +152,9 @@ internal static class OAuthAuthorizationRequestTestHelper
             root.GetProperty("access_token").GetString()
                 ?? throw new InvalidOperationException("Access token was not returned."),
             root.GetProperty("refresh_token").GetString()
-                ?? throw new InvalidOperationException("Refresh token was not returned."));
+                ?? throw new InvalidOperationException("Refresh token was not returned."),
+            root.GetProperty("id_token").GetString()
+                ?? throw new InvalidOperationException("Identity token was not returned."));
     }
 
     internal static async Task<string> LoginAndGetAuthorizationCodeAsync(
@@ -204,4 +206,5 @@ internal static class OAuthAuthorizationRequestTestHelper
 
 internal sealed record OAuthTokenResponse(
     string AccessToken,
-    string RefreshToken);
+    string RefreshToken,
+    string IdToken);

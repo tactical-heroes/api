@@ -8,4 +8,10 @@ public interface IUserSessionService
         CancellationToken cancellationToken);
 
     Task<bool> IsAuthorizationValidAsync(Guid userId, string authorizationId, CancellationToken cancellationToken);
+
+    Task<Result> RevokeSessionAsync(
+        Guid userId,
+        string authorizationId,
+        string clientId,
+        CancellationToken cancellationToken);
 }

@@ -85,9 +85,9 @@ public sealed class RolesRepository(
 
         if (authorizationChanged)
         {
-            await userSessionService.RevokeRoleMembersAsync(
+            await userSessionService.InvalidateRoleMemberAccessTokensAsync(
                 roleId: role.Id.Value,
-                preservedAuthorizationId: sessionResult.Value,
+                refreshCurrentSession: sessionResult.Value is not null,
                 cancellationToken: cancellationToken);
         }
         aggregateTracker.Track(role);
@@ -128,9 +128,9 @@ public sealed class RolesRepository(
             return Result.Failure(sessionResult.Errors);
         }
 
-        await userSessionService.RevokeRoleMembersAsync(
+        await userSessionService.InvalidateRoleMemberAccessTokensAsync(
             roleId: id,
-            preservedAuthorizationId: sessionResult.Value,
+            refreshCurrentSession: sessionResult.Value is not null,
             cancellationToken: cancellationToken);
 
         var identityResult = await roleManager.DeleteAsync(applicationRole);
