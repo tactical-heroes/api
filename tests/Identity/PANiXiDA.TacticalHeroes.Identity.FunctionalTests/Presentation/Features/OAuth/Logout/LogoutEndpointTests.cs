@@ -9,8 +9,6 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
-
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Logout;
 
 public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
@@ -104,29 +102,9 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
             claims: null,
             cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
-        var authorizePath = await OAuthAuthorizationRequestTestHelper.BuildAuthorizePathFromParAsync(
-            client: client,
-            scopes: OAuthAuthorizationRequestTestHelper.DefaultScopes,
-            redirectUri: "https://localhost:5173/oauth/callback",
-            cancellationToken: cancellationToken);
-        using var loginResponse = await client.PostAsJsonAsync(
-            "/api/v1/auth/login",
-            new LoginRequest(
-                "logout@example.test",
-                "StrongPassword1!",
-                $"https://localhost{authorizePath}"),
-            JsonOptions,
-            cancellationToken);
-
-        loginResponse.StatusCode.ShouldBe(HttpStatusCode.Redirect);
-
-        using var logoutResponse = await client.GetAsync(
-            string.Concat(
-                "/connect/logout",
-                $"?{OpenIddictConstants.Parameters.ClientId}={OAuthAuthorizationRequestTestHelper.ClientId}",
-                $"&{OpenIddictConstants.Parameters.PostLogoutRedirectUri}={Uri.EscapeDataString("https://localhost:5173/oauth/logout-callback")}",
-                $"&{OpenIddictConstants.Parameters.State}=logout-state"),
-            cancellationToken);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            client, "logout@example.test", "StrongPassword1!", cancellationToken);
+        using var logoutResponse = await LogoutAsync(client, tokens.IdToken, false, cancellationToken);
         var logoutResponseBody = await logoutResponse.Content.ReadAsStringAsync(cancellationToken);
 
         logoutResponse.StatusCode.ShouldBe(HttpStatusCode.Redirect, logoutResponseBody);
@@ -151,6 +129,30 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
         authorizeResponse.StatusCode.ShouldBe(HttpStatusCode.Redirect);
         authorizeResponse.Headers.Location.ShouldNotBeNull();
         authorizeResponse.Headers.Location.GetLeftPart(UriPartial.Path).ShouldBe("https://localhost:5173/login");
+    }
+
+    [Theory(DisplayName = "OAuth logout should require a grant proof before revoking tokens or clearing the cookie")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Logout_Should_RejectMissingHint_When_UserHasAnActiveGrant(bool post)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "logout-no-hint@example.test", "logout-no-hint", "StrongPassword1!", null, ct);
+        using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            client, "logout-no-hint@example.test", "StrongPassword1!", ct);
+
+        using var response = await LogoutAsync(client, null, post, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        if (response.Headers.TryGetValues("Set-Cookie", out var cookies))
+        {
+            cookies.ShouldNotContain(cookie => cookie.Contains(
+                ".AspNetCore.Identity.Application=;", StringComparison.Ordinal));
+        }
+        using var refresh = await RefreshAsync(client, tokens.RefreshToken, ct);
+        refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Theory(DisplayName = "OAuth logout should reject cached and late tokens when another host refreshes the session")]
@@ -261,14 +263,18 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
     }
 
     private static async Task<HttpResponseMessage> LogoutAsync(
-        HttpClient client, string identityToken, bool post, CancellationToken ct)
+        HttpClient client, string? identityToken, bool post, CancellationToken ct)
     {
         var parameters = new Dictionary<string, string>
         {
             [OpenIddictConstants.Parameters.ClientId] = OAuthAuthorizationRequestTestHelper.ClientId,
-            [OpenIddictConstants.Parameters.IdTokenHint] = identityToken,
+            [OpenIddictConstants.Parameters.State] = "logout-state",
             [OpenIddictConstants.Parameters.PostLogoutRedirectUri] = "https://localhost:5173/oauth/logout-callback"
         };
+        if (identityToken is not null)
+        {
+            parameters[OpenIddictConstants.Parameters.IdTokenHint] = identityToken;
+        }
         if (post)
         {
             using var content = new FormUrlEncodedContent(parameters);
