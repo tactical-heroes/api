@@ -64,7 +64,6 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             },
             ct);
         var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
-        service.ShouldBeSameAs(scope.ServiceProvider.GetRequiredService<UserSessionService>());
         var token = mode switch
         {
             "no-token" => null,
@@ -104,7 +103,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             ct);
         var id = await manager.GetIdAsync(authorization, ct);
         id.ShouldNotBeNull();
-        var service = scope.ServiceProvider.GetRequiredService<UserSessionService>();
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
         (await service.IsAuthorizationValidAsync(userId, id, ct)).ShouldBeTrue();
         await using (var writer = Fixture.CreateScope())
         {
@@ -150,7 +149,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             "malformed" => "not-an-authorization",
             _ => id
         };
-        var service = scope.ServiceProvider.GetRequiredService<UserSessionService>();
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
 
         var valid = await service.IsAuthorizationValidAsync(userId, candidate, ct);
 
@@ -222,7 +221,6 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         }
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
-        service.ShouldBeSameAs(scope.ServiceProvider.GetRequiredService<UserSessionService>());
         var selected = mode switch
         {
             "missing" => Guid.CreateVersion7().ToString(),
@@ -363,7 +361,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             .AddInterceptors(counter)
             .Options;
         await using var bulkContext = new IdentityWriteDbContext(options, []);
-        var service = new UserSessionService(tokens, authorizations, bulkContext);
+        IUserSessionService service = new UserSessionService(tokens, authorizations, bulkContext);
 
         await service.InvalidateRoleMemberAccessTokensAsync(
             roleId: role.Id,

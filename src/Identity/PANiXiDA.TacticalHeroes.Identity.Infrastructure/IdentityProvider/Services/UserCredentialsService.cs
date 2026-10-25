@@ -19,7 +19,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Servi
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
     IRolesReadRepository rolesReadRepository,
-    UserSessionService userSessionService,
+    IUserSessionService userSessionService,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
