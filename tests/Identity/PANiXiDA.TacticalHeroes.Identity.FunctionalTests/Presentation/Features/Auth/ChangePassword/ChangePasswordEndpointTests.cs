@@ -35,16 +35,13 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         var ct = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
             Fixture, "lookup-scope@example.test", "lookup-scope", CurrentPassword, null, ct);
-        var contexts = new ConcurrentQueue<HttpContext>();
+        var contexts = new ConcurrentQueue<HttpContext?>();
         await using var baseFactory = new FunctionalTestWebApplicationFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddScoped<IUserSessionService>(provider =>
             {
                 var context = provider.GetRequiredService<IHttpContextAccessor>().HttpContext;
-                if (context is not null)
-                {
-                    contexts.Enqueue(context);
-                }
+                contexts.Enqueue(context);
                 return ActivatorUtilities.CreateInstance<UserSessionService>(provider);
             })));
         using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -61,6 +58,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeTrue();
         contexts.ShouldNotBeEmpty();
+        contexts.ShouldAllBe(context => context != null);
         contexts.Distinct(ReferenceEqualityComparer.Instance).ShouldHaveSingleItem();
     }
 
