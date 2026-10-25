@@ -1,5 +1,6 @@
 using System.Data.Common;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,26 +18,32 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Session lookup should reuse validated data when lookup order varies")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetCurrentAuthorizationIdAsync_Should_ReuseValidatedData_When_LookupOrderVaries(bool roleFirst)
+    [Theory(DisplayName = "Session lookup should reuse validated data when lookup order and context vary")]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task GetCurrentAuthorizationIdAsync_Should_ReuseValidatedData_When_LookupOrderAndContextVary(
+        bool roleFirst, bool http)
     {
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
         var (userId, referenceId, token, authorization, authorizationId) =
             await CreateCurrentSessionAsync(scope.ServiceProvider, ct);
-        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        var accessor = http ? new HttpContextAccessor { HttpContext = new DefaultHttpContext() } : null;
+        var service = GetSessionService(scope.ServiceProvider, accessor);
         var first = roleFirst
             ? await service.GetCurrentRoleAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct)
             : await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
         first.IsSuccess.ShouldBeTrue();
         await ClearSessionCachesAsync(scope.ServiceProvider, token, authorization, ct);
+        await using var repeatedScope = Fixture.CreateScope();
+        var repeatedService = http ? GetSessionService(repeatedScope.ServiceProvider, accessor) : service;
         Fixture.CommandCounter.Reset();
 
-        var repeated = await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
-        var foreign = await service.GetCurrentAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct);
-        var role = await service.GetCurrentRoleAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct);
+        var repeated = await repeatedService.GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
+        var foreign = await repeatedService.GetCurrentAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct);
+        var role = await repeatedService.GetCurrentRoleAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct);
 
         repeated.Value.ShouldBe(authorizationId);
         foreign.IsFailure.ShouldBeTrue();
@@ -46,14 +53,19 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         using var cancellation = new CancellationTokenSource();
         await cancellation.CancelAsync();
         await Should.ThrowAsync<OperationCanceledException>(() =>
-            service.GetCurrentAuthorizationIdAsync(userId, referenceId, cancellation.Token));
-        var missing = await service.GetCurrentAuthorizationIdAsync(userId, Guid.CreateVersion7().ToString("N"), ct);
+            repeatedService.GetCurrentAuthorizationIdAsync(userId, referenceId, cancellation.Token));
+        var missing = await repeatedService.GetCurrentAuthorizationIdAsync(
+            userId, Guid.CreateVersion7().ToString("N"), ct);
         missing.IsFailure.ShouldBeTrue();
         await ClearSessionCachesAsync(scope.ServiceProvider, token, authorization, ct);
+        if (accessor is not null)
+        {
+            accessor.HttpContext = new DefaultHttpContext();
+        }
         await using var nextScope = Fixture.CreateScope();
         Fixture.CommandCounter.Reset();
 
-        var next = await nextScope.ServiceProvider.GetRequiredService<IUserSessionService>()
+        var next = await GetSessionService(nextScope.ServiceProvider, accessor)
             .GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
 
         next.Value.ShouldBe(authorizationId);
@@ -61,25 +73,33 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
     }
 
     [Theory(DisplayName = "Session lookup should discard cached data when sessions are invalidated")]
-    [InlineData("user")]
-    [InlineData("access")]
-    [InlineData("role")]
-    [InlineData("grant")]
-    public async Task GetCurrentAuthorizationIdAsync_Should_DiscardCachedData_When_SessionsAreInvalidated(string mode)
+    [InlineData("user", false)]
+    [InlineData("access", false)]
+    [InlineData("role", false)]
+    [InlineData("grant", false)]
+    [InlineData("user", true)]
+    [InlineData("access", true)]
+    [InlineData("role", true)]
+    [InlineData("grant", true)]
+    public async Task GetCurrentAuthorizationIdAsync_Should_DiscardCachedData_When_SessionsAreInvalidated(
+        string mode, bool http)
     {
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
         var (userId, referenceId, token, authorization, authorizationId) =
             await CreateCurrentSessionAsync(scope.ServiceProvider, ct);
-        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        var accessor = http ? new HttpContextAccessor { HttpContext = new DefaultHttpContext() } : null;
+        var service = GetSessionService(scope.ServiceProvider, accessor);
         (await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct)).Value.ShouldBe(authorizationId);
+        await using var mutationScope = Fixture.CreateScope();
+        var mutator = http ? GetSessionService(mutationScope.ServiceProvider, accessor) : service;
         switch (mode)
         {
             case "user":
-                await service.RevokeAsync(userId, preservedAuthorizationId: null, ct);
+                await mutator.RevokeAsync(userId, preservedAuthorizationId: null, ct);
                 break;
             case "access":
-                await service.InvalidateAccessTokensAsync(userId, refreshCurrentSession: false, ct);
+                await mutator.InvalidateAccessTokensAsync(userId, refreshCurrentSession: false, ct);
                 break;
             case "role":
                 var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
@@ -104,10 +124,10 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
                 db.Add(role);
                 db.Add(new ApplicationUserRole { UserId = userId, RoleId = role.Id });
                 await db.SaveChangesAsync(ct);
-                await service.InvalidateRoleMemberAccessTokensAsync(role.Id, refreshCurrentSession: false, ct);
+                await mutator.InvalidateRoleMemberAccessTokensAsync(role.Id, refreshCurrentSession: false, ct);
                 break;
             case "grant":
-                var revoked = await service.RevokeSessionAsync(userId, authorizationId, "session-cache-tests", ct);
+                var revoked = await mutator.RevokeSessionAsync(userId, authorizationId, "session-cache-tests", ct);
                 revoked.IsSuccess.ShouldBeTrue();
                 break;
         }
@@ -359,15 +379,18 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         }
     }
 
-    [Fact(DisplayName = "Session validation should reject a cached authorization when database status is revoked")]
-    public async Task IsAuthorizationValidAsync_Should_RejectCachedAuthorization_When_DatabaseStatusIsRevoked()
+    [Theory(DisplayName = "Session validation should reject a cached authorization when database status is revoked")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task IsAuthorizationValidAsync_Should_RejectCachedAuthorization_When_DatabaseStatusIsRevoked(bool http)
     {
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
         var (userId, referenceId, _, authorization, id) =
             await CreateCurrentSessionAsync(scope.ServiceProvider, ct);
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
-        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        var accessor = http ? new HttpContextAccessor { HttpContext = new DefaultHttpContext() } : null;
+        var service = GetSessionService(scope.ServiceProvider, accessor);
         (await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct)).Value.ShouldBe(id);
         (await service.IsAuthorizationValidAsync(userId, id, ct)).ShouldBeTrue();
         await using (var writer = Fixture.CreateScope())
@@ -666,6 +689,13 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         var currentTokens = persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId);
         currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(3);
         (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeTrue();
+    }
+
+    private static IUserSessionService GetSessionService(IServiceProvider services, IHttpContextAccessor? accessor)
+    {
+        return accessor is null
+            ? services.GetRequiredService<IUserSessionService>()
+            : ActivatorUtilities.CreateInstance<UserSessionService>(services, accessor);
     }
 
     private static async Task<(Guid UserId, string ReferenceId, object Token, object Authorization, string Id)>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 using OpenIddict.EntityFrameworkCore.Models;
@@ -12,9 +13,29 @@ public sealed class UserSessionService(
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IdentityWriteDbContext dbContext,
-    ICurrentUserSessionRefresh? sessionRefresh = null) : IUserSessionService
+    ICurrentUserSessionRefresh? sessionRefresh = null,
+    IHttpContextAccessor? httpContextAccessor = null) : IUserSessionService
 {
     private CurrentSession? _currentSession;
+
+    private CurrentSession? CachedSession
+    {
+        get => httpContextAccessor?.HttpContext is { } context
+            ? context.Features.Get<CurrentSession>()
+            : _currentSession;
+
+        set
+        {
+            if (httpContextAccessor?.HttpContext is { } context)
+            {
+                context.Features.Set(value);
+            }
+            else
+            {
+                _currentSession = value;
+            }
+        }
+    }
 
     public async Task<Result> RevokeSessionAsync(
         Guid userId,
@@ -22,7 +43,7 @@ public sealed class UserSessionService(
         string clientId,
         CancellationToken cancellationToken)
     {
-        _currentSession = null;
+        CachedSession = null;
         if (userId == Guid.Empty || !Guid.TryParse(authorizationId, out var id) || string.IsNullOrWhiteSpace(clientId))
         {
             return Result.Failure(Error.Unauthorized(message: "Current session is invalid."));
@@ -103,7 +124,7 @@ public sealed class UserSessionService(
         string? preservedAuthorizationId,
         CancellationToken cancellationToken)
     {
-        _currentSession = null;
+        CachedSession = null;
         var authorizations = await authorizationManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
             .ToListAsync(cancellationToken);
         foreach (var authorization in authorizations)
@@ -153,7 +174,7 @@ public sealed class UserSessionService(
         bool refreshCurrentSession,
         CancellationToken cancellationToken)
     {
-        _currentSession = null;
+        CachedSession = null;
         var tokens = await tokenManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
             .ToListAsync(cancellationToken);
         foreach (var token in tokens)
@@ -188,7 +209,7 @@ public sealed class UserSessionService(
         bool refreshCurrentSession,
         CancellationToken cancellationToken)
     {
-        _currentSession = null;
+        CachedSession = null;
         var userIds = GetRoleMemberIds(roleId);
         var subjects = userIds.Select(id => id.ToString());
         await dbContext.Users.Where(user => userIds.Contains(user.Id))
@@ -243,7 +264,7 @@ public sealed class UserSessionService(
     private async Task<CurrentSession?> GetCurrentSessionAsync(string accessToken, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (_currentSession is { } currentSession
+        if (CachedSession is { } currentSession
             && string.Equals(currentSession.AccessToken, accessToken, StringComparison.Ordinal))
         {
             return currentSession;
@@ -287,9 +308,10 @@ public sealed class UserSessionService(
             return null;
         }
 
-        _currentSession = new CurrentSession(
+        var session = new CurrentSession(
             AccessToken: accessToken, UserId: userId, AuthorizationId: authorizationId);
-        return _currentSession;
+        CachedSession = session;
+        return session;
     }
 
     private IQueryable<Guid> GetRoleMemberIds(Guid roleId)

@@ -1,7 +1,9 @@
+using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -27,18 +29,22 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
 
-    [Fact(DisplayName = "Password change should reuse scoped session service when current cookie is renewed")]
-    public async Task PostChangePassword_Should_ReuseScopedSessionService_When_CurrentCookieIsRenewed()
+    [Fact(DisplayName = "Password change should share lookup context when current cookie is renewed")]
+    public async Task PostChangePassword_Should_ShareLookupContext_When_CurrentCookieIsRenewed()
     {
         var ct = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
             Fixture, "lookup-scope@example.test", "lookup-scope", CurrentPassword, null, ct);
-        var instances = 0;
+        var contexts = new ConcurrentQueue<HttpContext>();
         await using var baseFactory = new FunctionalTestWebApplicationFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddScoped<IUserSessionService>(provider =>
             {
-                Interlocked.Increment(ref instances);
+                var context = provider.GetRequiredService<IHttpContextAccessor>().HttpContext;
+                if (context is not null)
+                {
+                    contexts.Enqueue(context);
+                }
                 return ActivatorUtilities.CreateInstance<UserSessionService>(provider);
             })));
         using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -48,13 +54,14 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         });
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             browser, "lookup-scope@example.test", CurrentPassword, ct);
-        var before = Volatile.Read(ref instances);
+        contexts.Clear();
 
         using var response = await ChangePasswordAsync(browser, tokens.AccessToken, CurrentPassword, NewPassword, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         response.Headers.Contains("Set-Cookie").ShouldBeTrue();
-        (Volatile.Read(ref instances) - before).ShouldBe(1);
+        contexts.ShouldNotBeEmpty();
+        contexts.Distinct(ReferenceEqualityComparer.Instance).ShouldHaveSingleItem();
     }
 
     [Fact(DisplayName = "Password change should return unauthorized when caller is a service")]
