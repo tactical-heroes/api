@@ -125,10 +125,31 @@ public sealed class BattleTests
         defender.CurrentUnitHealth.ShouldBe(7);
         result.AppliedDamage.Value.ShouldBe(7);
         var domainEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();
-        domainEvent.BattleId.ShouldBe(battle.Id);
-        domainEvent.AttackerId.ShouldBe(attacker.Id);
-        domainEvent.DefenderId.ShouldBe(defender.Id);
-        domainEvent.Result.ShouldBe(result);
+        domainEvent.BattleId.ShouldBe(battle.Id.Value);
+        domainEvent.AttackerId.ShouldBe(attacker.Id.Value);
+        domainEvent.DefenderId.ShouldBe(defender.Id.Value);
+        domainEvent.CalculatedDamage.ShouldBe(7);
+        domainEvent.AppliedDamage.ShouldBe(7);
+        domainEvent.KilledCount.ShouldBe(1);
+        domainEvent.RemainingCount.ShouldBe(2);
+        domainEvent.CurrentUnitHealth.ShouldBe(7);
+    }
+
+    [Fact(DisplayName = "Attack should capture actual losses when damage exceeds remaining health")]
+    public void Attack_Should_CaptureActualLosses_When_DamageExceedsRemainingHealth()
+    {
+        var attacker = BattleTestData.CreateUnit(minimumDamage: 7, maximumDamage: 7, count: 1);
+        var defender = BattleTestData.CreateUnit(count: 1, currentHealth: 4);
+        var battle = BattleAggregate.Create([attacker, defender]).Value;
+
+        battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(7).Value);
+
+        var domainEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();
+        domainEvent.CalculatedDamage.ShouldBe(7);
+        domainEvent.AppliedDamage.ShouldBe(4);
+        domainEvent.KilledCount.ShouldBe(1);
+        domainEvent.RemainingCount.ShouldBe(0);
+        domainEvent.CurrentUnitHealth.ShouldBe(0);
     }
 
     [Fact(DisplayName = "Attack should reject the attacker when attacker targets itself")]
@@ -215,7 +236,7 @@ public sealed class BattleTests
         var firstEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();
         battle.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
 
-        firstEvent.Result.RemainingStack.CurrentUnitHealth.ShouldBe(9);
+        firstEvent.CurrentUnitHealth.ShouldBe(9);
         defender.CurrentUnitHealth.ShouldBe(8);
         battle.GetDomainEvents().Count.ShouldBe(2);
     }

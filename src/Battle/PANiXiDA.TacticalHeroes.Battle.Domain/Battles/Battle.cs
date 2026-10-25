@@ -77,10 +77,14 @@ public sealed class Battle : AggregateRoot<BattleId>
         if (result.IsSuccess && result.Value.AppliedDamage.Value > 0)
         {
             AddDomainEvent(new UnitDamaged(
-                BattleId: Id,
-                AttackerId: attackerId,
-                DefenderId: defenderId,
-                Result: result.Value));
+                BattleId: Id.Value,
+                AttackerId: attackerId.Value,
+                DefenderId: defenderId.Value,
+                CalculatedDamage: result.Value.CalculatedDamage.Value,
+                AppliedDamage: result.Value.AppliedDamage.Value,
+                KilledCount: result.Value.KilledCount,
+                RemainingCount: result.Value.RemainingStack.Count,
+                CurrentUnitHealth: result.Value.RemainingStack.CurrentUnitHealth));
         }
 
         return result;
