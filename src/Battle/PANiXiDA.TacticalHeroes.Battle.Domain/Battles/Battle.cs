@@ -1,6 +1,5 @@
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Services;
 
 namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 
@@ -50,12 +49,7 @@ public sealed class Battle : AggregateRoot<BattleId>
                 "Both participants must be living units in this battle."));
         }
 
-        var damage = DamageCalculator.Calculate(
-            attackerStats: attacker.Stats,
-            attackerStack: attacker.StackState,
-            damageRange: attacker.DamageRange,
-            defenderStats: defender.Stats,
-            roll: attacker.DamageRange.Roll());
+        var damage = attacker.CalculateDamage(defender.Stats);
         if (damage.IsFailure)
         {
             return Result.Failure(damage.Errors);

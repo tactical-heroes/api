@@ -47,6 +47,94 @@ public sealed class UnitTests
         unit.BattleId.Value.ShouldNotBe(Guid.Empty);
     }
 
+    [Theory(DisplayName = "Damage should apply the stat coefficient when attack and defense vary")]
+    [InlineData(5, 5, 3, 2, 6)]
+    [InlineData(15, 5, 3, 1, 5)]
+    [InlineData(5, 15, 3, 1, 2)]
+    [InlineData(0, 100, 1, 1, 0)]
+    [InlineData(0, 0, 3, 0, 0)]
+    public void CalculateDamage_Should_ApplyStatCoefficient_When_AttackAndDefenseVary(
+        int attack, int defense, int count, int roll, long expected)
+    {
+        var unit = BattleTestData.CreateUnit(
+            BattleId.New(), attack: attack, minimumDamage: roll, maximumDamage: roll, count: count);
+        var defenderStats = UnitCombatStats.Create(0, defense, 10).Value;
+
+        var result = unit.CalculateDamage(defenderStats);
+
+        result.Value.Value.ShouldBe(expected);
+    }
+
+    [Fact(DisplayName = "Damage should round once after multiplication when total damage is fractional")]
+    public void CalculateDamage_Should_RoundOnceAfterMultiplication_When_TotalDamageIsFractional()
+    {
+        var unit = BattleTestData.CreateUnit(BattleId.New(), attack: 1, count: 10);
+        var defenderStats = UnitCombatStats.Create(0, 0, 10).Value;
+
+        var result = unit.CalculateDamage(defenderStats);
+
+        result.Value.Value.ShouldBe(11);
+    }
+
+    [Fact(DisplayName = "Damage should reject the calculation when attacker is destroyed")]
+    public void CalculateDamage_Should_ReturnFailure_When_AttackerIsDestroyed()
+    {
+        var unit = BattleTestData.CreateUnit(BattleId.New(), count: 0);
+        var defenderStats = UnitCombatStats.Create(0, 0, 10).Value;
+
+        var result = unit.CalculateDamage(defenderStats);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Damage should preserve large totals when damage exceeds integer capacity")]
+    public void CalculateDamage_Should_PreserveLargeTotals_When_DamageExceedsIntegerCapacity()
+    {
+        var unit = BattleTestData.CreateUnit(
+            BattleId.New(),
+            maxHealth: int.MaxValue,
+            minimumDamage: int.MaxValue,
+            maximumDamage: int.MaxValue,
+            count: int.MaxValue);
+
+        var result = unit.CalculateDamage(unit.Stats);
+
+        result.Value.Value.ShouldBe((long)int.MaxValue * int.MaxValue);
+    }
+
+    [Fact(DisplayName = "Damage should reject unsupported totals when damage exceeds long capacity")]
+    public void CalculateDamage_Should_ReturnFailure_When_DamageExceedsLongCapacity()
+    {
+        var unit = BattleTestData.CreateUnit(
+            BattleId.New(),
+            attack: int.MaxValue,
+            minimumDamage: int.MaxValue,
+            maximumDamage: int.MaxValue,
+            count: int.MaxValue);
+        var defenderStats = UnitCombatStats.Create(0, 0, 10).Value;
+
+        var result = unit.CalculateDamage(defenderStats);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Unit should preserve its state when damage is calculated")]
+    public void CalculateDamage_Should_PreserveState_When_DamageIsCalculated()
+    {
+        var unit = BattleTestData.CreateUnit(
+            BattleId.New(), minimumDamage: 2, maximumDamage: 2, currentHealth: 4);
+        var previousState = unit.StackState;
+        var defenderStats = UnitCombatStats.Create(0, 0, 10).Value;
+
+        var result = unit.CalculateDamage(defenderStats);
+
+        result.Value.Value.ShouldBe(6);
+        unit.StackState.ShouldBe(previousState);
+        unit.Count.ShouldBe(3);
+        unit.CurrentUnitHealth.ShouldBe(4);
+        unit.TotalHealth.ShouldBe(24);
+    }
+
     [Theory(DisplayName = "Damage should preserve stack invariants when a wounded stack is hit")]
     [InlineData(0, 3, 4, 0, 0)]
     [InlineData(2, 3, 2, 0, 2)]

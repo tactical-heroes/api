@@ -5,6 +5,8 @@ namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
 
 public sealed class Unit : Entity<UnitId>
 {
+    private const decimal StatsModifierCoefficient = 0.05m;
+
     private Unit(UnitId id, BattleId battleId) : base(id)
     {
         BattleId = battleId;
@@ -54,6 +56,24 @@ public sealed class Unit : Entity<UnitId>
                 stats: stats,
                 damageRange: damageRange,
                 stackState: stackState));
+    }
+
+    internal Result<Damage> CalculateDamage(UnitCombatStats defenderStats)
+    {
+        if (!IsAlive)
+        {
+            return Result.Failure<Damage>(Error.Validation("A destroyed unit cannot deal damage."));
+        }
+
+        var difference = Stats.Attack - defenderStats.Defense;
+        var statsModifier = 1 + StatsModifierCoefficient * Math.Abs(difference);
+        var baseDamage = (decimal)DamageRange.Roll() * Count;
+        var modifiedDamage = difference >= 0 ? baseDamage * statsModifier : baseDamage / statsModifier;
+        var roundedDamage = decimal.Round(d: modifiedDamage, decimals: 0, mode: MidpointRounding.AwayFromZero);
+
+        return roundedDamage > long.MaxValue
+            ? Result.Failure<Damage>(Error.Validation("Calculated damage exceeds the supported range."))
+            : Damage.Create((long)roundedDamage);
     }
 
     internal Result TakeDamage(Damage damage)
