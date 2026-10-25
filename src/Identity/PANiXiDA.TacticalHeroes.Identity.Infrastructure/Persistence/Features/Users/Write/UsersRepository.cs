@@ -71,11 +71,13 @@ public sealed class UsersRepository(
             return rolesResult;
         }
 
+        var emailChanged = !string.Equals(applicationUser.Email, user.Email.Value, StringComparison.Ordinal);
         var confirmationRevoked = applicationUser.EmailConfirmed && !user.ConfirmationStatus.IsConfirmed;
-        var authorizationChanged = !user.RoleIds
-            .Select(roleId => roleId.Value)
-            .ToHashSet()
-            .SetEquals(applicationUser.Roles.Select(role => role.RoleId))
+        var authorizationChanged = emailChanged
+            || !user.RoleIds
+                .Select(roleId => roleId.Value)
+                .ToHashSet()
+                .SetEquals(applicationUser.Roles.Select(role => role.RoleId))
             || !user.Claims
                 .Select(claim => ((string?)claim.Type.Value, (string?)claim.Value.Value))
                 .ToHashSet()

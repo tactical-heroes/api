@@ -6,8 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ResetPassword;
 
@@ -129,6 +131,58 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
         revokedToken.ShouldNotBeNull();
         (await verificationTokenManager.GetStatusAsync(revokedToken, cancellationToken))
             .ShouldBe(OpenIddictConstants.Statuses.Revoked);
+    }
+
+    [Fact(DisplayName = "POST auth reset-password should reject old proof and accept new proof when email changes")]
+    public async Task PostResetPassword_Should_RejectOldProofAndAcceptNewProof_When_EmailChanges()
+    {
+        const string OldPassword = "StrongPassword1!";
+        const string NewPassword = "NewStrongPassword1!";
+        var ct = TestContext.Current.CancellationToken;
+        var api = new UserApiTestClient(Fixture);
+        var created = await api.CreateAsync(request: null, cancellationToken: ct);
+        string oldToken;
+        await using (var scope = Fixture.Services.CreateAsyncScope())
+        {
+            var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await manager.FindByIdAsync(created.Id.ToString());
+            user.ShouldNotBeNull();
+            oldToken = await manager.GeneratePasswordResetTokenAsync(user);
+        }
+        await api.UpdateAsync(
+            created.Id, new UpdateUserRequest("changed@example.test", "hero", true, [], "Active", []), ct);
+
+        using var response = await Client.PostAsJsonAsync(
+            "/api/v1/auth/reset-password",
+            new ResetPasswordRequest(created.Id, oldToken, NewPassword),
+            JsonOptions,
+            ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        string newToken;
+        await using (var scope = Fixture.Services.CreateAsyncScope())
+        {
+            var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await manager.FindByIdAsync(created.Id.ToString());
+            user.ShouldNotBeNull();
+            user.Email.ShouldBe("changed@example.test");
+            user.EmailConfirmed.ShouldBeTrue();
+            (await manager.CheckPasswordAsync(user, OldPassword)).ShouldBeTrue();
+            (await manager.CheckPasswordAsync(user, NewPassword)).ShouldBeFalse();
+            newToken = await manager.GeneratePasswordResetTokenAsync(user);
+        }
+        using var reset = await Client.PostAsJsonAsync(
+            "/api/v1/auth/reset-password",
+            new ResetPasswordRequest(created.Id, newToken, NewPassword),
+            JsonOptions,
+            ct);
+        reset.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        await using var verification = Fixture.Services.CreateAsyncScope();
+        var users = verification.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var updated = await users.FindByIdAsync(created.Id.ToString());
+        updated.ShouldNotBeNull();
+        (await users.CheckPasswordAsync(updated, OldPassword)).ShouldBeFalse();
+        (await users.CheckPasswordAsync(updated, NewPassword)).ShouldBeTrue();
     }
 
     private sealed class CancelAfterPasswordSaveInterceptor(
