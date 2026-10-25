@@ -58,10 +58,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             userId, Guid.CreateVersion7().ToString("N"), ct);
         missing.IsFailure.ShouldBeTrue();
         await ClearSessionCachesAsync(scope.ServiceProvider, token, authorization, ct);
-        if (accessor is not null)
-        {
-            accessor.HttpContext = new DefaultHttpContext();
-        }
+        accessor?.HttpContext = new DefaultHttpContext();
         await using var nextScope = Fixture.CreateScope();
         Fixture.CommandCounter.Reset();
 
