@@ -41,28 +41,19 @@ public sealed class Battle : AggregateRoot<BattleId>
             return Result.Failure(Error.Validation("A unit cannot attack itself."));
         }
 
-        return ResultCombiner.Combine(GetUnit(attackerId), GetUnit(defenderId))
-            .Bind(units => ApplyAttack(units.Item1, units.Item2));
-    }
+        var attackerResult = GetUnit(attackerId);
+        var defenderResult = GetUnit(defenderId);
+        var validationResult = Result.Combine(
+            attackerResult,
+            defenderResult);
 
-    private Result<Unit> GetUnit(UnitId unitId)
-    {
-        var unit = _units.SingleOrDefault(unit => unit.Id == unitId);
-        if (unit is null)
+        if (validationResult.IsFailure)
         {
-            return Result.Failure<Unit>(Error.Validation($"Unit '{unitId}' was not found in this battle."));
+            return Result.Failure(validationResult.Errors);
         }
 
-        if (!unit.IsAlive)
-        {
-            return Result.Failure<Unit>(Error.Validation($"Unit '{unitId}' is destroyed."));
-        }
-
-        return Result.Success(unit);
-    }
-
-    private Result ApplyAttack(Unit attacker, Unit defender)
-    {
+        var attacker = attackerResult.Value;
+        var defender = defenderResult.Value;
         var damage = attacker.CalculateDamage(defender.Stats);
         if (damage.IsFailure)
         {
@@ -87,5 +78,21 @@ public sealed class Battle : AggregateRoot<BattleId>
         }
 
         return result;
+    }
+
+    private Result<Unit> GetUnit(UnitId unitId)
+    {
+        var unit = _units.SingleOrDefault(unit => unit.Id == unitId);
+        if (unit is null)
+        {
+            return Result.Failure<Unit>(Error.Validation($"Unit '{unitId}' was not found in this battle."));
+        }
+
+        if (!unit.IsAlive)
+        {
+            return Result.Failure<Unit>(Error.Validation($"Unit '{unitId}' is destroyed."));
+        }
+
+        return Result.Success(unit);
     }
 }
