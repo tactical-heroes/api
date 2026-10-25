@@ -5,7 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.Logout;
 
 public sealed class LogoutHandlerTests
 {
-    [Theory(DisplayName = "Logout handler should return session result when session service completes")]
+    [Theory(DisplayName = "Logout handler should return session result when service completes")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task HandleAsync_Should_ReturnSessionResult_When_ServiceCompletes(bool failure)

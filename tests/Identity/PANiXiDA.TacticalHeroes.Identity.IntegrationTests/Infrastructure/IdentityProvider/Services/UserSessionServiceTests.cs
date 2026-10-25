@@ -18,7 +18,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
     [Theory(
-        DisplayName = "Session revocation should affect one grant when ownership matches and transaction completes")]
+        DisplayName = "Session revocation should affect one grant when ownership and transaction vary")]
     [InlineData("valid")]
     [InlineData("rollback")]
     [InlineData("foreign-user")]
