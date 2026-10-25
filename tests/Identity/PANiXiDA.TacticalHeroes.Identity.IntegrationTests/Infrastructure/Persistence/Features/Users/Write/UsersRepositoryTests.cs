@@ -153,6 +153,151 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         (await ReadStatusAsync(userId, cancellationToken)).ShouldBe(UserStatus.Blocked.Name);
     }
 
+    [Theory(DisplayName = "User blocking should invalidate sessions when block entry points vary")]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task UserBlocking_Should_InvalidateSessions_When_BlockEntryPointsVary(
+        bool generalUpdate, bool rollback)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var id = await AddUserAsync("hero@example.com", "hero", true, [], UserStatus.Active.Name, ct);
+        var otherId = await AddUserAsync("other@example.com", "other", true, [], UserStatus.Active.Name, ct);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var originalStamps = await dbContext.Users.AsNoTracking()
+            .ToDictionaryAsync(user => user.Id, user => user.SecurityStamp, ct);
+        foreach (var userId in new[] { id, otherId })
+        {
+            var authorization = await authorizations.CreateAsync(
+                new OpenIddictAuthorizationDescriptor
+                {
+                    Subject = userId.ToString(),
+                    Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                ct);
+            await tokens.CreateAsync(
+                new OpenIddictTokenDescriptor
+                {
+                    Subject = userId.ToString(),
+                    AuthorizationId = await authorizations.GetIdAsync(authorization, ct),
+                    Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                ct);
+        }
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+
+        var result = generalUpdate
+            ? await repository.UpdateAsync(
+                user: IntegrationTestData.CreateUser(
+                    id: id,
+                    email: "hero@example.com",
+                    isConfirmed: true,
+                    roleIds: [],
+                    claims: [],
+                    userName: "hero",
+                    status: UserStatus.Blocked),
+                currentAccessToken: null,
+                cancellationToken: ct)
+            : await repository.BlockAsync(id, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var blocked = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == id, ct);
+        blocked.Status.ShouldBe(UserStatus.Blocked.Name);
+        blocked.SecurityStamp.ShouldNotBe(originalStamps[id]);
+        if (rollback)
+        {
+            await transaction.RollbackAsync(ct);
+        }
+        else
+        {
+            await transaction.CommitAsync(ct);
+        }
+        await using var verification = Fixture.CreateScope();
+        var persisted = verification.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var users = await persisted.Users.AsNoTracking().ToDictionaryAsync(user => user.Id, ct);
+        users[id].Status.ShouldBe(rollback ? UserStatus.Active.Name : UserStatus.Blocked.Name);
+        users[id].SecurityStamp.ShouldBe(rollback ? originalStamps[id] : blocked.SecurityStamp);
+        users[otherId].SecurityStamp.ShouldBe(originalStamps[otherId]);
+        var storedAuthorizations = await persisted.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(ct);
+        var storedTokens = await persisted.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(ct);
+        var expected = rollback ? OpenIddictConstants.Statuses.Valid : OpenIddictConstants.Statuses.Revoked;
+        storedAuthorizations.Single(item => item.Subject == id.ToString()).Status.ShouldBe(expected);
+        storedTokens.Single(item => item.Subject == id.ToString()).Status.ShouldBe(expected);
+        storedAuthorizations.Single(item => item.Subject == otherId.ToString()).Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+        storedTokens.Single(item => item.Subject == otherId.ToString()).Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+    }
+
+    [Fact(DisplayName = "UpdateAsync should preserve sessions when block only update fails validation")]
+    public async Task UpdateAsync_Should_PreserveSessions_When_BlockOnlyUpdateFailsValidation()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var id = await AddUserAsync("hero@example.com", "hero", true, [], UserStatus.Active.Name, ct);
+        await AddUserAsync("occupied@example.com", "occupied", true, [], UserStatus.Active.Name, ct);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var before = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == id, ct);
+        var authorization = await authorizations.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = id.ToString(),
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            ct);
+        await tokens.CreateAsync(
+            new OpenIddictTokenDescriptor
+            {
+                Subject = id.ToString(),
+                AuthorizationId = await authorizations.GetIdAsync(authorization, ct),
+                Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            ct);
+
+        var result = await repository.UpdateAsync(
+            user: IntegrationTestData.CreateUser(
+                id: id,
+                email: "hero@example.com",
+                isConfirmed: true,
+                roleIds: [],
+                claims: [],
+                userName: "occupied",
+                status: UserStatus.Blocked),
+            currentAccessToken: null,
+            cancellationToken: ct);
+
+        result.Errors.ShouldContain(error => error.Type == ErrorType.Conflict);
+        await using var verification = Fixture.CreateScope();
+        var persisted = verification.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var user = await persisted.Users.AsNoTracking().SingleAsync(user => user.Id == id, ct);
+        user.Status.ShouldBe(UserStatus.Active.Name);
+        user.SecurityStamp.ShouldBe(before.SecurityStamp);
+        var persistedAuthorization = await persisted.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .SingleAsync(ct);
+        var persistedToken = await persisted.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .SingleAsync(ct);
+        persistedAuthorization.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+        persistedToken.Status.ShouldBe(OpenIddictConstants.Statuses.Valid);
+    }
+
     [Fact(DisplayName = "UnblockAsync should activate a blocked user when user is blocked")]
     public async Task UnblockAsync_Should_ActivateUser_When_UserIsBlocked()
     {
