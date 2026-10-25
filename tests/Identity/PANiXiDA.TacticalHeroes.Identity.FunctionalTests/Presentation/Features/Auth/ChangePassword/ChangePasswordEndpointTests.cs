@@ -13,7 +13,9 @@ using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Server;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
 
@@ -24,6 +26,36 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
 {
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
+
+    [Fact(DisplayName = "Password change should reuse scoped session service when current cookie is renewed")]
+    public async Task PostChangePassword_Should_ReuseScopedSessionService_When_CurrentCookieIsRenewed()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "lookup-scope@example.test", "lookup-scope", CurrentPassword, null, ct);
+        var instances = 0;
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.AddScoped<IUserSessionService>(provider =>
+            {
+                Interlocked.Increment(ref instances);
+                return ActivatorUtilities.CreateInstance<UserSessionService>(provider);
+            })));
+        using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = false
+        });
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            browser, "lookup-scope@example.test", CurrentPassword, ct);
+        var before = Volatile.Read(ref instances);
+
+        using var response = await ChangePasswordAsync(browser, tokens.AccessToken, CurrentPassword, NewPassword, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        response.Headers.Contains("Set-Cookie").ShouldBeTrue();
+        (Volatile.Read(ref instances) - before).ShouldBe(1);
+    }
 
     [Fact(DisplayName = "Password change should return unauthorized when caller is a service")]
     public async Task PostChangePassword_Should_ReturnUnauthorized_When_CallerIsAService()

@@ -235,6 +235,11 @@ public sealed class UserSessionService(
                 cancellationToken);
     }
 
+    private static Result<string?> InvalidSession()
+    {
+        return Result.Failure<string?>(Error.Unauthorized(message: "Current session is invalid."));
+    }
+
     private async Task<CurrentSession?> GetCurrentSessionAsync(string accessToken, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -253,7 +258,7 @@ public sealed class UserSessionService(
         var authorizationId = await tokenManager.GetAuthorizationIdAsync(token, cancellationToken);
         if (authorizationId is null)
         {
-            return new CurrentSession(accessToken, Guid.Empty, AuthorizationId: null);
+            return new CurrentSession(AccessToken: accessToken, UserId: Guid.Empty, AuthorizationId: null);
         }
 
         var subject = await tokenManager.GetSubjectAsync(token, cancellationToken);
@@ -282,13 +287,9 @@ public sealed class UserSessionService(
             return null;
         }
 
-        _currentSession = new CurrentSession(accessToken, userId, authorizationId);
+        _currentSession = new CurrentSession(
+            AccessToken: accessToken, UserId: userId, AuthorizationId: authorizationId);
         return _currentSession;
-    }
-
-    private static Result<string?> InvalidSession()
-    {
-        return Result.Failure<string?>(Error.Unauthorized(message: "Current session is invalid."));
     }
 
     private IQueryable<Guid> GetRoleMemberIds(Guid roleId)
