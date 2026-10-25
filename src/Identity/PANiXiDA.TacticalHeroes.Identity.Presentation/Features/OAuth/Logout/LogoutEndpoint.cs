@@ -23,12 +23,14 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         builder.MapGet(builder.Route, handler: HandleGetAsync)
             .AllowAnonymous()
             .AddOpenApiOperationTransformer(AddLogoutQueryParametersAsync)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status302Found);
 
         builder.MapPost(builder.Route, handler: HandlePostAsync)
             .AllowAnonymous()
             .WithName("PostLogout")
             .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status302Found);
     }
 
@@ -68,6 +70,7 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         {
             Name = name,
             In = ParameterLocation.Query,
+            Required = name == OpenIddictConstants.Parameters.IdTokenHint,
             Schema = schema
         };
     }
@@ -85,11 +88,16 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         IMediator mediator,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(httpContext.GetOpenIddictServerRequest()?.IdTokenHint))
+        {
+            return TypedResults.BadRequest();
+        }
+
         var authentication = await httpContext.AuthenticateAsync(
             OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         var principal = authentication.Principal;
         var authorizationId = principal?.GetAuthorizationId();
-        if (!string.IsNullOrEmpty(httpContext.GetOpenIddictServerRequest()?.IdTokenHint) && authorizationId is null)
+        if (authorizationId is null)
         {
             return TypedResults.BadRequest();
         }
