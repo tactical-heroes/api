@@ -461,7 +461,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             .AddInterceptors(counter)
             .Options;
         await using var bulkContext = new IdentityWriteDbContext(options, []);
-        IUserSessionService service = new UserSessionService(tokens, authorizations, bulkContext);
+        var service = new UserSessionService(tokens, authorizations, bulkContext);
 
         await service.InvalidateRoleMemberAccessTokensAsync(
             roleId: role.Id,
