@@ -1,7 +1,6 @@
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Services;
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 
@@ -36,18 +35,18 @@ public sealed class Battle : AggregateRoot<BattleId>
         return Result.Success(battle);
     }
 
-    public Result<DamageResult> Attack(UnitId attackerId, UnitId defenderId)
+    public Result Attack(UnitId attackerId, UnitId defenderId)
     {
         if (attackerId == defenderId)
         {
-            return Result.Failure<DamageResult>(Error.Validation("A unit cannot attack itself."));
+            return Result.Failure(Error.Validation("A unit cannot attack itself."));
         }
 
         var attacker = _units.SingleOrDefault(unit => unit.Id == attackerId);
         var defender = _units.SingleOrDefault(unit => unit.Id == defenderId);
         if (attacker is null || defender is null || !attacker.IsAlive || !defender.IsAlive)
         {
-            return Result.Failure<DamageResult>(Error.Validation(
+            return Result.Failure(Error.Validation(
                 "Both participants must be living units in this battle."));
         }
 
@@ -59,21 +58,24 @@ public sealed class Battle : AggregateRoot<BattleId>
             roll: attacker.DamageRange.Roll());
         if (damage.IsFailure)
         {
-            return Result.Failure<DamageResult>(damage.Errors);
+            return Result.Failure(damage.Errors);
         }
 
+        var previousCount = defender.Count;
+        var previousHealth = defender.TotalHealth;
         var result = defender.TakeDamage(damage.Value);
-        if (result.IsSuccess && result.Value.AppliedDamage.Value > 0)
+        var appliedDamage = previousHealth - defender.TotalHealth;
+        if (result.IsSuccess && appliedDamage > 0)
         {
             AddDomainEvent(new UnitDamaged(
                 BattleId: Id.Value,
                 AttackerId: attackerId.Value,
                 DefenderId: defenderId.Value,
-                CalculatedDamage: result.Value.CalculatedDamage.Value,
-                AppliedDamage: result.Value.AppliedDamage.Value,
-                KilledCount: result.Value.KilledCount,
-                RemainingCount: result.Value.RemainingStack.Count,
-                CurrentUnitHealth: result.Value.RemainingStack.CurrentUnitHealth));
+                CalculatedDamage: damage.Value.Value,
+                AppliedDamage: appliedDamage,
+                KilledCount: previousCount - defender.Count,
+                RemainingCount: defender.Count,
+                CurrentUnitHealth: defender.CurrentUnitHealth));
         }
 
         return result;

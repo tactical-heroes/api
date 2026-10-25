@@ -57,15 +57,16 @@ public sealed class UnitTests
         long damage, int count, int health, int killed, long applied)
     {
         var unit = BattleTestData.CreateUnit(currentHealth: 4);
+        var previousCount = unit.Count;
+        var previousHealth = unit.TotalHealth;
 
-        var result = unit.TakeDamage(Damage.Create(damage).Value).Value;
+        var result = unit.TakeDamage(Damage.Create(damage).Value);
 
+        result.IsSuccess.ShouldBeTrue();
         unit.Count.ShouldBe(count);
         unit.CurrentUnitHealth.ShouldBe(health);
-        result.KilledCount.ShouldBe(killed);
-        result.AppliedDamage.Value.ShouldBe(applied);
-        result.CalculatedDamage.Value.ShouldBe(damage);
-        result.RemainingStack.ShouldBe(unit.StackState);
+        (previousCount - unit.Count).ShouldBe(killed);
+        (previousHealth - unit.TotalHealth).ShouldBe(applied);
         unit.IsAlive.ShouldBe(count > 0);
     }
 
@@ -74,11 +75,14 @@ public sealed class UnitTests
     {
         var unit = BattleTestData.CreateUnit(currentHealth: 4);
 
-        var firstHit = unit.TakeDamage(Damage.Create(2).Value).Value;
-        var secondHit = unit.TakeDamage(Damage.Create(2).Value).Value;
+        var firstHit = unit.TakeDamage(Damage.Create(2).Value);
+        var firstState = unit.StackState;
+        var secondHit = unit.TakeDamage(Damage.Create(2).Value);
 
-        firstHit.RemainingStack.CurrentUnitHealth.ShouldBe(2);
-        secondHit.KilledCount.ShouldBe(1);
+        firstHit.IsSuccess.ShouldBeTrue();
+        secondHit.IsSuccess.ShouldBeTrue();
+        firstState.CurrentUnitHealth.ShouldBe(2);
+        firstState.Count.ShouldBe(3);
         unit.Count.ShouldBe(2);
         unit.CurrentUnitHealth.ShouldBe(10);
     }
@@ -88,10 +92,11 @@ public sealed class UnitTests
     {
         var unit = BattleTestData.CreateUnit(maxHealth: int.MaxValue, count: int.MaxValue);
 
-        var result = unit.TakeDamage(Damage.Create(long.MaxValue).Value).Value;
+        var result = unit.TakeDamage(Damage.Create(long.MaxValue).Value);
 
-        result.AppliedDamage.Value.ShouldBe((long)int.MaxValue * int.MaxValue);
-        result.KilledCount.ShouldBe(int.MaxValue);
+        result.IsSuccess.ShouldBeTrue();
+        unit.Count.ShouldBe(0);
+        unit.CurrentUnitHealth.ShouldBe(0);
         unit.TotalHealth.ShouldBe(0);
     }
 

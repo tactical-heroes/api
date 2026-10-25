@@ -89,12 +89,12 @@ public sealed class BattleTests
         var defender = BattleTestData.CreateUnit(currentHealth: 4);
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        var result = battle.Attack(attacker.Id, defender.Id).Value;
+        var result = battle.Attack(attacker.Id, defender.Id);
 
+        result.IsSuccess.ShouldBeTrue();
         attacker.TotalHealth.ShouldBe(10);
         defender.Count.ShouldBe(2);
         defender.CurrentUnitHealth.ShouldBe(7);
-        result.AppliedDamage.Value.ShouldBe(7);
         var domainEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();
         domainEvent.BattleId.ShouldBe(battle.Id.Value);
         domainEvent.AttackerId.ShouldBe(attacker.Id.Value);
@@ -175,11 +175,34 @@ public sealed class BattleTests
         var defender = BattleTestData.CreateUnit();
         var battle = BattleAggregate.Create([attacker, defender]).Value;
 
-        var result = battle.Attack(attacker.Id, defender.Id).Value;
+        var result = battle.Attack(attacker.Id, defender.Id);
 
-        result.CalculatedDamage.Value.ShouldBeInRange(2L, 4L);
-        result.AppliedDamage.ShouldBe(result.CalculatedDamage);
-        defender.TotalHealth.ShouldBe(30 - result.AppliedDamage.Value);
+        result.IsSuccess.ShouldBeTrue();
+        var domainEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();
+        domainEvent.CalculatedDamage.ShouldBeInRange(2L, 4L);
+        domainEvent.AppliedDamage.ShouldBe(domainEvent.CalculatedDamage);
+        defender.TotalHealth.ShouldBe(30 - domainEvent.AppliedDamage);
+    }
+
+    [Fact(DisplayName = "Attack should preserve the defender when calculated damage exceeds supported capacity")]
+    public void Attack_Should_PreserveDefender_When_CalculatedDamageExceedsSupportedCapacity()
+    {
+        var attacker = BattleTestData.CreateUnit(
+            attack: int.MaxValue,
+            minimumDamage: int.MaxValue,
+            maximumDamage: int.MaxValue,
+            count: int.MaxValue);
+        var defender = BattleTestData.CreateUnit();
+        var battle = BattleAggregate.Create([attacker, defender]).Value;
+
+        var result = battle.Attack(attacker.Id, defender.Id);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldNotBeEmpty();
+        defender.Count.ShouldBe(3);
+        defender.CurrentUnitHealth.ShouldBe(10);
+        defender.TotalHealth.ShouldBe(30);
+        battle.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Attack should avoid damage events when calculated damage is zero")]

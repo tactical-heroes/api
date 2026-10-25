@@ -58,7 +58,7 @@ public sealed class DomainEventPayloadConventionTests
     [InlineData(typeof(BattleId), false)]
     [InlineData(typeof(UnitId), false)]
     [InlineData(typeof(BattleId?), false)]
-    [InlineData(typeof(DamageResult), false)]
+    [InlineData(typeof(Damage), false)]
     [InlineData(typeof(Unit), false)]
     [InlineData(typeof(BattleAggregate), false)]
     [InlineData(typeof(object), false)]
@@ -68,7 +68,7 @@ public sealed class DomainEventPayloadConventionTests
     [InlineData(typeof(List<int>), false)]
     [InlineData(typeof(IReadOnlyCollection<int>), false)]
     [InlineData(typeof(ImmutableArray<int>), false)]
-    [InlineData(typeof(ImmutableArray<DamageResult>), false)]
+    [InlineData(typeof(ImmutableArray<Damage>), false)]
     public void DomainEventPayload_Should_RestrictMemberTypes_When_PayloadTypeVaries(Type payloadType, bool expected)
     {
         var eventType = typeof(PayloadEvent<>).MakeGenericType(payloadType);
@@ -87,7 +87,7 @@ public sealed class DomainEventPayloadConventionTests
         var violations = DomainEventPayloadConvention.GetViolations(eventType).ToArray();
 
         Assert.NotEmpty(violations);
-        Assert.All(violations, violation => Assert.Contains(nameof(DamageResult), violation));
+        Assert.All(violations, violation => Assert.Contains(nameof(Damage), violation));
     }
 
     private sealed record PayloadEvent<T>(T Value) : DomainEvent;
@@ -96,17 +96,17 @@ public sealed class DomainEventPayloadConventionTests
 
     private sealed record FieldPayloadEvent : DomainEvent
     {
-        internal readonly DamageResult _result = null!;
+        internal readonly Damage _result = null!;
     }
 
     private sealed record PrivatePropertyPayloadEvent : DomainEvent
     {
-        private DamageResult Result { get; init; } = null!;
+        private Damage Result { get; init; } = null!;
     }
 
     private abstract record PayloadEventBase : DomainEvent
     {
-        public DamageResult Result { get; init; } = null!;
+        public Damage Result { get; init; } = null!;
     }
 
     private sealed record InheritedPayloadEvent : PayloadEventBase;

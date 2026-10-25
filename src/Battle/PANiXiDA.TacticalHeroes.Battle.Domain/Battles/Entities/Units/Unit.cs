@@ -55,26 +55,19 @@ public sealed class Unit : Entity<UnitId>
         BattleId = battleId;
     }
 
-    internal Result<DamageResult> TakeDamage(Damage damage)
+    internal Result TakeDamage(Damage damage)
     {
         if (!IsAlive)
         {
-            return Result.Failure<DamageResult>(Error.Validation("A destroyed unit cannot take damage."));
+            return Result.Failure(Error.Validation("A destroyed unit cannot take damage."));
         }
 
         var appliedDamage = Math.Min(damage.Value, TotalHealth);
         var remainingHealth = TotalHealth - appliedDamage;
         var remainingCount = remainingHealth == 0 ? 0 : (int)((remainingHealth - 1) / Stats.MaxHealth + 1);
         var currentUnitHealth = remainingHealth == 0 ? 0 : (int)((remainingHealth - 1) % Stats.MaxHealth + 1);
-        var remainingStack = UnitStackState.Create(remainingCount, currentUnitHealth).Value;
-        var result = DamageResult.Create(
-            calculatedDamage: damage,
-            appliedDamage: Damage.Create(appliedDamage).Value,
-            killedCount: Count - remainingCount,
-            remainingStack: remainingStack);
+        StackState = UnitStackState.Create(remainingCount, currentUnitHealth).Value;
 
-        StackState = remainingStack;
-
-        return result;
+        return Result.Success();
     }
 }
