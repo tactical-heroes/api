@@ -39,7 +39,7 @@ internal static class IdentityProviderServiceCollectionExtensions
             .ValidateOnStart();
 
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
-        serviceCollection.AddScoped<UserSessionService>();
+        serviceCollection.AddScoped<IUserSessionService, UserSessionService>();
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
         serviceCollection.AddDataProtection()

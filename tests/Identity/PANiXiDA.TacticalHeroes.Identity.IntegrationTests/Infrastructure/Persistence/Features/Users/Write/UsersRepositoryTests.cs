@@ -487,6 +487,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("unconfirm")]
     [InlineData("email")]
     [InlineData("same-email")]
+    [InlineData("name")]
     public async Task UpdateAsync_Should_InvalidateChangedSessions_When_SessionInputsVary(string mode)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -554,7 +555,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             isConfirmed: mode != "unconfirm",
             roleIds: [],
             claims: claims,
-            userName: "hero",
+            userName: mode == "name" ? "renamed" : "hero",
             status: UserStatus.Active);
 
         var result = await repository.UpdateAsync(
@@ -578,8 +579,15 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
             .AsNoTracking()
             .ToListAsync(ct);
         var expected = changed ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid;
-        authorizations.Single(item => item.Subject == id.ToString()).Status.ShouldBe(expected);
-        tokens.Where(item => item.Subject == id.ToString()).ShouldAllBe(item => item.Status == expected);
+        authorizations.Single(item => item.Subject == id.ToString()).Status.ShouldBe(
+            mode is "unconfirm" or "email" ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid);
+        foreach (var token in tokens.Where(item => item.Subject == id.ToString()))
+        {
+            token.Status.ShouldBe(mode is "unconfirm" or "email"
+                || token.Type == OpenIddictConstants.TokenTypeHints.AccessToken
+                ? expected
+                : OpenIddictConstants.Statuses.Valid);
+        }
         authorizations.Single(item => item.Subject == otherId.ToString()).Status
             .ShouldBe(OpenIddictConstants.Statuses.Valid);
         tokens.Where(item => item.Subject == otherId.ToString())

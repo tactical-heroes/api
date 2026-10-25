@@ -40,7 +40,16 @@ public sealed class ValidateSecurityStampHandlerTests(IntegrationTestFixture fix
         principal.SetTokenType(OpenIddictConstants.TokenTypeIdentifiers.AccessToken);
         if (hasAuthorization)
         {
-            principal.SetAuthorizationId(Guid.CreateVersion7().ToString());
+            var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+            var authorization = await authorizations.CreateAsync(
+                new OpenIddictAuthorizationDescriptor
+                {
+                    Subject = user.Id.ToString(),
+                    Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                ct);
+            principal.SetAuthorizationId(await authorizations.GetIdAsync(authorization, ct));
         }
 
         var options = scope.ServiceProvider.GetRequiredService<IOptions<IdentityOptions>>();
@@ -56,6 +65,68 @@ public sealed class ValidateSecurityStampHandlerTests(IntegrationTestFixture fix
             (await manager.DeleteAsync(user)).Succeeded.ShouldBeTrue();
         }
 
+        var context = new OpenIddictServerEvents.ValidateTokenContext(new OpenIddictServerTransaction
+        {
+            Options = new OpenIddictServerOptions(),
+            Logger = NullLogger.Instance
+        })
+        {
+            Principal = principal,
+            CancellationToken = ct
+        };
+        var handler = new ValidateSecurityStampHandler(
+            scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>(), options);
+
+        await handler.HandleAsync(context);
+
+        context.IsRejected.ShouldBe(rejected);
+    }
+
+    [Theory(DisplayName = "Token validation should require a valid grant when user token is validated")]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, "valid", false)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, "revoked", true)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, "missing", true)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, "valid", false)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, "revoked", true)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, "foreign", true)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, "valid", false)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, "revoked", true)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, "malformed", true)]
+    public async Task HandleAsync_Should_ValidateGrant_When_UserTokenIsValidated(
+        string tokenType, string mode, bool rejected)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            UserName = "grant-user",
+            Email = "grant@example.test"
+        };
+        (await manager.CreateAsync(user, "StrongPassword1!")).Succeeded.ShouldBeTrue();
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await authorizations.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = mode == "foreign" ? Guid.CreateVersion7().ToString() : user.Id.ToString(),
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                Status = mode == "revoked" ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid
+            },
+            ct);
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim(OpenIddictConstants.Claims.Subject, user.Id.ToString())], "test"));
+        principal.SetTokenType(tokenType);
+        principal.SetAuthorizationId(mode switch
+        {
+            "missing" => Guid.CreateVersion7().ToString(),
+            "malformed" => "invalid",
+            _ => await authorizations.GetIdAsync(authorization, ct)
+        });
+        var options = scope.ServiceProvider.GetRequiredService<IOptions<IdentityOptions>>();
+        principal.SetClaim(
+            options.Value.ClaimsIdentity.SecurityStampClaimType,
+            tokenType == OpenIddictConstants.TokenTypeIdentifiers.AccessToken ? user.SecurityStamp : "old-stamp");
         var context = new OpenIddictServerEvents.ValidateTokenContext(new OpenIddictServerTransaction
         {
             Options = new OpenIddictServerOptions(),

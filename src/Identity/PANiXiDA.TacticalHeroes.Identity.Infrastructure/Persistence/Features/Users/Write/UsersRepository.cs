@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -17,7 +17,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.U
 public sealed class UsersRepository(
     IdentityWriteDbContext dbContext,
     UserManager<ApplicationUser> userManager,
-    UserSessionService userSessionService,
+    IUserSessionService userSessionService,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IUsersRepository
@@ -74,6 +74,7 @@ public sealed class UsersRepository(
         var emailChanged = !string.Equals(applicationUser.Email, user.Email.Value, StringComparison.Ordinal);
         var confirmationRevoked = applicationUser.EmailConfirmed && !user.ConfirmationStatus.IsConfirmed;
         var authorizationChanged = emailChanged
+            || !string.Equals(applicationUser.UserName, user.UserName.Value, StringComparison.Ordinal)
             || !user.RoleIds
                 .Select(roleId => roleId.Value)
                 .ToHashSet()
@@ -120,8 +121,9 @@ public sealed class UsersRepository(
 
         if (authorizationChanged || confirmationRevoked || user.Status.IsBlocked)
         {
-            await userSessionService.RevokeAsync(
-                userId: user.Id.Value,
+            await InvalidateSessionsAsync(
+                user: user,
+                emailChanged: emailChanged,
                 preservedAuthorizationId: preservedAuthorizationId,
                 cancellationToken: cancellationToken);
         }
@@ -184,6 +186,26 @@ public sealed class UsersRepository(
     private static Result UserNotFound()
     {
         return Result.Failure(error: Error.NotFound(message: "User was not found."));
+    }
+
+    private Task InvalidateSessionsAsync(
+        User user,
+        bool emailChanged,
+        string? preservedAuthorizationId,
+        CancellationToken cancellationToken)
+    {
+        if (!emailChanged && !user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+        {
+            return userSessionService.InvalidateAccessTokensAsync(
+                userId: user.Id.Value,
+                refreshCurrentSession: preservedAuthorizationId is not null,
+                cancellationToken: cancellationToken);
+        }
+
+        return userSessionService.RevokeAsync(
+            userId: user.Id.Value,
+            preservedAuthorizationId: preservedAuthorizationId,
+            cancellationToken: cancellationToken);
     }
 
     private async Task<Result> UpdateStatusAsync(
