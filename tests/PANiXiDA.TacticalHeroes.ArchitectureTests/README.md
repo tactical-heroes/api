@@ -200,13 +200,19 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     реализацию. Полиморфное состояние (`object`, прочие интерфейсы и
     незапечатанные классы) также запрещено.
 
-32. `DomainEvents_Should_RequireImmutableCollectionsAndElements_When_CollectionsAreDeclared`
+32. `DomainEvents_Should_ContainOnlyPrimitiveValues_When_Declared` — публичные
+    свойства и поля экземпляра domain event, включая закрытые и унаследованные
+    поля, должны содержать только скаляры: примитивы, `string`, `decimal`, `Guid`,
+    даты, время, перечисления и nullable-варианты. Доменные объекты, strongly typed
+    ID и коллекции запрещены независимо от их неизменяемости.
+
+33. `DomainEvents_Should_RequireImmutableCollectionsAndElements_When_CollectionsAreDeclared`
     проверяет допустимые и недопустимые варианты коллекций на тестовых событиях,
     включая вложенные коллекции и изменяемые элементы, ключи и значения.
     Поскольку анализ состояния общий, те же ограничения коллекций действуют
     и для VO, strongly typed ID и перечислений.
 
-33. `StronglyTypedIds_Should_MatchOwnerNamesAndLocations_When_Declared` —
+34. `StronglyTypedIds_Should_MatchOwnerNamesAndLocations_When_Declared` —
     strongly typed ID каждого aggregate root или entity называется
     `<OwnerName>Id`, реализует `IStronglyTypedId` и лежит в той же папке и
     namespace, что и владелец. Например, `UserId` лежит рядом с `User`, а
@@ -217,114 +223,114 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     Например, `FileManager.Domain.Users.UserId` ссылается на пользователя Identity,
     не требуя локального `User`. Неиспользуемые strongly typed ID запрещены.
 
-34. `StronglyTypedIds_Should_ContainOnlyImmutableState_When_Declared` —
+35. `StronglyTypedIds_Should_ContainOnlyImmutableState_When_Declared` —
     рекурсивная проверка запрещает изменяемые поля и вложенное состояние ID,
     включая приватное и унаследованное. Она дополняет проверку getter без
     setter/init и работает для классов и структур.
 
-35. `DomainTypes_Should_ContainOnlyImmutableStaticState_When_AuthoredMembersAreDeclared`
+36. `DomainTypes_Should_ContainOnlyImmutableStaticState_When_AuthoredMembersAreDeclared`
     — статические поля в написанном нами коде Domain должны быть `const` или
     `readonly` с рекурсивно неизменяемым содержимым. Проверяются также backing fields
     статических auto-property и вложенные типы. Статические setter, события и
     записываемые ref-возвраты запрещены. Фабрики разрешены; сгенерированные
     технические кэши в эту проверку не входят.
 
-36. `Repositories_Should_ResideInDomainAbstractions_When_Declared` — интерфейс,
+37. `Repositories_Should_ResideInDomainAbstractions_When_Declared` — интерфейс,
     наследующий `IRepository<,>`, должен находиться в Domain в папке и
     namespace `Abstractions`.
 
-37. `Repositories_Should_UseStronglyTypedIdsAndAggregateRoots_When_Declared` —
+38. `Repositories_Should_UseStronglyTypedIdsAndAggregateRoots_When_Declared` —
     первый generic-параметр `IRepository<,>` должен быть непримитивным strongly
     typed ID, а второй — aggregate root.
 
-38. `RepositoryMethods_Should_UseOnlyDomainTypes_When_Declared` — параметры и
+39. `RepositoryMethods_Should_UseOnlyDomainTypes_When_Declared` — параметры и
     результаты методов `IRepository<,>` могут содержать только aggregate root,
     value object, `Enumeration<>` и strongly typed ID. Разрешены технические
     обёртки `Task`, `ValueTask`, коллекции, nullable и `CancellationToken`;
     примитивы, entity, domain events и произвольные DTO запрещены.
 
-39. `Repositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
+40. `Repositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
     наследующий `IRepository<,>`, должен называться
     `I<AggregatePlural>Repository` и находиться в одноимённой feature-папке.
     Корректное английское множественное число строится через Humanizer.
 
-40. `ConstructorParameters_Should_FollowTypeBasedNaming_When_RepositoryIsInjected`
+41. `ConstructorParameters_Should_FollowTypeBasedNaming_When_RepositoryIsInjected`
     — параметр конструктора типа repository именуется по типу интерфейса без
     начальной `I` и с маленькой первой буквы: `IFactionsRepository`
     превращается в `factionsRepository`.
 
-41. `DomainState_Should_EnforceEncapsulation_When_MemberAccessVaries` —
+42. `DomainState_Should_EnforceEncapsulation_When_MemberAccessVaries` —
     проверка самого правила инкапсуляции на тестовых типах: setter/init,
     публичные и internal поля, интерфейсы, наследование и ref-возвраты.
     Проверяются запреты getter-only автосвойств, private init, непубличного getter
     и protected setter. Допустимые private setter, вычисляемые свойства,
     защищённые представления коллекций, readonly-поля и ref readonly тоже проверяются.
 
-42. `ImmutableState_Should_ValidateFieldsRecursively_When_StateShapeVaries` —
+43. `ImmutableState_Should_ValidateFieldsRecursively_When_StateShapeVaries` —
     проверка рекурсивного анализа на изменяемых полях, readonly-ссылках на
     изменяемые объекты, приватных полях базового класса, структурах, nullable
     и циклических графах типов, а также на записываемых и read-only ref-возвратах.
     `init` допустим для состояния событий;
     у VO, ID и перечислений он запрещён отдельными правилами свойств.
 
-43. `CollectionExposure_Should_ValidateProtection_When_MemberShapesVary` —
+44. `CollectionExposure_Should_ValidateProtection_When_MemberShapesVary` —
     тестовые исходники проверяют обнаружение утечек коллекций через свойства,
     методы, индексаторы, internal-члены, интерфейсы, object, Task, кортежи,
     итераторы и представления памяти, а также соответствующие защищённые варианты.
 
-44. `CollectionReturns_Should_IdentifyProtectedStorage_When_ExpressionsUseDifferentCollectionTypes`
+45. `CollectionReturns_Should_IdentifyProtectedStorage_When_ExpressionsUseDifferentCollectionTypes`
     — проверка классификации выражений возврата: стандартные обёртки,
     immutable/frozen-коллекции, изменяемые коллекции, builders, преобразования
     и условные выражения, в том числе ветви с `null`.
 
-45. `StaticState_Should_RejectSharedMutation_When_AuthoredMemberShapesVary` —
+46. `StaticState_Should_RejectSharedMutation_When_AuthoredMemberShapesVary` —
     проверка правила статического состояния на полях, свойствах, событиях,
     ref-возвратах и вложенных типах. Константы, неизменяемые значения и фабрики
     проверяются как допустимые варианты.
 
 ## Application
 
-46. `ApplicationValidators_Should_BePublicAndSealed_When_ValidatorsAreDeclared` —
+47. `ApplicationValidators_Should_BePublicAndSealed_When_ValidatorsAreDeclared` —
     все конкретные Application-валидаторы `IValidator<T>`, включая валидаторы
     фильтров и сгенерированные валидаторы сортировки, должны быть `public sealed`.
     Публичность проверяется вместе с доступностью содержащих типов, чтобы
     генератор регистрации Wolverine мог ссылаться на валидаторы из Host.
 
-47. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
+48. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
     `ICommand` и `IQuery` должен находиться в папке конкретной фичи ниже хотя бы
     одной группирующей папки. Между корнем Application и feature-папкой
     разрешено любое количество логических подпапок, например
     `Auth/ChangePassword` или `Users/Administration/Block`.
 
-48. `ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared` —
+49. `ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared` —
     `ICommand` оканчивается на `Command`, `IQuery` — на `Query`,
     `ICommandHandler<,>` и `IQueryHandler<,>` — на `Handler`, validator — на
     `Validator`.
 
-49. `ApplicationUseCaseParts_Should_ShareOneFeatureFolder_When_Declared` —
+50. `ApplicationUseCaseParts_Should_ShareOneFeatureFolder_When_Declared` —
     command или query должен иметь ровно один handler и один validator. Request,
     handler и validator именуются согласованно и располагаются в одной общей
     feature-папке и namespace.
 
-50. `AbstractionsNamespaces_Should_ContainOnlyAbstractions_When_Declared` —
+51. `AbstractionsNamespaces_Should_ContainOnlyAbstractions_When_Declared` —
     папки и пространства имён `Abstractions` в Domain и Application могут
     содержать только интерфейсы, абстрактные типы и делегаты.
 
-51. `ReadRepositories_Should_ResideInApplicationAbstractions_When_Declared` —
+52. `ReadRepositories_Should_ResideInApplicationAbstractions_When_Declared` —
     интерфейс, наследующий `IReadRepository<>`, должен находиться в Application
     в папке и namespace `Abstractions`.
 
-52. `ReadRepositories_Should_UsePrimitiveIds_When_Declared` —
+53. `ReadRepositories_Should_UsePrimitiveIds_When_Declared` —
     generic-идентификатор `IReadRepository<>` должен быть примитивом, например
     `Guid`; strongly typed ID и другие доменные идентификаторы запрещены.
 
-53. `ReadRepositoryMethods_Should_UseOnlyPrimitiveInputModels_When_Declared` —
+54. `ReadRepositoryMethods_Should_UseOnlyPrimitiveInputModels_When_Declared` —
     параметры дополнительных методов read repository могут быть примитивами,
     `CancellationToken`, коллекциями примитивов или Application-моделями,
     публичное состояние которых рекурсивно состоит только из разрешённых типов.
     Любые типы из Domain и `IReadModel` во входных параметрах запрещены.
 
-54. `ReadRepositoryMethods_Should_ReturnReadModelsOrIdentifiers_When_Declared` — каждый
+55. `ReadRepositoryMethods_Should_ReturnReadModelsOrIdentifiers_When_Declared` — каждый
     дополнительный метод read repository должен возвращать реализацию
     `IReadModel` либо идентификатор того же типа, что указан в `IReadRepository<TId>`.
     Для `IReadModel` допускаются обёртки `Task`, `Result`, коллекции и модели
@@ -332,63 +338,63 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     вместо read model запрещены. Базовые методы `ExistsByIdAsync` и `AnyAsync`,
     возвращающие `bool`, к этому правилу не относятся.
 
-55. `ReadModels_Should_EndWithReadModel_When_Declared` — каждый конкретный
+56. `ReadModels_Should_EndWithReadModel_When_Declared` — каждый конкретный
     тип, реализующий `IReadModel`, должен оканчиваться на `ReadModel`.
 
-56. `TypesEndingWithReadModel_Should_ImplementIReadModel_When_Declared` — каждый
+57. `TypesEndingWithReadModel_Should_ImplementIReadModel_When_Declared` — каждый
     конкретный Application-тип с суффиксом `ReadModel` должен реализовывать
     `IReadModel`.
 
-57. `QueryHandlers_Should_ReturnReadModels_When_Declared` — payload результата
+58. `QueryHandlers_Should_ReturnReadModels_When_Declared` — payload результата
     каждого `IQueryHandler<,>` должен реализовывать `IReadModel`. Допускаются
     обёртки `Task`, `Result`, коллекции и модели пагинации.
 
-58. `ReadModels_Should_UseSealedRecordDeclarations_When_Declared` — каждый класс
+59. `ReadModels_Should_UseSealedRecordDeclarations_When_Declared` — каждый класс
     или структура слоя Application с суффиксом `ReadModel` или реализацией
     `IReadModel` должен быть объявлен как `sealed record`, без явного `class`
     и без `struct`. Проверка использует семантическую модель Roslyn и учитывает
     унаследованные интерфейсы.
 
-59. `Filters_Should_UseSealedRecordDeclarations_When_Declared` — то же правило
+60. `Filters_Should_UseSealedRecordDeclarations_When_Declared` — то же правило
     для всех Application-типов с суффиксом `Filter` или реализацией `IFilter`,
     включая фильтры вне стандартных папок агрегатов.
 
-60. `ReadRepositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
+61. `ReadRepositories_Should_MatchPluralAggregateNames_When_Declared` — интерфейс,
     наследующий `IReadRepository<>`, должен называться
     `I<AggregatePlural>ReadRepository` и находиться в одноимённой
     feature-папке. Корректное английское множественное число строится через
     Humanizer.
 
-61. `ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected`
+62. `ConstructorParameters_Should_FollowTypeBasedNaming_When_ReadRepositoryIsInjected`
     — параметр конструктора типа read repository строится по тому же правилу:
     `IFactionsReadRepository` превращается в `factionsReadRepository`.
 
-62. `ApplicationHandlers_Should_HaveMatchingUnitTestFiles_When_HandlersAreDeclared`
+63. `ApplicationHandlers_Should_HaveMatchingUnitTestFiles_When_HandlersAreDeclared`
     — каждый конкретный `ICommandHandler<,>`, `IQueryHandler<,>` или
     `IEventHandler<>` в Application должен иметь отдельный файл unit-тестов.
     Путь файла повторяет модуль, относительный namespace и имя handler.
 
-63. `ApplicationHandlerUnitTests_Should_CoverEveryHandlerMethod_When_HandlersAreDeclared`
+64. `ApplicationHandlerUnitTests_Should_CoverEveryHandlerMethod_When_HandlersAreDeclared`
     — для каждого метода реализуемого handler-контракта должен существовать
     тестовый метод с префиксом `<ИмяМетода>_Should_`. Для перегрузок учитывается
     количество методов с одинаковым именем.
 
-64. `CommandAndQueryHandlers_Should_HaveValidators_When_HandlersAreDeclared` —
+65. `CommandAndQueryHandlers_Should_HaveValidators_When_HandlersAreDeclared` —
     request каждого command или query handler должен иметь реализацию
     `IValidator<TRequest>`. Для event handler validator не требуется.
 
-65. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
+66. `ApplicationValidators_Should_HaveMatchingUnitTestFiles_When_ValidatorsAreDeclared`
     — каждая конкретная реализация `IValidator<T>` в Application должна иметь
     отдельный непустой файл unit-тестов по пути, соответствующему её модулю,
     namespace и имени. Это включает валидаторы фильтров: тест располагается в
     `Application/<Aggregates>/Common/Filters/<Aggregates>FilterValidatorTests.cs`
     и содержит хотя бы один `[Fact]` или `[Theory]` именно в этом файле.
 
-66. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
+67. `ApplicationHandlers_Should_BeSealed_When_Declared` — каждый конкретный
     command, query или event handler в сборках `.Application` должен быть
     `sealed`.
 
-67. `AggregateRoots_Should_HaveCommonFilterRecordsAndValidators_When_Declared` —
+68. `AggregateRoots_Should_HaveCommonFilterRecordsAndValidators_When_Declared` —
     каждый агрегат имеет в Application файл
     `<Aggregates>/Common/Filters/<Aggregates>Filter.cs`: `record`, реализующий
     `IFilter`, и соседний `<Aggregates>FilterValidator.cs` с `IValidator<Filter>`.
@@ -396,16 +402,16 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Infrastructure
 
-68. `RepositoryInterfaces_Should_HaveExactlyOneImplementation_When_Declared` —
+69. `RepositoryInterfaces_Should_HaveExactlyOneImplementation_When_Declared` —
     каждый интерфейс, наследующий `IRepository<,>` или `IReadRepository<>`,
     должен иметь ровно одну конкретную реализацию в Infrastructure.
 
-69. `AggregateRoots_Should_HaveRegisteredRepositories_When_Declared` — каждый
+70. `AggregateRoots_Should_HaveRegisteredRepositories_When_Declared` — каждый
     aggregate root должен иметь ровно один repository в корне своей
     `Persistence/Features/<AggregatePlural>/Write` feature и этот repository
     должен быть зарегистрирован в DI модуля.
 
-70. `AggregateRoots_Should_HaveRegisteredReadPersistence_When_Declared` —
+71. `AggregateRoots_Should_HaveRegisteredReadPersistence_When_Declared` —
     наличие aggregate root требует зарегистрированного `<Module>ReadDbContext` в
     `Infrastructure/Persistence/Core` и полного набора компонентов чтения:
     `I<AggregatePlural>ReadRepository` в `Application/<AggregatePlural>/Abstractions`,
@@ -416,56 +422,56 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     `EfReadRepository<,,>` с этим context и моделью, реализовывать Application-интерфейс
     и разрешаться через него из DI модуля.
 
-71. `AggregateRoots_Should_HavePersistenceConfigurations_When_Declared` —
+72. `AggregateRoots_Should_HavePersistenceConfigurations_When_Declared` —
     каждый aggregate root должен иметь отдельную EF Core configuration в корне
     Write feature либо явную inline-конфигурацию соответствующей Identity
     persistence-модели. Итоговая EF-модель write DbContext должна содержать
     настроенный тип.
 
-72. `RepositoryImplementations_Should_UsePluralAggregateNames_When_Declared` —
+73. `RepositoryImplementations_Should_UsePluralAggregateNames_When_Declared` —
     каждый наследник `IRepository<,>` должен иметь ровно одну реализацию с
     именем `<AggregatePlural>Repository`, например `FactionsRepository`.
 
-73. `ReadRepositoryImplementations_Should_UsePluralAggregateNames_When_Declared`
+74. `ReadRepositoryImplementations_Should_UsePluralAggregateNames_When_Declared`
     — каждый наследник `IReadRepository<>` должен иметь ровно одну реализацию с
     именем `<AggregatePlural>ReadRepository`, например
     `FactionsReadRepository`.
 
-74. `RepositoryImplementations_Should_ResideInWriteRoots_When_Declared` —
+75. `RepositoryImplementations_Should_ResideInWriteRoots_When_Declared` —
     реализация `IRepository<,>` должна находиться непосредственно в
     `Persistence/Features/<AggregatePlural>/Write`.
 
-75. `ReadRepositoryImplementations_Should_ResideInReadRoots_When_Declared` —
+76. `ReadRepositoryImplementations_Should_ResideInReadRoots_When_Declared` —
     реализация `IReadRepository<>` должна находиться непосредственно в
     `Persistence/Features/<AggregatePlural>/Read`.
 
-76. `ReadModelComponents_Should_MatchModelNames_When_Declared` — реализации
+77. `ReadModelComponents_Should_MatchModelNames_When_Declared` — реализации
     `IReadModelMapper<,,>` и `IReadModelSorting<>` должны называться точно
     `<ReadModel>Mapper` и `<ReadModel>Sorting` соответственно.
 
-77. `ReadModelComponents_Should_BeInternalSealedClasses_When_Declared` —
+78. `ReadModelComponents_Should_BeInternalSealedClasses_When_Declared` —
     реализации `IReadModelMapper<,,>` и `IReadModelSorting<>` должны быть
     верхнеуровневыми `internal sealed class`.
 
-78. `ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared`
+79. `ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared`
     — mapper и sorting должны находиться в
     `Persistence/Features/<AggregatePlural>/Read/<Slice>`, где `<Slice>` —
     папка соответствующей ReadModel в Application. Проверяются физические
     пути и namespace.
 
-79. `ReadModelSorting_Should_ShareMapperDirectory_When_Declared` — sorting
+80. `ReadModelSorting_Should_ShareMapperDirectory_When_Declared` — sorting
     должен находиться в одной папке и namespace с mapper той же ReadModel;
     наличие sorting для одиночной модели не требуется.
 
-80. `ReadDatabaseModels_Should_EndWithReadDbModel_When_Declared` — каждый
+81. `ReadDatabaseModels_Should_EndWithReadDbModel_When_Declared` — каждый
     наследник `ReadDbModel<>` или `AuditableReadDbModel<>` должен оканчиваться
     на `ReadDbModel`.
 
-81. `ReadDatabaseModels_Should_ResideInAggregateReadDbModelsDirectories_When_Declared`
+82. `ReadDatabaseModels_Should_ResideInAggregateReadDbModelsDirectories_When_Declared`
     — read database models должны находиться в
     `Persistence/Features/<AggregatePlural>/Read/DbModels`.
 
-82. `ReadDatabaseModels_Should_MatchPersistedTableColumns_When_Declared` —
+83. `ReadDatabaseModels_Should_MatchPersistedTableColumns_When_Declared` —
     таблицы read context должны соответствовать таблицам в EF-модели write context
     того же модуля. Наборы имён колонок, их CLR-типы после преобразования для
     хранения и nullable-признаки должны совпадать. Пропущенные и лишние колонки,
@@ -473,119 +479,119 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     явным CLR-свойством ReadDbModel. Системные колонки PostgreSQL исключены
     из сравнения.
 
-83. `AuditableEntityConfigurations_Should_ResideInAggregateWriteRoots_When_Declared`
+84. `AuditableEntityConfigurations_Should_ResideInAggregateWriteRoots_When_Declared`
     — наследники `AuditableEntityConfiguration<>` должны находиться
     непосредственно в `Persistence/Features/<AggregatePlural>/Write`.
 
-84. `EntityTypeConfigurations_Should_ResideInAggregateWriteRoots_When_Declared`
+85. `EntityTypeConfigurations_Should_ResideInAggregateWriteRoots_When_Declared`
     — реализации `IEntityTypeConfiguration<>` должны находиться непосредственно
     в `Persistence/Features/<AggregatePlural>/Write`.
 
-85. `AuditableEntityConfigurations_Should_AvoidExplicitStoreObjectNames_When_Declared`
+86. `AuditableEntityConfigurations_Should_AvoidExplicitStoreObjectNames_When_Declared`
     — наследники `AuditableEntityConfiguration<>` не должны явно задавать имена
     таблиц, представлений и столбцов через `ToTable`, `ToView` или
     `HasColumnName`.
 
-86. `EntityTypeConfigurations_Should_AvoidExplicitStoreObjectNames_When_Declared`
+87. `EntityTypeConfigurations_Should_AvoidExplicitStoreObjectNames_When_Declared`
     — реализации `IEntityTypeConfiguration<>` подчиняются тому же запрету на
     явные имена таблиц, представлений и столбцов.
 
-87. `ReadDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared`
+88. `ReadDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared`
     — наследник `ReadDbContext<>` называется `<Module>ReadDbContext` и находится
     непосредственно в `Persistence/Core`.
 
-88. `WriteDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared`
+89. `WriteDatabaseContexts_Should_MatchModuleNamesAndResideInPersistenceCore_When_Declared`
     — наследник `WriteDbContext<>` называется `<Module>WriteDbContext` и
     находится непосредственно в `Persistence/Core`.
 
-89. `MigrationsAndModelSnapshots_Should_ResideInPersistenceCoreMigrations_When_Declared`
+90. `MigrationsAndModelSnapshots_Should_ResideInPersistenceCoreMigrations_When_Declared`
     — EF Core migrations и model snapshots должны находиться в
     `Persistence/Core/Migrations`.
 
-90. `RepositoryImplementations_Should_BeSealed_When_Declared` — каждый
+91. `RepositoryImplementations_Should_BeSealed_When_Declared` — каждый
     конкретный класс Infrastructure, реализующий `IRepository<,>` или
     `IReadRepository<>`, должен быть `sealed`.
 
-91. `InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented`
+92. `InfrastructureImplementations_Should_HaveMatchingIntegrationTestFiles_When_ApplicationInterfacesAreImplemented`
     — каждый конкретный класс Infrastructure, реализующий интерфейс из
     Application своего модуля, должен иметь отдельный integration-test файл.
     Путь повторяет относительный namespace и имя реализации.
 
-92. `IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists`
+93. `IntegrationTests_Should_CoverEveryApplicationInterfaceMethod_When_ImplementationExists`
     — для каждого метода реализуемого Application-интерфейса должен существовать
     integration-тест с префиксом `<ИмяМетода>_Should_`. Для перегрузок
     учитывается количество методов с одинаковым именем.
 
 ## Presentation
 
-93. `EndpointGroups_Should_ResideInFeatureRootsAndMatchFeatureNames_When_Declared`
+94. `EndpointGroups_Should_ResideInFeatureRootsAndMatchFeatureNames_When_Declared`
     — каждый конкретный `IEndpointGroup` должен находиться непосредственно в
     `Features/<AggregatePlural>`, называться `<AggregatePlural>Endpoints`, а его
     `Name` должен совпадать с `<AggregatePlural>`.
 
-94. `AggregateRoots_Should_HaveEndpointGroups_When_Declared` — каждый
+95. `AggregateRoots_Should_HaveEndpointGroups_When_Declared` — каждый
     aggregate root должен иметь ровно одну такую группу в
     `Presentation/Features/<AggregatePlural>` своего модуля.
 
-95. `EndpointGroupMetadataProperties_Should_BeGetOnly_When_GroupIsDeclared` —
+96. `EndpointGroupMetadataProperties_Should_BeGetOnly_When_GroupIsDeclared` —
     свойства `Route`, `Name` и `ApiVersion` каждого `IEndpointGroup` должны
     предоставлять только getter.
 
-96. `Endpoints_Should_ResideInFeatureSlicesUnderTheirGenericGroups_When_Declared`
+97. `Endpoints_Should_ResideInFeatureSlicesUnderTheirGenericGroups_When_Declared`
     — каждый конкретный `IEndpoint<TGroup>` должен находиться в feature-папке
     внутри дерева своего `TGroup`; между корнем группы и feature-папкой
     допускаются логические подпапки. Generic-параметр обязан указывать на
     `IEndpointGroup` из корня этого дерева.
 
-97. `Endpoints_Should_EndWithEndpoint_When_Declared` — каждый конкретный
+98. `Endpoints_Should_EndWithEndpoint_When_Declared` — каждый конкретный
     `IEndpoint` должен оканчиваться на `Endpoint`.
 
-98. `MapperlyMappers_Should_EndWithMapper_When_Declared` — каждый mapper,
+99. `MapperlyMappers_Should_EndWithMapper_When_Declared` — каждый mapper,
     объявленный через Mapperly, должен оканчиваться на `Mapper`.
 
-99. `EndpointInputTypes_Should_EndWithRequest_When_Declared` — входной
+100. `EndpointInputTypes_Should_EndWithRequest_When_Declared` — входной
     Presentation-контракт endpoint должен оканчиваться на `Request`.
 
-100. `EndpointOutputTypes_Should_EndWithResponse_When_Declared` — выходной
+101. `EndpointOutputTypes_Should_EndWithResponse_When_Declared` — выходной
     Presentation-контракт endpoint должен оканчиваться на `Response`.
 
-101. `EndpointSliceParts_Should_ShareOneFeatureFolder_When_Declared` —
+102. `EndpointSliceParts_Should_ShareOneFeatureFolder_When_Declared` —
     `Endpoint`, его `Request`, `Response` и используемые `Mapper` должны
     находиться в одной feature-папке и одном namespace.
 
-102. `CreatedAtRouteCalls_Should_UseEndpointNames_When_Declared` — каждый
+103. `CreatedAtRouteCalls_Should_UseEndpointNames_When_Declared` — каждый
     `CreatedAtRoute` должен передавать `routeName` строготипизированно через
     `new <Target>Endpoint().Name`.
 
-103. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
+104. `MediatorMessages_Should_BeCreatedBySliceMappers_When_EndpointSendsAMessage`
     — endpoint должен обращаться к Application через `IMediator`, а первым
     аргументом фактического `IMediator.SendAsync` или `IMediator.QueryAsync`
     должен быть непосредственный вызов mapper своего slice. Проверка не зависит
     от имени переменной mediator.
 
-104. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
+105. `Endpoints_Should_HaveMatchingFunctionalTestFiles_When_Declared` — каждый
     конкретный `IEndpoint` должен иметь functional-test файл в том же модуле.
     Путь повторяет относительный namespace и имя endpoint.
 
-105. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
+106. `EndpointMetadata_Should_FollowNamingConventions_When_EndpointIsDeclared` —
      `Route` endpoint и endpoint group состоит из английских lowercase
      kebab-case сегментов и параметров вида `{name}` или `{name:constraint}`;
      `Name` является одним английским PascalCase-идентификатором; `Summary`
      endpoint записывается на английском в sentence case с одиночными пробелами.
 
-106. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
+107. `EndpointsAndGroups_Should_BeSealed_When_Declared` — каждый конкретный
      `IEndpoint` и `IEndpointGroup` в сборках `.Presentation` должен быть
      `sealed`.
 
 ## Глобальные соглашения
 
-107. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
+108. `InvocationAndConstructorArguments_Should_BeNamed_When_Ambiguous` —
      аргументы `null`, `default`, `true` и `false`, а также все аргументы вызова
      с тремя и более аргументами в авторских C#-исходниках из `src` должны
      передаваться по имени параметра. Вызовы методов `System.String`, вызовы с
      `params`, `nameof`, EF migrations, `bin`, `obj` и `Generated` не проверяются.
 
-108. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
+109. `CurrentTimeAccess_Should_UseUtcSources_When_Declared` — текущее время в
     авторских C#-исходниках из `src` должно получаться через
     `TimeProvider.GetUtcNow()`. В явных конструкторах также разрешены
     `DateTime.UtcNow` и `DateTimeOffset.UtcNow` как часть жизненного цикла
@@ -593,24 +599,24 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     `DateTimeOffset.Now` и `TimeProvider.GetLocalNow()` запрещены везде. EF
     migrations, `bin`, `obj` и `Generated` не проверяются.
 
-109. `CancellationTokenSentinels_Should_NotBeUsed_When_Declared` — в авторских
+110. `CancellationTokenSentinels_Should_NotBeUsed_When_Declared` — в авторских
     C#-исходниках из `src`, `tests` и `tools` запрещены
     `CancellationToken.None`, `default(CancellationToken)` и `default`, если его
     целевой тип — `CancellationToken`. В том числе токен нельзя объявлять как
     optional-параметр со значением `default`: вызывающий код должен передавать
     фактический токен явно.
 
-110. `CancellationTokenParameters_Should_BeUsed_When_Declared` — объявленный в
+111. `CancellationTokenParameters_Should_BeUsed_When_Declared` — объявленный в
      реализованном методе `CancellationToken` должен использоваться; иначе
      параметр нужно удалить. Overrides и реализации внешних интерфейсов не
      проверяются на использование, поскольку удалить параметр из их сигнатуры
      нельзя.
 
-111. `CancellationTokens_Should_BeForwarded_When_Available` — если вызываемый
+112. `CancellationTokens_Should_BeForwarded_When_Available` — если вызываемый
      метод объявляет параметр `CancellationToken`, а токен уже доступен в текущей
      области видимости, его нужно передать явно.
 
-112. `CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked`
+113. `CancellationTokens_Should_BeAvailable_When_CancellableOperationIsInvoked`
      — если в production-коде из `src` вызываемый метод поддерживает
      `CancellationToken`, но токен не передан и недоступен в текущей области
      видимости, текущий метод должен получить токен параметром. Токен
@@ -619,56 +625,56 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Оформление тестов
 
-113. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
+114. `FactsAndTheories_Should_DeclareDisplayName_When_ATestIsDeclared` — каждый
      `[Fact]` и `[Theory]` во всех тестовых проектах должен содержать
      `DisplayName`, заданный строковым литералом.
 
-114. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
+115. `DisplayNames_Should_DescribeTestCondition_When_ATestIsDeclared` —
      `DisplayName` записывается на английском по схеме
      `<subject> should <behavior> when <condition>`. Часть после `when` должна
      соответствовать условию из имени тестового метода после `_When_`.
 
-115. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
+116. `TestMethods_Should_FollowNamingConvention_When_ATestIsDeclared` — имя
      каждого тестового метода должно соответствовать шаблону
      `MethodName_Should_DoSomething_When_Condition`.
 
-116. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
+117. `TestMethods_Should_FollowArrangeActAssert_When_ATestIsDeclared` — тест
      должен иметь block body, как минимум две логические секции, разделённые
      пустой строкой, и assertion в последней секции.
 
 ## Дополнительные архитектурные гарантии
 
-117. `DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories`
+118. `DomainObjects_Should_DeclareOnlyPrivateConstructors_When_CreatedThroughFactories`
      — конкретные `IEntity`, `ValueObject` и `Enumeration<>` должны объявлять
      только private конструкторы. Создание проходит через фабричные методы
      или предопределённые экземпляры перечислений.
 
-118. `InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared`
+119. `InfrastructureImplementations_Should_BeRegisteredForDomainOrApplicationAbstractions_When_Declared`
      — каждая реализация абстракции Domain или Application из Infrastructure
      должна присутствовать в итоговом `IServiceCollection` модуля.
 
-119. `DatabaseContexts_Should_BeRegistered_When_Declared` — каждый конкретный
+120. `DatabaseContexts_Should_BeRegistered_When_Declared` — каждый конкретный
      `DbContext` должен присутствовать в итоговом `IServiceCollection` модуля.
 
-120. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
+121. `EndpointMappings_Should_DeclareAuthorizationIntent_When_Mapped` — каждый
      route endpoint должен явно вызвать `RequireAuthorization()` или
      `AllowAnonymous()`, либо наследовать такое решение от своей endpoint group.
 
-121. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
+122. `EndpointNames_Should_BeUnique_When_Mapped` — итоговые имена endpoint,
      включая явно заданные через `WithName`, должны быть уникальны.
 
-122. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
+123. `EndpointRoutes_Should_BeUnique_When_Mapped` — сочетание API version, HTTP
      method и полного route endpoint group + endpoint должно быть уникально.
 
-123. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
+124. `BlockingAsyncCalls_Should_NotBeUsed_When_ProductionCodeIsDeclared` — в
      production-коде запрещены блокирующие вызовы `Task.Wait()`, `Task.Result`
      и `GetAwaiter().GetResult()`.
 
-124. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
+125. `AsyncVoidCallables_Should_NotBeDeclared_When_ProductionCodeIsDeclared` —
      методы, local functions и lambdas в production-коде не должны быть
      `async void`.
 
-125. `NullForgivingExpressions_Should_AvoidSuppressedNullValues_When_ProductionCodeIsDeclared`
+126. `NullForgivingExpressions_Should_AvoidSuppressedNullValues_When_ProductionCodeIsDeclared`
      — во всех слоях production-кода запрещены `null!` и `default!`, если
      значение может быть `null`, включая аргументы, возвраты, инициализаторы
      и generic-параметры. Разрешена только EF-инициализация: присваивание
@@ -676,54 +682,54 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      конструкторе entity и инициализатор публичного auto-property `DbSet<T>`
      в `DbContext`. Обычные nullable-значения без `!` разрешены.
 
-126. `NullForgivingExpressions_Should_DetectSuppressedNullValues_When_SourceExpressionsVary`
+127. `NullForgivingExpressions_Should_DetectSuppressedNullValues_When_SourceExpressionsVary`
      — проверяет запрет подавления `null` и `default` и границы исключений
      для EF на тестовых фрагментах кода, включая скобки, приведения типов,
      generic-параметры, вложенные функции и коллекции.
 
-127. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
+128. `CommandValidators_Should_UseDomainFactories_When_DomainConstraintsAreDeclared`
      — command validator не должен повторять бизнес-инварианты через встроенные
      сравнения, диапазоны или произвольные предикаты FluentValidation; проверки
      должны делегироваться доменным фабрикам.
 
-128. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
+129. `EntityConfigurationLengthLimits_Should_ReferenceDomainConstants_When_Declared`
      — `HasMaxLength` в entity configuration должен ссылаться на публичную
      доменную константу `MaxLength`, а не дублировать числовое ограничение.
 
-129. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
+130. `ReadDatabaseModelAggregateForeignKeys_Should_HaveBidirectionalNavigations_When_Declared`
      — внешний ключ на aggregate read model из того же модуля требует nullable
      reference navigation у зависимой модели и collection navigation у главной.
 
-130. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
+131. `EndpointMappings_Should_NotRepeatGroupAuthorization_When_AuthorizationMatches`
      — endpoint не должен повторять тот же `RequireAuthorization` или
      `AllowAnonymous`, который уже объявлен его endpoint group.
 
-131. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
+132. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
      — каждый конфигурационный `<Name>Options` с константой `SectionName`
      должен иметь зарегистрированный `<Name>OptionsValidator`, реализующий
      `IValidateOptions<TOptions>` и расположенный рядом с options-классом.
 
-132. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
+133. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
      конфигурационный options-класс должен регистрироваться через
      `AddOptions<TOptions>()` с последующим вызовом `ValidateOnStart()`.
 
-133. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
+134. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
      — каждый конфигурационный `<Name>Options` должен располагаться вместе со
      своим validator в выделенной папке `Options/<Name>/`.
 
-134. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
+135. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
      — публичные и internal-методы агрегатов и entity, включая фабрики,
      принимают только VO, strongly typed ID, Enumeration, entity и коллекции
      этих типов. Примитивы и DTO-контейнеры параметров запрещены. Application
      собирает VO через их доменные фабрики до вызова агрегата; фабрики самих
      VO и идентификаторов продолжают принимать и проверять примитивы.
 
-135. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+136. `ValueObjectsAndEnumerations_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
      — свойства VO и `Enumeration<>` должны иметь публичный getter. Любые
      setter и init-accessor запрещены независимо от видимости, включая
      private. Проверяются также статические и унаследованные свойства.
 
-136. `TypeMembers_Should_FollowAgreedOrder_When_Declared` — в авторском коде
+137. `TypeMembers_Should_FollowAgreedOrder_When_Declared` — в авторском коде
      `src`, `tests` и `tools` члены типов идут в порядке: константы, поля,
      конструкторы, финализаторы, события, свойства, индексаторы, методы,
      операторы, вложенные типы. Внутри группы сначала учитывается доступность:
@@ -741,24 +747,24 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Пагинация и сортировка
 
-137. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
+138. `QueryingParameters_Should_UseTypeBasedNames_When_DeclaredOnMethods` —
      параметры методов типа `PaginationParameters` и `SortingParameters`
      должны называться `paginationParameters` и `sortingParameters`.
 
-138. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
+139. `QueryProperties_Should_UseTypeBasedNames_When_QueryingParametersArePresent`
      — соответствующие свойства Query должны называться `PaginationParameters`
      и `SortingParameters`.
 
-139. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
+140. `Methods_Should_AcceptSortingParameters_When_PaginationParametersArePresent`
      — метод с параметром `PaginationParameters` обязан принимать и
      `SortingParameters`. Требования возвращать `PaginationResult` нет:
      правило допускает mapper-методы, создающие Query, и endpoints.
 
-140. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
+141. `Queries_Should_ContainSortingParameters_When_PaginationParametersArePresent`
      — Query со свойством `PaginationParameters` обязана содержать свойство
      `SortingParameters`.
 
-141. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
+142. `QueryValidators_Should_AttachMatchingChildValidators_When_QueryingParametersArePresent`
      — у Query должен быть validator, подключающий `PaginationParametersValidator`
      к свойству пагинации и `<ReadModel>SortingValidator` к свойству сортировки.
      ReadModel определяется по результату Query; sorting-validator должен
@@ -767,7 +773,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Применение маппинга и сортировки в read-репозиториях
 
-142. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
+143. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
      — публичные экземплярные методы и явные реализации интерфейсов
      `IReadRepository<>` в Infrastructure, возвращающие коллекции, должны
      применять `IReadModelSorting<TReadModel>` для типа элемента результата.
@@ -777,14 +783,14 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      `GetPagedResultAsync` в цепочке возвращаемого результата: неиспользуемого
      вызова сортировки недостаточно.
 
-143. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
+144. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
      реализации `IReadModelSorting<>` должны задавать непустой `DefaultSorting`.
      Наличие `Id` и сортировка по нему не требуются. Уникальность итогового
      порядка этот архитектурный тест не доказывает; для стабильной пагинации
      её нужно обеспечивать подходящими полями конкретной модели и проверять
      интеграционными тестами.
 
-144. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
+145. `EfReadRepositoryMethods_Should_ApplyMatchingMappers_When_ReturningReadModels`
      — методы EF read-репозиториев, возвращающие ReadModel либо коллекцию,
      должны применять соответствующий `IReadModelMapper<TId, TReadDbModel, TReadModel>`
      через `ProjectTo`, `GetByIdAsync` или `GetPagedResultAsync`.
@@ -795,17 +801,17 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Поиск через ILIKE
 
-145. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
+146. `ILikeCalls_Should_UseNamedSubstringArguments_When_Declared` — вызовы
      `ILIKE` должны использовать именованные аргументы `matchExpression`
      и `pattern`, а шаблон поиска — форму `$"%{value.Trim()}%"`.
 
-146. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
+147. `ILikeCalls_Should_NotUseExplicitNullGuards_When_Declared` — перед `ILIKE`
      не должно быть избыточной явной проверки `matchExpression` на null;
      используется обработка null в SQL.
 
 ## Согласованность входа и результата пагинации
 
-147. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
+148. `ReadRepositories_Should_PairPaginationParametersAndResults_When_MethodsAreDeclared`
      — в контрактах read-репозиториев и их реализациях метод принимает
      `PaginationParameters` тогда и только тогда, когда возвращает
      `PaginationResult<T>`. Проверяются публичные экземплярные методы и явные
@@ -813,17 +819,17 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      Mapper-методы в этот охват не входят. Наличие `SortingParameters`
      проверяется отдельно правилом 134.
 
-148. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
+149. `Queries_Should_PairPaginationParametersAndResults_When_Declared` —
      Query содержит свойство `PaginationParameters` тогда и только тогда,
      когда результат её `IQuery<TResult>` — `PaginationResult<T>`, в том числе
      внутри `Result`. Связь с `SortingParameters` проверяется правилом 135.
 
-149. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
+150. `QueryHandlers_Should_PairQueryPaginationParametersAndResults_When_Declared`
      — у `IQueryHandler<TQuery, TResult>` наличие `PaginationParameters`
      во входной Query должно соответствовать `PaginationResult<T>` в результате
      handler, с раскрытием технических обёрток.
 
-150. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
+151. `Endpoints_Should_PairPaginationParametersAndResponses_When_Mapped` —
      наличие `PaginationParameters` у обработчика, зарегистрированного через
      `EndpointMapBuilder`, должно совпадать с декларацией
      `Produces<PaginationResult<TResponse>>` и передачей
@@ -833,17 +839,17 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 ## Создание strongly typed ID
 
-151. `StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared`
+152. `StronglyTypedIds_Should_DeclareOnlyPrivateConstructors_When_Declared`
      — классы и структуры, реализующие `IStronglyTypedId`, должны объявлять
      только приватные конструкторы. Создание из внешнего значения
      проходит через `Create`, генерация нового идентификатора — через `New`.
 
-152. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
+153. `StronglyTypedIds_Should_DeclarePublicGettersWithoutSetters_When_PropertiesAreDeclared`
      — свойства strongly typed ID должны иметь публичный getter без setter
      или init-accessor, чтобы нельзя было обойти фабрику через initializer
      или выражение `with`.
 
-153. `StronglyTypedIds_Should_AvoidDefaultValues_When_ProductionCodeIsDeclared`
+154. `StronglyTypedIds_Should_AvoidDefaultValues_When_ProductionCodeIsDeclared`
      — в production-коде запрещены `default` и создание без параметров для
      `IStronglyTypedId`, включая generic-параметры с этим ограничением.
      Также запрещены массивы ID без инициализатора (кроме заведомо пустых),
@@ -852,6 +858,6 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      без явного запасного значения. `Nullable<TId>`, пустые массивы и прочие типы
      под этот запрет не попадают. Типы определяются через Roslyn.
 
-154. `IdCreation_Should_DetectDefaultValues_When_SourceExpressionsVary`
+155. `IdCreation_Should_DetectDefaultValues_When_SourceExpressionsVary`
      — проверяет допустимые и запрещённые способы получения ID на тестовых
      фрагментах кода: aliases, generics, nullable, коллекции и вызовы методов.
