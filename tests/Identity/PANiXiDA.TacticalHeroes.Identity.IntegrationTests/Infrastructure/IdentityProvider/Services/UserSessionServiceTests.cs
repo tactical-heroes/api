@@ -17,6 +17,109 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
+    [Theory(DisplayName = "Session lookup should reuse validated data when lookup order varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetCurrentAuthorizationIdAsync_Should_ReuseValidatedData_When_LookupOrderVaries(bool roleFirst)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var (userId, referenceId, token, authorization, authorizationId) =
+            await CreateCurrentSessionAsync(scope.ServiceProvider, ct);
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        var first = roleFirst
+            ? await service.GetCurrentRoleAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct)
+            : await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
+        first.IsSuccess.ShouldBeTrue();
+        await ClearSessionCachesAsync(scope.ServiceProvider, token, authorization, ct);
+        Fixture.CommandCounter.Reset();
+
+        var repeated = await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
+        var foreign = await service.GetCurrentAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct);
+        var role = await service.GetCurrentRoleAuthorizationIdAsync(Guid.CreateVersion7(), referenceId, ct);
+
+        repeated.Value.ShouldBe(authorizationId);
+        foreign.IsFailure.ShouldBeTrue();
+        role.IsSuccess.ShouldBeTrue();
+        role.Value.ShouldBeNull();
+        Fixture.CommandCounter.Count.ShouldBe(1);
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+        await Should.ThrowAsync<OperationCanceledException>(() =>
+            service.GetCurrentAuthorizationIdAsync(userId, referenceId, cancellation.Token));
+        var missing = await service.GetCurrentAuthorizationIdAsync(userId, Guid.CreateVersion7().ToString("N"), ct);
+        missing.IsFailure.ShouldBeTrue();
+        await ClearSessionCachesAsync(scope.ServiceProvider, token, authorization, ct);
+        await using var nextScope = Fixture.CreateScope();
+        Fixture.CommandCounter.Reset();
+
+        var next = await nextScope.ServiceProvider.GetRequiredService<IUserSessionService>()
+            .GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
+
+        next.Value.ShouldBe(authorizationId);
+        Fixture.CommandCounter.Count.ShouldBeGreaterThan(0);
+    }
+
+    [Theory(DisplayName = "Session lookup should discard cached data when sessions are invalidated")]
+    [InlineData("user")]
+    [InlineData("access")]
+    [InlineData("role")]
+    [InlineData("grant")]
+    public async Task GetCurrentAuthorizationIdAsync_Should_DiscardCachedData_When_SessionsAreInvalidated(string mode)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var (userId, referenceId, token, authorization, authorizationId) =
+            await CreateCurrentSessionAsync(scope.ServiceProvider, ct);
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        (await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct)).Value.ShouldBe(authorizationId);
+        switch (mode)
+        {
+            case "user":
+                await service.RevokeAsync(userId, preservedAuthorizationId: null, ct);
+                break;
+            case "access":
+                await service.InvalidateAccessTokensAsync(userId, refreshCurrentSession: false, ct);
+                break;
+            case "role":
+                var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+                var role = new ApplicationRole
+                {
+                    Id = Guid.CreateVersion7(),
+                    Name = "cached-member",
+                    NormalizedName = "CACHED-MEMBER"
+                };
+                db.Add(new ApplicationUser
+                {
+                    Id = userId,
+                    UserName = "cached-user",
+                    NormalizedUserName = "CACHED-USER",
+                    Email = "cached-user@example.test",
+                    NormalizedEmail = "CACHED-USER@EXAMPLE.TEST",
+                    Status = "Active",
+                    PasswordHash = "unused-test-password-hash",
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
+                });
+                db.Add(role);
+                db.Add(new ApplicationUserRole { UserId = userId, RoleId = role.Id });
+                await db.SaveChangesAsync(ct);
+                await service.InvalidateRoleMemberAccessTokensAsync(role.Id, refreshCurrentSession: false, ct);
+                break;
+            case "grant":
+                var revoked = await service.RevokeSessionAsync(userId, authorizationId, "session-cache-tests", ct);
+                revoked.IsSuccess.ShouldBeTrue();
+                break;
+        }
+        await ClearSessionCachesAsync(scope.ServiceProvider, token, authorization, ct);
+        Fixture.CommandCounter.Reset();
+
+        var result = await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct);
+
+        result.IsFailure.ShouldBeTrue();
+        Fixture.CommandCounter.Count.ShouldBeGreaterThan(0);
+    }
+
     [Theory(DisplayName = "Role session lookup should validate membership when role membership and token state vary")]
     [InlineData("member")]
     [InlineData("non-member")]
@@ -260,20 +363,12 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
     public async Task IsAuthorizationValidAsync_Should_RejectCachedAuthorization_When_DatabaseStatusIsRevoked()
     {
         var ct = TestContext.Current.CancellationToken;
-        var userId = Guid.CreateVersion7();
         await using var scope = Fixture.CreateScope();
+        var (userId, referenceId, _, authorization, id) =
+            await CreateCurrentSessionAsync(scope.ServiceProvider, ct);
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
-        var authorization = await manager.CreateAsync(
-            new OpenIddictAuthorizationDescriptor
-            {
-                Subject = userId.ToString(),
-                Status = OpenIddictConstants.Statuses.Valid,
-                Type = OpenIddictConstants.AuthorizationTypes.AdHoc
-            },
-            ct);
-        var id = await manager.GetIdAsync(authorization, ct);
-        id.ShouldNotBeNull();
         var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        (await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct)).Value.ShouldBe(id);
         (await service.IsAuthorizationValidAsync(userId, id, ct)).ShouldBeTrue();
         await using (var writer = Fixture.CreateScope())
         {
@@ -285,10 +380,12 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
                     setters => setters.SetProperty(item => item.Status, OpenIddictConstants.Statuses.Revoked),
                     ct);
         }
+        Fixture.CommandCounter.Reset();
 
         var valid = await service.IsAuthorizationValidAsync(userId, id, ct);
 
         valid.ShouldBeFalse();
+        Fixture.CommandCounter.Count.ShouldBe(1);
         (await manager.HasStatusAsync(authorization, OpenIddictConstants.Statuses.Valid, ct)).ShouldBeTrue();
     }
 
@@ -569,6 +666,54 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         var currentTokens = persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId);
         currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(3);
         (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeTrue();
+    }
+
+    private static async Task<(Guid UserId, string ReferenceId, object Token, object Authorization, string Id)>
+        CreateCurrentSessionAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        var userId = Guid.CreateVersion7();
+        var applications = services.GetRequiredService<IOpenIddictApplicationManager>();
+        var application = await applications.CreateAsync(
+            new OpenIddictApplicationDescriptor { ClientId = "session-cache-tests" }, cancellationToken);
+        var applicationId = await applications.GetIdAsync(application, cancellationToken);
+        var authorizations = services.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await authorizations.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = userId.ToString(),
+                ApplicationId = applicationId,
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        var id = await authorizations.GetIdAsync(authorization, cancellationToken);
+        id.ShouldNotBeNull();
+        var referenceId = Guid.CreateVersion7().ToString("N");
+        var tokens = services.GetRequiredService<IOpenIddictTokenManager>();
+        var token = await tokens.CreateAsync(
+            new OpenIddictTokenDescriptor
+            {
+                Subject = userId.ToString(),
+                ApplicationId = applicationId,
+                AuthorizationId = id,
+                ReferenceId = referenceId,
+                Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        return (userId, referenceId, token, authorization, id);
+    }
+
+    private static async Task ClearSessionCachesAsync(
+        IServiceProvider services, object token, object authorization, CancellationToken cancellationToken)
+    {
+        await services.GetRequiredService<IOpenIddictTokenCache<OpenIddictEntityFrameworkCoreToken<Guid>>>()
+            .RemoveAsync((OpenIddictEntityFrameworkCoreToken<Guid>)token, cancellationToken);
+        var authorizations = services
+            .GetRequiredService<IOpenIddictAuthorizationCache<OpenIddictEntityFrameworkCoreAuthorization<Guid>>>();
+        await authorizations.RemoveAsync(
+            (OpenIddictEntityFrameworkCoreAuthorization<Guid>)authorization, cancellationToken);
+        services.GetRequiredService<IdentityWriteDbContext>().ChangeTracker.Clear();
     }
 
     private static async Task<(Guid UserId, string CurrentId)> CreateSessionsAsync(
