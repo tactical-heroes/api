@@ -158,7 +158,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
     }
 
     [Theory(
-        DisplayName = "Session revocation should affect one grant when ownership matches and transaction completes")]
+        DisplayName = "Session revocation should affect one grant when ownership and transaction vary")]
     [InlineData("valid")]
     [InlineData("rollback")]
     [InlineData("foreign-user")]

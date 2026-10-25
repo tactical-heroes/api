@@ -14,7 +14,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "OAuth logout should revoke only the selected grant when a valid identity hint is supplied")]
+    [Theory(DisplayName = "OAuth logout should revoke only the selected grant when valid identity hint is supplied")]
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
@@ -55,7 +55,7 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
         repeated.StatusCode.ShouldBeOneOf(HttpStatusCode.Redirect, HttpStatusCode.BadRequest);
     }
 
-    [Theory(DisplayName = "OAuth logout should retain grants when identity hint is invalid or belongs to another user")]
+    [Theory(DisplayName = "OAuth logout should retain grants when hint is invalid or belongs to another user")]
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
@@ -131,7 +131,7 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
         authorizeResponse.Headers.Location.GetLeftPart(UriPartial.Path).ShouldBe("https://localhost:5173/login");
     }
 
-    [Theory(DisplayName = "OAuth logout should require a grant proof before revoking tokens or clearing the cookie")]
+    [Theory(DisplayName = "OAuth logout should reject missing grant proof when user has an active grant")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task Logout_Should_RejectMissingHint_When_UserHasAnActiveGrant(bool post)
@@ -155,7 +155,7 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
         refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    [Theory(DisplayName = "OAuth logout should reject cached and late tokens when another host refreshes the session")]
+    [Theory(DisplayName = "OAuth logout should reject cached and late tokens when another host refreshes session")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task Logout_Should_RejectCachedAndLateTokens_When_AnotherHostRefreshesSession(bool concurrent)

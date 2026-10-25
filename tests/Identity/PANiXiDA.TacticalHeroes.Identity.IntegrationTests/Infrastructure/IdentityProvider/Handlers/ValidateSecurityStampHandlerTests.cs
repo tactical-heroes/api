@@ -82,7 +82,7 @@ public sealed class ValidateSecurityStampHandlerTests(IntegrationTestFixture fix
         context.IsRejected.ShouldBe(rejected);
     }
 
-    [Theory(DisplayName = "Token validation should require a valid grant without comparing refresh or code stamps")]
+    [Theory(DisplayName = "Token validation should require a valid grant when user token is validated")]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, "valid", false)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, "revoked", true)]
     [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, "missing", true)]
@@ -98,7 +98,12 @@ public sealed class ValidateSecurityStampHandlerTests(IntegrationTestFixture fix
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var user = new ApplicationUser { Id = Guid.CreateVersion7(), UserName = "grant-user" };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            UserName = "grant-user",
+            Email = "grant@example.test"
+        };
         (await manager.CreateAsync(user, "StrongPassword1!")).Succeeded.ShouldBeTrue();
         var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
         var authorization = await authorizations.CreateAsync(
