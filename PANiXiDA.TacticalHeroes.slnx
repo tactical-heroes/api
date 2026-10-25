@@ -25,6 +25,13 @@
     <Project Path="src/Battle/PANiXiDA.TacticalHeroes.Battle.Infrastructure/PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj" />
     <Project Path="src/Battle/PANiXiDA.TacticalHeroes.Battle.Presentation/PANiXiDA.TacticalHeroes.Battle.Presentation.csproj" />
   </Folder>
+  <Folder Name="/src/Matchmaking/">
+    <Project Path="src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Application/PANiXiDA.TacticalHeroes.Matchmaking.Application.csproj" />
+    <Project Path="src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Contracts/PANiXiDA.TacticalHeroes.Matchmaking.Contracts.csproj" />
+    <Project Path="src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Domain/PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
+    <Project Path="src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure/PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.csproj" />
+    <Project Path="src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Presentation/PANiXiDA.TacticalHeroes.Matchmaking.Presentation.csproj" />
+  </Folder>
   <Folder Name="/src/Compendium/">
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Application/PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
     <Project Path="src/Compendium/PANiXiDA.TacticalHeroes.Compendium.Contracts/PANiXiDA.TacticalHeroes.Compendium.Contracts.csproj" />
@@ -62,6 +69,11 @@
     <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.FunctionalTests/PANiXiDA.TacticalHeroes.Battle.FunctionalTests.csproj" />
     <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.IntegrationTests/PANiXiDA.TacticalHeroes.Battle.IntegrationTests.csproj" />
     <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.UnitTests/PANiXiDA.TacticalHeroes.Battle.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Matchmaking/">
+    <Project Path="tests/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests/PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.csproj" />
+    <Project Path="tests/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests/PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.csproj" />
+    <Project Path="tests/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.UnitTests/PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/Compendium/">
     <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.csproj" />

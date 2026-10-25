@@ -4,10 +4,12 @@ using PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants;
 using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
 using CompendiumApplicationAssembly = PANiXiDA.TacticalHeroes.Compendium.Application.ApplicationAssembly;
 using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Identity.Application.ApplicationAssembly;
+using MatchmakingApplicationAssembly = PANiXiDA.TacticalHeroes.Matchmaking.Application.ApplicationAssembly;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations;
 
@@ -32,7 +34,10 @@ internal static class MessagingConfiguration
                     typeof(CompendiumWriteDbContext).Assembly)
                 .AddModule<BattleWriteDbContext>(
                     BattleApplicationAssembly.Instance,
-                    typeof(BattleWriteDbContext).Assembly));
+                    typeof(BattleWriteDbContext).Assembly)
+                .AddModule<MatchmakingWriteDbContext>(
+                    MatchmakingApplicationAssembly.Instance,
+                    typeof(MatchmakingWriteDbContext).Assembly));
 
         return builder;
     }

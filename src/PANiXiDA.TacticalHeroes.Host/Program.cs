@@ -11,6 +11,7 @@ builder.AddIdentityModule();
 builder.AddNotificationsModule();
 builder.AddCompendiumModule();
 builder.AddBattleModule();
+builder.AddMatchmakingModule();
 builder.AddFileManagerModule();
 builder.AddMessaging();
 
