@@ -17,6 +17,176 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
+    [Theory(DisplayName = "Role session lookup should validate membership when role membership and token state vary")]
+    [InlineData("member")]
+    [InlineData("non-member")]
+    [InlineData("no-token")]
+    [InlineData("missing-token")]
+    [InlineData("revoked-token")]
+    [InlineData("no-authorization")]
+    [InlineData("malformed-subject")]
+    public async Task GetCurrentRoleAuthorizationIdAsync_Should_ValidateSession_When_RoleMembershipAndTokenStateVary(
+        string mode)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            UserName = "role-member",
+            NormalizedUserName = "ROLE-MEMBER",
+            Email = "role-member@example.test",
+            NormalizedEmail = "ROLE-MEMBER@EXAMPLE.TEST",
+            Status = "Active",
+            PasswordHash = "unused-test-password-hash",
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString()
+        };
+        var role = new ApplicationRole { Id = Guid.CreateVersion7(), Name = "members", NormalizedName = "MEMBERS" };
+        db.Add(user);
+        db.Add(role);
+        if (mode != "non-member")
+        {
+            db.Add(new ApplicationUserRole { UserId = user.Id, RoleId = role.Id });
+        }
+        await db.SaveChangesAsync(ct);
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await authorizations.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = user.Id.ToString(),
+                Status = OpenIddictConstants.Statuses.Valid,
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc
+            },
+            ct);
+        var authorizationId = await authorizations.GetIdAsync(authorization, ct);
+        authorizationId.ShouldNotBeNull();
+        var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var referenceId = Guid.CreateVersion7().ToString("N");
+        await tokens.CreateAsync(
+            new OpenIddictTokenDescriptor
+            {
+                Subject = mode == "malformed-subject" ? "invalid" : user.Id.ToString(),
+                AuthorizationId = mode == "no-authorization" ? null : authorizationId,
+                ReferenceId = referenceId,
+                Status = mode == "revoked-token"
+                    ? OpenIddictConstants.Statuses.Revoked
+                    : OpenIddictConstants.Statuses.Valid,
+                Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+            },
+            ct);
+        var token = mode switch
+        {
+            "no-token" => null,
+            "missing-token" => Guid.CreateVersion7().ToString("N"),
+            _ => referenceId
+        };
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+
+        var result = await service.GetCurrentRoleAuthorizationIdAsync(role.Id, token, ct);
+
+        var allowed = mode is "member" or "non-member" or "no-token" or "no-authorization";
+        result.IsSuccess.ShouldBe(allowed);
+        if (allowed)
+        {
+            result.Value.ShouldBe(mode == "member" ? authorizationId : null);
+        }
+        else
+        {
+            result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
+        }
+    }
+
+    [Theory(DisplayName = "User revocation should retain current refresh when preservation and transaction vary")]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task RevokeAsync_Should_RetainOnlyThePreservedRefresh_When_PreservationAndTransactionVary(
+        bool preserve, bool rollback)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var (userId, currentId) = await CreateSessionsAsync(scope.ServiceProvider, ct);
+        var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+
+        await service.RevokeAsync(userId, preserve ? currentId : null, ct);
+        if (rollback)
+        {
+            await transaction.RollbackAsync(ct);
+        }
+        else
+        {
+            await transaction.CommitAsync(ct);
+        }
+
+        var authorizations = await db.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToArrayAsync(ct);
+        foreach (var authorization in authorizations)
+        {
+            var revoked = !rollback
+                && authorization.Subject == userId.ToString()
+                && (!preserve || authorization.Id.ToString() != currentId);
+            authorization.Status.ShouldBe(revoked
+                ? OpenIddictConstants.Statuses.Revoked
+                : OpenIddictConstants.Statuses.Valid);
+        }
+        var tokens = await db.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .Include(token => token.Authorization)
+            .AsNoTracking()
+            .ToArrayAsync(ct);
+        foreach (var token in tokens)
+        {
+            var preserved = preserve
+                && token.Authorization?.Id.ToString() == currentId
+                && token.Type == OpenIddictConstants.TokenTypeIdentifiers.RefreshToken;
+            var revoked = !rollback && token.Subject == userId.ToString() && !preserved;
+            token.Status.ShouldBe(revoked ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid);
+        }
+    }
+
+    [Theory(DisplayName = "Access invalidation should retain grants and refresh tokens when transaction varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InvalidateAccessTokensAsync_Should_RetainGrantsAndRefreshTokens_When_TransactionVaries(
+        bool rollback)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var (userId, _) = await CreateSessionsAsync(scope.ServiceProvider, ct);
+        var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+
+        await service.InvalidateAccessTokensAsync(userId, refreshCurrentSession: true, ct);
+        if (rollback)
+        {
+            await transaction.RollbackAsync(ct);
+        }
+        else
+        {
+            await transaction.CommitAsync(ct);
+        }
+
+        var authorizations = await db.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToArrayAsync(ct);
+        authorizations.ShouldAllBe(authorization => authorization.Status == OpenIddictConstants.Statuses.Valid);
+        var tokens = await db.Set<OpenIddictEntityFrameworkCoreToken<Guid>>().AsNoTracking().ToArrayAsync(ct);
+        foreach (var token in tokens)
+        {
+            var revoked = !rollback
+                && token.Subject == userId.ToString()
+                && token.Type is OpenIddictConstants.TokenTypeIdentifiers.AccessToken
+                    or OpenIddictConstants.TokenTypeHints.AccessToken;
+            token.Status.ShouldBe(revoked ? OpenIddictConstants.Statuses.Revoked : OpenIddictConstants.Statuses.Valid);
+        }
+    }
+
     [Theory(DisplayName = "Session lookup should enforce ownership and validity when current token state varies")]
     [InlineData("valid")]
     [InlineData("foreign-token")]
@@ -399,6 +569,60 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         var currentTokens = persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId);
         currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(3);
         (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeTrue();
+    }
+
+    private static async Task<(Guid UserId, string CurrentId)> CreateSessionsAsync(
+        IServiceProvider services, CancellationToken cancellationToken)
+    {
+        var userId = Guid.CreateVersion7();
+        var authorizations = services.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var tokens = services.GetRequiredService<IOpenIddictTokenManager>();
+        var currentId = "";
+        foreach (var subject in new[] { userId, userId, Guid.CreateVersion7() })
+        {
+            var authorization = await authorizations.CreateAsync(
+                new OpenIddictAuthorizationDescriptor
+                {
+                    Subject = subject.ToString(),
+                    Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                cancellationToken);
+            var id = await authorizations.GetIdAsync(authorization, cancellationToken);
+            id.ShouldNotBeNull();
+            if (currentId.Length == 0)
+            {
+                currentId = id;
+            }
+            foreach (var type in new[]
+                     {
+                         OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                         OpenIddictConstants.TokenTypeHints.AccessToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.IdentityToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode
+                     })
+            {
+                await tokens.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        AuthorizationId = id,
+                        Type = type,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
+            }
+        }
+        await tokens.CreateAsync(
+            new OpenIddictTokenDescriptor
+            {
+                Subject = userId.ToString(),
+                Type = OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        return (userId, currentId);
     }
 
     private sealed class BulkUpdateCounter : DbCommandInterceptor
