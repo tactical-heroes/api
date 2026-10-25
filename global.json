@@ -3,6 +3,9 @@
     "version": "10.0.401",
     "rollForward": "latestFeature"
   },
+  "msbuild-sdks": {
+    "PANiXiDA.Core.Observability": "2.0.0"
+  },
   "test": {
     "runner": "Microsoft.Testing.Platform"
   }
