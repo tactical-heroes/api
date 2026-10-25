@@ -3,7 +3,6 @@ namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Features.Bat
 public sealed class UnitReadDbModel : ReadDbModel<Guid>
 {
     public Guid BattleId { get; set; }
-    public BattleReadDbModel? Battle { get; set; }
     public int StatsAttack { get; set; }
     public int StatsDefense { get; set; }
     public int StatsMaxHealth { get; set; }
@@ -11,4 +10,6 @@ public sealed class UnitReadDbModel : ReadDbModel<Guid>
     public int DamageRangeMaximum { get; set; }
     public int StackStateCount { get; set; }
     public int StackStateCurrentUnitHealth { get; set; }
+
+    public BattleReadDbModel? Battle { get; set; }
 }
