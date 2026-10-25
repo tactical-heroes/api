@@ -37,6 +37,7 @@ public sealed class AuthenticatedUserServiceTests(IntegrationTestFixture fixture
         result.Value.Email.ShouldBe("auth-service@example.test");
         result.Value.UserName.ShouldBe("auth-service");
         var claims = result.Value.Claims;
+        result.Value.SecurityStamp.ShouldBe(claims.Single(claim => claim.Type == "custom_stamp").Value);
         claims.ShouldContain(new Claim("permission", "identity.users.read"), IdentityClaimComparer.Instance);
         claims.ShouldContain(new Claim("permission", "identity.roles.read"), IdentityClaimComparer.Instance);
         claims.ShouldContain(new Claim(OpenIddictConstants.Claims.Role, "auth-role"), IdentityClaimComparer.Instance);

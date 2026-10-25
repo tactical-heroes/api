@@ -256,6 +256,76 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         }
     }
 
+    [Fact(DisplayName = "Session validation should reject a cached authorization when database status is revoked")]
+    public async Task IsAuthorizationValidAsync_Should_RejectCachedAuthorization_When_DatabaseStatusIsRevoked()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = Guid.CreateVersion7();
+        await using var scope = Fixture.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await manager.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = userId.ToString(),
+                Status = OpenIddictConstants.Statuses.Valid,
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc
+            },
+            ct);
+        var id = await manager.GetIdAsync(authorization, ct);
+        id.ShouldNotBeNull();
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        (await service.IsAuthorizationValidAsync(userId, id, ct)).ShouldBeTrue();
+        await using (var writer = Fixture.CreateScope())
+        {
+            var db = writer.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+            var value = Guid.Parse(id);
+            await db.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+                .Where(item => item.Id == value)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(item => item.Status, OpenIddictConstants.Statuses.Revoked),
+                    ct);
+        }
+
+        var valid = await service.IsAuthorizationValidAsync(userId, id, ct);
+
+        valid.ShouldBeFalse();
+        (await manager.HasStatusAsync(authorization, OpenIddictConstants.Statuses.Valid, ct)).ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "Session validation should reject invalid identifiers when authorization does not match")]
+    [InlineData("foreign")]
+    [InlineData("missing")]
+    [InlineData("malformed")]
+    public async Task IsAuthorizationValidAsync_Should_RejectInvalidIdentifiers_When_AuthorizationDoesNotMatch(
+        string mode)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = Guid.CreateVersion7();
+        await using var scope = Fixture.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await manager.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = Guid.CreateVersion7().ToString(),
+                Status = OpenIddictConstants.Statuses.Valid,
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc
+            },
+            ct);
+        var id = await manager.GetIdAsync(authorization, ct);
+        id.ShouldNotBeNull();
+        var candidate = mode switch
+        {
+            "missing" => Guid.CreateVersion7().ToString(),
+            "malformed" => "not-an-authorization",
+            _ => id
+        };
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+
+        var valid = await service.IsAuthorizationValidAsync(userId, candidate, ct);
+
+        valid.ShouldBeFalse();
+    }
+
     [Theory(
         DisplayName = "Session revocation should affect one grant when ownership and transaction vary")]
     [InlineData("valid")]

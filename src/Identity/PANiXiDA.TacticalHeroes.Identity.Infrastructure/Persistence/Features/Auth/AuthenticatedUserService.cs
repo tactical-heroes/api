@@ -44,6 +44,7 @@ public sealed class AuthenticatedUserService(IdentityReadDbContext dbContext, IO
             Id: user.Id,
             Email: user.Email,
             UserName: user.UserName,
+            SecurityStamp: user.SecurityStamp,
             Claims: IdentityClaimsFactory.Create(user, identityOptions.Value)));
     }
 }

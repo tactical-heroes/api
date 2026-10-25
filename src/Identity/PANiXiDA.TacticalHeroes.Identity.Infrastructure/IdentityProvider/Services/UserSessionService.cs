@@ -249,6 +249,26 @@ public sealed class UserSessionService(
         }
     }
 
+    public Task<bool> IsAuthorizationValidAsync(
+        Guid userId,
+        string authorizationId,
+        CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(authorizationId, out var id))
+        {
+            return Task.FromResult(result: false);
+        }
+
+        var subject = userId.ToString();
+        return dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .AnyAsync(
+                authorization => authorization.Id == id
+                    && authorization.Subject == subject
+                    && authorization.Status == OpenIddictConstants.Statuses.Valid,
+                cancellationToken);
+    }
+
     private static Result<string?> InvalidSession()
     {
         return Result.Failure<string?>(Error.Unauthorized(message: "Current session is invalid."));

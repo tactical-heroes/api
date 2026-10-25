@@ -181,7 +181,8 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(user.Id);
+        result.Value.UserId.ShouldBe(user.Id);
+        result.Value.SecurityStamp.ShouldNotBeNullOrEmpty();
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 
@@ -270,7 +271,7 @@ public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
 
         changeResult.IsSuccess.ShouldBeTrue();
         loginResult.IsSuccess.ShouldBeTrue();
-        loginResult.Value.ShouldBe(user.Id);
+        loginResult.Value.UserId.ShouldBe(user.Id);
     }
 
     [Theory(

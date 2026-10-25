@@ -32,4 +32,6 @@ public interface IUserSessionService
         Guid roleId,
         bool refreshCurrentSession,
         CancellationToken cancellationToken);
+
+    Task<bool> IsAuthorizationValidAsync(Guid userId, string authorizationId, CancellationToken cancellationToken);
 }

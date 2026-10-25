@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
@@ -91,7 +92,7 @@ public sealed class UserCredentialsService(
         return Result.Success(value: applicationUser.Id);
     }
 
-    public async Task<Result<Guid>> LoginAsync(
+    public async Task<Result<LoginSecurityProof>> LoginAsync(
         string email,
         string password,
         CancellationToken cancellationToken)
@@ -109,13 +110,13 @@ public sealed class UserCredentialsService(
 
         if (IsBlocked(applicationUser))
         {
-            return Result.Failure<Guid>(
+            return Result.Failure<LoginSecurityProof>(
                 error: Error.Forbidden(message: "User is blocked."));
         }
 
         if (await userManager.IsLockedOutAsync(applicationUser))
         {
-            return Result.Failure<Guid>(
+            return Result.Failure<LoginSecurityProof>(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
@@ -125,7 +126,7 @@ public sealed class UserCredentialsService(
 
             if (!failureResult.Succeeded)
             {
-                return IdentityResultMapper.ToResult<Guid>(result: failureResult);
+                return IdentityResultMapper.ToResult<LoginSecurityProof>(result: failureResult);
             }
 
             return InvalidCredentials();
@@ -135,16 +136,19 @@ public sealed class UserCredentialsService(
 
         if (!resetResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<Guid>(result: resetResult);
+            return IdentityResultMapper.ToResult<LoginSecurityProof>(result: resetResult);
         }
 
         if (!applicationUser.EmailConfirmed)
         {
-            return Result.Failure<Guid>(
+            return Result.Failure<LoginSecurityProof>(
                 error: Error.Forbidden(message: "User is not confirmed."));
         }
 
-        return Result.Success(value: applicationUser.Id);
+        var securityStamp = await userManager.GetSecurityStampAsync(applicationUser);
+        return string.IsNullOrEmpty(securityStamp)
+            ? InvalidCredentials()
+            : Result.Success(new LoginSecurityProof(applicationUser.Id, securityStamp));
     }
 
     public async Task<Result> ChangePasswordAsync(
@@ -371,9 +375,9 @@ public sealed class UserCredentialsService(
         return IdentityResultMapper.ToResult(result: result);
     }
 
-    private static Result<Guid> InvalidCredentials()
+    private static Result<LoginSecurityProof> InvalidCredentials()
     {
-        return Result.Failure<Guid>(
+        return Result.Failure<LoginSecurityProof>(
             error: Error.Unauthorized(message: "Invalid email or password."));
     }
 
