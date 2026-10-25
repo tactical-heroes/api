@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 using OpenIddict.EntityFrameworkCore.Models;
@@ -13,37 +12,14 @@ public sealed class UserSessionService(
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IdentityWriteDbContext dbContext,
-    ICurrentUserSessionRefresh? sessionRefresh = null,
-    IHttpContextAccessor? httpContextAccessor = null) : IUserSessionService
+    ICurrentUserSessionRefresh? sessionRefresh = null) : IUserSessionService
 {
-    private CurrentSession? _currentSession;
-
-    private CurrentSession? CachedSession
-    {
-        get => httpContextAccessor?.HttpContext is { } context
-            ? context.Features.Get<CurrentSession>()
-            : _currentSession;
-
-        set
-        {
-            if (httpContextAccessor?.HttpContext is { } context)
-            {
-                context.Features.Set(value);
-            }
-            else
-            {
-                _currentSession = value;
-            }
-        }
-    }
-
     public async Task<Result> RevokeSessionAsync(
         Guid userId,
         string authorizationId,
         string clientId,
         CancellationToken cancellationToken)
     {
-        CachedSession = null;
         if (userId == Guid.Empty || !Guid.TryParse(authorizationId, out var id) || string.IsNullOrWhiteSpace(clientId))
         {
             return Result.Failure(Error.Unauthorized(message: "Current session is invalid."));
@@ -124,7 +100,6 @@ public sealed class UserSessionService(
         string? preservedAuthorizationId,
         CancellationToken cancellationToken)
     {
-        CachedSession = null;
         var authorizations = await authorizationManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
             .ToListAsync(cancellationToken);
         foreach (var authorization in authorizations)
@@ -165,16 +140,15 @@ public sealed class UserSessionService(
 
         if (preservedAuthorizationId is not null)
         {
-            sessionRefresh?.RequireRefresh();
+            sessionRefresh?.RequireRefresh(preservedAuthorizationId);
         }
     }
 
     public async Task InvalidateAccessTokensAsync(
         Guid userId,
-        bool refreshCurrentSession,
+        string? currentAuthorizationId,
         CancellationToken cancellationToken)
     {
-        CachedSession = null;
         var tokens = await tokenManager.FindBySubjectAsync(userId.ToString(), cancellationToken)
             .ToListAsync(cancellationToken);
         foreach (var token in tokens)
@@ -198,18 +172,17 @@ public sealed class UserSessionService(
             }
         }
 
-        if (refreshCurrentSession)
+        if (currentAuthorizationId is not null)
         {
-            sessionRefresh?.RequireRefresh();
+            sessionRefresh?.RequireRefresh(currentAuthorizationId);
         }
     }
 
     public async Task InvalidateRoleMemberAccessTokensAsync(
         Guid roleId,
-        bool refreshCurrentSession,
+        string? currentAuthorizationId,
         CancellationToken cancellationToken)
     {
-        CachedSession = null;
         var userIds = GetRoleMemberIds(roleId);
         var subjects = userIds.Select(id => id.ToString());
         await dbContext.Users.Where(user => userIds.Contains(user.Id))
@@ -230,9 +203,9 @@ public sealed class UserSessionService(
                     .SetProperty(token => token.ConcurrencyToken, _ => Guid.NewGuid().ToString()),
                 cancellationToken);
 
-        if (refreshCurrentSession)
+        if (currentAuthorizationId is not null)
         {
-            sessionRefresh?.RequireRefresh();
+            sessionRefresh?.RequireRefresh(currentAuthorizationId);
         }
     }
 
@@ -264,12 +237,6 @@ public sealed class UserSessionService(
     private async Task<CurrentSession?> GetCurrentSessionAsync(string accessToken, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (CachedSession is { } currentSession
-            && string.Equals(currentSession.AccessToken, accessToken, StringComparison.Ordinal))
-        {
-            return currentSession;
-        }
-
         var token = await tokenManager.FindByReferenceIdAsync(accessToken, cancellationToken);
         if (token is null)
         {
@@ -279,7 +246,7 @@ public sealed class UserSessionService(
         var authorizationId = await tokenManager.GetAuthorizationIdAsync(token, cancellationToken);
         if (authorizationId is null)
         {
-            return new CurrentSession(AccessToken: accessToken, UserId: Guid.Empty, AuthorizationId: null);
+            return new CurrentSession(UserId: Guid.Empty, AuthorizationId: null);
         }
 
         var subject = await tokenManager.GetSubjectAsync(token, cancellationToken);
@@ -308,10 +275,7 @@ public sealed class UserSessionService(
             return null;
         }
 
-        var session = new CurrentSession(
-            AccessToken: accessToken, UserId: userId, AuthorizationId: authorizationId);
-        CachedSession = session;
-        return session;
+        return new CurrentSession(UserId: userId, AuthorizationId: authorizationId);
     }
 
     private IQueryable<Guid> GetRoleMemberIds(Guid roleId)
@@ -321,5 +285,5 @@ public sealed class UserSessionService(
             .Select(userRole => userRole.UserId);
     }
 
-    private sealed record CurrentSession(string AccessToken, Guid UserId, string? AuthorizationId);
+    private sealed record CurrentSession(Guid UserId, string? AuthorizationId);
 }

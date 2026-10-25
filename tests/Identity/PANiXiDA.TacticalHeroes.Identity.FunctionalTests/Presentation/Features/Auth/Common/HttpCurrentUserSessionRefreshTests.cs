@@ -18,6 +18,7 @@ public sealed class HttpCurrentUserSessionRefreshTests
         int statusCode, bool expected)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var authorizationId = Guid.CreateVersion7().ToString();
         var builder = WebApplication.CreateSlimBuilder();
         builder.Logging.ClearProviders();
         builder.Services.AddHttpContextAccessor();
@@ -30,11 +31,18 @@ public sealed class HttpCurrentUserSessionRefreshTests
             {
                 await using var scope = context.RequestServices.CreateAsyncScope();
                 var refresh = scope.ServiceProvider.GetRequiredService<ICurrentUserSessionRefresh>();
-                refresh.RequireRefresh();
-                refresh.RequireRefresh();
+                refresh.RequireRefresh(authorizationId);
+                refresh.RequireRefresh(authorizationId);
+                HttpCurrentUserSessionRefresh.GetAuthorizationId(context).ShouldBe(authorizationId);
                 context.Response.StatusCode = statusCode;
             });
-        app.MapGet("/unrelated-request", () => Results.NoContent());
+        app.MapGet(
+            "/unrelated-request",
+            (HttpContext context) =>
+            {
+                HttpCurrentUserSessionRefresh.GetAuthorizationId(context).ShouldBeNull();
+                return Results.NoContent();
+            });
         await app.StartAsync(cancellationToken);
         using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
 

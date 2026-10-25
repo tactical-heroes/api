@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
@@ -13,7 +12,6 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 internal sealed class CurrentUserCookieSession(
     ICurrentUser currentUser,
     IMediator mediator,
-    IUserSessionService sessions,
     IOptions<IdentityOptions> identityOptions)
 {
     internal async Task<Snapshot?> CaptureAsync(HttpContext context, Guid? targetUserId = null)
@@ -37,17 +35,7 @@ internal sealed class CurrentUserCookieSession(
             return null;
         }
 
-        var authorization = await sessions.GetCurrentAuthorizationIdAsync(
-            userId: userId,
-            accessToken: currentUser.AccessToken,
-            cancellationToken: context.RequestAborted);
-        return authorization.IsSuccess
-            ? new Snapshot(
-                UserId: userId,
-                SecurityStamp: securityStamp,
-                AuthorizationId: authorization.Value,
-                Properties: cookie.Properties)
-            : null;
+        return new Snapshot(UserId: userId, SecurityStamp: securityStamp, Properties: cookie.Properties);
     }
 
     internal Task RenewIfRequiredAsync(HttpContext context, Snapshot? session, CancellationToken cancellationToken)
@@ -59,7 +47,8 @@ internal sealed class CurrentUserCookieSession(
 
     internal async Task RenewAsync(HttpContext context, Snapshot? session, CancellationToken cancellationToken)
     {
-        if (session is null || currentUser.UserId != session.UserId)
+        var authorizationId = HttpCurrentUserSessionRefresh.GetAuthorizationId(context);
+        if (session is null || currentUser.UserId != session.UserId || authorizationId is null)
         {
             return;
         }
@@ -68,7 +57,7 @@ internal sealed class CurrentUserCookieSession(
             new GetAuthenticatedUserQuery(
                 UserId: session.UserId,
                 SecurityStamp: session.SecurityStamp,
-                AuthorizationId: session.AuthorizationId),
+                AuthorizationId: authorizationId),
             cancellationToken);
         if (user.IsFailure || user.Value.Id != session.UserId)
         {
@@ -84,6 +73,5 @@ internal sealed class CurrentUserCookieSession(
     internal sealed record Snapshot(
         Guid UserId,
         string SecurityStamp,
-        string? AuthorizationId,
         AuthenticationProperties Properties);
 }

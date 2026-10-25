@@ -1,14 +1,11 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.Net.Http.Headers;
 
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
@@ -645,17 +642,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(invalid ? HttpStatusCode.BadRequest : HttpStatusCode.NoContent);
         response.Headers.Contains("X-Session-Refresh-Required").ShouldBeFalse();
-        if (!invalid)
-        {
-            var options = Fixture.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
-                .Get(IdentityConstants.ApplicationScheme);
-            var cookie = response.Headers.GetValues("Set-Cookie")
-                .Select(value => SetCookieHeaderValue.Parse(value))
-                .Single(header => header.Name == options.Cookie.Name);
-            var ticket = options.TicketDataFormat.Unprotect(cookie.Value.ToString());
-            ticket.ShouldNotBeNull();
-            ticket.Principal.GetClaim(OpenIddictConstants.Claims.Name).ShouldBe("role-session");
-        }
+        response.Headers.Contains("Set-Cookie").ShouldBeFalse();
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);
         await AssertAccessAsync(

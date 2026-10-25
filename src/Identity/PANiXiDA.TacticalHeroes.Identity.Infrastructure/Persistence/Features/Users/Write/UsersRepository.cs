@@ -198,7 +198,7 @@ public sealed class UsersRepository(
         {
             return userSessionService.InvalidateAccessTokensAsync(
                 userId: user.Id.Value,
-                refreshCurrentSession: preservedAuthorizationId is not null,
+                currentAuthorizationId: preservedAuthorizationId,
                 cancellationToken: cancellationToken);
         }
 
