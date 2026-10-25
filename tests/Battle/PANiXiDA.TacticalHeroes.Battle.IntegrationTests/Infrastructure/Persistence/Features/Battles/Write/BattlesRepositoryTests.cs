@@ -84,8 +84,12 @@ public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)
         await GetUnitOfWork(firstScope.ServiceProvider).SaveChangesAsync(cancellationToken);
         second.Attack(attacker.Id, defender.Id, DamageRoll.Create(1).Value);
         secondRepository.Update(second);
-        Func<Task> saveStale = () => GetUnitOfWork(secondScope.ServiceProvider).SaveChangesAsync(cancellationToken);
-        var exception = await Should.ThrowAsync<ConcurrencyException>(saveStale);
+        Task SaveStale()
+        {
+            return GetUnitOfWork(secondScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        }
+
+        var exception = await Should.ThrowAsync<ConcurrencyException>(SaveStale);
 
         exception.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
     }
