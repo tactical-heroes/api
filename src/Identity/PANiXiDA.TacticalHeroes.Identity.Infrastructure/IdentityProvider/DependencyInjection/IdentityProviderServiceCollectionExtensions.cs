@@ -40,7 +40,6 @@ internal static class IdentityProviderServiceCollectionExtensions
 
         serviceCollection.AddScoped<IUserCredentialsService, UserCredentialsService>();
         serviceCollection.AddScoped<IUserSessionService, UserSessionService>();
-        serviceCollection.AddScoped(provider => (UserSessionService)provider.GetRequiredService<IUserSessionService>());
         serviceCollection.AddScoped<IdentityProviderApplicationSeeder>();
         serviceCollection.AddHostedService<IdentityProviderApplicationSeederHostedService>();
         serviceCollection.AddDataProtection()

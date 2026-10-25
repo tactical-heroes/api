@@ -82,7 +82,6 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         }
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
-        service.ShouldBeSameAs(scope.ServiceProvider.GetRequiredService<UserSessionService>());
         var selected = mode switch
         {
             "missing" => Guid.CreateVersion7().ToString(),
@@ -223,7 +222,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
             .AddInterceptors(counter)
             .Options;
         await using var bulkContext = new IdentityWriteDbContext(options, []);
-        var service = new UserSessionService(tokens, authorizations, bulkContext);
+        IUserSessionService service = new UserSessionService(tokens, authorizations, bulkContext);
 
         await service.InvalidateRoleMemberAccessTokensAsync(
             roleId: role.Id,

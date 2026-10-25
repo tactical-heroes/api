@@ -54,7 +54,7 @@ public sealed class UserSessionService(
         return Result.Success();
     }
 
-    internal async Task<Result<string?>> GetCurrentRoleAuthorizationIdAsync(
+    public async Task<Result<string?>> GetCurrentRoleAuthorizationIdAsync(
         Guid roleId,
         string? accessToken,
         CancellationToken cancellationToken)
@@ -93,7 +93,7 @@ public sealed class UserSessionService(
         return Result.Success(isMember ? result.Value : null);
     }
 
-    internal async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
+    public async Task<Result<string?>> GetCurrentAuthorizationIdAsync(
         Guid userId,
         string? accessToken,
         CancellationToken cancellationToken)
@@ -135,7 +135,7 @@ public sealed class UserSessionService(
         return Result.Success(authorizationId);
     }
 
-    internal async Task RevokeAsync(
+    public async Task RevokeAsync(
         Guid userId,
         string? preservedAuthorizationId,
         CancellationToken cancellationToken)
@@ -184,7 +184,7 @@ public sealed class UserSessionService(
         }
     }
 
-    internal async Task InvalidateAccessTokensAsync(
+    public async Task InvalidateAccessTokensAsync(
         Guid userId,
         bool refreshCurrentSession,
         CancellationToken cancellationToken)
@@ -218,7 +218,7 @@ public sealed class UserSessionService(
         }
     }
 
-    internal async Task InvalidateRoleMemberAccessTokensAsync(
+    public async Task InvalidateRoleMemberAccessTokensAsync(
         Guid roleId,
         bool refreshCurrentSession,
         CancellationToken cancellationToken)

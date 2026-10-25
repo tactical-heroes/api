@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
@@ -14,7 +14,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.R
 public sealed class RolesRepository(
     IdentityWriteDbContext dbContext,
     RoleManager<ApplicationRole> roleManager,
-    UserSessionService userSessionService,
+    IUserSessionService userSessionService,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
     : IRolesRepository
