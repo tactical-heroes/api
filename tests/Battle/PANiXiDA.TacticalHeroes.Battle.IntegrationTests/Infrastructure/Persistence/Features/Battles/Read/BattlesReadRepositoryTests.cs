@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Battle.Application.Battles.Abstractions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Abstractions;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
@@ -18,7 +19,8 @@ public sealed class BattlesReadRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
-        var battle = BattleAggregate.Create([CreateUnit(), CreateUnit()]).Value;
+        var battle = BattleAggregate.Create();
+        battle.AddUnits([CreateUnit(battle.Id), CreateUnit(battle.Id)]).IsSuccess.ShouldBeTrue();
         await using (var writeScope = fixture.CreateScope())
         {
             writeScope.ServiceProvider.GetRequiredService<IBattlesRepository>().Add(battle);
@@ -49,9 +51,10 @@ public sealed class BattlesReadRepositoryTests(IntegrationTestFixture fixture)
         result.ShouldBeFalse();
     }
 
-    private static Unit CreateUnit()
+    private static Unit CreateUnit(BattleId battleId)
     {
         return Unit.Create(
+            battleId,
             UnitCombatStats.Create(0, 0, 10).Value,
             DamageRange.Create(1, 1).Value,
             UnitStackState.Create(1, 10).Value).Value;

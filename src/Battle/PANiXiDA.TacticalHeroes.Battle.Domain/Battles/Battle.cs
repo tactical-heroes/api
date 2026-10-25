@@ -14,25 +14,25 @@ public sealed class Battle : AggregateRoot<BattleId>
 
     public IReadOnlyCollection<Unit> Units => _units.AsReadOnly();
 
-    public static Result<Battle> Create(IEnumerable<Unit> units)
+    public static Battle Create()
+    {
+        return new Battle(BattleId.New());
+    }
+
+    public Result AddUnits(IEnumerable<Unit> units)
     {
         var participants = units.ToArray();
-        if (participants.Length < 2
-            || participants.Any(unit => unit is null || unit.BattleId.HasValue)
-            || participants.Select(unit => unit.Id).Distinct().Count() != participants.Length)
+        if (participants.Any(unit => unit is null || unit.BattleId != Id)
+            || participants.Select(unit => unit.Id).Distinct().Count() != participants.Length
+            || participants.Any(unit => _units.Any(existing => existing.Id == unit.Id)))
         {
-            return Result.Failure<Battle>(Error.Validation(
-                "A battle requires at least two distinct, unassigned units."));
+            return Result.Failure(Error.Validation(
+                "Units must belong to this battle and have distinct, new identifiers."));
         }
 
-        var battle = new Battle(BattleId.New());
-        foreach (var unit in participants)
-        {
-            unit.AssignToBattle(battle.Id);
-            battle._units.Add(unit);
-        }
+        _units.AddRange(participants);
 
-        return Result.Success(battle);
+        return Result.Success();
     }
 
     public Result Attack(UnitId attackerId, UnitId defenderId)

@@ -11,83 +11,124 @@ public sealed class BattleTests
     [Fact(DisplayName = "Battle should generate its identity when a battle is created")]
     public void Create_Should_GenerateIdentity_When_ABattleIsCreated()
     {
-        Unit[] units = [BattleTestData.CreateUnit(), BattleTestData.CreateUnit()];
-
-        var battle = BattleAggregate.Create(units).Value;
+        var battle = BattleAggregate.Create();
 
         battle.Id.Value.ShouldNotBe(Guid.Empty);
-        battle.Units.ShouldAllBe(unit => unit.BattleId == battle.Id);
+        battle.Units.ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Battle should assign its units when participants are distinct")]
-    public void Create_Should_AssignUnits_When_ParticipantsAreDistinct()
+    [Fact(DisplayName = "Battle should add its units when participants belong to the battle")]
+    public void AddUnits_Should_AddUnits_When_ParticipantsBelongToTheBattle()
     {
-        var first = BattleTestData.CreateUnit();
-        var second = BattleTestData.CreateUnit();
+        var battle = BattleAggregate.Create();
+        var first = BattleTestData.CreateUnit(battle.Id);
+        var second = BattleTestData.CreateUnit(battle.Id);
         var input = new List<Unit> { first, second };
 
-        var battle = BattleAggregate.Create(input).Value;
+        var result = battle.AddUnits(input);
         input.Clear();
 
+        result.IsSuccess.ShouldBeTrue();
         battle.Units.Count.ShouldBe(2);
-        first.BattleId.ShouldBe(battle.Id);
-        second.BattleId.ShouldBe(battle.Id);
+        battle.Units.ShouldContain(first);
+        battle.Units.ShouldContain(second);
+        battle.Units.ShouldAllBe(unit => unit.BattleId == battle.Id);
         Should.Throw<NotSupportedException>(() => ((ICollection<Unit>)battle.Units).Clear());
     }
 
     [Fact(DisplayName = "Battle should reject participants when participants are duplicated")]
-    public void Create_Should_ReturnFailure_When_ParticipantsAreDuplicated()
+    public void AddUnits_Should_ReturnFailure_When_ParticipantsAreDuplicated()
     {
-        var unit = BattleTestData.CreateUnit();
+        var battle = BattleAggregate.Create();
+        var unit = BattleTestData.CreateUnit(battle.Id);
 
-        var result = BattleAggregate.Create([unit, unit]);
+        var result = battle.AddUnits([unit, unit]);
 
         result.IsFailure.ShouldBeTrue();
-        unit.BattleId.ShouldBeNull();
+        battle.Units.ShouldBeEmpty();
+        unit.BattleId.ShouldBe(battle.Id);
     }
 
-    [Fact(DisplayName = "Battle should preserve participants when a participant is null")]
-    public void Create_Should_PreserveParticipants_When_AParticipantIsNull()
+    [Fact(DisplayName = "Battle should preserve its units when a participant is null")]
+    public void AddUnits_Should_PreserveUnits_When_AParticipantIsNull()
     {
-        var unit = BattleTestData.CreateUnit();
+        var battle = BattleAggregate.Create();
+        var unit = BattleTestData.CreateUnit(battle.Id);
 
-        var result = BattleAggregate.Create([unit, null!]);
+        var result = battle.AddUnits([unit, null!]);
 
         result.IsFailure.ShouldBeTrue();
-        unit.BattleId.ShouldBeNull();
+        battle.Units.ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Battle should reject participants when participant count is insufficient")]
+    [Theory(DisplayName = "Battle should accept a batch when batch contains fewer than two units")]
     [InlineData(0)]
     [InlineData(1)]
-    public void Create_Should_ReturnFailure_When_ParticipantCountIsInsufficient(int count)
+    public void AddUnits_Should_AcceptBatch_When_BatchContainsFewerThanTwoUnits(int count)
     {
-        var units = Enumerable.Range(0, count).Select(_ => BattleTestData.CreateUnit());
+        var battle = BattleAggregate.Create();
+        var units = Enumerable.Range(0, count).Select(_ => BattleTestData.CreateUnit(battle.Id));
 
-        BattleAggregate.Create(units).IsFailure.ShouldBeTrue();
+        var result = battle.AddUnits(units);
+
+        result.IsSuccess.ShouldBeTrue();
+        battle.Units.Count.ShouldBe(count);
     }
 
-    [Fact(DisplayName = "Battle should preserve ownership when a participant already belongs to another battle")]
-    public void Create_Should_PreserveOwnership_When_AParticipantAlreadyBelongsToAnotherBattle()
+    [Fact(DisplayName = "Battle should reject the entire batch when a participant belongs to another battle")]
+    public void AddUnits_Should_RejectEntireBatch_When_AParticipantBelongsToAnotherBattle()
     {
-        var assigned = BattleTestData.CreateUnit();
-        var other = BattleTestData.CreateUnit();
-        var original = BattleAggregate.Create([assigned, other]).Value;
-        var unassigned = BattleTestData.CreateUnit();
+        var battle = BattleAggregate.Create();
+        var otherBattle = BattleAggregate.Create();
+        var own = BattleTestData.CreateUnit(battle.Id);
+        var foreign = BattleTestData.CreateUnit(otherBattle.Id);
+        otherBattle.AddUnits([foreign]).IsSuccess.ShouldBeTrue();
 
-        var result = BattleAggregate.Create([unassigned, assigned]);
+        var result = battle.AddUnits([own, foreign]);
 
         result.IsFailure.ShouldBeTrue();
-        unassigned.BattleId.ShouldBeNull();
-        assigned.BattleId.ShouldBe(original.Id);
+        battle.Units.ShouldBeEmpty();
+        otherBattle.Units.ShouldHaveSingleItem().ShouldBe(foreign);
+        foreign.BattleId.ShouldBe(otherBattle.Id);
+    }
+
+    [Fact(DisplayName = "Battle should reject the entire batch when a participant is already present")]
+    public void AddUnits_Should_RejectEntireBatch_When_AParticipantIsAlreadyPresent()
+    {
+        var battle = BattleAggregate.Create();
+        var existing = BattleTestData.CreateUnit(battle.Id);
+        var added = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([existing]).IsSuccess.ShouldBeTrue();
+
+        var result = battle.AddUnits([added, existing]);
+
+        result.IsFailure.ShouldBeTrue();
+        battle.Units.ShouldHaveSingleItem().ShouldBe(existing);
+    }
+
+    [Fact(DisplayName = "Battle should append units when a subsequent batch is valid")]
+    public void AddUnits_Should_AppendUnits_When_ASubsequentBatchIsValid()
+    {
+        var battle = BattleAggregate.Create();
+        var first = BattleTestData.CreateUnit(battle.Id);
+        var second = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([first]).IsSuccess.ShouldBeTrue();
+
+        var result = battle.AddUnits([second]);
+
+        result.IsSuccess.ShouldBeTrue();
+        battle.Units.Count.ShouldBe(2);
+        battle.Units.ShouldContain(first);
+        battle.Units.ShouldContain(second);
     }
 
     [Fact(DisplayName = "Attack should damage only the defender when attack is valid")]
     public void Attack_Should_DamageOnlyDefender_When_AttackIsValid()
     {
-        var attacker = BattleTestData.CreateUnit(minimumDamage: 7, maximumDamage: 7, count: 1);
-        var defender = BattleTestData.CreateUnit(currentHealth: 4);
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id, minimumDamage: 7, maximumDamage: 7, count: 1);
+        var defender = BattleTestData.CreateUnit(battle.Id, currentHealth: 4);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         var result = battle.Attack(attacker.Id, defender.Id);
 
@@ -109,9 +150,10 @@ public sealed class BattleTests
     [Fact(DisplayName = "Attack should capture actual losses when damage exceeds remaining health")]
     public void Attack_Should_CaptureActualLosses_When_DamageExceedsRemainingHealth()
     {
-        var attacker = BattleTestData.CreateUnit(minimumDamage: 7, maximumDamage: 7, count: 1);
-        var defender = BattleTestData.CreateUnit(count: 1, currentHealth: 4);
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id, minimumDamage: 7, maximumDamage: 7, count: 1);
+        var defender = BattleTestData.CreateUnit(battle.Id, count: 1, currentHealth: 4);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         battle.Attack(attacker.Id, defender.Id);
 
@@ -126,8 +168,9 @@ public sealed class BattleTests
     [Fact(DisplayName = "Attack should reject the attacker when attacker targets itself")]
     public void Attack_Should_ReturnFailure_When_AttackerTargetsItself()
     {
-        var unit = BattleTestData.CreateUnit();
-        var battle = BattleAggregate.Create([unit, BattleTestData.CreateUnit()]).Value;
+        var battle = BattleAggregate.Create();
+        var unit = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([unit, BattleTestData.CreateUnit(battle.Id)]).IsSuccess.ShouldBeTrue();
 
         var result = battle.Attack(unit.Id, unit.Id);
 
@@ -139,11 +182,13 @@ public sealed class BattleTests
     [Fact(DisplayName = "Attack should preserve units when participant belongs to another battle")]
     public void Attack_Should_PreserveUnits_When_ParticipantBelongsToAnotherBattle()
     {
-        var attacker = BattleTestData.CreateUnit();
-        var defender = BattleTestData.CreateUnit();
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
-        var foreign = BattleTestData.CreateUnit();
-        BattleAggregate.Create([foreign, BattleTestData.CreateUnit()]);
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id);
+        var defender = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
+        var otherBattle = BattleAggregate.Create();
+        var foreign = BattleTestData.CreateUnit(otherBattle.Id);
+        otherBattle.AddUnits([foreign]).IsSuccess.ShouldBeTrue();
 
         var result = battle.Attack(attacker.Id, foreign.Id);
 
@@ -158,9 +203,10 @@ public sealed class BattleTests
     [InlineData(false)]
     public void Attack_Should_ReturnFailure_When_AParticipantIsDestroyed(bool destroyedAttacker)
     {
-        var attacker = BattleTestData.CreateUnit(count: destroyedAttacker ? 0 : 1);
-        var defender = BattleTestData.CreateUnit(count: destroyedAttacker ? 1 : 0);
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id, count: destroyedAttacker ? 0 : 1);
+        var defender = BattleTestData.CreateUnit(battle.Id, count: destroyedAttacker ? 1 : 0);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         var result = battle.Attack(attacker.Id, defender.Id);
 
@@ -171,9 +217,10 @@ public sealed class BattleTests
     [Fact(DisplayName = "Attack should select damage within bounds when random damage is configured")]
     public void Attack_Should_SelectDamageWithinBounds_When_RandomDamageIsConfigured()
     {
-        var attacker = BattleTestData.CreateUnit(minimumDamage: 2, maximumDamage: 4, count: 1);
-        var defender = BattleTestData.CreateUnit();
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id, minimumDamage: 2, maximumDamage: 4, count: 1);
+        var defender = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         var result = battle.Attack(attacker.Id, defender.Id);
 
@@ -187,13 +234,15 @@ public sealed class BattleTests
     [Fact(DisplayName = "Attack should preserve the defender when calculated damage exceeds supported capacity")]
     public void Attack_Should_PreserveDefender_When_CalculatedDamageExceedsSupportedCapacity()
     {
+        var battle = BattleAggregate.Create();
         var attacker = BattleTestData.CreateUnit(
+            battle.Id,
             attack: int.MaxValue,
             minimumDamage: int.MaxValue,
             maximumDamage: int.MaxValue,
             count: int.MaxValue);
-        var defender = BattleTestData.CreateUnit();
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var defender = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         var result = battle.Attack(attacker.Id, defender.Id);
 
@@ -208,9 +257,10 @@ public sealed class BattleTests
     [Fact(DisplayName = "Attack should avoid damage events when calculated damage is zero")]
     public void Attack_Should_NotRaiseDamageEvent_When_CalculatedDamageIsZero()
     {
-        var attacker = BattleTestData.CreateUnit(minimumDamage: 0, maximumDamage: 0);
-        var defender = BattleTestData.CreateUnit();
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id, minimumDamage: 0, maximumDamage: 0);
+        var defender = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         var result = battle.Attack(attacker.Id, defender.Id);
 
@@ -222,9 +272,10 @@ public sealed class BattleTests
     [Fact(DisplayName = "Attack should preserve past events when another hit changes the target")]
     public void Attack_Should_PreservePastEvents_When_AnotherHitChangesTheTarget()
     {
-        var attacker = BattleTestData.CreateUnit(count: 1);
-        var defender = BattleTestData.CreateUnit();
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id, count: 1);
+        var defender = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         battle.Attack(attacker.Id, defender.Id);
         var firstEvent = battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UnitDamaged>();

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Persistence.Errors;
 
 using PANiXiDA.TacticalHeroes.Battle.Application.Battles.Abstractions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Abstractions;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
@@ -22,9 +23,10 @@ public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
-        var attacker = CreateUnit(7, 1, 10);
-        var defender = CreateUnit(1, 3, 4);
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = CreateUnit(battle.Id, 7, 1, 10);
+        var defender = CreateUnit(battle.Id, 1, 3, 4);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
 
         await using (var scope = fixture.CreateScope())
         {
@@ -58,14 +60,49 @@ public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)
         (await readRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
     }
 
+    [Fact(DisplayName = "Battle persistence should persist added units when a battle already exists")]
+    public async Task Update_Should_PersistAddedUnits_When_ABattleAlreadyExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(cancellationToken);
+        var battle = BattleAggregate.Create();
+        var unit = CreateUnit(battle.Id, 2, 1, 10);
+        await using (var scope = fixture.CreateScope())
+        {
+            scope.ServiceProvider.GetRequiredService<IBattlesRepository>().Add(battle);
+            await GetUnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        }
+
+        await using (var scope = fixture.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IBattlesRepository>();
+            var restored = (await repository.GetByIdAsync(battle.Id, cancellationToken))!;
+            restored.AddUnits([unit]).IsSuccess.ShouldBeTrue();
+            repository.Update(restored);
+            await GetUnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        }
+
+        await using var readScope = fixture.CreateScope();
+        var reloaded = (await readScope.ServiceProvider.GetRequiredService<IBattlesRepository>()
+            .GetByIdAsync(battle.Id, cancellationToken))!;
+
+        var restoredUnit = reloaded.Units.ShouldHaveSingleItem();
+        restoredUnit.Id.ShouldBe(unit.Id);
+        restoredUnit.BattleId.ShouldBe(battle.Id);
+        restoredUnit.DamageRange.Minimum.ShouldBe(2);
+        restoredUnit.Count.ShouldBe(1);
+        restoredUnit.CurrentUnitHealth.ShouldBe(10);
+    }
+
     [Fact(DisplayName = "Battle persistence should reject stale updates when concurrent damage is saved")]
     public async Task Update_Should_RejectStaleUpdates_When_ConcurrentDamageIsSaved()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
-        var attacker = CreateUnit(1, 1, 10);
-        var defender = CreateUnit(1, 3, 10);
-        var battle = BattleAggregate.Create([attacker, defender]).Value;
+        var battle = BattleAggregate.Create();
+        var attacker = CreateUnit(battle.Id, 1, 1, 10);
+        var defender = CreateUnit(battle.Id, 1, 3, 10);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
         await using (var scope = fixture.CreateScope())
         {
             scope.ServiceProvider.GetRequiredService<IBattlesRepository>().Add(battle);
@@ -99,9 +136,10 @@ public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)
         return services.GetRequiredKeyedService<IUnitOfWork>(typeof(BattleWriteDbContext));
     }
 
-    private static Unit CreateUnit(int damage, int count, int currentHealth)
+    private static Unit CreateUnit(BattleId battleId, int damage, int count, int currentHealth)
     {
         return Unit.Create(
+            battleId,
             UnitCombatStats.Create(0, 0, 10).Value,
             DamageRange.Create(damage, damage).Value,
             UnitStackState.Create(count, currentHealth).Value).Value;
