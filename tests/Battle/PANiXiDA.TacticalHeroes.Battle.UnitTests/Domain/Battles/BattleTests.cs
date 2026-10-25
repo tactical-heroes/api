@@ -214,6 +214,62 @@ public sealed class BattleTests
         battle.GetDomainEvents().ShouldBeEmpty();
     }
 
+    [Fact(DisplayName = "Attack should collect both errors when both participants are missing")]
+    public void Attack_Should_CollectBothErrors_When_BothParticipantsAreMissing()
+    {
+        var battle = BattleAggregate.Create();
+        var attackerId = UnitId.New();
+        var defenderId = UnitId.New();
+
+        var result = battle.Attack(attackerId, defenderId);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBe(2);
+        result.Errors.ShouldContain(error => error.Message.Contains(attackerId.ToString(), StringComparison.Ordinal));
+        result.Errors.ShouldContain(error => error.Message.Contains(defenderId.ToString(), StringComparison.Ordinal));
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        battle.GetDomainEvents().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Attack should collect both errors when both participants are destroyed")]
+    public void Attack_Should_CollectBothErrors_When_BothParticipantsAreDestroyed()
+    {
+        var battle = BattleAggregate.Create();
+        var attacker = BattleTestData.CreateUnit(battle.Id, count: 0);
+        var defender = BattleTestData.CreateUnit(battle.Id, count: 0);
+        battle.AddUnits([attacker, defender]).IsSuccess.ShouldBeTrue();
+
+        var result = battle.Attack(attacker.Id, defender.Id);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBe(2);
+        result.Errors.ShouldContain(error => error.Message.Contains(attacker.Id.ToString(), StringComparison.Ordinal));
+        result.Errors.ShouldContain(error => error.Message.Contains(defender.Id.ToString(), StringComparison.Ordinal));
+        attacker.TotalHealth.ShouldBe(0);
+        defender.TotalHealth.ShouldBe(0);
+        battle.GetDomainEvents().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Attack should preserve the existing unit when one participant is missing")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Attack_Should_PreserveExistingUnit_When_OneParticipantIsMissing(bool missingAttacker)
+    {
+        var battle = BattleAggregate.Create();
+        var unit = BattleTestData.CreateUnit(battle.Id);
+        battle.AddUnits([unit]).IsSuccess.ShouldBeTrue();
+        var missingId = UnitId.New();
+        var attackerId = missingAttacker ? missingId : unit.Id;
+        var defenderId = missingAttacker ? unit.Id : missingId;
+
+        var result = battle.Attack(attackerId, defenderId);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Message.ShouldContain(missingId.ToString());
+        unit.TotalHealth.ShouldBe(30);
+        battle.GetDomainEvents().ShouldBeEmpty();
+    }
+
     [Fact(DisplayName = "Attack should select damage within bounds when random damage is configured")]
     public void Attack_Should_SelectDamageWithinBounds_When_RandomDamageIsConfigured()
     {

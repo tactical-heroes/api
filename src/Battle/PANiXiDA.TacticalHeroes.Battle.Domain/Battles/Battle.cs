@@ -41,14 +41,28 @@ public sealed class Battle : AggregateRoot<BattleId>
             return Result.Failure(Error.Validation("A unit cannot attack itself."));
         }
 
-        var attacker = _units.SingleOrDefault(unit => unit.Id == attackerId);
-        var defender = _units.SingleOrDefault(unit => unit.Id == defenderId);
-        if (attacker is null || defender is null || !attacker.IsAlive || !defender.IsAlive)
+        return ResultCombiner.Combine(GetUnit(attackerId), GetUnit(defenderId))
+            .Bind(units => ApplyAttack(units.Item1, units.Item2));
+    }
+
+    private Result<Unit> GetUnit(UnitId unitId)
+    {
+        var unit = _units.SingleOrDefault(unit => unit.Id == unitId);
+        if (unit is null)
         {
-            return Result.Failure(Error.Validation(
-                "Both participants must be living units in this battle."));
+            return Result.Failure<Unit>(Error.Validation($"Unit '{unitId}' was not found in this battle."));
         }
 
+        if (!unit.IsAlive)
+        {
+            return Result.Failure<Unit>(Error.Validation($"Unit '{unitId}' is destroyed."));
+        }
+
+        return Result.Success(unit);
+    }
+
+    private Result ApplyAttack(Unit attacker, Unit defender)
+    {
         var damage = attacker.CalculateDamage(defender.Stats);
         if (damage.IsFailure)
         {
@@ -63,8 +77,8 @@ public sealed class Battle : AggregateRoot<BattleId>
         {
             AddDomainEvent(new UnitDamaged(
                 BattleId: Id.Value,
-                AttackerId: attackerId.Value,
-                DefenderId: defenderId.Value,
+                AttackerId: attacker.Id.Value,
+                DefenderId: defender.Id.Value,
                 CalculatedDamage: damage.Value.Value,
                 AppliedDamage: appliedDamage,
                 KilledCount: previousCount - defender.Count,
