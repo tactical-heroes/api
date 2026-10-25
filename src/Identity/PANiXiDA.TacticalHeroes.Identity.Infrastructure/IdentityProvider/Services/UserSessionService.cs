@@ -12,8 +12,48 @@ public sealed class UserSessionService(
     IOpenIddictTokenManager tokenManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IdentityWriteDbContext dbContext,
-    ICurrentUserSessionRefresh? sessionRefresh = null)
+    ICurrentUserSessionRefresh? sessionRefresh = null) : IUserSessionService
 {
+    public async Task<Result> RevokeSessionAsync(
+        Guid userId,
+        string authorizationId,
+        string clientId,
+        CancellationToken cancellationToken)
+    {
+        if (userId == Guid.Empty || !Guid.TryParse(authorizationId, out var id) || string.IsNullOrWhiteSpace(clientId))
+        {
+            return Result.Failure(Error.Unauthorized(message: "Current session is invalid."));
+        }
+
+        var subject = userId.ToString();
+        var authorizations = dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .Where(authorization => authorization.Id == id
+                && authorization.Subject == subject
+                && authorization.Application != null
+                && authorization.Application.ClientId == clientId);
+        if (!await authorizations.AnyAsync(cancellationToken))
+        {
+            return Result.Failure(Error.Unauthorized(message: "Current session is invalid."));
+        }
+
+        await authorizations.Where(authorization => authorization.Status != OpenIddictConstants.Statuses.Revoked)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(authorization => authorization.Status, OpenIddictConstants.Statuses.Revoked)
+                    .SetProperty(authorization => authorization.ConcurrencyToken, _ => Guid.NewGuid().ToString()),
+                cancellationToken);
+        await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .Where(token => token.Authorization != null && token.Authorization.Id == id)
+            .Where(token => token.Status != OpenIddictConstants.Statuses.Revoked)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(token => token.Status, OpenIddictConstants.Statuses.Revoked)
+                    .SetProperty(token => token.ConcurrencyToken, _ => Guid.NewGuid().ToString()),
+                cancellationToken);
+
+        return Result.Success();
+    }
+
     internal async Task<Result<string?>> GetCurrentRoleAuthorizationIdAsync(
         Guid roleId,
         string? accessToken,

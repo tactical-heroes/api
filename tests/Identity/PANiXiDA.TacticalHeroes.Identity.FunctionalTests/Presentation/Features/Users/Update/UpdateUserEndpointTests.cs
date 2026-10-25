@@ -504,6 +504,56 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         unrelatedRefresh.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
+    [Theory(DisplayName = "PUT user should invalidate access and retain sessions when only user name changes")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PutUser_Should_InvalidateAccessAndRetainSessions_When_OnlyUserNameChanges(bool self)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (user, _) = await CreateUserAsync(assigned: false, claims: null, ct: ct);
+        using var current = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        using var other = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(current, Email, Password, ct);
+        var otherTokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(other, Email, Password, ct);
+        var before = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/users/{user.Id}")
+        {
+            Content = JsonContent.Create(new UpdateUserRequest(
+                Email, "renamed-session", true, [new("permission", "identity.users.update")], "Active", []))
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", self ? tokens.AccessToken : null);
+
+        using var response = self
+            ? await current.SendAsync(request, ct)
+            : await OAuthServiceAccessTokenTestHelper.SendAsync(Fixture, request, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(ct));
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBe(self);
+        var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
+        after!.SecurityStamp.ShouldNotBe(before!.SecurityStamp);
+        after.UserName.ShouldBe("renamed-session");
+        foreach (var (browser, previous) in new[] { (current, tokens), (other, otherTokens) })
+        {
+            await AssertAccessAsync(
+                browser,
+                previous.AccessToken,
+                HttpStatusCode.Unauthorized,
+                "/connect/userinfo",
+                ct);
+            using var refresh = await RefreshAsync(browser, previous.RefreshToken, ct);
+            refresh.StatusCode.ShouldBe(HttpStatusCode.OK);
+            using var body = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync(ct));
+            var identity = new JsonWebToken(body.RootElement.GetProperty("id_token").GetString()!);
+            identity.GetClaim(OpenIddictConstants.Claims.Name).Value.ShouldBe("renamed-session");
+            await AssertAccessAsync(
+                client: browser,
+                token: body.RootElement.GetProperty("access_token").GetString()!,
+                status: HttpStatusCode.OK,
+                path: "/connect/userinfo",
+                ct: ct);
+        }
+    }
+
     [Theory(DisplayName = "PUT user should preserve sessions when update does not change authorization")]
     [InlineData(false)]
     [InlineData(true)]
@@ -522,7 +572,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         {
             Content = JsonContent.Create(new UpdateUserRequest(
                 Email: Email,
-                UserName: "updated-session",
+                UserName: "role-session",
                 IsConfirmed: true,
                 Claims:
                 [
@@ -548,7 +598,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
                 .Single(header => header.Name == options.Cookie.Name);
             var ticket = options.TicketDataFormat.Unprotect(cookie.Value.ToString());
             ticket.ShouldNotBeNull();
-            ticket.Principal.GetClaim(OpenIddictConstants.Claims.Name).ShouldBe("updated-session");
+            ticket.Principal.GetClaim(OpenIddictConstants.Claims.Name).ShouldBe("role-session");
         }
         var after = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         after!.SecurityStamp.ShouldBe(before!.SecurityStamp);

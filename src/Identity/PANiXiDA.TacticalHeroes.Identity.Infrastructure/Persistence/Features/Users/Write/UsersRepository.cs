@@ -74,6 +74,7 @@ public sealed class UsersRepository(
         var emailChanged = !string.Equals(applicationUser.Email, user.Email.Value, StringComparison.Ordinal);
         var confirmationRevoked = applicationUser.EmailConfirmed && !user.ConfirmationStatus.IsConfirmed;
         var authorizationChanged = emailChanged
+            || !string.Equals(applicationUser.UserName, user.UserName.Value, StringComparison.Ordinal)
             || !user.RoleIds
                 .Select(roleId => roleId.Value)
                 .ToHashSet()
@@ -122,6 +123,7 @@ public sealed class UsersRepository(
         {
             await InvalidateSessionsAsync(
                 user: user,
+                emailChanged: emailChanged,
                 preservedAuthorizationId: preservedAuthorizationId,
                 cancellationToken: cancellationToken);
         }
@@ -188,10 +190,11 @@ public sealed class UsersRepository(
 
     private Task InvalidateSessionsAsync(
         User user,
+        bool emailChanged,
         string? preservedAuthorizationId,
         CancellationToken cancellationToken)
     {
-        if (!user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
+        if (!emailChanged && !user.Status.IsBlocked && user.ConfirmationStatus.IsConfirmed)
         {
             return userSessionService.InvalidateAccessTokensAsync(
                 userId: user.Id.Value,

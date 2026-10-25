@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
@@ -16,6 +17,116 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Ident
 
 public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
+    [Theory(
+        DisplayName = "Session revocation should affect one grant when ownership matches and transaction completes")]
+    [InlineData("valid")]
+    [InlineData("rollback")]
+    [InlineData("foreign-user")]
+    [InlineData("foreign-client")]
+    [InlineData("missing")]
+    [InlineData("malformed")]
+    [InlineData("revoked")]
+    public async Task RevokeSessionAsync_Should_AffectOneGrant_When_OwnershipAndTransactionVary(string mode)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = Guid.CreateVersion7();
+        var foreignId = Guid.CreateVersion7();
+        await using var scope = Fixture.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var applications = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var application = await applications.CreateAsync(
+            new OpenIddictApplicationDescriptor { ClientId = "logout-test" },
+            ct);
+        var applicationId = await applications.GetIdAsync(application, ct);
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var ids = new List<string>();
+        foreach (var subject in new[] { userId, userId, foreignId })
+        {
+            var authorization = await authorizations.CreateAsync(
+                new OpenIddictAuthorizationDescriptor
+                {
+                    Subject = subject.ToString(),
+                    ApplicationId = applicationId,
+                    Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                    Status = OpenIddictConstants.Statuses.Valid
+                },
+                ct);
+            var id = await authorizations.GetIdAsync(authorization, ct);
+            id.ShouldNotBeNull();
+            ids.Add(id);
+            foreach (var type in new[]
+                     {
+                         OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.IdentityToken,
+                         OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode
+                     })
+            {
+                await tokens.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        ApplicationId = applicationId,
+                        AuthorizationId = id,
+                        Type = type,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    ct);
+            }
+        }
+        if (mode == "revoked")
+        {
+            var authorization = await authorizations.FindByIdAsync(ids[0], ct);
+            (await authorizations.TryRevokeAsync(authorization!, ct)).ShouldBeTrue();
+        }
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        service.ShouldBeSameAs(scope.ServiceProvider.GetRequiredService<UserSessionService>());
+        var selected = mode switch
+        {
+            "missing" => Guid.CreateVersion7().ToString(),
+            "malformed" => "invalid",
+            _ => ids[0]
+        };
+
+        var result = await service.RevokeSessionAsync(
+            mode == "foreign-user" ? foreignId : userId,
+            selected,
+            mode == "foreign-client" ? "other-client" : "logout-test",
+            ct);
+        if (mode == "rollback")
+        {
+            await transaction.RollbackAsync(ct);
+        }
+        else
+        {
+            await transaction.CommitAsync(ct);
+        }
+
+        var success = mode is "valid" or "rollback" or "revoked";
+        result.IsSuccess.ShouldBe(success);
+        var stored = await db.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>().AsNoTracking().ToArrayAsync(ct);
+        foreach (var authorization in stored)
+        {
+            var revoked = authorization.Id.ToString() == ids[0] && mode is "valid" or "revoked";
+            authorization.Status.ShouldBe(revoked
+                ? OpenIddictConstants.Statuses.Revoked
+                : OpenIddictConstants.Statuses.Valid);
+        }
+        var storedTokens = await db.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .Include(token => token.Authorization)
+            .AsNoTracking()
+            .ToArrayAsync(ct);
+        foreach (var token in storedTokens)
+        {
+            var revoked = token.Authorization!.Id.ToString() == ids[0] && mode is "valid" or "revoked";
+            token.Status.ShouldBe(revoked
+                ? OpenIddictConstants.Statuses.Revoked
+                : OpenIddictConstants.Statuses.Valid);
+        }
+    }
+
     [Theory(DisplayName = "Bulk access invalidation should use two updates when membership varies")]
     [InlineData(2, 1, false)]
     [InlineData(2, 8, false)]
