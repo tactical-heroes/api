@@ -15,7 +15,7 @@ jobs:
       registry-token: ${{ secrets.REGISTRY_TOKEN }}
 
   tests:
-    uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/dotnet-tests.yml@e0ca38b062bd3dc04b01841128d2eaed975c976c
+    uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/dotnet-tests.yml@main
     secrets:
       registry-user: ${{ secrets.REGISTRY_USER }}
       registry-token: ${{ secrets.REGISTRY_TOKEN }}
