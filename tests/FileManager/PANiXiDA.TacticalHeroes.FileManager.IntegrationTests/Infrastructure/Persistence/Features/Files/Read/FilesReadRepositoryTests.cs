@@ -21,6 +21,48 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Fact(DisplayName = "Pending uploads should project stored keys in pages when old personal files exist")]
+    public async Task GetPendingPersonalUploadsAsync_Should_ProjectStoredKeysInPages_When_OldPersonalFilesExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var first = await AddFileAsync(true, cancellationToken);
+        var second = await AddFileAsync(true, cancellationToken);
+        await AddFileAsync(true, cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var writeContext = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        await writeContext.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            UPDATE file_manager.files SET created_at = {DateTime.UnixEpoch}
+            WHERE id IN ({first.Id.Value}, {second.Id.Value})
+            """,
+            cancellationToken);
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
+        var ordered = new[] { first, second }.OrderBy(file => file.Id.Value).ToArray();
+
+        var page = await repository.GetPendingPersonalUploadsAsync(
+            createdBefore: DateTime.UnixEpoch.AddMinutes(1),
+            afterId: Guid.Empty,
+            batchSize: 1,
+            cancellationToken: cancellationToken);
+        var next = await repository.GetPendingPersonalUploadsAsync(
+            createdBefore: DateTime.UnixEpoch.AddMinutes(1),
+            afterId: page[0].Id,
+            batchSize: 1,
+            cancellationToken: cancellationToken);
+        var atCutoff = await repository.GetPendingPersonalUploadsAsync(
+            createdBefore: DateTime.UnixEpoch,
+            afterId: Guid.Empty,
+            batchSize: 100,
+            cancellationToken: cancellationToken);
+
+        page.ShouldHaveSingleItem().Id.ShouldBe(ordered[0].Id.Value);
+        page[0].StorageKey.ShouldBe(ordered[0].StorageKey.Value);
+        next.ShouldHaveSingleItem().Id.ShouldBe(ordered[1].Id.Value);
+        next[0].StorageKey.ShouldBe(ordered[1].StorageKey.Value);
+        atCutoff.ShouldBeEmpty();
+        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
+    }
+
     [Theory(DisplayName = "Personal file details should project persisted metadata when upload state varies")]
     [InlineData(false)]
     [InlineData(true)]

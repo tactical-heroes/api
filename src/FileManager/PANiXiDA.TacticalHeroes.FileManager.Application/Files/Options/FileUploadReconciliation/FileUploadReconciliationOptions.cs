@@ -1,6 +1,6 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 
-internal sealed class FileUploadReconciliationOptions
+public sealed class FileUploadReconciliationOptions
 {
     public const string SectionName = "FileManager:UploadReconciliation";
 

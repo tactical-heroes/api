@@ -7,11 +7,15 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.Configuration;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Storage;
+
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Storage;
 
 internal sealed class S3FileMetadataReader(IAmazonS3 client, IOptions<S3StorageOptions> options)
+    : IFileMetadataReader
 {
-    internal async Task<StoredFileMetadata?> GetMetadataAsync(string key, CancellationToken cancellationToken)
+    public async Task<StoredFileMetadata?> GetMetadataAsync(string key, CancellationToken cancellationToken)
     {
         var storageOptions = options.Value;
         var objectKey = string.IsNullOrEmpty(storageOptions.KeyPrefix)

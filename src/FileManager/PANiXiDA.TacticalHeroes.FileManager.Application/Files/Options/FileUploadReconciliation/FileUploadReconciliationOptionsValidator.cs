@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 
-internal sealed class FileUploadReconciliationOptionsValidator
+public sealed class FileUploadReconciliationOptionsValidator
     : IValidateOptions<FileUploadReconciliationOptions>
 {
     public ValidateOptionsResult Validate(string? name, FileUploadReconciliationOptions options)

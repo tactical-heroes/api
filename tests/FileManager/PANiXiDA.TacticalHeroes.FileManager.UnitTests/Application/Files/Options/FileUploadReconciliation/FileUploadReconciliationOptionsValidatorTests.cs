@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Scheduling.Options;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Options.FileUploadReconciliation;
 
 public sealed class FileUploadReconciliationOptionsValidatorTests
 {

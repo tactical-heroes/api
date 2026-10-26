@@ -6,7 +6,6 @@ using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.DependencyInjection;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Reconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Storage;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
@@ -23,8 +22,7 @@ public static class ServiceCollectionExtensions
                 configuration);
         serviceCollection.AddS3FileStorage(configuration.GetRequiredSection(nameof(FileManager)));
         serviceCollection.TryAddSingleton(TimeProvider.System);
-        serviceCollection.AddScoped<S3FileMetadataReader>();
-        serviceCollection.AddScoped<IPersonalFileUploadReconciler, PersonalFileUploadReconciler>();
+        serviceCollection.AddScoped<IFileMetadataReader, S3FileMetadataReader>();
         serviceCollection.AddScheduling(configuration);
 
         return serviceCollection;

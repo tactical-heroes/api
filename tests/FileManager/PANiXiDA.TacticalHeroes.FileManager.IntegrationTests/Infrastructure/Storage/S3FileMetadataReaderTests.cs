@@ -1,17 +1,18 @@
 using System.Net;
 
-using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using NSubstitute;
 
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Infrastructure.Storage.S3.Configuration;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Storage;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Storage;
@@ -27,7 +28,7 @@ public sealed class S3FileMetadataReaderTests(IntegrationTestFixture fixture) : 
         await scope.ServiceProvider.GetRequiredService<IFileStorage>()
             .UploadAsync("personal/test.txt", content, "text/plain", cancellationToken);
 
-        var metadata = await scope.ServiceProvider.GetRequiredService<S3FileMetadataReader>()
+        var metadata = await scope.ServiceProvider.GetRequiredService<IFileMetadataReader>()
             .GetMetadataAsync("personal/test.txt", cancellationToken);
 
         metadata.ShouldNotBeNull();
@@ -40,7 +41,7 @@ public sealed class S3FileMetadataReaderTests(IntegrationTestFixture fixture) : 
     {
         await using var scope = Fixture.CreateScope();
 
-        var metadata = await scope.ServiceProvider.GetRequiredService<S3FileMetadataReader>()
+        var metadata = await scope.ServiceProvider.GetRequiredService<IFileMetadataReader>()
             .GetMetadataAsync("personal/missing.txt", TestContext.Current.CancellationToken);
 
         metadata.ShouldBeNull();

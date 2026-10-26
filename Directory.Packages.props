@@ -4,6 +4,8 @@
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup>
+        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
+        <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.13" />
         <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
         <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
         <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.4.1" />

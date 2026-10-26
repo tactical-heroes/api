@@ -206,22 +206,24 @@ Apply it using the host's JasperFx `db-apply` command with the target environmen
 configuration before starting replicas where automatic schema updates are disabled.
 The EF migrator only manages module schemas, not Wolverine's message-store tables.
 
-The reconciler reads S3 object metadata using the persisted storage key and the same
-environment prefix as uploads. If the object exists and its content type and size
-are valid domain values, it restores those actual values and marks the file
-`Ready`. HTTP uploads call `File.CompleteUpload` and save through their repository
-and unit of work. Recovery loads each aggregate in a fresh write scope, rechecks
-that it is still pending, then completes and saves it the same way. Existing
-optimistic concurrency tokens protect updates; a conflicting recovery attempt is
-skipped until the next scan. No explicit row locks or enclosing S3 transaction are used.
+The recurring command handler pages through old pending personal files using
+`IFilesReadRepository` and reads S3 metadata using the persisted key and the upload
+adapter's environment prefix. If the metadata is valid, the handler loads the
+aggregate through `IFilesRepository`, rechecks its type, pending status and key,
+then calls `File.CompleteUpload` and saves through the unit of work. HTTP uploads
+complete and save through their existing repository/unit-of-work flow.
+
+Existing optimistic concurrency tokens protect updates. A conflicting save ends
+the current pass so the next invocation reloads current state; earlier successful
+saves remain committed. No explicit row locks or enclosing S3 transaction are used.
 The age threshold separates recovery from normal uploads but is not a lease:
 an exceptionally long HTTP upload can still receive an optimistic concurrency
 conflict if recovery completes first.
 
 Missing objects, invalid metadata, storage errors, and per-object timeouts leave
 the record unchanged for subsequent checks. Paging continues past missing objects.
-Each completed file uses a separate write scope. Reconciliation does not delete objects,
-expire records, restart uploads, or inspect files already marked `Ready`.
+Reconciliation does not delete objects, expire records, restart uploads, or inspect
+files already marked `Ready`.
 Incomplete multipart cleanup and upload-request idempotency remain separate work.
 This recovery path establishes eventual completion for objects that are present;
 it does not make S3 and PostgreSQL updates atomic or verify an expected checksum.

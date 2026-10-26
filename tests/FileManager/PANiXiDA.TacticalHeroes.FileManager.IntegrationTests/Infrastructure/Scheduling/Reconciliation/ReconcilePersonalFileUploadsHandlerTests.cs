@@ -1,39 +1,43 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using Npgsql;
 
+using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Reconciliation;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Storage;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Scheduling.Reconciliation;
 
-public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
+public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixture fixture)
+    : IntegrationTestBase(fixture)
 {
     [Fact(DisplayName = "Reconciliation should recover ready metadata when uploaded object exists")]
-    public async Task ReconcileAsync_Should_RecoverReadyMetadata_When_UploadedObjectExists()
+    public async Task HandleAsync_Should_RecoverReadyMetadata_When_UploadedObjectExists()
     {
         var file = await SaveFileAsync();
         await UploadAsync(file);
         await using var scope = Fixture.CreateScope();
 
-        await CreateReconciler(scope.ServiceProvider).ReconcileAsync(TestContext.Current.CancellationToken);
+        await CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
         stored.Status.ShouldBe("Ready");
@@ -43,16 +47,16 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
     }
 
     [Fact(DisplayName = "Reconciliation should retry pending content when object arrives after an earlier scan")]
-    public async Task ReconcileAsync_Should_RetryPendingContent_When_ObjectArrivesAfterAnEarlierScan()
+    public async Task HandleAsync_Should_RetryPendingContent_When_ObjectArrivesAfterAnEarlierScan()
     {
         var file = await SaveFileAsync();
         await using var scope = Fixture.CreateScope();
-        var job = CreateReconciler(scope.ServiceProvider);
-        await job.ReconcileAsync(TestContext.Current.CancellationToken);
+        var job = CreateHandler(scope.ServiceProvider);
+        await job.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
         (await ReadFileAsync(file.Id)).Status.ShouldBe("PendingUpload");
 
         await UploadAsync(file);
-        await job.ReconcileAsync(TestContext.Current.CancellationToken);
+        await job.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         (await ReadFileAsync(file.Id)).Status.ShouldBe("Ready");
     }
@@ -63,14 +67,15 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
     [InlineData("ready")]
     [InlineData("deleting")]
     [InlineData("deleted")]
-    public async Task ReconcileAsync_Should_LeaveUnrelatedRecordsUnchanged_When_FileIsIneligible(string condition)
+    public async Task HandleAsync_Should_LeaveUnrelatedRecordsUnchanged_When_FileIsIneligible(string condition)
     {
         var file = await SaveFileAsync(condition);
         await UploadAsync(file);
         var original = await ReadFileAsync(file.Id);
         await using var scope = Fixture.CreateScope();
 
-        await CreateReconciler(scope.ServiceProvider).ReconcileAsync(TestContext.Current.CancellationToken);
+        await CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
         stored.Status.ShouldBe(original.Status);
@@ -79,7 +84,7 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
     }
 
     [Fact(DisplayName = "Reconciliation should visit every page when earlier files are still missing")]
-    public async Task ReconcileAsync_Should_VisitEveryPage_When_EarlierFilesAreStillMissing()
+    public async Task HandleAsync_Should_VisitEveryPage_When_EarlierFilesAreStillMissing()
     {
         var files = new[] { await SaveFileAsync(), await SaveFileAsync(), await SaveFileAsync() };
         var ordered = files.OrderBy(file => file.Id.Value).ToArray();
@@ -87,8 +92,8 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
         await UploadAsync(ordered[2]);
         await using var scope = Fixture.CreateScope();
 
-        await CreateReconciler(scope.ServiceProvider, batchSize: 1)
-            .ReconcileAsync(TestContext.Current.CancellationToken);
+        await CreateHandler(scope.ServiceProvider, batchSize: 1)
+            .HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         (await ReadFileAsync(ordered[0].Id)).Status.ShouldBe("PendingUpload");
         (await ReadFileAsync(ordered[1].Id)).Status.ShouldBe("Ready");
@@ -96,7 +101,7 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
     }
 
     [Fact(DisplayName = "Reconciliation should preserve pending state when storage is unavailable")]
-    public async Task ReconcileAsync_Should_PreservePendingState_When_StorageIsUnavailable()
+    public async Task HandleAsync_Should_PreservePendingState_When_StorageIsUnavailable()
     {
         var file = await SaveFileAsync();
         using var client = Fixture.Storage.CreateClient();
@@ -111,7 +116,8 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
         {
             await using var scope = Fixture.CreateScope();
 
-            await CreateReconciler(scope.ServiceProvider).ReconcileAsync(TestContext.Current.CancellationToken);
+            await CreateHandler(scope.ServiceProvider).HandleAsync(
+                new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
             stored = await ReadFileAsync(file.Id);
         }
@@ -129,14 +135,15 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
     }
 
     [Fact(DisplayName = "Reconciliation should propagate cancellation when cancellation is requested")]
-    public async Task ReconcileAsync_Should_PropagateCancellation_When_CancellationIsRequested()
+    public async Task HandleAsync_Should_PropagateCancellation_When_CancellationIsRequested()
     {
         await using var scope = Fixture.CreateScope();
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         await cancellation.CancelAsync();
 
         var exception = await Record.ExceptionAsync(() =>
-            CreateReconciler(scope.ServiceProvider).ReconcileAsync(cancellation.Token));
+            CreateHandler(scope.ServiceProvider).HandleAsync(
+                new ReconcilePersonalFileUploadsCommand(), cancellation.Token));
 
         exception.ShouldBeAssignableTo<OperationCanceledException>();
     }
@@ -144,7 +151,7 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
     [Theory(DisplayName = "Reconciliation should preserve pending state when stored metadata is invalid")]
     [InlineData(0, "text/plain")]
     [InlineData(4, "text/*")]
-    public async Task ReconcileAsync_Should_KeepPending_When_StoredMetadataIsInvalid(int size, string contentType)
+    public async Task HandleAsync_Should_KeepPending_When_StoredMetadataIsInvalid(int size, string contentType)
     {
         var file = await SaveFileAsync();
         await using var scope = Fixture.CreateScope();
@@ -152,7 +159,8 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
         await scope.ServiceProvider.GetRequiredService<IFileStorage>()
             .UploadAsync(file.StorageKey.Value, content, contentType, TestContext.Current.CancellationToken);
 
-        await CreateReconciler(scope.ServiceProvider).ReconcileAsync(TestContext.Current.CancellationToken);
+        await CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
         stored.Status.ShouldBe("PendingUpload");
@@ -160,8 +168,8 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
         stored.ContentType.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Reconciliation should continue and retry when file changes before save")]
-    public async Task ReconcileAsync_Should_ContinueAndRetry_When_FileChangesBeforeSave()
+    [Fact(DisplayName = "Reconciliation should stop and retry when file changes before save")]
+    public async Task HandleAsync_Should_StopAndRetry_When_FileChangesBeforeSave()
     {
         var changedFile = await SaveFileAsync();
         var otherFile = await SaveFileAsync();
@@ -176,14 +184,18 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
         services.AddSingleton<IInterceptor>(interceptor);
         await using var provider = services.BuildServiceProvider();
         await using var scope = provider.CreateAsyncScope();
-        var reconciler = CreateReconciler(scope.ServiceProvider, batchSize: 1);
+        var reconciler = CreateHandler(scope.ServiceProvider, batchSize: 1);
 
-        await reconciler.ReconcileAsync(TestContext.Current.CancellationToken);
+        var exception = await Record.ExceptionAsync(() => reconciler.HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken));
         var pending = await ReadFileAsync(changedFile.Id);
+        await using var retryScope = provider.CreateAsyncScope();
+        await CreateHandler(retryScope.ServiceProvider, batchSize: 1)
+            .HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
         var completed = await ReadFileAsync(otherFile.Id);
-        await reconciler.ReconcileAsync(TestContext.Current.CancellationToken);
         var retried = await ReadFileAsync(changedFile.Id);
 
+        exception.ShouldBeOfType<ConcurrencyException>();
         pending.Status.ShouldBe("PendingUpload");
         pending.Name.ShouldBe("renamed.txt");
         pending.Size.ShouldBeNull();
@@ -193,20 +205,21 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
         retried.Size.ShouldBe(4);
     }
 
-    private static PersonalFileUploadReconciler CreateReconciler(
+    private static ReconcilePersonalFileUploadsHandler CreateHandler(
         IServiceProvider services,
         int batchSize = 100)
     {
-        return new PersonalFileUploadReconciler(
-            services.GetRequiredService<FileManagerReadDbContext>(),
-            services.GetRequiredService<S3FileMetadataReader>(),
-            services.GetRequiredService<IServiceScopeFactory>(),
-            TimeProvider.System,
-            Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions
+        return new ReconcilePersonalFileUploadsHandler(
+            filesRepository: services.GetRequiredService<IFilesRepository>(),
+            filesReadRepository: services.GetRequiredService<IFilesReadRepository>(),
+            metadataReader: services.GetRequiredService<IFileMetadataReader>(),
+            unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
+            timeProvider: TimeProvider.System,
+            options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions
             {
                 BatchSize = batchSize
             }),
-            NullLogger<PersonalFileUploadReconciler>.Instance);
+            logger: NullLogger<ReconcilePersonalFileUploadsHandler>.Instance);
     }
 
     private async Task<File> SaveFileAsync(string condition = "pending")
