@@ -4,13 +4,10 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
@@ -27,15 +24,12 @@ public sealed class CreatePersonalFileHandlerTests
     private readonly IFileStorage _storage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ICurrentUser _currentUser = Substitute.For<ICurrentUser>();
-    private readonly IFileUploadFinalizer _finalizer = Substitute.For<IFileUploadFinalizer>();
     private readonly Guid _userId = Guid.NewGuid();
 
     public CreatePersonalFileHandlerTests()
     {
         _currentUser.IsAuthenticated.Returns(true);
         _currentUser.UserId.Returns(_userId);
-        _finalizer.CompleteAsync(default, default!, default!, Arg.Any<CancellationToken>())
-            .ReturnsForAnyArgs(Result.Success());
     }
 
     [Theory(DisplayName = "Personal file upload should save pending metadata before uploading when command is valid")]
@@ -77,20 +71,21 @@ public sealed class CreatePersonalFileHandlerTests
                 steps.Add("upload");
                 return Task.CompletedTask;
             });
-        _finalizer.CompleteAsync(default, default!, default!, Arg.Any<CancellationToken>()).ReturnsForAnyArgs(call =>
+        _files.When(repository => repository.Update(Arg.Any<File>())).Do(call =>
         {
             stagedFile.ShouldNotBeNull();
-            call.Arg<FileId>().ShouldBe(stagedFile.Id);
-            call.Arg<FileSize>().Value.ShouldBe(content.Length);
-            call.Arg<FileContentType>().Value.ShouldBe("text/plain");
+            var file = call.Arg<File>();
+            file.ShouldBeSameAs(stagedFile);
+            file.Status.ShouldBe(FileStatus.Ready);
+            file.Size!.Value.ShouldBe(content.Length);
+            file.ContentType!.Value.ShouldBe("text/plain");
             steps.Add("ready");
-            return Result.Success();
         });
 
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        steps.ShouldBe(["pending", "save", "upload", "ready"]);
+        steps.ShouldBe(["pending", "save", "upload", "ready", "save"]);
         content.CanRead.ShouldBeTrue();
     }
 
@@ -165,7 +160,6 @@ public sealed class CreatePersonalFileHandlerTests
         _folders.ReceivedCalls().ShouldBeEmpty();
         _storage.ReceivedCalls().ShouldBeEmpty();
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
-        _finalizer.ReceivedCalls().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Create personal file handler should not upload when save fails")]
@@ -200,21 +194,23 @@ public sealed class CreatePersonalFileHandlerTests
         thrown.ShouldBeSameAs(failure);
         await _unitOfWork.Received(1).SaveChangesAsync(cancellationToken);
         _files.DidNotReceiveWithAnyArgs().Update(null!);
-        _finalizer.ReceivedCalls().ShouldBeEmpty();
         content.CanRead.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Personal file upload should return finalization errors when finalization fails")]
-    public async Task HandleAsync_Should_ReturnFinalizationErrors_When_FinalizationFails()
+    [Fact(DisplayName = "Personal file upload should propagate failure when ready save fails")]
+    public async Task HandleAsync_Should_PropagateFailure_When_ReadySaveFails()
     {
         await using var content = new MemoryStream([1]);
-        _finalizer.CompleteAsync(default, default!, default!, Arg.Any<CancellationToken>())
-            .ReturnsForAnyArgs(Result.Failure(Error.Conflict("File cannot be finalized.")));
+        var saves = 0;
+        var failure = new IOException("Ready save failed.");
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(_ =>
+            ++saves == 2 ? Task.FromException(failure) : Task.CompletedTask);
 
-        var result = await CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken);
+        var thrown = await Record.ExceptionAsync(() =>
+            CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken));
 
-        result.ShouldHaveSingleError(ErrorType.Conflict, "File cannot be finalized.");
-        await _unitOfWork.Received(1).SaveChangesAsync(TestContext.Current.CancellationToken);
+        thrown.ShouldBeSameAs(failure);
+        saves.ShouldBe(2);
     }
 
     private static CreatePersonalFileCommand CreateCommand(Stream content)
@@ -225,6 +221,6 @@ public sealed class CreatePersonalFileHandlerTests
 
     private CreatePersonalFileHandler CreateHandler()
     {
-        return new CreatePersonalFileHandler(_files, _folders, _storage, _unitOfWork, _currentUser, _finalizer);
+        return new CreatePersonalFileHandler(_files, _folders, _storage, _unitOfWork, _currentUser);
     }
 }

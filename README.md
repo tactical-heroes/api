@@ -209,9 +209,14 @@ The EF migrator only manages module schemas, not Wolverine's message-store table
 The reconciler reads S3 object metadata using the persisted storage key and the same
 environment prefix as uploads. If the object exists and its content type and size
 are valid domain values, it restores those actual values and marks the file
-`Ready`. HTTP uploads and recovery share an idempotent finalizer: a short database
-transaction locks and reloads the row, preventing concurrent completion from
-overwriting another lifecycle transition. No database lock is held during S3 calls.
+`Ready`. HTTP uploads call `File.CompleteUpload` and save through their repository
+and unit of work. Recovery loads each aggregate in a fresh write scope, rechecks
+that it is still pending, then completes and saves it the same way. Existing
+optimistic concurrency tokens protect updates; a conflicting recovery attempt is
+skipped until the next scan. No explicit row locks or enclosing S3 transaction are used.
+The age threshold separates recovery from normal uploads but is not a lease:
+an exceptionally long HTTP upload can still receive an optimistic concurrency
+conflict if recovery completes first.
 
 Missing objects, invalid metadata, storage errors, and per-object timeouts leave
 the record unchanged for subsequent checks. Paging continues past missing objects.

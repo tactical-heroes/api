@@ -3,9 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.Core.Application.Persistence.Errors;
+
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -70,13 +73,27 @@ internal sealed class PersonalFileUploadReconciler(
                     }
 
                     await using var scope = scopeFactory.CreateAsyncScope();
-                    var result = await scope.ServiceProvider.GetRequiredService<IFileUploadFinalizer>().CompleteAsync(
+                    var filesRepository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+                    var aggregate = await filesRepository.GetByIdAsync(
                         id: FileId.Create(file.Id).Value,
-                        contentType: contentType.Value,
-                        size: size.Value,
                         cancellationToken: cancellationToken);
+                    if (aggregate is null
+                        || aggregate.Type != FileType.Personal
+                        || aggregate.Status != FileStatus.PendingUpload
+                        || aggregate.StorageKey.Value != file.StorageKey)
+                    {
+                        continue;
+                    }
+
+                    var result = aggregate.CompleteUpload(
+                        contentType: contentType.Value,
+                        size: size.Value);
                     if (result.IsSuccess)
                     {
+                        filesRepository.Update(aggregateRoot: aggregate);
+                        var unitOfWork = scope.ServiceProvider
+                            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+                        await unitOfWork.SaveChangesAsync(cancellationToken);
                         logger.LogInformation("Reconciled personal file {FileId}", file.Id);
                     }
                     else
@@ -87,6 +104,10 @@ internal sealed class PersonalFileUploadReconciler(
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     throw;
+                }
+                catch (ConcurrencyException exception)
+                {
+                    logger.LogDebug(exception, "Personal file {FileId} changed during reconciliation", file.Id);
                 }
                 catch (Exception exception)
                 {

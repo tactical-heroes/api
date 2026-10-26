@@ -1,13 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+
+using Npgsql;
 
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
@@ -154,6 +160,39 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
         stored.ContentType.ShouldBeNull();
     }
 
+    [Fact(DisplayName = "Reconciliation should continue and retry when file changes before save")]
+    public async Task ReconcileAsync_Should_ContinueAndRetry_When_FileChangesBeforeSave()
+    {
+        var changedFile = await SaveFileAsync();
+        var otherFile = await SaveFileAsync();
+        await UploadAsync(changedFile);
+        await UploadAsync(otherFile);
+        var settings = Fixture.Storage.GetConfiguration(nameof(FileManager));
+        settings["ConnectionStrings:PostgreSqlConnectionString"] = Fixture.ConnectionString;
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
+        var services = new ServiceCollection();
+        services.AddInfrastructure(configuration);
+        var interceptor = new ChangeFileBeforeSaveInterceptor(changedFile.Id.Value, Fixture.ConnectionString);
+        services.AddSingleton<IInterceptor>(interceptor);
+        await using var provider = services.BuildServiceProvider();
+        await using var scope = provider.CreateAsyncScope();
+        var reconciler = CreateReconciler(scope.ServiceProvider, batchSize: 1);
+
+        await reconciler.ReconcileAsync(TestContext.Current.CancellationToken);
+        var pending = await ReadFileAsync(changedFile.Id);
+        var completed = await ReadFileAsync(otherFile.Id);
+        await reconciler.ReconcileAsync(TestContext.Current.CancellationToken);
+        var retried = await ReadFileAsync(changedFile.Id);
+
+        pending.Status.ShouldBe("PendingUpload");
+        pending.Name.ShouldBe("renamed.txt");
+        pending.Size.ShouldBeNull();
+        completed.Status.ShouldBe("Ready");
+        retried.Status.ShouldBe("Ready");
+        retried.Name.ShouldBe("renamed.txt");
+        retried.Size.ShouldBe(4);
+    }
+
     private static PersonalFileUploadReconciler CreateReconciler(
         IServiceProvider services,
         int batchSize = 100)
@@ -220,5 +259,35 @@ public sealed class PersonalFileUploadReconcilerTests(IntegrationTestFixture fix
             .GetRequiredService<FileManagerReadDbContext>()
             .Set<FileReadDbModel>()
             .SingleAsync(file => file.Id == id.Value, TestContext.Current.CancellationToken);
+    }
+
+    private sealed class ChangeFileBeforeSaveInterceptor(Guid fileId, string connectionString) : SaveChangesInterceptor
+    {
+        private bool _changed;
+
+        public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken)
+        {
+            if (_changed
+                || eventData.Context is not FileManagerWriteDbContext context
+                || !context.ChangeTracker.Entries<File>().Any(entry =>
+                    entry.Entity.Id.Value == fileId && entry.Entity.Status == FileStatus.Ready))
+            {
+                return result;
+            }
+
+            _changed = true;
+            await using var connection = new NpgsqlConnection(connectionString);
+            await connection.OpenAsync(cancellationToken);
+            await using var command = new NpgsqlCommand(
+                "UPDATE file_manager.files SET name = 'renamed.txt' WHERE id = @id",
+                connection);
+            command.Parameters.AddWithValue("id", fileId);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+
+            return result;
+        }
     }
 }
