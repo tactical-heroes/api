@@ -10,6 +10,7 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -96,6 +97,7 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
             services.GetRequiredService<IFoldersRepository>(),
             services.GetRequiredService<IFileStorage>(),
             services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            currentUser);
+            currentUser,
+            services.GetRequiredService<IFileUploadFinalizer>());
     }
 }

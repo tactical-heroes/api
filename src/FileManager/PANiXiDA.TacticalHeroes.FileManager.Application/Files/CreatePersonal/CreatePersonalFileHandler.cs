@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -17,7 +18,8 @@ public sealed class CreatePersonalFileHandler(
     IFoldersRepository foldersRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IFileUploadFinalizer fileUploadFinalizer)
     : ICommandHandler<CreatePersonalFileCommand, Result<Guid>>, IRequireAuthorization
 {
     public async Task<Result<Guid>> HandleAsync(
@@ -87,16 +89,15 @@ public sealed class CreatePersonalFileHandler(
             contentType: contentTypeResult.Value.Value,
             cancellationToken: cancellationToken);
 
-        var completeResult = file.CompleteUpload(
+        var completeResult = await fileUploadFinalizer.CompleteAsync(
+            id: file.Id,
             contentType: contentTypeResult.Value,
-            size: sizeResult.Value);
+            size: sizeResult.Value,
+            cancellationToken: cancellationToken);
         if (completeResult.IsFailure)
         {
             return Result.Failure<Guid>(completeResult.Errors);
         }
-
-        filesRepository.Update(aggregateRoot: file);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(file.Id.Value);
     }

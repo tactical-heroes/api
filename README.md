@@ -186,6 +186,29 @@ and credentials before using storage. Credentials can be overridden with
 `FileManager__S3Storage__AccessKey` and `FileManager__S3Storage__SecretKey`.
 The base prefix is `production`; `appsettings.Development.json` sets `development`.
 
+## Personal Upload Reconciliation
+
+The host enables a Quartz job under `FileManager:UploadReconciliation`. By default,
+it runs every five minutes and checks personal files that have remained
+`PendingUpload` for at least fifteen minutes. `BatchSize` controls database page
+size (1–1000), and `StorageRequestTimeout` bounds each S3 metadata request.
+`Enabled`, `CronSchedule`, and `MinimumAge` can also be overridden in configuration.
+
+The job reads S3 object metadata using the persisted storage key and the same
+environment prefix as uploads. If the object exists and its content type and size
+are valid domain values, it restores those actual values and marks the file
+`Ready`. HTTP uploads and recovery share an idempotent finalizer: a short database
+transaction locks and reloads the row, preventing concurrent completion from
+overwriting another lifecycle transition. No database lock is held during S3 calls.
+
+Missing objects, invalid metadata, storage errors, and per-object timeouts leave
+the record unchanged for subsequent checks. Paging continues past missing objects.
+Each completed file uses a separate write scope. The job does not delete objects,
+expire records, restart uploads, or inspect files already marked `Ready`.
+Incomplete multipart cleanup and upload-request idempotency remain separate work.
+This recovery path establishes eventual completion for objects that are present;
+it does not make S3 and PostgreSQL updates atomic or verify an expected checksum.
+
 ## Repository Layout
 
 - `src/` - application source code.
