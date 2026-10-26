@@ -78,11 +78,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("ClosureReason")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
-                        .HasColumnName("closure_reason");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")

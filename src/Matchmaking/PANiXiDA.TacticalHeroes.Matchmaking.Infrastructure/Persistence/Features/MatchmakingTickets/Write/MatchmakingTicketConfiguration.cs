@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.BuildSnapshots;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchmakingTickets.Write;
 
@@ -23,13 +25,13 @@ internal sealed class MatchmakingTicketConfiguration : AuditableEntityConfigurat
         builder.Property(ticket => ticket.PlayerId)
             .HasConversion(
                 playerId => playerId.Value,
-                value => PlayerReference.Create(value).Value)
+                value => PlayerId.Create(value).Value)
             .IsRequired();
 
         builder.Property(ticket => ticket.BuildSnapshotId)
             .HasConversion(
                 snapshotId => snapshotId.Value,
-                value => BuildSnapshotReference.Create(value).Value)
+                value => BuildSnapshotId.Create(value).Value)
             .IsRequired();
 
         builder.Property(ticket => ticket.Rating)

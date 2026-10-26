@@ -25,7 +25,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     creation_deadline = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     game_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    closure_reason = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>

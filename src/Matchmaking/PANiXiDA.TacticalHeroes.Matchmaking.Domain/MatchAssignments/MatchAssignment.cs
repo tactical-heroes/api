@@ -1,7 +1,7 @@
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Entities.MatchParticipants;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
@@ -29,15 +29,10 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
     public MatchmakingTimestamp MatchedAt { get; private set; }
     public MatchmakingTimestamp CreationDeadline { get; private set; }
     public MatchAssignmentStatus Status { get; private set; }
-    public GameReference? GameId { get; private set; }
-    public MatchmakingReason? ClosureReason { get; private set; }
+    public GameId? GameId { get; private set; }
 
     public IReadOnlyCollection<MatchParticipant> Participants => _participants.AsReadOnly();
 
-    /// <summary>
-    /// Captures a matched pair and requests game creation without mutating its tickets. The application must
-    /// reserve both tickets and persist all three aggregates in one transaction before publishing events.
-    /// </summary>
     public static Result<MatchAssignment> Create(
         MatchmakingTicket first,
         MatchmakingTicket second,
@@ -74,7 +69,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         return Result.Success(assignment);
     }
 
-    public Result Complete(GameReference gameId, MatchmakingTimestamp now)
+    public Result Complete(GameId gameId, MatchmakingTimestamp now)
     {
         if (Status == MatchAssignmentStatus.Ready && GameId == gameId)
         {
@@ -95,7 +90,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         return Result.Success();
     }
 
-    public Result Fail(MatchmakingReason reason)
+    public Result Fail()
     {
         if (Status == MatchAssignmentStatus.Failed)
         {
@@ -103,7 +98,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         }
 
         return Status == MatchAssignmentStatus.CreatingGame
-            ? Close(MatchAssignmentStatus.Failed, reason)
+            ? Close(MatchAssignmentStatus.Failed)
             : Result.Failure(Error.Conflict("Only game creation can fail."));
     }
 
@@ -119,7 +114,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
             return Result.Failure(Error.Conflict("Only overdue game creation can expire."));
         }
 
-        return Close(MatchAssignmentStatus.Expired, MatchmakingReason.Create("Assignment deadline elapsed.").Value);
+        return Close(MatchAssignmentStatus.Expired);
     }
 
     private static bool IsActive(MatchmakingTicket ticket, MatchmakingTimestamp now)
@@ -129,10 +124,9 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
             && now.Value < ticket.ExpiresAt.Value;
     }
 
-    private Result Close(MatchAssignmentStatus status, MatchmakingReason reason)
+    private Result Close(MatchAssignmentStatus status)
     {
         Status = status;
-        ClosureReason = reason;
         RecordStateChanged();
 
         return Result.Success();
@@ -143,7 +137,6 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         AddDomainEvent(new MatchAssignmentStateChanged(
             MatchAssignmentId: Id.Value,
             Status: Status.Name,
-            GameId: GameId?.Value,
-            Reason: ClosureReason?.Value));
+            GameId: GameId?.Value));
     }
 }

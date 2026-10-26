@@ -1,7 +1,9 @@
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.BuildSnapshots;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 
@@ -9,8 +11,8 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
 {
     private MatchmakingTicket(
         MatchmakingTicketId id,
-        PlayerReference playerId,
-        BuildSnapshotReference buildSnapshotId,
+        PlayerId playerId,
+        BuildSnapshotId buildSnapshotId,
         RatingSnapshot rating,
         MatchmakingMode mode,
         MatchmakingTimestamp queuedAt,
@@ -26,8 +28,8 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         Status = MatchmakingTicketStatus.Searching;
     }
 
-    public PlayerReference PlayerId { get; private set; }
-    public BuildSnapshotReference BuildSnapshotId { get; private set; }
+    public PlayerId PlayerId { get; private set; }
+    public BuildSnapshotId BuildSnapshotId { get; private set; }
     public RatingSnapshot Rating { get; private set; }
     public MatchmakingMode Mode { get; private set; }
     public MatchmakingTimestamp QueuedAt { get; private set; }
@@ -36,8 +38,8 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
     public MatchAssignmentId? MatchAssignmentId { get; private set; }
 
     public static Result<MatchmakingTicket> Create(
-        PlayerReference playerId,
-        BuildSnapshotReference buildSnapshotId,
+        PlayerId playerId,
+        BuildSnapshotId buildSnapshotId,
         RatingSnapshot rating,
         MatchmakingMode mode,
         MatchmakingTimestamp queuedAt,
@@ -108,10 +110,6 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         return Result.Success();
     }
 
-    /// <summary>
-    /// Closes this search. A reserved ticket may be closed only as part of recovery from failed or expired
-    /// game creation, together with its assignment and peer ticket in one transaction. A retry uses a new ticket.
-    /// </summary>
     public Result Cancel()
     {
         if (Status == MatchmakingTicketStatus.Cancelled)

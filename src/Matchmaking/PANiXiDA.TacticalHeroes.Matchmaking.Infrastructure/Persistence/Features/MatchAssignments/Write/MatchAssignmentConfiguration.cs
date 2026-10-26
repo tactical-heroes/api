@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchAssignments.Write;
@@ -41,15 +41,8 @@ internal sealed class MatchAssignmentConfiguration : AuditableEntityConfiguratio
 
         builder.Property(assignment => assignment.GameId)
             .HasConversion(
-                gameId => gameId!.Value,
-                value => GameReference.Create(value).Value)
-            .IsRequired(required: false);
-
-        builder.Property(assignment => assignment.ClosureReason)
-            .HasConversion(
-                reason => reason!.Value,
-                value => MatchmakingReason.Create(value).Value)
-            .HasMaxLength(MatchmakingReason.MaxLength)
+                gameId => gameId!.Value.Value,
+                value => GameId.Create(value).Value)
             .IsRequired(required: false);
 
         builder.Property(assignment => assignment.Status)

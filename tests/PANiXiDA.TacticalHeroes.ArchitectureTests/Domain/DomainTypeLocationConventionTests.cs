@@ -401,20 +401,14 @@ public sealed class DomainTypeLocationConventionTests
         Type identifier,
         IReadOnlyCollection<Type> owners)
     {
-        var externalOwner = owners.FirstOrDefault(owner =>
-            owner.Assembly != identifier.Assembly
-                && owner.Name + "Id" == identifier.Name);
-        if (externalOwner is null)
+        if (!identifier.Name.EndsWith("Id", StringComparison.Ordinal) || identifier.Name.Length <= 2)
         {
-            return
-            [
-                $"{identifier.FullName} must identify a local aggregate root or "
-                    + $"entity, or reference an owner from another module."
-            ];
+            return [$"{identifier.FullName} must be named '<OwnerName>Id'."];
         }
 
+        var ownerName = identifier.Name[..^2];
         var expectedNamespace =
-            $"{GetAssemblyName(identifier)}.{EnglishNamingConvention.Pluralize(externalOwner.Name)}";
+            $"{GetAssemblyName(identifier)}.{EnglishNamingConvention.Pluralize(ownerName)}";
         var violations = GetLocationViolations(
             repositoryRoot,
             identifier,

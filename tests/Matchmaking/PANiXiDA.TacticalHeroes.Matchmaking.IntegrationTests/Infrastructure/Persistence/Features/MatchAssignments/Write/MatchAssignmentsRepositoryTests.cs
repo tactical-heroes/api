@@ -3,10 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
@@ -32,7 +32,7 @@ public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixtu
             assignment = await SaveAssignmentAsync(scope.ServiceProvider, cancellationToken);
         }
 
-        var game = GameReference.Create(Guid.CreateVersion7()).Value;
+        var game = GameId.Create(Guid.CreateVersion7()).Value;
         await using (var scope = fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
@@ -93,11 +93,11 @@ public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixtu
         var secondRepository = secondScope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
         var first = (await firstRepository.GetByIdAsync(assignment.Id, cancellationToken))!;
         var second = (await secondRepository.GetByIdAsync(assignment.Id, cancellationToken))!;
-        var game = GameReference.Create(Guid.CreateVersion7()).Value;
+        var game = GameId.Create(Guid.CreateVersion7()).Value;
         first.Complete(game, At(2)).IsSuccess.ShouldBeTrue();
         firstRepository.Update(first);
         await UnitOfWork(firstScope.ServiceProvider).SaveChangesAsync(cancellationToken);
-        second.Fail(MatchmakingReason.Create("Late failure").Value).IsSuccess.ShouldBeTrue();
+        second.Fail().IsSuccess.ShouldBeTrue();
         secondRepository.Update(second);
 
         var exception = await Should.ThrowAsync<ConcurrencyException>(() =>
@@ -107,7 +107,7 @@ public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixtu
         await using var retryScope = fixture.CreateScope();
         var retryRepository = retryScope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
         var retried = (await retryRepository.GetByIdAsync(assignment.Id, cancellationToken))!;
-        retried.Fail(MatchmakingReason.Create("Late failure").Value).IsFailure.ShouldBeTrue();
+        retried.Fail().IsFailure.ShouldBeTrue();
         retried.Complete(game, At(100)).IsSuccess.ShouldBeTrue();
         retried.Status.ShouldBe(MatchAssignmentStatus.Ready);
         retried.GameId.ShouldBe(game);

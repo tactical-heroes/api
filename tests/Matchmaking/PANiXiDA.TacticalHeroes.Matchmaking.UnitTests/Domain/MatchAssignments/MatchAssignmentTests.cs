@@ -1,8 +1,8 @@
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Entities.MatchParticipants;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
@@ -74,25 +74,25 @@ public sealed class MatchAssignmentTests
     public void Complete_Should_BindExactlyOneGame_When_DeliveryIsRetried()
     {
         var assignment = Assignment();
-        var game = GameReference.Create(Guid.CreateVersion7()).Value;
+        var game = GameId.Create(Guid.CreateVersion7()).Value;
 
         assignment.Complete(game, At(3)).IsSuccess.ShouldBeTrue();
         var count = assignment.GetDomainEvents().Count;
         assignment.Complete(game, At(100)).IsSuccess.ShouldBeTrue();
-        assignment.Complete(GameReference.Create(Guid.CreateVersion7()).Value, At(4)).IsFailure.ShouldBeTrue();
+        assignment.Complete(GameId.Create(Guid.CreateVersion7()).Value, At(4)).IsFailure.ShouldBeTrue();
 
         assignment.GameId.ShouldBe(game);
         assignment.Status.ShouldBe(MatchAssignmentStatus.Ready);
         assignment.GetDomainEvents().Count.ShouldBe(count);
         assignment.GetDomainEvents().OfType<GameCreationRequested>().ShouldHaveSingleItem();
         assignment.Expire(At(100)).IsFailure.ShouldBeTrue();
-        assignment.Fail(MatchmakingReason.Create("Late failure").Value).IsFailure.ShouldBeTrue();
+        assignment.Fail().IsFailure.ShouldBeTrue();
     }
 
     [Fact(DisplayName = "Assignment should reject result when outside creation window")]
     public void Complete_Should_RejectResult_When_OutsideCreationWindow()
     {
-        var game = GameReference.Create(Guid.CreateVersion7()).Value;
+        var game = GameId.Create(Guid.CreateVersion7()).Value;
         var assignment = Assignment();
 
         assignment.Complete(game, At(0)).IsFailure.ShouldBeTrue();
@@ -107,16 +107,14 @@ public sealed class MatchAssignmentTests
     public void Fail_Should_CloseGameCreationOnce_When_Retried()
     {
         var assignment = Assignment();
-        var reason = MatchmakingReason.Create("Games unavailable").Value;
 
-        assignment.Fail(reason).IsSuccess.ShouldBeTrue();
+        assignment.Fail().IsSuccess.ShouldBeTrue();
         var count = assignment.GetDomainEvents().Count;
-        assignment.Fail(MatchmakingReason.Create("Retry").Value).IsSuccess.ShouldBeTrue();
+        assignment.Fail().IsSuccess.ShouldBeTrue();
 
         assignment.Status.ShouldBe(MatchAssignmentStatus.Failed);
-        assignment.ClosureReason.ShouldBe(reason);
         assignment.GetDomainEvents().Count.ShouldBe(count);
-        assignment.Complete(GameReference.Create(Guid.CreateVersion7()).Value, At(3)).IsFailure.ShouldBeTrue();
+        assignment.Complete(GameId.Create(Guid.CreateVersion7()).Value, At(3)).IsFailure.ShouldBeTrue();
         assignment.Expire(At(100)).IsFailure.ShouldBeTrue();
     }
 
@@ -131,9 +129,8 @@ public sealed class MatchAssignmentTests
         assignment.Expire(At(61)).IsSuccess.ShouldBeTrue();
 
         assignment.Status.ShouldBe(MatchAssignmentStatus.Expired);
-        assignment.ClosureReason.ShouldNotBeNull();
         assignment.GetDomainEvents().Count.ShouldBe(count);
-        assignment.Complete(GameReference.Create(Guid.CreateVersion7()).Value, At(61)).IsFailure.ShouldBeTrue();
-        assignment.Fail(MatchmakingReason.Create("Late failure").Value).IsFailure.ShouldBeTrue();
+        assignment.Complete(GameId.Create(Guid.CreateVersion7()).Value, At(61)).IsFailure.ShouldBeTrue();
+        assignment.Fail().IsFailure.ShouldBeTrue();
     }
 }

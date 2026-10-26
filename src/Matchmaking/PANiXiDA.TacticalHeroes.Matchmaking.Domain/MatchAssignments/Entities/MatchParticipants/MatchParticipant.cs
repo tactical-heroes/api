@@ -1,5 +1,7 @@
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.BuildSnapshots;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Entities.MatchParticipants;
 
@@ -9,8 +11,8 @@ public sealed class MatchParticipant : Entity<MatchParticipantId>
         MatchParticipantId id,
         MatchAssignmentId matchAssignmentId,
         MatchmakingTicketId ticketId,
-        PlayerReference playerId,
-        BuildSnapshotReference buildSnapshotId,
+        PlayerId playerId,
+        BuildSnapshotId buildSnapshotId,
         RatingSnapshot rating)
         : base(id)
     {
@@ -23,8 +25,8 @@ public sealed class MatchParticipant : Entity<MatchParticipantId>
 
     public MatchAssignmentId MatchAssignmentId { get; private set; }
     public MatchmakingTicketId TicketId { get; private set; }
-    public PlayerReference PlayerId { get; private set; }
-    public BuildSnapshotReference BuildSnapshotId { get; private set; }
+    public PlayerId PlayerId { get; private set; }
+    public BuildSnapshotId BuildSnapshotId { get; private set; }
     public RatingSnapshot Rating { get; private set; }
 
     internal static MatchParticipant Create(MatchAssignmentId assignmentId, MatchmakingTicket ticket)

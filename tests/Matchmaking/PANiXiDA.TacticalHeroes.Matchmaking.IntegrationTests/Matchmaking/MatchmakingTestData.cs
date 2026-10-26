@@ -1,10 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.BuildSnapshots;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Matchmaking;
@@ -20,8 +22,8 @@ internal static class MatchmakingTestData
     internal static MatchmakingTicket Ticket(Guid? playerId = null, string mode = "duel")
     {
         return MatchmakingTicket.Create(
-            PlayerReference.Create(playerId ?? Guid.CreateVersion7()).Value,
-            BuildSnapshotReference.Create(Guid.CreateVersion7()).Value,
+            PlayerId.Create(playerId ?? Guid.CreateVersion7()).Value,
+            BuildSnapshotId.Create(Guid.CreateVersion7()).Value,
             RatingSnapshot.Create(1500),
             MatchmakingMode.Create(mode).Value,
             At(0),
