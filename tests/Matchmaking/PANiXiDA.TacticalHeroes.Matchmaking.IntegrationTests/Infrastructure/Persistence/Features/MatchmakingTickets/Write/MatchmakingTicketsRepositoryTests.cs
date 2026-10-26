@@ -16,7 +16,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class MatchmakingTicketsRepositoryTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Matchmaking should preserve selection when reloaded")]
+    [Fact(DisplayName = "Repository should preserve selection when reloaded")]
     public async Task GetByIdAsync_Should_PreserveSelection_When_Reloaded()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -51,7 +51,7 @@ public sealed class MatchmakingTicketsRepositoryTests(IntegrationTestFixture fix
         row.BuildSnapshotId.ShouldBe(ticket.BuildSnapshotId.Value);
     }
 
-    [Fact(DisplayName = "Matchmaking should reject second active ticket when player queues across modes")]
+    [Fact(DisplayName = "Repository should reject second active ticket when player queues across modes")]
     public async Task Add_Should_RejectSecondActiveTicket_When_PlayerQueuesAcrossModes()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -73,7 +73,7 @@ public sealed class MatchmakingTicketsRepositoryTests(IntegrationTestFixture fix
             .ShouldBe(PostgresErrorCodes.UniqueViolation);
     }
 
-    [Fact(DisplayName = "Matchmaking should allow new search when previous ticket was cancelled")]
+    [Fact(DisplayName = "Repository should allow new search when previous ticket was cancelled")]
     public async Task Add_Should_AllowNewSearch_When_PreviousTicketWasCancelled()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

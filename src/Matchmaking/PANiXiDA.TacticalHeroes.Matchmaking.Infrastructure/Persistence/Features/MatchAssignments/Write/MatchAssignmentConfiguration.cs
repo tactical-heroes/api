@@ -12,45 +12,76 @@ internal sealed class MatchAssignmentConfiguration : AuditableEntityConfiguratio
 {
     protected override void ConfigureEntity(EntityTypeBuilder<MatchAssignment> builder)
     {
-        builder.HasKey(value => value.Id);
-        builder.Property(value => value.Id)
-            .HasConversion(value => value.Value, value => MatchAssignmentId.Create(value).Value)
+        builder.HasKey(assignment => assignment.Id);
+
+        builder.Property(assignment => assignment.Id)
+            .HasConversion(
+                id => id.Value,
+                value => MatchAssignmentId.Create(value).Value)
             .ValueGeneratedNever();
-        builder.Property(value => value.Mode)
-            .HasConversion(value => value.Value, value => MatchmakingMode.Create(value).Value)
+
+        builder.Property(assignment => assignment.Mode)
+            .HasConversion(
+                mode => mode.Value,
+                value => MatchmakingMode.Create(value).Value)
             .HasMaxLength(MatchmakingMode.MaxLength)
             .IsRequired();
-        builder.Property(value => value.ProposedAt)
-            .HasConversion(value => value.Value, value => MatchmakingTimestamp.Create(value))
+
+        builder.Property(assignment => assignment.ProposedAt)
+            .HasConversion(
+                proposedAt => proposedAt.Value,
+                value => MatchmakingTimestamp.Create(value))
             .IsRequired();
-        builder.Property(value => value.AcceptanceDeadline)
-            .HasConversion(value => value.Value, value => MatchmakingTimestamp.Create(value))
+
+        builder.Property(assignment => assignment.AcceptanceDeadline)
+            .HasConversion(
+                deadline => deadline.Value,
+                value => MatchmakingTimestamp.Create(value))
             .IsRequired();
-        builder.Property(value => value.CreationDeadline)
-            .HasConversion(value => value.Value, value => MatchmakingTimestamp.Create(value))
+
+        builder.Property(assignment => assignment.CreationDeadline)
+            .HasConversion(
+                deadline => deadline.Value,
+                value => MatchmakingTimestamp.Create(value))
             .IsRequired();
-        builder.Property(value => value.GameId)
-            .HasConversion(value => value!.Value, value => GameReference.Create(value).Value)
+
+        builder.Property(assignment => assignment.GameId)
+            .HasConversion(
+                gameId => gameId!.Value,
+                value => GameReference.Create(value).Value)
             .IsRequired(required: false);
-        builder.Property(value => value.ClosureReason)
-            .HasConversion(value => value!.Value, value => MatchmakingReason.Create(value).Value)
+
+        builder.Property(assignment => assignment.ClosureReason)
+            .HasConversion(
+                reason => reason!.Value,
+                value => MatchmakingReason.Create(value).Value)
             .HasMaxLength(MatchmakingReason.MaxLength)
             .IsRequired(required: false);
-        builder.Property(value => value.Status)
-            .HasConversion(value => value.Name, value => MatchAssignmentStatus.Create(value).Value)
+
+        builder.Property(assignment => assignment.Status)
+            .HasConversion(
+                status => status.Name,
+                value => MatchAssignmentStatus.Create(value).Value)
             .HasMaxLength(MatchAssignmentStatus.MaxLength)
             .IsRequired();
-        builder.HasMany(value => value.Participants).WithOne().HasForeignKey(value => value.MatchAssignmentId)
+
+        builder.HasMany(assignment => assignment.Participants)
+            .WithOne()
+            .HasForeignKey(participant => participant.MatchAssignmentId)
             .OnDelete(DeleteBehavior.Cascade);
-        builder.Navigation(value => value.Participants)
+
+        builder.Navigation(assignment => assignment.Participants)
             .UsePropertyAccessMode(PropertyAccessMode.Field)
             .AutoInclude();
-        builder.HasIndex(value => value.GameId).IsUnique();
-        builder.HasIndex(value => new { value.Status, value.AcceptanceDeadline });
-        builder.HasIndex(value => new { value.Status, value.CreationDeadline });
+
+        builder.HasIndex(assignment => assignment.GameId).IsUnique();
+        builder.HasIndex(assignment => new { assignment.Status, assignment.AcceptanceDeadline });
+        builder.HasIndex(assignment => new { assignment.Status, assignment.CreationDeadline });
+
         builder.Metadata.AddCheckConstraint(
             "ck_assignment_window",
             "acceptance_deadline > proposed_at AND creation_deadline > acceptance_deadline");
+
         builder.Metadata.AddCheckConstraint(
             "ck_assignment_game",
             "(status = 'Ready') = (game_id IS NOT NULL)");

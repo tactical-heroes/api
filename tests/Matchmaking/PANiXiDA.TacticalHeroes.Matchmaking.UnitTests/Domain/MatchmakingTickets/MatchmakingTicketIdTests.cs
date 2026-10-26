@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTicket
 
 public sealed class MatchmakingTicketIdTests
 {
-    [Fact(DisplayName = "Matchmaking should reject empty value when created")]
+    [Fact(DisplayName = "Ticket id should reject empty value when created")]
     public void Create_Should_RejectEmptyValue_When_Created()
     {
         var value = Guid.CreateVersion7();
@@ -15,7 +15,7 @@ public sealed class MatchmakingTicketIdTests
         empty.IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should generate distinct values when requested")]
+    [Fact(DisplayName = "Ticket id should generate distinct values when requested")]
     public void New_Should_GenerateDistinctValues_When_Requested()
     {
         var first = MatchmakingTicketId.New();
@@ -24,7 +24,7 @@ public sealed class MatchmakingTicketIdTests
         first.ShouldNotBe(MatchmakingTicketId.New());
     }
 
-    [Fact(DisplayName = "Matchmaking should display underlying value when converted to text")]
+    [Fact(DisplayName = "Ticket id should display underlying value when converted to text")]
     public void ToString_Should_DisplayUnderlyingValue_When_ConvertedToText()
     {
         var id = MatchmakingTicketId.New();

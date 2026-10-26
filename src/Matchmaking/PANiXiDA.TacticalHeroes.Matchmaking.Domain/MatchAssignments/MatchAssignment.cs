@@ -17,7 +17,8 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         MatchmakingMode mode,
         MatchmakingTimestamp proposedAt,
         MatchmakingTimestamp acceptanceDeadline,
-        MatchmakingTimestamp creationDeadline) : base(id)
+        MatchmakingTimestamp creationDeadline)
+        : base(id)
     {
         Mode = mode;
         ProposedAt = proposedAt;
@@ -26,40 +27,13 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         Status = MatchAssignmentStatus.AwaitingAcceptance;
     }
 
-    public MatchmakingMode Mode
-    {
-        get; private set;
-    }
-
-    public MatchmakingTimestamp ProposedAt
-    {
-        get; private set;
-    }
-
-    public MatchmakingTimestamp AcceptanceDeadline
-    {
-        get; private set;
-    }
-
-    public MatchmakingTimestamp CreationDeadline
-    {
-        get; private set;
-    }
-
-    public MatchAssignmentStatus Status
-    {
-        get; private set;
-    }
-
-    public GameReference? GameId
-    {
-        get; private set;
-    }
-
-    public MatchmakingReason? ClosureReason
-    {
-        get; private set;
-    }
+    public MatchmakingMode Mode { get; private set; }
+    public MatchmakingTimestamp ProposedAt { get; private set; }
+    public MatchmakingTimestamp AcceptanceDeadline { get; private set; }
+    public MatchmakingTimestamp CreationDeadline { get; private set; }
+    public MatchAssignmentStatus Status { get; private set; }
+    public GameReference? GameId { get; private set; }
+    public MatchmakingReason? ClosureReason { get; private set; }
 
     public IReadOnlyCollection<MatchParticipant> Participants => _participants.AsReadOnly();
 
@@ -100,12 +74,14 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         assignment._participants.Add(MatchParticipant.Create(assignment.Id, first));
         assignment._participants.Add(MatchParticipant.Create(assignment.Id, second));
         assignment.RecordStateChanged();
+
         return Result.Success(assignment);
     }
 
     public Result Accept(MatchParticipantId participantId, MatchmakingTimestamp now)
     {
         var participant = _participants.SingleOrDefault(value => value.Id == participantId);
+
         if (participant is null)
         {
             return Result.Failure(Error.Validation("Participant does not belong to this assignment."));
@@ -132,6 +108,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
             ParticipantId: participant.Id.Value,
             PlayerId: participant.PlayerId.Value,
             AcceptedAt: now.Value));
+
         if (_participants.All(value => value.AcceptedAt is not null))
         {
             Status = MatchAssignmentStatus.CreatingGame;
@@ -189,6 +166,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         GameId = gameId;
         Status = MatchAssignmentStatus.Ready;
         RecordStateChanged();
+
         return Result.Success();
     }
 
@@ -212,6 +190,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         }
 
         var deadline = Status == MatchAssignmentStatus.AwaitingAcceptance ? AcceptanceDeadline : CreationDeadline;
+
         if ((Status != MatchAssignmentStatus.AwaitingAcceptance && Status != MatchAssignmentStatus.CreatingGame)
             || now.Value < deadline.Value)
         {
@@ -233,6 +212,7 @@ public sealed class MatchAssignment : AggregateRoot<MatchAssignmentId>
         Status = status;
         ClosureReason = reason;
         RecordStateChanged();
+
         return Result.Success();
     }
 

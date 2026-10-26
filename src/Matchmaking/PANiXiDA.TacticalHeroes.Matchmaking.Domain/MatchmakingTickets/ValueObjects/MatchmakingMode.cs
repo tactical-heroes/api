@@ -9,10 +9,7 @@ public sealed partial class MatchmakingMode : ValueObject
         Value = value;
     }
 
-    public string Value
-    {
-        get;
-    }
+    public string Value { get; }
 
     public static Result<MatchmakingMode> Create(string value)
     {

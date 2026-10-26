@@ -47,6 +47,7 @@ internal static class MatchmakingTestData
         tickets.Add(second);
         services.GetRequiredService<IMatchAssignmentsRepository>().Add(proposal);
         await UnitOfWork(services).SaveChangesAsync(cancellationToken);
+
         return proposal;
     }
 }

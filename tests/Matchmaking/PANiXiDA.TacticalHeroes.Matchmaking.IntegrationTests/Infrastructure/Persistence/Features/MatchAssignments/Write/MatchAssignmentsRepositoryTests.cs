@@ -17,7 +17,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Matchmaking should preserve confirmations and game when reloaded between transitions")]
+    [Fact(DisplayName = "Repository should preserve confirmations and game when reloaded between transitions")]
     public async Task GetByIdAsync_Should_PreserveConfirmationsAndGame_When_ReloadedBetweenTransitions()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -63,7 +63,7 @@ public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixtu
         row.Participants.ShouldAllBe(value => value.AcceptedAt != null);
     }
 
-    [Fact(DisplayName = "Matchmaking should reject stale confirmation when participants confirm concurrently")]
+    [Fact(DisplayName = "Repository should reject stale confirmation when participants confirm concurrently")]
     public async Task Update_Should_RejectStaleConfirmation_When_ParticipantsConfirmConcurrently()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

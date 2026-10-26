@@ -12,6 +12,7 @@ public sealed class MatchmakingTicketReadDbModel : AuditableReadDbModel<Guid>
     public DateTimeOffset ExpiresAt { get; set; }
     public string Status { get; set; } = string.Empty;
     public Guid? MatchAssignmentId { get; set; }
+
     public MatchAssignmentReadDbModel? MatchAssignment { get; set; }
     public ICollection<MatchParticipantReadDbModel> Participants { get; set; } = [];
 }

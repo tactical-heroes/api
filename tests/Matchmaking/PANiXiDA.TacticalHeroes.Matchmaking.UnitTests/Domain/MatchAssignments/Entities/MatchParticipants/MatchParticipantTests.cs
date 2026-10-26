@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchAssignments.
 
 public sealed class MatchParticipantTests
 {
-    [Fact(DisplayName = "Matchmaking should capture ticket selection when created by assignment")]
+    [Fact(DisplayName = "Participant should capture ticket selection when created by assignment")]
     public void Create_Should_CaptureTicketSelection_When_CreatedByAssignment()
     {
         var ticket = Ticket();
@@ -22,7 +22,7 @@ public sealed class MatchParticipantTests
         participant.AcceptedAt.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Matchmaking should retain first timestamp when repeated")]
+    [Fact(DisplayName = "Participant should retain first timestamp when repeated")]
     public void Confirm_Should_RetainFirstTimestamp_When_Repeated()
     {
         var participant = MatchParticipant.Create(MatchAssignmentId.New(), Ticket());

@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTicket
 
 public sealed class RatingSnapshotTests
 {
-    [Theory(DisplayName = "Matchmaking should preserve rating when created")]
+    [Theory(DisplayName = "Rating snapshot should preserve rating when created")]
     [InlineData(-50)]
     [InlineData(0)]
     [InlineData(1500)]
@@ -15,7 +15,7 @@ public sealed class RatingSnapshotTests
         snapshot.Value.ShouldBe(rating);
     }
 
-    [Fact(DisplayName = "Matchmaking should expose state when converted to text")]
+    [Fact(DisplayName = "Rating snapshot should expose state when converted to text")]
     public void ToString_Should_ExposeState_When_ConvertedToText()
     {
         var snapshot = RatingSnapshot.Create(1500);

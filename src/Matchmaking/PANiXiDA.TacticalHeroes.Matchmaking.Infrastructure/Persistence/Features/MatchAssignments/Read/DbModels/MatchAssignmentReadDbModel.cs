@@ -11,6 +11,7 @@ public sealed class MatchAssignmentReadDbModel : AuditableReadDbModel<Guid>
     public string Status { get; set; } = string.Empty;
     public Guid? GameId { get; set; }
     public string? ClosureReason { get; set; }
+
     public ICollection<MatchParticipantReadDbModel> Participants { get; set; } = [];
     public ICollection<MatchmakingTicketReadDbModel> MatchmakingTickets { get; set; } = [];
 }

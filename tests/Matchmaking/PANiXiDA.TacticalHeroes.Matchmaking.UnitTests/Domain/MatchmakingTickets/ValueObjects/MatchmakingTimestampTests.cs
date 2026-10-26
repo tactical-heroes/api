@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTicket
 
 public sealed class MatchmakingTimestampTests
 {
-    [Fact(DisplayName = "Matchmaking should normalize to utc when input has offset")]
+    [Fact(DisplayName = "Timestamp should normalize to utc when input has offset")]
     public void Create_Should_NormalizeToUtc_When_InputHasOffset()
     {
         var instant = new DateTimeOffset(2026, 10, 26, 12, 0, 0, TimeSpan.FromHours(4));
@@ -14,7 +14,7 @@ public sealed class MatchmakingTimestampTests
         timestamp.Value.Offset.ShouldBe(TimeSpan.Zero);
     }
 
-    [Fact(DisplayName = "Matchmaking should expose state when converted to text")]
+    [Fact(DisplayName = "Timestamp should expose state when converted to text")]
     public void ToString_Should_ExposeState_When_ConvertedToText()
     {
         var timestamp = MatchmakingTimestamp.Create(DateTimeOffset.UnixEpoch);

@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class MatchAssignmentsReadRepositoryTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Matchmaking should find stored aggregate when persisted")]
+    [Fact(DisplayName = "Repository should find stored aggregate when persisted")]
     public async Task ExistsByIdAsync_Should_FindStoredAggregate_When_Persisted()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -30,7 +30,7 @@ public sealed class MatchAssignmentsReadRepositoryTests(IntegrationTestFixture f
         (await repository.AnyAsync(cancellationToken)).ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should return false when storage is empty")]
+    [Fact(DisplayName = "Repository should return false when storage is empty")]
     public async Task AnyAsync_Should_ReturnFalse_When_StorageIsEmpty()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

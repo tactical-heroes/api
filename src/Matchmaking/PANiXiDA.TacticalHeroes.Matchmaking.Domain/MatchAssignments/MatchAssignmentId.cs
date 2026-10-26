@@ -7,10 +7,7 @@ public readonly partial record struct MatchAssignmentId : IStronglyTypedId
         Value = value;
     }
 
-    public Guid Value
-    {
-        get;
-    }
+    public Guid Value { get; }
 
     public static MatchAssignmentId New()
     {

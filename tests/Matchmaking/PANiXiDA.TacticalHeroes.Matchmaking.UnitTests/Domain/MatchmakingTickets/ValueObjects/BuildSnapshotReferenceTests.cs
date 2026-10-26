@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTicket
 
 public sealed class BuildSnapshotReferenceTests
 {
-    [Fact(DisplayName = "Matchmaking should validate identifier when created")]
+    [Fact(DisplayName = "Build snapshot should validate identifier when created")]
     public void Create_Should_ValidateIdentifier_When_Created()
     {
         var value = Guid.CreateVersion7();
@@ -15,7 +15,7 @@ public sealed class BuildSnapshotReferenceTests
         empty.IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should expose state when converted to text")]
+    [Fact(DisplayName = "Build snapshot should expose state when converted to text")]
     public void ToString_Should_ExposeState_When_ConvertedToText()
     {
         var reference = BuildSnapshotReference.Create(Guid.CreateVersion7()).Value;

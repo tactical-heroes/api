@@ -10,6 +10,7 @@ public sealed class MatchParticipantReadDbModel : ReadDbModel<Guid>
     public Guid BuildSnapshotId { get; set; }
     public int Rating { get; set; }
     public DateTimeOffset? AcceptedAt { get; set; }
+
     public MatchAssignmentReadDbModel? MatchAssignment { get; set; }
     public MatchmakingTicketReadDbModel? Ticket { get; set; }
 }

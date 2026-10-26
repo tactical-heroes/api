@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTicket
 
 public sealed class MatchmakingModeTests
 {
-    [Fact(DisplayName = "Matchmaking should normalize and validate input when created")]
+    [Fact(DisplayName = "Mode should normalize and validate input when created")]
     public void Create_Should_NormalizeAndValidateInput_When_Created()
     {
         var normalized = MatchmakingMode.Create("  Duel  ");
@@ -16,7 +16,7 @@ public sealed class MatchmakingModeTests
         MatchmakingMode.Create(new string('x', MatchmakingMode.MaxLength + 1)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should expose state when converted to text")]
+    [Fact(DisplayName = "Mode should expose state when converted to text")]
     public void ToString_Should_ExposeState_When_ConvertedToText()
     {
         var value = MatchmakingMode.Create("duel").Value;

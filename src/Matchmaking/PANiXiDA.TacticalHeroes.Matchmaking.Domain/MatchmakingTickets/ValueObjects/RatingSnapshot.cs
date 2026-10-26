@@ -7,10 +7,7 @@ public sealed partial class RatingSnapshot : ValueObject
         Value = value;
     }
 
-    public int Value
-    {
-        get;
-    }
+    public int Value { get; }
 
     public static RatingSnapshot Create(int value)
     {

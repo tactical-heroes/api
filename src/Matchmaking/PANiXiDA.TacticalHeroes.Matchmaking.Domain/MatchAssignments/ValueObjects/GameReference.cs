@@ -7,10 +7,7 @@ public sealed partial class GameReference : ValueObject
         Value = value;
     }
 
-    public Guid Value
-    {
-        get;
-    }
+    public Guid Value { get; }
 
     public static Result<GameReference> Create(Guid value)
     {

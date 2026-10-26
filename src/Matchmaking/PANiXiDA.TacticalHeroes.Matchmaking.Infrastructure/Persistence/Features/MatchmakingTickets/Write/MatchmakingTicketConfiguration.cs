@@ -12,45 +12,80 @@ internal sealed class MatchmakingTicketConfiguration : AuditableEntityConfigurat
 {
     protected override void ConfigureEntity(EntityTypeBuilder<MatchmakingTicket> builder)
     {
-        builder.HasKey(value => value.Id);
-        builder.Property(value => value.Id)
-            .HasConversion(value => value.Value, value => MatchmakingTicketId.Create(value).Value)
+        builder.HasKey(ticket => ticket.Id);
+
+        builder.Property(ticket => ticket.Id)
+            .HasConversion(
+                id => id.Value,
+                value => MatchmakingTicketId.Create(value).Value)
             .ValueGeneratedNever();
-        builder.Property(value => value.PlayerId)
-            .HasConversion(value => value.Value, value => PlayerReference.Create(value).Value)
+
+        builder.Property(ticket => ticket.PlayerId)
+            .HasConversion(
+                playerId => playerId.Value,
+                value => PlayerReference.Create(value).Value)
             .IsRequired();
-        builder.Property(value => value.BuildSnapshotId)
-            .HasConversion(value => value.Value, value => BuildSnapshotReference.Create(value).Value)
+
+        builder.Property(ticket => ticket.BuildSnapshotId)
+            .HasConversion(
+                snapshotId => snapshotId.Value,
+                value => BuildSnapshotReference.Create(value).Value)
             .IsRequired();
-        builder.Property(value => value.Rating)
-            .HasConversion(value => value.Value, value => RatingSnapshot.Create(value))
+
+        builder.Property(ticket => ticket.Rating)
+            .HasConversion(
+                rating => rating.Value,
+                value => RatingSnapshot.Create(value))
             .IsRequired();
-        builder.Property(value => value.Mode)
-            .HasConversion(value => value.Value, value => MatchmakingMode.Create(value).Value)
+
+        builder.Property(ticket => ticket.Mode)
+            .HasConversion(
+                mode => mode.Value,
+                value => MatchmakingMode.Create(value).Value)
             .HasMaxLength(MatchmakingMode.MaxLength)
             .IsRequired();
-        builder.Property(value => value.QueuedAt)
-            .HasConversion(value => value.Value, value => MatchmakingTimestamp.Create(value))
+
+        builder.Property(ticket => ticket.QueuedAt)
+            .HasConversion(
+                queuedAt => queuedAt.Value,
+                value => MatchmakingTimestamp.Create(value))
             .IsRequired();
-        builder.Property(value => value.ExpiresAt)
-            .HasConversion(value => value.Value, value => MatchmakingTimestamp.Create(value))
+
+        builder.Property(ticket => ticket.ExpiresAt)
+            .HasConversion(
+                expiresAt => expiresAt.Value,
+                value => MatchmakingTimestamp.Create(value))
             .IsRequired();
-        builder.Property(value => value.Status)
-            .HasConversion(value => value.Name, value => MatchmakingTicketStatus.Create(value).Value)
+
+        builder.Property(ticket => ticket.Status)
+            .HasConversion(
+                status => status.Name,
+                value => MatchmakingTicketStatus.Create(value).Value)
             .HasMaxLength(MatchmakingTicketStatus.MaxLength)
             .IsRequired();
-        builder.Property(value => value.MatchAssignmentId)
-            .HasConversion(value => value!.Value.Value, value => MatchAssignmentId.Create(value).Value)
+
+        builder.Property(ticket => ticket.MatchAssignmentId)
+            .HasConversion(
+                assignmentId => assignmentId!.Value.Value,
+                value => MatchAssignmentId.Create(value).Value)
             .IsRequired(required: false);
-        builder.HasOne<MatchAssignment>().WithMany().HasForeignKey(value => value.MatchAssignmentId)
+
+        builder.HasOne<MatchAssignment>()
+            .WithMany()
+            .HasForeignKey(ticket => ticket.MatchAssignmentId)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasIndex(value => value.PlayerId).IsUnique()
+
+        builder.HasIndex(ticket => ticket.PlayerId)
+            .IsUnique()
             .HasFilter("deleted_at IS NULL AND status IN ('Searching', 'Reserved')");
-        builder.HasIndex(value => new { value.Mode, value.Status, value.Rating, value.QueuedAt });
-        builder.HasIndex(value => new { value.Status, value.ExpiresAt });
+
+        builder.HasIndex(ticket => new { ticket.Mode, ticket.Status, ticket.Rating, ticket.QueuedAt });
+        builder.HasIndex(ticket => new { ticket.Status, ticket.ExpiresAt });
+
         builder.Metadata.AddCheckConstraint(
             "ck_ticket_window",
             "expires_at > queued_at");
+
         builder.Metadata.AddCheckConstraint(
             "ck_ticket_assignment",
             "status NOT IN ('Reserved', 'Assigned') OR match_assignment_id IS NOT NULL");

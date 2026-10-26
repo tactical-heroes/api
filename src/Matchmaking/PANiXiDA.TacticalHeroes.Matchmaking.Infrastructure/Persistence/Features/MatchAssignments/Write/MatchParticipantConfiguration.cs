@@ -12,29 +12,54 @@ internal sealed class MatchParticipantConfiguration : IEntityTypeConfiguration<M
 {
     public void Configure(EntityTypeBuilder<MatchParticipant> builder)
     {
-        builder.HasKey(value => value.Id);
-        builder.Property(value => value.Id)
-            .HasConversion(value => value.Value, value => MatchParticipantId.Create(value).Value)
+        builder.HasKey(participant => participant.Id);
+
+        builder.Property(participant => participant.Id)
+            .HasConversion(
+                id => id.Value,
+                value => MatchParticipantId.Create(value).Value)
             .ValueGeneratedNever();
-        builder.Property(value => value.MatchAssignmentId)
-            .HasConversion(value => value.Value, value => MatchAssignmentId.Create(value).Value);
-        builder.Property(value => value.TicketId)
-            .HasConversion(value => value.Value, value => MatchmakingTicketId.Create(value).Value);
-        builder.Property(value => value.PlayerId)
-            .HasConversion(value => value.Value, value => PlayerReference.Create(value).Value)
+
+        builder.Property(participant => participant.MatchAssignmentId)
+            .HasConversion(
+                assignmentId => assignmentId.Value,
+                value => MatchAssignmentId.Create(value).Value);
+
+        builder.Property(participant => participant.TicketId)
+            .HasConversion(
+                ticketId => ticketId.Value,
+                value => MatchmakingTicketId.Create(value).Value);
+
+        builder.Property(participant => participant.PlayerId)
+            .HasConversion(
+                playerId => playerId.Value,
+                value => PlayerReference.Create(value).Value)
             .IsRequired();
-        builder.Property(value => value.BuildSnapshotId)
-            .HasConversion(value => value.Value, value => BuildSnapshotReference.Create(value).Value)
+
+        builder.Property(participant => participant.BuildSnapshotId)
+            .HasConversion(
+                snapshotId => snapshotId.Value,
+                value => BuildSnapshotReference.Create(value).Value)
             .IsRequired();
-        builder.Property(value => value.Rating)
-            .HasConversion(value => value.Value, value => RatingSnapshot.Create(value))
+
+        builder.Property(participant => participant.Rating)
+            .HasConversion(
+                rating => rating.Value,
+                value => RatingSnapshot.Create(value))
             .IsRequired();
-        builder.Property(value => value.AcceptedAt)
-            .HasConversion(value => value!.Value, value => MatchmakingTimestamp.Create(value))
+
+        builder.Property(participant => participant.AcceptedAt)
+            .HasConversion(
+                acceptedAt => acceptedAt!.Value,
+                value => MatchmakingTimestamp.Create(value))
             .IsRequired(required: false);
-        builder.HasOne<MatchmakingTicket>().WithMany().HasForeignKey(value => value.TicketId)
+
+        builder.HasOne<MatchmakingTicket>()
+            .WithMany()
+            .HasForeignKey(participant => participant.TicketId)
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasIndex(value => value.TicketId).IsUnique();
-        builder.HasIndex(value => new { value.MatchAssignmentId, value.PlayerId }).IsUnique();
+
+        builder.HasIndex(participant => participant.TicketId).IsUnique();
+        builder.HasIndex(participant => new { participant.MatchAssignmentId, participant.PlayerId }).IsUnique();
     }
 }

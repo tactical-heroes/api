@@ -7,10 +7,7 @@ public sealed partial class MatchmakingTimestamp : ValueObject
         Value = value;
     }
 
-    public DateTimeOffset Value
-    {
-        get;
-    }
+    public DateTimeOffset Value { get; }
 
     public static MatchmakingTimestamp Create(DateTimeOffset value)
     {

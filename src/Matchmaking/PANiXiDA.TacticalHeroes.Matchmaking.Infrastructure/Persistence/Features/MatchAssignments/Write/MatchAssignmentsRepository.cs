@@ -4,7 +4,8 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchAssignments.Write;
 
-public sealed class MatchAssignmentsRepository(MatchmakingWriteDbContext dbContext)
+public sealed class MatchAssignmentsRepository(
+    MatchmakingWriteDbContext dbContext)
     :
         EfRepository<MatchmakingWriteDbContext, MatchAssignmentId, MatchAssignment>(dbContext),
         IMatchAssignmentsRepository;

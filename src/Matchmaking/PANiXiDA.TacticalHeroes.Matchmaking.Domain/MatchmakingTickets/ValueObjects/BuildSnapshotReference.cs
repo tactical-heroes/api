@@ -7,10 +7,7 @@ public sealed partial class BuildSnapshotReference : ValueObject
         Value = value;
     }
 
-    public Guid Value
-    {
-        get;
-    }
+    public Guid Value { get; }
 
     public static Result<BuildSnapshotReference> Create(Guid value)
     {

@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTicket
 
 public sealed class MatchmakingTicketTests
 {
-    [Fact(DisplayName = "Matchmaking should capture selection and announce searching when created")]
+    [Fact(DisplayName = "Ticket should capture selection and announce searching when created")]
     public void Create_Should_CaptureSelectionAndAnnounceSearching_When_Created()
     {
         var ticket = Ticket();
@@ -17,13 +17,14 @@ public sealed class MatchmakingTicketTests
         ticket.Id.Value.ShouldNotBe(Guid.Empty);
         ticket.Status.ShouldBe(MatchmakingTicketStatus.Searching);
         ticket.MatchAssignmentId.ShouldBeNull();
-        var domainEvent = ticket.GetDomainEvents().ShouldHaveSingleItem()
+        var domainEvent = ticket.GetDomainEvents()
+            .ShouldHaveSingleItem()
             .ShouldBeOfType<MatchmakingTicketStateChanged>();
         domainEvent.PlayerId.ShouldBe(ticket.PlayerId.Value);
         domainEvent.Status.ShouldBe("Searching");
     }
 
-    [Theory(DisplayName = "Matchmaking should reject invalid window when created")]
+    [Theory(DisplayName = "Ticket should reject invalid window when created")]
     [InlineData(0)]
     [InlineData(-1)]
     public void Create_Should_RejectInvalidWindow_When_Created(int end)
@@ -41,7 +42,7 @@ public sealed class MatchmakingTicketTests
         result.IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should be idempotent and exclusive when repeated")]
+    [Fact(DisplayName = "Ticket should be idempotent and exclusive when repeated")]
     public void Reserve_Should_BeIdempotentAndExclusive_When_Repeated()
     {
         var ticket = Ticket();
@@ -57,7 +58,7 @@ public sealed class MatchmakingTicketTests
         ticket.GetDomainEvents().Count.ShouldBe(count);
     }
 
-    [Theory(DisplayName = "Matchmaking should preserve state when time is outside window")]
+    [Theory(DisplayName = "Ticket should preserve state when time is outside window")]
     [InlineData(-1)]
     [InlineData(300)]
     [InlineData(301)]
@@ -72,7 +73,7 @@ public sealed class MatchmakingTicketTests
         ticket.GetDomainEvents().Count.ShouldBe(1);
     }
 
-    [Fact(DisplayName = "Matchmaking should reject default identifier when requested")]
+    [Fact(DisplayName = "Ticket should reject default identifier when requested")]
     public void Reserve_Should_RejectDefaultIdentifier_When_Requested()
     {
         var ticket = Ticket();
@@ -82,7 +83,7 @@ public sealed class MatchmakingTicketTests
         ticket.MatchAssignmentId.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Matchmaking should require owning reservation and publish once when repeated")]
+    [Fact(DisplayName = "Ticket should require owning reservation and publish once when repeated")]
     public void MarkAssigned_Should_RequireOwningReservationAndPublishOnce_When_Repeated()
     {
         var ticket = Ticket();
@@ -101,7 +102,7 @@ public sealed class MatchmakingTicketTests
         ticket.Reserve(assignmentId, At(2)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should retain reservation when reserved ticket is cancelled")]
+    [Fact(DisplayName = "Ticket should retain reservation when reserved ticket is cancelled")]
     public void Cancel_Should_RetainReservation_When_ReservedTicketIsCancelled()
     {
         var ticket = Ticket();
@@ -119,7 +120,7 @@ public sealed class MatchmakingTicketTests
         ticket.Reserve(MatchAssignmentId.New(), At(2)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should terminate searching ticket when requested")]
+    [Fact(DisplayName = "Ticket should terminate searching ticket when requested")]
     public void Cancel_Should_TerminateSearchingTicket_When_Requested()
     {
         var ticket = Ticket();
@@ -130,7 +131,7 @@ public sealed class MatchmakingTicketTests
         ticket.Expire(At(300)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should respect deadline and publish once when repeated")]
+    [Fact(DisplayName = "Ticket should respect deadline and publish once when repeated")]
     public void Expire_Should_RespectDeadlineAndPublishOnce_When_Repeated()
     {
         var ticket = Ticket();
@@ -146,7 +147,7 @@ public sealed class MatchmakingTicketTests
         ticket.Reserve(MatchAssignmentId.New(), At(301)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should leave reserved ticket unchanged when search deadline elapses")]
+    [Fact(DisplayName = "Ticket should leave reserved ticket unchanged when search deadline elapses")]
     public void Expire_Should_LeaveReservedTicketUnchanged_When_SearchDeadlineElapses()
     {
         var ticket = Ticket();

@@ -14,7 +14,8 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         RatingSnapshot rating,
         MatchmakingMode mode,
         MatchmakingTimestamp queuedAt,
-        MatchmakingTimestamp expiresAt) : base(id)
+        MatchmakingTimestamp expiresAt)
+        : base(id)
     {
         PlayerId = playerId;
         BuildSnapshotId = buildSnapshotId;
@@ -25,45 +26,14 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         Status = MatchmakingTicketStatus.Searching;
     }
 
-    public PlayerReference PlayerId
-    {
-        get; private set;
-    }
-
-    public BuildSnapshotReference BuildSnapshotId
-    {
-        get; private set;
-    }
-
-    public RatingSnapshot Rating
-    {
-        get; private set;
-    }
-
-    public MatchmakingMode Mode
-    {
-        get; private set;
-    }
-
-    public MatchmakingTimestamp QueuedAt
-    {
-        get; private set;
-    }
-
-    public MatchmakingTimestamp ExpiresAt
-    {
-        get; private set;
-    }
-
-    public MatchmakingTicketStatus Status
-    {
-        get; private set;
-    }
-
-    public MatchAssignmentId? MatchAssignmentId
-    {
-        get; private set;
-    }
+    public PlayerReference PlayerId { get; private set; }
+    public BuildSnapshotReference BuildSnapshotId { get; private set; }
+    public RatingSnapshot Rating { get; private set; }
+    public MatchmakingMode Mode { get; private set; }
+    public MatchmakingTimestamp QueuedAt { get; private set; }
+    public MatchmakingTimestamp ExpiresAt { get; private set; }
+    public MatchmakingTicketStatus Status { get; private set; }
+    public MatchAssignmentId? MatchAssignmentId { get; private set; }
 
     public static Result<MatchmakingTicket> Create(
         PlayerReference playerId,
@@ -87,6 +57,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
             queuedAt: queuedAt,
             expiresAt: expiresAt);
         ticket.RecordStateChanged();
+
         return Result.Success(ticket);
     }
 
@@ -110,6 +81,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         MatchAssignmentId = assignmentId;
         Status = MatchmakingTicketStatus.Reserved;
         RecordStateChanged();
+
         return Result.Success();
     }
 
@@ -132,6 +104,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
 
         Status = MatchmakingTicketStatus.Assigned;
         RecordStateChanged();
+
         return Result.Success();
     }
 
@@ -153,6 +126,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
 
         Status = MatchmakingTicketStatus.Cancelled;
         RecordStateChanged();
+
         return Result.Success();
     }
 
@@ -170,6 +144,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
 
         Status = MatchmakingTicketStatus.Expired;
         RecordStateChanged();
+
         return Result.Success();
     }
 

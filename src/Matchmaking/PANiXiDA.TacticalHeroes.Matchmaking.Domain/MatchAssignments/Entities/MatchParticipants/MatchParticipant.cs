@@ -11,7 +11,8 @@ public sealed class MatchParticipant : Entity<MatchParticipantId>
         MatchmakingTicketId ticketId,
         PlayerReference playerId,
         BuildSnapshotReference buildSnapshotId,
-        RatingSnapshot rating) : base(id)
+        RatingSnapshot rating)
+        : base(id)
     {
         MatchAssignmentId = matchAssignmentId;
         TicketId = ticketId;
@@ -20,35 +21,12 @@ public sealed class MatchParticipant : Entity<MatchParticipantId>
         Rating = rating;
     }
 
-    public MatchAssignmentId MatchAssignmentId
-    {
-        get; private set;
-    }
-
-    public MatchmakingTicketId TicketId
-    {
-        get; private set;
-    }
-
-    public PlayerReference PlayerId
-    {
-        get; private set;
-    }
-
-    public BuildSnapshotReference BuildSnapshotId
-    {
-        get; private set;
-    }
-
-    public RatingSnapshot Rating
-    {
-        get; private set;
-    }
-
-    public MatchmakingTimestamp? AcceptedAt
-    {
-        get; private set;
-    }
+    public MatchAssignmentId MatchAssignmentId { get; private set; }
+    public MatchmakingTicketId TicketId { get; private set; }
+    public PlayerReference PlayerId { get; private set; }
+    public BuildSnapshotReference BuildSnapshotId { get; private set; }
+    public RatingSnapshot Rating { get; private set; }
+    public MatchmakingTimestamp? AcceptedAt { get; private set; }
 
     internal static MatchParticipant Create(MatchAssignmentId assignmentId, MatchmakingTicket ticket)
     {

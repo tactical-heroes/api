@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchAssignm
 
 public sealed class MatchAssignmentsFilterValidatorTests
 {
-    [Fact(DisplayName = "Matchmaking should accept empty filter when no criteria are supplied")]
+    [Fact(DisplayName = "Filter should accept empty filter when no criteria are supplied")]
     public void Validate_Should_AcceptEmptyFilter_When_NoCriteriaAreSupplied()
     {
         var result = new MatchAssignmentsFilterValidator().Validate(new MatchAssignmentsFilter());

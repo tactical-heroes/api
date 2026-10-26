@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchAssignments.
 
 public sealed class MatchAssignmentStatusTests
 {
-    [Theory(DisplayName = "Matchmaking should accept lifecycle states when parsed")]
+    [Theory(DisplayName = "Assignment status should accept lifecycle states when parsed")]
     [InlineData("AwaitingAcceptance")]
     [InlineData("CreatingGame")]
     [InlineData("Ready")]
@@ -18,7 +18,7 @@ public sealed class MatchAssignmentStatusTests
         result.Value.Name.ShouldBe(value);
     }
 
-    [Theory(DisplayName = "Matchmaking should reject unknown values when parsed")]
+    [Theory(DisplayName = "Assignment status should reject unknown values when parsed")]
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("Unknown")]
@@ -29,7 +29,7 @@ public sealed class MatchAssignmentStatusTests
         result.IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should display name when converted to text")]
+    [Fact(DisplayName = "Assignment status should display name when converted to text")]
     public void ToString_Should_DisplayName_When_ConvertedToText()
     {
         var text = MatchAssignmentStatus.AwaitingAcceptance.ToString();
@@ -37,7 +37,7 @@ public sealed class MatchAssignmentStatusTests
         text.ShouldBe("AwaitingAcceptance");
     }
 
-    [Fact(DisplayName = "Matchmaking should list states when called")]
+    [Fact(DisplayName = "Assignment status should list states when called")]
     public void GetAll_Should_ListStates_When_Called()
     {
         var values = MatchAssignmentStatus.GetAll();
@@ -55,7 +55,7 @@ public sealed class MatchAssignmentStatusTests
         values.Select(value => value.Name).ShouldBe(expected);
     }
 
-    [Fact(DisplayName = "Matchmaking should resolve identifier when id is known")]
+    [Fact(DisplayName = "Assignment status should resolve identifier when id is known")]
     public void FromId_Should_ResolveIdentifier_When_IdIsKnown()
     {
         var value = MatchAssignmentStatus.FromId(1);
@@ -63,7 +63,7 @@ public sealed class MatchAssignmentStatusTests
         value.ShouldBe(MatchAssignmentStatus.AwaitingAcceptance);
     }
 
-    [Fact(DisplayName = "Matchmaking should resolve trimmed name when name is known")]
+    [Fact(DisplayName = "Assignment status should resolve trimmed name when name is known")]
     public void FromName_Should_ResolveTrimmedName_When_NameIsKnown()
     {
         var value = MatchAssignmentStatus.FromName("  AwaitingAcceptance  ");
@@ -71,7 +71,7 @@ public sealed class MatchAssignmentStatusTests
         value.ShouldBe(MatchAssignmentStatus.AwaitingAcceptance);
     }
 
-    [Theory(DisplayName = "Matchmaking should report lookup success when id is supplied")]
+    [Theory(DisplayName = "Assignment status should report lookup success when id is supplied")]
     [InlineData(1, true)]
     [InlineData(0, false)]
     public void TryFromId_Should_ReportLookupSuccess_When_IdIsSupplied(int id, bool expected)
@@ -82,7 +82,7 @@ public sealed class MatchAssignmentStatusTests
         (value is not null).ShouldBe(expected);
     }
 
-    [Theory(DisplayName = "Matchmaking should report lookup success when name is supplied")]
+    [Theory(DisplayName = "Assignment status should report lookup success when name is supplied")]
     [InlineData("AwaitingAcceptance", true)]
     [InlineData("Unknown", false)]
     public void TryFromName_Should_ReportLookupSuccess_When_NameIsSupplied(string name, bool expected)

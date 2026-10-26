@@ -11,7 +11,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchAssignments;
 
 public sealed class MatchAssignmentTests
 {
-    [Fact(DisplayName = "Matchmaking should capture selections without mutating tickets when created")]
+    [Fact(DisplayName = "Assignment should capture selections without mutating tickets when created")]
     public void Create_Should_CaptureSelectionsWithoutMutatingTickets_When_Created()
     {
         var first = Ticket();
@@ -31,7 +31,7 @@ public sealed class MatchAssignmentTests
         Should.Throw<NotSupportedException>(() => ((ICollection<MatchParticipant>)assignment.Participants).Clear());
     }
 
-    [Fact(DisplayName = "Matchmaking should reject incompatible tickets when created")]
+    [Fact(DisplayName = "Assignment should reject incompatible tickets when created")]
     public void Create_Should_RejectIncompatibleTickets_When_Created()
     {
         var first = Ticket();
@@ -41,7 +41,7 @@ public sealed class MatchAssignmentTests
         MatchAssignment.Create(first, Ticket(mode: "other"), At(1), At(30), At(60)).IsFailure.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Matchmaking should reject invalid deadlines when created")]
+    [Theory(DisplayName = "Assignment should reject invalid deadlines when created")]
     [InlineData(1, 60)]
     [InlineData(0, 60)]
     [InlineData(30, 30)]
@@ -53,7 +53,7 @@ public sealed class MatchAssignmentTests
         result.IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should reject unavailable tickets when created")]
+    [Fact(DisplayName = "Assignment should reject unavailable tickets when created")]
     public void Create_Should_RejectUnavailableTickets_When_Created()
     {
         var first = Ticket();
@@ -65,7 +65,7 @@ public sealed class MatchAssignmentTests
         MatchAssignment.Create(first, second, At(2), At(30), At(60)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should request game creation once when both participants confirm")]
+    [Fact(DisplayName = "Assignment should request game creation once when both participants confirm")]
     public void Accept_Should_RequestGameCreationOnce_When_BothParticipantsConfirm()
     {
         var assignment = Assignment();
@@ -87,7 +87,7 @@ public sealed class MatchAssignmentTests
         participants[0].AcceptedAt!.Value.ShouldBe(At(2).Value);
     }
 
-    [Theory(DisplayName = "Matchmaking should reject confirmation when outside window")]
+    [Theory(DisplayName = "Assignment should reject confirmation when outside window")]
     [InlineData(0)]
     [InlineData(30)]
     [InlineData(31)]
@@ -101,7 +101,7 @@ public sealed class MatchAssignmentTests
         assignment.GetDomainEvents().Count.ShouldBe(1);
     }
 
-    [Fact(DisplayName = "Matchmaking should reject outsider when participant is unknown")]
+    [Fact(DisplayName = "Assignment should reject outsider when participant is unknown")]
     public void Accept_Should_RejectOutsider_When_ParticipantIsUnknown()
     {
         var assignment = Assignment();
@@ -111,7 +111,7 @@ public sealed class MatchAssignmentTests
         assignment.Status.ShouldBe(MatchAssignmentStatus.AwaitingAcceptance);
     }
 
-    [Fact(DisplayName = "Matchmaking should close proposal when participant declines")]
+    [Fact(DisplayName = "Assignment should close proposal when participant declines")]
     public void Decline_Should_CloseProposal_When_ParticipantDeclines()
     {
         var assignment = Assignment();
@@ -124,7 +124,7 @@ public sealed class MatchAssignmentTests
         assignment.Accept(assignment.Participants.Last().Id, At(3)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should preserve proposal when deadline elapsed")]
+    [Fact(DisplayName = "Assignment should preserve proposal when deadline elapsed")]
     public void Decline_Should_PreserveProposal_When_DeadlineElapsed()
     {
         var assignment = Assignment();
@@ -134,7 +134,7 @@ public sealed class MatchAssignmentTests
         assignment.Status.ShouldBe(MatchAssignmentStatus.AwaitingAcceptance);
     }
 
-    [Fact(DisplayName = "Matchmaking should publish once and preserve reason when retried")]
+    [Fact(DisplayName = "Assignment should publish once and preserve reason when retried")]
     public void Cancel_Should_PublishOnceAndPreserveReason_When_Retried()
     {
         var assignment = Assignment();
@@ -149,7 +149,7 @@ public sealed class MatchAssignmentTests
         ConfirmedAssignment().Cancel(reason).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should bind exactly one game when delivery is retried")]
+    [Fact(DisplayName = "Assignment should bind exactly one game when delivery is retried")]
     public void Complete_Should_BindExactlyOneGame_When_DeliveryIsRetried()
     {
         var assignment = ConfirmedAssignment();
@@ -167,7 +167,7 @@ public sealed class MatchAssignmentTests
         assignment.Fail(MatchmakingReason.Create("Late failure").Value).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should reject result when not actively creating")]
+    [Fact(DisplayName = "Assignment should reject result when not actively creating")]
     public void Complete_Should_RejectResult_When_NotActivelyCreating()
     {
         var game = GameReference.Create(Guid.CreateVersion7()).Value;
@@ -182,7 +182,7 @@ public sealed class MatchAssignmentTests
         assignment.GameId.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Matchmaking should close game creation once when retried")]
+    [Fact(DisplayName = "Assignment should close game creation once when retried")]
     public void Fail_Should_CloseGameCreationOnce_When_Retried()
     {
         var assignment = ConfirmedAssignment();
@@ -199,7 +199,7 @@ public sealed class MatchAssignmentTests
         assignment.Complete(GameReference.Create(Guid.CreateVersion7()).Value, At(3)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Matchmaking should use active phase deadline and publish once when overdue")]
+    [Fact(DisplayName = "Assignment should use active phase deadline and publish once when overdue")]
     public void Expire_Should_UseActivePhaseDeadlineAndPublishOnce_When_Overdue()
     {
         var proposal = Assignment();
