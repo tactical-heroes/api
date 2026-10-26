@@ -179,6 +179,11 @@ jobs:
           mkdir -p "$TEST_PROJECT_REPORT_DIRECTORY"
           echo "artifact_path=$(realpath "$REPORT_DIRECTORY")" >> "$GITHUB_OUTPUT"
 
+      - name: Build test project
+        working-directory: ${{ vars.PROJECT_FOLDER }}
+        # The format job builds the full Debug solution with analyzers enabled.
+        run: dotnet build "$TEST_PROJECT" --no-restore -p:RunAnalyzers=false
+
       - name: Run tests
         working-directory: ${{ vars.PROJECT_FOLDER }}
         run: |
@@ -186,6 +191,7 @@ jobs:
 
           TEST_ARGS=(
             --project "$TEST_PROJECT"
+            --no-build
             --no-restore
             --results-directory "$TEST_PROJECT_REPORT_DIRECTORY"
             --report-trx
