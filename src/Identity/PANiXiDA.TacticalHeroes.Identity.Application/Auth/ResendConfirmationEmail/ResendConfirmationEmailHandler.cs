@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResendConfirmationEmail;
 
 public sealed class ResendConfirmationEmailHandler(IUserCredentialsService userCredentialsService)
-    : ICommandHandler<ResendConfirmationEmailCommand, Result>
+    : ICommandHandler<ResendConfirmationEmailCommand, Result>, IRequireTransaction
 {
     public Task<Result> HandleAsync(
         ResendConfirmationEmailCommand command,

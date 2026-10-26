@@ -16,13 +16,35 @@ COPY ["nuget.config", "."]
 COPY ["Directory.Packages.props", "."]
 COPY ["Directory.Build.props", "."]
 COPY ["Directory.Build.targets", "."]
+COPY ["src/PANiXiDA.TacticalHeroes.Common/PANiXiDA.TacticalHeroes.Common.csproj", "src/PANiXiDA.TacticalHeroes.Common/"]
 COPY ["src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj", "src/PANiXiDA.TacticalHeroes.Host/"]
+COPY ["src/Battle/PANiXiDA.TacticalHeroes.Battle.Application/PANiXiDA.TacticalHeroes.Battle.Application.csproj", "src/Battle/PANiXiDA.TacticalHeroes.Battle.Application/"]
+COPY ["src/Battle/PANiXiDA.TacticalHeroes.Battle.Contracts/PANiXiDA.TacticalHeroes.Battle.Contracts.csproj", "src/Battle/PANiXiDA.TacticalHeroes.Battle.Contracts/"]
+COPY ["src/Battle/PANiXiDA.TacticalHeroes.Battle.Domain/PANiXiDA.TacticalHeroes.Battle.Domain.csproj", "src/Battle/PANiXiDA.TacticalHeroes.Battle.Domain/"]
+COPY ["src/Battle/PANiXiDA.TacticalHeroes.Battle.Infrastructure/PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj", "src/Battle/PANiXiDA.TacticalHeroes.Battle.Infrastructure/"]
+COPY ["src/Battle/PANiXiDA.TacticalHeroes.Battle.Presentation/PANiXiDA.TacticalHeroes.Battle.Presentation.csproj", "src/Battle/PANiXiDA.TacticalHeroes.Battle.Presentation/"]
+COPY ["src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Application/PANiXiDA.TacticalHeroes.Matchmaking.Application.csproj", "src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Application/"]
+COPY ["src/Games/PANiXiDA.TacticalHeroes.Games.Application/PANiXiDA.TacticalHeroes.Games.Application.csproj", "src/Games/PANiXiDA.TacticalHeroes.Games.Application/"]
+COPY ["src/Builds/PANiXiDA.TacticalHeroes.Builds.Application/PANiXiDA.TacticalHeroes.Builds.Application.csproj", "src/Builds/PANiXiDA.TacticalHeroes.Builds.Application/"]
+COPY ["src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Contracts/PANiXiDA.TacticalHeroes.Matchmaking.Contracts.csproj", "src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Contracts/"]
+COPY ["src/Games/PANiXiDA.TacticalHeroes.Games.Contracts/PANiXiDA.TacticalHeroes.Games.Contracts.csproj", "src/Games/PANiXiDA.TacticalHeroes.Games.Contracts/"]
+COPY ["src/Builds/PANiXiDA.TacticalHeroes.Builds.Contracts/PANiXiDA.TacticalHeroes.Builds.Contracts.csproj", "src/Builds/PANiXiDA.TacticalHeroes.Builds.Contracts/"]
+COPY ["src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Domain/PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj", "src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Domain/"]
+COPY ["src/Games/PANiXiDA.TacticalHeroes.Games.Domain/PANiXiDA.TacticalHeroes.Games.Domain.csproj", "src/Games/PANiXiDA.TacticalHeroes.Games.Domain/"]
+COPY ["src/Builds/PANiXiDA.TacticalHeroes.Builds.Domain/PANiXiDA.TacticalHeroes.Builds.Domain.csproj", "src/Builds/PANiXiDA.TacticalHeroes.Builds.Domain/"]
+COPY ["src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure/PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.csproj", "src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure/"]
+COPY ["src/Games/PANiXiDA.TacticalHeroes.Games.Infrastructure/PANiXiDA.TacticalHeroes.Games.Infrastructure.csproj", "src/Games/PANiXiDA.TacticalHeroes.Games.Infrastructure/"]
+COPY ["src/Builds/PANiXiDA.TacticalHeroes.Builds.Infrastructure/PANiXiDA.TacticalHeroes.Builds.Infrastructure.csproj", "src/Builds/PANiXiDA.TacticalHeroes.Builds.Infrastructure/"]
+COPY ["src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Presentation/PANiXiDA.TacticalHeroes.Matchmaking.Presentation.csproj", "src/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.Presentation/"]
+COPY ["src/Games/PANiXiDA.TacticalHeroes.Games.Presentation/PANiXiDA.TacticalHeroes.Games.Presentation.csproj", "src/Games/PANiXiDA.TacticalHeroes.Games.Presentation/"]
+COPY ["src/Builds/PANiXiDA.TacticalHeroes.Builds.Presentation/PANiXiDA.TacticalHeroes.Builds.Presentation.csproj", "src/Builds/PANiXiDA.TacticalHeroes.Builds.Presentation/"]
 COPY ["src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Application/PANiXiDA.TacticalHeroes.FileManager.Application.csproj", "src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Application/"]
 COPY ["src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Contracts/PANiXiDA.TacticalHeroes.FileManager.Contracts.csproj", "src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Contracts/"]
 COPY ["src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Domain/PANiXiDA.TacticalHeroes.FileManager.Domain.csproj", "src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Domain/"]
 COPY ["src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Infrastructure/PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj", "src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Infrastructure/"]
 COPY ["src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Presentation/PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj", "src/FileManager/PANiXiDA.TacticalHeroes.FileManager.Presentation/"]
 COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Application/PANiXiDA.TacticalHeroes.Identity.Application.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Application/"]
+COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Contracts/PANiXiDA.TacticalHeroes.Identity.Contracts.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Contracts/"]
 COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Domain/PANiXiDA.TacticalHeroes.Identity.Domain.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Domain/"]
 COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Infrastructure/PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Infrastructure/"]
 COPY ["src/Identity/PANiXiDA.TacticalHeroes.Identity.Presentation/PANiXiDA.TacticalHeroes.Identity.Presentation.csproj", "src/Identity/PANiXiDA.TacticalHeroes.Identity.Presentation/"]
@@ -39,7 +61,10 @@ RUN dotnet run --project "./PANiXiDA.TacticalHeroes.Host.csproj" \
     --no-restore \
     --no-launch-profile \
     -- codegen write
-RUN dotnet publish "./PANiXiDA.TacticalHeroes.Host.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./PANiXiDA.TacticalHeroes.Host.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/publish \
+    /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final

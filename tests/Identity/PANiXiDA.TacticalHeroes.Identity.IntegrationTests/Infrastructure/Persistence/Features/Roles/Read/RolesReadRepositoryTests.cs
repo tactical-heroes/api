@@ -9,26 +9,83 @@ namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persi
 public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Fact(DisplayName = "GetSelectOptionsAsync should return empty options when no roles exist")]
+    public async Task GetSelectOptionsAsync_Should_ReturnEmptyOptions_When_NoRolesExist()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(TestContext.Current.CancellationToken);
+
+        options.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "GetSelectOptionsAsync should return sorted options with default flag when roles exist")]
+    public async Task GetSelectOptionsAsync_Should_ReturnSortedOptionsWithDefaultFlag_When_RolesExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var playerId = await AddRoleAsync(
+            name: "Player",
+            isDefault: true,
+            cancellationToken: cancellationToken);
+        var developerId = await AddRoleAsync(
+            name: "Developer",
+            isDefault: false,
+            cancellationToken: cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(cancellationToken);
+
+        options.Select(option => option.Name).ShouldBe(["Developer", "Player"]);
+        options.Select(option => option.Id).ShouldBe([developerId, playerId]);
+        options.Select(option => option.IsDefault).ShouldBe([false, true]);
+    }
+
+    [Fact(DisplayName = "GetSelectOptionsAsync should return all options when more than one list page exists")]
+    public async Task GetSelectOptionsAsync_Should_ReturnAllOptions_When_MoreThanOneListPageExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        for (int index = 0; index < 101; index++)
+        {
+            await AddRoleAsync(
+                name: $"Role {index:D3}",
+                isDefault: false,
+                cancellationToken: cancellationToken);
+        }
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var options = await repository.GetSelectOptionsAsync(cancellationToken);
+
+        options.Count.ShouldBe(101);
+        options[0].Name.ShouldBe("Role 000");
+        options[^1].Name.ShouldBe("Role 100");
+    }
+
     [Fact(DisplayName = "GetDetailsByIdAsync should return role details when role exists")]
     public async Task GetDetailsByIdAsync_Should_ReturnDetails_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("admin", cancellationToken);
+        var roleId = await AddRoleAsync(
+            name: "Developer",
+            isDefault: false,
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
         var details = await repository.GetDetailsByIdAsync(roleId, cancellationToken);
 
         details.ShouldNotBeNull();
-        details.Name.ShouldBe("admin");
+        details.Name.ShouldBe("Developer");
     }
 
     [Fact(DisplayName = "GetPageAsync should return roles sorted by name when roles exist")]
     public async Task GetPageAsync_Should_ReturnSortedPage_When_RolesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddRoleAsync("viewer", cancellationToken);
-        await AddRoleAsync("admin", cancellationToken);
+        await AddRoleAsync(name: "Player", isDefault: false, cancellationToken: cancellationToken);
+        await AddRoleAsync(name: "Developer", isDefault: false, cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -38,14 +95,17 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             cancellationToken);
 
         page.TotalCount.ShouldBe(2);
-        page.Items.Select(item => item.Name).ShouldBe(["admin", "viewer"]);
+        page.Items.Select(item => item.Name).ShouldBe(["Developer", "Player"]);
     }
 
     [Fact(DisplayName = "ExistsByIdAsync should return true for an existing role when role exists")]
     public async Task ExistsByIdAsync_Should_ReturnTrue_When_RoleExists()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var roleId = await AddRoleAsync("exists-role", cancellationToken);
+        var roleId = await AddRoleAsync(
+            name: "Moderator",
+            isDefault: false,
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
@@ -65,7 +125,7 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
             (await emptyRepository.AnyAsync(cancellationToken)).ShouldBeFalse();
         }
 
-        await AddRoleAsync("any-role", cancellationToken);
+        await AddRoleAsync(name: "Moderator", isDefault: false, cancellationToken: cancellationToken);
 
         await using var populatedScope = Fixture.CreateScope();
         var populatedRepository =
@@ -73,14 +133,48 @@ public sealed class RolesReadRepositoryTests(IntegrationTestFixture fixture)
         (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
     }
 
+    [Fact(DisplayName = "GetDefaultIdAsync should return null when default is missing")]
+    public async Task GetDefaultIdAsync_Should_ReturnNull_When_DefaultIsMissing()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync(name: "Moderator", isDefault: false, cancellationToken: cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var result = await repository.GetDefaultIdAsync(cancellationToken);
+
+        result.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "GetDefaultIdAsync should return the configured role id when default exists")]
+    public async Task GetDefaultIdAsync_Should_ReturnConfiguredRoleId_When_DefaultExists()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await AddRoleAsync(name: "Moderator", isDefault: false, cancellationToken: cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var writeRepository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
+        var roleId = Guid.CreateVersion7();
+        var created = await writeRepository.AddAsync(
+            IntegrationTestData.CreateRole(
+                roleId, "CustomDefault", [("permission", "compendium.heroes.read")], isDefault: true),
+            cancellationToken);
+        created.IsSuccess.ShouldBeTrue();
+        var readRepository = scope.ServiceProvider.GetRequiredService<IRolesReadRepository>();
+
+        var result = await readRepository.GetDefaultIdAsync(cancellationToken);
+
+        result.ShouldBe(roleId);
+    }
+
     private async Task<Guid> AddRoleAsync(
         string name,
+        bool isDefault,
         CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRolesRepository>();
         var result = await repository.AddAsync(
-            IntegrationTestData.CreateRole(Guid.CreateVersion7(), name, []),
+            IntegrationTestData.CreateRole(Guid.CreateVersion7(), name, [], isDefault),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();

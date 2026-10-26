@@ -10,8 +10,8 @@ internal sealed class FactionsApiTestClient(FunctionalTestFixture fixture)
     private const string FactionsPath = "/api/v1/factions";
 
     internal async Task<CreateFactionResponse> CreateAsync(
-        CancellationToken cancellationToken,
-        CreateFactionRequest? request = null)
+        CreateFactionRequest? request,
+        CancellationToken cancellationToken)
     {
         request ??= new CreateFactionRequest(
             "Northern Alliance",

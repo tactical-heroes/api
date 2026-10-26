@@ -10,22 +10,32 @@ public sealed class Role : AggregateRoot<RoleId>
 
     private Role(
         RoleId id,
-        RoleName name)
+        RoleName name,
+        RoleDefaultFlag defaultFlag)
         : base(id)
     {
         Name = name;
+        DefaultFlag = defaultFlag;
     }
 
     public RoleName Name { get; private set; }
+
+    public RoleDefaultFlag DefaultFlag { get; private set; }
+
+    public bool IsDefault => DefaultFlag.Value;
 
     public IReadOnlyCollection<RoleClaim> Claims => _claims.AsReadOnly();
 
     public static Role Create(
         RoleId id,
         RoleName name,
+        RoleDefaultFlag defaultFlag,
         IEnumerable<RoleClaim> claims)
     {
-        var role = new Role(id: id, name: name);
+        var role = new Role(
+            id: id,
+            name: name,
+            defaultFlag: defaultFlag);
 
         foreach (var claim in claims)
         {

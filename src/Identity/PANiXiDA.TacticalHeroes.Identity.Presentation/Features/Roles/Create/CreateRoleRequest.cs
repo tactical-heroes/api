@@ -4,4 +4,5 @@ namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 
 public sealed record CreateRoleRequest(
     string Name,
+    bool IsDefault,
     IReadOnlyCollection<Claim> Claims);

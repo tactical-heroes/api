@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using OpenIddict.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
@@ -44,32 +45,34 @@ internal static class OAuthAuthorizationRequestTestHelper
         string email,
         string userName,
         string password,
+        IReadOnlyCollection<Claim>? claims,
         CancellationToken cancellationToken)
     {
         var api = new UserApiTestClient(fixture);
 
         return api.CreateAsync(
-            cancellationToken,
             UserApiTestClient.CreateDefaultRequest(
                 email,
                 userName,
                 isConfirmed: true) with
             {
-                Password = password
-            });
+                Password = password,
+                Claims = claims ?? []
+            },
+            cancellationToken);
     }
 
     internal static async Task<string> BuildAuthorizePathFromParAsync(
         HttpClient client,
         IReadOnlyCollection<string> scopes,
-        CancellationToken cancellationToken,
-        string redirectUri = RedirectUri)
+        string redirectUri,
+        CancellationToken cancellationToken)
     {
         var requestUri = await PushAuthorizationRequestAsync(
             client,
             scopes,
-            cancellationToken,
-            redirectUri);
+            redirectUri,
+            cancellationToken);
 
         return BuildAuthorizePath(requestUri);
     }
@@ -77,8 +80,8 @@ internal static class OAuthAuthorizationRequestTestHelper
     internal static async Task<string> PushAuthorizationRequestAsync(
         HttpClient client,
         IReadOnlyCollection<string> scopes,
-        CancellationToken cancellationToken,
-        string redirectUri = RedirectUri)
+        string redirectUri,
+        CancellationToken cancellationToken)
     {
         using var content = new FormUrlEncodedContent(
             new Dictionary<string, string>
@@ -149,7 +152,9 @@ internal static class OAuthAuthorizationRequestTestHelper
             root.GetProperty("access_token").GetString()
                 ?? throw new InvalidOperationException("Access token was not returned."),
             root.GetProperty("refresh_token").GetString()
-                ?? throw new InvalidOperationException("Refresh token was not returned."));
+                ?? throw new InvalidOperationException("Refresh token was not returned."),
+            root.GetProperty("id_token").GetString()
+                ?? throw new InvalidOperationException("Identity token was not returned."));
     }
 
     internal static async Task<string> LoginAndGetAuthorizationCodeAsync(
@@ -159,9 +164,10 @@ internal static class OAuthAuthorizationRequestTestHelper
         CancellationToken cancellationToken)
     {
         var authorizePath = await BuildAuthorizePathFromParAsync(
-            client,
-            DefaultScopes,
-            cancellationToken);
+            client: client,
+            scopes: DefaultScopes,
+            redirectUri: "https://localhost:5173/oauth/callback",
+            cancellationToken: cancellationToken);
         using var loginResponse = await client.PostAsJsonAsync(
             LoginPath,
             new LoginRequest(email, password, $"https://localhost{authorizePath}"),
@@ -200,4 +206,5 @@ internal static class OAuthAuthorizationRequestTestHelper
 
 internal sealed record OAuthTokenResponse(
     string AccessToken,
-    string RefreshToken);
+    string RefreshToken,
+    string IdToken);

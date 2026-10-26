@@ -8,11 +8,11 @@ public sealed class GetRoleDetailsEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new RoleApiTestClient(Fixture);
-        var createdRole = await client.CreateAsync(cancellationToken);
+        var createdRole = await client.RecreateAsync(request: null, cancellationToken: cancellationToken);
 
         var response = await client.GetDetailsAsync(createdRole.Id, cancellationToken);
 
         response.Id.ShouldBe(createdRole.Id);
-        response.Name.ShouldBe("admin");
+        response.Name.ShouldBe("Moderator");
     }
 }

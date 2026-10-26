@@ -14,11 +14,13 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
-        await client.CreateAsync(cancellationToken, new CreateFactionRequest("Southern Alliance", "South."));
+        await client.CreateAsync(
+            new CreateFactionRequest("Southern Alliance", "South."),
+            cancellationToken);
         var northern = await client.CreateAsync(
-            cancellationToken,
-            new CreateFactionRequest("Northern Alliance", "North."));
-        await client.CreateAsync(cancellationToken, new CreateFactionRequest("Empire", "An alliance."));
+            new CreateFactionRequest("Northern Alliance", "North."),
+            cancellationToken);
+        await client.CreateAsync(new CreateFactionRequest("Empire", "An alliance."), cancellationToken);
 
         using var response = await Fixture.Client.GetAsync(
             $"/api/v1/factions/select-options?search={Uri.EscapeDataString(search)}&limit=1",
@@ -39,7 +41,9 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var client = new FactionsApiTestClient(Fixture);
         for (int index = 0; index < 21; index++)
         {
-            await client.CreateAsync(cancellationToken, new CreateFactionRequest($"Faction {index:D2}", "A faction."));
+            await client.CreateAsync(
+                new CreateFactionRequest($"Faction {index:D2}", "A faction."),
+                cancellationToken);
         }
 
         using var response = await Fixture.Client.GetAsync("/api/v1/factions/select-options", cancellationToken);
@@ -108,8 +112,8 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
         var faction = await client.CreateAsync(
-            cancellationToken,
-            new CreateFactionRequest("Northern Alliance", "North."));
+            new CreateFactionRequest("Northern Alliance", "North."),
+            cancellationToken);
 
         using var response = await Fixture.Client
             .GetAsync("/api/v1/factions/select-options?limit=200", cancellationToken);
@@ -118,5 +122,24 @@ public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture f
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         options.GetArrayLength().ShouldBe(1);
         options[0].GetProperty("id").GetGuid().ShouldBe(faction.Id);
+    }
+
+    [Theory(DisplayName = "GET faction select options should require read permission when authenticated")]
+    [InlineData("unrelated", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.heroes.create", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.heroes.update", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.units.create", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.units.update", HttpStatusCode.Forbidden)]
+    [InlineData("compendium.factions.read", HttpStatusCode.OK)]
+    public async Task GetFactionSelectOptions_Should_RequireReadPermission_When_Authenticated(
+        string permission, HttpStatusCode expectedStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/factions/select-options?limit=20");
+        request.Headers.Add("X-Test-Permissions", permission);
+
+        using var response = await Fixture.Client.SendAsync(request, cancellationToken);
+
+        response.StatusCode.ShouldBe(expectedStatus, await response.Content.ReadAsStringAsync(cancellationToken));
     }
 }

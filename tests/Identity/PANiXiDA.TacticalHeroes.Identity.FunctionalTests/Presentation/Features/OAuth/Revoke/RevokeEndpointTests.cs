@@ -15,11 +15,12 @@ public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "revoke@example.test",
-            "revoke-hero",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "revoke@example.test",
+            userName: "revoke-hero",
+            password: "StrongPassword1!",
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client,

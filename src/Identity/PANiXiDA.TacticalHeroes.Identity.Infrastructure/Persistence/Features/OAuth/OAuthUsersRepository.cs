@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
@@ -10,7 +12,7 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 
-public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
+public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext, IOptions<IdentityOptions> identityOptions)
     : IOAuthUsersRepository
 {
     private IQueryable<UserReadDbModel> Query => dbContext.Set<UserReadDbModel>()
@@ -20,6 +22,19 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
         .ThenInclude(userRole => userRole.Role)
         .ThenInclude(role => role!.Claims)
         .AsSingleQuery();
+
+    public async Task<Result> CheckAvailabilityByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Set<UserReadDbModel>()
+            .AsNoTracking()
+            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
+
+        return user is null
+            ? Result.Failure(error: Error.NotFound(message: "User was not found."))
+            : EnsureAvailable(user);
+    }
 
     public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
         Guid userId,
@@ -40,7 +55,9 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext)
             ? Result.Failure<ExchangeTokenReadModel>(errors: availabilityResult.Errors)
             : Result.Success(
                 value: new ExchangeTokenReadModel(
-                    Claims: IdentityClaimsFactory.Create(user: applicationUser)));
+                    Claims: IdentityClaimsFactory.Create(
+                        user: applicationUser,
+                        identityOptions: identityOptions.Value)));
     }
 
     public async Task<Result<UserInfoReadModel>> GetUserInfoByUserIdAsync(

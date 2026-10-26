@@ -42,4 +42,46 @@ public sealed class RoleIdTests
 
         result.ShouldBe(value.ToString());
     }
+
+    [Fact(DisplayName = "Role assignments should accept empty selections when roles are empty")]
+    public void Create_Should_ReturnEmptyCollection_When_RolesAreEmpty()
+    {
+        var result = RoleId.Create([]);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Role assignments should reject a missing selection when values are null")]
+    public void Create_Should_ReturnValidationError_When_ValuesAreNull()
+    {
+        var result = RoleId.Create(null!);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "Role IDs are required.");
+    }
+
+    [Fact(DisplayName = "Role assignments should preserve identifiers when roles are valid")]
+    public void Create_Should_ReturnIds_When_RolesAreValid()
+    {
+        Guid[] roles = [Guid.CreateVersion7(), Guid.CreateVersion7()];
+
+        var result = RoleId.Create(roles);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Select(role => role.Value).ShouldBe(roles);
+    }
+
+    [Theory(DisplayName = "Role assignments should reject invalid selections when roles are invalid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Create_Should_ReturnValidationError_When_RolesAreInvalid(bool duplicate)
+    {
+        var id = Guid.CreateVersion7();
+        Guid[] roles = duplicate ? [id, id] : [Guid.Empty];
+
+        var result = RoleId.Create(roles);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Validation);
+    }
 }

@@ -1,5 +1,7 @@
 using System.Security.Claims;
 
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
@@ -16,15 +18,16 @@ public sealed class UpdateUserHandlerTests
         IReadOnlyCollection<Claim> claims = [new Claim("permission", "heroes.manage")];
         var repository = Substitute.For<IUsersRepository>();
         repository.UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId
+            user: Arg.Is<User>(user => user.Id.Value == userId
                 && user.Email.Value == "hero@example.com"
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
-            Arg.Any<CancellationToken>())
+            currentAccessToken: null,
+            cancellationToken: Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        var handler = new UpdateUserHandler(repository);
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -34,18 +37,20 @@ public sealed class UpdateUserHandlerTests
                 "hero",
                 true,
                 claims,
-                "Blocked"),
+                "Blocked",
+                RoleIds: []),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         await repository.Received(1).UpdateAsync(
-            Arg.Is<User>(user => user.Id.Value == userId
+            user: Arg.Is<User>(user => user.Id.Value == userId
                 && user.Email.Value == "hero@example.com"
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
-            cancellationToken);
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
     }
 
     [Theory(
@@ -62,7 +67,7 @@ public sealed class UpdateUserHandlerTests
         string claimValue)
     {
         var repository = Substitute.For<IUsersRepository>();
-        var handler = new UpdateUserHandler(repository);
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var result = await handler.HandleAsync(
@@ -72,11 +77,97 @@ public sealed class UpdateUserHandlerTests
                 userName,
                 false,
                 [new Claim(claimType, claimValue)],
-                status),
+                status,
+                RoleIds: []),
             cancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
+        await repository.DidNotReceiveWithAnyArgs().UpdateAsync(
+            user: null!,
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should pass assigned role IDs to persistence when role ids are provided")]
+    public async Task HandleAsync_Should_PassRoleIds_When_RoleIdsAreProvided()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var roleId = Guid.CreateVersion7();
+        var repository = Substitute.For<IUsersRepository>();
+        repository.UpdateAsync(
+            user: Arg.Any<User>(),
+            currentAccessToken: null,
+            cancellationToken: Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [roleId]),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await repository.Received(1).UpdateAsync(
+            user: Arg.Is<User>(user => user.RoleIds.Single().Value == roleId),
+            currentAccessToken: null,
+            cancellationToken: cancellationToken);
+    }
+
+    [Fact(DisplayName = "User handler should reject an empty role ID when role id is invalid")]
+    public async Task HandleAsync_Should_ReturnValidationFailure_When_RoleIdIsInvalid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var repository = Substitute.For<IUsersRepository>();
+        var handler = new UpdateUserHandler(repository, Substitute.For<ICurrentUser>());
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: [Guid.Empty]),
+            cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        repository.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "User handler should pass the token only for self updates when user is updated")]
+    [InlineData(true, "current-token", "current-token")]
+    [InlineData(false, "current-token", null)]
+    [InlineData(true, null, null)]
+    public async Task HandleAsync_Should_PassTokenOnlyForSelfUpdate_When_UserIsUpdated(
+        bool isCurrentUser, string? accessToken, string? expectedToken)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = Guid.CreateVersion7();
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(isCurrentUser ? userId : Guid.CreateVersion7());
+        currentUser.AccessToken.Returns(accessToken);
+        var repository = Substitute.For<IUsersRepository>();
+        repository.UpdateAsync(Arg.Any<User>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        var handler = new UpdateUserHandler(repository, currentUser);
+
+        var result = await handler.HandleAsync(
+            new UpdateUserCommand(userId, "hero@example.com", "hero", true, [], "Active", []),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await repository.Received(1).UpdateAsync(
+            Arg.Is<User>(user => user.Id.Value == userId),
+            expectedToken,
+            cancellationToken);
     }
 }

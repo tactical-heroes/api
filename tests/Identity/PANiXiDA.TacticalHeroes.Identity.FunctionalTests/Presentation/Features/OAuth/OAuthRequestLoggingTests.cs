@@ -19,7 +19,10 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         IntrospectionFailureKind failureKind)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var accessToken = await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(Fixture, cancellationToken);
+        var accessToken = await OAuthServiceAccessTokenTestHelper.IssueAccessTokenAsync(
+            fixture: Fixture,
+            permissions: null,
+            cancellationToken: cancellationToken);
         using var requestAborted = new CancellationTokenSource();
         var abortRequest = failureKind == IntrospectionFailureKind.ServerFailureAfterCancellation;
         Exception exception = failureKind switch
@@ -73,11 +76,12 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var createdUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "request-logging@example.test",
-            "request-logging-hero",
-            "StrongPassword1!",
-            cancellationToken);
+            fixture: Fixture,
+            email: "request-logging@example.test",
+            userName: "request-logging-hero",
+            password: "StrongPassword1!",
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             oauthClient,

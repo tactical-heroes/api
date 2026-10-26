@@ -10,7 +10,7 @@ public sealed class UpdateFactionEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new FactionsApiTestClient(Fixture);
-        var createdFaction = await client.CreateAsync(cancellationToken);
+        var createdFaction = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
 
         await client.UpdateAsync(
             createdFaction.Id,

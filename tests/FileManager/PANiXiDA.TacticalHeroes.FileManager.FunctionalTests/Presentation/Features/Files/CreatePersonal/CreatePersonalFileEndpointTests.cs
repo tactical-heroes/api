@@ -5,6 +5,7 @@ using Amazon.S3.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
@@ -204,8 +205,9 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
             FolderName.Create("Documents").Value,
             userId is null ? FileType.Avatar : FileType.Personal,
             userId is { } ownerId ? UserId.Create(ownerId).Value : null).Value;
-        await scope.ServiceProvider.GetRequiredService<IFoldersRepository>()
-            .AddAsync(folder, TestContext.Current.CancellationToken);
+        scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(TestContext.Current.CancellationToken);
 
         return folder.Id.Value;
     }

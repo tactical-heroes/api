@@ -22,10 +22,13 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         var northern = CreateFaction("Northern Alliance", "North.");
         await AddFactionsAsync(
-            cancellationToken,
-            CreateFaction("Southern Alliance", "South."),
-            northern,
-            CreateFaction("Empire", "Alliance appears only in description."));
+            factions:
+            [
+                CreateFaction("Southern Alliance", "South."),
+                northern,
+                CreateFaction("Empire", "Alliance appears only in description.")
+            ],
+            cancellationToken: cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
@@ -47,9 +50,8 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await AddFactionsAsync(
-            cancellationToken,
-            CreateFaction("Southern Alliance", "South."),
-            CreateFaction("Northern Alliance", "North."));
+            factions: [CreateFaction("Southern Alliance", "South."), CreateFaction("Northern Alliance", "North.")],
+            cancellationToken: cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
@@ -72,7 +74,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         }
             .OrderBy(faction => faction.Id.Value)
             .ToArray();
-        await AddFactionsAsync(cancellationToken, factions);
+        await AddFactionsAsync(factions, cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
@@ -89,7 +91,9 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetSelectOptionsAsync_Should_ReturnEmptyOptions_When_NoNameMatches()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await AddFactionsAsync(cancellationToken, CreateFaction("Empire", "Northern Alliance"));
+        await AddFactionsAsync(
+            factions: [CreateFaction("Empire", "Northern Alliance")],
+            cancellationToken: cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
 
@@ -108,7 +112,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         var faction = CreateFaction(
             "Northern Alliance",
             "Defenders of the north.");
-        await AddFactionsAsync(cancellationToken, faction);
+        await AddFactionsAsync(factions: [faction], cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
@@ -132,9 +136,8 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
             "Southern Alliance",
             "Defenders of the south.");
         await AddFactionsAsync(
-            cancellationToken,
-            southernFaction,
-            northernFaction);
+            factions: [southernFaction, northernFaction],
+            cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
@@ -159,7 +162,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         }
             .OrderBy(faction => faction.Id.Value)
             .ToArray();
-        await AddFactionsAsync(cancellationToken, factions);
+        await AddFactionsAsync(factions, cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
         var sortingParameters = SortingParameters.Descending(nameof(FactionListItemReadModel.Name));
@@ -184,7 +187,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         var faction = CreateFaction(
             "Northern Alliance",
             "Defenders of the north.");
-        await AddFactionsAsync(cancellationToken, faction);
+        await AddFactionsAsync(factions: [faction], cancellationToken: cancellationToken);
 
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsReadRepository>();
@@ -206,8 +209,8 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
         }
 
         await AddFactionsAsync(
-            cancellationToken,
-            CreateFaction("Northern Alliance", "Defenders of the north."));
+            factions: [CreateFaction("Northern Alliance", "Defenders of the north.")],
+            cancellationToken: cancellationToken);
 
         await using var populatedScope = Fixture.CreateScope();
         var populatedRepository =
@@ -225,8 +228,8 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
     }
 
     private async Task AddFactionsAsync(
-        CancellationToken cancellationToken,
-        params Faction[] factions)
+        Faction[] factions,
+        CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFactionsRepository>();
@@ -234,7 +237,7 @@ public sealed class FactionsReadRepositoryTests(IntegrationTestFixture fixture)
 
         foreach (var faction in factions)
         {
-            await repository.AddAsync(faction, cancellationToken);
+            repository.Add(faction);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -17,8 +17,9 @@ public sealed class UpdateUserCommandValidatorTests
                 "hero@example.com",
                 "hero",
                 true,
-                [new Claim("permission", "heroes.manage")],
-                "Blocked"));
+                [new Claim("permission", "compendium.heroes.update")],
+                "Blocked",
+                RoleIds: []));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -35,7 +36,8 @@ public sealed class UpdateUserCommandValidatorTests
                 "",
                 false,
                 [new Claim("", "")],
-                "Deleted"));
+                "Deleted",
+                RoleIds: []));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Id));
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Email));
@@ -43,7 +45,34 @@ public sealed class UpdateUserCommandValidatorTests
         result.Errors
             .Count(error =>
                 error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
-            .ShouldBe(2);
+            .ShouldBe(3);
         result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateUserCommand.Status));
+    }
+
+    [Theory(DisplayName = "User validator should validate role identifiers when role ids are provided")]
+    [InlineData(false, false, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    public void Validate_Should_CheckRoleIds_When_RoleIdsAreProvided(bool emptyId, bool duplicate, bool expectedValid)
+    {
+        var validator = new UpdateUserCommandValidator();
+        var id = emptyId ? Guid.Empty : Guid.CreateVersion7();
+        Guid[] roleIds = duplicate ? [id, id] : [id];
+
+        var result = validator.Validate(
+            new UpdateUserCommand(
+                Id: Guid.CreateVersion7(),
+                Email: "hero@example.com",
+                UserName: "hero",
+                IsConfirmed: true,
+                Claims: [],
+                Status: "Active",
+                RoleIds: roleIds));
+
+        result.IsValid.ShouldBe(expectedValid);
+        if (!expectedValid)
+        {
+            result.Errors.ShouldContain(error => error.PropertyName.StartsWith("RoleIds", StringComparison.Ordinal));
+        }
     }
 }

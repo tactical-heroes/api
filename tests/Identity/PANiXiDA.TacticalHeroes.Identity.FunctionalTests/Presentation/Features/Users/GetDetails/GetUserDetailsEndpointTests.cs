@@ -8,7 +8,7 @@ public sealed class GetUserDetailsEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var client = new UserApiTestClient(Fixture);
-        var createdUser = await client.CreateAsync(cancellationToken);
+        var createdUser = await client.CreateAsync(request: null, cancellationToken: cancellationToken);
 
         var response = await client.GetDetailsAsync(createdUser.Id, cancellationToken);
 

@@ -33,6 +33,52 @@ public sealed class ProjectReferenceDependencyTests
                 + string.Join(Environment.NewLine, violations));
     }
 
+    [Fact(DisplayName = "Contracts projects should not reference other projects when validated")]
+    public void ContractsProjects_Should_NotReferenceOtherProjects_When_Validated()
+    {
+        var projectPaths = GetProjectPaths(FindRepositoryRoot());
+        var modules = ArchitectureDefinition.s_modules;
+
+        Assert.NotEmpty(modules);
+        foreach (var module in modules)
+        {
+            Assert.Empty(GetProjectReferences(projectPaths[module.ContractsAssemblyName]));
+        }
+    }
+
+    [Fact(DisplayName = "Projects should use contracts only from infrastructure presentation and host when validated")]
+    public void ProjectReferences_Should_UseContractsOnlyFromInfrastructurePresentationAndHost_When_Validated()
+    {
+        var projectPaths = GetProjectPaths(FindRepositoryRoot());
+        var contractsAssemblyNames = ArchitectureDefinition.s_modules
+            .Select(module => module.ContractsAssemblyName)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var violations = projectPaths
+            .Where(project => !project.Key.EndsWith(".Infrastructure", StringComparison.Ordinal)
+                && !project.Key.EndsWith(".Presentation", StringComparison.Ordinal)
+                && !project.Key.EndsWith(".Host", StringComparison.Ordinal))
+            .SelectMany(project => GetProjectReferences(project.Value)
+                .Where(contractsAssemblyNames.Contains)
+                .Select(target => $"{project.Key} must not reference {target}."))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(contractsAssemblyNames);
+        Assert.True(
+            violations.Length == 0,
+            $"Forbidden Contracts project references:{Environment.NewLine}"
+                + string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Common project should not reference other projects when validated")]
+    public void CommonProject_Should_NotReferenceOtherProjects_When_Validated()
+    {
+        var projectPaths = GetProjectPaths(FindRepositoryRoot());
+
+        Assert.Empty(GetProjectReferences(projectPaths[ArchitectureDefinition.CommonAssemblyName]));
+    }
+
     private static Dictionary<string, string> GetProjectPaths(
         string repositoryRoot)
     {
@@ -95,12 +141,23 @@ public sealed class ProjectReferenceDependencyTests
         string sourceAssemblyName,
         string targetAssemblyName)
     {
+        if (sourceAssemblyName == module.ContractsAssemblyName
+            || sourceAssemblyName == module.DomainAssemblyName)
+        {
+            return false;
+        }
+
+        if (targetAssemblyName == ArchitectureDefinition.CommonAssemblyName)
+        {
+            return true;
+        }
+
         if (targetAssemblyName.EndsWith(
             ".Contracts",
             StringComparison.Ordinal))
         {
-            return sourceAssemblyName != module.ContractsAssemblyName
-                && sourceAssemblyName != module.DomainAssemblyName;
+            return sourceAssemblyName == module.InfrastructureAssemblyName
+                || sourceAssemblyName == module.PresentationAssemblyName;
         }
 
         if (sourceAssemblyName == module.ApplicationAssemblyName)

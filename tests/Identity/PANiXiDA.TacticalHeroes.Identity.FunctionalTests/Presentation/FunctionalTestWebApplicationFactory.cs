@@ -10,7 +10,12 @@ using Microsoft.Extensions.Logging;
 using OpenIddict.Validation.SystemNetHttp;
 
 using PANiXiDA.Core.Application.Messaging.EventBus;
+using PANiXiDA.Core.ResultPattern;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Auth;
 
 using Wolverine;
 
@@ -25,6 +30,24 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
 
     public int IntrospectionRequestCount => Volatile.Read(ref _introspectionRequestCount);
 
+    internal WebApplicationFactory<Program> WithAuthenticatedUserReadPause(
+        TaskCompletionSource reached,
+        TaskCompletionSource resume,
+        bool readBeforePause,
+        Func<bool> shouldPause)
+    {
+        return WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            services.AddScoped<AuthenticatedUserService>();
+            services.AddScoped<IAuthenticatedUserService>(provider => new PausingAuthenticatedUserService(
+                provider.GetRequiredService<AuthenticatedUserService>(),
+                reached,
+                resume,
+                readBeforePause,
+                shouldPause));
+        }));
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environmentName);
@@ -37,6 +60,7 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
         {
+            services.AddScoped<IOAuthClientsRepository, PermissionTestClientsRepository>();
             services.ConfigureAll<HttpClientFactoryOptions>(options =>
                 options.HttpMessageHandlerBuilderActions.Add(handler =>
                 {
@@ -64,6 +88,40 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
                 serviceProvider.GetRequiredService<CapturingEventBus>());
             services.RunWolverineInSoloMode();
         });
+    }
+
+    private sealed class PausingAuthenticatedUserService(
+        AuthenticatedUserService inner,
+        TaskCompletionSource reached,
+        TaskCompletionSource resume,
+        bool readBeforePause,
+        Func<bool> shouldPause) : IAuthenticatedUserService
+    {
+        public async Task<Result<AuthenticatedUserReadModel>> GetByIdAsync(
+            Guid userId,
+            CancellationToken cancellationToken)
+        {
+            if (!shouldPause())
+            {
+                return await inner.GetByIdAsync(userId, cancellationToken);
+            }
+
+            if (readBeforePause)
+            {
+                var user = await inner.GetByIdAsync(userId, cancellationToken);
+                await PauseAsync(cancellationToken);
+                return user;
+            }
+
+            await PauseAsync(cancellationToken);
+            return await inner.GetByIdAsync(userId, cancellationToken);
+        }
+
+        private async Task PauseAsync(CancellationToken cancellationToken)
+        {
+            reached.TrySetResult();
+            await resume.Task.WaitAsync(cancellationToken);
+        }
     }
 
     private sealed class IntrospectionTrackingHandler(FunctionalTestWebApplicationFactory factory) : HttpClientHandler

@@ -127,4 +127,52 @@ public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
             ],
             ignoreOrder: true);
     }
+
+    [Theory(DisplayName = "Identity OpenAPI should preserve required user fields when requested")]
+    [InlineData("CreateUserRequest", true)]
+    [InlineData("UpdateUserRequest", false)]
+    public async Task GetIdentityOpenApiDocument_Should_PreserveUserJsonContract_When_Requested(
+        string schemaName,
+        bool includePassword)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var client = Fixture.CreateClient(Environments.Development);
+
+        using var response = await client.GetAsync("/openapi/identity-v1.json", cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
+        using var document = JsonDocument.Parse(responseBody);
+        var schema = document.RootElement.GetProperty("components").GetProperty("schemas").GetProperty(schemaName);
+        var requiredProperties = schema.GetProperty("required")
+            .EnumerateArray()
+            .Select(property => property.GetString()!)
+            .ToArray();
+        string[] expectedProperties = includePassword
+            ? ["email", "userName", "password", "isConfirmed", "claims", "status", "roleIds"]
+            : ["email", "userName", "isConfirmed", "claims", "status", "roleIds"];
+        requiredProperties.ShouldBe(expectedProperties, ignoreOrder: true);
+        var status = schema.GetProperty("properties").GetProperty("status");
+        status.GetProperty("type").GetString().ShouldBe("string");
+        status.TryGetProperty("maxLength", out _).ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "GET Identity OpenAPI document should declare registration not found when requested")]
+    public async Task GetIdentityOpenApiDocument_Should_DeclareRegistrationNotFound_When_Requested()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var client = Fixture.CreateClient(Environments.Development);
+
+        using var response = await client.GetAsync("/openapi/identity-v1.json", cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, responseBody);
+        using var document = JsonDocument.Parse(responseBody);
+        document.RootElement.GetProperty("paths")
+            .GetProperty("/api/v1/auth/register")
+            .GetProperty("post")
+            .GetProperty("responses")
+            .TryGetProperty("404", out _)
+            .ShouldBeTrue();
+    }
 }

@@ -4,21 +4,22 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Queries;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,
-    IOpenIddictTokenManager tokenManager,
+    IRolesReadRepository rolesReadRepository,
+    IUserSessionService userSessionService,
     IOptions<IdentityProviderOptions> options,
     IAggregateTracker aggregateTracker,
     TimeProvider timeProvider)
@@ -39,7 +40,23 @@ public sealed class UserCredentialsService(
             return Result.Failure<Guid>(errors: validationResult.Errors);
         }
 
-        var user = User.Register(email: emailResult.Value, userName: userNameResult.Value);
+        var defaultRoleId = await rolesReadRepository.GetDefaultIdAsync(cancellationToken);
+        if (defaultRoleId is null)
+        {
+            return Result.Failure<Guid>(
+                error: Error.NotFound(message: "Default role was not found."));
+        }
+
+        var roleIdResult = RoleId.Create(value: defaultRoleId.Value);
+        if (roleIdResult.IsFailure)
+        {
+            return Result.Failure<Guid>(errors: roleIdResult.Errors);
+        }
+
+        var user = User.Register(
+            email: emailResult.Value,
+            userName: userNameResult.Value,
+            roleId: roleIdResult.Value);
         var nowUtc = timeProvider.GetUtcNow().UtcDateTime;
         var applicationUser = ApplicationUserMapper.ToDbModel(
             user: user,
@@ -75,14 +92,13 @@ public sealed class UserCredentialsService(
         return Result.Success(value: applicationUser.Id);
     }
 
-    public async Task<Result<AuthenticatedUserReadModel>> LoginAsync(
+    public async Task<Result<LoginSecurityProof>> LoginAsync(
         string email,
         string password,
         CancellationToken cancellationToken)
     {
         var normalizedEmail = userManager.NormalizeEmail(email);
         var applicationUser = await userManager.Users
-            .WithAuthorizationGraph()
             .SingleOrDefaultAsync(
                 user => user.NormalizedEmail == normalizedEmail,
                 cancellationToken);
@@ -94,13 +110,13 @@ public sealed class UserCredentialsService(
 
         if (IsBlocked(applicationUser))
         {
-            return Result.Failure<AuthenticatedUserReadModel>(
+            return Result.Failure<LoginSecurityProof>(
                 error: Error.Forbidden(message: "User is blocked."));
         }
 
         if (await userManager.IsLockedOutAsync(applicationUser))
         {
-            return Result.Failure<AuthenticatedUserReadModel>(
+            return Result.Failure<LoginSecurityProof>(
                 error: Error.Forbidden(message: "User is locked out."));
         }
 
@@ -110,7 +126,7 @@ public sealed class UserCredentialsService(
 
             if (!failureResult.Succeeded)
             {
-                return IdentityResultMapper.ToResult<AuthenticatedUserReadModel>(result: failureResult);
+                return IdentityResultMapper.ToResult<LoginSecurityProof>(result: failureResult);
             }
 
             return InvalidCredentials();
@@ -120,48 +136,57 @@ public sealed class UserCredentialsService(
 
         if (!resetResult.Succeeded)
         {
-            return IdentityResultMapper.ToResult<AuthenticatedUserReadModel>(result: resetResult);
+            return IdentityResultMapper.ToResult<LoginSecurityProof>(result: resetResult);
         }
 
         if (!applicationUser.EmailConfirmed)
         {
-            return Result.Failure<AuthenticatedUserReadModel>(
+            return Result.Failure<LoginSecurityProof>(
                 error: Error.Forbidden(message: "User is not confirmed."));
         }
 
-        var claims = IdentityClaimsFactory.Create(
-            user: applicationUser,
-            identityOptions: userManager.Options);
-
-        return Result.Success(
-            value: new AuthenticatedUserReadModel(
-                Id: applicationUser.Id,
-                Email: applicationUser.Email!,
-                UserName: applicationUser.UserName!,
-                Claims: claims));
+        var securityStamp = await userManager.GetSecurityStampAsync(applicationUser);
+        return string.IsNullOrEmpty(securityStamp)
+            ? InvalidCredentials()
+            : Result.Success(new LoginSecurityProof(applicationUser.Id, securityStamp));
     }
 
     public async Task<Result> ChangePasswordAsync(
         Guid userId,
+        string accessToken,
         string currentPassword,
         string newPassword,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.FindByIdAsync(userId.ToString());
+        var applicationUser = await userManager.Users
+            .SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
         if (applicationUser is null)
         {
-            return UserNotFound();
+            return Result.Failure(
+                error: Error.NotFound(message: "User was not found."));
         }
 
         if (IsBlocked(applicationUser))
         {
-            return Result.Failure(error: Error.Forbidden(message: "User is blocked."));
+            return Result.Failure(
+                error: Error.Forbidden(message: "User is blocked."));
         }
 
         if (await userManager.IsLockedOutAsync(applicationUser))
         {
-            return Result.Failure(error: Error.Forbidden(message: "User is locked out."));
+            return Result.Failure(
+                error: Error.Forbidden(message: "User is locked out."));
+        }
+
+        var sessionResult = await userSessionService.GetCurrentAuthorizationIdAsync(
+            userId: userId,
+            accessToken: accessToken,
+            cancellationToken: cancellationToken);
+        if (sessionResult.IsFailure || sessionResult.Value is null)
+        {
+            return Result.Failure(
+                error: Error.Unauthorized(message: "Current session is invalid."));
         }
 
         var result = await userManager.ChangePasswordAsync(
@@ -169,7 +194,17 @@ public sealed class UserCredentialsService(
             currentPassword: currentPassword,
             newPassword: newPassword);
 
-        return IdentityResultMapper.ToResult(result: result);
+        if (!result.Succeeded)
+        {
+            return IdentityResultMapper.ToResult(result);
+        }
+
+        await userSessionService.RevokeAsync(
+            userId: userId,
+            preservedAuthorizationId: sessionResult.Value,
+            cancellationToken: cancellationToken);
+
+        return Result.Success();
     }
 
     public async Task<Result> ConfirmEmailAsync(
@@ -331,10 +366,19 @@ public sealed class UserCredentialsService(
 
         if (result.Succeeded)
         {
-            await tokenManager.RevokeBySubjectAsync(userId.ToString(), cancellationToken);
+            await userSessionService.RevokeAsync(
+                userId: userId,
+                preservedAuthorizationId: null,
+                cancellationToken: cancellationToken);
         }
 
         return IdentityResultMapper.ToResult(result: result);
+    }
+
+    private static Result<LoginSecurityProof> InvalidCredentials()
+    {
+        return Result.Failure<LoginSecurityProof>(
+            error: Error.Unauthorized(message: "Invalid email or password."));
     }
 
     private static bool IsBlocked(ApplicationUser applicationUser)
@@ -343,12 +387,6 @@ public sealed class UserCredentialsService(
             applicationUser.Status,
             UserStatus.Blocked.Name,
             StringComparison.Ordinal);
-    }
-
-    private static Result<AuthenticatedUserReadModel> InvalidCredentials()
-    {
-        return Result.Failure<AuthenticatedUserReadModel>(
-            error: Error.Unauthorized(message: "Invalid email or password."));
     }
 
     private static Result UserNotFound()

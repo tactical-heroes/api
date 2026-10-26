@@ -29,18 +29,18 @@ internal sealed class HeroesApiTestClient(FunctionalTestFixture fixture)
     }
 
     internal Task<CreateFactionResponse> CreateFactionAsync(
-        CancellationToken cancellationToken,
-        CreateFactionRequest? request = null)
+        CreateFactionRequest? request,
+        CancellationToken cancellationToken)
     {
         return new FactionsApiTestClient(fixture).CreateAsync(
-            cancellationToken,
-            request);
+            request,
+            cancellationToken);
     }
 
     internal async Task<CreateHeroResponse> CreateAsync(
         Guid factionId,
-        CancellationToken cancellationToken,
-        CreateHeroRequest? request = null)
+        CreateHeroRequest? request,
+        CancellationToken cancellationToken)
     {
         request ??= CreateRequest(
             factionId: factionId,

@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
@@ -14,6 +15,9 @@ public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCom
         RuleFor(command => command.Name)
             .MustBeValidDomainValue(RoleName.Create);
 
+        RuleFor(command => command.IsDefault)
+            .MustBeValidDomainValue(RoleDefaultFlag.Create);
+
         RuleFor(command => command.Claims)
             .NotNull();
 
@@ -25,6 +29,7 @@ public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCom
 
                 claim.RuleFor(item => item.Value)
                     .MustBeValidDomainValue(ClaimValue.Create);
-            });
+            })
+            .SetValidator(new ClaimCatalogValidator());
     }
 }

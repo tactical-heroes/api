@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
 internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
@@ -14,6 +16,7 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
     }
@@ -21,13 +24,26 @@ internal sealed class UpdateRoleEndpoint : IEndpoint<RolesEndpoints>
     private static async Task<IResult> HandleAsync(
         Guid id,
         UpdateRoleRequest request,
+        HttpContext httpContext,
+        CurrentUserCookieSession cookieSession,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
+        var session = await cookieSession.CaptureAsync(httpContext);
         var result = await mediator.SendAsync(
             UpdateRoleMapper.ToCommand(request: request, id: id),
             cancellationToken);
 
-        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
+        if (result.IsFailure)
+        {
+            return result.ToHttpProblem();
+        }
+
+        await cookieSession.RenewAsync(
+            context: httpContext,
+            session: session,
+            cancellationToken: cancellationToken);
+
+        return TypedResults.NoContent();
     }
 }

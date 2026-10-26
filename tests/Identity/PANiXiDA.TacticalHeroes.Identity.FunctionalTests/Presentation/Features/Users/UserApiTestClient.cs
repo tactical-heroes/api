@@ -22,12 +22,13 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
             "StrongPassword1!",
             isConfirmed,
             [],
-            "Active");
+            "Active",
+            RoleIds: []);
     }
 
     internal async Task<CreateUserResponse> CreateAsync(
-        CancellationToken cancellationToken,
-        CreateUserRequest? request = null)
+        CreateUserRequest? request,
+        CancellationToken cancellationToken)
     {
         request ??= CreateDefaultRequest();
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, UsersPath)
@@ -69,10 +70,10 @@ internal sealed class UserApiTestClient(FunctionalTestFixture fixture)
     }
 
     internal async Task<PaginationResult<UserListItemResponse>> GetListAsync(
-        CancellationToken cancellationToken,
-        string? email = null,
-        int pageNumber = 1,
-        int pageSize = 20)
+        string? email,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
     {
         var path = $"{UsersPath}?pageNumber={pageNumber}&pageSize={pageSize}";
 

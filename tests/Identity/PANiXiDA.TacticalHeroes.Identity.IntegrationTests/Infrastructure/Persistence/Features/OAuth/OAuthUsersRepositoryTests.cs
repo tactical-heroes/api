@@ -1,13 +1,18 @@
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using OpenIddict.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
@@ -18,8 +23,90 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Fact(DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query when user exists")]
-    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists()
+    [Fact(
+        DisplayName = "CheckAvailabilityByUserIdAsync should skip authorization graph when user has authorization graph")]
+    public async Task CheckAvailabilityByUserIdAsync_Should_SkipAuthorizationGraph_When_UserHasAuthorizationGraph()
+    {
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "availability-role",
+            Claims = [new ApplicationRoleClaim { ClaimType = "permission", ClaimValue = "identity.users.read" }]
+        };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "availability@example.test",
+            UserName = "availability-user",
+            Status = UserStatus.Active.Name,
+            EmailConfirmed = true,
+            Claims = [new ApplicationUserClaim { ClaimType = "custom", ClaimValue = "private" }]
+        };
+        await AddAsync(role, user);
+        var commands = new List<string>();
+        var options = new DbContextOptionsBuilder<IdentityReadDbContext>()
+            .UseNpgsql(Fixture.ConnectionString)
+            .UseSnakeCaseNamingConvention()
+            .LogTo(commands.Add, [RelationalEventId.CommandExecuted])
+            .Options;
+        await using var dbContext = new IdentityReadDbContext(options);
+        var repository = new OAuthUsersRepository(dbContext, Options.Create(new IdentityOptions()));
+
+        var result = await repository.CheckAvailabilityByUserIdAsync(user.Id, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var sql = commands.ShouldHaveSingleItem();
+        sql.ShouldContain("email_confirmed");
+        sql.ShouldContain("status");
+        sql.ShouldNotContain("asp_net_roles");
+        sql.ShouldNotContain("asp_net_user_roles");
+        sql.ShouldNotContain("asp_net_user_claims");
+        sql.ShouldNotContain("asp_net_role_claims");
+    }
+
+    [Theory(DisplayName = "CheckAvailabilityByUserIdAsync should return forbidden when user is unavailable")]
+    [InlineData("Blocked", true)]
+    [InlineData("Active", false)]
+    public async Task CheckAvailabilityByUserIdAsync_Should_ReturnForbidden_When_UserIsUnavailable(
+        string status,
+        bool isConfirmed)
+    {
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "unavailable@example.test",
+            UserName = "unavailable-user",
+            Status = status,
+            EmailConfirmed = isConfirmed
+        };
+        await AddAsync(new ApplicationRole { Id = Guid.CreateVersion7(), Name = "unavailable-role" }, user);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+
+        var result = await repository.CheckAvailabilityByUserIdAsync(user.Id, TestContext.Current.CancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Forbidden);
+    }
+
+    [Fact(DisplayName = "CheckAvailabilityByUserIdAsync should return not found when user does not exist")]
+    public async Task CheckAvailabilityByUserIdAsync_Should_ReturnNotFound_When_UserDoesNotExist()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+
+        var result = await repository.CheckAvailabilityByUserIdAsync(
+            Guid.CreateVersion7(),
+            TestContext.Current.CancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+    }
+
+    [Theory(
+        DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query when user exists")]
+    [InlineData(null)]
+    [InlineData("custom_stamp")]
+    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists(
+        string? securityStampClaimType)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var role = new ApplicationRole
@@ -57,7 +144,11 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         Fixture.CommandCounter.Reset();
 
         await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IOAuthUsersRepository>();
+        var identityOptions = new IdentityOptions();
+        identityOptions.ClaimsIdentity.SecurityStampClaimType = securityStampClaimType
+            ?? identityOptions.ClaimsIdentity.SecurityStampClaimType;
+        var repository = new OAuthUsersRepository(
+            scope.ServiceProvider.GetRequiredService<IdentityReadDbContext>(), Options.Create(identityOptions));
 
         var result = await repository.GetExchangeTokenByUserIdAsync(
             user.Id,
@@ -73,6 +164,13 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         result.Value.Claims.ShouldContain(
             new Claim(type: OpenIddictConstants.Claims.Role, value: "admin"),
             IdentityClaimComparer.Instance);
+        result.Value.Claims.ShouldContain(claim =>
+            claim.Type == identityOptions.ClaimsIdentity.SecurityStampClaimType && claim.Value == user.SecurityStamp);
+        if (securityStampClaimType is not null)
+        {
+            result.Value.Claims.ShouldNotContain(claim =>
+                claim.Type == new IdentityOptions().ClaimsIdentity.SecurityStampClaimType);
+        }
         Fixture.CommandCounter.Count.ShouldBe(1);
     }
 

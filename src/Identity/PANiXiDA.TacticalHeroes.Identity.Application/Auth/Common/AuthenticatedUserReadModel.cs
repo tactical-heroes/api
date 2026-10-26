@@ -1,9 +1,10 @@
 using System.Security.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
 public sealed record AuthenticatedUserReadModel(
     Guid Id,
     string Email,
     string UserName,
+    string? SecurityStamp,
     IReadOnlyCollection<Claim> Claims) : IReadModel;

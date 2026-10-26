@@ -78,10 +78,8 @@ public sealed class CreatePersonalFileHandler(
             }
         }
 
-        await filesRepository.AddAsync(
-            aggregateRoot: file,
-            cancellationToken: cancellationToken);
-        await unitOfWork.CommitTransactionAsync(cancellationToken);
+        filesRepository.Add(aggregateRoot: file);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         await fileStorage.UploadAsync(
             key: file.StorageKey.Value,
@@ -97,9 +95,8 @@ public sealed class CreatePersonalFileHandler(
             return Result.Failure<Guid>(completeResult.Errors);
         }
 
-        await filesRepository.UpdateAsync(
-            aggregateRoot: file,
-            cancellationToken: cancellationToken);
+        filesRepository.Update(aggregateRoot: file);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(file.Id.Value);
     }

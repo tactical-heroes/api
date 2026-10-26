@@ -9,4 +9,5 @@ public sealed record GetUserDetailsResponse(
     bool IsConfirmed,
     string Status,
     string StatusDisplayName,
-    IReadOnlyCollection<Claim> Claims);
+    IReadOnlyCollection<Claim> Claims,
+    IReadOnlyCollection<Guid> RoleIds);

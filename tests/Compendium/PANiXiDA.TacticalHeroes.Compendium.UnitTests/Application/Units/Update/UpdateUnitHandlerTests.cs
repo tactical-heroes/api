@@ -38,7 +38,7 @@ public sealed class UpdateUnitHandlerTests
         unit.Stats.Attack.ShouldBe(10);
         unit.RangedAttack.Shots.ShouldBe(16);
         unit.Morale.Value.ShouldBe(3);
-        await unitsRepository.Received(1).UpdateAsync(unit, cancellationToken);
+        unitsRepository.Received(1).Update(unit);
     }
 
     [Fact(DisplayName = "Update unit handler should return not found when unit does not exist")]
@@ -91,8 +91,7 @@ public sealed class UpdateUnitHandlerTests
             ErrorType.NotFound,
             "Faction was not found.");
         unit.Name.Value.ShouldBe("Archer");
-        await unitsRepository.DidNotReceiveWithAnyArgs()
-            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+        unitsRepository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 
     [Fact(DisplayName = "Update unit handler should reject invalid values without saving when command is invalid")]
@@ -130,7 +129,6 @@ public sealed class UpdateUnitHandlerTests
         unit.Stats.ShouldBeSameAs(originalStats);
         unit.RangedAttack.ShouldBeSameAs(originalRangedAttack);
         unit.FactionId.ShouldBe(faction.Id);
-        await repository.DidNotReceiveWithAnyArgs()
-            .UpdateAsync(null!, TestContext.Current.CancellationToken);
+        repository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 }

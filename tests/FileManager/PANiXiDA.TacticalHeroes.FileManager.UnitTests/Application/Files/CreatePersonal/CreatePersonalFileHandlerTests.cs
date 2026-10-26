@@ -32,10 +32,10 @@ public sealed class CreatePersonalFileHandlerTests
         _currentUser.UserId.Returns(_userId);
     }
 
-    [Theory(DisplayName = "Personal file upload should commit pending metadata when command is valid")]
+    [Theory(DisplayName = "Personal file upload should save pending metadata before uploading when command is valid")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task HandleAsync_Should_CommitPendingThenUploadThenSaveReady_When_CommandIsValid(bool hasFolder)
+    public async Task HandleAsync_Should_SavePendingThenUploadThenSaveReady_When_CommandIsValid(bool hasFolder)
     {
         await using var content = new MemoryStream([1, 2, 3]);
         var command = CreateCommand(content);
@@ -50,15 +50,14 @@ public sealed class CreatePersonalFileHandlerTests
         }
 
         var steps = new List<string>();
-        _files.AddAsync(Arg.Any<File>(), Arg.Any<CancellationToken>()).Returns(call =>
+        _files.When(repository => repository.Add(Arg.Any<File>())).Do(call =>
         {
             call.Arg<File>().Status.ShouldBe(FileStatus.PendingUpload);
             steps.Add("pending");
-            return Task.CompletedTask;
         });
-        _unitOfWork.CommitTransactionAsync(Arg.Any<CancellationToken>()).Returns(_ =>
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(_ =>
         {
-            steps.Add("commit");
+            steps.Add("save");
             return Task.CompletedTask;
         });
         _storage.UploadAsync(Arg.Any<string>(), content, "text/plain", Arg.Any<CancellationToken>())
@@ -67,7 +66,7 @@ public sealed class CreatePersonalFileHandlerTests
                 steps.Add("upload");
                 return Task.CompletedTask;
             });
-        _files.UpdateAsync(Arg.Any<File>(), Arg.Any<CancellationToken>()).Returns(call =>
+        _files.When(repository => repository.Update(Arg.Any<File>())).Do(call =>
         {
             var file = call.Arg<File>();
             file.Status.ShouldBe(FileStatus.Ready);
@@ -76,13 +75,12 @@ public sealed class CreatePersonalFileHandlerTests
             file.StorageKey.Value.ShouldBe($"personal/{_userId:D}/{file.Id.Value:D}");
             file.Size!.Value.ShouldBe(content.Length);
             steps.Add("ready");
-            return Task.CompletedTask;
         });
 
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        steps.ShouldBe(["pending", "commit", "upload", "ready"]);
+        steps.ShouldBe(["pending", "save", "upload", "ready", "save"]);
         content.CanRead.ShouldBeTrue();
     }
 
@@ -108,7 +106,7 @@ public sealed class CreatePersonalFileHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.Single().Message.ShouldBe("Folder was not found.");
-        await _files.DidNotReceiveWithAnyArgs().AddAsync(null!, TestContext.Current.CancellationToken);
+        _files.DidNotReceiveWithAnyArgs().Add(null!);
         await _storage.DidNotReceiveWithAnyArgs()
             .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
     }
@@ -137,7 +135,7 @@ public sealed class CreatePersonalFileHandlerTests
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
-        await _files.DidNotReceiveWithAnyArgs().AddAsync(null!, TestContext.Current.CancellationToken);
+        _files.DidNotReceiveWithAnyArgs().Add(null!);
         await _storage.DidNotReceiveWithAnyArgs()
             .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
     }
@@ -159,11 +157,11 @@ public sealed class CreatePersonalFileHandlerTests
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Create personal file handler should not upload when commit fails")]
-    public async Task HandleAsync_Should_PropagateFailureWithoutUploading_When_CommitFails()
+    [Fact(DisplayName = "Create personal file handler should not upload when save fails")]
+    public async Task HandleAsync_Should_PropagateFailureWithoutUploading_When_SaveFails()
     {
         await using var content = new MemoryStream([1]);
-        _unitOfWork.CommitTransactionAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new IOException("Commit failed."));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new IOException("Save failed."));
 
         var exception = await Record.ExceptionAsync(() =>
             CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken));
@@ -189,8 +187,8 @@ public sealed class CreatePersonalFileHandlerTests
             () => CreateHandler().HandleAsync(CreateCommand(content), cancellationToken));
 
         thrown.ShouldBeSameAs(failure);
-        await _unitOfWork.Received(1).CommitTransactionAsync(cancellationToken);
-        await _files.DidNotReceiveWithAnyArgs().UpdateAsync(null!, cancellationToken);
+        await _unitOfWork.Received(1).SaveChangesAsync(cancellationToken);
+        _files.DidNotReceiveWithAnyArgs().Update(null!);
         content.CanRead.ShouldBeTrue();
     }
 

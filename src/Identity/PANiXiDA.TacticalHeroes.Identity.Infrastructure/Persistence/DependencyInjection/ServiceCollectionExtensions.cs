@@ -5,13 +5,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Auth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Tracking;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
 
@@ -21,7 +24,8 @@ internal static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.TryAddScoped<IAggregateTracker, AggregateTracker>();
+        serviceCollection.TryAddScoped<AggregateTracker>();
+        serviceCollection.Replace(ServiceDescriptor.Scoped<IAggregateTracker, IdentityAggregateTracker>());
         serviceCollection.TryAddKeyedScoped<IUnitOfWork, EfUnitOfWork<IdentityWriteDbContext>>(
             typeof(IdentityWriteDbContext));
 
@@ -54,6 +58,7 @@ internal static class ServiceCollectionExtensions
         serviceCollection.AddDbContext<IdentityReadDbContext>((provider, options) =>
             options.AddInterceptors(provider.GetServices<IInterceptor>()));
         serviceCollection.AddScoped<IOAuthUsersRepository, OAuthUsersRepository>();
+        serviceCollection.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
         serviceCollection.AddScoped<IOAuthClientsRepository, OAuthClientsRepository>();
 
         return serviceCollection;

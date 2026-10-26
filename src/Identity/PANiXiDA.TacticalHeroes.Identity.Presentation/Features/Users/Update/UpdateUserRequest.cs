@@ -7,4 +7,5 @@ public sealed record UpdateUserRequest(
     string UserName,
     bool IsConfirmed,
     IReadOnlyCollection<Claim> Claims,
-    string Status);
+    string Status,
+    IReadOnlyCollection<Guid> RoleIds);

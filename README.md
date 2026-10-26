@@ -60,6 +60,40 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Claim Catalogs
+
+Common provides `Permissions.All`, grouped by module and resource. Module names
+are display metadata and do not grant access.
+Named permissions follow the same hierarchy, for example
+`Permissions.Identity.Roles.Read` and `Permissions.Compendium.Factions.Read`.
+
+`GET /api/v1/claims/permissions` returns `{ "type": "permission", "items": [...] }`.
+Items include `code`, `displayName`, `moduleCode`, `moduleDisplayName`,
+`resourceCode` and `resourceDisplayName`. The catalog requires permission to
+create or update users or roles.
+
+User and role requests assign `{ type, value: item.code }` through `claims`.
+Only `permission` claims with known catalog values can be assigned. Other claim
+types and unknown permission values return HTTP 400.
+Administrative use cases require their corresponding permissions. Resource lookups
+require the corresponding read permission. Authentication and OAuth flows use their
+own session and protocol checks.
+`/connect/authorize` checks only user availability without loading roles or claims;
+`/connect/token` loads current user and role claims when issuing tokens.
+
+Changes to user permissions, role assignments, role permissions or role names
+invalidate affected access tokens while retaining authorization grants and refresh
+tokens. Refresh issues new access and ID tokens with current claims. Security stamps
+still reject stale access tokens issued concurrently with a permission change.
+Blocking, deleting or unconfirming a user continues to revoke their sessions.
+Previously revoked refresh tokens and authorization grants are never reactivated.
+
+`RemoveNonPermissionClaims` deletes all user and role claims except `permission`.
+Its rollback cannot reconstruct deleted assignments.
+The `/api/v1/claims/sections` endpoint and `sectionCode` catalog field are removed;
+permission codes remain unchanged. Deploy this API and its migration before the
+matching frontend, then sign in again to obtain permissions in the ID token.
+
 ## Request Validation
 
 Request DTO constructors and nullable annotations define the JSON contract and
@@ -70,6 +104,9 @@ use DataAnnotations validation attributes.
 User creation and updates require a non-null `status`. The domain factory rejects
 blank or unknown statuses. OpenAPI does not automatically export FluentValidation
 rules, including status restrictions, as schema constraints.
+
+EF repository concurrency exceptions handled by the mediator pipeline return HTTP 409
+with Problem Details. Reload the affected entity before retrying the operation.
 
 ## Token Validation
 

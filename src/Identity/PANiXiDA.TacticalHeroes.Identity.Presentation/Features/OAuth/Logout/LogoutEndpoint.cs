@@ -1,5 +1,6 @@
 using System.Net.Mime;
 
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -22,19 +23,23 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         builder.MapGet(builder.Route, handler: HandleGetAsync)
             .AllowAnonymous()
             .AddOpenApiOperationTransformer(AddLogoutQueryParametersAsync)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status302Found);
 
         builder.MapPost(builder.Route, handler: HandlePostAsync)
             .AllowAnonymous()
             .WithName("PostLogout")
             .Accepts<LogoutRequest>(MediaTypeNames.Application.FormUrlEncoded)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status302Found);
     }
 
     private static Task<IResult> HandleGetAsync(
-        HttpContext httpContext)
+        HttpContext httpContext,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return HandleAsync(httpContext);
+        return HandleAsync(httpContext: httpContext, mediator: mediator, cancellationToken: cancellationToken);
     }
 
     private static async Task AddLogoutQueryParametersAsync(
@@ -65,19 +70,60 @@ internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
         {
             Name = name,
             In = ParameterLocation.Query,
+            Required = name == OpenIddictConstants.Parameters.IdTokenHint,
             Schema = schema
         };
     }
 
     private static Task<IResult> HandlePostAsync(
-        HttpContext httpContext)
+        HttpContext httpContext,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return HandleAsync(httpContext);
+        return HandleAsync(httpContext: httpContext, mediator: mediator, cancellationToken: cancellationToken);
     }
 
     private static async Task<IResult> HandleAsync(
-        HttpContext httpContext)
+        HttpContext httpContext,
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(httpContext.GetOpenIddictServerRequest()?.IdTokenHint))
+        {
+            return TypedResults.BadRequest();
+        }
+
+        var authentication = await httpContext.AuthenticateAsync(
+            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        if (authentication.Principal is not { } principal
+            || principal.GetAuthorizationId() is not { } authorizationId)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        var audiences = principal.GetAudiences();
+        if (!Guid.TryParse(principal.GetClaim(OpenIddictConstants.Claims.Subject), out var userId)
+            || audiences.Length != 1)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var cookie = await httpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+        if (cookie.Succeeded
+            && (!Guid.TryParse(cookie.Principal?.GetClaim(OpenIddictConstants.Claims.Subject), out var cookieUserId)
+                || cookieUserId != userId))
+        {
+            return TypedResults.StatusCode(StatusCodes.Status403Forbidden);
+        }
+
+        var result = await mediator.SendAsync(
+            LogoutMapper.ToCommand(userId: userId, authorizationId: authorizationId, clientId: audiences[0]),
+            cancellationToken);
+        if (result.IsFailure)
+        {
+            return result.ToHttpProblem();
+        }
+
         await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
         return TypedResults.SignOut(

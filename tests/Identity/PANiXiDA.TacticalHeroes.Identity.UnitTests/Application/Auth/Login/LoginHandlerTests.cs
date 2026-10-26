@@ -7,19 +7,16 @@ public sealed class LoginHandlerTests
 {
     [Fact(
         DisplayName = "Login handler should delegate authentication to credentials service when credentials service succeeds")]
-    public async Task HandleAsync_Should_ReturnAuthenticatedUser_When_CredentialsServiceSucceeds()
+    public async Task HandleAsync_Should_ReturnSecurityProof_When_CredentialsServiceSucceeds()
     {
-        var authenticatedUser = new AuthenticatedUserReadModel(
-            Guid.CreateVersion7(),
-            "hero@example.com",
-            "hero",
-            []);
+        var userId = Guid.CreateVersion7();
+        var proof = new LoginSecurityProof(userId, "verified-stamp");
         var service = Substitute.For<IUserCredentialsService>();
         service.LoginAsync(
             "hero@example.com",
             "StrongPassword1!",
             Arg.Any<CancellationToken>())
-            .Returns(Result.Success(authenticatedUser));
+            .Returns(Result.Success(proof));
         var handler = new LoginHandler(service);
         var cancellationToken = TestContext.Current.CancellationToken;
 
@@ -28,7 +25,7 @@ public sealed class LoginHandlerTests
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(authenticatedUser);
+        result.Value.ShouldBe(proof);
         await service.Received(1).LoginAsync(
             "hero@example.com",
             "StrongPassword1!",

@@ -46,9 +46,6 @@ internal sealed class FolderConfiguration : AuditableEntityConfiguration<Folder>
                 value => UserId.Create(value).Value)
             .IsRequired(required: false);
 
-        builder.Property<uint>("Version")
-            .IsRowVersion();
-
         builder.HasIndex(folder => folder.ParentId);
         builder.HasIndex(folder => folder.UserId);
 

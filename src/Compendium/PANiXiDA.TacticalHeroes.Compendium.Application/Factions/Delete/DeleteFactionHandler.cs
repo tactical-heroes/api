@@ -1,11 +1,15 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Delete;
 
 public sealed class DeleteFactionHandler(IFactionsRepository factionsRepository)
-    : ICommandHandler<DeleteFactionCommand, Result>
+    : ICommandHandler<DeleteFactionCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Compendium.Factions.Delete.Code];
+
     public async Task<Result> HandleAsync(
         DeleteFactionCommand command,
         CancellationToken cancellationToken)
@@ -27,9 +31,7 @@ public sealed class DeleteFactionHandler(IFactionsRepository factionsRepository)
                 error: Error.NotFound(message: "Faction was not found."));
         }
 
-        await factionsRepository.DeleteAsync(
-            aggregateRoot: faction,
-            cancellationToken: cancellationToken);
+        factionsRepository.Delete(aggregateRoot: faction);
 
         return Result.Success();
     }

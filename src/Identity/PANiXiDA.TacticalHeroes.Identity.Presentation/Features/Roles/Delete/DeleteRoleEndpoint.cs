@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Delete;
 
 internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
@@ -14,18 +16,33 @@ internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> HandleAsync(
         Guid id,
+        HttpContext httpContext,
+        CurrentUserCookieSession cookieSession,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
+        var session = await cookieSession.CaptureAsync(httpContext);
         var result = await mediator.SendAsync(
             DeleteRoleMapper.ToCommand(id: id),
             cancellationToken);
 
-        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
+        if (result.IsFailure)
+        {
+            return result.ToHttpProblem();
+        }
+
+        await cookieSession.RenewAsync(
+            context: httpContext,
+            session: session,
+            cancellationToken: cancellationToken);
+
+        return TypedResults.NoContent();
     }
 }

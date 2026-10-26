@@ -13,13 +13,31 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Application\PANiXiDA.TacticalHeroes.Battle.Application.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Contracts\PANiXiDA.TacticalHeroes.Battle.Contracts.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Domain\PANiXiDA.TacticalHeroes.Battle.Domain.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Infrastructure\PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj" />
+        <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Presentation\PANiXiDA.TacticalHeroes.Battle.Presentation.csproj" />
+        <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Application\PANiXiDA.TacticalHeroes.Matchmaking.Application.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Application\PANiXiDA.TacticalHeroes.Games.Application.csproj" />
+        <ProjectReference Include="..\Builds\PANiXiDA.TacticalHeroes.Builds.Application\PANiXiDA.TacticalHeroes.Builds.Application.csproj" />
+        <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Contracts\PANiXiDA.TacticalHeroes.Matchmaking.Contracts.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Contracts\PANiXiDA.TacticalHeroes.Games.Contracts.csproj" />
+        <ProjectReference Include="..\Builds\PANiXiDA.TacticalHeroes.Builds.Contracts\PANiXiDA.TacticalHeroes.Builds.Contracts.csproj" />
+        <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Domain\PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Domain\PANiXiDA.TacticalHeroes.Games.Domain.csproj" />
+        <ProjectReference Include="..\Builds\PANiXiDA.TacticalHeroes.Builds.Domain\PANiXiDA.TacticalHeroes.Builds.Domain.csproj" />
+        <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Infrastructure\PANiXiDA.TacticalHeroes.Games.Infrastructure.csproj" />
+        <ProjectReference Include="..\Builds\PANiXiDA.TacticalHeroes.Builds.Infrastructure\PANiXiDA.TacticalHeroes.Builds.Infrastructure.csproj" />
+        <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Presentation\PANiXiDA.TacticalHeroes.Matchmaking.Presentation.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Presentation\PANiXiDA.TacticalHeroes.Games.Presentation.csproj" />
+        <ProjectReference Include="..\Builds\PANiXiDA.TacticalHeroes.Builds.Presentation\PANiXiDA.TacticalHeroes.Builds.Presentation.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Application\PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
-        <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Contracts\PANiXiDA.TacticalHeroes.Compendium.Contracts.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Presentation\PANiXiDA.TacticalHeroes.Compendium.Presentation.csproj" />
         <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Application\PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
-        <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Contracts\PANiXiDA.TacticalHeroes.FileManager.Contracts.csproj" />
         <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Domain\PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
         <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
         <ProjectReference Include="..\FileManager\PANiXiDA.TacticalHeroes.FileManager.Presentation\PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
@@ -29,7 +47,6 @@
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Infrastructure\PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj" />
         <ProjectReference Include="..\Identity\PANiXiDA.TacticalHeroes.Identity.Presentation\PANiXiDA.TacticalHeroes.Identity.Presentation.csproj" />
         <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Application\PANiXiDA.TacticalHeroes.Notifications.Application.csproj" />
-        <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Contracts\PANiXiDA.TacticalHeroes.Notifications.Contracts.csproj" />
         <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Domain\PANiXiDA.TacticalHeroes.Notifications.Domain.csproj" />
         <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Infrastructure\PANiXiDA.TacticalHeroes.Notifications.Infrastructure.csproj" />
         <ProjectReference Include="..\Notifications\PANiXiDA.TacticalHeroes.Notifications.Presentation\PANiXiDA.TacticalHeroes.Notifications.Presentation.csproj" />

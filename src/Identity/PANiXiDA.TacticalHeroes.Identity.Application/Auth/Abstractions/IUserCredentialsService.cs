@@ -10,13 +10,14 @@ public interface IUserCredentialsService
         string password,
         CancellationToken cancellationToken);
 
-    Task<Result<AuthenticatedUserReadModel>> LoginAsync(
+    Task<Result<LoginSecurityProof>> LoginAsync(
         string email,
         string password,
         CancellationToken cancellationToken);
 
     Task<Result> ChangePasswordAsync(
         Guid userId,
+        string accessToken,
         string currentPassword,
         string newPassword,
         CancellationToken cancellationToken);

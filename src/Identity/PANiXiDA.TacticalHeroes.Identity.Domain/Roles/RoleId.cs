@@ -24,4 +24,34 @@ public readonly partial record struct RoleId : IStronglyTypedId
 
         return Result.Success(value: new RoleId(value: value));
     }
+
+    public static Result<IReadOnlyCollection<RoleId>> Create(IReadOnlyCollection<Guid> values)
+    {
+        if (values is null)
+        {
+            return Result.Failure<IReadOnlyCollection<RoleId>>(
+                error: Error.Validation(message: "Role IDs are required."));
+        }
+
+        var roleIds = new List<RoleId>();
+        var seen = new HashSet<Guid>();
+        foreach (var value in values)
+        {
+            if (!seen.Add(value))
+            {
+                return Result.Failure<IReadOnlyCollection<RoleId>>(
+                    error: Error.Validation(message: "Role IDs must be unique."));
+            }
+
+            var result = Create(value);
+            if (result.IsFailure)
+            {
+                return Result.Failure<IReadOnlyCollection<RoleId>>(errors: result.Errors);
+            }
+
+            roleIds.Add(result.Value);
+        }
+
+        return Result.Success<IReadOnlyCollection<RoleId>>(value: roleIds);
+    }
 }

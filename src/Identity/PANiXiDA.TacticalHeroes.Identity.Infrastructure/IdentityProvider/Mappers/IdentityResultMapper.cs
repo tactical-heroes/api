@@ -25,7 +25,8 @@ internal static class IdentityResultMapper
         {
             nameof(IdentityErrorDescriber.DuplicateEmail) or
             nameof(IdentityErrorDescriber.DuplicateUserName) or
-            nameof(IdentityErrorDescriber.DuplicateRoleName) => Error.Conflict(message: error.Description),
+            nameof(IdentityErrorDescriber.DuplicateRoleName) or
+            nameof(IdentityErrorDescriber.ConcurrencyFailure) => Error.Conflict(message: error.Description),
             _ => Error.Validation(message: error.Description)
         };
     }

@@ -27,7 +27,6 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
-        await unitOfWork.BeginTransactionAsync(cancellationToken);
         await using var content = new MemoryStream([1, 2, 3, 4]);
         var userId = Guid.NewGuid();
         var command = new CreatePersonalFileCommand(
@@ -63,9 +62,6 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         try
         {
             await using var scope = Fixture.CreateScope();
-            var unitOfWork = scope.ServiceProvider
-                .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
-            await unitOfWork.BeginTransactionAsync(cancellationToken);
             await using var content = new MemoryStream([1]);
             var userId = Guid.NewGuid();
             var command = new CreatePersonalFileCommand(
@@ -73,7 +69,6 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
 
             await Should.ThrowAsync<AmazonS3Exception>(() =>
                 CreateHandler(scope.ServiceProvider, userId).HandleAsync(command, cancellationToken));
-            await unitOfWork.RollbackTransactionAsync(cancellationToken);
 
             await using var verification = Fixture.CreateScope();
             var db = verification.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();

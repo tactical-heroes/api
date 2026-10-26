@@ -1,9 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.Core.Application.Persistence;
+
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetPersonalDetails;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -93,8 +96,9 @@ public sealed class GetPersonalFileDetailsEndpointTests(FunctionalTestFixture fi
             type,
             userId is { } ownerId ? UserId.Create(ownerId).Value : null).Value;
         await using var scope = Fixture.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<IFilesRepository>()
-            .AddAsync(file, TestContext.Current.CancellationToken);
+        scope.ServiceProvider.GetRequiredService<IFilesRepository>().Add(file);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(TestContext.Current.CancellationToken);
 
         return file;
     }

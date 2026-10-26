@@ -26,11 +26,12 @@ public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var createdUser = await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
-            Fixture,
-            "forgot@example.test",
-            "forgot-hero",
-            CurrentPassword,
-            cancellationToken);
+            fixture: Fixture,
+            email: "forgot@example.test",
+            userName: "forgot-hero",
+            password: CurrentPassword,
+            claims: [new("permission", "identity.users.read")],
+            cancellationToken: cancellationToken);
         using var client = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             client,

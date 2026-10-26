@@ -10,6 +10,10 @@ builder.AddHttp();
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
 builder.AddCompendiumModule();
+builder.AddBattleModule();
+builder.AddMatchmakingModule();
+builder.AddGamesModule();
+builder.AddBuildsModule();
 builder.AddFileManagerModule();
 builder.AddMessaging();
 
