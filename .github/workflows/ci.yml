@@ -17,7 +17,11 @@ jobs:
       registry-token: ${{ secrets.REGISTRY_TOKEN }}
 
   tests:
-    uses: ./.github/workflows/dotnet-tests.yml
+    uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/dotnet-tests.yml@61ce335e76cbe514623f295d164891885b4fc1e3
+    with:
+      max-parallel: 18
+      run-analyzers: false
+      restore-solution-for: '*ArchitectureTests.csproj'
     secrets:
       registry-user: ${{ secrets.REGISTRY_USER }}
       registry-token: ${{ secrets.REGISTRY_TOKEN }}
