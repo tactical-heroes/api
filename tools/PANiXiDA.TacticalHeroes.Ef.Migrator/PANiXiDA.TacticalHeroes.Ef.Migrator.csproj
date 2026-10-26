@@ -12,6 +12,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Battle\PANiXiDA.TacticalHeroes.Battle.Infrastructure\PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj" />
         <ProjectReference Include="..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\src\Games\PANiXiDA.TacticalHeroes.Games.Infrastructure\PANiXiDA.TacticalHeroes.Games.Infrastructure.csproj" />
         <ProjectReference Include="..\..\src\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
         <ProjectReference Include="..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
         <ProjectReference Include="..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Infrastructure\PANiXiDA.TacticalHeroes.Identity.Infrastructure.csproj" />
