@@ -1,0 +1,93 @@
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
+
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTickets.Enumerations;
+
+public sealed class MatchmakingTicketStatusTests
+{
+    [Theory(DisplayName = "Matchmaking should accept lifecycle states when parsed")]
+    [InlineData("Searching")]
+    [InlineData("Reserved")]
+    [InlineData("Assigned")]
+    [InlineData("Cancelled")]
+    [InlineData("Expired")]
+    public void Create_Should_AcceptLifecycleStates_When_Parsed(string value)
+    {
+        var result = MatchmakingTicketStatus.Create(value);
+
+        result.Value.Name.ShouldBe(value);
+    }
+
+    [Theory(DisplayName = "Matchmaking should reject unknown values when parsed")]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("Unknown")]
+    public void Create_Should_RejectUnknownValues_When_Parsed(string value)
+    {
+        var result = MatchmakingTicketStatus.Create(value);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Matchmaking should display name when converted to text")]
+    public void ToString_Should_DisplayName_When_ConvertedToText()
+    {
+        var text = MatchmakingTicketStatus.Searching.ToString();
+
+        text.ShouldBe("Searching");
+    }
+
+    [Fact(DisplayName = "Matchmaking should list states when called")]
+    public void GetAll_Should_ListStates_When_Called()
+    {
+        var values = MatchmakingTicketStatus.GetAll();
+
+        string[] expected =
+        [
+            "Searching",
+            "Reserved",
+            "Assigned",
+            "Cancelled",
+            "Expired",
+        ];
+
+        values.Select(value => value.Name).ShouldBe(expected);
+    }
+
+    [Fact(DisplayName = "Matchmaking should resolve identifier when id is known")]
+    public void FromId_Should_ResolveIdentifier_When_IdIsKnown()
+    {
+        var value = MatchmakingTicketStatus.FromId(1);
+
+        value.ShouldBe(MatchmakingTicketStatus.Searching);
+    }
+
+    [Fact(DisplayName = "Matchmaking should resolve trimmed name when name is known")]
+    public void FromName_Should_ResolveTrimmedName_When_NameIsKnown()
+    {
+        var value = MatchmakingTicketStatus.FromName("  Searching  ");
+
+        value.ShouldBe(MatchmakingTicketStatus.Searching);
+    }
+
+    [Theory(DisplayName = "Matchmaking should report lookup success when id is supplied")]
+    [InlineData(1, true)]
+    [InlineData(0, false)]
+    public void TryFromId_Should_ReportLookupSuccess_When_IdIsSupplied(int id, bool expected)
+    {
+        var found = MatchmakingTicketStatus.TryFromId(id, out var value);
+
+        found.ShouldBe(expected);
+        (value is not null).ShouldBe(expected);
+    }
+
+    [Theory(DisplayName = "Matchmaking should report lookup success when name is supplied")]
+    [InlineData("Searching", true)]
+    [InlineData("Unknown", false)]
+    public void TryFromName_Should_ReportLookupSuccess_When_NameIsSupplied(string name, bool expected)
+    {
+        var found = MatchmakingTicketStatus.TryFromName(name, out var value);
+
+        found.ShouldBe(expected);
+        (value is not null).ShouldBe(expected);
+    }
+}
