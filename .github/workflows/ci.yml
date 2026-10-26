@@ -17,7 +17,7 @@ jobs:
   tests:
     uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/dotnet-tests.yml@8783fb8ca7a8bc61e117775e013900f3b4906062
     with:
-      restore-solution-for: '*ArchitectureTests.csproj'
+      restore-solution-for: ${{ vars.RESTORE_SOLUTION_FOR || '*' }}
     secrets:
       registry-user: ${{ secrets.REGISTRY_USER }}
       registry-token: ${{ secrets.REGISTRY_TOKEN }}
