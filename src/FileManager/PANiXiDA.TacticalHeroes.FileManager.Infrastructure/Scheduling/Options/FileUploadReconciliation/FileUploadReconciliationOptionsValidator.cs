@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Options;
 
-using Quartz;
-
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
 internal sealed class FileUploadReconciliationOptionsValidator
@@ -9,18 +7,7 @@ internal sealed class FileUploadReconciliationOptionsValidator
 {
     public ValidateOptionsResult Validate(string? name, FileUploadReconciliationOptions options)
     {
-        if (!options.Enabled)
-        {
-            return ValidateOptionsResult.Success;
-        }
-
         List<string> failures = [];
-        if (string.IsNullOrWhiteSpace(options.CronSchedule)
-            || !CronExpression.TryParse(options.CronSchedule, out _))
-        {
-            failures.Add("Upload reconciliation requires a valid Quartz cron expression.");
-        }
-
         if (options.MinimumAge <= TimeSpan.Zero)
         {
             failures.Add("Upload reconciliation minimum age must be positive.");

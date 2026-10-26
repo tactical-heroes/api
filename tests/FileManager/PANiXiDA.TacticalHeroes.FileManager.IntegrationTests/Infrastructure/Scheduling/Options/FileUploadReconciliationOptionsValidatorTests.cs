@@ -4,19 +4,16 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Sc
 
 public sealed class FileUploadReconciliationOptionsValidatorTests
 {
-    [Theory(DisplayName = "Reconciliation options should reject settings when enabled configuration is invalid")]
-    [InlineData("cron")]
+    [Theory(DisplayName = "Reconciliation options should reject settings when configuration is invalid")]
     [InlineData("age")]
     [InlineData("timeout")]
     [InlineData("large-timeout")]
     [InlineData("batch")]
     [InlineData("large-batch")]
-    public void Validate_Should_RejectInvalidSettings_When_EnabledConfigurationIsInvalid(string invalidPart)
+    public void Validate_Should_RejectInvalidSettings_When_ConfigurationIsInvalid(string invalidPart)
     {
         var options = new FileUploadReconciliationOptions
         {
-            Enabled = true,
-            CronSchedule = invalidPart == "cron" ? "invalid" : "0 */5 * * * ?",
             MinimumAge = invalidPart == "age" ? TimeSpan.Zero : TimeSpan.FromMinutes(15),
             StorageRequestTimeout = invalidPart switch
             {
@@ -37,12 +34,10 @@ public sealed class FileUploadReconciliationOptionsValidatorTests
         result.Failed.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Reconciliation options should accept defaults when enabled state varies")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Validate_Should_AcceptDefaults_When_EnabledStateVaries(bool enabled)
+    [Fact(DisplayName = "Reconciliation options should accept defaults when configuration uses defaults")]
+    public void Validate_Should_AcceptDefaults_When_ConfigurationUsesDefaults()
     {
-        var options = new FileUploadReconciliationOptions { Enabled = enabled };
+        var options = new FileUploadReconciliationOptions();
 
         var result = new FileUploadReconciliationOptionsValidator().Validate(null, options);
 

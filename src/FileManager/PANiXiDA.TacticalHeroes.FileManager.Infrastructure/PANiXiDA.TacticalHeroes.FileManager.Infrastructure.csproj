@@ -9,7 +9,6 @@
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Storage.S3" />
         <PackageReference Include="PANiXiDA.Core.ResultPattern" />
         <PackageReference Include="Riok.Mapperly" />
-        <PackageReference Include="Quartz.Extensions.Hosting" />
     </ItemGroup>
 
     <ItemGroup>

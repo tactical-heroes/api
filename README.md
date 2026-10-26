@@ -188,13 +188,25 @@ The base prefix is `production`; `appsettings.Development.json` sets `developmen
 
 ## Personal Upload Reconciliation
 
-The host enables a Quartz job under `FileManager:UploadReconciliation`. By default,
-it runs every five minutes and checks personal files that have remained
-`PendingUpload` for at least fifteen minutes. `BatchSize` controls database page
-size (1–1000), and `StorageRequestTimeout` bounds each S3 metadata request.
-`Enabled`, `CronSchedule`, and `MinimumAge` can also be overridden in configuration.
+The host registers `ReconcilePersonalFileUploadsCommand` through Core Wolverine's
+`AddRecurringCommand`. Its schedule is configured under
+`Messaging:Schedules:ReconcilePersonalFileUploadsCommand`: `Enabled`, a stable
+`Name`, `CronExpression` (five-field cron, `*/5 * * * *` by default), and
+`TimeZoneId` (`UTC`). Wolverine persists recurring schedules in its message store
+and coordinates scheduling across replicas.
 
-The job reads S3 object metadata using the persisted storage key and the same
+Operational settings remain under `FileManager:UploadReconciliation`:
+`MinimumAge` defaults to fifteen minutes, `BatchSize` controls database page size
+(1–1000), and `StorageRequestTimeout` bounds each S3 metadata request. The command
+runs through the FileManager mediator pipeline without requesting an enclosing
+transaction; each file is finalized independently.
+
+The first enabled recurring schedule extends Wolverine's message-store schema.
+Apply it using the host's JasperFx `db-apply` command with the target environment's
+configuration before starting replicas where automatic schema updates are disabled.
+The EF migrator only manages module schemas, not Wolverine's message-store tables.
+
+The reconciler reads S3 object metadata using the persisted storage key and the same
 environment prefix as uploads. If the object exists and its content type and size
 are valid domain values, it restores those actual values and marks the file
 `Ready`. HTTP uploads and recovery share an idempotent finalizer: a short database
@@ -203,7 +215,7 @@ overwriting another lifecycle transition. No database lock is held during S3 cal
 
 Missing objects, invalid metadata, storage errors, and per-object timeouts leave
 the record unchanged for subsequent checks. Paging continues past missing objects.
-Each completed file uses a separate write scope. The job does not delete objects,
+Each completed file uses a separate write scope. Reconciliation does not delete objects,
 expire records, restart uploads, or inspect files already marked `Ready`.
 Incomplete multipart cleanup and upload-request idempotency remain separate work.
 This recovery path establishes eventual completion for objects that are present;

@@ -13,35 +13,20 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Fi
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Storage;
 
-using Quartz;
-
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Reconciliation;
 
-[DisallowConcurrentExecution]
-internal sealed class ReconcilePersonalFileUploadsJob(
+internal sealed class PersonalFileUploadReconciler(
     FileManagerReadDbContext dbContext,
     S3FileMetadataReader metadataReader,
     IServiceScopeFactory scopeFactory,
     TimeProvider timeProvider,
     IOptions<FileUploadReconciliationOptions> options,
-    ILogger<ReconcilePersonalFileUploadsJob> logger)
-    : IJob
+    ILogger<PersonalFileUploadReconciler> logger)
+    : IPersonalFileUploadReconciler
 {
-    public static readonly JobKey Key = new(nameof(ReconcilePersonalFileUploadsJob));
-
-    ValueTask IJob.Execute(IJobExecutionContext context, CancellationToken cancellationToken)
-    {
-        return new ValueTask(ExecuteAsync(cancellationToken));
-    }
-
-    internal async Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task ReconcileAsync(CancellationToken cancellationToken)
     {
         var reconciliationOptions = options.Value;
-        if (!reconciliationOptions.Enabled)
-        {
-            return;
-        }
-
         var createdBefore = timeProvider.GetUtcNow().Subtract(reconciliationOptions.MinimumAge).UtcDateTime;
         var afterId = Guid.Empty;
         while (true)
