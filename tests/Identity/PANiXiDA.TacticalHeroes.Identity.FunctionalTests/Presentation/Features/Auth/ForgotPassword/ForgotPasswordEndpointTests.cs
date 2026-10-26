@@ -14,6 +14,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ForgotPassword;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

@@ -6,6 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Authorize;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class AuthorizeEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

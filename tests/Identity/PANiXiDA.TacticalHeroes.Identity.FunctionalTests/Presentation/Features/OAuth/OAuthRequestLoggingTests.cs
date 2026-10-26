@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 
+[Collection(RolesFunctionalTestCollectionDefinition.Name)]
 public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
     [Theory(DisplayName = "Protected API should log server error when introspection transport fails")]
@@ -34,7 +35,7 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
             _ => new InvalidOperationException("Independent introspection failure")
         };
         using var loggerProvider = new CapturingLoggerProvider();
-        await using var testFactory = new FunctionalTestWebApplicationFactory();
+        await using var testFactory = Fixture.CreateFactory();
         await using var factory = testFactory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureLogging(logging => logging.AddProvider(loggerProvider));
@@ -89,7 +90,7 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
             "StrongPassword1!",
             cancellationToken);
         using var loggerProvider = new CapturingLoggerProvider();
-        await using var testFactory = new FunctionalTestWebApplicationFactory();
+        await using var testFactory = Fixture.CreateFactory();
         await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureLogging(logging => logging.AddProvider(loggerProvider)));
         using var client = factory.CreateClient();
@@ -143,7 +144,7 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         LogLevel expectedLevel)
     {
         using var loggerProvider = new CapturingLoggerProvider();
-        await using var testFactory = new FunctionalTestWebApplicationFactory("Development");
+        await using var testFactory = Fixture.CreateFactory("Development");
         await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureLogging(logging => logging.AddProvider(loggerProvider)));
         using var client = factory.CreateClient();

@@ -4,6 +4,7 @@ using OpenIddict.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Introspect;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class IntrospectEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

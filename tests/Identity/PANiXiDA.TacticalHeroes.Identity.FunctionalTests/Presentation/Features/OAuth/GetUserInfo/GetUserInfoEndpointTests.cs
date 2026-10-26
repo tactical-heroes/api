@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.GetUserInfo;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetUserInfoEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

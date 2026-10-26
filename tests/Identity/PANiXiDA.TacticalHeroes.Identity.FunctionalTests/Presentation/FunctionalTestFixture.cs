@@ -3,6 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.DependencyInjection;
 
+using Npgsql;
+
+using OpenIddict.Abstractions;
+using OpenIddict.EntityFrameworkCore.Models;
+
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations;
@@ -12,12 +17,16 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase _database = new("identity");
+    private readonly PostgreSqlTestDatabase _database = new("identity", isolateDatabase: true);
     private readonly List<FunctionalTestWebApplicationFactory> _factories = [];
     private readonly List<HttpClient> _clients = [];
 
+    private readonly Dictionary<string, FunctionalTestWebApplicationFactory> _environmentFactories =
+        new(StringComparer.Ordinal);
+
     private FunctionalTestWebApplicationFactory _factory = null!;
-    private string? _previousConnectionString;
+    private NpgsqlConnection? _seedConnection;
+    private OpenIddictEntityFrameworkCoreApplication<Guid>[] _seedApplications = [];
 
     public HttpClient Client { get; private set; } = null!;
     public IServiceProvider Services => _factory.Services;
@@ -28,18 +37,13 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        await _database.InitializeAsync(cancellationToken);
-
-        _previousConnectionString = Environment.GetEnvironmentVariable(
-            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable);
-        Environment.SetEnvironmentVariable(
-            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
-            _database.PostgreSqlConnectionString);
+        await FunctionalTestWebApplicationFactory.InitializeDatabaseAsync(_database, cancellationToken);
 
         await MigrateDatabaseAsync(cancellationToken);
         CreateCurrentClient();
 
         await SeedIdentityProviderAsync(cancellationToken);
+        await SnapshotSeedDataAsync(cancellationToken);
     }
 
     public async Task ResetDatabaseAsync(CancellationToken cancellationToken)
@@ -47,7 +51,24 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         EventBus.Clear();
 
         await _database.ResetPostgreSqlDatabaseAsync(cancellationToken);
-        await SeedIdentityProviderAsync(cancellationToken);
+        await using var command = _seedConnection!.CreateCommand();
+        command.CommandText = """
+            INSERT INTO identity.asp_net_roles SELECT * FROM seeded_roles;
+            INSERT INTO identity.asp_net_role_claims SELECT * FROM seeded_role_claims;
+            INSERT INTO identity.open_iddict_applications SELECT * FROM seeded_applications;
+            """;
+        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        foreach (var factory in _factories)
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            var cache = scope.ServiceProvider
+                .GetRequiredService<IOpenIddictApplicationCache<OpenIddictEntityFrameworkCoreApplication<Guid>>>();
+            foreach (var application in _seedApplications)
+            {
+                await cache.RemoveAsync(application, cancellationToken);
+            }
+        }
     }
 
     public HttpClient CreateClient(WebApplicationFactoryClientOptions options)
@@ -58,10 +79,19 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         return client;
     }
 
+    internal FunctionalTestWebApplicationFactory CreateFactory(string environmentName = "Test")
+    {
+        return new FunctionalTestWebApplicationFactory(_database.PostgreSqlConnectionString, environmentName);
+    }
+
     public HttpClient CreateClient(string environmentName)
     {
-        var factory = new FunctionalTestWebApplicationFactory(environmentName);
-        _factories.Add(factory);
+        if (!_environmentFactories.TryGetValue(environmentName, out var factory))
+        {
+            factory = CreateFactory(environmentName);
+            _environmentFactories.Add(environmentName, factory);
+            _factories.Add(factory);
+        }
 
         var client = factory.CreateClient();
         _clients.Add(client);
@@ -81,16 +111,17 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
             await factory.DisposeAsync();
         }
 
-        await _database.DisposeAsync();
+        if (_seedConnection is not null)
+        {
+            await _seedConnection.DisposeAsync();
+        }
 
-        Environment.SetEnvironmentVariable(
-            PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
-            _previousConnectionString);
+        await _database.DisposeAsync();
     }
 
     private void CreateCurrentClient()
     {
-        _factory = new FunctionalTestWebApplicationFactory();
+        _factory = CreateFactory();
         _factories.Add(_factory);
 
         Client = _factory.CreateClient();
@@ -120,5 +151,25 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await using var dbContext = new IdentityWriteDbContext(options, []);
 
         await dbContext.Database.MigrateAsync(cancellationToken);
+    }
+
+    private async Task SnapshotSeedDataAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        _seedApplications = await dbContext.Set<OpenIddictEntityFrameworkCoreApplication<Guid>>()
+            .AsNoTracking()
+            .ToArrayAsync(cancellationToken);
+
+        _seedConnection = new NpgsqlConnection(_database.PostgreSqlConnectionString);
+        await _seedConnection.OpenAsync(cancellationToken);
+
+        await using var command = _seedConnection.CreateCommand();
+        command.CommandText = """
+            CREATE TEMP TABLE seeded_roles AS TABLE identity.asp_net_roles;
+            CREATE TEMP TABLE seeded_role_claims AS TABLE identity.asp_net_role_claims;
+            CREATE TEMP TABLE seeded_applications AS TABLE identity.open_iddict_applications;
+            """;
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }

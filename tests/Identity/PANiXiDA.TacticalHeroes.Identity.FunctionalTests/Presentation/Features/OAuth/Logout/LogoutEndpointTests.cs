@@ -11,6 +11,7 @@ using OpenIddict.Server;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Logout;
 
+[Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -172,7 +173,7 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
         var reached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pause = false;
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddOpenIddict().AddServer(options =>
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder => builder
@@ -244,7 +245,7 @@ public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)
             .GetClaim(OpenIddictConstants.Claims.Private.AuthorizationId).Value);
         using var cancellation = new CancellationTokenSource();
         var interceptor = new CancelSessionRevocationInterceptor(authorizationId, cancellation);
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddSingleton<IInterceptor>(interceptor)));
         using var client = new HttpClient(factory.Server.CreateHandler(context =>

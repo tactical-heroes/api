@@ -4,6 +4,7 @@ using OpenIddict.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Revoke;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class RevokeEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
