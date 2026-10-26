@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.Testing.Storage;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -28,8 +29,8 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
             TestContext.Current.CancellationToken);
         var url = new Uri(result.Url);
 
-        url.Host.ShouldBe("s3.example.invalid");
-        url.AbsolutePath.ShouldBe($"/file-manager-tests/integration-tests/{file.StorageKey.Value}");
+        url.GetLeftPart(UriPartial.Authority).ShouldBe(Fixture.Storage.ServiceUrl);
+        url.AbsolutePath.ShouldBe($"/{S3TestStorage.BucketName}/{S3TestStorage.KeyPrefix}/{file.StorageKey.Value}");
         url.Query.ShouldContain("X-Amz-Signature=");
     }
 }
