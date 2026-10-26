@@ -5,16 +5,17 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchmakingTicket
 public sealed class MatchmakingTicketStatusTests
 {
     [Theory(DisplayName = "Ticket status should accept lifecycle states when parsed")]
-    [InlineData("Searching")]
-    [InlineData("Reserved")]
-    [InlineData("Assigned")]
-    [InlineData("Cancelled")]
-    [InlineData("Expired")]
-    public void Create_Should_AcceptLifecycleStates_When_Parsed(string value)
+    [InlineData("Searching", "Поиск матча")]
+    [InlineData("Reserved", "Пара найдена")]
+    [InlineData("Assigned", "Игра назначена")]
+    [InlineData("Cancelled", "Поиск отменён")]
+    [InlineData("Expired", "Время поиска истекло")]
+    public void Create_Should_AcceptLifecycleStates_When_Parsed(string value, string displayName)
     {
         var result = MatchmakingTicketStatus.Create(value);
 
         result.Value.Name.ShouldBe(value);
+        result.Value.DisplayName.ShouldBe(displayName);
     }
 
     [Theory(DisplayName = "Ticket status should reject unknown values when parsed")]

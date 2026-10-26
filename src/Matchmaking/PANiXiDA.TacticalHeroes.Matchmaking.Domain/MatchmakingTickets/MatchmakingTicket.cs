@@ -109,8 +109,8 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
     }
 
     /// <summary>
-    /// Closes this search. Cancelling a reserved ticket also requires closing its assignment and the
-    /// other participant's ticket in the application transaction. A retry uses a new ticket.
+    /// Closes this search. A reserved ticket may be closed only as part of recovery from failed or expired
+    /// game creation, together with its assignment and peer ticket in one transaction. A retry uses a new ticket.
     /// </summary>
     public Result Cancel()
     {

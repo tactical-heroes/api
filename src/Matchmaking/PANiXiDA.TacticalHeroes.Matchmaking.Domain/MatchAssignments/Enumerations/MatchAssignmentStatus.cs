@@ -6,21 +6,24 @@ public sealed partial class MatchAssignmentStatus : Enumeration<MatchAssignmentS
 {
     public const int MaxLength = 32;
 
-    public static readonly MatchAssignmentStatus AwaitingAcceptance = new(1, nameof(AwaitingAcceptance));
+    public static readonly MatchAssignmentStatus CreatingGame = new(
+        id: 1, name: nameof(CreatingGame), displayName: "Создание игры");
 
-    public static readonly MatchAssignmentStatus CreatingGame = new(2, nameof(CreatingGame));
+    public static readonly MatchAssignmentStatus Ready = new(id: 2, name: nameof(Ready), displayName: "Игра создана");
 
-    public static readonly MatchAssignmentStatus Ready = new(3, nameof(Ready));
+    public static readonly MatchAssignmentStatus Expired = new(
+        id: 3, name: nameof(Expired), displayName: "Время ожидания истекло");
 
-    public static readonly MatchAssignmentStatus Cancelled = new(4, nameof(Cancelled));
+    public static readonly MatchAssignmentStatus Failed = new(
+        id: 4, name: nameof(Failed), displayName: "Ошибка создания игры");
 
-    public static readonly MatchAssignmentStatus Expired = new(5, nameof(Expired));
-
-    public static readonly MatchAssignmentStatus Failed = new(6, nameof(Failed));
-
-    private MatchAssignmentStatus(int id, string name) : base(id, name)
+    private MatchAssignmentStatus(int id, string name, string displayName)
+        : base(id, name)
     {
+        DisplayName = displayName;
     }
+
+    public string DisplayName { get; }
 
     public static Result<MatchAssignmentStatus> Create(string value)
     {

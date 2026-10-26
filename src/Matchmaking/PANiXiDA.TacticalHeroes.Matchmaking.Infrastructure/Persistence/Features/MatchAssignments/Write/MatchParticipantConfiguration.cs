@@ -48,12 +48,6 @@ internal sealed class MatchParticipantConfiguration : IEntityTypeConfiguration<M
                 value => RatingSnapshot.Create(value))
             .IsRequired();
 
-        builder.Property(participant => participant.AcceptedAt)
-            .HasConversion(
-                acceptedAt => acceptedAt!.Value,
-                value => MatchmakingTimestamp.Create(value))
-            .IsRequired(required: false);
-
         builder.HasOne<MatchmakingTicket>()
             .WithMany()
             .HasForeignKey(participant => participant.TicketId)

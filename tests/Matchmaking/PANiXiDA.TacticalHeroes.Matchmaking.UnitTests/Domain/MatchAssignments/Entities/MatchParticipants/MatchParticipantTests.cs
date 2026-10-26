@@ -19,17 +19,6 @@ public sealed class MatchParticipantTests
         participant.TicketId.ShouldBe(ticket.Id);
         participant.PlayerId.ShouldBe(ticket.PlayerId);
         participant.BuildSnapshotId.ShouldBe(ticket.BuildSnapshotId);
-        participant.AcceptedAt.ShouldBeNull();
-    }
-
-    [Fact(DisplayName = "Participant should retain first timestamp when repeated")]
-    public void Confirm_Should_RetainFirstTimestamp_When_Repeated()
-    {
-        var participant = MatchParticipant.Create(MatchAssignmentId.New(), Ticket());
-
-        participant.Confirm(At(2));
-        participant.Confirm(At(3));
-
-        participant.AcceptedAt.ShouldBe(At(2));
+        participant.Rating.ShouldBe(ticket.Rating);
     }
 }

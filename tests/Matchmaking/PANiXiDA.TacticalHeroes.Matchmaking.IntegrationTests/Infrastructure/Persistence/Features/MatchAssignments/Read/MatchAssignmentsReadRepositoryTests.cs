@@ -18,7 +18,7 @@ public sealed class MatchAssignmentsReadRepositoryTests(IntegrationTestFixture f
         Guid storedId;
         await using (var writeScope = fixture.CreateScope())
         {
-            var assignment = await SaveProposalAsync(writeScope.ServiceProvider, cancellationToken);
+            var assignment = await SaveAssignmentAsync(writeScope.ServiceProvider, cancellationToken);
             storedId = assignment.Id.Value;
         }
 

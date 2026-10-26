@@ -27,15 +27,9 @@ internal sealed class MatchAssignmentConfiguration : AuditableEntityConfiguratio
             .HasMaxLength(MatchmakingMode.MaxLength)
             .IsRequired();
 
-        builder.Property(assignment => assignment.ProposedAt)
+        builder.Property(assignment => assignment.MatchedAt)
             .HasConversion(
-                proposedAt => proposedAt.Value,
-                value => MatchmakingTimestamp.Create(value))
-            .IsRequired();
-
-        builder.Property(assignment => assignment.AcceptanceDeadline)
-            .HasConversion(
-                deadline => deadline.Value,
+                matchedAt => matchedAt.Value,
                 value => MatchmakingTimestamp.Create(value))
             .IsRequired();
 
@@ -75,7 +69,6 @@ internal sealed class MatchAssignmentConfiguration : AuditableEntityConfiguratio
             .AutoInclude();
 
         builder.HasIndex(assignment => assignment.GameId).IsUnique();
-        builder.HasIndex(assignment => new { assignment.Status, assignment.AcceptanceDeadline });
         builder.HasIndex(assignment => new { assignment.Status, assignment.CreationDeadline });
     }
 }

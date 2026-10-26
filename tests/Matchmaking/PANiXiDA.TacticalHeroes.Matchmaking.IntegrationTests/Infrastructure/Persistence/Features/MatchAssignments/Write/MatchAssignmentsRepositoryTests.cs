@@ -5,9 +5,13 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchAssignments.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchmakingTickets.Read.DbModels;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Matchmaking.MatchmakingTestData;
 
@@ -17,76 +21,83 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Repository should preserve confirmations and game when reloaded between transitions")]
-    public async Task GetByIdAsync_Should_PreserveConfirmationsAndGame_When_ReloadedBetweenTransitions()
+    [Fact(DisplayName = "Repository should preserve pair and game when reloaded between transitions")]
+    public async Task GetByIdAsync_Should_PreservePairAndGame_When_ReloadedBetweenTransitions()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
-        Domain.MatchAssignments.MatchAssignment proposal;
+        Domain.MatchAssignments.MatchAssignment assignment;
         await using (var scope = fixture.CreateScope())
         {
-            proposal = await SaveProposalAsync(scope.ServiceProvider, cancellationToken);
-        }
-
-        await using (var scope = fixture.CreateScope())
-        {
-            var repository = scope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
-            var restored = (await repository.GetByIdAsync(proposal.Id, cancellationToken))!;
-            restored.Participants.Count.ShouldBe(2);
-            restored.Accept(restored.Participants.First().Id, At(2)).IsSuccess.ShouldBeTrue();
-            repository.Update(restored);
-            await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
+            assignment = await SaveAssignmentAsync(scope.ServiceProvider, cancellationToken);
         }
 
         var game = GameReference.Create(Guid.CreateVersion7()).Value;
         await using (var scope = fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
-            var restored = (await repository.GetByIdAsync(proposal.Id, cancellationToken))!;
-            restored.Participants.Count(value => value.AcceptedAt is not null).ShouldBe(1);
-            restored.Accept(restored.Participants.Single(value => value.AcceptedAt is null).Id, At(3))
-                .IsSuccess
-                .ShouldBeTrue();
-            restored.Complete(game, At(4)).IsSuccess.ShouldBeTrue();
+            var restored = (await repository.GetByIdAsync(assignment.Id, cancellationToken))!;
+            restored.Status.ShouldBe(MatchAssignmentStatus.CreatingGame);
+            restored.MatchedAt.ShouldBe(At(1));
+            restored.CreationDeadline.ShouldBe(At(60));
+            restored.Participants.Count.ShouldBe(2);
+            restored.GetDomainEvents().OfType<GameCreationRequested>().ShouldBeEmpty();
+            restored.Complete(game, At(2)).IsSuccess.ShouldBeTrue();
             repository.Update(restored);
+            var tickets = scope.ServiceProvider.GetRequiredService<IMatchmakingTicketsRepository>();
+            foreach (var participant in restored.Participants)
+            {
+                var ticket = (await tickets.GetByIdAsync(participant.TicketId, cancellationToken))!;
+                ticket.MarkAssigned(restored.Id).IsSuccess.ShouldBeTrue();
+                tickets.Update(ticket);
+            }
             await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
         }
 
         await using var readScope = fixture.CreateScope();
-        var row = await readScope.ServiceProvider.GetRequiredService<MatchmakingReadDbContext>()
-            .Set<MatchAssignmentReadDbModel>()
+        var read = readScope.ServiceProvider.GetRequiredService<MatchmakingReadDbContext>();
+        var row = await read.Set<MatchAssignmentReadDbModel>()
             .Include(value => value.Participants)
-            .SingleAsync(value => value.Id == proposal.Id.Value, cancellationToken);
+            .SingleAsync(value => value.Id == assignment.Id.Value, cancellationToken);
         row.GameId.ShouldBe(game.Value);
         row.Status.ShouldBe(MatchAssignmentStatus.Ready.Name);
         row.Participants.Count.ShouldBe(2);
-        row.Participants.ShouldAllBe(value => value.AcceptedAt != null);
+        var ticketRows = await read.Set<MatchmakingTicketReadDbModel>()
+            .Where(value => value.MatchAssignmentId == assignment.Id.Value)
+            .ToListAsync(cancellationToken);
+        ticketRows.Count.ShouldBe(2);
+        ticketRows.ShouldAllBe(value => value.Status == MatchmakingTicketStatus.Assigned.Name);
+        foreach (var participant in row.Participants)
+        {
+            var ticket = ticketRows.Single(value => value.Id == participant.TicketId);
+            participant.PlayerId.ShouldBe(ticket.PlayerId);
+            participant.BuildSnapshotId.ShouldBe(ticket.BuildSnapshotId);
+            participant.Rating.ShouldBe(ticket.Rating);
+        }
     }
 
-    [Fact(DisplayName = "Repository should reject stale confirmation when participants confirm concurrently")]
-    public async Task Update_Should_RejectStaleConfirmation_When_ParticipantsConfirmConcurrently()
+    [Fact(DisplayName = "Repository should reject stale failure when game creation completed concurrently")]
+    public async Task Update_Should_RejectStaleFailure_When_GameCreationCompletedConcurrently()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
-        Domain.MatchAssignments.MatchAssignment proposal;
+        Domain.MatchAssignments.MatchAssignment assignment;
         await using (var scope = fixture.CreateScope())
         {
-            proposal = await SaveProposalAsync(scope.ServiceProvider, cancellationToken);
+            assignment = await SaveAssignmentAsync(scope.ServiceProvider, cancellationToken);
         }
 
         await using var firstScope = fixture.CreateScope();
         await using var secondScope = fixture.CreateScope();
         var firstRepository = firstScope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
         var secondRepository = secondScope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
-        var first = (await firstRepository.GetByIdAsync(proposal.Id, cancellationToken))!;
-        var second = (await secondRepository.GetByIdAsync(proposal.Id, cancellationToken))!;
-        var firstParticipant = first.Participants.First().Id;
-        first.Accept(firstParticipant, At(2)).IsSuccess.ShouldBeTrue();
+        var first = (await firstRepository.GetByIdAsync(assignment.Id, cancellationToken))!;
+        var second = (await secondRepository.GetByIdAsync(assignment.Id, cancellationToken))!;
+        var game = GameReference.Create(Guid.CreateVersion7()).Value;
+        first.Complete(game, At(2)).IsSuccess.ShouldBeTrue();
         firstRepository.Update(first);
         await UnitOfWork(firstScope.ServiceProvider).SaveChangesAsync(cancellationToken);
-        second.Accept(second.Participants.Single(value => value.Id != firstParticipant).Id, At(2))
-            .IsSuccess
-            .ShouldBeTrue();
+        second.Fail(MatchmakingReason.Create("Late failure").Value).IsSuccess.ShouldBeTrue();
         secondRepository.Update(second);
 
         var exception = await Should.ThrowAsync<ConcurrencyException>(() =>
@@ -95,13 +106,10 @@ public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixtu
         exception.InnerException.ShouldBeOfType<DbUpdateConcurrencyException>();
         await using var retryScope = fixture.CreateScope();
         var retryRepository = retryScope.ServiceProvider.GetRequiredService<IMatchAssignmentsRepository>();
-        var retried = (await retryRepository.GetByIdAsync(proposal.Id, cancellationToken))!;
-        retried.Participants.Count(value => value.AcceptedAt is not null).ShouldBe(1);
-        retried.Accept(retried.Participants.Single(value => value.AcceptedAt is null).Id, At(3))
-            .IsSuccess
-            .ShouldBeTrue();
-        retryRepository.Update(retried);
-        await UnitOfWork(retryScope.ServiceProvider).SaveChangesAsync(cancellationToken);
-        retried.Status.ShouldBe(MatchAssignmentStatus.CreatingGame);
+        var retried = (await retryRepository.GetByIdAsync(assignment.Id, cancellationToken))!;
+        retried.Fail(MatchmakingReason.Create("Late failure").Value).IsFailure.ShouldBeTrue();
+        retried.Complete(game, At(100)).IsSuccess.ShouldBeTrue();
+        retried.Status.ShouldBe(MatchAssignmentStatus.Ready);
+        retried.GameId.ShouldBe(game);
     }
 }

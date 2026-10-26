@@ -35,10 +35,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("AcceptedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("accepted_at");
-
                     b.Property<Guid>("BuildSnapshotId")
                         .HasColumnType("uuid")
                         .HasColumnName("build_snapshot_id");
@@ -85,10 +81,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset>("AcceptanceDeadline")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("acceptance_deadline");
-
                     b.Property<string>("ClosureReason")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -118,9 +110,9 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("character varying(64)")
                         .HasColumnName("mode");
 
-                    b.Property<DateTimeOffset>("ProposedAt")
+                    b.Property<DateTimeOffset>("MatchedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("proposed_at");
+                        .HasColumnName("matched_at");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -145,9 +137,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     b.HasIndex("GameId")
                         .IsUnique()
                         .HasDatabaseName("ix_match_assignments_game_id");
-
-                    b.HasIndex("Status", "AcceptanceDeadline")
-                        .HasDatabaseName("ix_match_assignments_status_acceptance_deadline");
 
                     b.HasIndex("Status", "CreationDeadline")
                         .HasDatabaseName("ix_match_assignments_status_creation_deadline");

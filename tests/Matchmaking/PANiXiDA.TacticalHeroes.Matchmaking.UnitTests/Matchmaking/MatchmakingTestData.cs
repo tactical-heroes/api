@@ -25,16 +25,6 @@ internal static class MatchmakingTestData
 
     internal static MatchAssignment Assignment()
     {
-        return MatchAssignment.Create(Ticket(), Ticket(), At(1), At(30), At(60)).Value;
-    }
-
-    internal static MatchAssignment ConfirmedAssignment()
-    {
-        var assignment = Assignment();
-        foreach (var participant in assignment.Participants)
-        {
-            assignment.Accept(participant.Id, At(2)).IsSuccess.ShouldBeTrue();
-        }
-        return assignment;
+        return MatchAssignment.Create(Ticket(), Ticket(), At(1), At(60)).Value;
     }
 }

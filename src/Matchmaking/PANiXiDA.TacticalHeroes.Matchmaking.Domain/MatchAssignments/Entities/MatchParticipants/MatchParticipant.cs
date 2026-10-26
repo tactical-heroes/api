@@ -26,7 +26,6 @@ public sealed class MatchParticipant : Entity<MatchParticipantId>
     public PlayerReference PlayerId { get; private set; }
     public BuildSnapshotReference BuildSnapshotId { get; private set; }
     public RatingSnapshot Rating { get; private set; }
-    public MatchmakingTimestamp? AcceptedAt { get; private set; }
 
     internal static MatchParticipant Create(MatchAssignmentId assignmentId, MatchmakingTicket ticket)
     {
@@ -37,10 +36,5 @@ public sealed class MatchParticipant : Entity<MatchParticipantId>
             playerId: ticket.PlayerId,
             buildSnapshotId: ticket.BuildSnapshotId,
             rating: ticket.Rating);
-    }
-
-    internal void Confirm(MatchmakingTimestamp now)
-    {
-        AcceptedAt ??= now;
     }
 }

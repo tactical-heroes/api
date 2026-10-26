@@ -33,21 +33,21 @@ internal static class MatchmakingTestData
         return services.GetRequiredKeyedService<IUnitOfWork>(typeof(MatchmakingWriteDbContext));
     }
 
-    internal static async Task<MatchAssignment> SaveProposalAsync(
+    internal static async Task<MatchAssignment> SaveAssignmentAsync(
         IServiceProvider services,
         CancellationToken cancellationToken)
     {
         var first = Ticket();
         var second = Ticket();
-        var proposal = MatchAssignment.Create(first, second, At(1), At(30), At(60)).Value;
-        first.Reserve(proposal.Id, At(1)).IsSuccess.ShouldBeTrue();
-        second.Reserve(proposal.Id, At(1)).IsSuccess.ShouldBeTrue();
+        var assignment = MatchAssignment.Create(first, second, At(1), At(60)).Value;
+        first.Reserve(assignment.Id, At(1)).IsSuccess.ShouldBeTrue();
+        second.Reserve(assignment.Id, At(1)).IsSuccess.ShouldBeTrue();
         var tickets = services.GetRequiredService<IMatchmakingTicketsRepository>();
         tickets.Add(first);
         tickets.Add(second);
-        services.GetRequiredService<IMatchAssignmentsRepository>().Add(proposal);
+        services.GetRequiredService<IMatchAssignmentsRepository>().Add(assignment);
         await UnitOfWork(services).SaveChangesAsync(cancellationToken);
 
-        return proposal;
+        return assignment;
     }
 }

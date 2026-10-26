@@ -21,8 +21,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     mode = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    proposed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    acceptance_deadline = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    matched_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     creation_deadline = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     game_id = table.Column<Guid>(type: "uuid", nullable: true),
@@ -76,7 +75,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     player_id = table.Column<Guid>(type: "uuid", nullable: false),
                     build_snapshot_id = table.Column<Guid>(type: "uuid", nullable: false),
                     rating = table.Column<int>(type: "integer", nullable: false),
-                    accepted_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
@@ -104,12 +102,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                 table: "match_assignments",
                 column: "game_id",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_match_assignments_status_acceptance_deadline",
-                schema: "matchmaking",
-                table: "match_assignments",
-                columns: new[] { "status", "acceptance_deadline" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_match_assignments_status_creation_deadline",

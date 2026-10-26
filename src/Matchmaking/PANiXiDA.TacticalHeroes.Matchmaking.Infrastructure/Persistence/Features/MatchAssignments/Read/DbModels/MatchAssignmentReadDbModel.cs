@@ -5,8 +5,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Feature
 public sealed class MatchAssignmentReadDbModel : AuditableReadDbModel<Guid>
 {
     public string Mode { get; set; } = string.Empty;
-    public DateTimeOffset ProposedAt { get; set; }
-    public DateTimeOffset AcceptanceDeadline { get; set; }
+    public DateTimeOffset MatchedAt { get; set; }
     public DateTimeOffset CreationDeadline { get; set; }
     public string Status { get; set; } = string.Empty;
     public Guid? GameId { get; set; }
