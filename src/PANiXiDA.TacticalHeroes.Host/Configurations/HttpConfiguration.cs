@@ -3,6 +3,7 @@ using PANiXiDA.Core.Presentation.Http.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Host.Common;
 
 using BattlePresentationAssembly = PANiXiDA.TacticalHeroes.Battle.Presentation.PresentationAssembly;
+using BuildsPresentationAssembly = PANiXiDA.TacticalHeroes.Builds.Presentation.PresentationAssembly;
 using CompendiumPresentationAssembly = PANiXiDA.TacticalHeroes.Compendium.Presentation.PresentationAssembly;
 using FileManagerPresentationAssembly = PANiXiDA.TacticalHeroes.FileManager.Presentation.PresentationAssembly;
 using GamesPresentationAssembly = PANiXiDA.TacticalHeroes.Games.Presentation.PresentationAssembly;
@@ -29,6 +30,7 @@ internal static class HttpConfiguration
             BattlePresentationAssembly.Instance,
             MatchmakingPresentationAssembly.Instance,
             GamesPresentationAssembly.Instance,
+            BuildsPresentationAssembly.Instance,
             FileManagerPresentationAssembly.Instance);
 
         return builder;

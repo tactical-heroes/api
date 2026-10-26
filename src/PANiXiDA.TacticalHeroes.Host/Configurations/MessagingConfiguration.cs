@@ -2,12 +2,14 @@ using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.DependencyInjection;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants;
 
 using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
+using BuildsApplicationAssembly = PANiXiDA.TacticalHeroes.Builds.Application.ApplicationAssembly;
 using CompendiumApplicationAssembly = PANiXiDA.TacticalHeroes.Compendium.Application.ApplicationAssembly;
 using GamesApplicationAssembly = PANiXiDA.TacticalHeroes.Games.Application.ApplicationAssembly;
 using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Identity.Application.ApplicationAssembly;
@@ -42,7 +44,10 @@ internal static class MessagingConfiguration
                     typeof(MatchmakingWriteDbContext).Assembly)
                 .AddModule<GamesWriteDbContext>(
                     GamesApplicationAssembly.Instance,
-                    typeof(GamesWriteDbContext).Assembly));
+                    typeof(GamesWriteDbContext).Assembly)
+                .AddModule<BuildsWriteDbContext>(
+                    BuildsApplicationAssembly.Instance,
+                    typeof(BuildsWriteDbContext).Assembly));
 
         return builder;
     }
