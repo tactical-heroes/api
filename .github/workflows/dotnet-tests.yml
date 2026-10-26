@@ -1,5 +1,3 @@
-# Based on PANiXiDA-Infrastructure/ci-cd dotnet-tests.yml at 8c206c7629e3841c12bcb64e6cb0715d3be03ce0.
-# Preserve the TRX, coverage and SonarQube artifact contracts when changing this workflow.
 name: .NET tests
 
 on:
@@ -124,7 +122,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      # Reserve eight of the standard 20 runner slots for the slowest checks.
       max-parallel: 8
       matrix: ${{ fromJSON(needs.discover.outputs.critical-matrix) }}
     env: &test-environment
@@ -164,7 +161,6 @@ jobs:
       - name: Restore test project
         working-directory: ${{ vars.PROJECT_FOLDER }}
         run: |
-          # Architecture checks load the whole solution through MSBuildWorkspace.
           if [[ "$TEST_PROJECT" == *ArchitectureTests.csproj ]]; then
             dotnet restore
           else
@@ -181,7 +177,6 @@ jobs:
 
       - name: Build test project
         working-directory: ${{ vars.PROJECT_FOLDER }}
-        # The format job builds the full Debug solution with analyzers enabled.
         run: dotnet build "$TEST_PROJECT" --no-restore -p:RunAnalyzers=false
 
       - name: Run tests
@@ -245,7 +240,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      # Leave two slots for formatting and Helm alongside the eight critical checks.
       max-parallel: 10
       matrix: ${{ fromJSON(needs.discover.outputs.regular-matrix) }}
     env: *test-environment
@@ -284,7 +278,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Microsoft.Testing.Platform also copies coverage into nested TRX attachment directories.
           ACTUAL_TEST_PROJECT_COUNT="$(find "$REPORT_DIRECTORY" -mindepth 2 -maxdepth 2 -type f -name 'test_results.trx' | wc -l)"
           ACTUAL_COVERAGE_PROJECT_COUNT="$(find "$REPORT_DIRECTORY" -mindepth 2 -maxdepth 2 -type f -name 'coverage.cobertura.xml' | wc -l)"
 

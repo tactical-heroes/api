@@ -64,7 +64,6 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
-        // Wolverine reads its connection before the web host configuration callbacks run.
         lock (s_hostConfigurationLock)
         {
             var variable = PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable;
