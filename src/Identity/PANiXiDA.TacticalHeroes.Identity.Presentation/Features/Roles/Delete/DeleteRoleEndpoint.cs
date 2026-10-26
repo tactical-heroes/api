@@ -38,7 +38,7 @@ internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
             return result.ToHttpProblem();
         }
 
-        await cookieSession.RenewIfRequiredAsync(
+        await cookieSession.RenewAsync(
             context: httpContext,
             session: session,
             cancellationToken: cancellationToken);
