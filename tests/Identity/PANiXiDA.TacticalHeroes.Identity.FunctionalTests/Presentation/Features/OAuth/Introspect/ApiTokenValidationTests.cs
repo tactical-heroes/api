@@ -9,6 +9,7 @@ using OpenIddict.Validation;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Introspect;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
     [Theory(DisplayName = "Protected API should reject invalid tokens when token validation fails")]
@@ -27,7 +28,7 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
         using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             oauthClient, "validation@example.test", "StrongPassword1!", cancellationToken);
-        await using var testFactory = new FunctionalTestWebApplicationFactory();
+        await using var testFactory = Fixture.CreateFactory();
         await using var factory = testFactory.WithWebHostBuilder(builder =>
             builder.ConfigureServices(services => services.PostConfigure<OpenIddictValidationOptions>(options =>
             {

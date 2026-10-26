@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAu
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.GetList;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetRolesEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

@@ -2,7 +2,6 @@ using System.Text.Json;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
-[Collection(FunctionalTestCollectionDefinition.Name)]
 public abstract class FunctionalTestBase(FunctionalTestFixture fixture) : IAsyncLifetime
 {
     protected static JsonSerializerOptions JsonOptions => TestJsonSerializerOptions.Web;

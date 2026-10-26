@@ -6,6 +6,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.Register;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class RegisterUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

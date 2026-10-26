@@ -13,6 +13,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ResetPassword;
 
+[Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -70,7 +71,7 @@ public sealed class ResetPasswordEndpointTests(FunctionalTestFixture fixture)
 
         using var requestCancellation = new CancellationTokenSource();
         var interceptor = new CancelAfterPasswordSaveInterceptor(createdUser.Id, passwordHash, requestCancellation);
-        await using var testFactory = new FunctionalTestWebApplicationFactory();
+        await using var testFactory = Fixture.CreateFactory();
         await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddSingleton<IInterceptor>(interceptor)));

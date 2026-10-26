@@ -6,6 +6,7 @@ using OpenIddict.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.OpenApi;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class IdentityOpenApiDocumentTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

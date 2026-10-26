@@ -1,5 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Delete;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class DeleteUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

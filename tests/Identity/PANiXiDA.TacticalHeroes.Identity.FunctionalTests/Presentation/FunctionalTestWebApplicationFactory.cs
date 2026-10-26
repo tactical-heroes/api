@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,19 +17,32 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Auth;
+using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 using Wolverine;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
-internal sealed class FunctionalTestWebApplicationFactory(string environmentName = "Test")
+internal sealed class FunctionalTestWebApplicationFactory(string connectionString, string environmentName = "Test")
     : WebApplicationFactory<Program>
 {
+    private static readonly Lock s_hostConfigurationLock = new();
+
     private int _introspectionRequestCount;
 
     public CapturingEventBus EventBus { get; } = new();
 
     public int IntrospectionRequestCount => Volatile.Read(ref _introspectionRequestCount);
+
+    internal static ValueTask InitializeDatabaseAsync(
+        PostgreSqlTestDatabase database,
+        CancellationToken cancellationToken)
+    {
+        lock (s_hostConfigurationLock)
+        {
+            return database.InitializeAsync(cancellationToken);
+        }
+    }
 
     internal WebApplicationFactory<Program> WithAuthenticatedUserReadPause(
         TaskCompletionSource reached,
@@ -48,18 +62,38 @@ internal sealed class FunctionalTestWebApplicationFactory(string environmentName
         }));
     }
 
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        lock (s_hostConfigurationLock)
+        {
+            var variable = PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable;
+            var previous = Environment.GetEnvironmentVariable(variable);
+            try
+            {
+                Environment.SetEnvironmentVariable(variable, connectionString);
+                return base.CreateHost(builder);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(variable, previous);
+            }
+        }
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environmentName);
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
+                ["ConnectionStrings:PostgreSqlConnectionString"] = connectionString,
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
                 ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret"
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
         {
+            services.Configure<PasswordHasherOptions>(options => options.IterationCount = 1_000);
             services.AddScoped<IOAuthClientsRepository, PermissionTestClientsRepository>();
             services.ConfigureAll<HttpClientFactoryOptions>(options =>
                 options.HttpMessageHandlerBuilderActions.Add(handler =>

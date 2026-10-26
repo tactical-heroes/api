@@ -23,6 +23,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ChangePassword;
 
+[Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -37,7 +38,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             Fixture, "lookup-scope@example.test", "lookup-scope", CurrentPassword, null, ct);
         var lookups = 0;
         var validations = 0;
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddScoped<IUserSessionService>(provider => new CountingUserSessionService(
                 inner: ActivatorUtilities.CreateInstance<UserSessionService>(provider),
@@ -379,7 +380,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
             other, "cancel-change@example.test", CurrentPassword, cancellationToken);
         using var requestCancellation = new CancellationTokenSource();
         var interceptor = new CancelAfterRevocationInterceptor(user.Id.ToString(), requestCancellation);
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddSingleton<IInterceptor>(interceptor)));
@@ -436,7 +437,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         var validated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseAuthorization = false;
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.PostConfigure<CookieAuthenticationOptions>(
@@ -526,7 +527,7 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseRefresh = false;
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddOpenIddict().AddServer(options =>
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(handler => handler

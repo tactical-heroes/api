@@ -3,6 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Use
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Delete;
 
+[Collection(RolesFunctionalTestCollectionDefinition.Name)]
 public sealed class DeleteRoleEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

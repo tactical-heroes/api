@@ -7,6 +7,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Create;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

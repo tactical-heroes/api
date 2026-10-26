@@ -9,6 +9,7 @@ using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissi
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Claims.GetPermissions;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
     [Fact(DisplayName = "GET permissions should return the shared catalog when authorized")]

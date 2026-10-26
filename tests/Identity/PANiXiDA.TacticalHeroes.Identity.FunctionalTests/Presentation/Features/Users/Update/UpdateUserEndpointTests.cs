@@ -25,6 +25,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Update;
 
+[Collection(UserChangesFunctionalTestCollectionDefinition.Name)]
 public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -41,7 +42,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         var reached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pause = false;
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithAuthenticatedUserReadPause(
             reached, resume, readBeforePause, () => pause);
         using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -780,7 +781,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         var before = await UserDatabaseTestHelper.FindAsync(Fixture, user.Id, ct);
         using var cancellation = new CancellationTokenSource();
         var interceptor = new CancelAfterRevocationInterceptor(user.Id.ToString(), cancellation);
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddSingleton<IInterceptor>(interceptor)));
         using var client = new HttpClient(
@@ -869,7 +870,7 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
         var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseRefresh = false;
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddOpenIddict().AddServer(options =>
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(handler => handler
