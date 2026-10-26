@@ -1,18 +1,33 @@
 {
   "PANiXiDA.TacticalHeroes.Identity.FunctionalTests": [
     {
-      "name": "User changes",
-      "filter": "FullyQualifiedName~.Features.Users.Update.",
+      "name": "User races",
+      "filter": "FullyQualifiedName~.Features.Users.Update.&(FullyQualifiedName~PutUser_Should_RejectStaleAccess_When_ConcurrentRefreshFinishesAfterUpdate|FullyQualifiedName~PutUser_Should_RollBackAuthorizationAndSessions_When_RevocationIsCanceled)",
       "priority": 0
     },
     {
-      "name": "Sessions",
-      "filter": "FullyQualifiedName~.Features.Auth.ChangePassword.|FullyQualifiedName~.Features.Auth.ResetPassword.|FullyQualifiedName~.Features.Auth.Login.|FullyQualifiedName~.Features.OAuth.Logout.|FullyQualifiedName~.Features.OAuth.ExchangeToken.|FullyQualifiedName~.Features.Users.Block.",
+      "name": "User updates",
+      "filter": "FullyQualifiedName~.Features.Users.Update.&FullyQualifiedName!~PutUser_Should_RejectStaleAccess_When_ConcurrentRefreshFinishesAfterUpdate&FullyQualifiedName!~PutUser_Should_RollBackAuthorizationAndSessions_When_RevocationIsCanceled",
       "priority": 0
     },
     {
-      "name": "Roles and logging",
-      "filter": "FullyQualifiedName~.Features.Roles.Update.|FullyQualifiedName~.Features.Roles.Delete.|FullyQualifiedName~.Features.OAuth.OAuthRequestLoggingTests",
+      "name": "Password flows",
+      "filter": "FullyQualifiedName~.Features.Auth.ChangePassword.|FullyQualifiedName~.Features.Auth.ResetPassword.|FullyQualifiedName~.Features.Auth.Login.",
+      "priority": 0
+    },
+    {
+      "name": "Token sessions",
+      "filter": "FullyQualifiedName~.Features.OAuth.Logout.|FullyQualifiedName~.Features.OAuth.ExchangeToken.|FullyQualifiedName~.Features.Users.Block.",
+      "priority": 0
+    },
+    {
+      "name": "Role changes",
+      "filter": "FullyQualifiedName~.Features.Roles.Update.|FullyQualifiedName~.Features.Roles.Delete.",
+      "priority": 0
+    },
+    {
+      "name": "Request logging",
+      "filter": "FullyQualifiedName~.Features.OAuth.OAuthRequestLoggingTests",
       "priority": 0
     },
     {

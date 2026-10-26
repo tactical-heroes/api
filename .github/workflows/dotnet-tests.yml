@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
+      critical-matrix: ${{ steps.discover.outputs.critical-matrix }}
+      regular-matrix: ${{ steps.discover.outputs.regular-matrix }}
       test-project-count: ${{ steps.discover.outputs.test-project-count }}
       coverage-project-count: ${{ steps.discover.outputs.coverage-project-count }}
     steps:
@@ -109,24 +111,28 @@ jobs:
 
           {
             echo "matrix=$(jq -c '{include: .}' <<< "$TEST_MATRIX")"
+            echo "critical-matrix=$(jq -c '{include: [.[] | select(.priority == 0)]}' <<< "$TEST_MATRIX")"
+            echo "regular-matrix=$(jq -c '{include: [.[] | select(.priority != 0)]}' <<< "$TEST_MATRIX")"
             echo "test-project-count=$TEST_RUN_COUNT"
             echo "coverage-project-count=$COVERAGE_PROJECT_COUNT"
           } >> "$GITHUB_OUTPUT"
           echo "Discovered ${#TEST_PROJECTS[@]} test project(s), $TEST_RUN_COUNT execution(s)." >> "$GITHUB_STEP_SUMMARY"
 
-  test:
+  critical:
     name: Test ${{ matrix.name }}
     needs: discover
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
-    env:
+      # Reserve eight of the standard 20 runner slots for the slowest checks.
+      max-parallel: 8
+      matrix: ${{ fromJSON(needs.discover.outputs.critical-matrix) }}
+    env: &test-environment
       TEST_PROJECT: ${{ matrix.project }}
       TEST_FILTER: ${{ matrix.filter }}
       TEST_PROJECT_REPORT_DIRECTORY: tests-report/${{ matrix.id }}
       COLLECT_COVERAGE: ${{ matrix.collectCoverage }}
-    steps:
+    steps: &test-steps
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -227,10 +233,23 @@ jobs:
           retention-days: 1
           compression-level: 1
 
+  test:
+    name: Test ${{ matrix.name }}
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # Leave two slots for formatting and Helm alongside the eight critical checks.
+      max-parallel: 10
+      matrix: ${{ fromJSON(needs.discover.outputs.regular-matrix) }}
+    env: *test-environment
+    steps: *test-steps
+
   run:
     if: ${{ always() }}
     needs:
       - discover
+      - critical
       - test
     runs-on: ubuntu-latest
     steps:
@@ -244,7 +263,7 @@ jobs:
           global-json-file: ./global.json
 
       - name: Download test reports
-        if: ${{ needs.test.result != 'skipped' }}
+        if: ${{ needs.test.result != 'skipped' || needs.critical.result != 'skipped' }}
         uses: actions/download-artifact@v8
         with:
           pattern: test-results-*
@@ -252,7 +271,7 @@ jobs:
           merge-multiple: true
 
       - name: Verify aggregated reports
-        if: ${{ needs.test.result != 'skipped' }}
+        if: ${{ needs.test.result != 'skipped' || needs.critical.result != 'skipped' }}
         env:
           EXPECTED_TEST_PROJECT_COUNT: ${{ needs.discover.outputs.test-project-count }}
           EXPECTED_COVERAGE_PROJECT_COUNT: ${{ needs.discover.outputs.coverage-project-count }}
@@ -326,9 +345,10 @@ jobs:
             || { echo "Branch coverage ${BRANCH_COVERAGE}% is below threshold ${{ vars.COVERAGE_THRESHOLD }}%"; exit 1; }
 
       - name: Propagate test failures
-        if: ${{ always() && needs.test.result != 'success' }}
+        if: ${{ always() && (needs.test.result != 'success' || needs.critical.result != 'success') }}
         env:
           TEST_RESULT: ${{ needs.test.result }}
+          CRITICAL_RESULT: ${{ needs.critical.result }}
         run: |
-          echo "One or more test projects did not complete successfully: $TEST_RESULT"
+          echo "Test projects: $TEST_RESULT; critical projects: $CRITICAL_RESULT"
           exit 1
