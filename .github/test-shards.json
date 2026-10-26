@@ -1,0 +1,31 @@
+{
+  "PANiXiDA.TacticalHeroes.Identity.FunctionalTests": [
+    {
+      "name": "User changes",
+      "filter": "FullyQualifiedName~.Features.Users.Update.",
+      "priority": 0
+    },
+    {
+      "name": "Sessions",
+      "filter": "FullyQualifiedName~.Features.Auth.ChangePassword.|FullyQualifiedName~.Features.Auth.ResetPassword.|FullyQualifiedName~.Features.Auth.Login.|FullyQualifiedName~.Features.OAuth.Logout.|FullyQualifiedName~.Features.OAuth.ExchangeToken.|FullyQualifiedName~.Features.Users.Block.",
+      "priority": 0
+    },
+    {
+      "name": "Roles and logging",
+      "filter": "FullyQualifiedName~.Features.Roles.Update.|FullyQualifiedName~.Features.Roles.Delete.|FullyQualifiedName~.Features.OAuth.OAuthRequestLoggingTests",
+      "priority": 0
+    },
+    {
+      "name": "API contracts",
+      "filter": "FullyQualifiedName!~.Features.Users.Update.&FullyQualifiedName!~.Features.Auth.ChangePassword.&FullyQualifiedName!~.Features.Auth.ResetPassword.&FullyQualifiedName!~.Features.Auth.Login.&FullyQualifiedName!~.Features.OAuth.Logout.&FullyQualifiedName!~.Features.OAuth.ExchangeToken.&FullyQualifiedName!~.Features.Users.Block.&FullyQualifiedName!~.Features.Roles.Update.&FullyQualifiedName!~.Features.Roles.Delete.&FullyQualifiedName!~.Features.OAuth.OAuthRequestLoggingTests",
+      "priority": 0
+    }
+  ],
+  "PANiXiDA.TacticalHeroes.ArchitectureTests": [
+    {
+      "name": "",
+      "filter": "",
+      "priority": 0
+    }
+  ]
+}
