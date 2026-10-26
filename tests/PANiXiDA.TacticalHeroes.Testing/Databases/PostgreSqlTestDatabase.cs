@@ -7,7 +7,10 @@ using Testcontainers.PostgreSql;
 
 namespace PANiXiDA.TacticalHeroes.Testing.Databases;
 
-public sealed class PostgreSqlTestDatabase(string schema, bool isolateDatabase = false) : IAsyncDisposable
+public sealed class PostgreSqlTestDatabase(
+    string schema,
+    bool isolateDatabase = false,
+    bool cacheResetPlan = false) : IAsyncDisposable
 {
     public const string PostgreSqlConnectionStringEnvironmentVariable =
         "ConnectionStrings__PostgreSqlConnectionString";
@@ -66,20 +69,26 @@ public sealed class PostgreSqlTestDatabase(string schema, bool isolateDatabase =
         await using var connection = new NpgsqlConnection(PostgreSqlConnectionString);
         await connection.OpenAsync(cancellationToken);
 
-        _respawner ??= await Respawner.CreateAsync(
-            connection,
-            new RespawnerOptions
-            {
-                DbAdapter = DbAdapter.Postgres,
-                SchemasToInclude = [schema],
-                TablesToIgnore =
-                [
-                    new Table(schema, "__ef_migrations_history"),
-                    new Table(schema, "__EFMigrationsHistory")
-                ]
-            });
+        var respawner = _respawner
+            ?? await Respawner.CreateAsync(
+                connection,
+                new RespawnerOptions
+                {
+                    DbAdapter = DbAdapter.Postgres,
+                    SchemasToInclude = [schema],
+                    TablesToIgnore =
+                    [
+                        new Table(schema, "__ef_migrations_history"),
+                        new Table(schema, "__EFMigrationsHistory")
+                    ]
+                });
 
-        await _respawner.ResetAsync(connection);
+        if (cacheResetPlan)
+        {
+            _respawner = respawner;
+        }
+
+        await respawner.ResetAsync(connection);
     }
 
     public async ValueTask DisposeAsync()

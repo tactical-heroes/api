@@ -44,6 +44,24 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
         }
     }
 
+    internal WebApplicationFactory<Program> WithAuthenticatedUserReadPause(
+        TaskCompletionSource reached,
+        TaskCompletionSource resume,
+        bool readBeforePause,
+        Func<bool> shouldPause)
+    {
+        return WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            services.AddScoped<AuthenticatedUserService>();
+            services.AddScoped<IAuthenticatedUserService>(provider => new PausingAuthenticatedUserService(
+                provider.GetRequiredService<AuthenticatedUserService>(),
+                reached,
+                resume,
+                readBeforePause,
+                shouldPause));
+        }));
+    }
+
     protected override IHost CreateHost(IHostBuilder builder)
     {
         // Wolverine reads its connection before the web host configuration callbacks run.
@@ -61,24 +79,6 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
                 Environment.SetEnvironmentVariable(variable, previous);
             }
         }
-    }
-
-    internal WebApplicationFactory<Program> WithAuthenticatedUserReadPause(
-        TaskCompletionSource reached,
-        TaskCompletionSource resume,
-        bool readBeforePause,
-        Func<bool> shouldPause)
-    {
-        return WithWebHostBuilder(builder => builder.ConfigureServices(services =>
-        {
-            services.AddScoped<AuthenticatedUserService>();
-            services.AddScoped<IAuthenticatedUserService>(provider => new PausingAuthenticatedUserService(
-                provider.GetRequiredService<AuthenticatedUserService>(),
-                reached,
-                resume,
-                readBeforePause,
-                shouldPause));
-        }));
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

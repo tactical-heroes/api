@@ -17,7 +17,7 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase _database = new("identity", isolateDatabase: true);
+    private readonly PostgreSqlTestDatabase _database = new("identity", isolateDatabase: true, cacheResetPlan: true);
     private readonly List<FunctionalTestWebApplicationFactory> _factories = [];
     private readonly List<HttpClient> _clients = [];
 
@@ -79,11 +79,6 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         return client;
     }
 
-    internal FunctionalTestWebApplicationFactory CreateFactory(string environmentName = "Test")
-    {
-        return new FunctionalTestWebApplicationFactory(_database.PostgreSqlConnectionString, environmentName);
-    }
-
     public HttpClient CreateClient(string environmentName)
     {
         if (!_environmentFactories.TryGetValue(environmentName, out var factory))
@@ -117,6 +112,11 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         }
 
         await _database.DisposeAsync();
+    }
+
+    internal FunctionalTestWebApplicationFactory CreateFactory(string environmentName = "Test")
+    {
+        return new FunctionalTestWebApplicationFactory(_database.PostgreSqlConnectionString, environmentName);
     }
 
     private void CreateCurrentClient()
