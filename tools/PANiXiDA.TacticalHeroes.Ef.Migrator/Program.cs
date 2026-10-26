@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants;
 using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
@@ -47,6 +48,8 @@ using var host = Host.CreateDefaultBuilder(args)
             context.Configuration);
         services.AddPostgreSqlWriteEfRepository<GamesWriteDbContext>(
             context.Configuration);
+        services.AddPostgreSqlWriteEfRepository<BuildsWriteDbContext>(
+            context.Configuration);
     })
     .Build();
 
@@ -56,3 +59,4 @@ await host.RunMigrationsAsync<FileManagerWriteDbContext>();
 await host.RunMigrationsAsync<BattleWriteDbContext>();
 await host.RunMigrationsAsync<MatchmakingWriteDbContext>();
 await host.RunMigrationsAsync<GamesWriteDbContext>();
+await host.RunMigrationsAsync<BuildsWriteDbContext>();
