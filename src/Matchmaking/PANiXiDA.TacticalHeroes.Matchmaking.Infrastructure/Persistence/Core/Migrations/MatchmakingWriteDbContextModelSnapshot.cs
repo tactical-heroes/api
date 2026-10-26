@@ -149,12 +149,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     b.HasIndex("Status", "CreationDeadline")
                         .HasDatabaseName("ix_match_assignments_status_creation_deadline");
 
-                    b.ToTable("match_assignments", "matchmaking", t =>
-                        {
-                            t.HasCheckConstraint("ck_assignment_game", "(status = 'Ready') = (game_id IS NOT NULL)");
-
-                            t.HasCheckConstraint("ck_assignment_window", "acceptance_deadline > proposed_at AND creation_deadline > acceptance_deadline");
-                        });
+                    b.ToTable("match_assignments", "matchmaking");
                 });
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.MatchmakingTicket", b =>
@@ -237,12 +232,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     b.HasIndex("Mode", "Status", "Rating", "QueuedAt")
                         .HasDatabaseName("ix_matchmaking_tickets_mode_status_rating_queued_at");
 
-                    b.ToTable("matchmaking_tickets", "matchmaking", t =>
-                        {
-                            t.HasCheckConstraint("ck_ticket_assignment", "status NOT IN ('Reserved', 'Assigned') OR match_assignment_id IS NOT NULL");
-
-                            t.HasCheckConstraint("ck_ticket_window", "expires_at > queued_at");
-                        });
+                    b.ToTable("matchmaking_tickets", "matchmaking");
                 });
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Entities.MatchParticipants.MatchParticipant", b =>

@@ -77,13 +77,5 @@ internal sealed class MatchAssignmentConfiguration : AuditableEntityConfiguratio
         builder.HasIndex(assignment => assignment.GameId).IsUnique();
         builder.HasIndex(assignment => new { assignment.Status, assignment.AcceptanceDeadline });
         builder.HasIndex(assignment => new { assignment.Status, assignment.CreationDeadline });
-
-        builder.Metadata.AddCheckConstraint(
-            "ck_assignment_window",
-            "acceptance_deadline > proposed_at AND creation_deadline > acceptance_deadline");
-
-        builder.Metadata.AddCheckConstraint(
-            "ck_assignment_game",
-            "(status = 'Ready') = (game_id IS NOT NULL)");
     }
 }

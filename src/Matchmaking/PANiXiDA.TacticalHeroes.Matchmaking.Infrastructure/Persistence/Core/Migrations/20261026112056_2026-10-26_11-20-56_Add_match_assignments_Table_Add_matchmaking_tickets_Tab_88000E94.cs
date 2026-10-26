@@ -32,8 +32,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_match_assignments", x => x.id);
-                    table.CheckConstraint("ck_assignment_game", "(status = 'Ready') = (game_id IS NOT NULL)");
-                    table.CheckConstraint("ck_assignment_window", "acceptance_deadline > proposed_at AND creation_deadline > acceptance_deadline");
                 });
 
             migrationBuilder.CreateTable(
@@ -58,8 +56,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_matchmaking_tickets", x => x.id);
-                    table.CheckConstraint("ck_ticket_assignment", "status NOT IN ('Reserved', 'Assigned') OR match_assignment_id IS NOT NULL");
-                    table.CheckConstraint("ck_ticket_window", "expires_at > queued_at");
                     table.ForeignKey(
                         name: "fk_matchmaking_tickets_match_assignments_match_assignment_id",
                         column: x => x.match_assignment_id,

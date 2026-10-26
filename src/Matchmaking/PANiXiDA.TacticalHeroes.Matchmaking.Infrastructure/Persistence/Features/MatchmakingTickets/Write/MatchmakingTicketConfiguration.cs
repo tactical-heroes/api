@@ -81,13 +81,5 @@ internal sealed class MatchmakingTicketConfiguration : AuditableEntityConfigurat
 
         builder.HasIndex(ticket => new { ticket.Mode, ticket.Status, ticket.Rating, ticket.QueuedAt });
         builder.HasIndex(ticket => new { ticket.Status, ticket.ExpiresAt });
-
-        builder.Metadata.AddCheckConstraint(
-            "ck_ticket_window",
-            "expires_at > queued_at");
-
-        builder.Metadata.AddCheckConstraint(
-            "ck_ticket_assignment",
-            "status NOT IN ('Reserved', 'Assigned') OR match_assignment_id IS NOT NULL");
     }
 }
