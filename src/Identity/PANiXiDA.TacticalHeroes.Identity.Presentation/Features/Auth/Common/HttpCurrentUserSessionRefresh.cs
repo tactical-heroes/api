@@ -11,7 +11,7 @@ internal sealed class HttpCurrentUserSessionRefresh(IHttpContextAccessor httpCon
 
     private static readonly object s_refreshRequiredKey = new();
 
-    public void RequireRefresh()
+    public void RequireRefresh(string authorizationId)
     {
         var context = httpContextAccessor.HttpContext;
         if (context is null || IsRequired(context))
@@ -19,7 +19,7 @@ internal sealed class HttpCurrentUserSessionRefresh(IHttpContextAccessor httpCon
             return;
         }
 
-        context.Items[s_refreshRequiredKey] = true;
+        context.Items[s_refreshRequiredKey] = authorizationId;
         context.Response.OnStarting(
             static state =>
             {
@@ -34,5 +34,8 @@ internal sealed class HttpCurrentUserSessionRefresh(IHttpContextAccessor httpCon
             context.Response);
     }
 
-    internal static bool IsRequired(HttpContext context) => context.Items.ContainsKey(s_refreshRequiredKey);
+    internal static string? GetAuthorizationId(HttpContext context) =>
+        context.Items.TryGetValue(s_refreshRequiredKey, out var authorizationId) ? authorizationId as string : null;
+
+    internal static bool IsRequired(HttpContext context) => GetAuthorizationId(context) is not null;
 }

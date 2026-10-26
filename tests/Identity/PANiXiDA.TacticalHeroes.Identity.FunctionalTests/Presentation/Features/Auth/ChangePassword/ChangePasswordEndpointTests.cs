@@ -13,7 +13,11 @@ using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Server;
 
+using PANiXiDA.Core.ResultPattern;
+
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
 
@@ -24,6 +28,39 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
 {
     private const string CurrentPassword = "StrongPassword1!";
     private const string NewPassword = "NewStrongPassword1!";
+
+    [Fact(DisplayName = "Password change should look up current session once when current cookie is renewed")]
+    public async Task PostChangePassword_Should_LookUpCurrentSessionOnce_When_CurrentCookieIsRenewed()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "lookup-scope@example.test", "lookup-scope", CurrentPassword, null, ct);
+        var lookups = 0;
+        var validations = 0;
+        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.AddScoped<IUserSessionService>(provider => new CountingUserSessionService(
+                inner: ActivatorUtilities.CreateInstance<UserSessionService>(provider),
+                onLookup: () => Interlocked.Increment(ref lookups),
+                onValidation: () => Interlocked.Increment(ref validations)))));
+        using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = false
+        });
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            browser, "lookup-scope@example.test", CurrentPassword, ct);
+        Volatile.Write(ref lookups, 0);
+        Volatile.Write(ref validations, 0);
+
+        using var response = await ChangePasswordAsync(browser, tokens.AccessToken, CurrentPassword, NewPassword, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        response.Headers.Contains("Set-Cookie").ShouldBeTrue();
+        response.Headers.Contains("X-Session-Refresh-Required").ShouldBeTrue();
+        Volatile.Read(ref lookups).ShouldBe(1);
+        Volatile.Read(ref validations).ShouldBe(1);
+    }
 
     [Fact(DisplayName = "Password change should return unauthorized when caller is a service")]
     public async Task PostChangePassword_Should_ReturnUnauthorized_When_CallerIsAService()
@@ -616,6 +653,57 @@ public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)
         user.ShouldNotBeNull();
         (await userManager.CheckPasswordAsync(user, acceptedPassword)).ShouldBeTrue();
         (await userManager.CheckPasswordAsync(user, rejectedPassword)).ShouldBeFalse();
+    }
+
+    private sealed class CountingUserSessionService(
+        IUserSessionService inner,
+        Action onLookup,
+        Action onValidation) : IUserSessionService
+    {
+        public Task<Result> RevokeSessionAsync(
+            Guid userId, string authorizationId, string clientId, CancellationToken cancellationToken)
+        {
+            return inner.RevokeSessionAsync(userId, authorizationId, clientId, cancellationToken);
+        }
+
+        public Task<Result<string?>> GetCurrentRoleAuthorizationIdAsync(
+            Guid roleId, string? accessToken, CancellationToken cancellationToken)
+        {
+            onLookup();
+            return inner.GetCurrentRoleAuthorizationIdAsync(roleId, accessToken, cancellationToken);
+        }
+
+        public Task<Result<string?>> GetCurrentAuthorizationIdAsync(
+            Guid userId, string? accessToken, CancellationToken cancellationToken)
+        {
+            onLookup();
+            return inner.GetCurrentAuthorizationIdAsync(userId, accessToken, cancellationToken);
+        }
+
+        public Task RevokeAsync(
+            Guid userId, string? preservedAuthorizationId, CancellationToken cancellationToken)
+        {
+            return inner.RevokeAsync(userId, preservedAuthorizationId, cancellationToken);
+        }
+
+        public Task InvalidateAccessTokensAsync(
+            Guid userId, string? currentAuthorizationId, CancellationToken cancellationToken)
+        {
+            return inner.InvalidateAccessTokensAsync(userId, currentAuthorizationId, cancellationToken);
+        }
+
+        public Task InvalidateRoleMemberAccessTokensAsync(
+            Guid roleId, string? currentAuthorizationId, CancellationToken cancellationToken)
+        {
+            return inner.InvalidateRoleMemberAccessTokensAsync(roleId, currentAuthorizationId, cancellationToken);
+        }
+
+        public Task<bool> IsAuthorizationValidAsync(
+            Guid userId, string authorizationId, CancellationToken cancellationToken)
+        {
+            onValidation();
+            return inner.IsAuthorizationValidAsync(userId, authorizationId, cancellationToken);
+        }
     }
 
     private sealed class CancelAfterRevocationInterceptor(

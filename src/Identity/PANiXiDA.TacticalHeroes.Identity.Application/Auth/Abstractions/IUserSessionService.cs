@@ -25,12 +25,12 @@ public interface IUserSessionService
 
     Task InvalidateAccessTokensAsync(
         Guid userId,
-        bool refreshCurrentSession,
+        string? currentAuthorizationId,
         CancellationToken cancellationToken);
 
     Task InvalidateRoleMemberAccessTokensAsync(
         Guid roleId,
-        bool refreshCurrentSession,
+        string? currentAuthorizationId,
         CancellationToken cancellationToken);
 
     Task<bool> IsAuthorizationValidAsync(Guid userId, string authorizationId, CancellationToken cancellationToken);

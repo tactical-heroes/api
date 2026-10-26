@@ -157,12 +157,12 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
     {
         var ct = TestContext.Current.CancellationToken;
         await using var scope = Fixture.CreateScope();
-        var (userId, _) = await CreateSessionsAsync(scope.ServiceProvider, ct);
+        var (userId, currentId) = await CreateSessionsAsync(scope.ServiceProvider, ct);
         var db = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
 
-        await service.InvalidateAccessTokensAsync(userId, refreshCurrentSession: true, ct);
+        await service.InvalidateAccessTokensAsync(userId, currentAuthorizationId: currentId, ct);
         if (rollback)
         {
             await transaction.RollbackAsync(ct);
@@ -260,20 +260,12 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
     public async Task IsAuthorizationValidAsync_Should_RejectCachedAuthorization_When_DatabaseStatusIsRevoked()
     {
         var ct = TestContext.Current.CancellationToken;
-        var userId = Guid.CreateVersion7();
         await using var scope = Fixture.CreateScope();
+        var (userId, referenceId, _, authorization, id) =
+            await CreateCurrentSessionAsync(scope.ServiceProvider, ct);
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
-        var authorization = await manager.CreateAsync(
-            new OpenIddictAuthorizationDescriptor
-            {
-                Subject = userId.ToString(),
-                Status = OpenIddictConstants.Statuses.Valid,
-                Type = OpenIddictConstants.AuthorizationTypes.AdHoc
-            },
-            ct);
-        var id = await manager.GetIdAsync(authorization, ct);
-        id.ShouldNotBeNull();
         var service = scope.ServiceProvider.GetRequiredService<IUserSessionService>();
+        (await service.GetCurrentAuthorizationIdAsync(userId, referenceId, ct)).Value.ShouldBe(id);
         (await service.IsAuthorizationValidAsync(userId, id, ct)).ShouldBeTrue();
         await using (var writer = Fixture.CreateScope())
         {
@@ -285,10 +277,12 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
                     setters => setters.SetProperty(item => item.Status, OpenIddictConstants.Statuses.Revoked),
                     ct);
         }
+        Fixture.CommandCounter.Reset();
 
         var valid = await service.IsAuthorizationValidAsync(userId, id, ct);
 
         valid.ShouldBeFalse();
+        Fixture.CommandCounter.Count.ShouldBe(1);
         (await manager.HasStatusAsync(authorization, OpenIddictConstants.Statuses.Valid, ct)).ShouldBeTrue();
     }
 
@@ -535,7 +529,7 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
 
         await service.InvalidateRoleMemberAccessTokensAsync(
             roleId: role.Id,
-            refreshCurrentSession: preserve,
+            currentAuthorizationId: preserve ? currentId : null,
             cancellationToken: ct);
 
         counter.Count.ShouldBe(2);
@@ -569,6 +563,42 @@ public sealed class UserSessionServiceTests(IntegrationTestFixture fixture) : In
         var currentTokens = persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId);
         currentTokens.Count(token => token.Status == OpenIddictConstants.Statuses.Valid).ShouldBe(3);
         (await tokens.TryRedeemAsync(orphan, ct)).ShouldBeTrue();
+    }
+
+    private static async Task<(Guid UserId, string ReferenceId, object Token, object Authorization, string Id)>
+        CreateCurrentSessionAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        var userId = Guid.CreateVersion7();
+        var applications = services.GetRequiredService<IOpenIddictApplicationManager>();
+        var application = await applications.CreateAsync(
+            new OpenIddictApplicationDescriptor { ClientId = "session-lookup-tests" }, cancellationToken);
+        var applicationId = await applications.GetIdAsync(application, cancellationToken);
+        var authorizations = services.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await authorizations.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = userId.ToString(),
+                ApplicationId = applicationId,
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        var id = await authorizations.GetIdAsync(authorization, cancellationToken);
+        id.ShouldNotBeNull();
+        var referenceId = Guid.CreateVersion7().ToString("N");
+        var tokens = services.GetRequiredService<IOpenIddictTokenManager>();
+        var token = await tokens.CreateAsync(
+            new OpenIddictTokenDescriptor
+            {
+                Subject = userId.ToString(),
+                ApplicationId = applicationId,
+                AuthorizationId = id,
+                ReferenceId = referenceId,
+                Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        return (userId, referenceId, token, authorization, id);
     }
 
     private static async Task<(Guid UserId, string CurrentId)> CreateSessionsAsync(
