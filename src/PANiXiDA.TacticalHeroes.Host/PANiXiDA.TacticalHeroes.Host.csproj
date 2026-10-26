@@ -19,10 +19,15 @@
         <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Infrastructure\PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj" />
         <ProjectReference Include="..\Battle\PANiXiDA.TacticalHeroes.Battle.Presentation\PANiXiDA.TacticalHeroes.Battle.Presentation.csproj" />
         <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Application\PANiXiDA.TacticalHeroes.Matchmaking.Application.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Application\PANiXiDA.TacticalHeroes.Games.Application.csproj" />
         <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Contracts\PANiXiDA.TacticalHeroes.Matchmaking.Contracts.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Contracts\PANiXiDA.TacticalHeroes.Games.Contracts.csproj" />
         <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Domain\PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Domain\PANiXiDA.TacticalHeroes.Games.Domain.csproj" />
         <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Infrastructure\PANiXiDA.TacticalHeroes.Games.Infrastructure.csproj" />
         <ProjectReference Include="..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Presentation\PANiXiDA.TacticalHeroes.Matchmaking.Presentation.csproj" />
+        <ProjectReference Include="..\Games\PANiXiDA.TacticalHeroes.Games.Presentation\PANiXiDA.TacticalHeroes.Games.Presentation.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Application\PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
         <ProjectReference Include="..\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />

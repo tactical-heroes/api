@@ -12,6 +12,7 @@ builder.AddNotificationsModule();
 builder.AddCompendiumModule();
 builder.AddBattleModule();
 builder.AddMatchmakingModule();
+builder.AddGamesModule();
 builder.AddFileManagerModule();
 builder.AddMessaging();
 
