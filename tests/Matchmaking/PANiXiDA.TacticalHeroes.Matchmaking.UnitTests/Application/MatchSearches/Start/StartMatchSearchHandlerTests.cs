@@ -40,13 +40,11 @@ public sealed class StartMatchSearchHandlerTests
             context.Command.BuildId, context.Player.Id, cancellationToken);
     }
 
-    [Theory(DisplayName = "Handler should reject request when user id is missing")]
-    [InlineData(null)]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
-    public async Task HandleAsync_Should_RejectRequest_When_UserIdIsMissing(string? value)
+    [Fact(DisplayName = "Handler should reject request when user id is missing")]
+    public async Task HandleAsync_Should_RejectRequest_When_UserIdIsMissing()
     {
         var context = new HandlerContext();
-        context.CurrentUser.UserId.Returns(value is null ? null : Guid.Parse(value));
+        context.CurrentUser.UserId.Returns((Guid?)null);
 
         var result = await context.Handler.HandleAsync(context.Command, TestContext.Current.CancellationToken);
 

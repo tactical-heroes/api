@@ -52,13 +52,11 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         row.GameId.ShouldBeNull();
     }
 
-    [Theory(DisplayName = "Endpoint should reject request when user is unavailable")]
-    [InlineData(null)]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
-    public async Task Post_Should_RejectRequest_When_UserIsUnavailable(string? value)
+    [Fact(DisplayName = "Endpoint should reject request when user is unavailable")]
+    public async Task Post_Should_RejectRequest_When_UserIsUnavailable()
     {
         using var response = await PostAsync(
-            value is null ? null : Guid.Parse(value),
+            null,
             new StartMatchSearchRequest(Guid.CreateVersion7(), "RankedDuel"),
             TestContext.Current.CancellationToken);
 

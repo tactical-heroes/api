@@ -27,7 +27,7 @@ public sealed class StartMatchSearchHandler(
         StartMatchSearchCommand command,
         CancellationToken cancellationToken)
     {
-        if (currentUser.UserId is not { } userId || userId == Guid.Empty)
+        if (currentUser.UserId is not { } userId)
         {
             return Result.Failure<StartMatchSearchResult>(Error.Unauthorized("A user account is required."));
         }
