@@ -221,9 +221,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     называется `<OwnerName>Id`, лежит в `Domain/<OwnerPlural>` и используется
     свойством aggregate root или entity текущего модуля, в том числе nullable.
     Например, `FileManager.Domain.Users.UserId` ссылается на пользователя Identity,
-    не требуя локального `User`. Внешний агрегат может находиться в отдельном
-    сервисе или ещё не быть реализован: его наличие в репозитории не требуется.
-    Неиспользуемые strongly typed ID запрещены.
+    не требуя локального `User`. Неиспользуемые strongly typed ID запрещены.
 
 35. `StronglyTypedIds_Should_ContainOnlyImmutableState_When_Declared` —
     рекурсивная проверка запрещает изменяемые поля и вложенное состояние ID,
