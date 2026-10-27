@@ -1,4 +1,5 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
@@ -31,6 +32,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
 
     public PlayerId PlayerId { get; private set; }
     public BuildId BuildId { get; private set; }
+    public GameId? GameId { get; private set; }
     public Raiting Rating { get; private set; }
     public MatchmakingMode Mode { get; private set; }
     public MatchmakingTimestamp QueuedAt { get; private set; }
@@ -79,6 +81,44 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         }
 
         Status = MatchSearchStatus.Matched;
+
+        RecordStateChanged();
+
+        return Result.Success();
+    }
+
+    public Result AssignGame(GameId gameId)
+    {
+        if (GameId == gameId)
+        {
+            return Result.Success();
+        }
+
+        if (Status != MatchSearchStatus.Matched || GameId is not null)
+        {
+            return Result.Failure(Error.Conflict("Only a matched search without a game can be assigned a game."));
+        }
+
+        GameId = gameId;
+
+        RecordStateChanged();
+
+        return Result.Success();
+    }
+
+    public Result Close()
+    {
+        if (Status == MatchSearchStatus.Closed)
+        {
+            return Result.Success();
+        }
+
+        if (Status != MatchSearchStatus.Matched)
+        {
+            return Result.Failure(Error.Conflict("Only a matched search can be closed."));
+        }
+
+        Status = MatchSearchStatus.Closed;
 
         RecordStateChanged();
 
@@ -135,6 +175,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         AddDomainEvent(new MatchSearchStateChanged(
             MatchSearchId: Id.Value,
             PlayerId: PlayerId.Value,
-            Status: Status.Name));
+            Status: Status.Name,
+            GameId: GameId?.Value));
     }
 }

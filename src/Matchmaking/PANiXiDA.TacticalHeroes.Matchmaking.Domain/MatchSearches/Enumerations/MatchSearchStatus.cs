@@ -18,6 +18,9 @@ public sealed partial class MatchSearchStatus : Enumeration<MatchSearchStatus>
     public static readonly MatchSearchStatus Expired = new(
         id: 4, name: nameof(Expired), displayName: "Время поиска истекло");
 
+    public static readonly MatchSearchStatus Closed = new(
+        id: 5, name: nameof(Closed), displayName: "Участие завершено");
+
     private MatchSearchStatus(int id, string name, string displayName)
         : base(id, name)
     {
