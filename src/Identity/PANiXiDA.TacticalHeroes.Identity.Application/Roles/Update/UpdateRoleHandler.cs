@@ -58,7 +58,7 @@ public sealed class UpdateRoleHandler(
             }
         }
 
-        var role = Role.Create(
+        var role = Role.Restore(
             id: idResult.Value,
             name: nameResult.Value,
             defaultFlag: defaultFlagResult.Value,

@@ -32,6 +32,19 @@ public sealed class Role : AggregateRoot<RoleId>
         RoleDefaultFlag defaultFlag,
         IEnumerable<RoleClaim> claims)
     {
+        return Restore(
+            id: id,
+            name: name,
+            defaultFlag: defaultFlag,
+            claims: claims);
+    }
+
+    public static Role Restore(
+        RoleId id,
+        RoleName name,
+        RoleDefaultFlag defaultFlag,
+        IEnumerable<RoleClaim> claims)
+    {
         var role = new Role(
             id: id,
             name: name,

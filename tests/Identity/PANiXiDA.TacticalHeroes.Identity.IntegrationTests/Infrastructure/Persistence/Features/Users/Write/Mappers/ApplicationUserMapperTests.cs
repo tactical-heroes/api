@@ -34,16 +34,18 @@ public sealed class ApplicationUserMapperTests
         result.Errors.Count.ShouldBe(2);
     }
 
-    [Fact(
+    [Theory(
         DisplayName = "User mapper should preserve confirmation and deduplicate authorization state when values are valid")]
-    public void ToDomain_Should_RestoreAuthorizationState_When_ValuesAreValid()
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ToDomain_Should_RestoreAuthorizationState_When_ValuesAreValid(bool isConfirmed)
     {
         var roleId = Guid.CreateVersion7();
 
         var result = ApplicationUserMapper.ToDomain(CreateDbModel(
             Guid.CreateVersion7(),
             " HERO@Example.com ",
-            true,
+            isConfirmed,
             [roleId, roleId],
             [(" permission ", " heroes.read "), ("permission", "heroes.read")],
             userName: " restored-hero ",
@@ -53,7 +55,7 @@ public sealed class ApplicationUserMapperTests
         result.Value.Email.Value.ShouldBe("hero@example.com");
         result.Value.UserName.Value.ShouldBe("restored-hero");
         result.Value.Status.IsBlocked.ShouldBeTrue();
-        result.Value.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
+        result.Value.ConfirmationStatus.IsConfirmed.ShouldBe(isConfirmed);
         result.Value.RoleIds.ShouldHaveSingleItem().Value.ShouldBe(roleId);
         result.Value.Claims.ShouldHaveSingleItem().Value.Value.ShouldBe("heroes.read");
         result.Value.GetDomainEvents().ShouldBeEmpty();

@@ -23,6 +23,7 @@ public sealed class UpdateUserHandlerTests
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed
+                && user.GetDomainEvents().Count == 0
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             currentAccessToken: null,
             cancellationToken: Arg.Any<CancellationToken>())
@@ -48,6 +49,7 @@ public sealed class UpdateUserHandlerTests
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Blocked
                 && user.ConfirmationStatus.IsConfirmed
+                && user.GetDomainEvents().Count == 0
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.manage")),
             currentAccessToken: null,
             cancellationToken: cancellationToken);

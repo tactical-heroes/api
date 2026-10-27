@@ -30,28 +30,73 @@ public sealed class UserTests
         result.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Create should restore persisted user state when persisted values are valid")]
-    public void Create_Should_RestoreState_When_PersistedValuesAreValid()
+    [Theory(
+        DisplayName = "Restore should preserve persisted user state without events when persisted values are valid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Restore_Should_PreserveStateWithoutEvents_When_PersistedValuesAreValid(bool isConfirmed)
     {
         var id = Guid.CreateVersion7();
         var roleId = Guid.CreateVersion7();
 
-        var result = User.Create(
+        var result = User.Restore(
             UserId.Create(id).Value,
             Email.Create("hero@example.com").Value,
             UserName.Create(" restored-hero ").Value,
             UserStatus.Blocked,
-            UserConfirmationStatus.Confirmed(),
+            UserConfirmationStatus.From(isConfirmed),
             [RoleId.Create(roleId).Value],
             [UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value)]);
 
         result.Id.Value.ShouldBe(id);
         result.UserName.Value.ShouldBe("restored-hero");
         result.Status.ShouldBe(UserStatus.Blocked);
-        result.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
+        result.ConfirmationStatus.IsConfirmed.ShouldBe(isConfirmed);
         result.RoleIds.Single().Value.ShouldBe(roleId);
         result.Claims.Single().Type.Value.ShouldBe("permission");
         result.Claims.Single().Value.Value.ShouldBe("heroes.read");
+        result.GetDomainEvents().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Create should raise registration exactly once when the new user is confirmed")]
+    public void Create_Should_RaiseRegistrationOnce_When_UserIsConfirmed()
+    {
+        var id = UserId.New();
+
+        var user = User.Create(
+            id,
+            Email.Create("hero@example.com").Value,
+            UserName.Create("hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.Confirmed(),
+            [],
+            []);
+
+        user.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
+        var domainEvent = user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UserRegistered>();
+        domainEvent.UserId.ShouldBe(id.Value);
+        domainEvent.Email.ShouldBe(user.Email.Value);
+
+        var confirmResult = user.ConfirmRegistration();
+
+        confirmResult.IsSuccess.ShouldBeTrue();
+        user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeSameAs(domainEvent);
+    }
+
+    [Fact(DisplayName = "Create should not raise registration when the new user is unconfirmed")]
+    public void Create_Should_NotRaiseRegistration_When_UserIsUnconfirmed()
+    {
+        var user = User.Create(
+            UserId.New(),
+            Email.Create("hero@example.com").Value,
+            UserName.Create("hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.Unconfirmed(),
+            [],
+            []);
+
+        user.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
+        user.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Create should isolate collection storage when input collections change")]

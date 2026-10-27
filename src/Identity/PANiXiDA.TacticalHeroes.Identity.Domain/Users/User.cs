@@ -42,6 +42,32 @@ public sealed class User : AggregateRoot<UserId>
         IEnumerable<RoleId> roleIds,
         IEnumerable<UserClaim> claims)
     {
+        var user = Restore(
+            id: id,
+            email: email,
+            userName: userName,
+            status: status,
+            confirmationStatus: UserConfirmationStatus.Unconfirmed(),
+            roleIds: roleIds,
+            claims: claims);
+
+        if (confirmationStatus.IsConfirmed)
+        {
+            user.ConfirmRegistration();
+        }
+
+        return user;
+    }
+
+    public static User Restore(
+        UserId id,
+        Email email,
+        UserName userName,
+        UserStatus status,
+        UserConfirmationStatus confirmationStatus,
+        IEnumerable<RoleId> roleIds,
+        IEnumerable<UserClaim> claims)
+    {
         var user = new User(
             id: id,
             email: email,

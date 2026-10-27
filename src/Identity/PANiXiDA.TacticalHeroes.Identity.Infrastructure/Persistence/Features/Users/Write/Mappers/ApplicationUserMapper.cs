@@ -104,7 +104,7 @@ internal static class ApplicationUserMapper
             domainClaims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
-        return Result.Success(value: User.Create(
+        return Result.Success(value: User.Restore(
             id: idResult.Value,
             email: emailResult.Value,
             userName: userNameResult.Value,

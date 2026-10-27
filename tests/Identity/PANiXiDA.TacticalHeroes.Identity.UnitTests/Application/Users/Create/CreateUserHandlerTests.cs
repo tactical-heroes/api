@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 
@@ -21,6 +22,7 @@ public sealed class CreateUserHandlerTests
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Active
                 && user.ConfirmationStatus.IsConfirmed
+                && user.GetDomainEvents().OfType<UserRegistered>().Count() == 1
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
             "StrongPassword1!",
             Arg.Any<CancellationToken>())
@@ -46,6 +48,7 @@ public sealed class CreateUserHandlerTests
                 && user.UserName.Value == "hero"
                 && user.Status == UserStatus.Active
                 && user.ConfirmationStatus.IsConfirmed
+                && user.GetDomainEvents().OfType<UserRegistered>().Count() == 1
                 && user.Claims.Any(claim => claim.Type.Value == "permission" && claim.Value.Value == "heroes.read")),
             "StrongPassword1!",
             cancellationToken);

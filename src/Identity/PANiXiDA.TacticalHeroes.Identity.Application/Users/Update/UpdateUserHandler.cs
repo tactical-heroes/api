@@ -47,7 +47,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrent
             claims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
-        var user = User.Create(
+        var user = User.Restore(
             id: idResult.Value,
             email: emailResult.Value,
             userName: userNameResult.Value,
