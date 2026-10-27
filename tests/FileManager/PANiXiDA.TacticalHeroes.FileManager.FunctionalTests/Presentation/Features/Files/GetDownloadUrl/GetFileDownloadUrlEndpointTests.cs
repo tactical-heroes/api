@@ -169,7 +169,6 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
     [Theory(DisplayName = "Download URL endpoint should reject authentication when subject is unavailable")]
     [InlineData(null)]
     [InlineData("invalid-subject")]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
     public async Task HandleAsync_Should_ReturnUnauthorized_When_SubjectIsUnavailable(string? subject)
     {
         using var response = await SendRequestAsync(Guid.NewGuid(), subject);

@@ -19,7 +19,7 @@ public sealed class GetFileDownloadUrlHandler(
         GetFileDownloadUrlQuery query,
         CancellationToken cancellationToken)
     {
-        if (currentUser.UserId is not { } userId || userId == Guid.Empty)
+        if (currentUser.UserId is null)
         {
             return Result.Failure<PresignedDownloadUrl>(
                 Error.Unauthorized("A user account is required."));

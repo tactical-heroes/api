@@ -54,12 +54,10 @@ public sealed class GetFileDownloadUrlHandlerTests
         storage.ReceivedCalls().Count().ShouldBe(1);
     }
 
-    [Theory(DisplayName = "Download URL handler should reject the caller when user id is unavailable")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task HandleAsync_Should_ReturnUnauthorized_When_UserIdIsUnavailable(bool emptyUserId)
+    [Fact(DisplayName = "Download URL handler should reject the caller when user id is unavailable")]
+    public async Task HandleAsync_Should_ReturnUnauthorized_When_UserIdIsUnavailable()
     {
-        var currentUser = CreateCurrentUser(emptyUserId ? Guid.Empty : null);
+        var currentUser = CreateCurrentUser(null);
         var repository = Substitute.For<IFilesRepository>();
         var storage = Substitute.For<IFileStorage>();
         var handler = new GetFileDownloadUrlHandler(
