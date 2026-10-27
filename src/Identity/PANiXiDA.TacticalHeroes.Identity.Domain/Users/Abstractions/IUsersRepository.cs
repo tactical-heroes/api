@@ -2,6 +2,10 @@ namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 public interface IUsersRepository
 {
+    Task<Result<User>> GetByIdAsync(
+        UserId id,
+        CancellationToken cancellationToken);
+
     Task<Result<Guid>> AddAsync(
         User user,
         string password,

@@ -30,28 +30,73 @@ public sealed class UserTests
         result.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Create should restore persisted user state when persisted values are valid")]
-    public void Create_Should_RestoreState_When_PersistedValuesAreValid()
+    [Theory(
+        DisplayName = "Restore should preserve persisted user state without events when persisted values are valid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Restore_Should_PreserveStateWithoutEvents_When_PersistedValuesAreValid(bool isConfirmed)
     {
         var id = Guid.CreateVersion7();
         var roleId = Guid.CreateVersion7();
 
-        var result = User.Create(
+        var result = User.Restore(
             UserId.Create(id).Value,
             Email.Create("hero@example.com").Value,
             UserName.Create(" restored-hero ").Value,
             UserStatus.Blocked,
-            UserConfirmationStatus.Confirmed(),
+            UserConfirmationStatus.From(isConfirmed),
             [RoleId.Create(roleId).Value],
             [UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value)]);
 
         result.Id.Value.ShouldBe(id);
         result.UserName.Value.ShouldBe("restored-hero");
         result.Status.ShouldBe(UserStatus.Blocked);
-        result.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
+        result.ConfirmationStatus.IsConfirmed.ShouldBe(isConfirmed);
         result.RoleIds.Single().Value.ShouldBe(roleId);
         result.Claims.Single().Type.Value.ShouldBe("permission");
         result.Claims.Single().Value.Value.ShouldBe("heroes.read");
+        result.GetDomainEvents().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Create should raise registration exactly once when user is confirmed")]
+    public void Create_Should_RaiseRegistrationOnce_When_UserIsConfirmed()
+    {
+        var id = UserId.New();
+
+        var user = User.Create(
+            id,
+            Email.Create("hero@example.com").Value,
+            UserName.Create("hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.Confirmed(),
+            [],
+            []);
+
+        user.ConfirmationStatus.IsConfirmed.ShouldBeTrue();
+        var domainEvent = user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UserRegistered>();
+        domainEvent.UserId.ShouldBe(id.Value);
+        domainEvent.Email.ShouldBe(user.Email.Value);
+
+        var confirmResult = user.ConfirmRegistration();
+
+        confirmResult.IsSuccess.ShouldBeTrue();
+        user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeSameAs(domainEvent);
+    }
+
+    [Fact(DisplayName = "Create should not raise registration when user is unconfirmed")]
+    public void Create_Should_NotRaiseRegistration_When_UserIsUnconfirmed()
+    {
+        var user = User.Create(
+            UserId.New(),
+            Email.Create("hero@example.com").Value,
+            UserName.Create("hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.Unconfirmed(),
+            [],
+            []);
+
+        user.ConfirmationStatus.IsConfirmed.ShouldBeFalse();
+        user.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Create should isolate collection storage when input collections change")]
@@ -75,6 +120,95 @@ public sealed class UserTests
 
         user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
         user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
+    }
+
+    [Theory(DisplayName = "Update should register only on confirmation when confirmation state changes")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Update_Should_RegisterOnlyOnConfirmation_When_ConfirmationStateChanges(
+        bool wasConfirmed,
+        bool isConfirmed)
+    {
+        var id = UserId.New();
+        var user = User.Restore(
+            id,
+            Email.Create("original@example.com").Value,
+            UserName.Create("original-hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.From(wasConfirmed),
+            [RoleId.New()],
+            [UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value)]);
+        var roleId = RoleId.New();
+        var claim = UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value);
+        List<RoleId> roleIds = [roleId, roleId];
+        List<UserClaim> claims = [claim, claim];
+
+        user.Update(
+            Email.Create("updated@example.com").Value,
+            UserName.Create("updated-hero").Value,
+            UserStatus.Blocked,
+            UserConfirmationStatus.From(isConfirmed),
+            roleIds,
+            claims);
+        roleIds.Clear();
+        claims.Clear();
+
+        user.Id.ShouldBe(id);
+        user.Email.Value.ShouldBe("updated@example.com");
+        user.UserName.Value.ShouldBe("updated-hero");
+        user.Status.ShouldBe(UserStatus.Blocked);
+        user.ConfirmationStatus.IsConfirmed.ShouldBe(isConfirmed);
+        user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
+        user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
+        if (!wasConfirmed && isConfirmed)
+        {
+            var domainEvent = user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UserRegistered>();
+            domainEvent.UserId.ShouldBe(id.Value);
+            domainEvent.Email.ShouldBe("updated@example.com");
+        }
+        else
+        {
+            user.GetDomainEvents().ShouldBeEmpty();
+        }
+    }
+
+    [Theory(DisplayName = "Update should preserve retained assignments or clear them when collections are provided")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Update_Should_ReplaceAssignments_When_CollectionsAreProvided(bool retainAssignments)
+    {
+        var roleId = RoleId.New();
+        var claim = UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value);
+        var user = User.Restore(
+            UserId.New(),
+            Email.Create("hero@example.com").Value,
+            UserName.Create("hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.Unconfirmed(),
+            [roleId],
+            [claim]);
+
+        user.Update(
+            user.Email,
+            user.UserName,
+            user.Status,
+            user.ConfirmationStatus,
+            retainAssignments ? user.RoleIds : [],
+            retainAssignments ? user.Claims : []);
+
+        if (retainAssignments)
+        {
+            user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
+            user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
+        }
+        else
+        {
+            user.RoleIds.ShouldBeEmpty();
+            user.Claims.ShouldBeEmpty();
+        }
+        user.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Fact(

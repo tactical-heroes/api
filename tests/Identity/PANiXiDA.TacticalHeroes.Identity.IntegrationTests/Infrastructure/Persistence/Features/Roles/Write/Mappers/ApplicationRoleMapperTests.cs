@@ -45,6 +45,7 @@ public sealed class ApplicationRoleMapperTests
         var claim = result.Value.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");
+        result.Value.GetDomainEvents().ShouldBeEmpty();
     }
 
     private static ApplicationRole CreateDbModel(

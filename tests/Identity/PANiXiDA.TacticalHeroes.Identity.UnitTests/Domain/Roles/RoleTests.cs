@@ -7,14 +7,15 @@ namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles;
 
 public sealed class RoleTests
 {
-    [Theory(DisplayName = "Create should restore persisted role state when persisted values are valid")]
+    [Theory(
+        DisplayName = "Restore should preserve persisted role state without events when persisted values are valid")]
     [InlineData(false)]
     [InlineData(true)]
-    public void Create_Should_RestoreState_When_PersistedValuesAreValid(bool isDefault)
+    public void Restore_Should_PreserveStateWithoutEvents_When_PersistedValuesAreValid(bool isDefault)
     {
         var id = Guid.CreateVersion7();
 
-        var result = Role.Create(
+        var result = Role.Restore(
             RoleId.Create(id).Value,
             RoleName.Create(" Developer ").Value,
             RoleDefaultFlag.Create(isDefault).Value,
@@ -26,6 +27,7 @@ public sealed class RoleTests
         var claim = result.Claims.ShouldHaveSingleItem();
         claim.Type.Value.ShouldBe("permission");
         claim.Value.Value.ShouldBe("heroes.manage");
+        result.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Create should isolate collection storage when input collections change")]

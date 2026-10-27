@@ -14,6 +14,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Server;
 
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -31,6 +32,32 @@ public sealed class UpdateUserEndpointTests(FunctionalTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
     private const string Email = "role-session@example.test";
+
+    [Fact(DisplayName = "PUT user should publish registration once when confirmation is granted repeatedly")]
+    public async Task PutUser_Should_PublishRegistrationOnce_When_ConfirmationIsGrantedRepeatedly()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = new UserApiTestClient(Fixture);
+        var created = await client.CreateAsync(
+            UserApiTestClient.CreateDefaultRequest(isConfirmed: false), ct);
+        Fixture.EventBus.Clear();
+        var request = new UpdateUserRequest(
+            Email: "confirmed@example.com",
+            UserName: "confirmed-hero",
+            IsConfirmed: true,
+            Claims: [],
+            Status: "Active",
+            RoleIds: []);
+
+        await client.UpdateAsync(created.Id, request, ct);
+        await client.UpdateAsync(created.Id, request, ct);
+
+        var registration = Fixture.EventBus.Single<UserRegistered>();
+        registration.UserId.ShouldBe(created.Id);
+        registration.Email.ShouldBe("confirmed@example.com");
+        var details = await client.GetDetailsAsync(created.Id, ct);
+        details.IsConfirmed.ShouldBeTrue();
+    }
 
     [Theory(DisplayName = "PUT user should not restore a cookie when password reset races claims read")]
     [InlineData(false)]
