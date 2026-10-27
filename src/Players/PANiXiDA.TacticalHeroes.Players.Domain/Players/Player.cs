@@ -1,0 +1,54 @@
+using PANiXiDA.TacticalHeroes.Players.Domain.Files;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+
+namespace PANiXiDA.TacticalHeroes.Players.Domain.Players;
+
+public sealed class Player : AggregateRoot<PlayerId>
+{
+    private Player(
+        PlayerId id,
+        UserId userId,
+        Nickname nickname,
+        Rating rating)
+        : base(id)
+    {
+        UserId = userId;
+        Nickname = nickname;
+        Rating = rating;
+    }
+
+    public UserId UserId { get; private set; }
+    public Nickname Nickname { get; private set; }
+    public FileId? AvatarFileId { get; private set; }
+    public Rating Rating { get; private set; }
+
+    public static Player Create(UserId userId, Nickname nickname)
+    {
+        return new Player(
+            id: PlayerId.New(),
+            userId: userId,
+            nickname: nickname,
+            rating: Rating.Create(Rating.InitialValue));
+    }
+
+    public void ChangeNickname(Nickname nickname)
+    {
+        Nickname = nickname;
+    }
+
+    public void ChangeAvatar(FileId avatarFileId)
+    {
+        AvatarFileId = avatarFileId;
+    }
+
+    public void RemoveAvatar()
+    {
+        AvatarFileId = null;
+    }
+
+    public void ChangeRating(Rating rating)
+    {
+        Rating = rating;
+    }
+}
