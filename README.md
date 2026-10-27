@@ -62,7 +62,7 @@ dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.Tactical
 
 ## Observability
 
-The host uses the `PANiXiDA.Core.Observability` 2.0.1 MSBuild SDK. Its `.csproj`
+The host uses the `PANiXiDA.Core.Observability` MSBuild SDK. Its `.csproj`
 references `<Sdk Name="PANiXiDA.Core.Observability" />`; the SDK version is pinned in
 `global.json` under `msbuild-sdks`, separately from central NuGet package versions.
 The existing `builder.AddObservability()` call is unchanged. Server dependencies
