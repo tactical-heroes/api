@@ -8,11 +8,21 @@ public sealed class FileUploadReconciliationOptionsValidatorTests
     [InlineData("age")]
     [InlineData("batch")]
     [InlineData("large-batch")]
+    [InlineData("expiration")]
+    [InlineData("short-expiration")]
+    [InlineData("equal-expiration")]
     public void Validate_Should_RejectInvalidSettings_When_ConfigurationIsInvalid(string invalidPart)
     {
         var options = new FileUploadReconciliationOptions
         {
             MinimumAge = invalidPart == "age" ? TimeSpan.Zero : TimeSpan.FromMinutes(15),
+            ExpirationAge = invalidPart switch
+            {
+                "expiration" => TimeSpan.Zero,
+                "short-expiration" => TimeSpan.FromMinutes(10),
+                "equal-expiration" => TimeSpan.FromMinutes(15),
+                _ => TimeSpan.FromDays(1)
+            },
             BatchSize = invalidPart switch
             {
                 "batch" => 0,

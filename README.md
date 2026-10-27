@@ -197,8 +197,9 @@ through Core Wolverine's `AddRecurringCommand`. Its schedule is configured under
 and coordinates scheduling across replicas.
 
 Operational settings remain under `FileManager:UploadReconciliation`:
-`MinimumAge` defaults to fifteen minutes, and `BatchSize` controls database page size
-(1–1000). The command runs through the FileManager mediator pipeline without
+`MinimumAge` defaults to fifteen minutes, `ExpirationAge` defaults to one day and
+must exceed `MinimumAge`, and `BatchSize` controls database page size (1–1000).
+The command runs through the FileManager mediator pipeline without
 requesting an enclosing transaction; each file is finalized independently.
 
 The first enabled recurring schedule extends Wolverine's message-store schema.
@@ -206,9 +207,10 @@ Apply it using the host's JasperFx `db-apply` command with the target environmen
 configuration before starting replicas where automatic schema updates are disabled.
 The EF migrator only manages module schemas, not Wolverine's message-store tables.
 
-The recurring command handler receives pending personal-file aggregates directly
-from `IFilesRepository`. The repository pages through old records using one fixed
-age cutoff and preserves their optimistic concurrency tokens. Each database page
+The recurring command handler receives personal-file aggregates directly from
+`IFilesRepository`: pending uploads before expiration, expired pending uploads,
+and files in `Deleting` or `Deleted` states. Each repository sequence captures fixed
+age cutoffs and preserves optimistic concurrency tokens. Each database page
 is fully loaded before checking S3, so storage requests do not keep a database
 reader open. The handler reads metadata through Core's `IFileStorage.GetMetadataAsync`
 using each aggregate's persisted key and the upload adapter's environment prefix,
@@ -222,10 +224,21 @@ The age threshold separates recovery from normal uploads but is not a lease:
 an exceptionally long HTTP upload can still receive an optimistic concurrency
 conflict if recovery completes first.
 
-Missing objects, invalid metadata, and storage errors leave
-the record unchanged for subsequent checks. Paging continues past missing objects.
-Reconciliation does not delete objects, expire records, restart uploads, or inspect
-files already marked `Ready`.
+Missing objects before `ExpirationAge`, invalid metadata, and inspection errors
+leave pending uploads unchanged. Valid stored content is finalized even after the
+expiration age. If an expired upload has no stored object, the handler calls
+`BeginDeletion` and saves the intent before attempting an idempotent S3 delete.
+Only a successful delete is followed by `CompleteDeletion` and another save.
+Storage errors leave the file `Deleting` for a later invocation; an unavailable
+bucket therefore cannot complete deletion merely because metadata lookup returned
+HTTP 404.
+
+The handler also checks `Deleted` records for objects that appear after deletion,
+such as an upload completing after its original request lost an optimistic version
+race. Such late objects are deleted on a subsequent pass. Existing deletion rows
+are retained with their current domain status; this flow does not set the EF soft
+delete timestamp or physically remove database rows. Paging continues past missing
+objects. Already-ready files are not scanned, and failed uploads are not restarted.
 Incomplete multipart cleanup and upload-request idempotency remain separate work.
 This recovery path establishes eventual completion for objects that are present;
 it does not make S3 and PostgreSQL updates atomic or verify an expected checksum.

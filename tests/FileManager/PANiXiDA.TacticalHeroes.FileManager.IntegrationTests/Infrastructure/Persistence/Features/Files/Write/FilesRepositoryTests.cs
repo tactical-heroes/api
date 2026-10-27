@@ -34,7 +34,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var second = CreatePersonalFile();
         var recent = CreatePersonalFile();
         var atCutoff = CreatePersonalFile();
-        foreach (var file in new[] { first, second, recent, atCutoff })
+        var expired = CreatePersonalFile();
+        foreach (var file in new[] { first, second, recent, atCutoff, expired })
         {
             await SaveNewFileAsync(file, cancellationToken);
         }
@@ -47,9 +48,12 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         await context.Database.ExecuteSqlInterpolatedAsync(
             $"""
-            UPDATE file_manager.files SET created_at = {DateTime.UnixEpoch}
+            UPDATE file_manager.files SET created_at = {now.AddHours(-1).UtcDateTime}
             WHERE id IN ({first.Id.Value}, {second.Id.Value})
             """,
+            cancellationToken);
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE file_manager.files SET created_at = {DateTime.UnixEpoch} WHERE id = {expired.Id.Value}",
             cancellationToken);
         await context.Database.ExecuteSqlInterpolatedAsync(
             $"UPDATE file_manager.files SET created_at = {cutoff} WHERE id = {atCutoff.Id.Value}",
@@ -72,6 +76,87 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         context.Entry(loaded[0]).State.ShouldBe(EntityState.Unchanged);
         context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
         timeProvider.Received(1).GetUtcNow();
+    }
+
+    [Fact(DisplayName = "Expired uploads should use a fixed cutoff when tracked aggregates are paged")]
+    public async Task GetExpiredPersonalUploadsAsync_Should_UseFixedCutoff_When_TrackedAggregatesArePaged()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var first = CreatePersonalFile();
+        var second = CreatePersonalFile();
+        var atCutoff = CreatePersonalFile();
+        var recent = CreatePersonalFile();
+        var avatar = CreateFile();
+        foreach (var file in new[] { first, second, atCutoff, recent, avatar })
+        {
+            await SaveNewFileAsync(file, cancellationToken);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var timeProvider = Substitute.For<TimeProvider>();
+        timeProvider.GetUtcNow().Returns(now, now.AddHours(1));
+        await using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            UPDATE file_manager.files SET created_at = {DateTime.UnixEpoch}
+            WHERE id IN ({first.Id.Value}, {second.Id.Value}, {avatar.Id.Value})
+            """,
+            cancellationToken);
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE file_manager.files SET created_at = {now.AddDays(-1).UtcDateTime} WHERE id = {atCutoff.Id.Value}",
+            cancellationToken);
+        var repository = new FilesRepository(
+            dbContext: context,
+            options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions { BatchSize = 1 }),
+            timeProvider: timeProvider);
+        var loaded = new List<File>();
+
+        await foreach (var file in repository.GetExpiredPersonalUploadsAsync(cancellationToken))
+        {
+            loaded.Add(file);
+        }
+
+        loaded.Select(file => file.Id.Value).ShouldBe(new[] { first.Id.Value, second.Id.Value }.Order());
+        context.ChangeTracker.Entries<File>().Count().ShouldBe(2);
+        context.Entry(loaded[0]).State.ShouldBe(EntityState.Unchanged);
+        context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
+        timeProvider.Received(1).GetUtcNow();
+    }
+
+    [Fact(DisplayName = "Deletion candidates should include personal tombstones when lifecycle states vary")]
+    public async Task GetPersonalFilesForDeletionAsync_Should_IncludePersonalTombstones_When_LifecycleStatesVary()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var deleting = CreatePersonalFile();
+        var deleted = CreatePersonalFile();
+        var pending = CreatePersonalFile();
+        var avatar = CreateFile();
+        deleting.BeginDeletion();
+        deleted.BeginDeletion();
+        deleted.CompleteDeletion();
+        avatar.BeginDeletion();
+        foreach (var file in new[] { deleting, deleted, pending, avatar })
+        {
+            await SaveNewFileAsync(file, cancellationToken);
+        }
+
+        await using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var repository = new FilesRepository(
+            dbContext: context,
+            options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions { BatchSize = 1 }),
+            timeProvider: TimeProvider.System);
+        var loaded = new List<File>();
+
+        await foreach (var file in repository.GetPersonalFilesForDeletionAsync(cancellationToken))
+        {
+            loaded.Add(file);
+        }
+
+        loaded.Select(file => file.Id.Value).ShouldBe(new[] { deleting.Id.Value, deleted.Id.Value }.Order());
+        context.ChangeTracker.Entries<File>().Count().ShouldBe(2);
+        context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
     }
 
     [Fact(DisplayName = "Add should stage a tracked file when unit of work has not saved")]

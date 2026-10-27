@@ -11,6 +11,7 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
@@ -63,8 +64,6 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
     [InlineData("recent")]
     [InlineData("avatar")]
     [InlineData("ready")]
-    [InlineData("deleting")]
-    [InlineData("deleted")]
     public async Task HandleAsync_Should_LeaveUnrelatedRecordsUnchanged_When_FileIsIneligible(string condition)
     {
         var file = await SaveFileAsync(condition);
@@ -203,6 +202,160 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         retried.Size.ShouldBe(4);
     }
 
+    [Fact(DisplayName = "Reconciliation should delete an expired upload when stored content is missing")]
+    public async Task HandleAsync_Should_DeleteExpiredUpload_When_StoredContentIsMissing()
+    {
+        var file = await SaveFileAsync("expired");
+        await using var scope = Fixture.CreateScope();
+
+        await CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        var stored = await ReadFileAsync(file.Id);
+        stored.Status.ShouldBe("Deleted");
+        stored.Size.ShouldBeNull();
+        stored.DeletedAt.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Reconciliation should recover an expired upload when stored content is valid")]
+    public async Task HandleAsync_Should_RecoverExpiredUpload_When_StoredContentIsValid()
+    {
+        var file = await SaveFileAsync("expired");
+        await UploadAsync(file);
+        await using var scope = Fixture.CreateScope();
+
+        await CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        (await ReadFileAsync(file.Id)).Status.ShouldBe("Ready");
+        var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
+            .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
+        metadata.ShouldNotBeNull();
+    }
+
+    [Theory(DisplayName = "Reconciliation should finish persisted deletion when stored content may exist")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_FinishPersistedDeletion_When_StoredContentMayExist(bool contentExists)
+    {
+        var file = await SaveFileAsync("deleting");
+        if (contentExists)
+        {
+            await UploadAsync(file);
+        }
+
+        await using var scope = Fixture.CreateScope();
+
+        await CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+        var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
+            .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
+        metadata.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Reconciliation should retry deletion when storage bucket becomes available again")]
+    public async Task HandleAsync_Should_RetryDeletion_When_StorageBucketBecomesAvailableAgain()
+    {
+        var file = await SaveFileAsync("expired");
+        using var client = Fixture.Storage.CreateClient();
+        await client.DeleteBucketAsync(
+            new Amazon.S3.Model.DeleteBucketRequest
+            {
+                BucketName = PANiXiDA.TacticalHeroes.Testing.Storage.S3TestStorage.BucketName
+            },
+            TestContext.Current.CancellationToken);
+        try
+        {
+            await using var scope = Fixture.CreateScope();
+
+            await CreateHandler(scope.ServiceProvider).HandleAsync(
+                new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+            (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleting");
+        }
+        finally
+        {
+            await client.PutBucketAsync(
+                new Amazon.S3.Model.PutBucketRequest
+                {
+                    BucketName = PANiXiDA.TacticalHeroes.Testing.Storage.S3TestStorage.BucketName
+                },
+                TestContext.Current.CancellationToken);
+        }
+
+        await using var retryScope = Fixture.CreateScope();
+        await CreateHandler(retryScope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+    }
+
+    [Fact(DisplayName = "Reconciliation should remove a late upload when original uploader loses a version race")]
+    public async Task HandleAsync_Should_RemoveLateUpload_When_OriginalUploaderLosesAVersionRace()
+    {
+        var file = await SaveFileAsync("expired");
+        await using var uploadScope = Fixture.CreateScope();
+        var uploadRepository = uploadScope.ServiceProvider.GetRequiredService<IFilesRepository>();
+        var original = await uploadRepository.GetByIdAsync(file.Id, TestContext.Current.CancellationToken);
+        await using (var deletionScope = Fixture.CreateScope())
+        {
+            await CreateHandler(deletionScope.ServiceProvider).HandleAsync(
+                new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+        }
+
+        await UploadAsync(file);
+        original!.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        uploadRepository.Update(original);
+        var unitOfWork = uploadScope.ServiceProvider
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+        var exception = await Record.ExceptionAsync(() => unitOfWork.SaveChangesAsync(
+            TestContext.Current.CancellationToken));
+        await using var cleanupScope = Fixture.CreateScope();
+
+        await CreateHandler(cleanupScope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        exception.ShouldBeOfType<ConcurrencyException>();
+        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+        var metadata = await cleanupScope.ServiceProvider.GetRequiredService<IFileStorage>()
+            .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
+        metadata.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Reconciliation should retry finalization when saving after storage deletion conflicts")]
+    public async Task HandleAsync_Should_RetryFinalization_When_SavingAfterStorageDeletionConflicts()
+    {
+        var file = await SaveFileAsync("deleting");
+        await UploadAsync(file);
+        var settings = Fixture.Storage.GetConfiguration(nameof(FileManager));
+        settings["ConnectionStrings:PostgreSqlConnectionString"] = Fixture.ConnectionString;
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
+        var services = new ServiceCollection();
+        services.AddInfrastructure(configuration);
+        services.AddSingleton<IInterceptor>(new ChangeFileBeforeSaveInterceptor(
+            fileId: file.Id.Value,
+            connectionString: Fixture.ConnectionString,
+            duringDeletion: true));
+        await using var provider = services.BuildServiceProvider();
+        await using var scope = provider.CreateAsyncScope();
+
+        var exception = await Record.ExceptionAsync(() => CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken));
+        var pending = await ReadFileAsync(file.Id);
+        var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
+            .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
+        await using var retryScope = provider.CreateAsyncScope();
+        await CreateHandler(retryScope.ServiceProvider).HandleAsync(
+            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        exception.ShouldBeOfType<ConcurrencyException>();
+        pending.Status.ShouldBe("Deleting");
+        metadata.ShouldBeNull();
+        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+    }
+
     private static ReconcilePersonalFileUploadsHandler CreateHandler(
         IServiceProvider services,
         int batchSize = 100)
@@ -250,8 +403,9 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         if (condition != "recent")
         {
+            var createdAt = condition == "expired" ? DateTime.UnixEpoch : DateTime.UtcNow.AddMinutes(-30);
             await context.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE file_manager.files SET created_at = {DateTime.UnixEpoch} WHERE id = {file.Id.Value}",
+                $"UPDATE file_manager.files SET created_at = {createdAt} WHERE id = {file.Id.Value}",
                 TestContext.Current.CancellationToken);
         }
 
@@ -275,7 +429,10 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             .SingleAsync(file => file.Id == id.Value, TestContext.Current.CancellationToken);
     }
 
-    private sealed class ChangeFileBeforeSaveInterceptor(Guid fileId, string connectionString) : SaveChangesInterceptor
+    private sealed class ChangeFileBeforeSaveInterceptor(
+        Guid fileId,
+        string connectionString,
+        bool duringDeletion = false) : SaveChangesInterceptor
     {
         private bool _changed;
 
@@ -287,7 +444,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             if (_changed
                 || eventData.Context is not FileManagerWriteDbContext context
                 || !context.ChangeTracker.Entries<File>().Any(entry =>
-                    entry.Entity.Id.Value == fileId && entry.Entity.Status == FileStatus.Ready))
+                    entry.Entity.Id.Value == fileId
+                        && entry.Entity.Status == (duringDeletion ? FileStatus.Deleted : FileStatus.Ready)))
             {
                 return result;
             }
@@ -296,7 +454,9 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             await using var connection = new NpgsqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
             await using var command = new NpgsqlCommand(
-                "UPDATE file_manager.files SET name = 'renamed.txt' WHERE id = @id",
+                duringDeletion
+                    ? "UPDATE file_manager.files SET updated_at = now() WHERE id = @id"
+                    : "UPDATE file_manager.files SET name = 'renamed.txt' WHERE id = @id",
                 connection);
             command.Parameters.AddWithValue("id", fileId);
             await command.ExecuteNonQueryAsync(cancellationToken);

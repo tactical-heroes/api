@@ -18,6 +18,11 @@ public sealed class FileUploadReconciliationOptionsValidator
             failures.Add("Upload reconciliation batch size must be between 1 and 1000.");
         }
 
+        if (options.ExpirationAge <= options.MinimumAge)
+        {
+            failures.Add("Upload expiration age must be greater than the reconciliation minimum age.");
+        }
+
         return failures.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(failures);

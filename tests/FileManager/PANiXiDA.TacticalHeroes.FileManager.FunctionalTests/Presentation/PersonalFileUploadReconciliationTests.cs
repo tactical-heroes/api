@@ -41,11 +41,26 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
     {
         var file = await CreatePendingUploadAsync();
 
-        var stored = await WaitForReadyAsync(file.Id);
+        var stored = await WaitForStatusAsync(file.Id, "Ready");
 
         stored.Status.ShouldBe("Ready");
         stored.Size.ShouldBe(4);
         stored.ContentType.ShouldBe("text/plain");
+    }
+
+    [Fact(DisplayName = "Reconciliation should delete an expired upload when recurring schedule fires")]
+    public async Task ReconcileAsync_Should_DeleteExpiredUpload_When_RecurringScheduleFires()
+    {
+        var file = await CreatePendingUploadAsync(uploadContent: false);
+
+        var stored = await WaitForStatusAsync(file.Id, "Deleted");
+
+        stored.Status.ShouldBe("Deleted");
+        stored.Size.ShouldBeNull();
+        await using var scope = Fixture.CreateScope();
+        var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
+            .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
+        metadata.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Reconciliation schedule should target the command when host is configured")]
@@ -62,7 +77,7 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
         schedule.Schedule.TimeZone.Id.ShouldBe("UTC");
     }
 
-    private async Task<File> CreatePendingUploadAsync()
+    private async Task<File> CreatePendingUploadAsync(bool uploadContent = true)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = File.Create(
@@ -73,12 +88,16 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         context.Add(file);
         await context.SaveChangesAsync(cancellationToken);
+        if (uploadContent)
+        {
+            await using var content = new MemoryStream([1, 2, 3, 4]);
+            await scope.ServiceProvider.GetRequiredService<IFileStorage>()
+                .UploadAsync(file.StorageKey.Value, content, "text/plain", cancellationToken);
+        }
+
         await context.Database.ExecuteSqlInterpolatedAsync(
             $"UPDATE file_manager.files SET created_at = {DateTime.UnixEpoch} WHERE id = {file.Id.Value}",
             cancellationToken);
-        await using var content = new MemoryStream([1, 2, 3, 4]);
-        await scope.ServiceProvider.GetRequiredService<IFileStorage>()
-            .UploadAsync(file.StorageKey.Value, content, "text/plain", cancellationToken);
 
         return file;
     }
@@ -91,13 +110,13 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
             .SingleAsync(file => file.Id == id.Value, TestContext.Current.CancellationToken);
     }
 
-    private async Task<FileReadDbModel> WaitForReadyAsync(FileId id)
+    private async Task<FileReadDbModel> WaitForStatusAsync(FileId id, string status)
     {
         var deadline = TimeProvider.System.GetUtcNow().AddSeconds(45);
         while (TimeProvider.System.GetUtcNow() < deadline)
         {
             var file = await ReadFileAsync(id);
-            if (file.Status == "Ready")
+            if (file.Status == status)
             {
                 return file;
             }
@@ -105,6 +124,6 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
             await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
         }
 
-        throw new TimeoutException("The recurring Wolverine command did not finalize the uploaded file.");
+        throw new TimeoutException($"The recurring Wolverine command did not reach file status '{status}'.");
     }
 }

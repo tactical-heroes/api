@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 using Microsoft.EntityFrameworkCore;
@@ -23,15 +24,43 @@ public sealed class FilesRepository(
             dbContext),
         IFilesRepository
 {
-    public async IAsyncEnumerable<File> GetPendingPersonalUploadsAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    public IAsyncEnumerable<File> GetPendingPersonalUploadsAsync(CancellationToken cancellationToken)
     {
         var reconciliationOptions = options.Value;
-        var createdBefore = timeProvider.GetUtcNow().Subtract(reconciliationOptions.MinimumAge).UtcDateTime;
-        var query = Query.Where(file =>
-            file.Type == FileType.Personal
-                && file.Status == FileStatus.PendingUpload
-                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < createdBefore);
+        var now = timeProvider.GetUtcNow();
+        var createdBefore = now.Subtract(reconciliationOptions.MinimumAge).UtcDateTime;
+        var expiresBefore = now.Subtract(reconciliationOptions.ExpirationAge).UtcDateTime;
+
+        return GetPersonalFilesAsync(
+            file => file.Status == FileStatus.PendingUpload
+                && EF.Property<DateTime>(file, EfConstants.CreatedAt) >= expiresBefore
+                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < createdBefore,
+            cancellationToken);
+    }
+
+    public IAsyncEnumerable<File> GetExpiredPersonalUploadsAsync(CancellationToken cancellationToken)
+    {
+        var expiresBefore = timeProvider.GetUtcNow().Subtract(options.Value.ExpirationAge).UtcDateTime;
+
+        return GetPersonalFilesAsync(
+            file => file.Status == FileStatus.PendingUpload
+                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < expiresBefore,
+            cancellationToken);
+    }
+
+    public IAsyncEnumerable<File> GetPersonalFilesForDeletionAsync(CancellationToken cancellationToken)
+    {
+        return GetPersonalFilesAsync(
+            file => file.Status == FileStatus.Deleting || file.Status == FileStatus.Deleted,
+            cancellationToken);
+    }
+
+    private async IAsyncEnumerable<File> GetPersonalFilesAsync(
+        Expression<Func<File, bool>> predicate,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var batchSize = options.Value.BatchSize;
+        var query = Query.Where(file => file.Type == FileType.Personal).Where(predicate);
         FileId? afterId = null;
         while (true)
         {
@@ -45,7 +74,7 @@ public sealed class FilesRepository(
 
             var files = await pageQuery
                 .OrderBy(file => file.Id)
-                .Take(reconciliationOptions.BatchSize)
+                .Take(batchSize)
                 .ToListAsync(cancellationToken);
             if (files.Count == 0)
             {

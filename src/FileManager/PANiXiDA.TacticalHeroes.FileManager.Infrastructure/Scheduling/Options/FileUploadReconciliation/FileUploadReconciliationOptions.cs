@@ -5,5 +5,6 @@ public sealed class FileUploadReconciliationOptions
     public const string SectionName = $"{nameof(FileManager)}:UploadReconciliation";
 
     public TimeSpan MinimumAge { get; init; } = TimeSpan.FromMinutes(15);
+    public TimeSpan ExpirationAge { get; init; } = TimeSpan.FromDays(1);
     public int BatchSize { get; init; } = 100;
 }
