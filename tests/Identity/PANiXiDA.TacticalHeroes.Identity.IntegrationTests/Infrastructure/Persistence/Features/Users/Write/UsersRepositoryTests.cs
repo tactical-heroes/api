@@ -23,6 +23,70 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
+    [Theory(DisplayName = "UpdateAsync should avoid reloading only when the tracked user has all assignments loaded")]
+    [InlineData("restored", 0)]
+    [InlineData("entity", 1)]
+    [InlineData("claims", 1)]
+    [InlineData("roles", 1)]
+    public async Task UpdateAsync_Should_ReuseOnlyFullyLoadedUser_When_UserIsTracked(
+        string loadMode,
+        int additionalCommands)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var id = await AddUserAsync(
+            "hero@example.com",
+            "hero",
+            false,
+            [new Claim("permission", "heroes.read")],
+            UserStatus.Active.Name,
+            ct);
+        var baselineCommands = 0;
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+            var user = IntegrationTestData.CreateUser(
+                id, "hero@example.com", false, [], [("permission", "heroes.read")], "hero", UserStatus.Active);
+            Fixture.CommandCounter.Reset();
+
+            var result = await repository.UpdateAsync(user, null, ct);
+
+            result.IsSuccess.ShouldBeTrue();
+            baselineCommands = Fixture.CommandCounter.Count;
+        }
+
+        await using var measuredScope = Fixture.CreateScope();
+        var measuredRepository = measuredScope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        Fixture.CommandCounter.Reset();
+        User measuredUser;
+        if (loadMode == "restored")
+        {
+            var loaded = await measuredRepository.GetByIdAsync(UserId.Create(id).Value, ct);
+            loaded.IsSuccess.ShouldBeTrue();
+            measuredUser = loaded.Value;
+        }
+        else
+        {
+            var dbContext = measuredScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+            IQueryable<ApplicationUser> query = dbContext.Set<ApplicationUser>();
+            query = loadMode switch
+            {
+                "claims" => query.Include(user => user.Claims),
+                "roles" => query.Include(user => user.Roles),
+                _ => query
+            };
+            await query.AsSingleQuery().SingleAsync(user => user.Id == id, ct);
+            measuredUser = IntegrationTestData.CreateUser(
+                id, "hero@example.com", false, [], [("permission", "heroes.read")], "hero", UserStatus.Active);
+        }
+        Fixture.CommandCounter.Count.ShouldBe(1);
+
+        var measuredResult = await measuredRepository.UpdateAsync(measuredUser, null, ct);
+
+        measuredResult.IsSuccess.ShouldBeTrue();
+        Fixture.CommandCounter.Count.ShouldBe(baselineCommands + additionalCommands);
+    }
+
     [Theory(DisplayName = "Loaded users should register only when confirmation is granted during an update")]
     [InlineData(false, false)]
     [InlineData(false, true)]

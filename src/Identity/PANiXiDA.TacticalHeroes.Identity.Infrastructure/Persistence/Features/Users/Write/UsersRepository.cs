@@ -69,9 +69,15 @@ public sealed class UsersRepository(
         string? currentAccessToken,
         CancellationToken cancellationToken)
     {
-        var applicationUser = await userManager.Users
-            .WithAuthorizationGraph()
-            .SingleOrDefaultAsync(item => item.Id == user.Id.Value, cancellationToken);
+        var trackedUserEntry = dbContext.ChangeTracker.Entries<ApplicationUser>()
+            .SingleOrDefault(entry => entry.Entity.Id == user.Id.Value
+                && entry.State is EntityState.Unchanged or EntityState.Modified
+                && entry.Collection(item => item.Claims).IsLoaded
+                && entry.Collection(item => item.Roles).IsLoaded);
+        var applicationUser = trackedUserEntry?.Entity
+            ?? await userManager.Users
+                .WithAuthorizationGraph()
+                .SingleOrDefaultAsync(item => item.Id == user.Id.Value, cancellationToken);
 
         if (applicationUser is null)
         {
