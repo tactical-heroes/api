@@ -6,20 +6,13 @@ using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Write;
 
-public sealed class PlayersRepository
+public sealed class PlayersRepository(PlayersWriteDbContext dbContext, TimeProvider timeProvider)
     :
-        EfRepository<PlayersWriteDbContext, PlayerId, Player>,
+        EfRepository<PlayersWriteDbContext, PlayerId, Player>(dbContext),
         IPlayersRepository
 {
-    private readonly PlayersWriteDbContext _dbContext;
-    private readonly TimeProvider _timeProvider;
-
-    public PlayersRepository(PlayersWriteDbContext dbContext, TimeProvider timeProvider)
-        : base(dbContext)
-    {
-        _dbContext = dbContext;
-        _timeProvider = timeProvider;
-    }
+    private readonly PlayersWriteDbContext _dbContext = dbContext;
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     public async Task AddIfMissingAsync(Player player, CancellationToken cancellationToken)
     {
