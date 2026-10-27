@@ -9,5 +9,6 @@ public sealed class GameReadDbModel : AuditableReadDbModel<Guid>
     public DateTimeOffset? FinishedAt { get; set; }
     public bool? ResultIsDraw { get; set; }
     public Guid? ResultWinnerPlayerId { get; set; }
+
     public ICollection<GameParticipantReadDbModel> Participants { get; set; } = [];
 }
