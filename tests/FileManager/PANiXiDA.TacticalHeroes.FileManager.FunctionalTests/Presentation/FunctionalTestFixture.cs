@@ -9,7 +9,7 @@ using PANiXiDA.TacticalHeroes.Testing.Storage;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation;
 
-public sealed class FunctionalTestFixture : IAsyncLifetime
+public class FunctionalTestFixture : IAsyncLifetime
 {
     private readonly PostgreSqlTestDatabase _database = new("file_manager");
     private readonly Dictionary<string, string?> _previousEnvironment = [];
@@ -18,6 +18,8 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
 
     public HttpClient Client { get; private set; } = null!;
     public S3TestStorage Storage { get; } = new();
+
+    protected virtual bool ReconciliationScheduleEnabled => true;
 
     public AsyncServiceScope CreateScope()
     {
@@ -31,6 +33,8 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await Storage.InitializeAsync(cancellationToken);
 
         var settings = Storage.GetConfiguration(nameof(FileManager));
+        settings["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] =
+            ReconciliationScheduleEnabled.ToString();
         settings["FileManager:Schedules:ReconcileFileUploadsCommand:CronExpression"] = "*/5 * * * * *";
         settings["ConnectionStrings:PostgreSqlConnectionString"] = _database.PostgreSqlConnectionString;
         foreach (var (key, value) in settings)

@@ -122,6 +122,40 @@ public sealed class FileTests
         }
     }
 
+    [Fact(DisplayName = "File should return its download content type when upload is ready")]
+    public void GetDownloadContentType_Should_ReturnContentType_When_UploadIsReady()
+    {
+        var file = CreateFile("Ready");
+        var contentType = file.ContentType;
+
+        var result = file.GetDownloadContentType();
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeSameAs(contentType);
+        file.Status.ShouldBe(FileStatus.Ready);
+    }
+
+    [Theory(DisplayName = "File should reject downloading when file is not ready")]
+    [InlineData("PendingUpload", false)]
+    [InlineData("Deleting", false)]
+    [InlineData("Deleting", true)]
+    public void GetDownloadContentType_Should_ReturnConflict_When_FileIsNotReady(string status, bool uploaded)
+    {
+        var file = CreateFile(uploaded ? "Ready" : status);
+        if (uploaded)
+        {
+            file.BeginDeletion();
+        }
+
+        var contentType = file.ContentType;
+
+        var result = file.GetDownloadContentType();
+
+        result.ShouldHaveSingleError(ErrorType.Conflict, "File is not ready for download.");
+        file.Status.Name.ShouldBe(status);
+        file.ContentType.ShouldBeSameAs(contentType);
+    }
+
     [Theory(DisplayName = "File should allow renaming only before deletion begins when status is provided")]
     [InlineData("PendingUpload", true)]
     [InlineData("Ready", true)]

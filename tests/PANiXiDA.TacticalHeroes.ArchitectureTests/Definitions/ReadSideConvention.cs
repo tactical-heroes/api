@@ -45,13 +45,26 @@ internal static class ReadSideConvention
     {
         var readModelTypes = new List<Type>();
 
-        return TryCollectReadModelTypes(
+        return TryCollectResultPayloadTypes(
             type,
             readModelTypes,
-            new HashSet<Type>())
+            new HashSet<Type>(),
+            allowCoreApplicationTypes: false)
             && readModelTypes.Count > 0
             && readModelTypes.All(type =>
                 typeof(IReadModel).IsAssignableFrom(type));
+    }
+
+    internal static bool IsQueryHandlerResult(Type type)
+    {
+        var payloadTypes = new List<Type>();
+
+        return TryCollectResultPayloadTypes(
+            type,
+            payloadTypes,
+            new HashSet<Type>(),
+            allowCoreApplicationTypes: true)
+            && payloadTypes.Count > 0;
     }
 
     private static bool IsAllowedReadInput(
@@ -121,17 +134,19 @@ internal static class ReadSideConvention
                 IsAllowedReadInput(stateType, visitedTypes));
     }
 
-    private static bool TryCollectReadModelTypes(
+    private static bool TryCollectResultPayloadTypes(
         Type type,
         ICollection<Type> readModelTypes,
-        ISet<Type> visitedTypes)
+        ISet<Type> visitedTypes,
+        bool allowCoreApplicationTypes)
     {
         if (!visitedTypes.Add(type))
         {
             return true;
         }
 
-        if (typeof(IReadModel).IsAssignableFrom(type))
+        if (typeof(IReadModel).IsAssignableFrom(type)
+            || (allowCoreApplicationTypes && IsCoreApplicationResultType(type)))
         {
             readModelTypes.Add(type);
 
@@ -140,22 +155,24 @@ internal static class ReadSideConvention
 
         if (type.HasElementType)
         {
-            return TryCollectReadModelTypes(
+            return TryCollectResultPayloadTypes(
                 type.GetElementType()
                     ?? throw new InvalidOperationException(
                         $"Could not determine element type for '{type}'."),
                 readModelTypes,
-                visitedTypes);
+                visitedTypes,
+                allowCoreApplicationTypes);
         }
 
         var collectionElementType = GetCollectionElementType(type);
 
         if (collectionElementType is not null)
         {
-            return TryCollectReadModelTypes(
+            return TryCollectResultPayloadTypes(
                 collectionElementType,
                 readModelTypes,
-                visitedTypes);
+                visitedTypes,
+                allowCoreApplicationTypes);
         }
 
         if (!type.IsGenericType
@@ -167,10 +184,19 @@ internal static class ReadSideConvention
         var genericArguments = type.GetGenericArguments();
 
         return genericArguments.Length == 1
-            && TryCollectReadModelTypes(
+            && TryCollectResultPayloadTypes(
                 genericArguments[0],
                 readModelTypes,
-                visitedTypes);
+                visitedTypes,
+                allowCoreApplicationTypes);
+    }
+
+    private static bool IsCoreApplicationResultType(Type type)
+    {
+        return type.Assembly == typeof(IReadModel).Assembly
+            && (!type.IsGenericType
+                || (!IsSupportedResultWrapper(type.GetGenericTypeDefinition())
+                    && type.GetGenericArguments().All(IsQueryHandlerResult)));
     }
 
     private static bool IsDomainType(Type type)

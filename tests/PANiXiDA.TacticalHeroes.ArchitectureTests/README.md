@@ -345,9 +345,12 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     конкретный Application-тип с суффиксом `ReadModel` должен реализовывать
     `IReadModel`.
 
-58. `QueryHandlers_Should_ReturnReadModels_When_Declared` — payload результата
-    каждого `IQueryHandler<,>` должен реализовывать `IReadModel`. Допускаются
-    обёртки `Task`, `Result`, коллекции и модели пагинации.
+58. `QueryHandlers_Should_ReturnReadModelsOrCoreApplicationTypes_When_Declared` —
+    payload результата каждого `IQueryHandler<,>` должен реализовывать `IReadModel`
+    либо принадлежать сборке `PANiXiDA.Core.Application`. Допускаются обёртки
+    `Task`, `ValueTask`, `Result`, коллекции и модели пагинации; их payload также
+    проверяется. Типы Domain и Infrastructure этим правилом не разрешаются.
+    Требования к результатам read-репозиториев остаются прежними.
 
 59. `ReadModels_Should_UseSealedRecordDeclarations_When_Declared` — каждый класс
     или структура слоя Application с суффиксом `ReadModel` или реализацией

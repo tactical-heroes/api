@@ -68,6 +68,16 @@ public sealed class File : AggregateRoot<FileId>
             storageKey: storageKey));
     }
 
+    public Result<FileContentType> GetDownloadContentType()
+    {
+        if (Status != FileStatus.Ready || ContentType is not { } contentType)
+        {
+            return Result.Failure<FileContentType>(Error.Conflict("File is not ready for download."));
+        }
+
+        return Result.Success(contentType);
+    }
+
     public Result Rename(FileName name)
     {
         if (Status == FileStatus.Deleting)

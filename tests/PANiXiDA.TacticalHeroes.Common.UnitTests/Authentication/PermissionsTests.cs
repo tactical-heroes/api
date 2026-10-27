@@ -21,6 +21,8 @@ public sealed class PermissionsTests
             ("compendium", "factions"),
             ("compendium", "heroes"),
             ("compendium", "units"),
+            ("file-manager", "personal-files"),
+            ("file-manager", "avatars"),
             ("identity", "roles"),
             ("identity", "users")
         ]);
@@ -57,6 +59,7 @@ public sealed class PermissionsTests
     [InlineData("compendium.factions")]
     [InlineData("compendium.heroes")]
     [InlineData("compendium.units")]
+    [InlineData("file-manager.avatars")]
     public void All_Should_PreservePermissionCodes_When_CatalogIsRead(string resource)
     {
         var permissions = Permissions.All
@@ -66,6 +69,24 @@ public sealed class PermissionsTests
 
         permissions.ShouldBe(
             [$"{resource}.create", $"{resource}.read", $"{resource}.update", $"{resource}.delete"],
+            ignoreOrder: true);
+    }
+
+    [Theory(DisplayName = "All should include scoped permissions when personal file actions are registered")]
+    [InlineData("create")]
+    [InlineData("read")]
+    [InlineData("update")]
+    [InlineData("delete")]
+    public void All_Should_IncludeScopedPermissions_When_PersonalFileActionsAreRegistered(string action)
+    {
+        var permissions = Permissions.All
+            .Where(permission => permission.Code.StartsWith(
+                $"file-manager.personal-files.{action}", StringComparison.Ordinal))
+            .Select(permission => permission.Code)
+            .ToArray();
+
+        permissions.ShouldBe(
+            [$"file-manager.personal-files.{action}.own", $"file-manager.personal-files.{action}.all"],
             ignoreOrder: true);
     }
 
@@ -88,7 +109,7 @@ public sealed class PermissionsTests
             .GroupBy(permission => (permission.ModuleCode, permission.ResourceCode))
             .ToArray();
 
-        resources.Length.ShouldBe(5);
+        resources.Length.ShouldBe(7);
         foreach (var resource in resources)
         {
             resource.Select(permission => permission.ResourceDisplayName)
