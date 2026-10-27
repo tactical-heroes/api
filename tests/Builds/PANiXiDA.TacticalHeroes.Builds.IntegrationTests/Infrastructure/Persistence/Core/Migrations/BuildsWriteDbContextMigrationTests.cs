@@ -30,7 +30,7 @@ public sealed class BuildsWriteDbContextMigrationTests(IntegrationTestFixture fi
             ORDER BY sequence_name
             """).ToListAsync(cancellationToken);
 
-        tables.ShouldBe(["__EFMigrationsHistory"]);
+        tables.ShouldBe(["__EFMigrationsHistory", "build_heroes", "build_units", "builds"]);
         sequences.ShouldBe(["EntityFrameworkHiLoSequence"]);
         readContext.ChangeTracker.QueryTrackingBehavior.ShouldBe(QueryTrackingBehavior.NoTracking);
     }
