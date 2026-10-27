@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 using Microsoft.EntityFrameworkCore;
@@ -32,9 +31,9 @@ public sealed class FilesRepository(
         var expiresBefore = now.Subtract(reconciliationOptions.ExpirationAge).UtcDateTime;
 
         return GetPersonalFilesAsync(
-            file => file.Status == FileStatus.PendingUpload
+            Query.Where(file => file.Status == FileStatus.PendingUpload
                 && EF.Property<DateTime>(file, EfConstants.CreatedAt) >= expiresBefore
-                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < createdBefore,
+                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < createdBefore),
             cancellationToken);
     }
 
@@ -43,24 +42,31 @@ public sealed class FilesRepository(
         var expiresBefore = timeProvider.GetUtcNow().Subtract(options.Value.ExpirationAge).UtcDateTime;
 
         return GetPersonalFilesAsync(
-            file => file.Status == FileStatus.PendingUpload
-                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < expiresBefore,
+            Query.Where(file => file.Status == FileStatus.PendingUpload
+                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < expiresBefore),
             cancellationToken);
     }
 
     public IAsyncEnumerable<File> GetPersonalFilesForDeletionAsync(CancellationToken cancellationToken)
     {
         return GetPersonalFilesAsync(
-            file => file.Status == FileStatus.Deleting || file.Status == FileStatus.Deleted,
+            Query.Where(file => file.Status == FileStatus.Deleting),
+            cancellationToken);
+    }
+
+    public IAsyncEnumerable<File> GetDeletedPersonalFilesAsync(CancellationToken cancellationToken)
+    {
+        return GetPersonalFilesAsync(
+            Query.IgnoreQueryFilters().Where(file => EF.Property<DateTime?>(file, EfConstants.DeletedAt) != null),
             cancellationToken);
     }
 
     private async IAsyncEnumerable<File> GetPersonalFilesAsync(
-        Expression<Func<File, bool>> predicate,
+        IQueryable<File> query,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var batchSize = options.Value.BatchSize;
-        var query = Query.Where(file => file.Type == FileType.Personal).Where(predicate);
+        query = query.Where(file => file.Type == FileType.Personal);
         FileId? afterId = null;
         while (true)
         {

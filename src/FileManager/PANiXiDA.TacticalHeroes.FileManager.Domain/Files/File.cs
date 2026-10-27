@@ -70,7 +70,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Rename(FileName name)
     {
-        if (Status.IsDeletingOrDeleted)
+        if (Status == FileStatus.Deleting)
         {
             return Result.Failure(
                 Error.Conflict("A file being deleted cannot be renamed."));
@@ -83,7 +83,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result MoveTo(Folder folder)
     {
-        if (Status.IsDeletingOrDeleted)
+        if (Status == FileStatus.Deleting)
         {
             return Result.Failure(
                 Error.Conflict("A file being deleted cannot be moved."));
@@ -135,30 +135,12 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result BeginDeletion()
     {
-        if (Status.IsDeletingOrDeleted)
+        if (Status == FileStatus.Deleting)
         {
             return Result.Success();
         }
 
         Status = FileStatus.Deleting;
-
-        return Result.Success();
-    }
-
-    public Result CompleteDeletion()
-    {
-        if (Status == FileStatus.Deleted)
-        {
-            return Result.Success();
-        }
-
-        if (Status != FileStatus.Deleting)
-        {
-            return Result.Failure(
-                Error.Conflict("File deletion must begin before it can be completed."));
-        }
-
-        Status = FileStatus.Deleted;
 
         return Result.Success();
     }

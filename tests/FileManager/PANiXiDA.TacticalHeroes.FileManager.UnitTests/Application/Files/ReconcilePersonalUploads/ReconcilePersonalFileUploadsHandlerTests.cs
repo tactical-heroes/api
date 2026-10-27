@@ -32,6 +32,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetPersonalFilesForDeletionAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
+        _files.GetDeletedPersonalFilesAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<File>().ToAsyncEnumerable());
     }
 
     [Fact(DisplayName = "Handler should finalize actual metadata when stored content exists")]
@@ -189,7 +191,9 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
             new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        savedStates.ShouldBe(new[] { FileStatus.Deleting, FileStatus.Deleted });
+        savedStates.ShouldBe(new[] { FileStatus.Deleting, FileStatus.Deleting });
+        _files.Received(1).Delete(file);
+        _files.Received(1).Update(file);
         await _fileStorage.Received(1).DeleteAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
     }
 
@@ -257,7 +261,9 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
             new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         failed.Status.ShouldBe(FileStatus.Deleting);
-        next.Status.ShouldBe(FileStatus.Deleted);
+        next.Status.ShouldBe(FileStatus.Deleting);
+        _files.DidNotReceive().Delete(failed);
+        _files.Received(1).Delete(next);
         await _unitOfWork.Received(1).SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
@@ -268,8 +274,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     {
         var file = CreateFile();
         file.BeginDeletion();
-        file.CompleteDeletion();
-        _files.GetPersonalFilesForDeletionAsync(Arg.Any<CancellationToken>())
+        _files.GetDeletedPersonalFilesAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
             .Returns(contentExists ? new FileMetadata("text/plain", 4) : null);
@@ -277,7 +282,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         await CreateHandler().HandleAsync(
             new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
-        file.Status.ShouldBe(FileStatus.Deleted);
+        file.Status.ShouldBe(FileStatus.Deleting);
+        _files.DidNotReceive().Delete(Arg.Any<File>());
         await _fileStorage.Received(contentExists ? 1 : 0)
             .DeleteAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());

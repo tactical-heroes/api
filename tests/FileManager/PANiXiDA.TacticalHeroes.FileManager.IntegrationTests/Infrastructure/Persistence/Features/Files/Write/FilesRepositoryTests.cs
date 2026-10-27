@@ -124,21 +124,35 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         timeProvider.Received(1).GetUtcNow();
     }
 
-    [Fact(DisplayName = "Deletion candidates should include personal tombstones when lifecycle states vary")]
-    public async Task GetPersonalFilesForDeletionAsync_Should_IncludePersonalTombstones_When_LifecycleStatesVary()
+    [Fact(DisplayName = "File deletion queries should separate active and deleted files when lifecycle states vary")]
+    public async Task GetPersonalFilesForDeletionAsync_Should_SeparateActiveAndDeletedFiles_When_LifecycleStatesVary()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var deleting = CreatePersonalFile();
         var deleted = CreatePersonalFile();
+        var deletedReady = CreatePersonalFile();
         var pending = CreatePersonalFile();
         var avatar = CreateFile();
         deleting.BeginDeletion();
         deleted.BeginDeletion();
-        deleted.CompleteDeletion();
+        deletedReady.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
         avatar.BeginDeletion();
-        foreach (var file in new[] { deleting, deleted, pending, avatar })
+        foreach (var file in new[] { deleting, deleted, deletedReady, pending, avatar })
         {
             await SaveNewFileAsync(file, cancellationToken);
+        }
+
+        await using (var deletionScope = Fixture.CreateScope())
+        {
+            var deletionRepository = deletionScope.ServiceProvider.GetRequiredService<IFilesRepository>();
+            foreach (var file in new[] { deleted, deletedReady, avatar })
+            {
+                var stored = await deletionRepository.GetByIdAsync(file.Id, cancellationToken);
+                deletionRepository.Delete(stored!);
+            }
+
+            await deletionScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
         }
 
         await using var scope = Fixture.CreateScope();
@@ -147,16 +161,24 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             dbContext: context,
             options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions { BatchSize = 1 }),
             timeProvider: TimeProvider.System);
-        var loaded = new List<File>();
+        var active = new List<File>();
+        var tombstones = new List<File>();
 
         await foreach (var file in repository.GetPersonalFilesForDeletionAsync(cancellationToken))
         {
-            loaded.Add(file);
+            active.Add(file);
         }
 
-        loaded.Select(file => file.Id.Value).ShouldBe(new[] { deleting.Id.Value, deleted.Id.Value }.Order());
-        context.ChangeTracker.Entries<File>().Count().ShouldBe(2);
-        context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
+        await foreach (var file in repository.GetDeletedPersonalFilesAsync(cancellationToken))
+        {
+            tombstones.Add(file);
+        }
+
+        active.Select(file => file.Id).ShouldBe(new[] { deleting.Id });
+        tombstones.Select(file => file.Id.Value).ShouldBe(new[] { deleted.Id.Value, deletedReady.Id.Value }.Order());
+        context.Entry(tombstones[0]).Property<DateTime?>(EfConstants.DeletedAt).CurrentValue.ShouldNotBeNull();
+        context.Entry(tombstones[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
+        (await repository.GetByIdAsync(deleted.Id, cancellationToken)).ShouldBeNull();
     }
 
     [Fact(DisplayName = "Add should stage a tracked file when unit of work has not saved")]
@@ -210,7 +232,6 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("PendingUpload")]
     [InlineData("Ready")]
     [InlineData("Deleting")]
-    [InlineData("Deleted")]
     public async Task Add_Should_RestoreFile_When_LifecycleStateIsSaved(string status)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -222,14 +243,9 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
                 FileSize.Create(4096).Value);
         }
 
-        if (status is "Deleting" or "Deleted")
+        if (status == "Deleting")
         {
             file.BeginDeletion();
-        }
-
-        if (status == "Deleted")
-        {
-            file.CompleteDeletion();
         }
 
         await SaveNewFileAsync(file, cancellationToken);
@@ -283,42 +299,30 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         restored.Size.ShouldBe(size);
     }
 
-    [Fact(DisplayName = "File repository should preserve completed deletion and metadata when deletion completes")]
-    public async Task Update_Should_PersistDeletion_When_DeletionCompletes()
+    [Fact(DisplayName = "File repository should set DeletedAt and preserve metadata when deletion completes")]
+    public async Task Delete_Should_SetDeletedAtAndPreserveMetadata_When_DeletionCompletes()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
-        file.CompleteUpload(
-            FileContentType.Create("image/png").Value,
-            FileSize.Create(4096).Value);
+        file.CompleteUpload(FileContentType.Create("image/png").Value, FileSize.Create(4096).Value);
         await SaveNewFileAsync(file, cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+        var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
+        stored!.BeginDeletion();
+        repository.Update(stored);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        foreach (var complete in new[] { false, true })
-        {
-            await using var scope = Fixture.CreateScope();
-            var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-            var restored = await repository.GetByIdAsync(file.Id, cancellationToken);
-            if (complete)
-            {
-                restored!.CompleteDeletion();
-            }
-            else
-            {
-                restored!.BeginDeletion();
-            }
+        repository.Delete(stored);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            repository.Update(restored);
-            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
-                .SaveChangesAsync(cancellationToken);
-        }
-
-        await using var verificationScope = Fixture.CreateScope();
-        var deleted = await verificationScope.ServiceProvider
-            .GetRequiredService<IFilesRepository>()
-            .GetByIdAsync(file.Id, cancellationToken);
-
-        deleted.ShouldNotBeNull();
-        deleted.Status.ShouldBe(FileStatus.Deleted);
+        (await repository.GetByIdAsync(file.Id, cancellationToken)).ShouldBeNull();
+        var deleted = await context.Set<File>().IgnoreQueryFilters().SingleAsync(
+            item => item.Id == file.Id, cancellationToken);
+        context.Entry(deleted).Property<DateTime?>(EfConstants.DeletedAt).CurrentValue.ShouldNotBeNull();
+        deleted.Status.ShouldBe(FileStatus.Deleting);
         deleted.StorageKey.ShouldBe(file.StorageKey);
         deleted.ContentType.ShouldBe(file.ContentType);
         deleted.Size.ShouldBe(file.Size);

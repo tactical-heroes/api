@@ -4,33 +4,18 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files.Enumeration
 
 public sealed class FileStatusTests
 {
-    [Theory(DisplayName = "File status should identify deletion states when status is provided")]
-    [InlineData("PendingUpload", false)]
-    [InlineData("Ready", false)]
-    [InlineData("Deleting", true)]
-    [InlineData("Deleted", true)]
-    public void IsDeletingOrDeleted_Should_ReportDeletionState_When_StatusIsProvided(string status, bool expected)
-    {
-        var fileStatus = FileStatus.FromName(status);
-
-        var result = fileStatus.IsDeletingOrDeleted;
-
-        result.ShouldBe(expected);
-    }
-
     [Fact(DisplayName = "File status should preserve identifier order when called")]
     public void GetAll_Should_ReturnValuesInIdOrder_When_Called()
     {
         var values = FileStatus.GetAll();
 
-        values.ShouldBe([FileStatus.PendingUpload, FileStatus.Ready, FileStatus.Deleting, FileStatus.Deleted]);
+        values.ShouldBe([FileStatus.PendingUpload, FileStatus.Ready, FileStatus.Deleting]);
     }
 
     [Theory(DisplayName = "File status should resolve known identifiers when id is known")]
     [InlineData(1, "PendingUpload")]
     [InlineData(2, "Ready")]
     [InlineData(3, "Deleting")]
-    [InlineData(4, "Deleted")]
     public void FromId_Should_ReturnValue_When_IdIsKnown(int id, string name)
     {
         var value = FileStatus.FromId(id);
@@ -38,10 +23,12 @@ public sealed class FileStatusTests
         value.Name.ShouldBe(name);
     }
 
-    [Fact(DisplayName = "File status should reject unknown identifiers when id is unknown")]
-    public void FromId_Should_Throw_When_IdIsUnknown()
+    [Theory(DisplayName = "File status should reject unknown identifiers when id is unknown")]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void FromId_Should_Throw_When_IdIsUnknown(int id)
     {
-        Action action = () => FileStatus.FromId(0);
+        Action action = () => FileStatus.FromId(id);
 
         action.ShouldThrow<InvalidOperationException>();
     }
@@ -106,12 +93,14 @@ public sealed class FileStatusTests
             .ShouldHaveField(nameof(FileStatus));
     }
 
-    [Fact(DisplayName = "File status should reject unknown names when name is unknown")]
-    public void Create_Should_ReturnValidationFailure_When_NameIsUnknown()
+    [Theory(DisplayName = "File status should reject unknown names when name is unknown")]
+    [InlineData("Unknown")]
+    [InlineData("Deleted")]
+    public void Create_Should_ReturnValidationFailure_When_NameIsUnknown(string name)
     {
-        var result = FileStatus.Create("Unknown");
+        var result = FileStatus.Create(name);
 
-        result.ShouldHaveSingleError(ErrorType.Validation, "File status 'Unknown' is invalid.")
+        result.ShouldHaveSingleError(ErrorType.Validation, $"File status '{name}' is invalid.")
             .ShouldHaveField(nameof(FileStatus));
     }
 }

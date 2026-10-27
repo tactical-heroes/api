@@ -209,7 +209,7 @@ The EF migrator only manages module schemas, not Wolverine's message-store table
 
 The recurring command handler receives personal-file aggregates directly from
 `IFilesRepository`: pending uploads before expiration, expired pending uploads,
-and files in `Deleting` or `Deleted` states. Each repository sequence captures fixed
+files in `Deleting` state, and soft-deleted files. Each repository sequence captures fixed
 age cutoffs and preserves optimistic concurrency tokens. Each database page
 is fully loaded before checking S3, so storage requests do not keep a database
 reader open. The handler reads metadata through Core's `IFileStorage.GetMetadataAsync`
@@ -228,16 +228,20 @@ Missing objects before `ExpirationAge`, invalid metadata, and inspection errors
 leave pending uploads unchanged. Valid stored content is finalized even after the
 expiration age. If an expired upload has no stored object, the handler calls
 `BeginDeletion` and saves the intent before attempting an idempotent S3 delete.
-Only a successful delete is followed by `CompleteDeletion` and another save.
+Only a successful storage delete is followed by repository deletion and another
+save. Core EF sets `DeletedAt`, so normal write and read queries hide the file.
+The domain retains `Deleting` as the durable deletion intent and has no separate
+`Deleted` enumeration value or `CompleteDeletion` operation.
 Storage errors leave the file `Deleting` for a later invocation; an unavailable
 bucket therefore cannot complete deletion merely because metadata lookup returned
 HTTP 404.
 
-The handler also checks `Deleted` records for objects that appear after deletion,
+The handler also checks soft-deleted records for objects that appear after deletion,
 such as an upload completing after its original request lost an optimistic version
-race. Such late objects are deleted on a subsequent pass. Existing deletion rows
-are retained with their current domain status; this flow does not set the EF soft
-delete timestamp or physically remove database rows. Paging continues past missing
+race. A dedicated repository query bypasses normal filters and selects only personal
+files with a non-null `DeletedAt`. Such late objects are deleted on a subsequent
+pass without changing the original deletion timestamp. Rows are retained according
+to Core EF's soft-delete behavior. Paging continues past missing
 objects. Already-ready files are not scanned, and failed uploads are not restarted.
 Incomplete multipart cleanup and upload-request idempotency remain separate work.
 This recovery path establishes eventual completion for objects that are present;

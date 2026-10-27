@@ -64,7 +64,6 @@ public sealed class FileTests
             .IsSuccess
             .ShouldBeTrue();
         file.BeginDeletion().IsSuccess.ShouldBeTrue();
-        file.CompleteDeletion().IsSuccess.ShouldBeTrue();
 
         file.StorageKey.ShouldBeSameAs(key);
     }
@@ -127,7 +126,6 @@ public sealed class FileTests
     [InlineData("PendingUpload", true)]
     [InlineData("Ready", true)]
     [InlineData("Deleting", false)]
-    [InlineData("Deleted", false)]
     public void Rename_Should_RespectLifecycle_When_StatusIsProvided(string status, bool allowed)
     {
         var file = CreateFile(status);
@@ -145,7 +143,6 @@ public sealed class FileTests
     [InlineData("PendingUpload", true)]
     [InlineData("Ready", true)]
     [InlineData("Deleting", false)]
-    [InlineData("Deleted", false)]
     public void MoveTo_Should_RespectLifecycle_When_StatusIsProvided(string status, bool allowed)
     {
         var file = CreateFile(status);
@@ -292,7 +289,6 @@ public sealed class FileTests
 
     [Theory(DisplayName = "File should reject upload completion when deletion has begun")]
     [InlineData("Deleting")]
-    [InlineData("Deleted")]
     public void CompleteUpload_Should_ReturnConflict_When_DeletionHasBegun(string status)
     {
         var file = CreateFile(status);
@@ -309,11 +305,10 @@ public sealed class FileTests
         file.Size.ShouldBeNull();
     }
 
-    [Theory(DisplayName = "File should begin deletion without restarting a completed deletion when status is provided")]
+    [Theory(DisplayName = "File should begin deletion idempotently when status is provided")]
     [InlineData("PendingUpload", "Deleting")]
     [InlineData("Ready", "Deleting")]
     [InlineData("Deleting", "Deleting")]
-    [InlineData("Deleted", "Deleted")]
     public void BeginDeletion_Should_RespectLifecycle_When_StatusIsProvided(
         string status, string expectedStatus)
     {
@@ -325,26 +320,6 @@ public sealed class FileTests
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.Name.ShouldBe(expectedStatus);
-        file.ContentType.ShouldBeSameAs(contentType);
-        file.Size.ShouldBeSameAs(size);
-    }
-
-    [Theory(DisplayName = "File should complete deletion only after deletion has begun when status is provided")]
-    [InlineData("PendingUpload", false)]
-    [InlineData("Ready", false)]
-    [InlineData("Deleting", true)]
-    [InlineData("Deleted", true)]
-    public void CompleteDeletion_Should_RespectLifecycle_When_StatusIsProvided(
-        string status, bool allowed)
-    {
-        var file = CreateFile(status);
-        var contentType = file.ContentType;
-        var size = file.Size;
-
-        var result = file.CompleteDeletion();
-
-        result.IsSuccess.ShouldBe(allowed);
-        file.Status.Name.ShouldBe(allowed ? "Deleted" : status);
         file.ContentType.ShouldBeSameAs(contentType);
         file.Size.ShouldBeSameAs(size);
     }
@@ -362,13 +337,9 @@ public sealed class FileTests
                 FileContentType.Create("image/png").Value,
                 FileSize.Create(128).Value);
         }
-        else if (status is "Deleting" or "Deleted")
+        else if (status == "Deleting")
         {
             file.BeginDeletion();
-            if (status == "Deleted")
-            {
-                file.CompleteDeletion();
-            }
         }
 
         return file;

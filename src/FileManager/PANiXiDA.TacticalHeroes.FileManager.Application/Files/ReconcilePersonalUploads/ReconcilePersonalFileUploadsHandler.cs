@@ -37,6 +37,11 @@ public sealed class ReconcilePersonalFileUploadsHandler(
             await DeleteFileAsync(file, cancellationToken);
         }
 
+        await foreach (var file in filesRepository.GetDeletedPersonalFilesAsync(cancellationToken))
+        {
+            await DeleteFileContentAsync(file: file, inspectFirst: true, cancellationToken: cancellationToken);
+        }
+
         return Result.Success();
     }
 
@@ -114,17 +119,27 @@ public sealed class ReconcilePersonalFileUploadsHandler(
     private async Task DeleteFileAsync(File file, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!file.Status.IsDeletingOrDeleted)
+        if (file.Status != FileStatus.Deleting)
         {
             return;
         }
 
+        if (await DeleteFileContentAsync(file: file, inspectFirst: false, cancellationToken: cancellationToken))
+        {
+            filesRepository.Delete(aggregateRoot: file);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    private async Task<bool> DeleteFileContentAsync(File file, bool inspectFirst, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            if (file.Status == FileStatus.Deleted
+            if (inspectFirst
                 && await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken) is null)
             {
-                return;
+                return true;
             }
 
             await fileStorage.DeleteAsync(file.StorageKey.Value, cancellationToken);
@@ -136,21 +151,10 @@ public sealed class ReconcilePersonalFileUploadsHandler(
         catch (Exception exception)
         {
             logger.LogError(exception, "Could not delete personal file {FileId}; will retry", file.Id.Value);
-            return;
-        }
-
-        if (file.Status == FileStatus.Deleting)
-        {
-            var result = file.CompleteDeletion();
-            if (result.IsFailure)
-            {
-                return;
-            }
-
-            filesRepository.Update(aggregateRoot: file);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return false;
         }
 
         logger.LogInformation("Deleted stored content for personal file {FileId}", file.Id.Value);
+        return true;
     }
 }

@@ -9,6 +9,7 @@ using Npgsql;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -212,9 +213,16 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
-        stored.Status.ShouldBe("Deleted");
+        stored.Status.ShouldBe("Deleting");
         stored.Size.ShouldBeNull();
-        stored.DeletedAt.ShouldBeNull();
+        stored.DeletedAt.ShouldNotBeNull();
+        var aggregate = await scope.ServiceProvider.GetRequiredService<IFilesRepository>()
+            .GetByIdAsync(file.Id, TestContext.Current.CancellationToken);
+        aggregate.ShouldBeNull();
+        var details = await scope.ServiceProvider.GetRequiredService<IFilesReadRepository>()
+            .GetPersonalDetailsByIdAsync(
+                file.Id.Value, file.UserId!.Value.Value, TestContext.Current.CancellationToken);
+        details.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Reconciliation should recover an expired upload when stored content is valid")]
@@ -249,7 +257,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await CreateHandler(scope.ServiceProvider).HandleAsync(
             new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
-        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+        (await ReadFileAsync(file.Id)).DeletedAt.ShouldNotBeNull();
         var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
             .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
         metadata.ShouldBeNull();
@@ -273,7 +281,9 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             await CreateHandler(scope.ServiceProvider).HandleAsync(
                 new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
-            (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleting");
+            var deleting = await ReadFileAsync(file.Id);
+            deleting.Status.ShouldBe("Deleting");
+            deleting.DeletedAt.ShouldBeNull();
         }
         finally
         {
@@ -289,7 +299,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await CreateHandler(retryScope.ServiceProvider).HandleAsync(
             new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
-        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+        (await ReadFileAsync(file.Id)).DeletedAt.ShouldNotBeNull();
     }
 
     [Fact(DisplayName = "Reconciliation should remove a late upload when original uploader loses a version race")]
@@ -305,6 +315,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
                 new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
         }
 
+        var deletedAt = (await ReadFileAsync(file.Id)).DeletedAt;
+        deletedAt.ShouldNotBeNull();
         await UploadAsync(file);
         original!.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
         uploadRepository.Update(original);
@@ -318,7 +330,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         exception.ShouldBeOfType<ConcurrencyException>();
-        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+        (await ReadFileAsync(file.Id)).DeletedAt.ShouldBe(deletedAt);
         var metadata = await cleanupScope.ServiceProvider.GetRequiredService<IFileStorage>()
             .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
         metadata.ShouldBeNull();
@@ -352,8 +364,9 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
 
         exception.ShouldBeOfType<ConcurrencyException>();
         pending.Status.ShouldBe("Deleting");
+        pending.DeletedAt.ShouldBeNull();
         metadata.ShouldBeNull();
-        (await ReadFileAsync(file.Id)).Status.ShouldBe("Deleted");
+        (await ReadFileAsync(file.Id)).DeletedAt.ShouldNotBeNull();
     }
 
     private static ReconcilePersonalFileUploadsHandler CreateHandler(
@@ -392,15 +405,16 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             file.BeginDeletion();
         }
 
-        if (condition == "deleted")
-        {
-            file.CompleteDeletion();
-        }
-
         await using var scope = Fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         context.Add(file);
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        if (condition == "deleted")
+        {
+            context.Remove(file);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
         if (condition != "recent")
         {
             var createdAt = condition == "expired" ? DateTime.UnixEpoch : DateTime.UtcNow.AddMinutes(-30);
@@ -426,6 +440,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         return await scope.ServiceProvider
             .GetRequiredService<FileManagerReadDbContext>()
             .Set<FileReadDbModel>()
+            .IgnoreQueryFilters()
             .SingleAsync(file => file.Id == id.Value, TestContext.Current.CancellationToken);
     }
 
@@ -445,7 +460,10 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
                 || eventData.Context is not FileManagerWriteDbContext context
                 || !context.ChangeTracker.Entries<File>().Any(entry =>
                     entry.Entity.Id.Value == fileId
-                        && entry.Entity.Status == (duringDeletion ? FileStatus.Deleted : FileStatus.Ready)))
+                        && (duringDeletion
+                            ? entry.State == EntityState.Deleted
+                                || entry.Property<DateTime?>(EfConstants.DeletedAt).CurrentValue != null
+                            : entry.Entity.Status == FileStatus.Ready)))
             {
                 return result;
             }
