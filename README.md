@@ -188,8 +188,9 @@ The base prefix is `production`; `appsettings.Development.json` sets `developmen
 
 ## Personal Upload Reconciliation
 
-The host registers `ReconcilePersonalFileUploadsCommand` through Core Wolverine's
-`AddRecurringCommand`. Its schedule is configured under
+The host calls FileManager's `AddFileManagerSchedules` extension. The module's
+`Scheduling/ScheduledCommands.cs` registers `ReconcilePersonalFileUploadsCommand`
+through Core Wolverine's `AddRecurringCommand`. Its schedule is configured under
 `FileManager:Schedules:ReconcilePersonalFileUploadsCommand`: `Enabled`, a stable
 `Name`, `CronExpression` (five-field cron, `*/5 * * * *` by default), and
 `TimeZoneId` (`UTC`). Wolverine persists recurring schedules in its message store

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
 
 using Wolverine;
 
@@ -11,30 +11,29 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Sc
 
 public sealed class PersonalFileUploadScheduleTests
 {
-    [Theory(DisplayName = "Core scheduling should respect the enabled flag when enabled state varies")]
+    [Theory(DisplayName = "FileManager scheduling should respect the enabled flag when enabled state varies")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task AddRecurringCommand_Should_RespectEnabledFlag_When_EnabledStateVaries(bool enabled)
+    public async Task AddFileManagerSchedules_Should_RespectEnabledFlag_When_EnabledStateVaries(bool enabled)
     {
         await using var options = new WolverineOptions();
         var schedules = new WolverineScheduleConfiguration(options, CreateConfiguration(enabled));
 
-        schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(parentSectionName: "FileManager:Schedules");
+        schedules.AddFileManagerSchedules();
 
         var schedule = options.Schedules.FindByName("file-manager-reconcile-personal-uploads");
         (schedule is not null).ShouldBe(enabled);
     }
 
-    [Fact(DisplayName = "Core scheduling should reject the schedule when enabled cron is invalid")]
-    public async Task AddRecurringCommand_Should_RejectSchedule_When_EnabledCronIsInvalid()
+    [Fact(DisplayName = "FileManager scheduling should reject the schedule when enabled cron is invalid")]
+    public async Task AddFileManagerSchedules_Should_RejectSchedule_When_EnabledCronIsInvalid()
     {
         await using var options = new WolverineOptions();
         var schedules = new WolverineScheduleConfiguration(
             options,
             CreateConfiguration(enabled: true, cron: "invalid"));
 
-        var exception = Record.Exception(() => schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(
-            parentSectionName: "FileManager:Schedules"));
+        var exception = Record.Exception(() => schedules.AddFileManagerSchedules());
 
         exception.ShouldBeOfType<OptionsValidationException>();
     }
