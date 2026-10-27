@@ -80,8 +80,10 @@ update raises Identity's `UserRegistered` domain event. Identity maps it to
 Players maps the contract to its own `PlayerRegistrationRequested` domain event
 and creates the player asynchronously through Wolverine's durable local messaging.
 
-Registration inserts the profile atomically by `user_id`. Repeated or concurrent
-deliveries preserve the existing player ID, rating, and avatar. New profiles start
+Wolverine's durable inbox handles duplicate message deliveries. The handler loads
+the player by `user_id` and, when absent, calls `Player.Create` and adds it through
+the repository. Wolverine persists the profile through its EF Core transaction
+middleware. Existing profiles keep their ID, rating, and avatar. New profiles start
 with rating `1000` and no avatar. Existing confirmed accounts require a separate
 backfill; loading an account does not emit a registration event.
 

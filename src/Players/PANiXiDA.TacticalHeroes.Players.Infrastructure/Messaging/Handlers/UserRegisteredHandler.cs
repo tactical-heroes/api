@@ -7,8 +7,6 @@ public static class UserRegisteredHandler
 {
     public static DomainEvent Handle(IntegrationEvent integrationEvent)
     {
-        return new DomainEvent(
-            IntegrationEventId: integrationEvent.Id,
-            UserId: integrationEvent.UserId);
+        return new DomainEvent(UserId: integrationEvent.UserId);
     }
 }

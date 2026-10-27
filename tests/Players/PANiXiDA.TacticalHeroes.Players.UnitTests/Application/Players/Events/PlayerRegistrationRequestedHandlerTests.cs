@@ -1,9 +1,10 @@
-using PANiXiDA.TacticalHeroes.Players.Application.Players.Register;
+using PANiXiDA.TacticalHeroes.Players.Application.Players.Events;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Events;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Players.UnitTests.Application.Players.Register;
+namespace PANiXiDA.TacticalHeroes.Players.UnitTests.Application.Players.Events;
 
 public sealed class PlayerRegistrationRequestedHandlerTests
 {
@@ -13,17 +14,34 @@ public sealed class PlayerRegistrationRequestedHandlerTests
         var userId = Guid.CreateVersion7();
         var repository = Substitute.For<IPlayersRepository>();
         var handler = new PlayerRegistrationRequestedHandler(repository);
-        var domainEvent = new PlayerRegistrationRequested(Guid.CreateVersion7(), userId);
+        var domainEvent = new PlayerRegistrationRequested(userId);
         var ct = TestContext.Current.CancellationToken;
 
         await handler.HandleAsync(domainEvent, ct);
 
-        await repository.Received(1).AddIfMissingAsync(
+        await repository.Received(1).GetByUserIdAsync(Arg.Is<UserId>(id => id.Value == userId), ct);
+        repository.Received(1).Add(
             Arg.Is<Player>(player => player.UserId.Value == userId
                 && player.Id.Value != Guid.Empty
                 && player.Rating.Value == 1000
-                && player.AvatarFileId == null),
-            ct);
+                && player.AvatarFileId == null));
+    }
+
+    [Fact(DisplayName = "Registration handler should preserve the profile when user already has a player")]
+    public async Task HandleAsync_Should_PreserveProfile_When_UserAlreadyHasAPlayer()
+    {
+        var player = Player.Create(UserId.New());
+        var repository = Substitute.For<IPlayersRepository>();
+        repository.GetByUserIdAsync(player.UserId, Arg.Any<CancellationToken>()).Returns(player);
+        var handler = new PlayerRegistrationRequestedHandler(repository);
+        var domainEvent = new PlayerRegistrationRequested(player.UserId.Value);
+        var ct = TestContext.Current.CancellationToken;
+
+        await handler.HandleAsync(domainEvent, ct);
+
+        await repository.Received(1).GetByUserIdAsync(player.UserId, ct);
+        repository.DidNotReceiveWithAnyArgs().Add(null!);
+        repository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 
     [Fact(DisplayName = "Registration handler should reject invalid user ids when user id is empty")]
@@ -31,7 +49,7 @@ public sealed class PlayerRegistrationRequestedHandlerTests
     {
         var repository = Substitute.For<IPlayersRepository>();
         var handler = new PlayerRegistrationRequestedHandler(repository);
-        var domainEvent = new PlayerRegistrationRequested(Guid.CreateVersion7(), Guid.Empty);
+        var domainEvent = new PlayerRegistrationRequested(Guid.Empty);
 
         await Should.ThrowAsync<InvalidOperationException>(() =>
             handler.HandleAsync(domainEvent, TestContext.Current.CancellationToken));
@@ -44,10 +62,10 @@ public sealed class PlayerRegistrationRequestedHandlerTests
     {
         var repository = Substitute.For<IPlayersRepository>();
         var failure = new InvalidOperationException("Storage unavailable.");
-        repository.AddIfMissingAsync(Arg.Any<Player>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromException(failure));
+        repository.GetByUserIdAsync(Arg.Any<UserId>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<Player?>(failure));
         var handler = new PlayerRegistrationRequestedHandler(repository);
-        var domainEvent = new PlayerRegistrationRequested(Guid.CreateVersion7(), Guid.CreateVersion7());
+        var domainEvent = new PlayerRegistrationRequested(Guid.CreateVersion7());
 
         var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
             handler.HandleAsync(domainEvent, TestContext.Current.CancellationToken));
