@@ -68,107 +68,78 @@ public sealed class MatchSearchTests
         result.Value.ExpiresAt.Value.ShouldBe(DateTimeOffset.MaxValue);
     }
 
-    [Theory(DisplayName = "Search should close both searches and emit one complete event when pair is valid")]
-    [InlineData("RankedDuel")]
-    [InlineData("CasualDuel")]
-    public void MatchWith_Should_CloseBothSearchesAndEmitOneCompleteEvent_When_PairIsValid(string mode)
+    [Theory(DisplayName = "Search should change status and publish state when search is active")]
+    [InlineData("RankedDuel", 0)]
+    [InlineData("CasualDuel", 299)]
+    public void Matched_Should_ChangeStatusAndPublishState_When_SearchIsActive(string mode, int now)
     {
-        var selectedMode = MatchmakingMode.Create(mode).Value;
-        var first = CreateSearch(mode: selectedMode);
-        var second = CreateSearch(mode: selectedMode);
+        var search = CreateSearch(mode: MatchmakingMode.Create(mode).Value);
+        var count = search.GetDomainEvents().Count;
 
-        first.MatchWith(second, At(1)).IsSuccess.ShouldBeTrue();
+        search.Matched(At(now)).IsSuccess.ShouldBeTrue();
 
-        first.Status.ShouldBe(MatchSearchStatus.Matched);
-        second.Status.ShouldBe(MatchSearchStatus.Matched);
-        var found = first.GetDomainEvents().OfType<MatchFound>().ShouldHaveSingleItem();
-        second.GetDomainEvents().OfType<MatchFound>().ShouldBeEmpty();
-        found.FirstMatchSearchId.ShouldBe(first.Id.Value);
-        found.FirstPlayerId.ShouldBe(first.PlayerId.Value);
-        found.FirstBuildId.ShouldBe(first.BuildId.Value);
-        found.FirstRating.ShouldBe(first.Rating.Value);
-        found.SecondMatchSearchId.ShouldBe(second.Id.Value);
-        found.SecondPlayerId.ShouldBe(second.PlayerId.Value);
-        found.SecondBuildId.ShouldBe(second.BuildId.Value);
-        found.SecondRating.ShouldBe(second.Rating.Value);
-        found.Mode.ShouldBe(first.Mode.Name);
-        found.MatchedAt.ShouldBe(At(1).Value);
-        first.GetDomainEvents().OfType<MatchSearchStateChanged>().Last().Status.ShouldBe("Matched");
-        second.GetDomainEvents().OfType<MatchSearchStateChanged>().Last().Status.ShouldBe("Matched");
+        search.Status.ShouldBe(MatchSearchStatus.Matched);
+        search.GetDomainEvents().Count.ShouldBe(count + 1);
+        var changed = search.GetDomainEvents().Last().ShouldBeOfType<MatchSearchStateChanged>();
+        changed.MatchSearchId.ShouldBe(search.Id.Value);
+        changed.PlayerId.ShouldBe(search.PlayerId.Value);
+        changed.Status.ShouldBe("Matched");
     }
 
-    [Fact(DisplayName = "Search should preserve both searches when pair is incompatible")]
-    public void MatchWith_Should_PreserveBothSearches_When_PairIsIncompatible()
+    [Theory(DisplayName = "Search should preserve searching state when time is outside search window")]
+    [InlineData(-1)]
+    [InlineData(300)]
+    [InlineData(301)]
+    public void Matched_Should_PreserveSearchingState_When_TimeIsOutsideSearchWindow(int now)
     {
-        var first = CreateSearch();
-        var samePlayer = CreateSearch(first.PlayerId.Value);
-        var otherMode = CreateSearch(mode: MatchmakingMode.CasualDuel);
+        var search = CreateSearch();
+        var count = search.GetDomainEvents().Count;
 
-        first.MatchWith(first, At(1)).IsFailure.ShouldBeTrue();
-        first.MatchWith(samePlayer, At(1)).IsFailure.ShouldBeTrue();
-        first.MatchWith(otherMode, At(1)).IsFailure.ShouldBeTrue();
+        search.Matched(At(now)).IsFailure.ShouldBeTrue();
 
-        first.Status.ShouldBe(MatchSearchStatus.Searching);
-        samePlayer.Status.ShouldBe(MatchSearchStatus.Searching);
-        otherMode.Status.ShouldBe(MatchSearchStatus.Searching);
-        first.GetDomainEvents().Count.ShouldBe(1);
-        samePlayer.GetDomainEvents().Count.ShouldBe(1);
-        otherMode.GetDomainEvents().Count.ShouldBe(1);
+        search.Status.ShouldBe(MatchSearchStatus.Searching);
+        search.GetDomainEvents().Count.ShouldBe(count);
     }
 
-    [Theory(DisplayName = "Search should preserve both searches when either search is outside its window")]
-    [InlineData(-1, 0)]
-    [InlineData(300, 0)]
-    [InlineData(1, -299)]
-    [InlineData(299, 300)]
-    public void MatchWith_Should_PreserveBothSearches_When_EitherSearchIsOutsideItsWindow(int now, int secondQueuedAt)
+    [Fact(DisplayName = "Search should publish once when called repeatedly")]
+    public void Matched_Should_PublishOnce_When_CalledRepeatedly()
     {
-        var first = CreateSearch();
-        var second = CreateSearch(queuedAt: secondQueuedAt);
+        var search = CreateSearch();
+        search.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
 
-        first.MatchWith(second, At(now)).IsFailure.ShouldBeTrue();
-        second.MatchWith(first, At(now)).IsFailure.ShouldBeTrue();
+        search.Matched(At(301)).IsSuccess.ShouldBeTrue();
 
-        first.Status.ShouldBe(MatchSearchStatus.Searching);
-        second.Status.ShouldBe(MatchSearchStatus.Searching);
-        first.GetDomainEvents().Count.ShouldBe(1);
-        second.GetDomainEvents().Count.ShouldBe(1);
+        search.Status.ShouldBe(MatchSearchStatus.Matched);
+        search.GetDomainEvents().Count.ShouldBe(count);
+        search.Cancel().IsFailure.ShouldBeTrue();
+        search.Expire(At(300)).IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Search should reject matching without changing peer when search was cancelled")]
-    public void MatchWith_Should_RejectMatchingWithoutChangingPeer_When_SearchWasCancelled()
+    [Fact(DisplayName = "Search should preserve cancelled state when search was cancelled")]
+    public void Matched_Should_PreserveCancelledState_When_SearchWasCancelled()
     {
-        var first = CreateSearch();
-        var second = CreateSearch();
-        first.Cancel().IsSuccess.ShouldBeTrue();
+        var search = CreateSearch();
+        search.Cancel().IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
 
-        first.MatchWith(second, At(1)).IsFailure.ShouldBeTrue();
-        second.MatchWith(first, At(1)).IsFailure.ShouldBeTrue();
+        search.Matched(At(1)).IsFailure.ShouldBeTrue();
 
-        second.Status.ShouldBe(MatchSearchStatus.Searching);
-        second.GetDomainEvents().Count.ShouldBe(1);
-        first.GetDomainEvents().OfType<MatchFound>().ShouldBeEmpty();
+        search.Status.ShouldBe(MatchSearchStatus.Cancelled);
+        search.GetDomainEvents().Count.ShouldBe(count);
     }
 
-    [Fact(DisplayName = "Search should reject reuse and preserve the original event when search is already matched")]
-    public void MatchWith_Should_RejectReuseAndPreserveTheOriginalEvent_When_SearchIsAlreadyMatched()
+    [Fact(DisplayName = "Search should preserve expired state when search was expired")]
+    public void Matched_Should_PreserveExpiredState_When_SearchWasExpired()
     {
-        var first = CreateSearch();
-        var second = CreateSearch();
-        var third = CreateSearch();
-        first.MatchWith(second, At(1)).IsSuccess.ShouldBeTrue();
-        var found = first.GetDomainEvents().OfType<MatchFound>().ShouldHaveSingleItem();
-        var count = first.GetDomainEvents().Count;
+        var search = CreateSearch();
+        search.Expire(At(300)).IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
 
-        first.MatchWith(second, At(2)).IsFailure.ShouldBeTrue();
-        second.MatchWith(first, At(2)).IsFailure.ShouldBeTrue();
-        third.MatchWith(first, At(2)).IsFailure.ShouldBeTrue();
-        first.Cancel().IsFailure.ShouldBeTrue();
-        first.Expire(At(300)).IsFailure.ShouldBeTrue();
+        search.Matched(At(301)).IsFailure.ShouldBeTrue();
 
-        third.Status.ShouldBe(MatchSearchStatus.Searching);
-        first.GetDomainEvents().Count.ShouldBe(count);
-        first.GetDomainEvents().OfType<MatchFound>().ShouldHaveSingleItem().Id.ShouldBe(found.Id);
+        search.Status.ShouldBe(MatchSearchStatus.Expired);
+        search.GetDomainEvents().Count.ShouldBe(count);
     }
 
     [Fact(DisplayName = "Search should cancel once when requested repeatedly")]
@@ -198,6 +169,6 @@ public sealed class MatchSearchTests
         search.Status.ShouldBe(MatchSearchStatus.Expired);
         search.GetDomainEvents().Count.ShouldBe(count);
         search.Cancel().IsFailure.ShouldBeTrue();
-        search.MatchWith(CreateSearch(), At(301)).IsFailure.ShouldBeTrue();
+        search.Matched(At(301)).IsFailure.ShouldBeTrue();
     }
 }

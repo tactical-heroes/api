@@ -66,36 +66,21 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         return Result.Success(search);
     }
 
-    public Result MatchWith(MatchSearch other, MatchmakingTimestamp now)
+    public Result Matched(MatchmakingTimestamp now)
     {
-        if (Id == other.Id || PlayerId == other.PlayerId || Mode != other.Mode)
+        if (Status == MatchSearchStatus.Matched)
         {
-            return Result.Failure(Error.Validation("A duel requires distinct players and searches in the same mode."));
+            return Result.Success();
         }
 
-        if (!IsActive(now) || !other.IsActive(now))
+        if (!IsActive(now))
         {
-            return Result.Failure(Error.Conflict("Both searches must be active."));
+            return Result.Failure(Error.Conflict("Only an active search can be marked as matched."));
         }
 
         Status = MatchSearchStatus.Matched;
-        other.Status = MatchSearchStatus.Matched;
 
         RecordStateChanged();
-
-        other.RecordStateChanged();
-
-        AddDomainEvent(new MatchFound(
-            FirstMatchSearchId: Id.Value,
-            FirstPlayerId: PlayerId.Value,
-            FirstBuildId: BuildId.Value,
-            FirstRating: Rating.Value,
-            SecondMatchSearchId: other.Id.Value,
-            SecondPlayerId: other.PlayerId.Value,
-            SecondBuildId: other.BuildId.Value,
-            SecondRating: other.Rating.Value,
-            Mode: Mode.Name,
-            MatchedAt: now.Value));
 
         return Result.Success();
     }
