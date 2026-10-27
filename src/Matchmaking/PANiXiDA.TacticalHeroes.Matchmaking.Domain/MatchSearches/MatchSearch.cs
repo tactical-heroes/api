@@ -8,6 +8,8 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 
 public sealed class MatchSearch : AggregateRoot<MatchSearchId>
 {
+    private static readonly TimeSpan s_searchLifetime = TimeSpan.FromMinutes(minutes: 5);
+
     private MatchSearch(
         MatchSearchId id,
         PlayerId playerId,
@@ -40,13 +42,15 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         BuildId buildId,
         Raiting rating,
         MatchmakingMode mode,
-        MatchmakingTimestamp queuedAt,
-        MatchmakingTimestamp expiresAt)
+        MatchmakingTimestamp queuedAt)
     {
-        if (expiresAt.Value <= queuedAt.Value)
+        if (queuedAt.Value > DateTimeOffset.MaxValue.Subtract(s_searchLifetime))
         {
-            return Result.Failure<MatchSearch>(Error.Validation("Search expiration must follow queue entry."));
+            return Result.Failure<MatchSearch>(
+                Error.Validation("Queue entry is too late to calculate search expiration."));
         }
+
+        var expiresAt = MatchmakingTimestamp.Create(queuedAt.Value.Add(s_searchLifetime));
 
         var search = new MatchSearch(
             id: MatchSearchId.New(),
@@ -56,6 +60,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
             mode: mode,
             queuedAt: queuedAt,
             expiresAt: expiresAt);
+
         search.RecordStateChanged();
 
         return Result.Success(search);
@@ -75,8 +80,11 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
 
         Status = MatchSearchStatus.Matched;
         other.Status = MatchSearchStatus.Matched;
+
         RecordStateChanged();
+
         other.RecordStateChanged();
+
         AddDomainEvent(new MatchFound(
             FirstMatchSearchId: Id.Value,
             FirstPlayerId: PlayerId.Value,
@@ -105,6 +113,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         }
 
         Status = MatchSearchStatus.Cancelled;
+
         RecordStateChanged();
 
         return Result.Success();
@@ -123,6 +132,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         }
 
         Status = MatchSearchStatus.Expired;
+
         RecordStateChanged();
 
         return Result.Success();

@@ -24,8 +24,7 @@ internal static class MatchmakingTestData
             BuildId.Create(Guid.CreateVersion7()).Value,
             Raiting.Create(1500),
             mode ?? MatchmakingMode.RankedDuel,
-            At(0),
-            At(300)).Value;
+            At(0)).Value;
     }
 
     internal static IUnitOfWork UnitOfWork(IServiceProvider services)

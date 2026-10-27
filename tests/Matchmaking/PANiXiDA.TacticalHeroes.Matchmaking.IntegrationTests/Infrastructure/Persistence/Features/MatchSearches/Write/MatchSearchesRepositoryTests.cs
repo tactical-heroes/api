@@ -41,6 +41,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
             restored.Rating.ShouldBe(search.Rating);
             restored.Mode.ShouldBe(search.Mode);
             restored.ExpiresAt.ShouldBe(search.ExpiresAt);
+            restored.ExpiresAt.Value.ShouldBe(restored.QueuedAt.Value.AddMinutes(5));
             restored.Cancel().IsSuccess.ShouldBeTrue();
             repository.Update(restored);
             await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);

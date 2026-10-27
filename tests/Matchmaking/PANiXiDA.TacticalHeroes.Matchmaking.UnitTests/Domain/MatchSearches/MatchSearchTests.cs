@@ -1,6 +1,7 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
 
@@ -21,22 +22,50 @@ public sealed class MatchSearchTests
         domainEvent.Status.ShouldBe("Searching");
     }
 
-    [Theory(DisplayName = "Search should reject invalid window when created")]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void Create_Should_RejectInvalidWindow_When_Created(int end)
+    [Theory(DisplayName = "Search should expire five minutes after queue entry when created")]
+    [InlineData("RankedDuel", 0)]
+    [InlineData("CasualDuel", 120)]
+    public void Create_Should_ExpireFiveMinutesAfterQueueEntry_When_Created(string mode, int queuedAt)
+    {
+        var queued = At(queuedAt);
+
+        var search = CreateSearch(mode: MatchmakingMode.Create(mode).Value, queuedAt: queuedAt);
+
+        search.QueuedAt.ShouldBe(queued);
+        search.ExpiresAt.Value.ShouldBe(queued.Value.AddMinutes(5));
+    }
+
+    [Fact(DisplayName = "Search should reject queue entry when expiration would exceed timestamp range")]
+    public void Create_Should_RejectQueueEntry_When_ExpirationWouldExceedTimestampRange()
     {
         var template = CreateSearch();
+        var queuedAt = MatchmakingTimestamp.Create(DateTimeOffset.MaxValue);
 
         var result = MatchSearch.Create(
             template.PlayerId,
             template.BuildId,
             template.Rating,
             template.Mode,
-            At(0),
-            At(end));
+            queuedAt);
 
         result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Search should accept latest queue entry when expiration fits timestamp range")]
+    public void Create_Should_AcceptLatestQueueEntry_When_ExpirationFitsTimestampRange()
+    {
+        var template = CreateSearch();
+        var queuedAt = MatchmakingTimestamp.Create(DateTimeOffset.MaxValue.AddMinutes(-5));
+
+        var result = MatchSearch.Create(
+            template.PlayerId,
+            template.BuildId,
+            template.Rating,
+            template.Mode,
+            queuedAt);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ExpiresAt.Value.ShouldBe(DateTimeOffset.MaxValue);
     }
 
     [Theory(DisplayName = "Search should close both searches and emit one complete event when pair is valid")]
@@ -88,13 +117,14 @@ public sealed class MatchSearchTests
     }
 
     [Theory(DisplayName = "Search should preserve both searches when either search is outside its window")]
-    [InlineData(-1, 300)]
-    [InlineData(300, 300)]
-    [InlineData(1, 1)]
-    public void MatchWith_Should_PreserveBothSearches_When_EitherSearchIsOutsideItsWindow(int now, int secondExpiry)
+    [InlineData(-1, 0)]
+    [InlineData(300, 0)]
+    [InlineData(1, -299)]
+    [InlineData(299, 300)]
+    public void MatchWith_Should_PreserveBothSearches_When_EitherSearchIsOutsideItsWindow(int now, int secondQueuedAt)
     {
         var first = CreateSearch();
-        var second = CreateSearch(expiresAt: secondExpiry);
+        var second = CreateSearch(queuedAt: secondQueuedAt);
 
         first.MatchWith(second, At(now)).IsFailure.ShouldBeTrue();
         second.MatchWith(first, At(now)).IsFailure.ShouldBeTrue();
