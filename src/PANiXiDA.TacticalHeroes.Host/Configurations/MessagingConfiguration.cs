@@ -57,7 +57,8 @@ internal static class MessagingConfiguration
                     typeof(BuildsWriteDbContext).Assembly),
             configureKafka: null,
             configureRequestBehaviors: null,
-            configureSchedules: schedules => schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>());
+            configureSchedules: schedules => schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(
+                parentSectionName: "FileManager:Schedules"));
 
         return builder;
     }

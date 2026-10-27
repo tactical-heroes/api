@@ -19,7 +19,7 @@ public sealed class PersonalFileUploadScheduleTests
         await using var options = new WolverineOptions();
         var schedules = new WolverineScheduleConfiguration(options, CreateConfiguration(enabled));
 
-        schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>();
+        schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(parentSectionName: "FileManager:Schedules");
 
         var schedule = options.Schedules.FindByName("file-manager-reconcile-personal-uploads");
         (schedule is not null).ShouldBe(enabled);
@@ -33,14 +33,15 @@ public sealed class PersonalFileUploadScheduleTests
             options,
             CreateConfiguration(enabled: true, cron: "invalid"));
 
-        var exception = Record.Exception(() => schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>());
+        var exception = Record.Exception(() => schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(
+            parentSectionName: "FileManager:Schedules"));
 
         exception.ShouldBeOfType<OptionsValidationException>();
     }
 
     private static IConfiguration CreateConfiguration(bool enabled, string cron = "*/5 * * * *")
     {
-        const string Prefix = "Messaging:Schedules:ReconcilePersonalFileUploadsCommand";
+        const string Prefix = "FileManager:Schedules:ReconcilePersonalFileUploadsCommand";
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {

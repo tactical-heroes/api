@@ -31,7 +31,7 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await Storage.InitializeAsync(cancellationToken);
 
         var settings = Storage.GetConfiguration(nameof(FileManager));
-        settings["Messaging:Schedules:ReconcilePersonalFileUploadsCommand:CronExpression"] = "*/5 * * * * *";
+        settings["FileManager:Schedules:ReconcilePersonalFileUploadsCommand:CronExpression"] = "*/5 * * * * *";
         settings["ConnectionStrings:PostgreSqlConnectionString"] = _database.PostgreSqlConnectionString;
         foreach (var (key, value) in settings)
         {

@@ -190,7 +190,7 @@ The base prefix is `production`; `appsettings.Development.json` sets `developmen
 
 The host registers `ReconcilePersonalFileUploadsCommand` through Core Wolverine's
 `AddRecurringCommand`. Its schedule is configured under
-`Messaging:Schedules:ReconcilePersonalFileUploadsCommand`: `Enabled`, a stable
+`FileManager:Schedules:ReconcilePersonalFileUploadsCommand`: `Enabled`, a stable
 `Name`, `CronExpression` (five-field cron, `*/5 * * * *` by default), and
 `TimeZoneId` (`UTC`). Wolverine persists recurring schedules in its message store
 and coordinates scheduling across replicas.
