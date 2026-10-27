@@ -45,58 +45,69 @@ public sealed class ReconcilePersonalFileUploadsHandler(
 
             foreach (var file in files)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                FileMetadata? metadata;
-                try
-                {
-                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    timeout.CancelAfter(reconciliationOptions.StorageRequestTimeout);
-                    metadata = await fileStorage.GetMetadataAsync(file.StorageKey, timeout.Token);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                catch (Exception exception)
-                {
-                    logger.LogError(exception, "Could not inspect personal file {FileId}; will retry", file.Id);
-                    continue;
-                }
-
-                if (metadata is null)
-                {
-                    continue;
-                }
-
-                var contentType = FileContentType.Create(metadata.ContentType);
-                var size = FileSize.Create(metadata.Size);
-                if (contentType.IsFailure || size.IsFailure)
-                {
-                    logger.LogWarning("Stored content for personal file {FileId} has invalid metadata", file.Id);
-                    continue;
-                }
-
-                var aggregate = await filesRepository.GetByIdAsync(
-                    id: FileId.Create(file.Id).Value,
+                await ReconcileFileAsync(
+                    file: file,
+                    storageRequestTimeout: reconciliationOptions.StorageRequestTimeout,
                     cancellationToken: cancellationToken);
-                if (aggregate is null
-                    || aggregate.Type != FileType.Personal
-                    || aggregate.Status != FileStatus.PendingUpload
-                    || aggregate.StorageKey.Value != file.StorageKey)
-                {
-                    continue;
-                }
-
-                var result = aggregate.CompleteUpload(contentType: contentType.Value, size: size.Value);
-                if (result.IsSuccess)
-                {
-                    filesRepository.Update(aggregateRoot: aggregate);
-                    await unitOfWork.SaveChangesAsync(cancellationToken);
-                    logger.LogInformation("Reconciled personal file {FileId}", file.Id);
-                }
             }
 
             afterId = files[^1].Id;
+        }
+    }
+
+    private async Task ReconcileFileAsync(
+        PendingPersonalFileUploadReadModel file,
+        TimeSpan storageRequestTimeout,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        FileMetadata? metadata;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(storageRequestTimeout);
+            metadata = await fileStorage.GetMetadataAsync(file.StorageKey, timeout.Token);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Could not inspect personal file {FileId}; will retry", file.Id);
+            return;
+        }
+
+        if (metadata is null)
+        {
+            return;
+        }
+
+        var contentType = FileContentType.Create(metadata.ContentType);
+        var size = FileSize.Create(metadata.Size);
+        if (contentType.IsFailure || size.IsFailure)
+        {
+            logger.LogWarning("Stored content for personal file {FileId} has invalid metadata", file.Id);
+            return;
+        }
+
+        var aggregate = await filesRepository.GetByIdAsync(
+            id: FileId.Create(file.Id).Value,
+            cancellationToken: cancellationToken);
+        if (aggregate is null
+            || aggregate.Type != FileType.Personal
+            || aggregate.Status != FileStatus.PendingUpload
+            || aggregate.StorageKey.Value != file.StorageKey)
+        {
+            return;
+        }
+
+        var result = aggregate.CompleteUpload(contentType: contentType.Value, size: size.Value);
+        if (result.IsSuccess)
+        {
+            filesRepository.Update(aggregateRoot: aggregate);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Reconciled personal file {FileId}", file.Id);
         }
     }
 }
