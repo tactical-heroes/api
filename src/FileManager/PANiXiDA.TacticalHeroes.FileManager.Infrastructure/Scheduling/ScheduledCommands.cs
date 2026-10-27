@@ -8,6 +8,7 @@ public static class ScheduledCommands
 {
     public static void AddFileManagerSchedules(this WolverineScheduleConfiguration schedules)
     {
-        schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(parentSectionName: "FileManager:Schedules");
+        schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(
+            parentSectionName: $"{nameof(FileManager)}:Schedules");
     }
 }
