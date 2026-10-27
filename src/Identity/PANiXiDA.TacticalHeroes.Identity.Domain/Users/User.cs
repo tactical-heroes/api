@@ -15,13 +15,14 @@ public sealed class User : AggregateRoot<UserId>
         UserId id,
         Email email,
         UserName userName,
-        UserStatus status)
+        UserStatus status,
+        UserConfirmationStatus confirmationStatus)
         : base(id)
     {
         Email = email;
         UserName = userName;
         Status = status;
-        ConfirmationStatus = UserConfirmationStatus.Unconfirmed();
+        ConfirmationStatus = confirmationStatus;
     }
 
     public Email Email { get; private set; }
@@ -32,22 +33,6 @@ public sealed class User : AggregateRoot<UserId>
     public IReadOnlyCollection<RoleId> RoleIds => _roleIds.AsReadOnly();
     public IReadOnlyCollection<UserClaim> Claims => _claims.AsReadOnly();
 
-    public static User Register(
-        Email email,
-        UserName userName,
-        RoleId roleId)
-    {
-        var user = new User(
-            id: UserId.New(),
-            email: email,
-            userName: userName,
-            status: UserStatus.Active);
-
-        user.AssignRole(roleId);
-
-        return user;
-    }
-
     public static User Create(
         UserId id,
         Email email,
@@ -57,10 +42,12 @@ public sealed class User : AggregateRoot<UserId>
         IEnumerable<RoleId> roleIds,
         IEnumerable<UserClaim> claims)
     {
-        var user = new User(id: id, email: email, userName: userName, status: status)
-        {
-            ConfirmationStatus = confirmationStatus
-        };
+        var user = new User(
+            id: id,
+            email: email,
+            userName: userName,
+            status: status,
+            confirmationStatus: confirmationStatus);
 
         foreach (var roleId in roleIds)
         {
@@ -71,6 +58,23 @@ public sealed class User : AggregateRoot<UserId>
         {
             user.GrantClaim(claim);
         }
+
+        return user;
+    }
+
+    public static User Register(
+        Email email,
+        UserName userName,
+        RoleId roleId)
+    {
+        var user = new User(
+            id: UserId.New(),
+            email: email,
+            userName: userName,
+            status: UserStatus.Active,
+            confirmationStatus: UserConfirmationStatus.Unconfirmed());
+
+        user.AssignRole(roleId);
 
         return user;
     }
