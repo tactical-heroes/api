@@ -7,10 +7,10 @@ using PANiXiDA.Core.Application.Storage.Models;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
 

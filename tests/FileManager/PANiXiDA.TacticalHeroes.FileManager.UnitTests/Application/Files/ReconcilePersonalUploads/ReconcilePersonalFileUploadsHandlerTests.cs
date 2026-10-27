@@ -2,8 +2,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute.ExceptionExtensions;
 
-using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Persistence;
+using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
