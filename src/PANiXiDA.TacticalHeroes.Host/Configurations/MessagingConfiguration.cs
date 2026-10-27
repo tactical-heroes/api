@@ -9,6 +9,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
 using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
 using BuildsApplicationAssembly = PANiXiDA.TacticalHeroes.Builds.Application.ApplicationAssembly;
@@ -17,6 +18,7 @@ using FileManagerApplicationAssembly = PANiXiDA.TacticalHeroes.FileManager.Appli
 using GamesApplicationAssembly = PANiXiDA.TacticalHeroes.Games.Application.ApplicationAssembly;
 using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Identity.Application.ApplicationAssembly;
 using MatchmakingApplicationAssembly = PANiXiDA.TacticalHeroes.Matchmaking.Application.ApplicationAssembly;
+using PlayersApplicationAssembly = PANiXiDA.TacticalHeroes.Players.Application.ApplicationAssembly;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations;
 
@@ -54,7 +56,10 @@ internal static class MessagingConfiguration
                     typeof(GamesWriteDbContext).Assembly)
                 .AddModule<BuildsWriteDbContext>(
                     BuildsApplicationAssembly.Instance,
-                    typeof(BuildsWriteDbContext).Assembly),
+                    typeof(BuildsWriteDbContext).Assembly)
+                .AddModule<PlayersWriteDbContext>(
+                    PlayersApplicationAssembly.Instance,
+                    typeof(PlayersWriteDbContext).Assembly),
             configureKafka: null,
             configureRequestBehaviors: null,
             configureSchedules: schedules => schedules.AddRecurringCommand<ReconcilePersonalFileUploadsCommand>(

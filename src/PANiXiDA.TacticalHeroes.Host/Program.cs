@@ -14,6 +14,7 @@ builder.AddBattleModule();
 builder.AddMatchmakingModule();
 builder.AddGamesModule();
 builder.AddBuildsModule();
+builder.AddPlayersModule();
 builder.AddFileManagerModule();
 builder.AddMessaging();
 
