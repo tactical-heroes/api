@@ -113,6 +113,43 @@ public sealed class User : AggregateRoot<UserId>
         return user;
     }
 
+    public void Update(
+        Email email,
+        UserName userName,
+        UserStatus status,
+        UserConfirmationStatus confirmationStatus,
+        IEnumerable<RoleId> roleIds,
+        IEnumerable<UserClaim> claims)
+    {
+        var updatedRoleIds = roleIds.ToArray();
+        var updatedClaims = claims.ToArray();
+
+        Email = email;
+        UserName = userName;
+        Status = status;
+
+        _roleIds.Clear();
+        foreach (var roleId in updatedRoleIds)
+        {
+            AssignRole(roleId);
+        }
+
+        _claims.Clear();
+        foreach (var claim in updatedClaims)
+        {
+            GrantClaim(claim);
+        }
+
+        if (confirmationStatus.IsConfirmed)
+        {
+            ConfirmRegistration();
+        }
+        else
+        {
+            ConfirmationStatus = confirmationStatus;
+        }
+    }
+
     public Result RequestEmailConfirmation(
         UserActionToken confirmationToken)
     {

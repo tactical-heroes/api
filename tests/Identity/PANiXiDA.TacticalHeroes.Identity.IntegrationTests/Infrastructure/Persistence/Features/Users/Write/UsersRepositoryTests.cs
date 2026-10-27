@@ -9,6 +9,8 @@ using OpenIddict.EntityFrameworkCore.Models;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
@@ -20,6 +22,75 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
     private const string Password = "StrongPassword1!";
+
+    [Theory(DisplayName = "Loaded users should register only when confirmation is granted during an update")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task UpdateAsync_Should_TrackRegistrationOnlyOnConfirmation_When_LoadedUserIsUpdated(
+        bool wasConfirmed,
+        bool isConfirmed)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var id = await AddUserAsync(
+            "hero@example.com", "hero", wasConfirmed, [], UserStatus.Active.Name, ct);
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+            var tracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+            var loaded = await repository.GetByIdAsync(UserId.Create(id).Value, ct);
+            loaded.IsSuccess.ShouldBeTrue();
+            var user = loaded.Value;
+            user.ConfirmationStatus.IsConfirmed.ShouldBe(wasConfirmed);
+            user.GetDomainEvents().ShouldBeEmpty();
+            tracker.GetAll().ShouldBeEmpty();
+
+            user.Update(
+                Email.Create("updated@example.com").Value,
+                UserName.Create("updated-hero").Value,
+                UserStatus.Active,
+                UserConfirmationStatus.From(isConfirmed),
+                [],
+                []);
+            var result = await repository.UpdateAsync(user, null, ct);
+
+            result.IsSuccess.ShouldBeTrue();
+            tracker.GetAll().ShouldHaveSingleItem().ShouldBeSameAs(user);
+            if (!wasConfirmed && isConfirmed)
+            {
+                var domainEvent = user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UserRegistered>();
+                domainEvent.UserId.ShouldBe(id);
+                domainEvent.Email.ShouldBe("updated@example.com");
+            }
+            else
+            {
+                user.GetDomainEvents().ShouldBeEmpty();
+            }
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var verificationRepository = verificationScope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var persisted = await verificationRepository.GetByIdAsync(UserId.Create(id).Value, ct);
+        persisted.IsSuccess.ShouldBeTrue();
+        persisted.Value.Email.Value.ShouldBe("updated@example.com");
+        persisted.Value.UserName.Value.ShouldBe("updated-hero");
+        persisted.Value.ConfirmationStatus.IsConfirmed.ShouldBe(isConfirmed);
+        persisted.Value.GetDomainEvents().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "GetByIdAsync should return not found when the user does not exist")]
+    public async Task GetByIdAsync_Should_ReturnNotFound_When_UserDoesNotExist()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+
+        var result = await repository.GetByIdAsync(UserId.New(), TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+    }
 
     [Fact(DisplayName = "AddAsync should persist a valid user when command is valid")]
     public async Task AddAsync_Should_PersistUser_When_CommandIsValid()

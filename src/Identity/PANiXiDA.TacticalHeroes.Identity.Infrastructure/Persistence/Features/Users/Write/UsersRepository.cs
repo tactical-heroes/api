@@ -22,6 +22,19 @@ public sealed class UsersRepository(
     TimeProvider timeProvider)
     : IUsersRepository
 {
+    public async Task<Result<User>> GetByIdAsync(
+        UserId id,
+        CancellationToken cancellationToken)
+    {
+        var applicationUser = await userManager.Users
+            .WithAuthorizationGraph()
+            .SingleOrDefaultAsync(user => user.Id == id.Value, cancellationToken);
+
+        return applicationUser is null
+            ? Result.Failure<User>(error: Error.NotFound(message: "User was not found."))
+            : ApplicationUserMapper.ToDomain(user: applicationUser);
+    }
+
     public async Task<Result<Guid>> AddAsync(
         User user,
         string password,

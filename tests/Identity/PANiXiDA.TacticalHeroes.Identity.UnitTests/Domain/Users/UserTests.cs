@@ -122,6 +122,95 @@ public sealed class UserTests
         user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
     }
 
+    [Theory(DisplayName = "Update should replace user state and register only when confirmation is granted")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Update_Should_RegisterOnlyOnConfirmation_When_ConfirmationStateChanges(
+        bool wasConfirmed,
+        bool isConfirmed)
+    {
+        var id = UserId.New();
+        var user = User.Restore(
+            id,
+            Email.Create("original@example.com").Value,
+            UserName.Create("original-hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.From(wasConfirmed),
+            [RoleId.New()],
+            [UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value)]);
+        var roleId = RoleId.New();
+        var claim = UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.manage").Value);
+        List<RoleId> roleIds = [roleId, roleId];
+        List<UserClaim> claims = [claim, claim];
+
+        user.Update(
+            Email.Create("updated@example.com").Value,
+            UserName.Create("updated-hero").Value,
+            UserStatus.Blocked,
+            UserConfirmationStatus.From(isConfirmed),
+            roleIds,
+            claims);
+        roleIds.Clear();
+        claims.Clear();
+
+        user.Id.ShouldBe(id);
+        user.Email.Value.ShouldBe("updated@example.com");
+        user.UserName.Value.ShouldBe("updated-hero");
+        user.Status.ShouldBe(UserStatus.Blocked);
+        user.ConfirmationStatus.IsConfirmed.ShouldBe(isConfirmed);
+        user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
+        user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
+        if (!wasConfirmed && isConfirmed)
+        {
+            var domainEvent = user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<UserRegistered>();
+            domainEvent.UserId.ShouldBe(id.Value);
+            domainEvent.Email.ShouldBe("updated@example.com");
+        }
+        else
+        {
+            user.GetDomainEvents().ShouldBeEmpty();
+        }
+    }
+
+    [Theory(DisplayName = "Update should preserve retained assignments or clear them when collections are replaced")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Update_Should_ReplaceAssignments_When_CollectionsAreProvided(bool retainAssignments)
+    {
+        var roleId = RoleId.New();
+        var claim = UserClaim.Create(ClaimType.Create("permission").Value, ClaimValue.Create("heroes.read").Value);
+        var user = User.Restore(
+            UserId.New(),
+            Email.Create("hero@example.com").Value,
+            UserName.Create("hero").Value,
+            UserStatus.Active,
+            UserConfirmationStatus.Unconfirmed(),
+            [roleId],
+            [claim]);
+
+        user.Update(
+            user.Email,
+            user.UserName,
+            user.Status,
+            user.ConfirmationStatus,
+            retainAssignments ? user.RoleIds : [],
+            retainAssignments ? user.Claims : []);
+
+        if (retainAssignments)
+        {
+            user.RoleIds.ShouldHaveSingleItem().ShouldBe(roleId);
+            user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
+        }
+        else
+        {
+            user.RoleIds.ShouldBeEmpty();
+            user.Claims.ShouldBeEmpty();
+        }
+        user.GetDomainEvents().ShouldBeEmpty();
+    }
+
     [Fact(
         DisplayName = "Request email confirmation should raise an event for an unconfirmed user when user is unconfirmed")]
     public void RequestEmailConfirmation_Should_RaiseEvent_When_UserIsUnconfirmed()
