@@ -4,7 +4,6 @@ using PANiXiDA.Core.Application.Storage.Models;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDownloadUrl;
 
@@ -37,15 +36,16 @@ public sealed class GetFileDownloadUrlHandler(
             return Result.Failure<PresignedDownloadUrl>(Error.NotFound("File was not found."));
         }
 
-        if (file.Status != FileStatus.Ready || file.ContentType is not { } contentType)
+        var contentTypeResult = file.GetDownloadContentType();
+        if (contentTypeResult.IsFailure)
         {
-            return Result.Failure<PresignedDownloadUrl>(Error.Conflict("File is not ready for download."));
+            return Result.Failure<PresignedDownloadUrl>(contentTypeResult.Errors);
         }
 
         var download = await fileStorage.GetPresignedDownloadUrlAsync(
             key: file.StorageKey.Value,
             fileName: file.Name.Value,
-            contentType: contentType.Value,
+            contentType: contentTypeResult.Value.Value,
             cancellationToken: cancellationToken);
 
         return Result.Success(download);
