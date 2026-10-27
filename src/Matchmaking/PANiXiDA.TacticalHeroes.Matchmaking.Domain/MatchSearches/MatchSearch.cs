@@ -12,7 +12,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         MatchSearchId id,
         PlayerId playerId,
         BuildId buildId,
-        RatingSnapshot rating,
+        Raiting rating,
         MatchmakingMode mode,
         MatchmakingTimestamp queuedAt,
         MatchmakingTimestamp expiresAt)
@@ -29,7 +29,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
 
     public PlayerId PlayerId { get; private set; }
     public BuildId BuildId { get; private set; }
-    public RatingSnapshot Rating { get; private set; }
+    public Raiting Rating { get; private set; }
     public MatchmakingMode Mode { get; private set; }
     public MatchmakingTimestamp QueuedAt { get; private set; }
     public MatchmakingTimestamp ExpiresAt { get; private set; }
@@ -38,7 +38,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
     public static Result<MatchSearch> Create(
         PlayerId playerId,
         BuildId buildId,
-        RatingSnapshot rating,
+        Raiting rating,
         MatchmakingMode mode,
         MatchmakingTimestamp queuedAt,
         MatchmakingTimestamp expiresAt)

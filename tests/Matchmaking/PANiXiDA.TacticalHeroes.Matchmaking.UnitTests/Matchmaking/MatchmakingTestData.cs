@@ -19,7 +19,7 @@ internal static class MatchmakingTestData
         return MatchSearch.Create(
             PlayerId.Create(playerId ?? Guid.CreateVersion7()).Value,
             BuildId.Create(Guid.CreateVersion7()).Value,
-            RatingSnapshot.Create(1500),
+            Raiting.Create(1500),
             mode ?? MatchmakingMode.RankedDuel,
             At(0),
             At(expiresAt)).Value;

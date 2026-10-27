@@ -36,7 +36,7 @@ internal sealed class MatchSearchConfiguration : AuditableEntityConfiguration<Ma
         builder.Property(search => search.Rating)
             .HasConversion(
                 rating => rating.Value,
-                value => RatingSnapshot.Create(value))
+                value => Raiting.Create(value))
             .IsRequired();
 
         builder.Property(search => search.Mode)
