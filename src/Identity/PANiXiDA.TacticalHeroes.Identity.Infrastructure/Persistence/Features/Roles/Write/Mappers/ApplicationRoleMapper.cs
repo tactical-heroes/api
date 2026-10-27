@@ -79,7 +79,7 @@ internal static class ApplicationRoleMapper
             domainClaims.Add(RoleClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
-        return Result.Success(value: Role.Create(
+        return Result.Success(value: Role.Restore(
             id: idResult.Value,
             name: nameResult.Value,
             defaultFlag: defaultFlagResult.Value,

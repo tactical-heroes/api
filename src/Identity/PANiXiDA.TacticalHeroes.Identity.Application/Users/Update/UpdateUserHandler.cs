@@ -15,7 +15,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrent
 {
     public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
 
-    public Task<Result> HandleAsync(
+    public async Task<Result> HandleAsync(
         UpdateUserCommand command,
         CancellationToken cancellationToken)
     {
@@ -28,7 +28,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrent
 
         if (validationResult.IsFailure)
         {
-            return Task.FromResult(Result.Failure(errors: validationResult.Errors));
+            return Result.Failure(errors: validationResult.Errors);
         }
 
         var claims = new List<UserClaim>();
@@ -41,14 +41,23 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrent
 
             if (claimResult.IsFailure)
             {
-                return Task.FromResult(Result.Failure(errors: claimResult.Errors));
+                return Result.Failure(errors: claimResult.Errors);
             }
 
             claims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
         }
 
-        var user = User.Create(
+        var userResult = await usersRepository.GetByIdAsync(
             id: idResult.Value,
+            cancellationToken: cancellationToken);
+
+        if (userResult.IsFailure)
+        {
+            return Result.Failure(errors: userResult.Errors);
+        }
+
+        var user = userResult.Value;
+        user.Update(
             email: emailResult.Value,
             userName: userNameResult.Value,
             status: statusResult.Value,
@@ -56,7 +65,7 @@ public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrent
             roleIds: roleIdsResult.Value,
             claims: claims);
 
-        return usersRepository.UpdateAsync(
+        return await usersRepository.UpdateAsync(
             user: user,
             currentAccessToken: currentUser.UserId == command.Id ? currentUser.AccessToken : null,
             cancellationToken: cancellationToken);

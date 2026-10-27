@@ -18,6 +18,40 @@ namespace PANiXiDA.TacticalHeroes.Players.IntegrationTests.Infrastructure.Persis
 public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Fact(DisplayName = "Player lookup should return the matching profile when user has a player")]
+    public async Task GetByUserIdAsync_Should_ReturnMatchingProfile_When_UserHasAPlayer()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var existing = CreatePlayer();
+        var avatarFileId = FileId.New();
+        existing.ChangeAvatar(avatarFileId);
+        existing.ChangeRating(Rating.Create(1700));
+        await AddPlayersAsync([CreatePlayer(), existing], ct);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IPlayersRepository>();
+
+        var restored = await repository.GetByUserIdAsync(existing.UserId, ct);
+
+        restored.ShouldNotBeNull();
+        restored.Id.ShouldBe(existing.Id);
+        restored.UserId.ShouldBe(existing.UserId);
+        restored.Rating.Value.ShouldBe(1700);
+        restored.AvatarFileId.ShouldBe(avatarFileId);
+    }
+
+    [Fact(DisplayName = "Player lookup should return null when user has no player")]
+    public async Task GetByUserIdAsync_Should_ReturnNull_When_UserHasNoPlayer()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await AddPlayersAsync([CreatePlayer()], ct);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IPlayersRepository>();
+
+        var player = await repository.GetByUserIdAsync(UserId.New(), ct);
+
+        player.ShouldBeNull();
+    }
+
     [Fact(DisplayName = "Player should round trip its initial profile when saved")]
     public async Task GetByIdAsync_Should_RestoreInitialProfile_When_Saved()
     {

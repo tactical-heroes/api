@@ -45,6 +45,22 @@ public sealed class Role : AggregateRoot<RoleId>
         return role;
     }
 
+    public static Role Restore(
+        RoleId id,
+        RoleName name,
+        RoleDefaultFlag defaultFlag,
+        IEnumerable<RoleClaim> claims)
+    {
+        var role = new Role(
+            id: id,
+            name: name,
+            defaultFlag: defaultFlag);
+
+        role._claims.AddRange(claims.DistinctBy(claim => (claim.Type, claim.Value)));
+
+        return role;
+    }
+
     public void GrantClaim(RoleClaim claim)
     {
         if (_claims.Any(existing => existing.Type == claim.Type && existing.Value == claim.Value))

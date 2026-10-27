@@ -5,6 +5,7 @@ using Npgsql;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
@@ -38,6 +39,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
             var restored = (await repository.GetByIdAsync(search.Id, cancellationToken))!;
             restored.PlayerId.ShouldBe(search.PlayerId);
             restored.BuildId.ShouldBe(search.BuildId);
+            restored.GameId.ShouldBeNull();
             restored.Rating.ShouldBe(search.Rating);
             restored.Mode.ShouldBe(search.Mode);
             restored.ExpiresAt.ShouldBe(search.ExpiresAt);
@@ -54,15 +56,27 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         row.Status.ShouldBe(MatchSearchStatus.Cancelled.Name);
         row.PlayerId.ShouldBe(search.PlayerId.Value);
         row.BuildId.ShouldBe(search.BuildId.Value);
+        row.GameId.ShouldBeNull();
         row.Mode.ShouldBe(mode);
     }
 
-    [Fact(DisplayName = "Repository should reject second active search when player queues across modes")]
-    public async Task Add_Should_RejectSecondActiveSearch_When_PlayerQueuesAcrossModes()
+    [Theory(DisplayName = "Repository should reject second active search when player queues across modes")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Add_Should_RejectSecondActiveSearch_When_PlayerQueuesAcrossModes(
+        bool firstMatched,
+        bool secondMatched)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
         var first = CreateSearch();
+        if (firstMatched)
+        {
+            first.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        }
+
         await using (var scope = fixture.CreateScope())
         {
             scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>().Add(first);
@@ -70,8 +84,14 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         }
 
         await using var duplicateScope = fixture.CreateScope();
+        var second = CreateSearch(first.PlayerId.Value, MatchmakingMode.CasualDuel);
+        if (secondMatched)
+        {
+            second.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        }
+
         duplicateScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
-            .Add(CreateSearch(first.PlayerId.Value, MatchmakingMode.CasualDuel));
+            .Add(second);
         var exception = await Should.ThrowAsync<Exception>(() =>
             UnitOfWork(duplicateScope.ServiceProvider).SaveChangesAsync(cancellationToken));
 
@@ -79,16 +99,45 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBe(PostgresErrorCodes.UniqueViolation);
     }
 
-    [Fact(DisplayName = "Repository should allow new search when previous search was cancelled")]
-    public async Task Add_Should_AllowNewSearch_When_PreviousSearchWasCancelled()
+    [Theory(DisplayName = "Repository should allow new search when previous search became terminal")]
+    [InlineData("Cancelled")]
+    [InlineData("Expired")]
+    [InlineData("Closed")]
+    public async Task Add_Should_AllowNewSearch_When_PreviousSearchBecameTerminal(string status)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
         var first = CreateSearch();
-        first.Cancel().IsSuccess.ShouldBeTrue();
+        await using (var initialScope = fixture.CreateScope())
+        {
+            var initialRepository = initialScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+            initialRepository.Add(first);
+            await UnitOfWork(initialScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+
+            if (status == "Closed")
+            {
+                first.Matched(At(1)).IsSuccess.ShouldBeTrue();
+                initialRepository.Update(first);
+                await UnitOfWork(initialScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+                first.Close().IsSuccess.ShouldBeTrue();
+            }
+            else if (status == "Expired")
+            {
+                first.Expire(At(300)).IsSuccess.ShouldBeTrue();
+            }
+            else
+            {
+                first.Cancel().IsSuccess.ShouldBeTrue();
+            }
+
+            initialRepository.Update(first);
+            await UnitOfWork(initialScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        }
+
         await using var scope = fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
-        repository.Add(first);
+        var restored = (await repository.GetByIdAsync(first.Id, cancellationToken))!;
+        restored.Status.Name.ShouldBe(status);
         repository.Add(CreateSearch(first.PlayerId.Value));
 
         await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
@@ -129,6 +178,60 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         row.Status.ShouldBe(MatchSearchStatus.Matched.Name);
         row.PlayerId.ShouldBe(search.PlayerId.Value);
         row.BuildId.ShouldBe(search.BuildId.Value);
+    }
+
+    [Theory(DisplayName = "Repository should preserve shared game when assigned searches are reloaded")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetByIdAsync_Should_PreserveSharedGame_When_AssignedSearchesAreReloaded(bool closed)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(cancellationToken);
+        var first = CreateSearch();
+        var second = CreateSearch();
+        var gameId = GameId.New();
+        await using (var scope = fixture.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+            repository.Add(first);
+            repository.Add(second);
+            await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        }
+
+        await using (var scope = fixture.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+            foreach (var id in new[] { first.Id, second.Id })
+            {
+                var restored = (await repository.GetByIdAsync(id, cancellationToken))!;
+                restored.Matched(At(1)).IsSuccess.ShouldBeTrue();
+                restored.AssignGame(gameId).IsSuccess.ShouldBeTrue();
+                if (closed)
+                {
+                    restored.Close().IsSuccess.ShouldBeTrue();
+                }
+
+                repository.Update(restored);
+            }
+
+            await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        }
+
+        await using var readScope = fixture.CreateScope();
+        var readRepository = readScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+        var firstRestored = (await readRepository.GetByIdAsync(first.Id, cancellationToken))!;
+        var secondRestored = (await readRepository.GetByIdAsync(second.Id, cancellationToken))!;
+        firstRestored.GameId.ShouldBe(gameId);
+        secondRestored.GameId.ShouldBe(gameId);
+        var expectedStatus = closed ? MatchSearchStatus.Closed : MatchSearchStatus.Matched;
+        firstRestored.Status.ShouldBe(expectedStatus);
+        secondRestored.Status.ShouldBe(expectedStatus);
+        var readContext = readScope.ServiceProvider.GetRequiredService<MatchmakingReadDbContext>();
+        var rows = await readContext.Set<MatchSearchReadDbModel>()
+            .Where(row => row.GameId == gameId.Value)
+            .ToListAsync(cancellationToken);
+        rows.Count.ShouldBe(2);
+        rows.ShouldAllBe(row => row.Status == expectedStatus.Name);
     }
 
     [Fact(DisplayName = "Repository should reject stale cancellation when search was matched concurrently")]
