@@ -12,7 +12,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Application\PANiXiDA.TacticalHeroes.Matchmaking.Application.csproj" />
-        <ProjectReference Include="..\..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Contracts\PANiXiDA.TacticalHeroes.Matchmaking.Contracts.csproj" />
         <ProjectReference Include="..\..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Domain\PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
         <ProjectReference Include="..\..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure\PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.csproj" />
         <ProjectReference Include="..\..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Presentation\PANiXiDA.TacticalHeroes.Matchmaking.Presentation.csproj" />
