@@ -188,73 +188,20 @@ The base prefix is `production`; `appsettings.Development.json` sets `developmen
 
 ## File Upload Reconciliation
 
-The host calls FileManager's `AddFileManagerSchedules` extension. The module's
-`Scheduling/ScheduledCommands.cs` registers `ReconcileFileUploadsCommand`
-through Core Wolverine's `AddRecurringCommand`. Its schedule is configured under
-`FileManager:Schedules:ReconcileFileUploadsCommand`: `Enabled`, a stable
-`Name`, `CronExpression` (five-field cron, `*/5 * * * *` by default), and
-`TimeZoneId` (`UTC`). Wolverine persists recurring schedules in its message store
-and coordinates scheduling across replicas.
+Core Wolverine runs `ReconcileFileUploadsCommand` every five minutes for all file
+types. It completes pending uploads with valid S3 metadata, expires missing or
+invalid uploads, and retries S3 deletion before soft-deleting records. Recently
+soft-deleted files are checked for late objects; storage errors are retried.
 
-Operational settings remain under `FileManager:UploadReconciliation`:
-`MinimumAge` defaults to fifteen minutes, `ExpirationAge` defaults to one day and
-must exceed `MinimumAge`, and `BatchSize` controls database page size (1–1000).
-`DeletedFileRecheckWindow` is a positive duration, defaulting to one day after
-`DeletedAt`, during which soft-deleted files are checked for late S3 objects.
-The command runs through the FileManager mediator pipeline without
-requesting an enclosing transaction; each file is finalized independently.
+Schedule: `FileManager:Schedules:ReconcileFileUploadsCommand` (`*/5 * * * *`, UTC).
+Settings under `FileManager:UploadReconciliation` default to `MinimumAge` = 15 minutes,
+`ExpirationAge` = one day, `DeletedFileRecheckWindow` = one day after `DeletedAt`,
+and `BatchSize` = 100 (1–1000).
 
-The first enabled recurring schedule extends Wolverine's message-store schema.
-Apply it using the host's JasperFx `db-apply` command with the target environment's
-configuration before starting replicas where automatic schema updates are disabled.
-The EF migrator only manages module schemas, not Wolverine's message-store tables.
-
-The recurring command handler receives file aggregates of every type directly from
-`IFilesRepository`: pending uploads before expiration, expired pending uploads,
-files in `Deleting` state, and soft-deleted files. Each repository sequence captures fixed
-age cutoffs and preserves optimistic concurrency tokens. Each database page
-is fully loaded before checking S3, so storage requests do not keep a database
-reader open. The handler reads metadata through Core's `IFileStorage.GetMetadataAsync`
-using each aggregate's persisted key and the upload adapter's environment prefix,
-then calls `File.CompleteUpload` and saves through the unit of work. HTTP uploads
-complete and save through their existing repository/unit-of-work flow.
-
-Existing optimistic concurrency tokens protect updates. A conflicting save ends
-the current pass so the next invocation reloads current state; earlier successful
-saves remain committed. No explicit row locks or enclosing S3 transaction are used.
-The age threshold separates recovery from normal uploads but is not a lease:
-an exceptionally long HTTP upload can still receive an optimistic concurrency
-conflict if recovery completes first.
-
-Before `ExpirationAge`, missing objects and invalid metadata leave pending uploads
-unchanged. Inspection errors leave them unchanged at any age. Valid stored content
-is finalized even after expiration. If an expired upload has no stored object or
-its content type or size fails domain validation, the handler calls
-`BeginDeletion` and saves the intent before attempting an idempotent S3 delete.
-Only a successful storage delete is followed by repository deletion and another
-save. Core EF sets `DeletedAt`, so normal write and read queries hide the file.
-The domain retains `Deleting` as the durable deletion intent and has no separate
-`Deleted` enumeration value or `CompleteDeletion` operation.
-Storage errors leave the file `Deleting` for a later invocation; an unavailable
-bucket therefore cannot complete deletion merely because metadata lookup returned
-HTTP 404.
-
-The handler also checks soft-deleted records for objects that appear after deletion,
-such as an upload completing after its original request lost an optimistic version
-race. A dedicated repository query bypasses normal filters and selects files of
-every type whose `DeletedAt` falls within `DeletedFileRecheckWindow` before the
-start of that sequence. The time window stays fixed across database pages. Older
-soft-deleted records are not loaded or checked in S3. Such late objects are deleted
-on a subsequent pass within the window without changing the original deletion
-timestamp; objects appearing after the window are not covered by this check.
-Rows are retained according to Core EF's soft-delete behavior. Paging continues
-past missing objects. Already-ready files are not scanned, and failed uploads are
-not restarted.
-Configure the bucket's `AbortIncompleteMultipartUpload` lifecycle policy to clean
-up incomplete multipart uploads. The worker does not enumerate unrelated objects
-in the bucket, audit ready content, or implement upload-request idempotency.
-This recovery path establishes eventual completion for objects that are present;
-it does not make S3 and PostgreSQL updates atomic or verify an expected checksum.
+Where automatic Wolverine schema updates are disabled, run the host's JasperFx
+`db-apply` before startup; the EF migrator does not manage Wolverine tables.
+Ready files are not scanned. Configure incomplete multipart cleanup separately
+through the S3 bucket's `AbortIncompleteMultipartUpload` lifecycle policy.
 
 ## Repository Layout
 
