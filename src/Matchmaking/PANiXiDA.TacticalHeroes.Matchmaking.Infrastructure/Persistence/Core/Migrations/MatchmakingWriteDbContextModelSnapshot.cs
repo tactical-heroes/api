@@ -50,6 +50,10 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<Guid?>("GameId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("game_id");
+
                     b.Property<string>("Mode")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -87,6 +91,9 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
 
                     b.HasKey("Id")
                         .HasName("pk_match_searches");
+
+                    b.HasIndex("GameId")
+                        .HasDatabaseName("ix_match_searches_game_id");
 
                     b.HasIndex("PlayerId")
                         .IsUnique()

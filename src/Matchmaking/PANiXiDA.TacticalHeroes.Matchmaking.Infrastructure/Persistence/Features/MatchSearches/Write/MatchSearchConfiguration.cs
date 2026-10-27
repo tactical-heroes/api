@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
@@ -32,6 +33,12 @@ internal sealed class MatchSearchConfiguration : AuditableEntityConfiguration<Ma
                 buildId => buildId.Value,
                 value => BuildId.Create(value).Value)
             .IsRequired();
+
+        builder.Property(search => search.GameId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => GameId.Create(value).Value)
+            .IsRequired(required: false);
 
         builder.Property(search => search.Rating)
             .HasConversion(
@@ -71,5 +78,6 @@ internal sealed class MatchSearchConfiguration : AuditableEntityConfiguration<Ma
 
         builder.HasIndex(search => new { search.Mode, search.Status, search.Rating, search.QueuedAt });
         builder.HasIndex(search => new { search.Status, search.ExpiresAt });
+        builder.HasIndex(search => search.GameId);
     }
 }
