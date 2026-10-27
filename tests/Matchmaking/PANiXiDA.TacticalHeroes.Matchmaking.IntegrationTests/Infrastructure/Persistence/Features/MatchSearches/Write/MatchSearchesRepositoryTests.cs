@@ -8,6 +8,7 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 
@@ -309,5 +310,71 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         var repositoryAfterRollback = readScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
         var row = (await repositoryAfterRollback.GetByIdAsync(search.Id, cancellationToken))!;
         row.Status.ShouldBe(MatchSearchStatus.Searching);
+    }
+
+    [Theory(DisplayName = "Repository should return occupied search when player has stored history")]
+    [InlineData("Searching", true)]
+    [InlineData("Matched", true)]
+    [InlineData("Cancelled", false)]
+    [InlineData("Expired", false)]
+    [InlineData("Closed", false)]
+    public async Task GetActiveByPlayerIdForUpdateAsync_Should_ReturnOccupiedSearch_When_PlayerHasStoredHistory(
+        string status, bool expected)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(ct);
+        var search = CreateSearch();
+        if (status is "Matched" or "Closed")
+        {
+            search.Matched(At(1)).IsSuccess.ShouldBeTrue();
+            if (status == "Closed")
+            {
+                search.Close().IsSuccess.ShouldBeTrue();
+            }
+        }
+        else if (status == "Cancelled")
+        {
+            search.Cancel().IsSuccess.ShouldBeTrue();
+        }
+        else if (status == "Expired")
+        {
+            search.Expire(At(300)).IsSuccess.ShouldBeTrue();
+        }
+
+        await using (var writeScope = fixture.CreateScope())
+        {
+            var repository = writeScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+            repository.Add(search);
+            repository.Add(CreateSearch());
+            await UnitOfWork(writeScope.ServiceProvider).SaveChangesAsync(ct);
+        }
+
+        await using var scope = fixture.CreateScope();
+        var unitOfWork = UnitOfWork(scope.ServiceProvider);
+        await unitOfWork.BeginTransactionAsync(ct);
+        var restored = await scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
+            .GetActiveByPlayerIdForUpdateAsync(search.PlayerId, ct);
+        await unitOfWork.RollbackTransactionAsync(ct);
+        await unitOfWork.DisposeTransactionAsync();
+
+        (restored is not null).ShouldBe(expected);
+        if (expected)
+        {
+            restored!.Id.ShouldBe(search.Id);
+            restored.Status.Name.ShouldBe(status);
+        }
+    }
+
+    [Fact(DisplayName = "Repository should reject locking when transaction is missing")]
+    public async Task GetActiveByPlayerIdForUpdateAsync_Should_RejectLocking_When_TransactionIsMissing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+
+        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+            repository.GetActiveByPlayerIdForUpdateAsync(PlayerId.New(), ct));
+
+        exception.Message.ShouldContain("active transaction");
     }
 }

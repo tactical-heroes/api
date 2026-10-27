@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +19,8 @@ internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactor
             new Dictionary<string, string?>
             {
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
-                ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret"
+                ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret",
+                ["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] = "false"
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
@@ -34,6 +37,13 @@ internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactor
                 services.Remove(seederHostedService);
             }
 
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = TestAuthenticationHandler.SchemeName;
+                options.DefaultChallengeScheme = TestAuthenticationHandler.SchemeName;
+            })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                    TestAuthenticationHandler.SchemeName, _ => { });
             services.RunWolverineInSoloMode();
         });
     }

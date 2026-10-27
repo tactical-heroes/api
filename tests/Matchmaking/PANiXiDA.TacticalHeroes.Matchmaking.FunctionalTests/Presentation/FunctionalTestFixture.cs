@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase _database = new("matchmaking");
+    private readonly PostgreSqlTestDatabase _database = new("matchmaking", isolateDatabase: true);
 
     private FunctionalTestWebApplicationFactory? _factory;
     private string? _previousConnectionString;
