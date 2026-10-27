@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Players.Application.Players.Abstractions;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
@@ -16,7 +15,7 @@ public sealed class PlayersReadRepositoryTests(IntegrationTestFixture fixture)
     public async Task ExistsByIdAsync_Should_ReportPersistedPlayers_When_PlayersExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var player = Player.Create(UserId.New(), Nickname.Create("Commander").Value);
+        var player = Player.Create(UserId.New());
         await using (var scope = Fixture.CreateScope())
         {
             scope.ServiceProvider.GetRequiredService<IPlayersRepository>().Add(player);
@@ -41,7 +40,7 @@ public sealed class PlayersReadRepositoryTests(IntegrationTestFixture fixture)
             (await repository.AnyAsync(cancellationToken)).ShouldBeFalse();
         }
 
-        var player = Player.Create(UserId.New(), Nickname.Create("Commander").Value);
+        var player = Player.Create(UserId.New());
         await using (var scope = Fixture.CreateScope())
         {
             scope.ServiceProvider.GetRequiredService<IPlayersRepository>().Add(player);

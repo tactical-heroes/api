@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
-    public partial class _20261027_105713_Add_players_Table_Add_ix_players_normalized_nickname_In_4F1791EE : Migration
+    public partial class _20261027_112742_Add_players_Table_Add_ix_players_user_id_Index_To_players_Table : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,23 +21,14 @@ namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrat
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    nickname = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     avatar_file_id = table.Column<Guid>(type: "uuid", nullable: true),
                     rating = table.Column<int>(type: "integer", nullable: false),
-                    normalized_nickname = table.Column<string>(type: "text", nullable: false, computedColumnSql: "upper(nickname)", stored: true),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_players", x => x.id);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_players_normalized_nickname",
-                schema: "players",
-                table: "players",
-                column: "normalized_nickname",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_players_user_id",

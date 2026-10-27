@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using PANiXiDA.TacticalHeroes.Players.Domain.Files;
@@ -26,13 +25,6 @@ internal sealed class PlayerConfiguration : AuditableEntityConfiguration<Player>
                 value => UserId.Create(value).Value)
             .IsRequired();
 
-        builder.Property(player => player.Nickname)
-            .HasConversion(
-                nickname => nickname.Value,
-                value => Nickname.Create(value).Value)
-            .HasMaxLength(Nickname.MaxLength)
-            .IsRequired();
-
         builder.Property(player => player.AvatarFileId)
             .HasConversion(
                 id => id!.Value.Value,
@@ -45,11 +37,6 @@ internal sealed class PlayerConfiguration : AuditableEntityConfiguration<Player>
                 value => Rating.Create(value))
             .IsRequired();
 
-        builder.Property<string>("NormalizedNickname")
-            .HasComputedColumnSql("upper(nickname)", stored: true)
-            .IsRequired();
-
         builder.HasIndex(player => player.UserId).IsUnique();
-        builder.HasIndex("NormalizedNickname").IsUnique();
     }
 }

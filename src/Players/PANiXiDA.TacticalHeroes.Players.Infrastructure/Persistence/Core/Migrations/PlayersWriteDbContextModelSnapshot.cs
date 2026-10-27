@@ -46,19 +46,6 @@ namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrat
                         .HasColumnName("deleted_at")
                         .HasColumnOrder(3);
 
-                    b.Property<string>("Nickname")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("nickname");
-
-                    b.Property<string>("NormalizedNickname")
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("text")
-                        .HasColumnName("normalized_nickname")
-                        .HasComputedColumnSql("upper(nickname)", true);
-
                     b.Property<int>("Rating")
                         .HasColumnType("integer")
                         .HasColumnName("rating");
@@ -80,10 +67,6 @@ namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrat
 
                     b.HasKey("Id")
                         .HasName("pk_players");
-
-                    b.HasIndex("NormalizedNickname")
-                        .IsUnique()
-                        .HasDatabaseName("ix_players_normalized_nickname");
 
                     b.HasIndex("UserId")
                         .IsUnique()

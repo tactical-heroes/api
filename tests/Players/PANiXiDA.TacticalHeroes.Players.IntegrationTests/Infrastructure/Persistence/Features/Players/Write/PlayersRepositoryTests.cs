@@ -22,7 +22,7 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
     public async Task GetByIdAsync_Should_RestoreInitialProfile_When_Saved()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var player = CreatePlayer("  Commander  ");
+        var player = CreatePlayer();
         await AddPlayersAsync([player], cancellationToken);
 
         await using var scope = Fixture.CreateScope();
@@ -32,7 +32,6 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
         restored.ShouldNotBeNull();
         restored.Id.ShouldBe(player.Id);
         restored.UserId.ShouldBe(player.UserId);
-        restored.Nickname.Value.ShouldBe("Commander");
         restored.AvatarFileId.ShouldBeNull();
         restored.Rating.Value.ShouldBe(1000);
     }
@@ -41,16 +40,14 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
     public async Task Update_Should_PersistChangedValues_When_ProfileAndRatingAreSaved()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var player = CreatePlayer("Commander");
+        var player = CreatePlayer();
         var avatarFileId = FileId.New();
-        var nickname = new string('я', Nickname.MaxLength);
         await AddPlayersAsync([player], cancellationToken);
 
         await using (var scope = Fixture.CreateScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IPlayersRepository>();
             var loaded = (await repository.GetByIdAsync(player.Id, cancellationToken))!;
-            loaded.ChangeNickname(Nickname.Create(nickname).Value);
             loaded.ChangeAvatar(avatarFileId);
             loaded.ChangeRating(Rating.Create(-100));
 
@@ -67,12 +64,9 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
 
         restored.ShouldNotBeNull();
         restored.UserId.ShouldBe(player.UserId);
-        restored.Nickname.Value.ShouldBe(nickname);
         restored.AvatarFileId.ShouldBe(avatarFileId);
         restored.Rating.Value.ShouldBe(-100);
         readModel.UserId.ShouldBe(player.UserId.Value);
-        readModel.Nickname.ShouldBe(nickname);
-        readModel.NormalizedNickname.ShouldBe(new string('Я', Nickname.MaxLength));
         readModel.AvatarFileId.ShouldBe(avatarFileId.Value);
         readModel.Rating.ShouldBe(-100);
     }
@@ -81,7 +75,7 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
     public async Task Update_Should_PersistEmptyAvatar_When_AvatarIsRemoved()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var player = CreatePlayer("Commander");
+        var player = CreatePlayer();
         player.ChangeAvatar(FileId.New());
         await AddPlayersAsync([player], cancellationToken);
 
@@ -107,9 +101,9 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
     public async Task Add_Should_RejectAnotherProfile_When_UserAlreadyHasAPlayer()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var first = CreatePlayer("First");
+        var first = CreatePlayer();
         await AddPlayersAsync([first], cancellationToken);
-        var second = Player.Create(first.UserId, Nickname.Create("Second").Value);
+        var second = Player.Create(first.UserId);
         await using var scope = Fixture.CreateScope();
         scope.ServiceProvider.GetRequiredService<IPlayersRepository>().Add(second);
         var context = scope.ServiceProvider.GetRequiredService<PlayersWriteDbContext>();
@@ -122,58 +116,11 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
         postgresException.ConstraintName.ShouldBe("ix_players_user_id");
     }
 
-    [Theory(DisplayName = "Player persistence should reject a nickname when an equivalent nickname exists")]
-    [InlineData("Commander", "Commander")]
-    [InlineData("Commander", "commander")]
-    [InlineData("Commander", "  COMMANDER  ")]
-    [InlineData("Командир", "командир")]
-    public async Task Add_Should_RejectNickname_When_AnEquivalentNicknameExists(string firstName, string secondName)
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await AddPlayersAsync([CreatePlayer(firstName)], cancellationToken);
-        await using var scope = Fixture.CreateScope();
-        scope.ServiceProvider.GetRequiredService<IPlayersRepository>().Add(CreatePlayer(secondName));
-        var context = scope.ServiceProvider.GetRequiredService<PlayersWriteDbContext>();
-
-        var exception = await Should.ThrowAsync<DbUpdateException>(
-            () => context.SaveChangesAsync(cancellationToken));
-
-        var postgresException = exception.InnerException.ShouldBeOfType<PostgresException>();
-        postgresException.SqlState.ShouldBe(PostgresErrorCodes.UniqueViolation);
-        postgresException.ConstraintName.ShouldBe("ix_players_normalized_nickname");
-    }
-
-    [Fact(DisplayName = "Player persistence should preserve its nickname when a rename conflicts")]
-    public async Task Update_Should_PreserveNickname_When_ARenameConflicts()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var first = CreatePlayer("First");
-        var second = CreatePlayer("Second");
-        await AddPlayersAsync([first, second], cancellationToken);
-        await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IPlayersRepository>();
-        var loaded = (await repository.GetByIdAsync(second.Id, cancellationToken))!;
-        loaded.ChangeNickname(Nickname.Create("FIRST").Value);
-        repository.Update(loaded);
-        var context = scope.ServiceProvider.GetRequiredService<PlayersWriteDbContext>();
-
-        var exception = await Should.ThrowAsync<DbUpdateException>(
-            () => context.SaveChangesAsync(cancellationToken));
-
-        var postgresException = exception.InnerException.ShouldBeOfType<PostgresException>();
-        postgresException.SqlState.ShouldBe(PostgresErrorCodes.UniqueViolation);
-        await using var verificationScope = Fixture.CreateScope();
-        var restored = await verificationScope.ServiceProvider.GetRequiredService<IPlayersRepository>()
-            .GetByIdAsync(second.Id, cancellationToken);
-        restored.ShouldNotBeNull();
-        restored.Nickname.Value.ShouldBe("Second");
-    }
-
     [Fact(DisplayName = "Player persistence should reject a stale profile when a new rating was saved first")]
     public async Task Update_Should_RejectStaleProfile_When_ANewRatingWasSavedFirst()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var player = CreatePlayer("Commander");
+        var player = CreatePlayer();
         await AddPlayersAsync([player], cancellationToken);
         await using var ratingScope = Fixture.CreateScope();
         await using var profileScope = Fixture.CreateScope();
@@ -184,7 +131,7 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
         ratingPlayer.ChangeRating(Rating.Create(1400));
         ratingRepository.Update(ratingPlayer);
         await GetUnitOfWork(ratingScope.ServiceProvider).SaveChangesAsync(cancellationToken);
-        profilePlayer.ChangeNickname(Nickname.Create("Admiral").Value);
+        profilePlayer.ChangeAvatar(FileId.New());
         profileRepository.Update(profilePlayer);
 
         var exception = await Should.ThrowAsync<ConcurrencyException>(
@@ -196,12 +143,12 @@ public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
             .GetByIdAsync(player.Id, cancellationToken);
         restored.ShouldNotBeNull();
         restored.Rating.Value.ShouldBe(1400);
-        restored.Nickname.Value.ShouldBe("Commander");
+        restored.AvatarFileId.ShouldBeNull();
     }
 
-    private static Player CreatePlayer(string nickname)
+    private static Player CreatePlayer()
     {
-        return Player.Create(UserId.New(), Nickname.Create(nickname).Value);
+        return Player.Create(UserId.New());
     }
 
     private static IUnitOfWork GetUnitOfWork(IServiceProvider services)

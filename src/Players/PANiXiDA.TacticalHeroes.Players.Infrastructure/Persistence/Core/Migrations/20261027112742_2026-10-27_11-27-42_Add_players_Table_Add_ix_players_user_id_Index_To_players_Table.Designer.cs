@@ -12,8 +12,8 @@ using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(PlayersWriteDbContext))]
-    [Migration("20261027105713_2026-10-27_10-57-13_Add_players_Table_Add_ix_players_normalized_nickname_In_4F1791EE")]
-    partial class _20261027_105713_Add_players_Table_Add_ix_players_normalized_nickname_In_4F1791EE
+    [Migration("20261027112742_2026-10-27_11-27-42_Add_players_Table_Add_ix_players_user_id_Index_To_players_Table")]
+    partial class _20261027_112742_Add_players_Table_Add_ix_players_user_id_Index_To_players_Table
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,19 +49,6 @@ namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrat
                         .HasColumnName("deleted_at")
                         .HasColumnOrder(3);
 
-                    b.Property<string>("Nickname")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("nickname");
-
-                    b.Property<string>("NormalizedNickname")
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("text")
-                        .HasColumnName("normalized_nickname")
-                        .HasComputedColumnSql("upper(nickname)", true);
-
                     b.Property<int>("Rating")
                         .HasColumnType("integer")
                         .HasColumnName("rating");
@@ -83,10 +70,6 @@ namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrat
 
                     b.HasKey("Id")
                         .HasName("pk_players");
-
-                    b.HasIndex("NormalizedNickname")
-                        .IsUnique()
-                        .HasDatabaseName("ix_players_normalized_nickname");
 
                     b.HasIndex("UserId")
                         .IsUnique()
