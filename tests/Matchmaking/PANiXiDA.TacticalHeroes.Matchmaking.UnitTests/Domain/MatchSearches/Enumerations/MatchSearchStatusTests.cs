@@ -6,8 +6,7 @@ public sealed class MatchSearchStatusTests
 {
     [Theory(DisplayName = "Search status should accept lifecycle states when parsed")]
     [InlineData("Searching", "Поиск матча")]
-    [InlineData("Reserved", "Пара найдена")]
-    [InlineData("Assigned", "Игра назначена")]
+    [InlineData("Matched", "Матч найден")]
     [InlineData("Cancelled", "Поиск отменён")]
     [InlineData("Expired", "Время поиска истекло")]
     public void Create_Should_AcceptLifecycleStates_When_Parsed(string value, string displayName)
@@ -45,8 +44,7 @@ public sealed class MatchSearchStatusTests
         string[] expected =
         [
             "Searching",
-            "Reserved",
-            "Assigned",
+            "Matched",
             "Cancelled",
             "Expired",
         ];

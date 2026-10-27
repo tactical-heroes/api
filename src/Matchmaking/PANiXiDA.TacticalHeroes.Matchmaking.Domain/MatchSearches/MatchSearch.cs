@@ -1,5 +1,4 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
@@ -35,7 +34,6 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
     public MatchmakingTimestamp QueuedAt { get; private set; }
     public MatchmakingTimestamp ExpiresAt { get; private set; }
     public MatchSearchStatus Status { get; private set; }
-    public MatchId? MatchId { get; private set; }
 
     public static Result<MatchSearch> Create(
         PlayerId playerId,
@@ -63,49 +61,33 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         return Result.Success(search);
     }
 
-    public Result Reserve(MatchId matchId, MatchmakingTimestamp now)
+    public Result MatchWith(MatchSearch other, MatchmakingTimestamp now)
     {
-        if (matchId.Value == Guid.Empty)
+        if (Id == other.Id || PlayerId == other.PlayerId || Mode != other.Mode)
         {
-            return Result.Failure(Error.Validation("Match id cannot be empty."));
+            return Result.Failure(Error.Validation("A duel requires distinct players and searches in the same mode."));
         }
 
-        if (Status == MatchSearchStatus.Reserved && MatchId == matchId)
+        if (!IsActive(now) || !other.IsActive(now))
         {
-            return Result.Success();
+            return Result.Failure(Error.Conflict("Both searches must be active."));
         }
 
-        if (Status != MatchSearchStatus.Searching || now.Value < QueuedAt.Value || now.Value >= ExpiresAt.Value)
-        {
-            return Result.Failure(Error.Conflict("Only an active search can be reserved."));
-        }
-
-        MatchId = matchId;
-        Status = MatchSearchStatus.Reserved;
+        Status = MatchSearchStatus.Matched;
+        other.Status = MatchSearchStatus.Matched;
         RecordStateChanged();
-
-        return Result.Success();
-    }
-
-    public Result MarkAssigned(MatchId matchId)
-    {
-        if (MatchId != matchId || matchId.Value == Guid.Empty)
-        {
-            return Result.Failure(Error.Conflict("Search does not belong to this match."));
-        }
-
-        if (Status == MatchSearchStatus.Assigned)
-        {
-            return Result.Success();
-        }
-
-        if (Status != MatchSearchStatus.Reserved)
-        {
-            return Result.Failure(Error.Conflict("Only a reserved search can be assigned to a game."));
-        }
-
-        Status = MatchSearchStatus.Assigned;
-        RecordStateChanged();
+        other.RecordStateChanged();
+        AddDomainEvent(new MatchFound(
+            FirstMatchSearchId: Id.Value,
+            FirstPlayerId: PlayerId.Value,
+            FirstBuildId: BuildId.Value,
+            FirstRating: Rating.Value,
+            SecondMatchSearchId: other.Id.Value,
+            SecondPlayerId: other.PlayerId.Value,
+            SecondBuildId: other.BuildId.Value,
+            SecondRating: other.Rating.Value,
+            Mode: Mode.Value,
+            MatchedAt: now.Value));
 
         return Result.Success();
     }
@@ -117,9 +99,9 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
             return Result.Success();
         }
 
-        if (Status != MatchSearchStatus.Searching && Status != MatchSearchStatus.Reserved)
+        if (Status != MatchSearchStatus.Searching)
         {
-            return Result.Failure(Error.Conflict("Only a searching or reserved search can be cancelled."));
+            return Result.Failure(Error.Conflict("Only a searching search can be cancelled."));
         }
 
         Status = MatchSearchStatus.Cancelled;
@@ -146,12 +128,18 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         return Result.Success();
     }
 
+    private bool IsActive(MatchmakingTimestamp now)
+    {
+        return Status == MatchSearchStatus.Searching
+            && now.Value >= QueuedAt.Value
+            && now.Value < ExpiresAt.Value;
+    }
+
     private void RecordStateChanged()
     {
         AddDomainEvent(new MatchSearchStateChanged(
             MatchSearchId: Id.Value,
             PlayerId: PlayerId.Value,
-            Status: Status.Name,
-            MatchId: MatchId?.Value));
+            Status: Status.Name));
     }
 }

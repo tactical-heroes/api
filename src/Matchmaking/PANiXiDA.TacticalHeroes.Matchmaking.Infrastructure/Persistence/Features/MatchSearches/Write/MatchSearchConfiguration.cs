@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
@@ -66,20 +65,9 @@ internal sealed class MatchSearchConfiguration : AuditableEntityConfiguration<Ma
             .HasMaxLength(MatchSearchStatus.MaxLength)
             .IsRequired();
 
-        builder.Property(search => search.MatchId)
-            .HasConversion(
-                matchId => matchId!.Value.Value,
-                value => MatchId.Create(value).Value)
-            .IsRequired(required: false);
-
-        builder.HasOne<Match>()
-            .WithMany()
-            .HasForeignKey(search => search.MatchId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasIndex(search => search.PlayerId)
             .IsUnique()
-            .HasFilter("deleted_at IS NULL AND status IN ('Searching', 'Reserved')");
+            .HasFilter("deleted_at IS NULL AND status = 'Searching'");
 
         builder.HasIndex(search => new { search.Mode, search.Status, search.Rating, search.QueuedAt });
         builder.HasIndex(search => new { search.Status, search.ExpiresAt });

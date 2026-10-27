@@ -50,10 +50,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
-                    b.Property<Guid?>("MatchId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("match_id");
-
                     b.Property<string>("Mode")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -92,13 +88,10 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     b.HasKey("Id")
                         .HasName("pk_match_searches");
 
-                    b.HasIndex("MatchId")
-                        .HasDatabaseName("ix_match_searches_match_id");
-
                     b.HasIndex("PlayerId")
                         .IsUnique()
                         .HasDatabaseName("ix_match_searches_player_id")
-                        .HasFilter("deleted_at IS NULL AND status IN ('Searching', 'Reserved')");
+                        .HasFilter("deleted_at IS NULL AND status = 'Searching'");
 
                     b.HasIndex("Status", "ExpiresAt")
                         .HasDatabaseName("ix_match_searches_status_expires_at");
@@ -107,147 +100,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasDatabaseName("ix_match_searches_mode_status_rating_queued_at");
 
                     b.ToTable("match_searches", "matchmaking");
-                });
-
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Entities.MatchParticipants.MatchParticipant", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("BuildId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("build_id");
-
-                    b.Property<Guid>("MatchId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("match_id");
-
-                    b.Property<Guid>("MatchSearchId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("match_search_id");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("player_id");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer")
-                        .HasColumnName("rating");
-
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.HasKey("Id")
-                        .HasName("pk_match_participants");
-
-                    b.HasIndex("MatchSearchId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_match_participants_match_search_id");
-
-                    b.HasIndex("MatchId", "PlayerId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_match_participants_match_id_player_id");
-
-                    b.ToTable("match_participants", "matchmaking");
-                });
-
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasColumnOrder(1);
-
-                    b.Property<DateTimeOffset>("CreationDeadline")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("creation_deadline");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at")
-                        .HasColumnOrder(3);
-
-                    b.Property<Guid?>("GameId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("game_id");
-
-                    b.Property<DateTimeOffset>("MatchedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("matched_at");
-
-                    b.Property<string>("Mode")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("mode");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("status");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasColumnOrder(2);
-
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.HasKey("Id")
-                        .HasName("pk_matches");
-
-                    b.HasIndex("GameId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_matches_game_id");
-
-                    b.HasIndex("Status", "CreationDeadline")
-                        .HasDatabaseName("ix_matches_status_creation_deadline");
-
-                    b.ToTable("matches", "matchmaking");
-                });
-
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.MatchSearch", b =>
-                {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", null)
-                        .WithMany()
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_match_searches_match_match_id");
-                });
-
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Entities.MatchParticipants.MatchParticipant", b =>
-                {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", null)
-                        .WithMany("Participants")
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_match_participants_match_match_id");
-
-                    b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.MatchSearch", null)
-                        .WithMany()
-                        .HasForeignKey("MatchSearchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_match_participants_match_searches_match_search_id");
-                });
-
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", b =>
-                {
-                    b.Navigation("Participants");
                 });
 #pragma warning restore 612, 618
         }

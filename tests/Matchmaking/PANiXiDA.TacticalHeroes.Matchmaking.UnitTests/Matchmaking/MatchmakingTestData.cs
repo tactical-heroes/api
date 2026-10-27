@@ -1,5 +1,4 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
@@ -23,10 +22,5 @@ internal static class MatchmakingTestData
             MatchmakingMode.Create(mode).Value,
             At(0),
             At(expiresAt)).Value;
-    }
-
-    internal static Match CreateMatch()
-    {
-        return Match.Create(CreateSearch(), CreateSearch(), At(1), At(60)).Value;
     }
 }
