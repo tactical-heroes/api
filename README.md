@@ -207,8 +207,9 @@ configuration before starting replicas where automatic schema updates are disabl
 The EF migrator only manages module schemas, not Wolverine's message-store tables.
 
 The recurring command handler pages through old pending personal files using
-`IFilesReadRepository` and reads S3 metadata using the persisted key and the upload
-adapter's environment prefix. If the metadata is valid, the handler loads the
+`IFilesReadRepository` and reads stored metadata through Core's
+`IFileStorage.GetMetadataAsync`, using the persisted key and the upload adapter's
+environment prefix. If the metadata is valid, the handler loads the
 aggregate through `IFilesRepository`, rechecks its type, pending status and key,
 then calls `File.CompleteUpload` and saves through the unit of work. HTTP uploads
 complete and save through their existing repository/unit-of-work flow.

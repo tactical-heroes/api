@@ -212,7 +212,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         return new ReconcilePersonalFileUploadsHandler(
             filesRepository: services.GetRequiredService<IFilesRepository>(),
             filesReadRepository: services.GetRequiredService<IFilesReadRepository>(),
-            metadataReader: services.GetRequiredService<IFileMetadataReader>(),
+            fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
             timeProvider: TimeProvider.System,
             options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions

@@ -4,11 +4,12 @@ using NSubstitute.ExceptionExtensions;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Persistence;
+using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -23,7 +24,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
 {
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
     private readonly IFilesReadRepository _readFiles = Substitute.For<IFilesReadRepository>();
-    private readonly IFileMetadataReader _metadata = Substitute.For<IFileMetadataReader>();
+    private readonly IFileStorage _fileStorage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
 
@@ -37,8 +38,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     {
         var file = CreateFile();
         SetPage(file);
-        _metadata.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(new StoredFileMetadata("text/plain", 4));
+        _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4));
         var handler = CreateHandler();
 
         var result = await handler.HandleAsync(
@@ -62,8 +63,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     {
         var file = CreateFile();
         SetPage(file);
-        _metadata.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(contentType is null ? null : new StoredFileMetadata(contentType, size));
+        _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(contentType is null ? null : new FileMetadata(contentType, size));
         var handler = CreateHandler();
 
         var result = await handler.HandleAsync(
@@ -102,8 +103,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
             _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(CreateFile());
         }
 
-        _metadata.GetMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new StoredFileMetadata("text/plain", 4));
+        _fileStorage.GetMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4));
         var handler = CreateHandler();
 
         var result = await handler.HandleAsync(
@@ -129,8 +130,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
                 : call.ArgAt<Guid>(1) == missing.Id.Value
                     ? [new PendingPersonalFileUploadReadModel(uploaded.Id.Value, uploaded.StorageKey.Value)] : []);
         _files.GetByIdAsync(uploaded.Id, Arg.Any<CancellationToken>()).Returns(uploaded);
-        _metadata.GetMetadataAsync(uploaded.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(new StoredFileMetadata("text/plain", 4));
+        _fileStorage.GetMetadataAsync(uploaded.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4));
         var handler = CreateHandler();
 
         await handler.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
@@ -150,10 +151,10 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var failed = CreateFile();
         var uploaded = CreateFile();
         SetPage(failed, uploaded);
-        _metadata.GetMetadataAsync(failed.StorageKey.Value, Arg.Any<CancellationToken>())
+        _fileStorage.GetMetadataAsync(failed.StorageKey.Value, Arg.Any<CancellationToken>())
             .ThrowsAsync(new IOException("Storage unavailable."));
-        _metadata.GetMetadataAsync(uploaded.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(new StoredFileMetadata("text/plain", 4));
+        _fileStorage.GetMetadataAsync(uploaded.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4));
         var handler = CreateHandler();
 
         await handler.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
@@ -201,8 +202,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var conflicted = CreateFile();
         var next = CreateFile();
         SetPage(conflicted, next);
-        _metadata.GetMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new StoredFileMetadata("text/plain", 4));
+        _fileStorage.GetMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4));
         var failure = new ConcurrencyException();
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(failure);
         var handler = CreateHandler();
@@ -212,7 +213,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
 
         exception.ShouldBeSameAs(failure);
         next.Status.ShouldBe(FileStatus.PendingUpload);
-        await _metadata.DidNotReceive().GetMetadataAsync(next.StorageKey.Value, Arg.Any<CancellationToken>());
+        await _fileStorage.DidNotReceive().GetMetadataAsync(next.StorageKey.Value, Arg.Any<CancellationToken>());
     }
 
     private static File CreateFile()
@@ -245,7 +246,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         return new ReconcilePersonalFileUploadsHandler(
             filesRepository: _files,
             filesReadRepository: _readFiles,
-            metadataReader: _metadata,
+            fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
             timeProvider: _timeProvider,
             options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions()),

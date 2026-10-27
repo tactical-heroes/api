@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.Application.Storage.Models;
+
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -15,7 +17,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersona
 public sealed class ReconcilePersonalFileUploadsHandler(
     IFilesRepository filesRepository,
     IFilesReadRepository filesReadRepository,
-    IFileMetadataReader metadataReader,
+    IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider,
     IOptions<FileUploadReconciliationOptions> options,
@@ -44,12 +46,12 @@ public sealed class ReconcilePersonalFileUploadsHandler(
             foreach (var file in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                StoredFileMetadata? metadata;
+                FileMetadata? metadata;
                 try
                 {
                     using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     timeout.CancelAfter(reconciliationOptions.StorageRequestTimeout);
-                    metadata = await metadataReader.GetMetadataAsync(file.StorageKey, timeout.Token);
+                    metadata = await fileStorage.GetMetadataAsync(file.StorageKey, timeout.Token);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
