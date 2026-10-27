@@ -74,7 +74,8 @@ internal sealed class MatchSearchConfiguration : AuditableEntityConfiguration<Ma
 
         builder.HasIndex(search => search.PlayerId)
             .IsUnique()
-            .HasFilter("deleted_at IS NULL AND status IN ('Searching', 'Matched')");
+            .HasFilter(
+                $"deleted_at IS NULL AND status IN ('{MatchSearchStatus.Searching.Name}', '{MatchSearchStatus.Matched.Name}')");
 
         builder.HasIndex(search => new { search.Mode, search.Status, search.Rating, search.QueuedAt });
         builder.HasIndex(search => new { search.Status, search.ExpiresAt });
