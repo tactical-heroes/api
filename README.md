@@ -72,6 +72,19 @@ the SDK does not add Blazor WebAssembly dependencies to this backend.
 The SDK is resolved from NuGet during project evaluation, before restore,
 formatting, or tests. Application telemetry configuration is unchanged.
 
+## Player Registration
+
+Confirming a user through email, confirmed account creation, or an administrative
+update raises Identity's `UserRegistered` domain event. Identity maps it to
+`Identity.Contracts.Users.UserRegistered`, preserving its event ID and timestamp.
+Players maps the contract to its own `PlayerRegistrationRequested` domain event
+and creates the player asynchronously through Wolverine's durable local messaging.
+
+Registration inserts the profile atomically by `user_id`. Repeated or concurrent
+deliveries preserve the existing player ID, rating, and avatar. New profiles start
+with rating `1000` and no avatar. Existing confirmed accounts require a separate
+backfill; loading an account does not emit a registration event.
+
 ## Claim Catalogs
 
 Common provides `Permissions.All`, grouped by module and resource. Module names

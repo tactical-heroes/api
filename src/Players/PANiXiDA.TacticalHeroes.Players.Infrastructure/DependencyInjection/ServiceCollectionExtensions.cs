@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
@@ -11,6 +12,8 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
+        serviceCollection.TryAddSingleton(TimeProvider.System);
+
         serviceCollection.AddPostgreSqlEfRepository<
             PlayersWriteDbContext,
             PlayersReadDbContext>(
