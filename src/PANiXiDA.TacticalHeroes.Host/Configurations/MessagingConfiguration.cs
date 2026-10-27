@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
@@ -32,8 +33,9 @@ internal static class MessagingConfiguration
                 $"Connection string '{EfConstants.PostgreSqlConnectionStringName}' was not found.");
 
         builder.Host.UseWolverineMediator(
-            connectionString,
-            modules => modules
+            messageStoreConnectionString: connectionString,
+            configuration: builder.Configuration,
+            configureModules: modules => modules
                 .AddModule<IdentityWriteDbContext>(
                     IdentityApplicationAssembly.Instance,
                     typeof(IdentityWriteDbContext).Assembly)
@@ -57,7 +59,10 @@ internal static class MessagingConfiguration
                     typeof(BuildsWriteDbContext).Assembly)
                 .AddModule<PlayersWriteDbContext>(
                     PlayersApplicationAssembly.Instance,
-                    typeof(PlayersWriteDbContext).Assembly));
+                    typeof(PlayersWriteDbContext).Assembly),
+            configureKafka: null,
+            configureRequestBehaviors: null,
+            configureSchedules: schedules => schedules.AddFileManagerSchedules());
 
         return builder;
     }

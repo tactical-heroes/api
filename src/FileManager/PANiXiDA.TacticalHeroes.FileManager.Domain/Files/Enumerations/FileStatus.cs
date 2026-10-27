@@ -9,14 +9,11 @@ public sealed partial class FileStatus : Enumeration<FileStatus>
     public static readonly FileStatus PendingUpload = new(1, nameof(PendingUpload));
     public static readonly FileStatus Ready = new(2, nameof(Ready));
     public static readonly FileStatus Deleting = new(3, nameof(Deleting));
-    public static readonly FileStatus Deleted = new(4, nameof(Deleted));
 
     private FileStatus(int id, string name)
         : base(id, name)
     {
     }
-
-    public bool IsDeletingOrDeleted => this == Deleting || this == Deleted;
 
     public static Result<FileStatus> Create(string value)
     {

@@ -186,6 +186,23 @@ and credentials before using storage. Credentials can be overridden with
 `FileManager__S3Storage__AccessKey` and `FileManager__S3Storage__SecretKey`.
 The base prefix is `production`; `appsettings.Development.json` sets `development`.
 
+## File Upload Reconciliation
+
+Core Wolverine runs `ReconcileFileUploadsCommand` every five minutes for all file
+types. It completes pending uploads with valid S3 metadata, expires missing or
+invalid uploads, and retries S3 deletion before soft-deleting records. Recently
+soft-deleted files are checked for late objects; storage errors are retried.
+
+Schedule: `FileManager:Schedules:ReconcileFileUploadsCommand` (`*/5 * * * *`, UTC).
+Settings under `FileManager:UploadReconciliation` default to `MinimumAge` = 15 minutes,
+`ExpirationAge` = one day, `DeletedFileRecheckWindow` = one day after `DeletedAt`,
+and `BatchSize` = 100 (1–1000).
+
+Where automatic Wolverine schema updates are disabled, run the host's JasperFx
+`db-apply` before startup; the EF migrator does not manage Wolverine tables.
+Ready files are not scanned. Configure incomplete multipart cleanup separately
+through the S3 bucket's `AbortIncompleteMultipartUpload` lifecycle policy.
+
 ## Repository Layout
 
 - `src/` - application source code.

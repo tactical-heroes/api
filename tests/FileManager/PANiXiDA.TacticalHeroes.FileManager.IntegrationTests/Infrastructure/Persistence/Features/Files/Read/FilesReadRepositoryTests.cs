@@ -67,13 +67,23 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("missing")]
     [InlineData("foreign")]
     [InlineData("avatar")]
+    [InlineData("deleted")]
     public async Task GetPersonalDetailsByIdAsync_Should_ReturnNull_When_FileIsUnavailable(string fileKind)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = await AddFileAsync(fileKind != "avatar", cancellationToken);
         var id = fileKind == "missing" ? Guid.NewGuid() : file.Id.Value;
-        var userId = fileKind == "missing" ? file.UserId!.Value.Value : Guid.NewGuid();
+        var userId = fileKind is "missing" or "deleted" ? file.UserId!.Value.Value : Guid.NewGuid();
         await using var scope = Fixture.CreateScope();
+        if (fileKind == "deleted")
+        {
+            var writeRepository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+            var stored = await writeRepository.GetByIdAsync(file.Id, cancellationToken);
+            writeRepository.Delete(stored!);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
+        }
+
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var model = await repository.GetPersonalDetailsByIdAsync(id, userId, cancellationToken);

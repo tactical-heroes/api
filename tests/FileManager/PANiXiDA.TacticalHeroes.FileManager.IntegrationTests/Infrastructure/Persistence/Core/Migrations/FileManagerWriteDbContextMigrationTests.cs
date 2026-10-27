@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -18,6 +20,61 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixture fixture)
 {
+    [Theory(DisplayName =
+        "File soft-delete migration should convert deletion markers when legacy files use deleted status")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MigrateAsync_Should_ConvertDeletionMarkers_When_LegacyFilesUseDeletedStatus(
+        bool alreadySoftDeleted)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(cancellationToken);
+        await using var scope = fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var migrator = context.GetService<IMigrator>();
+        var file = File.Create(
+            FileName.Create("deleted.txt").Value,
+            FileType.Personal,
+            UserId.Create(Guid.CreateVersion7()).Value).Value;
+        var updatedAt = DateTime.UtcNow.Date.AddHours(-1);
+        DateTime? deletedAt = alreadySoftDeleted ? updatedAt.AddMinutes(-30) : null;
+
+        await migrator.MigrateAsync("20261009050032_AddFileStorageKey", cancellationToken);
+        try
+        {
+            await context.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                INSERT INTO file_manager.files
+                    (id, name, type, user_id, storage_key, status, created_at, updated_at, deleted_at)
+                VALUES ({file.Id.Value}, {file.Name.Value}, {file.Type.Name}, {file.UserId!.Value.Value},
+                    {file.StorageKey.Value}, 'Deleted', {updatedAt}, {updatedAt}, {deletedAt});
+                """,
+                cancellationToken);
+
+            await migrator.MigrateAsync(cancellationToken: cancellationToken);
+
+            var readContext = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
+            var stored = await readContext.Set<FileReadDbModel>().IgnoreQueryFilters()
+                .SingleAsync(item => item.Id == file.Id.Value, cancellationToken);
+            stored.Status.ShouldBe(FileStatus.Deleting.Name);
+            stored.DeletedAt.ShouldBe(deletedAt ?? updatedAt);
+            var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+            (await repository.GetByIdAsync(file.Id, cancellationToken)).ShouldBeNull();
+            (await readContext.Set<FileReadDbModel>().AnyAsync(item => item.Id == file.Id.Value, cancellationToken))
+                .ShouldBeFalse();
+
+            await migrator.MigrateAsync("20261009050032_AddFileStorageKey", cancellationToken);
+            var afterRollback = await readContext.Set<FileReadDbModel>().IgnoreQueryFilters()
+                .SingleAsync(item => item.Id == file.Id.Value, cancellationToken);
+            afterRollback.DeletedAt.ShouldBe(stored.DeletedAt);
+            (await repository.GetByIdAsync(file.Id, cancellationToken)).ShouldBeNull();
+        }
+        finally
+        {
+            await migrator.MigrateAsync(cancellationToken: cancellationToken);
+        }
+    }
+
     [Fact(DisplayName = "Storage key migration should add required unique keys when files table is empty")]
     public async Task MigrateAsync_Should_AddRequiredUniqueKeys_When_FilesTableIsEmpty()
     {

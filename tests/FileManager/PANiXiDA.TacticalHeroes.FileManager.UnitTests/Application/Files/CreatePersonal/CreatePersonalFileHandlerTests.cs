@@ -50,9 +50,14 @@ public sealed class CreatePersonalFileHandlerTests
         }
 
         var steps = new List<string>();
+        File? stagedFile = null;
         _files.When(repository => repository.Add(Arg.Any<File>())).Do(call =>
         {
-            call.Arg<File>().Status.ShouldBe(FileStatus.PendingUpload);
+            stagedFile = call.Arg<File>();
+            stagedFile.Status.ShouldBe(FileStatus.PendingUpload);
+            stagedFile.UserId.ShouldBe(UserId.Create(_userId).Value);
+            stagedFile.FolderId.ShouldBe(hasFolder ? folder.Id : null);
+            stagedFile.StorageKey.Value.ShouldBe($"personal/{_userId:D}/{stagedFile.Id.Value:D}");
             steps.Add("pending");
         });
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(_ =>
@@ -68,12 +73,12 @@ public sealed class CreatePersonalFileHandlerTests
             });
         _files.When(repository => repository.Update(Arg.Any<File>())).Do(call =>
         {
+            stagedFile.ShouldNotBeNull();
             var file = call.Arg<File>();
+            file.ShouldBeSameAs(stagedFile);
             file.Status.ShouldBe(FileStatus.Ready);
-            file.UserId.ShouldBe(UserId.Create(_userId).Value);
-            file.FolderId.ShouldBe(hasFolder ? folder.Id : null);
-            file.StorageKey.Value.ShouldBe($"personal/{_userId:D}/{file.Id.Value:D}");
             file.Size!.Value.ShouldBe(content.Length);
+            file.ContentType!.Value.ShouldBe("text/plain");
             steps.Add("ready");
         });
 
@@ -190,6 +195,22 @@ public sealed class CreatePersonalFileHandlerTests
         await _unitOfWork.Received(1).SaveChangesAsync(cancellationToken);
         _files.DidNotReceiveWithAnyArgs().Update(null!);
         content.CanRead.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Personal file upload should propagate failure when ready save fails")]
+    public async Task HandleAsync_Should_PropagateFailure_When_ReadySaveFails()
+    {
+        await using var content = new MemoryStream([1]);
+        var saves = 0;
+        var failure = new IOException("Ready save failed.");
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(_ =>
+            ++saves == 2 ? Task.FromException(failure) : Task.CompletedTask);
+
+        var thrown = await Record.ExceptionAsync(() =>
+            CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken));
+
+        thrown.ShouldBeSameAs(failure);
+        saves.ShouldBe(2);
     }
 
     private static CreatePersonalFileCommand CreateCommand(Stream content)
