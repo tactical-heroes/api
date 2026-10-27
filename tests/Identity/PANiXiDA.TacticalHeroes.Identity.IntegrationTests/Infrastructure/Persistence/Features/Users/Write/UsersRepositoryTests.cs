@@ -23,7 +23,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
 {
     private const string Password = "StrongPassword1!";
 
-    [Theory(DisplayName = "UpdateAsync should avoid reloading only when the tracked user has all assignments loaded")]
+    [Theory(DisplayName = "UpdateAsync should reload only incomplete assignment graphs when user is tracked")]
     [InlineData("restored", 0)]
     [InlineData("entity", 1)]
     [InlineData("claims", 1)]
@@ -87,7 +87,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         Fixture.CommandCounter.Count.ShouldBe(baselineCommands + additionalCommands);
     }
 
-    [Theory(DisplayName = "Loaded users should register only when confirmation is granted during an update")]
+    [Theory(DisplayName = "Loaded users should register only on confirmation when loaded user is updated")]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -144,7 +144,7 @@ public sealed class UsersRepositoryTests(IntegrationTestFixture fixture)
         persisted.Value.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "GetByIdAsync should return not found when the user does not exist")]
+    [Fact(DisplayName = "GetByIdAsync should return not found when user does not exist")]
     public async Task GetByIdAsync_Should_ReturnNotFound_When_UserDoesNotExist()
     {
         await using var scope = Fixture.CreateScope();

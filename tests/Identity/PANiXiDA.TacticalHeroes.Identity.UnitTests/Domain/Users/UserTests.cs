@@ -58,7 +58,7 @@ public sealed class UserTests
         result.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Create should raise registration exactly once when the new user is confirmed")]
+    [Fact(DisplayName = "Create should raise registration exactly once when user is confirmed")]
     public void Create_Should_RaiseRegistrationOnce_When_UserIsConfirmed()
     {
         var id = UserId.New();
@@ -83,7 +83,7 @@ public sealed class UserTests
         user.GetDomainEvents().ShouldHaveSingleItem().ShouldBeSameAs(domainEvent);
     }
 
-    [Fact(DisplayName = "Create should not raise registration when the new user is unconfirmed")]
+    [Fact(DisplayName = "Create should not raise registration when user is unconfirmed")]
     public void Create_Should_NotRaiseRegistration_When_UserIsUnconfirmed()
     {
         var user = User.Create(
@@ -122,7 +122,7 @@ public sealed class UserTests
         user.Claims.ShouldHaveSingleItem().ShouldBe(claim);
     }
 
-    [Theory(DisplayName = "Update should replace user state and register only when confirmation is granted")]
+    [Theory(DisplayName = "Update should register only on confirmation when confirmation state changes")]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -174,7 +174,7 @@ public sealed class UserTests
         }
     }
 
-    [Theory(DisplayName = "Update should preserve retained assignments or clear them when collections are replaced")]
+    [Theory(DisplayName = "Update should preserve retained assignments or clear them when collections are provided")]
     [InlineData(false)]
     [InlineData(true)]
     public void Update_Should_ReplaceAssignments_When_CollectionsAreProvided(bool retainAssignments)

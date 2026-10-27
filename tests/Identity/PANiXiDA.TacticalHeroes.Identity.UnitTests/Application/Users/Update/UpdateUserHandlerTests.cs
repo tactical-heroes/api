@@ -189,7 +189,7 @@ public sealed class UpdateUserHandlerTests
             cancellationToken);
     }
 
-    [Fact(DisplayName = "Update user handler should not persist when the user cannot be loaded")]
+    [Fact(DisplayName = "Update user handler should not persist when user does not exist")]
     public async Task HandleAsync_Should_ReturnNotFoundWithoutPersisting_When_UserDoesNotExist()
     {
         var userId = Guid.CreateVersion7();
