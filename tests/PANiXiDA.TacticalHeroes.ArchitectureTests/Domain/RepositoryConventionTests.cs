@@ -76,6 +76,24 @@ public sealed class RepositoryConventionTests
                 + string.Join(Environment.NewLine, violations));
     }
 
+    [Theory(
+        DisplayName = "Repository results should preserve domain boundaries when asynchronous collections are used")]
+    [InlineData(typeof(IAsyncEnumerable<IAggregateRoot>), true)]
+    [InlineData(typeof(Task<IAsyncEnumerable<IAggregateRoot>>), true)]
+    [InlineData(typeof(IAsyncEnumerable<Guid>), false)]
+    [InlineData(typeof(IAsyncEnumerable<string>), false)]
+    [InlineData(typeof(IAsyncEnumerable<object>), false)]
+    public void IsAllowedRepositoryMethodType_Should_PreserveDomainBoundaries_When_AsynchronousCollectionsAreUsed(
+        Type resultType,
+        bool expected)
+    {
+        var visited = new HashSet<Type>();
+
+        var allowed = IsAllowedRepositoryMethodType(resultType, visited);
+
+        Assert.Equal(expected, allowed);
+    }
+
     [Fact(DisplayName = "Repositories should match plural aggregate names when declared")]
     public void Repositories_Should_MatchPluralAggregateNames_When_Declared()
     {
@@ -346,8 +364,8 @@ public sealed class RepositoryConventionTests
             .Append(type)
             .Where(candidate => candidate.IsGenericType)
             .FirstOrDefault(candidate =>
-                candidate.GetGenericTypeDefinition()
-            == typeof(IEnumerable<>))
+                candidate.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                    || candidate.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
             ?.GetGenericArguments()[0];
 
         if (collectionElementType is not null)

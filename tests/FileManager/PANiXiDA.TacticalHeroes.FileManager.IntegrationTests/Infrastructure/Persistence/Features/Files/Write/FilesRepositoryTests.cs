@@ -3,7 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
+using NSubstitute;
+
 using PANiXiDA.Core.Application.Persistence.Errors;
+
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -11,7 +15,9 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Write;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -20,6 +26,54 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Fact(DisplayName = "Pending uploads should load tracked aggregates in pages when old personal files exist")]
+    public async Task GetPendingPersonalUploadsAsync_Should_LoadTrackedAggregatesInPages_When_OldPersonalFilesExist()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var first = CreatePersonalFile();
+        var second = CreatePersonalFile();
+        var recent = CreatePersonalFile();
+        var atCutoff = CreatePersonalFile();
+        foreach (var file in new[] { first, second, recent, atCutoff })
+        {
+            await SaveNewFileAsync(file, cancellationToken);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var cutoff = now.AddMinutes(-15).UtcDateTime;
+        var timeProvider = Substitute.For<TimeProvider>();
+        timeProvider.GetUtcNow().Returns(now, now.AddHours(1));
+        await using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            UPDATE file_manager.files SET created_at = {DateTime.UnixEpoch}
+            WHERE id IN ({first.Id.Value}, {second.Id.Value})
+            """,
+            cancellationToken);
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE file_manager.files SET created_at = {cutoff} WHERE id = {atCutoff.Id.Value}",
+            cancellationToken);
+        var repository = new FilesRepository(
+            dbContext: context,
+            options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions { BatchSize = 1 }),
+            timeProvider: timeProvider);
+        var loaded = new List<File>();
+
+        await foreach (var file in repository.GetPendingPersonalUploadsAsync(cancellationToken))
+        {
+            loaded.Add(file);
+        }
+
+        loaded.Select(file => file.Id.Value).ShouldBe(new[] { first.Id.Value, second.Id.Value }.Order());
+        loaded[0].Status.ShouldBe(FileStatus.PendingUpload);
+        loaded[0].StorageKey.ShouldBe(first.Id == loaded[0].Id ? first.StorageKey : second.StorageKey);
+        context.ChangeTracker.Entries<File>().Count().ShouldBe(2);
+        context.Entry(loaded[0]).State.ShouldBe(EntityState.Unchanged);
+        context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
+        timeProvider.Received(1).GetUtcNow();
+    }
+
     [Fact(DisplayName = "Add should stage a tracked file when unit of work has not saved")]
     public async Task Add_Should_StageTrackedFile_When_UnitOfWorkHasNotSaved()
     {
@@ -284,6 +338,14 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             FileName.Create("avatar.png").Value,
             FileType.Avatar,
             userId: null).Value;
+    }
+
+    private static File CreatePersonalFile()
+    {
+        return File.Create(
+            name: FileName.Create("file.txt").Value,
+            type: FileType.Personal,
+            userId: UserId.Create(Guid.NewGuid()).Value).Value;
     }
 
     private async Task SaveNewFileAsync(File file, CancellationToken cancellationToken)

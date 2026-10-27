@@ -8,19 +8,17 @@ using Npgsql;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
-
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Write;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -209,16 +207,20 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         IServiceProvider services,
         int batchSize = 100)
     {
+        var options = Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions
+        {
+            BatchSize = batchSize
+        });
+        var filesRepository = new FilesRepository(
+            dbContext: services.GetRequiredService<FileManagerWriteDbContext>(),
+            options: options,
+            timeProvider: TimeProvider.System);
+
         return new ReconcilePersonalFileUploadsHandler(
-            filesRepository: services.GetRequiredService<IFilesRepository>(),
-            filesReadRepository: services.GetRequiredService<IFilesReadRepository>(),
+            filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            timeProvider: TimeProvider.System,
-            options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions
-            {
-                BatchSize = batchSize
-            }),
+            options: options,
             logger: NullLogger<ReconcilePersonalFileUploadsHandler>.Instance);
     }
 
