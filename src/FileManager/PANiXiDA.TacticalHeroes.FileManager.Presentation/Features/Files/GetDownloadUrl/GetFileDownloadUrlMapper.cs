@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Application.Storage.Models;
+
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDownloadUrl;
 
 using Riok.Mapperly.Abstractions;
@@ -9,5 +11,5 @@ internal static partial class GetFileDownloadUrlMapper
 {
     internal static partial GetFileDownloadUrlQuery ToQuery(Guid id);
 
-    internal static partial GetFileDownloadUrlResponse ToResponse(FileDownloadUrlReadModel download);
+    internal static partial GetFileDownloadUrlResponse ToResponse(PresignedDownloadUrl download);
 }

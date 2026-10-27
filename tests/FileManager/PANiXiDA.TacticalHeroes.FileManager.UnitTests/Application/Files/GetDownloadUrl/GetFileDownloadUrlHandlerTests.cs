@@ -42,6 +42,7 @@ public sealed class GetFileDownloadUrlHandlerTests
         var result = await handler.HandleAsync(new GetFileDownloadUrlQuery(file.Id.Value), cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeSameAs(signed);
         result.Value.Url.ShouldBe(signed.Url);
         result.Value.ExpiresAt.ShouldBe(signed.ExpiresAt);
         await repository.Received(1).GetByIdAsync(file.Id, cancellationToken);
