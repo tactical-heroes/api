@@ -42,14 +42,22 @@ public sealed class User : AggregateRoot<UserId>
         IEnumerable<RoleId> roleIds,
         IEnumerable<UserClaim> claims)
     {
-        var user = Restore(
+        var user = new User(
             id: id,
             email: email,
             userName: userName,
             status: status,
-            confirmationStatus: UserConfirmationStatus.Unconfirmed(),
-            roleIds: roleIds,
-            claims: claims);
+            confirmationStatus: UserConfirmationStatus.Unconfirmed());
+
+        foreach (var roleId in roleIds)
+        {
+            user.AssignRole(roleId);
+        }
+
+        foreach (var claim in claims)
+        {
+            user.GrantClaim(claim);
+        }
 
         if (confirmationStatus.IsConfirmed)
         {
