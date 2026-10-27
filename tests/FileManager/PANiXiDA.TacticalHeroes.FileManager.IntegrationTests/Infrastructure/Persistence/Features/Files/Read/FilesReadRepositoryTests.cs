@@ -21,6 +21,71 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
+    [Theory(DisplayName = "Personal download metadata should use persisted values when upload state varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetPersonalDownloadByIdAsync_Should_ProjectPersistedValues_When_UploadStateVaries(bool completed)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var file = await AddFileAsync(true, cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var writeRepository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+        var stored = (await writeRepository.GetByIdAsync(file.Id, cancellationToken))!;
+        if (completed)
+        {
+            stored.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            writeRepository.Update(stored);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
+        }
+
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        const string PersistedKey = "legacy/original-key";
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE file_manager.files SET storage_key = {PersistedKey} WHERE id = {file.Id.Value}",
+            cancellationToken);
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
+
+        var model = await repository.GetPersonalDownloadByIdAsync(
+            file.Id.Value, file.UserId!.Value.Value, cancellationToken);
+
+        model.ShouldNotBeNull();
+        model.Id.ShouldBe(file.Id.Value);
+        model.Name.ShouldBe(file.Name.Value);
+        model.StorageKey.ShouldBe(PersistedKey);
+        model.Status.ShouldBe(completed ? "Ready" : "PendingUpload");
+        model.ContentType.ShouldBe(completed ? "text/plain" : null);
+        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Personal download metadata should be absent when file is unavailable")]
+    [InlineData("missing")]
+    [InlineData("foreign")]
+    [InlineData("avatar")]
+    [InlineData("deleted")]
+    public async Task GetPersonalDownloadByIdAsync_Should_ReturnNull_When_FileIsUnavailable(string fileKind)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var file = await AddFileAsync(fileKind != "avatar", cancellationToken);
+        var id = fileKind == "missing" ? Guid.NewGuid() : file.Id.Value;
+        var userId = fileKind is "missing" or "deleted" ? file.UserId!.Value.Value : Guid.NewGuid();
+        await using var scope = Fixture.CreateScope();
+        if (fileKind == "deleted")
+        {
+            var writeRepository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+            var stored = await writeRepository.GetByIdAsync(file.Id, cancellationToken);
+            writeRepository.Delete(stored!);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(cancellationToken);
+        }
+
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
+
+        var model = await repository.GetPersonalDownloadByIdAsync(id, userId, cancellationToken);
+
+        model.ShouldBeNull();
+    }
+
     [Theory(DisplayName = "Personal file details should project persisted metadata when upload state varies")]
     [InlineData(false)]
     [InlineData(true)]

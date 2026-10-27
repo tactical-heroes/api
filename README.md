@@ -186,6 +186,10 @@ and credentials before using storage. Credentials can be overridden with
 `FileManager__S3Storage__AccessKey` and `FileManager__S3Storage__SecretKey`.
 The base prefix is `production`; `appsettings.Development.json` sets `development`.
 
+`GET /api/v1/files/personal/{id}/download-url` returns `url` and `expiresAt` for
+the owner's `Ready` file. Download directly from S3 using the URL unchanged.
+`FileManager:S3Storage:PresignedUrlLifetime` sets its lifetime (15 minutes by default).
+
 ## File Upload Reconciliation
 
 Core Wolverine runs `ReconcileFileUploadsCommand` every five minutes for all file
