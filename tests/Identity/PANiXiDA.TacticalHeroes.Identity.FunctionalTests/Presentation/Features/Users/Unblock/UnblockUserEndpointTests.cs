@@ -1,5 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Unblock;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class UnblockUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

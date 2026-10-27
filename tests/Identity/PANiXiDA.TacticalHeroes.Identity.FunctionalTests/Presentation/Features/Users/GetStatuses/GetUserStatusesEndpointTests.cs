@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAu
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.GetStatuses;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetUserStatusesEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

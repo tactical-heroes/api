@@ -9,6 +9,7 @@ using OpenIddict.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.ExchangeToken;
 
+[Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -26,7 +27,7 @@ public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)
             password: "StrongPassword1!",
             claims: null,
             cancellationToken: cancellationToken);
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.Configure<IdentityOptions>(options =>
                 options.ClaimsIdentity.SecurityStampClaimType = securityStampClaimType

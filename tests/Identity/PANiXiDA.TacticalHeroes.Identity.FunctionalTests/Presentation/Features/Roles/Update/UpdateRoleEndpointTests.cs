@@ -12,6 +12,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Update;
 
+[Collection(RolesFunctionalTestCollectionDefinition.Name)]
 public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -109,7 +110,7 @@ public sealed class UpdateRoleEndpointTests(FunctionalTestFixture fixture)
         var paused = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pauseRefresh = true;
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             services.AddOpenIddict().AddServer(options =>
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(handler => handler

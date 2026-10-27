@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResendConfirma
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ResendConfirmationEmail;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ResendConfirmationEmailEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

@@ -15,6 +15,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.Login;
 
+[Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -35,7 +36,7 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
             cancellationToken: ct);
         var reached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithAuthenticatedUserReadPause(
             reached, resume, readBeforePause, () => true);
         using var browser = factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -98,7 +99,7 @@ public sealed class LoginEndpointTests(FunctionalTestFixture fixture)
             claims: null,
             cancellationToken: ct);
         var service = new UnavailableAuthenticatedUserService();
-        await using var baseFactory = new FunctionalTestWebApplicationFactory();
+        await using var baseFactory = Fixture.CreateFactory();
         await using var factory = baseFactory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
         {
             services.RemoveAll<IAuthenticatedUserService>();

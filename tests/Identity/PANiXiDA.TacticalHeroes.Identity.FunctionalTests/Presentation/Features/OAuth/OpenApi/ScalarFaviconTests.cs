@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.OpenApi;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ScalarFaviconTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
@@ -45,7 +46,7 @@ public sealed class ScalarFaviconTests(FunctionalTestFixture fixture)
     public async Task GetFavicon_Should_PreserveHttpsAndApiAuthorization_When_ShortCircuited()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        await using var testFactory = new FunctionalTestWebApplicationFactory(Environments.Development);
+        await using var testFactory = Fixture.CreateFactory(Environments.Development);
         await using var factory = testFactory
             .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddHttpsRedirection(options => options.HttpsPort = 443)));

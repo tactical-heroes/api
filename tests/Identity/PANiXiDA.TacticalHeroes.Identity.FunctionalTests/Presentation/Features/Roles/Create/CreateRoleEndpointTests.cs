@@ -8,6 +8,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Create;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

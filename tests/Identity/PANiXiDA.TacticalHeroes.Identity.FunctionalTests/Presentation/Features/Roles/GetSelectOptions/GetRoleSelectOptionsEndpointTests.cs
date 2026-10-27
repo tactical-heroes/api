@@ -7,6 +7,7 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAu
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.GetSelectOptions;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetRoleSelectOptionsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

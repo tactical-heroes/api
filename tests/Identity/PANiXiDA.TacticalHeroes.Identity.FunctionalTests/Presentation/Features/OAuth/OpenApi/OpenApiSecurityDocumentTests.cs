@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.OpenApi;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class OpenApiSecurityDocumentTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

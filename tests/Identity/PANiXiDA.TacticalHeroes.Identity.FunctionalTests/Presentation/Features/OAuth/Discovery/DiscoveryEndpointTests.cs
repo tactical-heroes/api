@@ -2,6 +2,7 @@ using System.Text.Json;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Discovery;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class DiscoveryEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

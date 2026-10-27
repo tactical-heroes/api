@@ -60,6 +60,18 @@ Run the EF migrator:
 dotnet run --project tools/PANiXiDA.TacticalHeroes.Ef.Migrator/PANiXiDA.TacticalHeroes.Ef.Migrator.csproj --configuration Release
 ```
 
+## Observability
+
+The host uses the `PANiXiDA.Core.Observability` MSBuild SDK. Its `.csproj`
+references `<Sdk Name="PANiXiDA.Core.Observability" />`; the SDK version is pinned in
+`global.json` under `msbuild-sdks`, separately from central NuGet package versions.
+The existing `builder.AddObservability()` call is unchanged. Server dependencies
+include ASP.NET Core, HTTP, Runtime, and Npgsql instrumentation and OTLP export;
+the SDK does not add Blazor WebAssembly dependencies to this backend.
+
+The SDK is resolved from NuGet during project evaluation, before restore,
+formatting, or tests. Application telemetry configuration is unchanged.
+
 ## Claim Catalogs
 
 Common provides `Permissions.All`, grouped by module and resource. Module names

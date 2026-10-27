@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAu
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Block;
 
+[Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class BlockUserEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {

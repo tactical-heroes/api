@@ -10,6 +10,7 @@ using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ConfirmEmail;
 
+[Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ConfirmEmailEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)
 {
