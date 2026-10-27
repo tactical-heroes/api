@@ -56,10 +56,7 @@ public sealed class Role : AggregateRoot<RoleId>
             name: name,
             defaultFlag: defaultFlag);
 
-        foreach (var claim in claims)
-        {
-            role.GrantClaim(claim);
-        }
+        role._claims.AddRange(claims.DistinctBy(claim => (claim.Type, claim.Value)));
 
         return role;
     }

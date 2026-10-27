@@ -69,15 +69,9 @@ public sealed class UsersRepository(
         string? currentAccessToken,
         CancellationToken cancellationToken)
     {
-        var trackedUserEntry = dbContext.ChangeTracker.Entries<ApplicationUser>()
-            .SingleOrDefault(entry => entry.Entity.Id == user.Id.Value
-                && entry.State is EntityState.Unchanged or EntityState.Modified
-                && entry.Collection(item => item.Claims).IsLoaded
-                && entry.Collection(item => item.Roles).IsLoaded);
-        var applicationUser = trackedUserEntry?.Entity
-            ?? await userManager.Users
-                .WithAuthorizationGraph()
-                .SingleOrDefaultAsync(item => item.Id == user.Id.Value, cancellationToken);
+        var applicationUser = await GetForUpdateAsync(
+            userId: user.Id,
+            cancellationToken: cancellationToken);
 
         if (applicationUser is null)
         {
@@ -205,6 +199,22 @@ public sealed class UsersRepository(
     private static Result UserNotFound()
     {
         return Result.Failure(error: Error.NotFound(message: "User was not found."));
+    }
+
+    private async Task<ApplicationUser?> GetForUpdateAsync(
+        UserId userId,
+        CancellationToken cancellationToken)
+    {
+        var trackedUserEntry = dbContext.ChangeTracker.Entries<ApplicationUser>()
+            .SingleOrDefault(entry => entry.Entity.Id == userId.Value
+                && entry.State is EntityState.Unchanged or EntityState.Modified
+                && entry.Collection(item => item.Claims).IsLoaded
+                && entry.Collection(item => item.Roles).IsLoaded);
+
+        return trackedUserEntry?.Entity
+            ?? await userManager.Users
+                .WithAuthorizationGraph()
+                .SingleOrDefaultAsync(item => item.Id == userId.Value, cancellationToken);
     }
 
     private Task InvalidateSessionsAsync(
