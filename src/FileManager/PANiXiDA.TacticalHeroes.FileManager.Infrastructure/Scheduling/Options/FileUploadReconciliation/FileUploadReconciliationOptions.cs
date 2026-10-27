@@ -6,5 +6,6 @@ public sealed class FileUploadReconciliationOptions
 
     public TimeSpan MinimumAge { get; init; } = TimeSpan.FromMinutes(15);
     public TimeSpan ExpirationAge { get; init; } = TimeSpan.FromDays(1);
+    public TimeSpan DeletedFileRecheckWindow { get; init; } = TimeSpan.FromDays(1);
     public int BatchSize { get; init; } = 100;
 }

@@ -11,6 +11,8 @@ public sealed class FileUploadReconciliationOptionsValidatorTests
     [InlineData("expiration")]
     [InlineData("short-expiration")]
     [InlineData("equal-expiration")]
+    [InlineData("recheck-window")]
+    [InlineData("negative-recheck-window")]
     public void Validate_Should_RejectInvalidSettings_When_ConfigurationIsInvalid(string invalidPart)
     {
         var options = new FileUploadReconciliationOptions
@@ -21,6 +23,12 @@ public sealed class FileUploadReconciliationOptionsValidatorTests
                 "expiration" => TimeSpan.Zero,
                 "short-expiration" => TimeSpan.FromMinutes(10),
                 "equal-expiration" => TimeSpan.FromMinutes(15),
+                _ => TimeSpan.FromDays(1)
+            },
+            DeletedFileRecheckWindow = invalidPart switch
+            {
+                "recheck-window" => TimeSpan.Zero,
+                "negative-recheck-window" => TimeSpan.FromMinutes(-1),
                 _ => TimeSpan.FromDays(1)
             },
             BatchSize = invalidPart switch

@@ -199,6 +199,8 @@ and coordinates scheduling across replicas.
 Operational settings remain under `FileManager:UploadReconciliation`:
 `MinimumAge` defaults to fifteen minutes, `ExpirationAge` defaults to one day and
 must exceed `MinimumAge`, and `BatchSize` controls database page size (1–1000).
+`DeletedFileRecheckWindow` is a positive duration, defaulting to one day after
+`DeletedAt`, during which soft-deleted files are checked for late S3 objects.
 The command runs through the FileManager mediator pipeline without
 requesting an enclosing transaction; each file is finalized independently.
 
@@ -240,10 +242,14 @@ HTTP 404.
 The handler also checks soft-deleted records for objects that appear after deletion,
 such as an upload completing after its original request lost an optimistic version
 race. A dedicated repository query bypasses normal filters and selects files of
-every type with a non-null `DeletedAt`. Such late objects are deleted on a subsequent
-pass without changing the original deletion timestamp. Rows are retained according
-to Core EF's soft-delete behavior. Paging continues past missing
-objects. Already-ready files are not scanned, and failed uploads are not restarted.
+every type whose `DeletedAt` falls within `DeletedFileRecheckWindow` before the
+start of that sequence. The time window stays fixed across database pages. Older
+soft-deleted records are not loaded or checked in S3. Such late objects are deleted
+on a subsequent pass within the window without changing the original deletion
+timestamp; objects appearing after the window are not covered by this check.
+Rows are retained according to Core EF's soft-delete behavior. Paging continues
+past missing objects. Already-ready files are not scanned, and failed uploads are
+not restarted.
 Configure the bucket's `AbortIncompleteMultipartUpload` lifecycle policy to clean
 up incomplete multipart uploads. The worker does not enumerate unrelated objects
 in the bucket, audit ready content, or implement upload-request idempotency.

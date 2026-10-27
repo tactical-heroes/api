@@ -23,6 +23,11 @@ public sealed class FileUploadReconciliationOptionsValidator
             failures.Add("Upload expiration age must be greater than the reconciliation minimum age.");
         }
 
+        if (options.DeletedFileRecheckWindow <= TimeSpan.Zero)
+        {
+            failures.Add("Deleted file recheck window must be positive.");
+        }
+
         return failures.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(failures);

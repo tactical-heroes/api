@@ -188,6 +188,66 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         (await repository.GetByIdAsync(deleted.Id, cancellationToken)).ShouldBeNull();
     }
 
+    [Fact(DisplayName = "Deleted files should use a fixed recheck window when aggregates are paged")]
+    public async Task GetDeletedFilesAsync_Should_UseFixedRecheckWindow_When_AggregatesArePaged()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var recent = CreatePersonalFile();
+        var atCutoff = CreateFile();
+        var expired = CreatePersonalFile();
+        var atStart = CreateFile();
+        var future = CreatePersonalFile();
+        var active = CreatePersonalFile();
+        foreach (var file in new[] { recent, atCutoff, expired, atStart, future, active })
+        {
+            await SaveNewFileAsync(file, cancellationToken);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        now = now.AddTicks(-(now.Ticks % 10));
+        var window = TimeSpan.FromHours(2);
+        var cutoff = now.Subtract(window).UtcDateTime;
+        var timeProvider = Substitute.For<TimeProvider>();
+        timeProvider.GetUtcNow().Returns(now, now.AddHours(3));
+        await using var scope = Fixture.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var deletionTimes = new[]
+        {
+            (recent, now.AddHours(-1).UtcDateTime),
+            (atCutoff, cutoff),
+            (expired, cutoff.AddTicks(-10)),
+            (atStart, now.UtcDateTime),
+            (future, now.AddTicks(10).UtcDateTime)
+        };
+        foreach (var (file, deletedAt) in deletionTimes)
+        {
+            await context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET deleted_at = {deletedAt} WHERE id = {file.Id.Value}",
+                cancellationToken);
+        }
+
+        var repository = new FilesRepository(
+            dbContext: context,
+            options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions
+            {
+                BatchSize = 1,
+                DeletedFileRecheckWindow = window
+            }),
+            timeProvider: timeProvider);
+        var loaded = new List<File>();
+
+        await foreach (var file in repository.GetDeletedFilesAsync(cancellationToken))
+        {
+            loaded.Add(file);
+        }
+
+        var expectedIds = new[] { recent.Id.Value, atCutoff.Id.Value, atStart.Id.Value }.Order();
+        loaded.Select(file => file.Id.Value).ShouldBe(expectedIds);
+        context.ChangeTracker.Entries<File>().Count().ShouldBe(3);
+        context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
+        timeProvider.Received(1).GetUtcNow();
+    }
+
     [Fact(DisplayName = "Add should stage a tracked file when unit of work has not saved")]
     public async Task Add_Should_StageTrackedFile_When_UnitOfWorkHasNotSaved()
     {

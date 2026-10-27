@@ -55,8 +55,12 @@ public sealed class FilesRepository(
 
     public IAsyncEnumerable<File> GetDeletedFilesAsync(CancellationToken cancellationToken)
     {
+        var deletedBefore = timeProvider.GetUtcNow().UtcDateTime;
+        var deletedAfter = deletedBefore.Subtract(options.Value.DeletedFileRecheckWindow);
+
         return GetFilesAsync(
-            Query.IgnoreQueryFilters().Where(file => EF.Property<DateTime?>(file, EfConstants.DeletedAt) != null),
+            Query.IgnoreQueryFilters().Where(file => EF.Property<DateTime?>(file, EfConstants.DeletedAt) >= deletedAfter
+                && EF.Property<DateTime?>(file, EfConstants.DeletedAt) <= deletedBefore),
             cancellationToken);
     }
 
