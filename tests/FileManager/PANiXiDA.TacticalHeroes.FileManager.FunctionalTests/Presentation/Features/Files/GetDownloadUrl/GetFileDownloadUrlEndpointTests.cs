@@ -64,8 +64,6 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
         using var response = await SendRequestAsync(fileId, userId.ToString(), ReadPermission(type));
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        response.Headers.CacheControl.ShouldNotBeNull();
-        response.Headers.CacheControl.NoStore.ShouldBeTrue();
         var download = await response.Content.ReadFromJsonAsync<GetFileDownloadUrlResponse>(cancellationToken);
         download.ShouldNotBeNull();
         download.ExpiresAt.ShouldBeGreaterThan(beforeRequest.AddMinutes(14));

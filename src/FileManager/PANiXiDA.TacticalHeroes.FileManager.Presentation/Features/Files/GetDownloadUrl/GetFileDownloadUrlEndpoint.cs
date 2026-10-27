@@ -21,14 +21,12 @@ internal sealed class GetFileDownloadUrlEndpoint : IEndpoint<FilesEndpoints>
     private static async Task<IResult> HandleAsync(
         Guid id,
         IMediator mediator,
-        HttpResponse response,
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
             GetFileDownloadUrlMapper.ToQuery(id),
             cancellationToken);
 
-        response.Headers.CacheControl = "no-store";
         return result.ToHttpResult(onSuccess: download =>
             TypedResults.Ok(GetFileDownloadUrlMapper.ToResponse(download)));
     }
