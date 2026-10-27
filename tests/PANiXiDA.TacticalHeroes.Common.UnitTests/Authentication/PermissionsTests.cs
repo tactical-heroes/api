@@ -59,6 +59,7 @@ public sealed class PermissionsTests
     [InlineData("compendium.factions")]
     [InlineData("compendium.heroes")]
     [InlineData("compendium.units")]
+    [InlineData("file-manager.avatars")]
     public void All_Should_PreservePermissionCodes_When_CatalogIsRead(string resource)
     {
         var permissions = Permissions.All
@@ -71,14 +72,22 @@ public sealed class PermissionsTests
             ignoreOrder: true);
     }
 
-    [Theory(DisplayName = "All should include read permissions when file resources are registered")]
-    [InlineData("file-manager.personal-files.read")]
-    [InlineData("file-manager.avatars.read")]
-    public void All_Should_IncludeReadPermissions_When_FileResourcesAreRegistered(string code)
+    [Theory(DisplayName = "All should include scoped permissions when personal file actions are registered")]
+    [InlineData("create")]
+    [InlineData("read")]
+    [InlineData("update")]
+    [InlineData("delete")]
+    public void All_Should_IncludeScopedPermissions_When_PersonalFileActionsAreRegistered(string action)
     {
-        var permissions = Permissions.All;
+        var permissions = Permissions.All
+            .Where(permission => permission.Code.StartsWith(
+                $"file-manager.personal-files.{action}", StringComparison.Ordinal))
+            .Select(permission => permission.Code)
+            .ToArray();
 
-        permissions.ShouldContain(permission => permission.Code == code);
+        permissions.ShouldBe(
+            [$"file-manager.personal-files.{action}.own", $"file-manager.personal-files.{action}.all"],
+            ignoreOrder: true);
     }
 
     [Fact(DisplayName = "All should reference named modules when catalog is read")]

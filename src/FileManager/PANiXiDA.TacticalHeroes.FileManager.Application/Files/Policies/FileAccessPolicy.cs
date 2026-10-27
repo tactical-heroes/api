@@ -18,9 +18,10 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
 
         if (file.Type == FileType.Personal)
         {
-            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.Read.Code)
-                && file.UserId is { } ownerId
-                && currentUser.UserId == ownerId.Value;
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code)
+                || (currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code)
+                    && file.UserId is { } ownerId
+                    && currentUser.UserId == ownerId.Value);
         }
 
         return file.Type == FileType.Avatar

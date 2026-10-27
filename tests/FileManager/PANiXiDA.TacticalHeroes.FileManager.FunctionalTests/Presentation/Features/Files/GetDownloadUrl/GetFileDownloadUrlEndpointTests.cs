@@ -81,6 +81,33 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
         downloaded.Content.Headers.ContentDisposition.FileNameStar.ShouldBe(name);
     }
 
+    [Theory(DisplayName = "Download URL endpoint should enforce ownership when personal read permissions are scoped")]
+    [InlineData("file-manager.personal-files.read.own", true, HttpStatusCode.OK)]
+    [InlineData("file-manager.personal-files.read.own", false, HttpStatusCode.NotFound)]
+    [InlineData("file-manager.personal-files.read.all", true, HttpStatusCode.OK)]
+    [InlineData("file-manager.personal-files.read.all", false, HttpStatusCode.OK)]
+    [InlineData("file-manager.personal-files.read", true, HttpStatusCode.NotFound)]
+    public async Task HandleAsync_Should_EnforceOwnership_When_PersonalReadPermissionsAreScoped(
+        string permission,
+        bool ownsFile,
+        HttpStatusCode expectedStatus)
+    {
+        var userId = Guid.NewGuid();
+        var file = await AddFileAsync(
+            FileType.Personal, ownsFile ? userId : Guid.NewGuid(), "Ready", deleted: false);
+
+        using var response = await SendRequestAsync(file.Id.Value, userId.ToString(), permission);
+
+        response.StatusCode.ShouldBe(expectedStatus);
+        if (expectedStatus == HttpStatusCode.OK)
+        {
+            var download = await response.Content.ReadFromJsonAsync<GetFileDownloadUrlResponse>(
+                TestContext.Current.CancellationToken);
+            download.ShouldNotBeNull();
+            new Uri(download.Url).Query.ShouldContain("X-Amz-Signature=");
+        }
+    }
+
     [Theory(DisplayName = "Download URL endpoint should return not found when file is unavailable")]
     [InlineData("missing")]
     [InlineData("foreign")]
@@ -111,7 +138,8 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
     [InlineData("Personal", "")]
     [InlineData("Personal", "file-manager.avatars.read")]
     [InlineData("Avatar", "")]
-    [InlineData("Avatar", "file-manager.personal-files.read")]
+    [InlineData("Avatar", "file-manager.personal-files.read.own")]
+    [InlineData("Avatar", "file-manager.personal-files.read.all")]
     public async Task HandleAsync_Should_ReturnNotFound_When_TheMatchingPermissionIsMissing(
         string typeName,
         string permission)
@@ -133,7 +161,7 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
         var file = await AddFileAsync(FileType.Personal, userId, "PendingUpload", deleted: false);
 
         using var response = await SendRequestAsync(
-            file.Id.Value, userId.ToString(), Permissions.FileManager.PersonalFiles.Read.Code);
+            file.Id.Value, userId.ToString(), Permissions.FileManager.PersonalFiles.ReadOwn.Code);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
@@ -160,7 +188,7 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
     private static string ReadPermission(FileType type)
     {
         return type == FileType.Personal
-            ? Permissions.FileManager.PersonalFiles.Read.Code
+            ? Permissions.FileManager.PersonalFiles.ReadOwn.Code
             : Permissions.FileManager.Avatars.Read.Code;
     }
 

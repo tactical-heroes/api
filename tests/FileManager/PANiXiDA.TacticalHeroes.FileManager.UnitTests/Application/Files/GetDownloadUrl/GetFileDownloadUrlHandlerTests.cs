@@ -17,15 +17,18 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.GetDow
 public sealed class GetFileDownloadUrlHandlerTests
 {
     [Theory(DisplayName = "Download URL handler should sign aggregate metadata when access is granted")]
-    [InlineData("Personal", "file-manager.personal-files.read")]
+    [InlineData("Personal", "file-manager.personal-files.read.own")]
     [InlineData("Avatar", "file-manager.avatars.read")]
+    [InlineData("Personal", "file-manager.personal-files.read.all")]
     public async Task HandleAsync_Should_SignAggregateMetadata_When_AccessIsGranted(string typeName, string permission)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var userId = Guid.NewGuid();
         var currentUser = CreateCurrentUser(userId);
         currentUser.HasPermission(permission).Returns(true);
-        var file = CreateFile(typeName, userId);
+        var file = CreateFile(
+            typeName,
+            permission.EndsWith(".all", StringComparison.Ordinal) ? Guid.NewGuid() : userId);
         file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
         var repository = Substitute.For<IFilesRepository>();
         repository.GetByIdAsync(file.Id, cancellationToken).Returns(file);
@@ -90,7 +93,7 @@ public sealed class GetFileDownloadUrlHandlerTests
 
     [Theory(DisplayName = "Download URL handler should hide the file when access policy denies reading")]
     [InlineData("Personal", "file-manager.avatars.read")]
-    [InlineData("Avatar", "file-manager.personal-files.read")]
+    [InlineData("Avatar", "file-manager.personal-files.read.own")]
     public async Task HandleAsync_Should_ReturnNotFound_When_AccessPolicyDeniesReading(
         string typeName,
         string permission)
@@ -123,7 +126,7 @@ public sealed class GetFileDownloadUrlHandlerTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var userId = Guid.NewGuid();
         var currentUser = CreateCurrentUser(userId);
-        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.Read.Code).Returns(true);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(true);
         var file = CreateFile("Personal", userId);
         if (deleting)
         {
