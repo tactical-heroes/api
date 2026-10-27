@@ -86,7 +86,7 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
             SecondPlayerId: other.PlayerId.Value,
             SecondBuildId: other.BuildId.Value,
             SecondRating: other.Rating.Value,
-            Mode: Mode.Value,
+            Mode: Mode.Name,
             MatchedAt: now.Value));
 
         return Result.Success();

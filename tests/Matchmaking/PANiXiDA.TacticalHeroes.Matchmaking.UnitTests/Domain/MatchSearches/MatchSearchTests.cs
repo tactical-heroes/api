@@ -39,11 +39,14 @@ public sealed class MatchSearchTests
         result.IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Search should close both searches and emit one complete event when pair is valid")]
-    public void MatchWith_Should_CloseBothSearchesAndEmitOneCompleteEvent_When_PairIsValid()
+    [Theory(DisplayName = "Search should close both searches and emit one complete event when pair is valid")]
+    [InlineData("RankedDuel")]
+    [InlineData("CasualDuel")]
+    public void MatchWith_Should_CloseBothSearchesAndEmitOneCompleteEvent_When_PairIsValid(string mode)
     {
-        var first = CreateSearch();
-        var second = CreateSearch();
+        var selectedMode = MatchmakingMode.Create(mode).Value;
+        var first = CreateSearch(mode: selectedMode);
+        var second = CreateSearch(mode: selectedMode);
 
         first.MatchWith(second, At(1)).IsSuccess.ShouldBeTrue();
 
@@ -59,7 +62,7 @@ public sealed class MatchSearchTests
         found.SecondPlayerId.ShouldBe(second.PlayerId.Value);
         found.SecondBuildId.ShouldBe(second.BuildId.Value);
         found.SecondRating.ShouldBe(second.Rating.Value);
-        found.Mode.ShouldBe(first.Mode.Value);
+        found.Mode.ShouldBe(first.Mode.Name);
         found.MatchedAt.ShouldBe(At(1).Value);
         first.GetDomainEvents().OfType<MatchSearchStateChanged>().Last().Status.ShouldBe("Matched");
         second.GetDomainEvents().OfType<MatchSearchStateChanged>().Last().Status.ShouldBe("Matched");
@@ -70,7 +73,7 @@ public sealed class MatchSearchTests
     {
         var first = CreateSearch();
         var samePlayer = CreateSearch(first.PlayerId.Value);
-        var otherMode = CreateSearch(mode: "other");
+        var otherMode = CreateSearch(mode: MatchmakingMode.CasualDuel);
 
         first.MatchWith(first, At(1)).IsFailure.ShouldBeTrue();
         first.MatchWith(samePlayer, At(1)).IsFailure.ShouldBeTrue();

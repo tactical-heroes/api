@@ -41,7 +41,7 @@ internal sealed class MatchSearchConfiguration : AuditableEntityConfiguration<Ma
 
         builder.Property(search => search.Mode)
             .HasConversion(
-                mode => mode.Value,
+                mode => mode.Name,
                 value => MatchmakingMode.Create(value).Value)
             .HasMaxLength(MatchmakingMode.MaxLength)
             .IsRequired();

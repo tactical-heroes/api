@@ -18,12 +18,14 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
 {
-    [Fact(DisplayName = "Repository should preserve selection when reloaded")]
-    public async Task GetByIdAsync_Should_PreserveSelection_When_Reloaded()
+    [Theory(DisplayName = "Repository should preserve selection when reloaded")]
+    [InlineData("RankedDuel")]
+    [InlineData("CasualDuel")]
+    public async Task GetByIdAsync_Should_PreserveSelection_When_Reloaded(string mode)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
-        var search = CreateSearch();
+        var search = CreateSearch(mode: MatchmakingMode.Create(mode).Value);
         await using (var scope = fixture.CreateScope())
         {
             scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>().Add(search);
@@ -51,6 +53,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         row.Status.ShouldBe(MatchSearchStatus.Cancelled.Name);
         row.PlayerId.ShouldBe(search.PlayerId.Value);
         row.BuildId.ShouldBe(search.BuildId.Value);
+        row.Mode.ShouldBe(mode);
     }
 
     [Fact(DisplayName = "Repository should reject second active search when player queues across modes")]
@@ -67,7 +70,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
 
         await using var duplicateScope = fixture.CreateScope();
         duplicateScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
-            .Add(CreateSearch(first.PlayerId.Value, "other"));
+            .Add(CreateSearch(first.PlayerId.Value, MatchmakingMode.CasualDuel));
         var exception = await Should.ThrowAsync<Exception>(() =>
             UnitOfWork(duplicateScope.ServiceProvider).SaveChangesAsync(cancellationToken));
 

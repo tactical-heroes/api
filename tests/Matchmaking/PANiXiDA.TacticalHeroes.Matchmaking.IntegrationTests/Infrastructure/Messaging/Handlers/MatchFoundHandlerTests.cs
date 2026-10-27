@@ -34,7 +34,7 @@ public sealed class MatchFoundHandlerTests
         message.SecondPlayerId.ShouldBe(second.PlayerId.Value);
         message.SecondBuildId.ShouldBe(second.BuildId.Value);
         message.SecondRating.ShouldBe(second.Rating.Value);
-        message.Mode.ShouldBe(first.Mode.Value);
+        message.Mode.ShouldBe(first.Mode.Name);
         message.MatchedAt.ShouldBe(At(1).Value);
     }
 }
