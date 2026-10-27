@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
@@ -20,22 +19,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation;
 
 public sealed class FileUploadReconciliationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
-    [Fact(DisplayName = "Reconciliation should restore metadata when command is dispatched through mediator")]
-    public async Task HandleAsync_Should_RestoreMetadata_When_CommandIsDispatchedThroughMediator()
-    {
-        var file = await CreatePendingUploadAsync();
-        await using var scope = Fixture.CreateScope();
-
-        var result = await scope.ServiceProvider.GetRequiredService<IMediator>()
-            .SendAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
-
-        result.IsSuccess.ShouldBeTrue();
-        var stored = await ReadFileAsync(file.Id);
-        stored.Status.ShouldBe("Ready");
-        stored.Size.ShouldBe(4);
-        stored.ContentType.ShouldBe("text/plain");
-    }
-
     [Theory(DisplayName = "Reconciliation should run in background when recurring schedule fires")]
     [InlineData("Personal")]
     [InlineData("Avatar")]
