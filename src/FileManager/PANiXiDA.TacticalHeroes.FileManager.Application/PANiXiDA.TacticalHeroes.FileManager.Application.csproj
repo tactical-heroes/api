@@ -2,7 +2,6 @@
     <ItemGroup>
         <PackageReference Include="PANiXiDA.Core.Application" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-        <PackageReference Include="Microsoft.Extensions.Options" />
     </ItemGroup>
 
     <ItemGroup>

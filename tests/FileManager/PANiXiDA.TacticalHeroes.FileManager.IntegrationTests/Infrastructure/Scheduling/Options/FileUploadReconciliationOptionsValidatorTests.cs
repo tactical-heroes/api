@@ -1,13 +1,11 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Options.FileUploadReconciliation;
+namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Scheduling.Options;
 
 public sealed class FileUploadReconciliationOptionsValidatorTests
 {
     [Theory(DisplayName = "Reconciliation options should reject settings when configuration is invalid")]
     [InlineData("age")]
-    [InlineData("timeout")]
-    [InlineData("large-timeout")]
     [InlineData("batch")]
     [InlineData("large-batch")]
     public void Validate_Should_RejectInvalidSettings_When_ConfigurationIsInvalid(string invalidPart)
@@ -15,12 +13,6 @@ public sealed class FileUploadReconciliationOptionsValidatorTests
         var options = new FileUploadReconciliationOptions
         {
             MinimumAge = invalidPart == "age" ? TimeSpan.Zero : TimeSpan.FromMinutes(15),
-            StorageRequestTimeout = invalidPart switch
-            {
-                "timeout" => TimeSpan.Zero,
-                "large-timeout" => TimeSpan.MaxValue,
-                _ => TimeSpan.FromSeconds(30)
-            },
             BatchSize = invalidPart switch
             {
                 "batch" => 0,

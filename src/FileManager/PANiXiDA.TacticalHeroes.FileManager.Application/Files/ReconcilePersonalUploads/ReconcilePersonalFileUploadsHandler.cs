@@ -1,10 +1,8 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
@@ -16,7 +14,6 @@ public sealed class ReconcilePersonalFileUploadsHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    IOptions<FileUploadReconciliationOptions> options,
     ILogger<ReconcilePersonalFileUploadsHandler> logger)
     : ICommandHandler<ReconcilePersonalFileUploadsCommand, Result>
 {
@@ -24,13 +21,9 @@ public sealed class ReconcilePersonalFileUploadsHandler(
         ReconcilePersonalFileUploadsCommand command,
         CancellationToken cancellationToken)
     {
-        var storageRequestTimeout = options.Value.StorageRequestTimeout;
         await foreach (var file in filesRepository.GetPendingPersonalUploadsAsync(cancellationToken))
         {
-            await ReconcileFileAsync(
-                file: file,
-                storageRequestTimeout: storageRequestTimeout,
-                cancellationToken: cancellationToken);
+            await ReconcileFileAsync(file, cancellationToken);
         }
 
         return Result.Success();
@@ -38,16 +31,13 @@ public sealed class ReconcilePersonalFileUploadsHandler(
 
     private async Task ReconcileFileAsync(
         File file,
-        TimeSpan storageRequestTimeout,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         FileMetadata? metadata;
         try
         {
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(storageRequestTimeout);
-            metadata = await fileStorage.GetMetadataAsync(file.StorageKey.Value, timeout.Token);
+            metadata = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

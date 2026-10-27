@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.DependencyInjection;
 

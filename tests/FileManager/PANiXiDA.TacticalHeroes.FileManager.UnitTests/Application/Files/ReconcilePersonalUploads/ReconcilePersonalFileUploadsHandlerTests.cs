@@ -7,7 +7,6 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -42,6 +41,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         file.ContentType!.Value.ShouldBe("text/plain");
         file.Size!.Value.ShouldBe(4);
         _files.Received(1).Update(file);
+        await _fileStorage.Received(1).GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
         await _unitOfWork.Received(1).SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
@@ -180,7 +180,6 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
-            options: Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions()),
             logger: NullLogger<ReconcilePersonalFileUploadsHandler>.Instance);
     }
 }

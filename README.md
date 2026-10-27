@@ -196,10 +196,9 @@ The host registers `ReconcilePersonalFileUploadsCommand` through Core Wolverine'
 and coordinates scheduling across replicas.
 
 Operational settings remain under `FileManager:UploadReconciliation`:
-`MinimumAge` defaults to fifteen minutes, `BatchSize` controls database page size
-(1–1000), and `StorageRequestTimeout` bounds each S3 metadata request. The command
-runs through the FileManager mediator pipeline without requesting an enclosing
-transaction; each file is finalized independently.
+`MinimumAge` defaults to fifteen minutes, and `BatchSize` controls database page size
+(1–1000). The command runs through the FileManager mediator pipeline without
+requesting an enclosing transaction; each file is finalized independently.
 
 The first enabled recurring schedule extends Wolverine's message-store schema.
 Apply it using the host's JasperFx `db-apply` command with the target environment's
@@ -222,7 +221,7 @@ The age threshold separates recovery from normal uploads but is not a lease:
 an exceptionally long HTTP upload can still receive an optimistic concurrency
 conflict if recovery completes first.
 
-Missing objects, invalid metadata, storage errors, and per-object timeouts leave
+Missing objects, invalid metadata, and storage errors leave
 the record unchanged for subsequent checks. Paging continues past missing objects.
 Reconciliation does not delete objects, expire records, restart uploads, or inspect
 files already marked `Ready`.

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileUploadReconciliation;
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
 public sealed class FileUploadReconciliationOptionsValidator
     : IValidateOptions<FileUploadReconciliationOptions>
@@ -11,12 +11,6 @@ public sealed class FileUploadReconciliationOptionsValidator
         if (options.MinimumAge <= TimeSpan.Zero)
         {
             failures.Add("Upload reconciliation minimum age must be positive.");
-        }
-
-        if (options.StorageRequestTimeout <= TimeSpan.Zero
-            || options.StorageRequestTimeout.TotalMilliseconds > uint.MaxValue - 1)
-        {
-            failures.Add("Upload reconciliation storage timeout must be positive and fit a cancellation timer.");
         }
 
         if (options.BatchSize is < 1 or > 1000)
