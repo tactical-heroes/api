@@ -1,5 +1,4 @@
 using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
 using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
@@ -12,35 +11,30 @@ public sealed class GameParticipant : Entity<GameParticipantId>
         GameId gameId,
         PlayerId playerId,
         BuildId buildId,
-        Rating rating,
-        GameSide side) : base(id)
+        Rating rating) : base(id)
     {
         GameId = gameId;
         PlayerId = playerId;
         BuildId = buildId;
         Rating = rating;
-        Side = side;
     }
 
     public GameId GameId { get; private set; }
     public PlayerId PlayerId { get; private set; }
     public BuildId BuildId { get; private set; }
     public Rating Rating { get; private set; }
-    public GameSide Side { get; private set; }
 
     internal static GameParticipant Create(
         GameId gameId,
         PlayerId playerId,
         BuildId buildId,
-        Rating rating,
-        GameSide side)
+        Rating rating)
     {
         return new GameParticipant(
             id: GameParticipantId.New(),
             gameId: gameId,
             playerId: playerId,
             buildId: buildId,
-            rating: rating,
-            side: side);
+            rating: rating);
     }
 }

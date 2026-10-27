@@ -6,6 +6,5 @@ public sealed class GameParticipantReadDbModel : ReadDbModel<Guid>
     public Guid PlayerId { get; set; }
     public Guid BuildId { get; set; }
     public int Rating { get; set; }
-    public string Side { get; set; } = string.Empty;
     public GameReadDbModel? Game { get; set; }
 }

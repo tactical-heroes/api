@@ -1,7 +1,6 @@
 using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
 using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
@@ -17,13 +16,12 @@ public sealed class GameParticipantTests
         var buildId = BuildId.New();
         var rating = Rating.Create(1250);
 
-        var participant = GameParticipant.Create(gameId, playerId, buildId, rating, GameSide.Second);
+        var participant = GameParticipant.Create(gameId, playerId, buildId, rating);
 
         participant.Id.Value.Version.ShouldBe(7);
         participant.GameId.ShouldBe(gameId);
         participant.PlayerId.ShouldBe(playerId);
         participant.BuildId.ShouldBe(buildId);
         participant.Rating.ShouldBe(rating);
-        participant.Side.ShouldBe(GameSide.Second);
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
-    public partial class _20261027_120218_Add_games_Table_Add_game_participants_Table_Add_ix_game_AB6D9ED9 : Migration
+    public partial class _20261027_123124_Add_games_Table_Add_game_participants_Table_Add_ix_game_A816F7E4 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -44,7 +44,6 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                     player_id = table.Column<Guid>(type: "uuid", nullable: false),
                     build_id = table.Column<Guid>(type: "uuid", nullable: false),
                     rating = table.Column<int>(type: "integer", nullable: false),
-                    side = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
@@ -64,13 +63,6 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                 schema: "games",
                 table: "game_participants",
                 columns: new[] { "game_id", "player_id" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_game_participants_game_id_side",
-                schema: "games",
-                table: "game_participants",
-                columns: new[] { "game_id", "side" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

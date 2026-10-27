@@ -13,8 +13,8 @@ using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(GamesWriteDbContext))]
-    [Migration("20261027120218_2026-10-27_12-02-18_Add_games_Table_Add_game_participants_Table_Add_ix_game_AB6D9ED9")]
-    partial class _20261027_120218_Add_games_Table_Add_game_participants_Table_Add_ix_game_AB6D9ED9
+    [Migration("20261027123124_2026-10-27_12-31-24_Add_games_Table_Add_game_participants_Table_Add_ix_game_A816F7E4")]
+    partial class _20261027_123124_Add_games_Table_Add_game_participants_Table_Add_ix_game_A816F7E4
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,12 +52,6 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                         .HasColumnType("integer")
                         .HasColumnName("rating");
 
-                    b.Property<string>("Side")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("side");
-
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -70,10 +64,6 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                     b.HasIndex("GameId", "PlayerId")
                         .IsUnique()
                         .HasDatabaseName("ix_game_participants_game_id_player_id");
-
-                    b.HasIndex("GameId", "Side")
-                        .IsUnique()
-                        .HasDatabaseName("ix_game_participants_game_id_side");
 
                     b.ToTable("game_participants", "games");
                 });

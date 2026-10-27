@@ -2,7 +2,6 @@ using PANiXiDA.TacticalHeroes.Games.Domain.Battles;
 using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
@@ -32,7 +31,6 @@ public sealed class GameTests
         game.Participants.Select(participant => participant.PlayerId).Distinct().Count().ShouldBe(2);
         game.Participants.Select(participant => participant.Id).Distinct().Count().ShouldBe(2);
         game.Participants.All(participant => participant.GameId == game.Id).ShouldBeTrue();
-        game.Participants.Select(participant => participant.Side).ShouldBe([GameSide.First, GameSide.Second]);
         game.Participants.Select(participant => participant.Rating.Value).ShouldBe([1000, 1200]);
         ((ICollection<GameParticipant>)game.Participants).IsReadOnly
             .ShouldBeTrue();

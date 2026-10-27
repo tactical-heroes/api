@@ -1,7 +1,6 @@
 using PANiXiDA.TacticalHeroes.Games.Domain.Battles;
 using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
@@ -50,15 +49,13 @@ public sealed class Game : AggregateRoot<GameId>
             gameId: game.Id,
             playerId: firstPlayerId,
             buildId: firstBuildId,
-            rating: firstRating,
-            side: GameSide.First));
+            rating: firstRating));
 
         game._participants.Add(GameParticipant.Create(
             gameId: game.Id,
             playerId: secondPlayerId,
             buildId: secondBuildId,
-            rating: secondRating,
-            side: GameSide.Second));
+            rating: secondRating));
 
         return ResultFactory.Success(game);
     }

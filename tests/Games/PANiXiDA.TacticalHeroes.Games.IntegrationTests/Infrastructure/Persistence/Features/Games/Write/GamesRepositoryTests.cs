@@ -44,7 +44,6 @@ public sealed class GamesRepositoryTests(IntegrationTestFixture fixture) : Integ
             actual.PlayerId.ShouldBe(expected.PlayerId);
             actual.BuildId.ShouldBe(expected.BuildId);
             actual.Rating.ShouldBe(expected.Rating);
-            actual.Side.ShouldBe(expected.Side);
         }
     }
 

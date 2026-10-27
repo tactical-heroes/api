@@ -49,12 +49,6 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                         .HasColumnType("integer")
                         .HasColumnName("rating");
 
-                    b.Property<string>("Side")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("side");
-
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -67,10 +61,6 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                     b.HasIndex("GameId", "PlayerId")
                         .IsUnique()
                         .HasDatabaseName("ix_game_participants_game_id_player_id");
-
-                    b.HasIndex("GameId", "Side")
-                        .IsUnique()
-                        .HasDatabaseName("ix_game_participants_game_id_side");
 
                     b.ToTable("game_participants", "games");
                 });
