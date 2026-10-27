@@ -57,12 +57,23 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         row.Mode.ShouldBe(mode);
     }
 
-    [Fact(DisplayName = "Repository should reject second active search when player queues across modes")]
-    public async Task Add_Should_RejectSecondActiveSearch_When_PlayerQueuesAcrossModes()
+    [Theory(DisplayName = "Repository should reject second active search when player queues across modes")]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Add_Should_RejectSecondActiveSearch_When_PlayerQueuesAcrossModes(
+        bool firstMatched,
+        bool secondMatched)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
         var first = CreateSearch();
+        if (firstMatched)
+        {
+            first.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        }
+
         await using (var scope = fixture.CreateScope())
         {
             scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>().Add(first);
@@ -70,8 +81,14 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         }
 
         await using var duplicateScope = fixture.CreateScope();
+        var second = CreateSearch(first.PlayerId.Value, MatchmakingMode.CasualDuel);
+        if (secondMatched)
+        {
+            second.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        }
+
         duplicateScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
-            .Add(CreateSearch(first.PlayerId.Value, MatchmakingMode.CasualDuel));
+            .Add(second);
         var exception = await Should.ThrowAsync<Exception>(() =>
             UnitOfWork(duplicateScope.ServiceProvider).SaveChangesAsync(cancellationToken));
 
@@ -79,16 +96,45 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
             .ShouldBe(PostgresErrorCodes.UniqueViolation);
     }
 
-    [Fact(DisplayName = "Repository should allow new search when previous search was cancelled")]
-    public async Task Add_Should_AllowNewSearch_When_PreviousSearchWasCancelled()
+    [Theory(DisplayName = "Repository should allow new search when previous search became terminal")]
+    [InlineData("Cancelled")]
+    [InlineData("Expired")]
+    [InlineData("Closed")]
+    public async Task Add_Should_AllowNewSearch_When_PreviousSearchBecameTerminal(string status)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(cancellationToken);
         var first = CreateSearch();
-        first.Cancel().IsSuccess.ShouldBeTrue();
+        await using (var initialScope = fixture.CreateScope())
+        {
+            var initialRepository = initialScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+            initialRepository.Add(first);
+            await UnitOfWork(initialScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+
+            if (status == "Closed")
+            {
+                first.Matched(At(1)).IsSuccess.ShouldBeTrue();
+                initialRepository.Update(first);
+                await UnitOfWork(initialScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+                first.Close().IsSuccess.ShouldBeTrue();
+            }
+            else if (status == "Expired")
+            {
+                first.Expire(At(300)).IsSuccess.ShouldBeTrue();
+            }
+            else
+            {
+                first.Cancel().IsSuccess.ShouldBeTrue();
+            }
+
+            initialRepository.Update(first);
+            await UnitOfWork(initialScope.ServiceProvider).SaveChangesAsync(cancellationToken);
+        }
+
         await using var scope = fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
-        repository.Add(first);
+        var restored = (await repository.GetByIdAsync(first.Id, cancellationToken))!;
+        restored.Status.Name.ShouldBe(status);
         repository.Add(CreateSearch(first.PlayerId.Value));
 
         await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);

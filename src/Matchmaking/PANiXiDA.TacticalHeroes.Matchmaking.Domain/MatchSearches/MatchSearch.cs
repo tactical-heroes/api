@@ -85,6 +85,25 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         return Result.Success();
     }
 
+    public Result Close()
+    {
+        if (Status == MatchSearchStatus.Closed)
+        {
+            return Result.Success();
+        }
+
+        if (Status != MatchSearchStatus.Matched)
+        {
+            return Result.Failure(Error.Conflict("Only a matched search can be closed."));
+        }
+
+        Status = MatchSearchStatus.Closed;
+
+        RecordStateChanged();
+
+        return Result.Success();
+    }
+
     public Result Cancel()
     {
         if (Status == MatchSearchStatus.Cancelled)

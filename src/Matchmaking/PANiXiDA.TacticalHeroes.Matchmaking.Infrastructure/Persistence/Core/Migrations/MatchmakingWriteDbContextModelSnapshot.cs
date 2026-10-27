@@ -91,7 +91,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     b.HasIndex("PlayerId")
                         .IsUnique()
                         .HasDatabaseName("ix_match_searches_player_id")
-                        .HasFilter("deleted_at IS NULL AND status = 'Searching'");
+                        .HasFilter("deleted_at IS NULL AND status IN ('Searching', 'Matched')");
 
                     b.HasIndex("Status", "ExpiresAt")
                         .HasDatabaseName("ix_match_searches_status_expires_at");

@@ -142,6 +142,103 @@ public sealed class MatchSearchTests
         search.GetDomainEvents().Count.ShouldBe(count);
     }
 
+    [Fact(DisplayName = "Search should close and publish state when search was matched")]
+    public void Close_Should_CloseAndPublishState_When_SearchWasMatched()
+    {
+        var search = CreateSearch();
+        search.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
+
+        search.Close().IsSuccess.ShouldBeTrue();
+
+        search.Status.ShouldBe(MatchSearchStatus.Closed);
+        search.GetDomainEvents().Count.ShouldBe(count + 1);
+        var changed = search.GetDomainEvents().Last().ShouldBeOfType<MatchSearchStateChanged>();
+        changed.MatchSearchId.ShouldBe(search.Id.Value);
+        changed.PlayerId.ShouldBe(search.PlayerId.Value);
+        changed.Status.ShouldBe("Closed");
+    }
+
+    [Fact(DisplayName = "Search should publish once when closed repeatedly")]
+    public void Close_Should_PublishOnce_When_ClosedRepeatedly()
+    {
+        var search = CreateSearch();
+        search.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        search.Close().IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
+
+        search.Close().IsSuccess.ShouldBeTrue();
+
+        search.Status.ShouldBe(MatchSearchStatus.Closed);
+        search.GetDomainEvents().Count.ShouldBe(count);
+    }
+
+    [Theory(DisplayName = "Search should preserve state when search was not matched")]
+    [InlineData("Searching")]
+    [InlineData("Cancelled")]
+    [InlineData("Expired")]
+    public void Close_Should_PreserveState_When_SearchWasNotMatched(string status)
+    {
+        var search = CreateSearch();
+        if (status == "Cancelled")
+        {
+            search.Cancel().IsSuccess.ShouldBeTrue();
+        }
+        else if (status == "Expired")
+        {
+            search.Expire(At(300)).IsSuccess.ShouldBeTrue();
+        }
+
+        var count = search.GetDomainEvents().Count;
+
+        search.Close().IsFailure.ShouldBeTrue();
+
+        search.Status.Name.ShouldBe(status);
+        search.GetDomainEvents().Count.ShouldBe(count);
+    }
+
+    [Fact(DisplayName = "Search should preserve closed state when search was closed")]
+    public void Matched_Should_PreserveClosedState_When_SearchWasClosed()
+    {
+        var search = CreateSearch();
+        search.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        search.Close().IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
+
+        search.Matched(At(1)).IsFailure.ShouldBeTrue();
+
+        search.Status.ShouldBe(MatchSearchStatus.Closed);
+        search.GetDomainEvents().Count.ShouldBe(count);
+    }
+
+    [Fact(DisplayName = "Search should preserve closed state when search was closed")]
+    public void Cancel_Should_PreserveClosedState_When_SearchWasClosed()
+    {
+        var search = CreateSearch();
+        search.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        search.Close().IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
+
+        search.Cancel().IsFailure.ShouldBeTrue();
+
+        search.Status.ShouldBe(MatchSearchStatus.Closed);
+        search.GetDomainEvents().Count.ShouldBe(count);
+    }
+
+    [Fact(DisplayName = "Search should preserve closed state when search was closed")]
+    public void Expire_Should_PreserveClosedState_When_SearchWasClosed()
+    {
+        var search = CreateSearch();
+        search.Matched(At(1)).IsSuccess.ShouldBeTrue();
+        search.Close().IsSuccess.ShouldBeTrue();
+        var count = search.GetDomainEvents().Count;
+
+        search.Expire(At(300)).IsFailure.ShouldBeTrue();
+
+        search.Status.ShouldBe(MatchSearchStatus.Closed);
+        search.GetDomainEvents().Count.ShouldBe(count);
+    }
+
     [Fact(DisplayName = "Search should cancel once when requested repeatedly")]
     public void Cancel_Should_CancelOnce_When_RequestedRepeatedly()
     {

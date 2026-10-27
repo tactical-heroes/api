@@ -9,6 +9,7 @@ public sealed class MatchSearchStatusTests
     [InlineData("Matched", "Матч найден")]
     [InlineData("Cancelled", "Поиск отменён")]
     [InlineData("Expired", "Время поиска истекло")]
+    [InlineData("Closed", "Участие завершено")]
     public void Create_Should_AcceptLifecycleStates_When_Parsed(string value, string displayName)
     {
         var result = MatchSearchStatus.Create(value);
@@ -47,6 +48,7 @@ public sealed class MatchSearchStatusTests
             "Matched",
             "Cancelled",
             "Expired",
+            "Closed",
         ];
 
         values.Select(value => value.Name).ShouldBe(expected);
