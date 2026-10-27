@@ -23,25 +23,29 @@ public sealed class FilesRepository(
             dbContext),
         IFilesRepository
 {
-    private readonly FileManagerWriteDbContext _dbContext = dbContext;
-
     public async IAsyncEnumerable<File> GetPendingPersonalUploadsAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var reconciliationOptions = options.Value;
         var createdBefore = timeProvider.GetUtcNow().Subtract(reconciliationOptions.MinimumAge).UtcDateTime;
-        var afterId = Guid.Empty;
+        var query = Query.Where(file =>
+            file.Type == FileType.Personal
+                && file.Status == FileStatus.PendingUpload
+                && EF.Property<DateTime>(file, EfConstants.CreatedAt) < createdBefore);
+        FileId? afterId = null;
         while (true)
         {
-            var files = await _dbContext.Set<File>()
-                .FromSqlInterpolated(
-                    $"""
-                    SELECT *, xmin FROM file_manager.files
-                    WHERE type = {FileType.Personal.Name} AND status = {FileStatus.PendingUpload.Name}
-                        AND created_at < {createdBefore} AND id > {afterId}
-                    ORDER BY id
-                    LIMIT {reconciliationOptions.BatchSize}
-                    """)
+            var pageQuery = query;
+            if (afterId is { } cursor)
+            {
+                pageQuery = pageQuery.Where(file => EF.Functions.GreaterThan(
+                    ValueTuple.Create(file.Id),
+                    ValueTuple.Create(cursor)));
+            }
+
+            var files = await pageQuery
+                .OrderBy(file => file.Id)
+                .Take(reconciliationOptions.BatchSize)
                 .ToListAsync(cancellationToken);
             if (files.Count == 0)
             {
@@ -54,7 +58,7 @@ public sealed class FilesRepository(
                 yield return file;
             }
 
-            afterId = files[^1].Id.Value;
+            afterId = files[^1].Id;
         }
     }
 }
