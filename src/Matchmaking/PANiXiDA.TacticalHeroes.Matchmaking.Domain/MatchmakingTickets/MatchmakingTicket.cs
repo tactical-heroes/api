@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.BuildSnapshots;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Events;
@@ -12,7 +12,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
     private MatchmakingTicket(
         MatchmakingTicketId id,
         PlayerId playerId,
-        BuildSnapshotId buildSnapshotId,
+        BuildId buildId,
         RatingSnapshot rating,
         MatchmakingMode mode,
         MatchmakingTimestamp queuedAt,
@@ -20,7 +20,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         : base(id)
     {
         PlayerId = playerId;
-        BuildSnapshotId = buildSnapshotId;
+        BuildId = buildId;
         Rating = rating;
         Mode = mode;
         QueuedAt = queuedAt;
@@ -29,7 +29,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
     }
 
     public PlayerId PlayerId { get; private set; }
-    public BuildSnapshotId BuildSnapshotId { get; private set; }
+    public BuildId BuildId { get; private set; }
     public RatingSnapshot Rating { get; private set; }
     public MatchmakingMode Mode { get; private set; }
     public MatchmakingTimestamp QueuedAt { get; private set; }
@@ -39,7 +39,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
 
     public static Result<MatchmakingTicket> Create(
         PlayerId playerId,
-        BuildSnapshotId buildSnapshotId,
+        BuildId buildId,
         RatingSnapshot rating,
         MatchmakingMode mode,
         MatchmakingTimestamp queuedAt,
@@ -53,7 +53,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         var ticket = new MatchmakingTicket(
             id: MatchmakingTicketId.New(),
             playerId: playerId,
-            buildSnapshotId: buildSnapshotId,
+            buildId: buildId,
             rating: rating,
             mode: mode,
             queuedAt: queuedAt,

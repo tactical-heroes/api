@@ -24,7 +24,7 @@ public sealed class MatchAssignmentTests
         assignment.Participants.ShouldAllBe(value => value.MatchAssignmentId == assignment.Id);
         var participant = assignment.Participants.Single(value => value.TicketId == first.Id);
         participant.PlayerId.ShouldBe(first.PlayerId);
-        participant.BuildSnapshotId.ShouldBe(first.BuildSnapshotId);
+        participant.BuildId.ShouldBe(first.BuildId);
         participant.Rating.ShouldBe(first.Rating);
         first.Status.ShouldBe(MatchmakingTicketStatus.Searching);
         second.Status.ShouldBe(MatchmakingTicketStatus.Searching);

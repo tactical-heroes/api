@@ -18,7 +18,7 @@ public sealed class MatchParticipantTests
         participant.MatchAssignmentId.ShouldBe(assignmentId);
         participant.TicketId.ShouldBe(ticket.Id);
         participant.PlayerId.ShouldBe(ticket.PlayerId);
-        participant.BuildSnapshotId.ShouldBe(ticket.BuildSnapshotId);
+        participant.BuildId.ShouldBe(ticket.BuildId);
         participant.Rating.ShouldBe(ticket.Rating);
     }
 }

@@ -7,7 +7,7 @@ public sealed class MatchParticipantReadDbModel : ReadDbModel<Guid>
     public Guid MatchAssignmentId { get; set; }
     public Guid TicketId { get; set; }
     public Guid PlayerId { get; set; }
-    public Guid BuildSnapshotId { get; set; }
+    public Guid BuildId { get; set; }
     public int Rating { get; set; }
 
     public MatchAssignmentReadDbModel? MatchAssignment { get; set; }

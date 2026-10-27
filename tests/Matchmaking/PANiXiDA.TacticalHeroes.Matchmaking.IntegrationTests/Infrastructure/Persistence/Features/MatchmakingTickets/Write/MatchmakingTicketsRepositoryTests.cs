@@ -33,7 +33,7 @@ public sealed class MatchmakingTicketsRepositoryTests(IntegrationTestFixture fix
             var repository = scope.ServiceProvider.GetRequiredService<IMatchmakingTicketsRepository>();
             var restored = (await repository.GetByIdAsync(ticket.Id, cancellationToken))!;
             restored.PlayerId.ShouldBe(ticket.PlayerId);
-            restored.BuildSnapshotId.ShouldBe(ticket.BuildSnapshotId);
+            restored.BuildId.ShouldBe(ticket.BuildId);
             restored.Rating.ShouldBe(ticket.Rating);
             restored.Mode.ShouldBe(ticket.Mode);
             restored.ExpiresAt.ShouldBe(ticket.ExpiresAt);
@@ -48,7 +48,7 @@ public sealed class MatchmakingTicketsRepositoryTests(IntegrationTestFixture fix
             .SingleAsync(value => value.Id == ticket.Id.Value, cancellationToken);
         row.Status.ShouldBe(MatchmakingTicketStatus.Cancelled.Name);
         row.PlayerId.ShouldBe(ticket.PlayerId.Value);
-        row.BuildSnapshotId.ShouldBe(ticket.BuildSnapshotId.Value);
+        row.BuildId.ShouldBe(ticket.BuildId.Value);
     }
 
     [Fact(DisplayName = "Repository should reject second active ticket when player queues across modes")]

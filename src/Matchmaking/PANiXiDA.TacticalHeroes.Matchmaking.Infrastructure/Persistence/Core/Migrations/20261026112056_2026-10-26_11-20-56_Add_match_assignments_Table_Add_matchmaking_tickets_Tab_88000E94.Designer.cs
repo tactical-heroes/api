@@ -35,9 +35,9 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("BuildSnapshotId")
+                    b.Property<Guid>("BuildId")
                         .HasColumnType("uuid")
-                        .HasColumnName("build_snapshot_id");
+                        .HasColumnName("build_id");
 
                     b.Property<Guid>("MatchAssignmentId")
                         .HasColumnType("uuid")
@@ -145,9 +145,9 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("BuildSnapshotId")
+                    b.Property<Guid>("BuildId")
                         .HasColumnType("uuid")
-                        .HasColumnName("build_snapshot_id");
+                        .HasColumnName("build_id");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")

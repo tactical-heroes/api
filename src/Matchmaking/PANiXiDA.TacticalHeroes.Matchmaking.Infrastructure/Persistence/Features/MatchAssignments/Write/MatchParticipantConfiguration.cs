@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.BuildSnapshots;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Entities.MatchParticipants;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
@@ -38,10 +38,10 @@ internal sealed class MatchParticipantConfiguration : IEntityTypeConfiguration<M
                 value => PlayerId.Create(value).Value)
             .IsRequired();
 
-        builder.Property(participant => participant.BuildSnapshotId)
+        builder.Property(participant => participant.BuildId)
             .HasConversion(
-                snapshotId => snapshotId.Value,
-                value => BuildSnapshotId.Create(value).Value)
+                buildId => buildId.Value,
+                value => BuildId.Create(value).Value)
             .IsRequired();
 
         builder.Property(participant => participant.Rating)

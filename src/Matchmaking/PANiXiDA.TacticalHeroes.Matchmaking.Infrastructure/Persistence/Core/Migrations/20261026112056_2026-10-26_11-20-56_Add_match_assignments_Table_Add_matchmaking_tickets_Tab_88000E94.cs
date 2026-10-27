@@ -42,7 +42,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     player_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    build_snapshot_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    build_id = table.Column<Guid>(type: "uuid", nullable: false),
                     rating = table.Column<int>(type: "integer", nullable: false),
                     mode = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     queued_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -72,7 +72,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     match_assignment_id = table.Column<Guid>(type: "uuid", nullable: false),
                     ticket_id = table.Column<Guid>(type: "uuid", nullable: false),
                     player_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    build_snapshot_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    build_id = table.Column<Guid>(type: "uuid", nullable: false),
                     rating = table.Column<int>(type: "integer", nullable: false),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },

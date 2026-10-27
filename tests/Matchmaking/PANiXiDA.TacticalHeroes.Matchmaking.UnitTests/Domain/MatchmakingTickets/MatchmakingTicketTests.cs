@@ -33,7 +33,7 @@ public sealed class MatchmakingTicketTests
 
         var result = MatchmakingTicket.Create(
             template.PlayerId,
-            template.BuildSnapshotId,
+            template.BuildId,
             template.Rating,
             template.Mode,
             At(0),

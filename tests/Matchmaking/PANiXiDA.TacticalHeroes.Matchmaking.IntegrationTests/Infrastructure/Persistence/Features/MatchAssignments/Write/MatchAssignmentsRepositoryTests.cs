@@ -71,7 +71,7 @@ public sealed class MatchAssignmentsRepositoryTests(IntegrationTestFixture fixtu
         {
             var ticket = ticketRows.Single(value => value.Id == participant.TicketId);
             participant.PlayerId.ShouldBe(ticket.PlayerId);
-            participant.BuildSnapshotId.ShouldBe(ticket.BuildSnapshotId);
+            participant.BuildId.ShouldBe(ticket.BuildId);
             participant.Rating.ShouldBe(ticket.Rating);
         }
     }

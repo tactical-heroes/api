@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.BuildSnapshots;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
@@ -18,7 +18,7 @@ internal static class MatchmakingTestData
     {
         return MatchmakingTicket.Create(
             PlayerId.Create(playerId ?? Guid.CreateVersion7()).Value,
-            BuildSnapshotId.Create(Guid.CreateVersion7()).Value,
+            BuildId.Create(Guid.CreateVersion7()).Value,
             RatingSnapshot.Create(1500),
             MatchmakingMode.Create(mode).Value,
             At(0),
