@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Entities.MatchParticipants;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
 
@@ -14,20 +14,20 @@ public sealed class MatchTests
     [Fact(DisplayName = "Match should capture selections and request game creation when pair is matched")]
     public void Create_Should_CaptureSelectionsAndRequestGameCreation_When_PairIsMatched()
     {
-        var first = Ticket();
-        var second = Ticket();
+        var first = CreateSearch();
+        var second = CreateSearch();
 
         var match = Match.Create(first, second, At(1), At(60)).Value;
 
         match.Participants.Count.ShouldBe(2);
         match.Participants.Select(value => value.Id).Distinct().Count().ShouldBe(2);
         match.Participants.ShouldAllBe(value => value.MatchId == match.Id);
-        var participant = match.Participants.Single(value => value.TicketId == first.Id);
+        var participant = match.Participants.Single(value => value.MatchSearchId == first.Id);
         participant.PlayerId.ShouldBe(first.PlayerId);
         participant.BuildId.ShouldBe(first.BuildId);
         participant.Rating.ShouldBe(first.Rating);
-        first.Status.ShouldBe(MatchmakingTicketStatus.Searching);
-        second.Status.ShouldBe(MatchmakingTicketStatus.Searching);
+        first.Status.ShouldBe(MatchSearchStatus.Searching);
+        second.Status.ShouldBe(MatchSearchStatus.Searching);
         match.MatchedAt.ShouldBe(At(1));
         match.CreationDeadline.ShouldBe(At(60));
         match.Status.ShouldBe(MatchStatus.CreatingGame);
@@ -38,14 +38,14 @@ public sealed class MatchTests
         Should.Throw<NotSupportedException>(() => ((ICollection<MatchParticipant>)match.Participants).Clear());
     }
 
-    [Fact(DisplayName = "Match should reject incompatible tickets when created")]
-    public void Create_Should_RejectIncompatibleTickets_When_Created()
+    [Fact(DisplayName = "Match should reject incompatible searches when created")]
+    public void Create_Should_RejectIncompatibleSearches_When_Created()
     {
-        var first = Ticket();
+        var first = CreateSearch();
 
         Match.Create(first, first, At(1), At(60)).IsFailure.ShouldBeTrue();
-        Match.Create(first, Ticket(first.PlayerId.Value), At(1), At(60)).IsFailure.ShouldBeTrue();
-        Match.Create(first, Ticket(mode: "other"), At(1), At(60)).IsFailure.ShouldBeTrue();
+        Match.Create(first, CreateSearch(first.PlayerId.Value), At(1), At(60)).IsFailure.ShouldBeTrue();
+        Match.Create(first, CreateSearch(mode: "other"), At(1), At(60)).IsFailure.ShouldBeTrue();
     }
 
     [Theory(DisplayName = "Match should reject deadline when it does not follow match time")]
@@ -53,19 +53,19 @@ public sealed class MatchTests
     [InlineData(0)]
     public void Create_Should_RejectDeadline_When_ItDoesNotFollowMatchTime(int creation)
     {
-        var result = Match.Create(Ticket(), Ticket(), At(1), At(creation));
+        var result = Match.Create(CreateSearch(), CreateSearch(), At(1), At(creation));
 
         result.IsFailure.ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Match should reject unavailable tickets when created")]
-    public void Create_Should_RejectUnavailableTickets_When_Created()
+    [Fact(DisplayName = "Match should reject unavailable searches when created")]
+    public void Create_Should_RejectUnavailableSearches_When_Created()
     {
-        var first = Ticket();
-        var second = Ticket();
+        var first = CreateSearch();
+        var second = CreateSearch();
 
         Match.Create(first, second, At(-1), At(60)).IsFailure.ShouldBeTrue();
-        Match.Create(first, Ticket(expiresAt: 1), At(1), At(60)).IsFailure.ShouldBeTrue();
+        Match.Create(first, CreateSearch(expiresAt: 1), At(1), At(60)).IsFailure.ShouldBeTrue();
         second.Reserve(MatchId.New(), At(1)).IsSuccess.ShouldBeTrue();
         Match.Create(first, second, At(2), At(60)).IsFailure.ShouldBeTrue();
     }

@@ -2,9 +2,9 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Entities.MatchParticipants;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 
@@ -34,15 +34,15 @@ public sealed class Match : AggregateRoot<MatchId>
     public IReadOnlyCollection<MatchParticipant> Participants => _participants.AsReadOnly();
 
     public static Result<Match> Create(
-        MatchmakingTicket first,
-        MatchmakingTicket second,
+        MatchSearch first,
+        MatchSearch second,
         MatchmakingTimestamp now,
         MatchmakingTimestamp creationDeadline)
     {
         if (first.Id == second.Id || first.PlayerId == second.PlayerId || first.Mode != second.Mode)
         {
             return Result.Failure<Match>(
-                Error.Validation("A duel requires distinct players and tickets in the same mode."));
+                Error.Validation("A duel requires distinct players and searches in the same mode."));
         }
 
         if (creationDeadline.Value <= now.Value)
@@ -53,7 +53,7 @@ public sealed class Match : AggregateRoot<MatchId>
 
         if (!IsActive(first, now) || !IsActive(second, now))
         {
-            return Result.Failure<Match>(Error.Conflict("Both tickets must be actively searching."));
+            return Result.Failure<Match>(Error.Conflict("Both searches must be active."));
         }
 
         var match = new Match(
@@ -117,11 +117,11 @@ public sealed class Match : AggregateRoot<MatchId>
         return Close(MatchStatus.Expired);
     }
 
-    private static bool IsActive(MatchmakingTicket ticket, MatchmakingTimestamp now)
+    private static bool IsActive(MatchSearch search, MatchmakingTimestamp now)
     {
-        return ticket.Status == MatchmakingTicketStatus.Searching
-            && now.Value >= ticket.QueuedAt.Value
-            && now.Value < ticket.ExpiresAt.Value;
+        return search.Status == MatchSearchStatus.Searching
+            && now.Value >= search.QueuedAt.Value
+            && now.Value < search.ExpiresAt.Value;
     }
 
     private Result Close(MatchStatus status)

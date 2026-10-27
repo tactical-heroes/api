@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchmakingTickets.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.Matches.Read.DbModels;
 
@@ -11,5 +11,5 @@ public sealed class MatchReadDbModel : AuditableReadDbModel<Guid>
     public Guid? GameId { get; set; }
 
     public ICollection<MatchParticipantReadDbModel> Participants { get; set; } = [];
-    public ICollection<MatchmakingTicketReadDbModel> MatchmakingTickets { get; set; } = [];
+    public ICollection<MatchSearchReadDbModel> MatchSearches { get; set; } = [];
 }

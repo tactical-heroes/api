@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Entities.MatchParticipants;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.Matches.Write;
@@ -27,10 +27,10 @@ internal sealed class MatchParticipantConfiguration : IEntityTypeConfiguration<M
                 matchId => matchId.Value,
                 value => MatchId.Create(value).Value);
 
-        builder.Property(participant => participant.TicketId)
+        builder.Property(participant => participant.MatchSearchId)
             .HasConversion(
-                ticketId => ticketId.Value,
-                value => MatchmakingTicketId.Create(value).Value);
+                matchSearchId => matchSearchId.Value,
+                value => MatchSearchId.Create(value).Value);
 
         builder.Property(participant => participant.PlayerId)
             .HasConversion(
@@ -50,12 +50,12 @@ internal sealed class MatchParticipantConfiguration : IEntityTypeConfiguration<M
                 value => RatingSnapshot.Create(value))
             .IsRequired();
 
-        builder.HasOne<MatchmakingTicket>()
+        builder.HasOne<MatchSearch>()
             .WithMany()
-            .HasForeignKey(participant => participant.TicketId)
+            .HasForeignKey(participant => participant.MatchSearchId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(participant => participant.TicketId).IsUnique();
+        builder.HasIndex(participant => participant.MatchSearchId).IsUnique();
         builder.HasIndex(participant => new { participant.MatchId, participant.PlayerId }).IsUnique();
     }
 }

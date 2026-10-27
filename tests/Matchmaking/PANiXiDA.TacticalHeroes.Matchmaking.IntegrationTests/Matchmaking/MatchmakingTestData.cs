@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
@@ -19,9 +19,9 @@ internal static class MatchmakingTestData
             new DateTimeOffset(2026, 10, 26, 8, 0, 0, TimeSpan.Zero).AddSeconds(seconds));
     }
 
-    internal static MatchmakingTicket Ticket(Guid? playerId = null, string mode = "duel")
+    internal static MatchSearch CreateSearch(Guid? playerId = null, string mode = "duel")
     {
-        return MatchmakingTicket.Create(
+        return MatchSearch.Create(
             PlayerId.Create(playerId ?? Guid.CreateVersion7()).Value,
             BuildId.Create(Guid.CreateVersion7()).Value,
             RatingSnapshot.Create(1500),
@@ -39,14 +39,14 @@ internal static class MatchmakingTestData
         IServiceProvider services,
         CancellationToken cancellationToken)
     {
-        var first = Ticket();
-        var second = Ticket();
+        var first = CreateSearch();
+        var second = CreateSearch();
         var match = Match.Create(first, second, At(1), At(60)).Value;
         first.Reserve(match.Id, At(1)).IsSuccess.ShouldBeTrue();
         second.Reserve(match.Id, At(1)).IsSuccess.ShouldBeTrue();
-        var tickets = services.GetRequiredService<IMatchmakingTicketsRepository>();
-        tickets.Add(first);
-        tickets.Add(second);
+        var searches = services.GetRequiredService<IMatchSearchesRepository>();
+        searches.Add(first);
+        searches.Add(second);
         services.GetRequiredService<IMatchesRepository>().Add(match);
         await UnitOfWork(services).SaveChangesAsync(cancellationToken);
 

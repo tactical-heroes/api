@@ -7,18 +7,18 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.Matches.Entities.
 
 public sealed class MatchParticipantTests
 {
-    [Fact(DisplayName = "Participant should capture ticket selection when created by match")]
-    public void Create_Should_CaptureTicketSelection_When_CreatedByMatch()
+    [Fact(DisplayName = "Participant should capture search selection when created by match")]
+    public void Create_Should_CaptureSearchSelection_When_CreatedByMatch()
     {
-        var ticket = Ticket();
+        var search = CreateSearch();
         var matchId = MatchId.New();
 
-        var participant = MatchParticipant.Create(matchId, ticket);
+        var participant = MatchParticipant.Create(matchId, search);
 
         participant.MatchId.ShouldBe(matchId);
-        participant.TicketId.ShouldBe(ticket.Id);
-        participant.PlayerId.ShouldBe(ticket.PlayerId);
-        participant.BuildId.ShouldBe(ticket.BuildId);
-        participant.Rating.ShouldBe(ticket.Rating);
+        participant.MatchSearchId.ShouldBe(search.Id);
+        participant.PlayerId.ShouldBe(search.PlayerId);
+        participant.BuildId.ShouldBe(search.BuildId);
+        participant.Rating.ShouldBe(search.Rating);
     }
 }

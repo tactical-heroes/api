@@ -7,11 +7,11 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.Matches.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchmakingTickets.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Matchmaking.MatchmakingTestData;
 
@@ -44,12 +44,12 @@ public sealed class MatchesRepositoryTests(IntegrationTestFixture fixture)
             restored.GetDomainEvents().OfType<GameCreationRequested>().ShouldBeEmpty();
             restored.Complete(game, At(2)).IsSuccess.ShouldBeTrue();
             repository.Update(restored);
-            var tickets = scope.ServiceProvider.GetRequiredService<IMatchmakingTicketsRepository>();
+            var searches = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
             foreach (var participant in restored.Participants)
             {
-                var ticket = (await tickets.GetByIdAsync(participant.TicketId, cancellationToken))!;
-                ticket.MarkAssigned(restored.Id).IsSuccess.ShouldBeTrue();
-                tickets.Update(ticket);
+                var search = (await searches.GetByIdAsync(participant.MatchSearchId, cancellationToken))!;
+                search.MarkAssigned(restored.Id).IsSuccess.ShouldBeTrue();
+                searches.Update(search);
             }
             await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
         }
@@ -62,17 +62,17 @@ public sealed class MatchesRepositoryTests(IntegrationTestFixture fixture)
         row.GameId.ShouldBe(game.Value);
         row.Status.ShouldBe(MatchStatus.Ready.Name);
         row.Participants.Count.ShouldBe(2);
-        var ticketRows = await read.Set<MatchmakingTicketReadDbModel>()
+        var searchRows = await read.Set<MatchSearchReadDbModel>()
             .Where(value => value.MatchId == match.Id.Value)
             .ToListAsync(cancellationToken);
-        ticketRows.Count.ShouldBe(2);
-        ticketRows.ShouldAllBe(value => value.Status == MatchmakingTicketStatus.Assigned.Name);
+        searchRows.Count.ShouldBe(2);
+        searchRows.ShouldAllBe(value => value.Status == MatchSearchStatus.Assigned.Name);
         foreach (var participant in row.Participants)
         {
-            var ticket = ticketRows.Single(value => value.Id == participant.TicketId);
-            participant.PlayerId.ShouldBe(ticket.PlayerId);
-            participant.BuildId.ShouldBe(ticket.BuildId);
-            participant.Rating.ShouldBe(ticket.Rating);
+            var search = searchRows.Single(value => value.Id == participant.MatchSearchId);
+            participant.PlayerId.ShouldBe(search.PlayerId);
+            participant.BuildId.ShouldBe(search.BuildId);
+            participant.Rating.ShouldBe(search.Rating);
         }
     }
 
