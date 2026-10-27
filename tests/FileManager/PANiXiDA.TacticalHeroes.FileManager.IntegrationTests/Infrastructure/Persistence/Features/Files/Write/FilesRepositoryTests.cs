@@ -26,8 +26,8 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Pending uploads should load tracked aggregates in pages when old personal files exist")]
-    public async Task GetPendingPersonalUploadsAsync_Should_LoadTrackedAggregatesInPages_When_OldPersonalFilesExist()
+    [Fact(DisplayName = "Pending uploads should load tracked aggregates in pages when old files exist")]
+    public async Task GetPendingUploadsAsync_Should_LoadTrackedAggregatesInPages_When_OldFilesExist()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var first = CreatePersonalFile();
@@ -35,7 +35,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var recent = CreatePersonalFile();
         var atCutoff = CreatePersonalFile();
         var expired = CreatePersonalFile();
-        foreach (var file in new[] { first, second, recent, atCutoff, expired })
+        var avatar = CreateFile();
+        foreach (var file in new[] { first, second, recent, atCutoff, expired, avatar })
         {
             await SaveNewFileAsync(file, cancellationToken);
         }
@@ -49,7 +50,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         await context.Database.ExecuteSqlInterpolatedAsync(
             $"""
             UPDATE file_manager.files SET created_at = {now.AddHours(-1).UtcDateTime}
-            WHERE id IN ({first.Id.Value}, {second.Id.Value})
+            WHERE id IN ({first.Id.Value}, {second.Id.Value}, {avatar.Id.Value})
             """,
             cancellationToken);
         await context.Database.ExecuteSqlInterpolatedAsync(
@@ -64,22 +65,24 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             timeProvider: timeProvider);
         var loaded = new List<File>();
 
-        await foreach (var file in repository.GetPendingPersonalUploadsAsync(cancellationToken))
+        await foreach (var file in repository.GetPendingUploadsAsync(cancellationToken))
         {
             loaded.Add(file);
         }
 
-        loaded.Select(file => file.Id.Value).ShouldBe(new[] { first.Id.Value, second.Id.Value }.Order());
+        var expectedIds = new[] { first.Id.Value, second.Id.Value, avatar.Id.Value }.Order();
+        loaded.Select(file => file.Id.Value).ShouldBe(expectedIds);
         loaded[0].Status.ShouldBe(FileStatus.PendingUpload);
-        loaded[0].StorageKey.ShouldBe(first.Id == loaded[0].Id ? first.StorageKey : second.StorageKey);
-        context.ChangeTracker.Entries<File>().Count().ShouldBe(2);
+        var firstExpected = new[] { first, second, avatar }.Single(file => file.Id == loaded[0].Id);
+        loaded[0].StorageKey.ShouldBe(firstExpected.StorageKey);
+        context.ChangeTracker.Entries<File>().Count().ShouldBe(3);
         context.Entry(loaded[0]).State.ShouldBe(EntityState.Unchanged);
         context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
         timeProvider.Received(1).GetUtcNow();
     }
 
     [Fact(DisplayName = "Expired uploads should use a fixed cutoff when tracked aggregates are paged")]
-    public async Task GetExpiredPersonalUploadsAsync_Should_UseFixedCutoff_When_TrackedAggregatesArePaged()
+    public async Task GetExpiredUploadsAsync_Should_UseFixedCutoff_When_TrackedAggregatesArePaged()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var first = CreatePersonalFile();
@@ -112,20 +115,21 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             timeProvider: timeProvider);
         var loaded = new List<File>();
 
-        await foreach (var file in repository.GetExpiredPersonalUploadsAsync(cancellationToken))
+        await foreach (var file in repository.GetExpiredUploadsAsync(cancellationToken))
         {
             loaded.Add(file);
         }
 
-        loaded.Select(file => file.Id.Value).ShouldBe(new[] { first.Id.Value, second.Id.Value }.Order());
-        context.ChangeTracker.Entries<File>().Count().ShouldBe(2);
+        var expectedIds = new[] { first.Id.Value, second.Id.Value, avatar.Id.Value }.Order();
+        loaded.Select(file => file.Id.Value).ShouldBe(expectedIds);
+        context.ChangeTracker.Entries<File>().Count().ShouldBe(3);
         context.Entry(loaded[0]).State.ShouldBe(EntityState.Unchanged);
         context.Entry(loaded[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
         timeProvider.Received(1).GetUtcNow();
     }
 
     [Fact(DisplayName = "File deletion queries should separate active and deleted files when lifecycle states vary")]
-    public async Task GetPersonalFilesForDeletionAsync_Should_SeparateActiveAndDeletedFiles_When_LifecycleStatesVary()
+    public async Task GetFilesForDeletionAsync_Should_SeparateActiveAndDeletedFiles_When_LifecycleStatesVary()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var deleting = CreatePersonalFile();
@@ -133,11 +137,13 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var deletedReady = CreatePersonalFile();
         var pending = CreatePersonalFile();
         var avatar = CreateFile();
+        var activeAvatar = CreateFile();
         deleting.BeginDeletion();
         deleted.BeginDeletion();
         deletedReady.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
         avatar.BeginDeletion();
-        foreach (var file in new[] { deleting, deleted, deletedReady, pending, avatar })
+        activeAvatar.BeginDeletion();
+        foreach (var file in new[] { deleting, deleted, deletedReady, pending, avatar, activeAvatar })
         {
             await SaveNewFileAsync(file, cancellationToken);
         }
@@ -164,18 +170,19 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var active = new List<File>();
         var tombstones = new List<File>();
 
-        await foreach (var file in repository.GetPersonalFilesForDeletionAsync(cancellationToken))
+        await foreach (var file in repository.GetFilesForDeletionAsync(cancellationToken))
         {
             active.Add(file);
         }
 
-        await foreach (var file in repository.GetDeletedPersonalFilesAsync(cancellationToken))
+        await foreach (var file in repository.GetDeletedFilesAsync(cancellationToken))
         {
             tombstones.Add(file);
         }
 
-        active.Select(file => file.Id).ShouldBe(new[] { deleting.Id });
-        tombstones.Select(file => file.Id.Value).ShouldBe(new[] { deleted.Id.Value, deletedReady.Id.Value }.Order());
+        active.Select(file => file.Id.Value).ShouldBe(new[] { deleting.Id.Value, activeAvatar.Id.Value }.Order());
+        var expectedTombstones = new[] { deleted.Id.Value, deletedReady.Id.Value, avatar.Id.Value }.Order();
+        tombstones.Select(file => file.Id.Value).ShouldBe(expectedTombstones);
         context.Entry(tombstones[0]).Property<DateTime?>(EfConstants.DeletedAt).CurrentValue.ShouldNotBeNull();
         context.Entry(tombstones[0]).Property<uint>("xmin").OriginalValue.ShouldBeGreaterThan(0u);
         (await repository.GetByIdAsync(deleted.Id, cancellationToken)).ShouldBeNull();

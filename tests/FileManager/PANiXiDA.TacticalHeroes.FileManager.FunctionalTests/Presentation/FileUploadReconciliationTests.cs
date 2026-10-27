@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -18,7 +18,7 @@ using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation;
 
-public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
+public sealed class FileUploadReconciliationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
     [Fact(DisplayName = "Reconciliation should restore metadata when command is dispatched through mediator")]
     public async Task HandleAsync_Should_RestoreMetadata_When_CommandIsDispatchedThroughMediator()
@@ -27,7 +27,7 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
         await using var scope = Fixture.CreateScope();
 
         var result = await scope.ServiceProvider.GetRequiredService<IMediator>()
-            .SendAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            .SendAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         var stored = await ReadFileAsync(file.Id);
@@ -36,10 +36,12 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
         stored.ContentType.ShouldBe("text/plain");
     }
 
-    [Fact(DisplayName = "Reconciliation should run in background when recurring schedule fires")]
-    public async Task ReconcileAsync_Should_RunInBackground_When_RecurringScheduleFires()
+    [Theory(DisplayName = "Reconciliation should run in background when recurring schedule fires")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task ReconcileAsync_Should_RunInBackground_When_RecurringScheduleFires(string typeName)
     {
-        var file = await CreatePendingUploadAsync();
+        var file = await CreatePendingUploadAsync(type: FileType.FromName(typeName));
 
         var stored = await WaitForFileAsync(file.Id, item => item.Status == "Ready");
 
@@ -48,20 +50,25 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
         stored.ContentType.ShouldBe("text/plain");
     }
 
-    [Fact(DisplayName = "Reconciliation should soft delete an expired upload when recurring schedule fires")]
-    public async Task ReconcileAsync_Should_SoftDeleteExpiredUpload_When_RecurringScheduleFires()
+    [Theory(DisplayName = "Reconciliation should soft delete an expired upload when recurring schedule fires")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task ReconcileAsync_Should_SoftDeleteExpiredUpload_When_RecurringScheduleFires(string typeName)
     {
-        var file = await CreatePendingUploadAsync(uploadContent: false);
+        var file = await CreatePendingUploadAsync(uploadContent: false, type: FileType.FromName(typeName));
 
         var stored = await WaitForFileAsync(file.Id, item => item.DeletedAt != null);
 
         stored.Status.ShouldBe("Deleting");
         stored.DeletedAt.ShouldNotBeNull();
         stored.Size.ShouldBeNull();
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/files/personal/{file.Id.Value}");
-        request.Headers.Add(TestAuthenticationHandler.UserIdHeader, file.UserId!.Value.Value.ToString());
-        using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        if (file.UserId is { } userId)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/files/personal/{file.Id.Value}");
+            request.Headers.Add(TestAuthenticationHandler.UserIdHeader, userId.Value.ToString());
+            using var response = await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
+            response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        }
         await using var scope = Fixture.CreateScope();
         var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
             .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
@@ -74,21 +81,22 @@ public sealed class PersonalFileUploadReconciliationTests(FunctionalTestFixture 
         using var scope = Fixture.CreateScope();
         var runtime = scope.ServiceProvider.GetRequiredService<IWolverineRuntime>();
 
-        var schedule = runtime.Options.Schedules.FindByName("file-manager-reconcile-personal-uploads");
+        var schedule = runtime.Options.Schedules.FindByName("file-manager-reconcile-uploads");
 
         schedule.ShouldNotBeNull();
-        schedule.MessageType.ShouldBe(typeof(ReconcilePersonalFileUploadsCommand));
+        schedule.MessageType.ShouldBe(typeof(ReconcileFileUploadsCommand));
         schedule.Schedule.Expression.ShouldBe("*/5 * * * * *");
         schedule.Schedule.TimeZone.Id.ShouldBe("UTC");
     }
 
-    private async Task<File> CreatePendingUploadAsync(bool uploadContent = true)
+    private async Task<File> CreatePendingUploadAsync(bool uploadContent = true, FileType? type = null)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var fileType = type ?? FileType.Personal;
         var file = File.Create(
             FileName.Create("file.txt").Value,
-            FileType.Personal,
-            UserId.Create(Guid.NewGuid()).Value).Value;
+            fileType,
+            fileType == FileType.Personal ? UserId.Create(Guid.NewGuid()).Value : null).Value;
         await using var scope = Fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         context.Add(file);

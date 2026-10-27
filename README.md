@@ -186,12 +186,12 @@ and credentials before using storage. Credentials can be overridden with
 `FileManager__S3Storage__AccessKey` and `FileManager__S3Storage__SecretKey`.
 The base prefix is `production`; `appsettings.Development.json` sets `development`.
 
-## Personal Upload Reconciliation
+## File Upload Reconciliation
 
 The host calls FileManager's `AddFileManagerSchedules` extension. The module's
-`Scheduling/ScheduledCommands.cs` registers `ReconcilePersonalFileUploadsCommand`
+`Scheduling/ScheduledCommands.cs` registers `ReconcileFileUploadsCommand`
 through Core Wolverine's `AddRecurringCommand`. Its schedule is configured under
-`FileManager:Schedules:ReconcilePersonalFileUploadsCommand`: `Enabled`, a stable
+`FileManager:Schedules:ReconcileFileUploadsCommand`: `Enabled`, a stable
 `Name`, `CronExpression` (five-field cron, `*/5 * * * *` by default), and
 `TimeZoneId` (`UTC`). Wolverine persists recurring schedules in its message store
 and coordinates scheduling across replicas.
@@ -207,7 +207,7 @@ Apply it using the host's JasperFx `db-apply` command with the target environmen
 configuration before starting replicas where automatic schema updates are disabled.
 The EF migrator only manages module schemas, not Wolverine's message-store tables.
 
-The recurring command handler receives personal-file aggregates directly from
+The recurring command handler receives file aggregates of every type directly from
 `IFilesRepository`: pending uploads before expiration, expired pending uploads,
 files in `Deleting` state, and soft-deleted files. Each repository sequence captures fixed
 age cutoffs and preserves optimistic concurrency tokens. Each database page
@@ -224,9 +224,10 @@ The age threshold separates recovery from normal uploads but is not a lease:
 an exceptionally long HTTP upload can still receive an optimistic concurrency
 conflict if recovery completes first.
 
-Missing objects before `ExpirationAge`, invalid metadata, and inspection errors
-leave pending uploads unchanged. Valid stored content is finalized even after the
-expiration age. If an expired upload has no stored object, the handler calls
+Before `ExpirationAge`, missing objects and invalid metadata leave pending uploads
+unchanged. Inspection errors leave them unchanged at any age. Valid stored content
+is finalized even after expiration. If an expired upload has no stored object or
+its content type or size fails domain validation, the handler calls
 `BeginDeletion` and saves the intent before attempting an idempotent S3 delete.
 Only a successful storage delete is followed by repository deletion and another
 save. Core EF sets `DeletedAt`, so normal write and read queries hide the file.
@@ -238,12 +239,14 @@ HTTP 404.
 
 The handler also checks soft-deleted records for objects that appear after deletion,
 such as an upload completing after its original request lost an optimistic version
-race. A dedicated repository query bypasses normal filters and selects only personal
-files with a non-null `DeletedAt`. Such late objects are deleted on a subsequent
+race. A dedicated repository query bypasses normal filters and selects files of
+every type with a non-null `DeletedAt`. Such late objects are deleted on a subsequent
 pass without changing the original deletion timestamp. Rows are retained according
 to Core EF's soft-delete behavior. Paging continues past missing
 objects. Already-ready files are not scanned, and failed uploads are not restarted.
-Incomplete multipart cleanup and upload-request idempotency remain separate work.
+Configure the bucket's `AbortIncompleteMultipartUpload` lifecycle policy to clean
+up incomplete multipart uploads. The worker does not enumerate unrelated objects
+in the bucket, audit ready content, or implement upload-request idempotency.
 This recovery path establishes eventual completion for objects that are present;
 it does not make S3 and PostgreSQL updates atomic or verify an expected checksum.
 

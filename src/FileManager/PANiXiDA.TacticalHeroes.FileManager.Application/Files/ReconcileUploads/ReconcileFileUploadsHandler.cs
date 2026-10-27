@@ -9,35 +9,35 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 
-public sealed class ReconcilePersonalFileUploadsHandler(
+public sealed class ReconcileFileUploadsHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    ILogger<ReconcilePersonalFileUploadsHandler> logger)
-    : ICommandHandler<ReconcilePersonalFileUploadsCommand, Result>
+    ILogger<ReconcileFileUploadsHandler> logger)
+    : ICommandHandler<ReconcileFileUploadsCommand, Result>
 {
     public async Task<Result> HandleAsync(
-        ReconcilePersonalFileUploadsCommand command,
+        ReconcileFileUploadsCommand command,
         CancellationToken cancellationToken)
     {
-        await foreach (var file in filesRepository.GetPendingPersonalUploadsAsync(cancellationToken))
+        await foreach (var file in filesRepository.GetPendingUploadsAsync(cancellationToken))
         {
-            await ReconcileFileAsync(file: file, expireMissing: false, cancellationToken: cancellationToken);
+            await ReconcileFileAsync(file: file, expireUnusable: false, cancellationToken: cancellationToken);
         }
 
-        await foreach (var file in filesRepository.GetExpiredPersonalUploadsAsync(cancellationToken))
+        await foreach (var file in filesRepository.GetExpiredUploadsAsync(cancellationToken))
         {
-            await ReconcileFileAsync(file: file, expireMissing: true, cancellationToken: cancellationToken);
+            await ReconcileFileAsync(file: file, expireUnusable: true, cancellationToken: cancellationToken);
         }
 
-        await foreach (var file in filesRepository.GetPersonalFilesForDeletionAsync(cancellationToken))
+        await foreach (var file in filesRepository.GetFilesForDeletionAsync(cancellationToken))
         {
             await DeleteFileAsync(file, cancellationToken);
         }
 
-        await foreach (var file in filesRepository.GetDeletedPersonalFilesAsync(cancellationToken))
+        await foreach (var file in filesRepository.GetDeletedFilesAsync(cancellationToken))
         {
             await DeleteFileContentAsync(file: file, inspectFirst: true, cancellationToken: cancellationToken);
         }
@@ -47,7 +47,7 @@ public sealed class ReconcilePersonalFileUploadsHandler(
 
     private async Task ReconcileFileAsync(
         File file,
-        bool expireMissing,
+        bool expireUnusable,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -62,21 +62,20 @@ public sealed class ReconcilePersonalFileUploadsHandler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Could not inspect personal file {FileId}; will retry", file.Id.Value);
+            logger.LogError(exception, "Could not inspect file {FileId}; will retry", file.Id.Value);
             return;
         }
 
-        if (metadata is null)
+        if (metadata is not null
+            && await TryCompleteUploadAsync(file: file, metadata: metadata, cancellationToken: cancellationToken))
         {
-            if (expireMissing)
-            {
-                await BeginDeletionAsync(file, cancellationToken);
-            }
-
             return;
         }
 
-        await CompleteUploadAsync(file: file, metadata: metadata, cancellationToken: cancellationToken);
+        if (expireUnusable)
+        {
+            await BeginDeletionAsync(file, cancellationToken);
+        }
     }
 
     private async Task BeginDeletionAsync(File file, CancellationToken cancellationToken)
@@ -94,17 +93,20 @@ public sealed class ReconcilePersonalFileUploadsHandler(
 
         filesRepository.Update(aggregateRoot: file);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Expired personal upload {FileId}; will retry deletion until complete", file.Id.Value);
+        logger.LogInformation("Expired upload {FileId}; will retry deletion until complete", file.Id.Value);
     }
 
-    private async Task CompleteUploadAsync(File file, FileMetadata metadata, CancellationToken cancellationToken)
+    private async Task<bool> TryCompleteUploadAsync(
+        File file,
+        FileMetadata metadata,
+        CancellationToken cancellationToken)
     {
         var contentType = FileContentType.Create(metadata.ContentType);
         var size = FileSize.Create(metadata.Size);
         if (contentType.IsFailure || size.IsFailure)
         {
-            logger.LogWarning("Stored content for personal file {FileId} has invalid metadata", file.Id.Value);
-            return;
+            logger.LogWarning("Stored content for file {FileId} has invalid metadata", file.Id.Value);
+            return false;
         }
 
         var result = file.CompleteUpload(contentType: contentType.Value, size: size.Value);
@@ -112,8 +114,10 @@ public sealed class ReconcilePersonalFileUploadsHandler(
         {
             filesRepository.Update(aggregateRoot: file);
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Reconciled personal file {FileId}", file.Id.Value);
+            logger.LogInformation("Reconciled file {FileId}", file.Id.Value);
         }
+
+        return result.IsSuccess;
     }
 
     private async Task DeleteFileAsync(File file, CancellationToken cancellationToken)
@@ -150,11 +154,11 @@ public sealed class ReconcilePersonalFileUploadsHandler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Could not delete personal file {FileId}; will retry", file.Id.Value);
+            logger.LogError(exception, "Could not delete file {FileId}; will retry", file.Id.Value);
             return false;
         }
 
-        logger.LogInformation("Deleted stored content for personal file {FileId}", file.Id.Value);
+        logger.LogInformation("Deleted stored content for file {FileId}", file.Id.Value);
         return true;
     }
 }

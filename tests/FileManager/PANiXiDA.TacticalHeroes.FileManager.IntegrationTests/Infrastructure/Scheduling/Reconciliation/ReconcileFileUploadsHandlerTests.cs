@@ -8,7 +8,7 @@ using Npgsql;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
@@ -26,18 +26,20 @@ using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Scheduling.Reconciliation;
 
-public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixture fixture)
+public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Reconciliation should recover ready metadata when uploaded object exists")]
-    public async Task HandleAsync_Should_RecoverReadyMetadata_When_UploadedObjectExists()
+    [Theory(DisplayName = "Reconciliation should recover ready metadata when uploaded object exists")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task HandleAsync_Should_RecoverReadyMetadata_When_UploadedObjectExists(string typeName)
     {
-        var file = await SaveFileAsync();
+        var file = await SaveFileAsync(type: FileType.FromName(typeName));
         await UploadAsync(file);
         await using var scope = Fixture.CreateScope();
 
         await CreateHandler(scope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
         stored.Status.ShouldBe("Ready");
@@ -52,18 +54,17 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         var file = await SaveFileAsync();
         await using var scope = Fixture.CreateScope();
         var job = CreateHandler(scope.ServiceProvider);
-        await job.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+        await job.HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
         (await ReadFileAsync(file.Id)).Status.ShouldBe("PendingUpload");
 
         await UploadAsync(file);
-        await job.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+        await job.HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         (await ReadFileAsync(file.Id)).Status.ShouldBe("Ready");
     }
 
     [Theory(DisplayName = "Reconciliation should leave unrelated records unchanged when file is ineligible")]
     [InlineData("recent")]
-    [InlineData("avatar")]
     [InlineData("ready")]
     public async Task HandleAsync_Should_LeaveUnrelatedRecordsUnchanged_When_FileIsIneligible(string condition)
     {
@@ -73,7 +74,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await using var scope = Fixture.CreateScope();
 
         await CreateHandler(scope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
         stored.Status.ShouldBe(original.Status);
@@ -91,7 +92,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await using var scope = Fixture.CreateScope();
 
         await CreateHandler(scope.ServiceProvider, batchSize: 1)
-            .HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            .HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         (await ReadFileAsync(ordered[0].Id)).Status.ShouldBe("PendingUpload");
         (await ReadFileAsync(ordered[1].Id)).Status.ShouldBe("Ready");
@@ -115,7 +116,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             await using var scope = Fixture.CreateScope();
 
             await CreateHandler(scope.ServiceProvider).HandleAsync(
-                new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+                new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
             stored = await ReadFileAsync(file.Id);
         }
@@ -141,7 +142,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
 
         var exception = await Record.ExceptionAsync(() =>
             CreateHandler(scope.ServiceProvider).HandleAsync(
-                new ReconcilePersonalFileUploadsCommand(), cancellation.Token));
+                new ReconcileFileUploadsCommand(), cancellation.Token));
 
         exception.ShouldBeAssignableTo<OperationCanceledException>();
     }
@@ -158,7 +159,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             .UploadAsync(file.StorageKey.Value, content, contentType, TestContext.Current.CancellationToken);
 
         await CreateHandler(scope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
         stored.Status.ShouldBe("PendingUpload");
@@ -185,11 +186,11 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         var reconciler = CreateHandler(scope.ServiceProvider, batchSize: 1);
 
         var exception = await Record.ExceptionAsync(() => reconciler.HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken));
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken));
         var pending = await ReadFileAsync(changedFile.Id);
         await using var retryScope = provider.CreateAsyncScope();
         await CreateHandler(retryScope.ServiceProvider, batchSize: 1)
-            .HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            .HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
         var completed = await ReadFileAsync(otherFile.Id);
         var retried = await ReadFileAsync(changedFile.Id);
 
@@ -203,14 +204,16 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         retried.Size.ShouldBe(4);
     }
 
-    [Fact(DisplayName = "Reconciliation should delete an expired upload when stored content is missing")]
-    public async Task HandleAsync_Should_DeleteExpiredUpload_When_StoredContentIsMissing()
+    [Theory(DisplayName = "Reconciliation should delete an expired upload when stored content is missing")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task HandleAsync_Should_DeleteExpiredUpload_When_StoredContentIsMissing(string typeName)
     {
-        var file = await SaveFileAsync("expired");
+        var file = await SaveFileAsync("expired", FileType.FromName(typeName));
         await using var scope = Fixture.CreateScope();
 
         await CreateHandler(scope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         var stored = await ReadFileAsync(file.Id);
         stored.Status.ShouldBe("Deleting");
@@ -219,10 +222,35 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         var aggregate = await scope.ServiceProvider.GetRequiredService<IFilesRepository>()
             .GetByIdAsync(file.Id, TestContext.Current.CancellationToken);
         aggregate.ShouldBeNull();
-        var details = await scope.ServiceProvider.GetRequiredService<IFilesReadRepository>()
-            .GetPersonalDetailsByIdAsync(
-                file.Id.Value, file.UserId!.Value.Value, TestContext.Current.CancellationToken);
-        details.ShouldBeNull();
+        if (file.UserId is { } userId)
+        {
+            var details = await scope.ServiceProvider.GetRequiredService<IFilesReadRepository>()
+                .GetPersonalDetailsByIdAsync(file.Id.Value, userId.Value, TestContext.Current.CancellationToken);
+            details.ShouldBeNull();
+        }
+    }
+
+    [Theory(DisplayName = "Reconciliation should soft delete an expired upload when stored metadata is invalid")]
+    [InlineData("Personal", 0, "text/plain")]
+    [InlineData("Personal", 4, "text/*")]
+    [InlineData("Avatar", 0, "text/plain")]
+    [InlineData("Avatar", 4, "text/*")]
+    public async Task HandleAsync_Should_SoftDeleteExpiredUpload_When_StoredMetadataIsInvalid(
+        string typeName, int size, string contentType)
+    {
+        var file = await SaveFileAsync("expired", FileType.FromName(typeName));
+        await using var scope = Fixture.CreateScope();
+        var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
+        await using var content = new MemoryStream(new byte[size]);
+        await storage.UploadAsync(file.StorageKey.Value, content, contentType, TestContext.Current.CancellationToken);
+
+        await CreateHandler(scope.ServiceProvider).HandleAsync(
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        var stored = await ReadFileAsync(file.Id);
+        stored.DeletedAt.ShouldNotBeNull();
+        var metadata = await storage.GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
+        metadata.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Reconciliation should recover an expired upload when stored content is valid")]
@@ -233,7 +261,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await using var scope = Fixture.CreateScope();
 
         await CreateHandler(scope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         (await ReadFileAsync(file.Id)).Status.ShouldBe("Ready");
         var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
@@ -242,11 +270,14 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
     }
 
     [Theory(DisplayName = "Reconciliation should finish persisted deletion when stored content may exist")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task HandleAsync_Should_FinishPersistedDeletion_When_StoredContentMayExist(bool contentExists)
+    [InlineData(false, "Personal")]
+    [InlineData(true, "Personal")]
+    [InlineData(false, "Avatar")]
+    [InlineData(true, "Avatar")]
+    public async Task HandleAsync_Should_FinishPersistedDeletion_When_StoredContentMayExist(
+        bool contentExists, string typeName)
     {
-        var file = await SaveFileAsync("deleting");
+        var file = await SaveFileAsync("deleting", FileType.FromName(typeName));
         if (contentExists)
         {
             await UploadAsync(file);
@@ -255,7 +286,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await using var scope = Fixture.CreateScope();
 
         await CreateHandler(scope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         (await ReadFileAsync(file.Id)).DeletedAt.ShouldNotBeNull();
         var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
@@ -279,7 +310,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             await using var scope = Fixture.CreateScope();
 
             await CreateHandler(scope.ServiceProvider).HandleAsync(
-                new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+                new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
             var deleting = await ReadFileAsync(file.Id);
             deleting.Status.ShouldBe("Deleting");
@@ -297,7 +328,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
 
         await using var retryScope = Fixture.CreateScope();
         await CreateHandler(retryScope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         (await ReadFileAsync(file.Id)).DeletedAt.ShouldNotBeNull();
     }
@@ -312,7 +343,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await using (var deletionScope = Fixture.CreateScope())
         {
             await CreateHandler(deletionScope.ServiceProvider).HandleAsync(
-                new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+                new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
         }
 
         var deletedAt = (await ReadFileAsync(file.Id)).DeletedAt;
@@ -327,7 +358,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await using var cleanupScope = Fixture.CreateScope();
 
         await CreateHandler(cleanupScope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         exception.ShouldBeOfType<ConcurrencyException>();
         (await ReadFileAsync(file.Id)).DeletedAt.ShouldBe(deletedAt);
@@ -354,13 +385,13 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         await using var scope = provider.CreateAsyncScope();
 
         var exception = await Record.ExceptionAsync(() => CreateHandler(scope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken));
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken));
         var pending = await ReadFileAsync(file.Id);
         var metadata = await scope.ServiceProvider.GetRequiredService<IFileStorage>()
             .GetMetadataAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
         await using var retryScope = provider.CreateAsyncScope();
         await CreateHandler(retryScope.ServiceProvider).HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         exception.ShouldBeOfType<ConcurrencyException>();
         pending.Status.ShouldBe("Deleting");
@@ -369,7 +400,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
         (await ReadFileAsync(file.Id)).DeletedAt.ShouldNotBeNull();
     }
 
-    private static ReconcilePersonalFileUploadsHandler CreateHandler(
+    private static ReconcileFileUploadsHandler CreateHandler(
         IServiceProvider services,
         int batchSize = 100)
     {
@@ -382,19 +413,20 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests(IntegrationTestFixt
             options: options,
             timeProvider: TimeProvider.System);
 
-        return new ReconcilePersonalFileUploadsHandler(
+        return new ReconcileFileUploadsHandler(
             filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            logger: NullLogger<ReconcilePersonalFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 
-    private async Task<File> SaveFileAsync(string condition = "pending")
+    private async Task<File> SaveFileAsync(string condition = "pending", FileType? type = null)
     {
+        var fileType = type ?? (condition == "avatar" ? FileType.Avatar : FileType.Personal);
         var file = File.Create(
             FileName.Create("file.txt").Value,
-            condition == "avatar" ? FileType.Avatar : FileType.Personal,
-            condition == "avatar" ? null : UserId.Create(Guid.NewGuid()).Value).Value;
+            fileType,
+            fileType == FileType.Personal ? UserId.Create(Guid.NewGuid()).Value : null).Value;
         if (condition is "ready" or "deleting" or "deleted")
         {
             file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(8).Value);

@@ -7,7 +7,7 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcilePersonalUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -16,23 +16,23 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.ReconcilePersonalUploads;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.ReconcileUploads;
 
-public sealed class ReconcilePersonalFileUploadsHandlerTests
+public sealed class ReconcileFileUploadsHandlerTests
 {
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
     private readonly IFileStorage _fileStorage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
-    public ReconcilePersonalFileUploadsHandlerTests()
+    public ReconcileFileUploadsHandlerTests()
     {
-        _files.GetPendingPersonalUploadsAsync(Arg.Any<CancellationToken>())
+        _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
-        _files.GetExpiredPersonalUploadsAsync(Arg.Any<CancellationToken>())
+        _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
-        _files.GetPersonalFilesForDeletionAsync(Arg.Any<CancellationToken>())
+        _files.GetFilesForDeletionAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
-        _files.GetDeletedPersonalFilesAsync(Arg.Any<CancellationToken>())
+        _files.GetDeletedFilesAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
     }
 
@@ -46,7 +46,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var handler = CreateHandler();
 
         var result = await handler.HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
@@ -72,7 +72,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var handler = CreateHandler();
 
         var result = await handler.HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.PendingUpload);
@@ -94,7 +94,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var handler = CreateHandler();
 
         var result = await handler.HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Deleting);
@@ -112,11 +112,11 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
             .Returns(new FileMetadata("text/plain", 4));
         var handler = CreateHandler();
 
-        await handler.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+        await handler.HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         missing.Status.ShouldBe(FileStatus.PendingUpload);
         uploaded.Status.ShouldBe(FileStatus.Ready);
-        _files.Received(1).GetPendingPersonalUploadsAsync(TestContext.Current.CancellationToken);
+        _files.Received(1).GetPendingUploadsAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(DisplayName = "Handler should continue processing when storage fails for one file")]
@@ -131,7 +131,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
             .Returns(new FileMetadata("text/plain", 4));
         var handler = CreateHandler();
 
-        await handler.HandleAsync(new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+        await handler.HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         failed.Status.ShouldBe(FileStatus.PendingUpload);
         uploaded.Status.ShouldBe(FileStatus.Ready);
@@ -147,7 +147,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var handler = CreateHandler();
 
         var exception = await Record.ExceptionAsync(() => handler.HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), cancellation.Token));
+            new ReconcileFileUploadsCommand(), cancellation.Token));
 
         exception.ShouldBeAssignableTo<OperationCanceledException>();
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -166,7 +166,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var handler = CreateHandler();
 
         var exception = await Record.ExceptionAsync(() => handler.HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken));
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken));
 
         exception.ShouldBeSameAs(failure);
         next.Status.ShouldBe(FileStatus.PendingUpload);
@@ -177,8 +177,8 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     public async Task HandleAsync_Should_DeleteExpiredUpload_When_StoredContentIsMissing()
     {
         var file = CreateFile();
-        _files.GetExpiredPersonalUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
-        _files.GetPersonalFilesForDeletionAsync(Arg.Any<CancellationToken>())
+        _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
+        _files.GetFilesForDeletionAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         var savedStates = new List<FileStatus>();
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(_ =>
@@ -188,7 +188,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         });
 
         var result = await CreateHandler().HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         savedStates.ShouldBe(new[] { FileStatus.Deleting, FileStatus.Deleting });
@@ -197,16 +197,36 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         await _fileStorage.Received(1).DeleteAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
     }
 
+    [Theory(DisplayName = "Handler should delete an expired upload when stored metadata is invalid")]
+    [InlineData(0, "text/plain")]
+    [InlineData(4, "text/*")]
+    public async Task HandleAsync_Should_DeleteExpiredUpload_When_StoredMetadataIsInvalid(long size, string contentType)
+    {
+        var file = CreateFile();
+        _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
+        _files.GetFilesForDeletionAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
+        _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata(contentType, size));
+
+        await CreateHandler().HandleAsync(
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        file.Status.ShouldBe(FileStatus.Deleting);
+        _files.Received(1).Delete(file);
+        await _fileStorage.Received(1).DeleteAsync(file.StorageKey.Value, TestContext.Current.CancellationToken);
+        await _unitOfWork.Received(2).SaveChangesAsync(TestContext.Current.CancellationToken);
+    }
+
     [Fact(DisplayName = "Handler should recover an expired upload when valid stored content exists")]
     public async Task HandleAsync_Should_RecoverExpiredUpload_When_ValidStoredContentExists()
     {
         var file = CreateFile();
-        _files.GetExpiredPersonalUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
+        _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
             .Returns(new FileMetadata("text/plain", 4));
 
         await CreateHandler().HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         file.Status.ShouldBe(FileStatus.Ready);
         await _fileStorage.DidNotReceive().DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -217,12 +237,12 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     public async Task HandleAsync_Should_PreserveExpiredUpload_When_MetadataInspectionFails()
     {
         var file = CreateFile();
-        _files.GetExpiredPersonalUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
+        _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
             .ThrowsAsync(new IOException("Storage unavailable."));
 
         await CreateHandler().HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         file.Status.ShouldBe(FileStatus.PendingUpload);
         await _fileStorage.DidNotReceive().DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -233,13 +253,13 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     public async Task HandleAsync_Should_StopBeforeStorageDeletion_When_PersistingDeletionIntentConflicts()
     {
         var file = CreateFile();
-        _files.GetExpiredPersonalUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
-        _files.GetPersonalFilesForDeletionAsync(Arg.Any<CancellationToken>())
+        _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
+        _files.GetFilesForDeletionAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyException());
 
         var exception = await Record.ExceptionAsync(() => CreateHandler().HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken));
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken));
 
         exception.ShouldBeOfType<ConcurrencyException>();
         await _fileStorage.DidNotReceive().DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -252,13 +272,13 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         var next = CreateFile();
         failed.BeginDeletion();
         next.BeginDeletion();
-        _files.GetPersonalFilesForDeletionAsync(Arg.Any<CancellationToken>())
+        _files.GetFilesForDeletionAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { failed, next }.ToAsyncEnumerable());
         _fileStorage.DeleteAsync(failed.StorageKey.Value, Arg.Any<CancellationToken>())
             .ThrowsAsync(new IOException("Storage unavailable."));
 
         await CreateHandler().HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         failed.Status.ShouldBe(FileStatus.Deleting);
         next.Status.ShouldBe(FileStatus.Deleting);
@@ -274,13 +294,13 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     {
         var file = CreateFile();
         file.BeginDeletion();
-        _files.GetDeletedPersonalFilesAsync(Arg.Any<CancellationToken>())
+        _files.GetDeletedFilesAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
             .Returns(contentExists ? new FileMetadata("text/plain", 4) : null);
 
         await CreateHandler().HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), TestContext.Current.CancellationToken);
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         file.Status.ShouldBe(FileStatus.Deleting);
         _files.DidNotReceive().Delete(Arg.Any<File>());
@@ -294,7 +314,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
     {
         var file = CreateFile();
         file.BeginDeletion();
-        _files.GetPersonalFilesForDeletionAsync(Arg.Any<CancellationToken>())
+        _files.GetFilesForDeletionAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         _fileStorage.DeleteAsync(file.StorageKey.Value, cancellation.Token).Returns(async _ =>
@@ -304,7 +324,7 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
         });
 
         var exception = await Record.ExceptionAsync(() => CreateHandler().HandleAsync(
-            new ReconcilePersonalFileUploadsCommand(), cancellation.Token));
+            new ReconcileFileUploadsCommand(), cancellation.Token));
 
         exception.ShouldBeAssignableTo<OperationCanceledException>();
         file.Status.ShouldBe(FileStatus.Deleting);
@@ -321,15 +341,15 @@ public sealed class ReconcilePersonalFileUploadsHandlerTests
 
     private void SetFiles(params File[] files)
     {
-        _files.GetPendingPersonalUploadsAsync(Arg.Any<CancellationToken>()).Returns(files.ToAsyncEnumerable());
+        _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>()).Returns(files.ToAsyncEnumerable());
     }
 
-    private ReconcilePersonalFileUploadsHandler CreateHandler()
+    private ReconcileFileUploadsHandler CreateHandler()
     {
-        return new ReconcilePersonalFileUploadsHandler(
+        return new ReconcileFileUploadsHandler(
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
-            logger: NullLogger<ReconcilePersonalFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 }

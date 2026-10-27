@@ -9,7 +9,7 @@ using Wolverine;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Scheduling.Reconciliation;
 
-public sealed class PersonalFileUploadScheduleTests
+public sealed class FileUploadScheduleTests
 {
     [Theory(DisplayName = "FileManager scheduling should respect the enabled flag when enabled state varies")]
     [InlineData(false)]
@@ -21,7 +21,7 @@ public sealed class PersonalFileUploadScheduleTests
 
         schedules.AddFileManagerSchedules();
 
-        var schedule = options.Schedules.FindByName("file-manager-reconcile-personal-uploads");
+        var schedule = options.Schedules.FindByName("file-manager-reconcile-uploads");
         (schedule is not null).ShouldBe(enabled);
     }
 
@@ -40,12 +40,12 @@ public sealed class PersonalFileUploadScheduleTests
 
     private static IConfiguration CreateConfiguration(bool enabled, string cron = "*/5 * * * *")
     {
-        const string Prefix = "FileManager:Schedules:ReconcilePersonalFileUploadsCommand";
+        const string Prefix = "FileManager:Schedules:ReconcileFileUploadsCommand";
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 [$"{Prefix}:Enabled"] = enabled.ToString(),
-                [$"{Prefix}:Name"] = "file-manager-reconcile-personal-uploads",
+                [$"{Prefix}:Name"] = "file-manager-reconcile-uploads",
                 [$"{Prefix}:CronExpression"] = cron,
                 [$"{Prefix}:TimeZoneId"] = "UTC"
             })
