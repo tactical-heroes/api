@@ -30,7 +30,7 @@ public sealed class GamesWriteDbContextMigrationTests(IntegrationTestFixture fix
             ORDER BY sequence_name
             """).ToListAsync(cancellationToken);
 
-        tables.ShouldBe(["__EFMigrationsHistory"]);
+        tables.ShouldBe(["__EFMigrationsHistory", "game_participants", "games"]);
         sequences.ShouldBe(["EntityFrameworkHiLoSequence"]);
         readContext.ChangeTracker.QueryTrackingBehavior.ShouldBe(QueryTrackingBehavior.NoTracking);
     }
