@@ -30,7 +30,7 @@ public sealed class MatchmakingWriteDbContextMigrationTests(IntegrationTestFixtu
             ORDER BY sequence_name
             """).ToListAsync(cancellationToken);
 
-        tables.ShouldBe(["__EFMigrationsHistory", "match_assignments", "match_participants", "matchmaking_tickets"]);
+        tables.ShouldBe(["__EFMigrationsHistory", "match_participants", "matches", "matchmaking_tickets"]);
         sequences.ShouldBe(["EntityFrameworkHiLoSequence"]);
         readContext.ChangeTracker.QueryTrackingBehavior.ShouldBe(QueryTrackingBehavior.NoTracking);
     }

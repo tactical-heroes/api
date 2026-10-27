@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchAssignments.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.Matches.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchmakingTickets.Read.DbModels;
 
@@ -11,8 +11,8 @@ public sealed class MatchmakingTicketReadDbModel : AuditableReadDbModel<Guid>
     public DateTimeOffset QueuedAt { get; set; }
     public DateTimeOffset ExpiresAt { get; set; }
     public string Status { get; set; } = string.Empty;
-    public Guid? MatchAssignmentId { get; set; }
+    public Guid? MatchId { get; set; }
 
-    public MatchAssignmentReadDbModel? MatchAssignment { get; set; }
+    public MatchReadDbModel? Match { get; set; }
     public ICollection<MatchParticipantReadDbModel> Participants { get; set; } = [];
 }

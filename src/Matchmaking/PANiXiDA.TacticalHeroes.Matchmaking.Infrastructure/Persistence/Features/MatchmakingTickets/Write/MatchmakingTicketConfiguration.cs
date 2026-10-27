@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
@@ -66,15 +66,15 @@ internal sealed class MatchmakingTicketConfiguration : AuditableEntityConfigurat
             .HasMaxLength(MatchmakingTicketStatus.MaxLength)
             .IsRequired();
 
-        builder.Property(ticket => ticket.MatchAssignmentId)
+        builder.Property(ticket => ticket.MatchId)
             .HasConversion(
-                assignmentId => assignmentId!.Value.Value,
-                value => MatchAssignmentId.Create(value).Value)
+                matchId => matchId!.Value.Value,
+                value => MatchId.Create(value).Value)
             .IsRequired(required: false);
 
-        builder.HasOne<MatchAssignment>()
+        builder.HasOne<Match>()
             .WithMany()
-            .HasForeignKey(ticket => ticket.MatchAssignmentId)
+            .HasForeignKey(ticket => ticket.MatchId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(ticket => ticket.PlayerId)

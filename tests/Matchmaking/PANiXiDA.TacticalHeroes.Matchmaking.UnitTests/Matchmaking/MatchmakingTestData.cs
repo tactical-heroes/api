@@ -1,5 +1,5 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
@@ -25,8 +25,8 @@ internal static class MatchmakingTestData
             At(expiresAt)).Value;
     }
 
-    internal static MatchAssignment Assignment()
+    internal static Match CreateMatch()
     {
-        return MatchAssignment.Create(Ticket(), Ticket(), At(1), At(60)).Value;
+        return Match.Create(Ticket(), Ticket(), At(1), At(60)).Value;
     }
 }

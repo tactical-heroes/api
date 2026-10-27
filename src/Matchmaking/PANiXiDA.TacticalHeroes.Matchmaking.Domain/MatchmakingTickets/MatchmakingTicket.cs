@@ -1,5 +1,5 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
@@ -35,7 +35,7 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
     public MatchmakingTimestamp QueuedAt { get; private set; }
     public MatchmakingTimestamp ExpiresAt { get; private set; }
     public MatchmakingTicketStatus Status { get; private set; }
-    public MatchAssignmentId? MatchAssignmentId { get; private set; }
+    public MatchId? MatchId { get; private set; }
 
     public static Result<MatchmakingTicket> Create(
         PlayerId playerId,
@@ -63,14 +63,14 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
         return Result.Success(ticket);
     }
 
-    public Result Reserve(MatchAssignmentId assignmentId, MatchmakingTimestamp now)
+    public Result Reserve(MatchId matchId, MatchmakingTimestamp now)
     {
-        if (assignmentId.Value == Guid.Empty)
+        if (matchId.Value == Guid.Empty)
         {
-            return Result.Failure(Error.Validation("Assignment id cannot be empty."));
+            return Result.Failure(Error.Validation("Match id cannot be empty."));
         }
 
-        if (Status == MatchmakingTicketStatus.Reserved && MatchAssignmentId == assignmentId)
+        if (Status == MatchmakingTicketStatus.Reserved && MatchId == matchId)
         {
             return Result.Success();
         }
@@ -80,18 +80,18 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
             return Result.Failure(Error.Conflict("Only an active searching ticket can be reserved."));
         }
 
-        MatchAssignmentId = assignmentId;
+        MatchId = matchId;
         Status = MatchmakingTicketStatus.Reserved;
         RecordStateChanged();
 
         return Result.Success();
     }
 
-    public Result MarkAssigned(MatchAssignmentId assignmentId)
+    public Result MarkAssigned(MatchId matchId)
     {
-        if (MatchAssignmentId != assignmentId || assignmentId.Value == Guid.Empty)
+        if (MatchId != matchId || matchId.Value == Guid.Empty)
         {
-            return Result.Failure(Error.Conflict("Ticket does not belong to this assignment."));
+            return Result.Failure(Error.Conflict("Ticket does not belong to this match."));
         }
 
         if (Status == MatchmakingTicketStatus.Assigned)
@@ -152,6 +152,6 @@ public sealed class MatchmakingTicket : AggregateRoot<MatchmakingTicketId>
             TicketId: Id.Value,
             PlayerId: PlayerId.Value,
             Status: Status.Name,
-            MatchAssignmentId: MatchAssignmentId?.Value));
+            MatchId: MatchId?.Value));
     }
 }

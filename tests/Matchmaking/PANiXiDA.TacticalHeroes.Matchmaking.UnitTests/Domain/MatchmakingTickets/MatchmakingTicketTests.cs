@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Events;
@@ -16,7 +16,7 @@ public sealed class MatchmakingTicketTests
 
         ticket.Id.Value.ShouldNotBe(Guid.Empty);
         ticket.Status.ShouldBe(MatchmakingTicketStatus.Searching);
-        ticket.MatchAssignmentId.ShouldBeNull();
+        ticket.MatchId.ShouldBeNull();
         var domainEvent = ticket.GetDomainEvents()
             .ShouldHaveSingleItem()
             .ShouldBeOfType<MatchmakingTicketStateChanged>();
@@ -46,15 +46,15 @@ public sealed class MatchmakingTicketTests
     public void Reserve_Should_BeIdempotentAndExclusive_When_Repeated()
     {
         var ticket = Ticket();
-        var assignmentId = MatchAssignmentId.New();
+        var matchId = MatchId.New();
 
-        ticket.Reserve(assignmentId, At(1)).IsSuccess.ShouldBeTrue();
+        ticket.Reserve(matchId, At(1)).IsSuccess.ShouldBeTrue();
         var count = ticket.GetDomainEvents().Count;
-        ticket.Reserve(assignmentId, At(301)).IsSuccess.ShouldBeTrue();
-        ticket.Reserve(MatchAssignmentId.New(), At(2)).IsFailure.ShouldBeTrue();
+        ticket.Reserve(matchId, At(301)).IsSuccess.ShouldBeTrue();
+        ticket.Reserve(MatchId.New(), At(2)).IsFailure.ShouldBeTrue();
 
         ticket.Status.ShouldBe(MatchmakingTicketStatus.Reserved);
-        ticket.MatchAssignmentId.ShouldBe(assignmentId);
+        ticket.MatchId.ShouldBe(matchId);
         ticket.GetDomainEvents().Count.ShouldBe(count);
     }
 
@@ -66,10 +66,10 @@ public sealed class MatchmakingTicketTests
     {
         var ticket = Ticket();
 
-        ticket.Reserve(MatchAssignmentId.New(), At(now)).IsFailure.ShouldBeTrue();
+        ticket.Reserve(MatchId.New(), At(now)).IsFailure.ShouldBeTrue();
 
         ticket.Status.ShouldBe(MatchmakingTicketStatus.Searching);
-        ticket.MatchAssignmentId.ShouldBeNull();
+        ticket.MatchId.ShouldBeNull();
         ticket.GetDomainEvents().Count.ShouldBe(1);
     }
 
@@ -80,44 +80,44 @@ public sealed class MatchmakingTicketTests
 
         ticket.Reserve(default, At(1)).IsFailure.ShouldBeTrue();
 
-        ticket.MatchAssignmentId.ShouldBeNull();
+        ticket.MatchId.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Ticket should require owning reservation and publish once when repeated")]
     public void MarkAssigned_Should_RequireOwningReservationAndPublishOnce_When_Repeated()
     {
         var ticket = Ticket();
-        var assignmentId = MatchAssignmentId.New();
-        ticket.MarkAssigned(assignmentId).IsFailure.ShouldBeTrue();
-        ticket.Reserve(assignmentId, At(1)).IsSuccess.ShouldBeTrue();
+        var matchId = MatchId.New();
+        ticket.MarkAssigned(matchId).IsFailure.ShouldBeTrue();
+        ticket.Reserve(matchId, At(1)).IsSuccess.ShouldBeTrue();
 
-        ticket.MarkAssigned(MatchAssignmentId.New()).IsFailure.ShouldBeTrue();
-        ticket.MarkAssigned(assignmentId).IsSuccess.ShouldBeTrue();
+        ticket.MarkAssigned(MatchId.New()).IsFailure.ShouldBeTrue();
+        ticket.MarkAssigned(matchId).IsSuccess.ShouldBeTrue();
         var count = ticket.GetDomainEvents().Count;
-        ticket.MarkAssigned(assignmentId).IsSuccess.ShouldBeTrue();
+        ticket.MarkAssigned(matchId).IsSuccess.ShouldBeTrue();
 
         ticket.Status.ShouldBe(MatchmakingTicketStatus.Assigned);
         ticket.GetDomainEvents().Count.ShouldBe(count);
         ticket.Cancel().IsFailure.ShouldBeTrue();
-        ticket.Reserve(assignmentId, At(2)).IsFailure.ShouldBeTrue();
+        ticket.Reserve(matchId, At(2)).IsFailure.ShouldBeTrue();
     }
 
     [Fact(DisplayName = "Ticket should retain reservation when reserved ticket is cancelled")]
     public void Cancel_Should_RetainReservation_When_ReservedTicketIsCancelled()
     {
         var ticket = Ticket();
-        var assignmentId = MatchAssignmentId.New();
-        ticket.Reserve(assignmentId, At(1)).IsSuccess.ShouldBeTrue();
+        var matchId = MatchId.New();
+        ticket.Reserve(matchId, At(1)).IsSuccess.ShouldBeTrue();
 
         ticket.Cancel().IsSuccess.ShouldBeTrue();
         var count = ticket.GetDomainEvents().Count;
         ticket.Cancel().IsSuccess.ShouldBeTrue();
 
         ticket.Status.ShouldBe(MatchmakingTicketStatus.Cancelled);
-        ticket.MatchAssignmentId.ShouldBe(assignmentId);
+        ticket.MatchId.ShouldBe(matchId);
         ticket.GetDomainEvents().Count.ShouldBe(count);
-        ticket.MarkAssigned(assignmentId).IsFailure.ShouldBeTrue();
-        ticket.Reserve(MatchAssignmentId.New(), At(2)).IsFailure.ShouldBeTrue();
+        ticket.MarkAssigned(matchId).IsFailure.ShouldBeTrue();
+        ticket.Reserve(MatchId.New(), At(2)).IsFailure.ShouldBeTrue();
     }
 
     [Fact(DisplayName = "Ticket should terminate searching ticket when requested")]
@@ -144,14 +144,14 @@ public sealed class MatchmakingTicketTests
         ticket.Status.ShouldBe(MatchmakingTicketStatus.Expired);
         ticket.GetDomainEvents().Count.ShouldBe(count);
         ticket.Cancel().IsFailure.ShouldBeTrue();
-        ticket.Reserve(MatchAssignmentId.New(), At(301)).IsFailure.ShouldBeTrue();
+        ticket.Reserve(MatchId.New(), At(301)).IsFailure.ShouldBeTrue();
     }
 
     [Fact(DisplayName = "Ticket should leave reserved ticket unchanged when search deadline elapses")]
     public void Expire_Should_LeaveReservedTicketUnchanged_When_SearchDeadlineElapses()
     {
         var ticket = Ticket();
-        ticket.Reserve(MatchAssignmentId.New(), At(1)).IsSuccess.ShouldBeTrue();
+        ticket.Reserve(MatchId.New(), At(1)).IsSuccess.ShouldBeTrue();
 
         ticket.Expire(At(300)).IsFailure.ShouldBeTrue();
 

@@ -26,7 +26,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Entities.MatchParticipants.MatchParticipant", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Entities.MatchParticipants.MatchParticipant", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -36,9 +36,9 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("build_id");
 
-                    b.Property<Guid>("MatchAssignmentId")
+                    b.Property<Guid>("MatchId")
                         .HasColumnType("uuid")
-                        .HasColumnName("match_assignment_id");
+                        .HasColumnName("match_id");
 
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid")
@@ -65,14 +65,14 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .IsUnique()
                         .HasDatabaseName("ix_match_participants_ticket_id");
 
-                    b.HasIndex("MatchAssignmentId", "PlayerId")
+                    b.HasIndex("MatchId", "PlayerId")
                         .IsUnique()
-                        .HasDatabaseName("ix_match_participants_match_assignment_id_player_id");
+                        .HasDatabaseName("ix_match_participants_match_id_player_id");
 
                     b.ToTable("match_participants", "matchmaking");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.MatchAssignment", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -124,16 +124,16 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnName("xmin");
 
                     b.HasKey("Id")
-                        .HasName("pk_match_assignments");
+                        .HasName("pk_matches");
 
                     b.HasIndex("GameId")
                         .IsUnique()
-                        .HasDatabaseName("ix_match_assignments_game_id");
+                        .HasDatabaseName("ix_matches_game_id");
 
                     b.HasIndex("Status", "CreationDeadline")
-                        .HasDatabaseName("ix_match_assignments_status_creation_deadline");
+                        .HasDatabaseName("ix_matches_status_creation_deadline");
 
-                    b.ToTable("match_assignments", "matchmaking");
+                    b.ToTable("matches", "matchmaking");
                 });
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.MatchmakingTicket", b =>
@@ -160,9 +160,9 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
-                    b.Property<Guid?>("MatchAssignmentId")
+                    b.Property<Guid?>("MatchId")
                         .HasColumnType("uuid")
-                        .HasColumnName("match_assignment_id");
+                        .HasColumnName("match_id");
 
                     b.Property<string>("Mode")
                         .IsRequired()
@@ -202,8 +202,8 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     b.HasKey("Id")
                         .HasName("pk_matchmaking_tickets");
 
-                    b.HasIndex("MatchAssignmentId")
-                        .HasDatabaseName("ix_matchmaking_tickets_match_assignment_id");
+                    b.HasIndex("MatchId")
+                        .HasDatabaseName("ix_matchmaking_tickets_match_id");
 
                     b.HasIndex("PlayerId")
                         .IsUnique()
@@ -219,14 +219,14 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                     b.ToTable("matchmaking_tickets", "matchmaking");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Entities.MatchParticipants.MatchParticipant", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Entities.MatchParticipants.MatchParticipant", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.MatchAssignment", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", null)
                         .WithMany("Participants")
-                        .HasForeignKey("MatchAssignmentId")
+                        .HasForeignKey("MatchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_match_participants_match_assignment_match_assignment_id");
+                        .HasConstraintName("fk_match_participants_match_match_id");
 
                     b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.MatchmakingTicket", null)
                         .WithMany()
@@ -238,14 +238,14 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.MatchmakingTicket", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.MatchAssignment", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", null)
                         .WithMany()
-                        .HasForeignKey("MatchAssignmentId")
+                        .HasForeignKey("MatchId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_matchmaking_tickets_match_assignments_match_assignment_id");
+                        .HasConstraintName("fk_matchmaking_tickets_matches_match_id");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.MatchAssignment", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Match", b =>
                 {
                     b.Navigation("Participants");
                 });

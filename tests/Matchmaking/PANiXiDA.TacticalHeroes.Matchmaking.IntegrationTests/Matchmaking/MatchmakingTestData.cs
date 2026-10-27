@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchAssignments.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Matches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchmakingTickets.ValueObjects;
@@ -35,21 +35,21 @@ internal static class MatchmakingTestData
         return services.GetRequiredKeyedService<IUnitOfWork>(typeof(MatchmakingWriteDbContext));
     }
 
-    internal static async Task<MatchAssignment> SaveAssignmentAsync(
+    internal static async Task<Match> SaveMatchAsync(
         IServiceProvider services,
         CancellationToken cancellationToken)
     {
         var first = Ticket();
         var second = Ticket();
-        var assignment = MatchAssignment.Create(first, second, At(1), At(60)).Value;
-        first.Reserve(assignment.Id, At(1)).IsSuccess.ShouldBeTrue();
-        second.Reserve(assignment.Id, At(1)).IsSuccess.ShouldBeTrue();
+        var match = Match.Create(first, second, At(1), At(60)).Value;
+        first.Reserve(match.Id, At(1)).IsSuccess.ShouldBeTrue();
+        second.Reserve(match.Id, At(1)).IsSuccess.ShouldBeTrue();
         var tickets = services.GetRequiredService<IMatchmakingTicketsRepository>();
         tickets.Add(first);
         tickets.Add(second);
-        services.GetRequiredService<IMatchAssignmentsRepository>().Add(assignment);
+        services.GetRequiredService<IMatchesRepository>().Add(match);
         await UnitOfWork(services).SaveChangesAsync(cancellationToken);
 
-        return assignment;
+        return match;
     }
 }

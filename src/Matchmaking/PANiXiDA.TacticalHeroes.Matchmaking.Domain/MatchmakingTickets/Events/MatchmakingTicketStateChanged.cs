@@ -4,4 +4,4 @@ public sealed record MatchmakingTicketStateChanged(
     Guid TicketId,
     Guid PlayerId,
     string Status,
-    Guid? MatchAssignmentId) : DomainEvent;
+    Guid? MatchId) : DomainEvent;
