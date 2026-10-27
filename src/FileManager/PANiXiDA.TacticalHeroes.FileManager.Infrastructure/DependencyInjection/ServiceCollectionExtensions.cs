@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -19,7 +18,6 @@ public static class ServiceCollectionExtensions
             FileManagerReadDbContext>(
                 configuration);
         serviceCollection.AddS3FileStorage(configuration.GetRequiredSection(nameof(FileManager)));
-        serviceCollection.TryAddSingleton(TimeProvider.System);
         serviceCollection.AddScheduling(configuration);
 
         return serviceCollection;
