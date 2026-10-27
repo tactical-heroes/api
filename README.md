@@ -186,8 +186,10 @@ and credentials before using storage. Credentials can be overridden with
 `FileManager__S3Storage__AccessKey` and `FileManager__S3Storage__SecretKey`.
 The base prefix is `production`; `appsettings.Development.json` sets `development`.
 
-`GET /api/v1/files/personal/{id}/download-url` returns `url` and `expiresAt` for
-the owner's `Ready` file. Download directly from S3 using the URL unchanged.
+`GET /api/v1/files/{id}/download-url` returns `url` and `expiresAt` for a `Ready`
+file. `FileAccessPolicy` requires `file-manager.personal-files.read` and ownership
+for personal files, or `file-manager.avatars.read` for avatars. Download directly
+from S3 using the URL unchanged.
 `FileManager:S3Storage:PresignedUrlLifetime` sets its lifetime (15 minutes by default).
 
 ## File Upload Reconciliation

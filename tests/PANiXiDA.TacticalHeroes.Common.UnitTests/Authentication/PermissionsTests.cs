@@ -21,6 +21,8 @@ public sealed class PermissionsTests
             ("compendium", "factions"),
             ("compendium", "heroes"),
             ("compendium", "units"),
+            ("file-manager", "personal-files"),
+            ("file-manager", "avatars"),
             ("identity", "roles"),
             ("identity", "users")
         ]);
@@ -69,6 +71,16 @@ public sealed class PermissionsTests
             ignoreOrder: true);
     }
 
+    [Theory(DisplayName = "All should include read permissions when file resources are registered")]
+    [InlineData("file-manager.personal-files.read")]
+    [InlineData("file-manager.avatars.read")]
+    public void All_Should_IncludeReadPermissions_When_FileResourcesAreRegistered(string code)
+    {
+        var permissions = Permissions.All;
+
+        permissions.ShouldContain(permission => permission.Code == code);
+    }
+
     [Fact(DisplayName = "All should reference named modules when catalog is read")]
     public void All_Should_ReferenceNamedModules_When_CatalogIsRead()
     {
@@ -88,7 +100,7 @@ public sealed class PermissionsTests
             .GroupBy(permission => (permission.ModuleCode, permission.ResourceCode))
             .ToArray();
 
-        resources.Length.ShouldBe(5);
+        resources.Length.ShouldBe(7);
         foreach (var resource in resources)
         {
             resource.Select(permission => permission.ResourceDisplayName)

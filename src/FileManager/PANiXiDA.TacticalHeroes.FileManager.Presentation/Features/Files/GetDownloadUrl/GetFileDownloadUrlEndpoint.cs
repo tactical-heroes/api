@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetPersonalDownloadUrl;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
-internal sealed class GetPersonalFileDownloadUrlEndpoint : IEndpoint<FilesEndpoints>
+internal sealed class GetFileDownloadUrlEndpoint : IEndpoint<FilesEndpoints>
 {
-    public string Route { get; } = FilesEndpoints.PersonalRoute + FilesEndpoints.IdRoute + "/download-url";
-    public string Name { get; } = "GetPersonalFileDownloadUrl";
-    public string Summary { get; } = "Get personal file download URL";
+    public string Route { get; } = FilesEndpoints.IdRoute + "/download-url";
+    public string Name { get; } = "GetFileDownloadUrl";
+    public string Summary { get; } = "Get file download URL";
 
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapGet(builder.Route, HandleAsync)
-            .Produces<GetPersonalFileDownloadUrlResponse>(StatusCodes.Status200OK)
+            .Produces<GetFileDownloadUrlResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)
@@ -25,11 +25,11 @@ internal sealed class GetPersonalFileDownloadUrlEndpoint : IEndpoint<FilesEndpoi
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetPersonalFileDownloadUrlMapper.ToQuery(id),
+            GetFileDownloadUrlMapper.ToQuery(id),
             cancellationToken);
 
         response.Headers.CacheControl = "no-store";
         return result.ToHttpResult(onSuccess: download =>
-            TypedResults.Ok(GetPersonalFileDownloadUrlMapper.ToResponse(download)));
+            TypedResults.Ok(GetFileDownloadUrlMapper.ToResponse(download)));
     }
 }

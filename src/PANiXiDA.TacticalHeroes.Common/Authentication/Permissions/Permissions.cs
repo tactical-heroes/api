@@ -16,6 +16,8 @@ public static partial class Permissions
         Compendium.Units.Read,
         Compendium.Units.Update,
         Compendium.Units.Delete,
+        FileManager.PersonalFiles.Read,
+        FileManager.Avatars.Read,
         Identity.Roles.Create,
         Identity.Roles.Read,
         Identity.Roles.Update,
