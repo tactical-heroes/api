@@ -244,11 +244,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         page.TotalCount.ShouldBe(expectedTotal);
         var item = page.Items.ShouldHaveSingleItem();
         item.Name.ShouldBe(expectedName);
-        item.Type.ShouldBe(type);
         item.ContentType.ShouldBe("text/plain");
         item.Size.ShouldBe(4);
-        item.CreatedAt.ShouldNotBe(default);
-        item.UpdatedAt.ShouldNotBe(default);
         scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
     }
 
@@ -295,8 +292,6 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
 
         var item = page.Items.ShouldHaveSingleItem();
         item.Status.ShouldBe(status);
-        item.UserId.ShouldBe(userId);
-        item.FolderId.ShouldBeNull();
         item.ContentType.ShouldBe(status == "PendingUpload" ? null : "text/plain");
         item.Size.ShouldBe(status == "PendingUpload" ? null : 4L);
     }

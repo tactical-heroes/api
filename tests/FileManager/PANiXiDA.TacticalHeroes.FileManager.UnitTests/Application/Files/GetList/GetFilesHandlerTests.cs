@@ -24,7 +24,7 @@ public sealed class GetFilesHandlerTests
         var page = PaginationResult<FileListItemReadModel>.Empty(2, 10);
         var filter = new FilesFilter(type, "file");
         var pagination = new PaginationParameters(2, 10);
-        var sorting = SortingParameters.Descending("CreatedAt");
+        var sorting = SortingParameters.Descending("Name");
         var expectedAccess = new FileReadAccess(own ? userId : null);
         repository.GetPageAsync(
             filter with { Type = type.Trim() }, expectedAccess, pagination, sorting, cancellationToken)

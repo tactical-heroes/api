@@ -47,19 +47,13 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         page.PageSize.ShouldBe(1);
         var item = page.Items.ShouldHaveSingleItem();
         item.Name.ShouldBe(name);
-        item.Type.ShouldBe("Personal");
         item.Status.ShouldBe("Ready");
         item.ContentType.ShouldBe("text/plain");
         item.Size.ShouldBe(4);
-        item.CreatedAt.ShouldNotBe(default);
-        item.UpdatedAt.ShouldNotBe(default);
-        if (permission.EndsWith(".own", StringComparison.Ordinal))
-        {
-            item.UserId.ShouldBe(userId);
-        }
         using var json = JsonDocument.Parse(
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
-        json.RootElement.GetProperty("items")[0].TryGetProperty("storageKey", out _).ShouldBeFalse();
+        json.RootElement.GetProperty("items")[0].EnumerateObject().Select(property => property.Name)
+            .ShouldBe(["id", "name", "status", "contentType", "size"], ignoreOrder: true);
     }
 
     [Fact(DisplayName = "File list endpoint should return avatars when avatar reading is allowed")]
@@ -78,7 +72,6 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         page.TotalCount.ShouldBe(1);
         var item = page.Items.ShouldHaveSingleItem();
         item.Id.ShouldBe(avatar.Id.Value);
-        item.UserId.ShouldBeNull();
     }
 
     [Fact(DisplayName = "File list endpoint should filter and sort metadata when search and sorting are provided")]
@@ -128,7 +121,7 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
     [InlineData("?type=Personal&search=ab")]
     [InlineData("?type=Personal&pageNumber=0")]
     [InlineData("?type=Personal&pageSize=201")]
-    [InlineData("?type=Personal&fields=StorageKey:asc")]
+    [InlineData("?type=Personal&fields=CreatedAt:asc")]
     public async Task HandleAsync_Should_RejectRequest_When_QueryParametersAreInvalid(string query)
     {
         using var response = await SendAsync(query, Guid.NewGuid().ToString(), "file-manager.personal-files.read.all");

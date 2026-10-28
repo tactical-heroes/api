@@ -47,8 +47,8 @@ public sealed class GetFilesQueryValidatorTests
 
     [Theory(DisplayName = "File list validator should reject sorting when field is not exposed")]
     [InlineData("StorageKey")]
-    [InlineData("Folder.Name")]
-    [InlineData("Unknown")]
+    [InlineData("CreatedAt")]
+    [InlineData("UserId")]
     public void Validate_Should_RejectSorting_When_FieldIsNotExposed(string field)
     {
         var query = new GetFilesQuery(
