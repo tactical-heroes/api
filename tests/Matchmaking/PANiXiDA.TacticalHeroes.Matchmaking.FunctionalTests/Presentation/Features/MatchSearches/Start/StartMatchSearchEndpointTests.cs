@@ -43,15 +43,15 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
             new { buildId, mode, playerId = Guid.CreateVersion7(), rating = 9999 },
             ct);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.Created, await response.Content.ReadAsStringAsync(ct));
-        var result = (await response.Content.ReadFromJsonAsync<StartMatchSearchResponse>(ct))!;
-        result.Status.ShouldBe("Searching");
-        result.QueuedAt.ShouldBeGreaterThanOrEqualTo(before);
-        result.ExpiresAt.ShouldBe(result.QueuedAt.AddMinutes(5));
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        (await response.Content.ReadAsStringAsync(ct)).ShouldBeEmpty();
         await using var scope = fixture.Services.CreateAsyncScope();
         var row = await scope.ServiceProvider.GetRequiredService<MatchmakingReadDbContext>()
             .Set<MatchSearchReadDbModel>()
-            .SingleAsync(x => x.Id == result.Id, ct);
+            .SingleAsync(x => x.PlayerId == player.Id.Value, ct);
+        row.Status.ShouldBe("Searching");
+        row.QueuedAt.ShouldBeGreaterThanOrEqualTo(before);
+        row.ExpiresAt.ShouldBe(row.QueuedAt.AddMinutes(5));
         row.PlayerId.ShouldBe(player.Id.Value);
         row.BuildId.ShouldBe(buildId);
         row.Rating.ShouldBe(1742);
@@ -126,7 +126,7 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
             new StartMatchSearchRequest(Guid.CreateVersion7(), "RankedDuel"),
             ct);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.Created, await response.Content.ReadAsStringAsync(ct));
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         await AssertSearchCountAsync(2, ct);
         await using var scope = fixture.Services.CreateAsyncScope();
         var restored = (await scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
@@ -148,7 +148,7 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         try
         {
-            responses.Count(response => response.StatusCode == HttpStatusCode.Created).ShouldBe(1);
+            responses.Count(response => response.StatusCode == HttpStatusCode.NoContent).ShouldBe(1);
             responses.Count(response => response.StatusCode == HttpStatusCode.Conflict).ShouldBe(1);
             await AssertSearchCountAsync(1, ct);
         }

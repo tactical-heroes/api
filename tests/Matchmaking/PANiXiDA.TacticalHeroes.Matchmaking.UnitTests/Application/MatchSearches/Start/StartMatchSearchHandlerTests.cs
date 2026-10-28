@@ -24,12 +24,11 @@ public sealed class StartMatchSearchHandlerTests
         var result = await context.Handler.HandleAsync(context.Command, cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Status.ShouldBe("Searching");
-        result.Value.QueuedAt.ShouldBe(At(300).Value);
-        result.Value.ExpiresAt.ShouldBe(At(600).Value);
         context.Repository.Received(1).Add(
             Arg.Is<MatchSearch>(search =>
-                search.Id.Value == result.Value.Id
+                search.Status == MatchSearchStatus.Searching
+                    && search.QueuedAt.Value == At(300).Value
+                    && search.ExpiresAt.Value == At(600).Value
                     && search.PlayerId.Value == context.Player.Id
                     && search.BuildId.Value == context.Command.BuildId
                     && search.Rating.Value == 1742
@@ -139,7 +138,8 @@ public sealed class StartMatchSearchHandlerTests
         {
             context.Repository.Update(search);
             context.UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
-            context.Repository.Add(Arg.Is<MatchSearch>(newSearch => newSearch.Id.Value == result.Value.Id));
+            context.Repository.Add(Arg.Is<MatchSearch>(newSearch =>
+                newSearch.Id != search.Id && newSearch.Status == MatchSearchStatus.Searching));
         });
     }
 

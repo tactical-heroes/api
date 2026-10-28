@@ -18,17 +18,17 @@ public sealed class StartMatchSearchHandler(
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
     :
-        ICommandHandler<StartMatchSearchCommand, Result<StartMatchSearchResult>>,
+        ICommandHandler<StartMatchSearchCommand, Result>,
         IRequireAuthorization,
         IRequireTransaction
 {
-    public async Task<Result<StartMatchSearchResult>> HandleAsync(
+    public async Task<Result> HandleAsync(
         StartMatchSearchCommand command,
         CancellationToken cancellationToken)
     {
         if (currentUser.UserId is not { } userId)
         {
-            return Result.Failure<StartMatchSearchResult>(Error.Unauthorized("A user account is required."));
+            return Result.Failure(Error.Unauthorized("A user account is required."));
         }
 
         var buildId = BuildId.Create(command.BuildId);
@@ -36,13 +36,13 @@ public sealed class StartMatchSearchHandler(
         var validation = Result.Combine(buildId, mode);
         if (validation.IsFailure)
         {
-            return Result.Failure<StartMatchSearchResult>(validation.Errors);
+            return Result.Failure(validation.Errors);
         }
 
         var playerResult = await playersClient.GetByUserIdAsync(userId, cancellationToken);
         if (playerResult.IsFailure)
         {
-            return Result.Failure<StartMatchSearchResult>(playerResult.Errors);
+            return Result.Failure(playerResult.Errors);
         }
 
         var player = playerResult.Value;
@@ -51,7 +51,7 @@ public sealed class StartMatchSearchHandler(
             playerId: player.Id,
             cancellationToken: cancellationToken))
         {
-            return Result.Failure<StartMatchSearchResult>(Error.NotFound("Build was not found."));
+            return Result.Failure(Error.NotFound("Build was not found."));
         }
 
         var playerId = PlayerId.Create(player.Id).Value;
@@ -62,8 +62,7 @@ public sealed class StartMatchSearchHandler(
             var expiration = existing.Expire(now);
             if (expiration.IsFailure)
             {
-                return Result.Failure<StartMatchSearchResult>(
-                    Error.Conflict("Player is already searching or playing."));
+                return Result.Failure(Error.Conflict("Player is already searching or playing."));
             }
 
             matchSearchesRepository.Update(existing);
@@ -78,16 +77,11 @@ public sealed class StartMatchSearchHandler(
             queuedAt: now);
         if (created.IsFailure)
         {
-            return Result.Failure<StartMatchSearchResult>(created.Errors);
+            return Result.Failure(created.Errors);
         }
 
-        var search = created.Value;
-        matchSearchesRepository.Add(search);
+        matchSearchesRepository.Add(created.Value);
 
-        return Result.Success(new StartMatchSearchResult(
-            Id: search.Id.Value,
-            Status: search.Status.Name,
-            QueuedAt: search.QueuedAt.Value,
-            ExpiresAt: search.ExpiresAt.Value));
+        return Result.Success();
     }
 }

@@ -11,7 +11,7 @@ internal sealed class StartMatchSearchEndpoint : IEndpoint<MatchSearchesEndpoint
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapPost(builder.Route, HandleAsync)
-            .Produces<StartMatchSearchResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)
@@ -25,7 +25,6 @@ internal sealed class StartMatchSearchEndpoint : IEndpoint<MatchSearchesEndpoint
     {
         var result = await mediator.SendAsync(StartMatchSearchMapper.ToCommand(request), cancellationToken);
 
-        return result.ToHttpResult(onSuccess: search =>
-            TypedResults.Created(uri: (string?)null, value: StartMatchSearchMapper.ToResponse(search)));
+        return result.ToHttpResult(onSuccess: TypedResults.NoContent);
     }
 }

@@ -8,5 +8,4 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearche
 internal static partial class StartMatchSearchMapper
 {
     internal static partial StartMatchSearchCommand ToCommand(StartMatchSearchRequest request);
-    internal static partial StartMatchSearchResponse ToResponse(StartMatchSearchResult result);
 }
