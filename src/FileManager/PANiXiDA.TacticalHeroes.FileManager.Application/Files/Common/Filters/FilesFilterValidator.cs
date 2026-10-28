@@ -10,6 +10,11 @@ public sealed class FilesFilterValidator : AbstractValidator<FilesFilter>
         RuleFor(filter => filter.Type)
             .Custom((value, context) =>
             {
+                if (value is null)
+                {
+                    return;
+                }
+
                 var type = FileType.Create(value);
                 foreach (var error in type.Errors)
                 {

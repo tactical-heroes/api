@@ -9,7 +9,8 @@ public sealed class GetFilesQueryValidatorTests
     [InlineData("Personal")]
     [InlineData("Avatar")]
     [InlineData(" Personal ")]
-    public void Validate_Should_AcceptQuery_When_TypeAndPagingAreValid(string type)
+    [InlineData(null)]
+    public void Validate_Should_AcceptQuery_When_TypeAndPagingAreValid(string? type)
     {
         var query = new GetFilesQuery(new FilesFilter(type), new PaginationParameters(), SortingParameters.None);
 

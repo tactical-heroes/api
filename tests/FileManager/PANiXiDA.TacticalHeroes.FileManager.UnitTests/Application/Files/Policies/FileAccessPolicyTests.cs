@@ -149,7 +149,39 @@ public sealed class FileAccessPolicyTests
         var result = new FileAccessPolicy(currentUser).GetReadAccess(FileType.Personal);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.UserId.ShouldBe(all ? null : userId);
+        result.Value.PersonalFilesUserId.ShouldBe(all ? null : userId);
+        result.Value.CanReadAllPersonalFiles.ShouldBe(all);
+        result.Value.CanReadAvatars.ShouldBeFalse();
+    }
+
+    [Theory(DisplayName = "File access policy should combine permissions when type is omitted")]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, false, false)]
+    public void GetReadAccess_Should_CombinePermissions_When_TypeIsOmitted(bool all, bool own, bool avatars)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(own);
+        currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code).Returns(avatars);
+
+        var result = new FileAccessPolicy(currentUser).GetReadAccess();
+
+        result.IsSuccess.ShouldBe(all || own || avatars);
+        if (result.IsSuccess)
+        {
+            result.Value.CanReadAllPersonalFiles.ShouldBe(all);
+            result.Value.PersonalFilesUserId.ShouldBe(!all && own ? userId : null);
+            result.Value.CanReadAvatars.ShouldBe(avatars);
+        }
+        else
+        {
+            result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
+        }
     }
 
     private static ICurrentUser CreateCurrentUser(Guid? userId)

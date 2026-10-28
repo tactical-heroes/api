@@ -25,10 +25,14 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
         SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
-        var query = Query.Where(file => file.Type == filter.Type);
-        if (access.UserId is { } userId)
+        var query = Query.Where(file =>
+            (file.Type == FileType.Personal.Name
+                && (access.CanReadAllPersonalFiles
+                    || (access.PersonalFilesUserId != null && file.UserId == access.PersonalFilesUserId)))
+                || (access.CanReadAvatars && file.Type == FileType.Avatar.Name));
+        if (filter.Type is { } type)
         {
-            query = query.Where(file => file.UserId == userId);
+            query = query.Where(file => file.Type == type);
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Search))

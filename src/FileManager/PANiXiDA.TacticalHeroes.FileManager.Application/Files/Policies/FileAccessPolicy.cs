@@ -14,35 +14,37 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
         var access = GetReadAccess(file.Type);
 
         return access.IsSuccess
-            && (access.Value.UserId is not { } userId || file.UserId?.Value == userId);
+            && (file.Type == FileType.Avatar
+                || access.Value.CanReadAllPersonalFiles
+                || (access.Value.PersonalFilesUserId is { } userId && file.UserId?.Value == userId));
     }
 
-    public Result<FileReadAccess> GetReadAccess(FileType type)
+    public Result<FileReadAccess> GetReadAccess(FileType? type = null)
     {
         if (!currentUser.IsAuthenticated)
         {
             return Result.Failure<FileReadAccess>(Error.Unauthorized("Authentication is required."));
         }
 
-        if (type == FileType.Personal)
-        {
-            if (currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code))
-            {
-                return Result.Success(new FileReadAccess(UserId: null));
-            }
+        var includesPersonal = type is null || type == FileType.Personal;
+        var canReadAllPersonal = includesPersonal
+            && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code);
+        var personalUserId = includesPersonal
+            && !canReadAllPersonal
+            && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code)
+                ? currentUser.UserId
+                : null;
+        var canReadAvatars = (type is null || type == FileType.Avatar)
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code);
 
-            if (currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code)
-                && currentUser.UserId is { } userId)
-            {
-                return Result.Success(new FileReadAccess(userId));
-            }
-        }
-        else if (type == FileType.Avatar
-            && currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code))
+        if (!canReadAllPersonal && personalUserId is null && !canReadAvatars)
         {
-            return Result.Success(new FileReadAccess(UserId: null));
+            return Result.Failure<FileReadAccess>(Error.Forbidden("Access to files is denied."));
         }
 
-        return Result.Failure<FileReadAccess>(Error.Forbidden("Access to this file type is denied."));
+        return Result.Success(new FileReadAccess(
+            CanReadAllPersonalFiles: canReadAllPersonal,
+            PersonalFilesUserId: personalUserId,
+            CanReadAvatars: canReadAvatars));
     }
 }

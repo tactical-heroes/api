@@ -117,7 +117,6 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
     }
 
     [Theory(DisplayName = "File list endpoint should reject the request when query parameters are invalid")]
-    [InlineData("")]
     [InlineData("?type=")]
     [InlineData("?type=Unknown")]
     [InlineData("?type=Personal&search=ab")]
@@ -153,6 +152,53 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         page.ShouldNotBeNull();
         page.TotalCount.ShouldBe(0);
         page.Items.ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "File list endpoint should combine accessible types when type is omitted")]
+    [InlineData(
+        "file-manager.personal-files.read.all,file-manager.avatars.read",
+        6,
+        "Charlie avatar",
+        "Delta personal")]
+    [InlineData(
+        "file-manager.personal-files.read.own,file-manager.avatars.read",
+        4,
+        "Delta personal",
+        "Foxtrot avatar")]
+    [InlineData("file-manager.personal-files.read.all", 4, "Delta personal", "Echo foreign")]
+    [InlineData("file-manager.personal-files.read.own", 2, "Alpha personal", "Delta personal")]
+    [InlineData("file-manager.avatars.read", 2, "Charlie avatar", "Foxtrot avatar")]
+    public async Task HandleAsync_Should_CombineAccessibleTypes_When_TypeIsOmitted(
+        string permissions, long total, string first, string second)
+    {
+        var userId = Guid.NewGuid();
+        await AddFileAsync("Alpha personal", "Personal", userId);
+        await AddFileAsync("Delta personal", "Personal", userId);
+        await AddFileAsync("Beta foreign", "Personal", Guid.NewGuid());
+        await AddFileAsync("Echo foreign", "Personal", Guid.NewGuid());
+        await AddFileAsync("Charlie avatar", "Avatar", null);
+        await AddFileAsync("Foxtrot avatar", "Avatar", null);
+        await AddFileAsync("Deleted personal", "Personal", userId, deleted: true);
+        await AddFileAsync("Deleted avatar", "Avatar", null, deleted: true);
+        var pageNumber = total > 2 ? 2 : 1;
+
+        using var response = await SendAsync(
+            $"?pageNumber={pageNumber}&pageSize=2", userId.ToString(), permissions);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
+            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+        page.ShouldNotBeNull();
+        page.TotalCount.ShouldBe(total);
+        page.Items.Select(item => item.Name).ShouldBe([first, second]);
+    }
+
+    [Fact(DisplayName = "File list endpoint should forbid listing when type and read permissions are absent")]
+    public async Task HandleAsync_Should_ForbidListing_When_TypeAndReadPermissionsAreAbsent()
+    {
+        using var response = await SendAsync("", Guid.NewGuid().ToString(), "file-manager.personal-files.create.all");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     private async Task<HttpResponseMessage> SendAsync(string query, string? subject, string permission)

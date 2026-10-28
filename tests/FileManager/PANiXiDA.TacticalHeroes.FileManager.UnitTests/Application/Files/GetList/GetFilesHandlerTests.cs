@@ -25,7 +25,10 @@ public sealed class GetFilesHandlerTests
         var filter = new FilesFilter(type, "file");
         var pagination = new PaginationParameters(2, 10);
         var sorting = SortingParameters.Descending("Name");
-        var expectedAccess = new FileReadAccess(own ? userId : null);
+        var expectedAccess = new FileReadAccess(
+            type.Trim() == "Personal" && !own,
+            own ? userId : null,
+            type.Trim() == "Avatar");
         repository.GetPageAsync(
             filter with { Type = type.Trim() }, expectedAccess, pagination, sorting, cancellationToken)
             .Returns(page);
@@ -41,10 +44,11 @@ public sealed class GetFilesHandlerTests
 
     [Theory(DisplayName = "File list handler should avoid the repository when requested type is forbidden")]
     [InlineData("Personal", "")]
+    [InlineData(null, "")]
     [InlineData("Personal", "file-manager.avatars.read")]
     [InlineData("Personal", "file-manager.personal-files.create.all")]
     [InlineData("Avatar", "file-manager.personal-files.read.all")]
-    public async Task HandleAsync_Should_AvoidRepository_When_RequestedTypeIsForbidden(string type, string permission)
+    public async Task HandleAsync_Should_AvoidRepository_When_RequestedTypeIsForbidden(string? type, string permission)
     {
         var currentUser = CreateCurrentUser(Guid.NewGuid());
         currentUser.HasPermission(permission).Returns(true);
@@ -55,7 +59,7 @@ public sealed class GetFilesHandlerTests
             new GetFilesQuery(new FilesFilter(type), new PaginationParameters(), SortingParameters.None),
             TestContext.Current.CancellationToken);
 
-        result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to this file type is denied.");
+        result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
         repository.ReceivedCalls().ShouldBeEmpty();
     }
 
@@ -87,6 +91,40 @@ public sealed class GetFilesHandlerTests
 
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
         repository.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "File list handler should pass combined access when type is omitted")]
+    [InlineData("file-manager.personal-files.read.all,file-manager.avatars.read", true, false, true)]
+    [InlineData("file-manager.personal-files.read.own,file-manager.avatars.read", false, true, true)]
+    [InlineData("file-manager.personal-files.read.all", true, false, false)]
+    [InlineData("file-manager.personal-files.read.own", false, true, false)]
+    [InlineData("file-manager.avatars.read", false, false, true)]
+    public async Task HandleAsync_Should_PassCombinedAccess_When_TypeIsOmitted(
+        string permissions, bool allPersonal, bool ownPersonal, bool avatars)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        foreach (var permission in permissions.Split(','))
+        {
+            currentUser.HasPermission(permission).Returns(true);
+        }
+        var repository = Substitute.For<IFilesReadRepository>();
+        var filter = new FilesFilter(Search: "report");
+        var pagination = new PaginationParameters();
+        var access = new FileReadAccess(allPersonal, ownPersonal ? userId : null, avatars);
+        var page = PaginationResult<FileListItemReadModel>.Empty(1, 10);
+        repository.GetPageAsync(filter, access, pagination, SortingParameters.None, cancellationToken).Returns(page);
+        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+
+        var result = await handler.HandleAsync(
+            new GetFilesQuery(filter, pagination, SortingParameters.None),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeSameAs(page);
+        await repository.Received(1)
+            .GetPageAsync(filter, access, pagination, SortingParameters.None, cancellationToken);
     }
 
     private static ICurrentUser CreateCurrentUser(Guid? userId)
