@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -215,6 +217,110 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         context.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
+    [Theory(DisplayName = "File list repository should restrict rows before paging when access scope varies")]
+    [InlineData("Personal", true, 2, "Gamma")]
+    [InlineData("Personal", false, 4, "Beta")]
+    [InlineData("Avatar", false, 1, "Avatar")]
+    public async Task GetPageAsync_Should_RestrictRowsBeforePaging_When_AccessScopeVaries(
+        string type, bool own, long expectedTotal, string expectedName)
+    {
+        var userId = Guid.NewGuid();
+        await AddFileAsync("Alpha", "Personal", userId);
+        await AddFileAsync("Gamma", "Personal", userId);
+        await AddFileAsync("Beta", "Personal", Guid.NewGuid());
+        await AddFileAsync("Delta", "Personal", Guid.NewGuid());
+        await AddFileAsync("Avatar", "Avatar", null);
+        await AddFileAsync("Aardvark", "Personal", userId, deleted: true);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FilesFilter(type),
+            new FileReadAccess(own ? userId : null),
+            new PaginationParameters(type == "Avatar" ? 1 : 2, 1),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        page.TotalCount.ShouldBe(expectedTotal);
+        var item = page.Items.ShouldHaveSingleItem();
+        item.Name.ShouldBe(expectedName);
+        item.Type.ShouldBe(type);
+        item.ContentType.ShouldBe("text/plain");
+        item.Size.ShouldBe(4);
+        item.CreatedAt.ShouldNotBe(default);
+        item.UpdatedAt.ShouldNotBe(default);
+        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
+    }
+
+    [Fact(
+        DisplayName = "File list repository should search within access scope when search has mixed case and whitespace")]
+    public async Task GetPageAsync_Should_SearchWithinAccessScope_When_SearchHasMixedCaseAndWhitespace()
+    {
+        var userId = Guid.NewGuid();
+        var file = await AddFileAsync("Annual REPORT.txt", "Personal", userId);
+        await AddFileAsync("Foreign report.txt", "Personal", Guid.NewGuid());
+        await AddFileAsync("Avatar report.png", "Avatar", null);
+        await AddFileAsync("Deleted report.txt", "Personal", userId, deleted: true);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FilesFilter("Personal", " RePoRt "),
+            new FileReadAccess(userId),
+            new PaginationParameters(),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        page.TotalCount.ShouldBe(1);
+        page.Items.ShouldHaveSingleItem().Id.ShouldBe(file.Id.Value);
+    }
+
+    [Theory(DisplayName = "File list repository should project upload metadata when lifecycle varies")]
+    [InlineData("PendingUpload")]
+    [InlineData("Ready")]
+    [InlineData("Deleting")]
+    public async Task GetPageAsync_Should_ProjectUploadMetadata_When_LifecycleVaries(string status)
+    {
+        var userId = Guid.NewGuid();
+        await AddFileAsync("file.txt", "Personal", userId, status: status);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FilesFilter("Personal"),
+            new FileReadAccess(userId),
+            new PaginationParameters(),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        var item = page.Items.ShouldHaveSingleItem();
+        item.Status.ShouldBe(status);
+        item.UserId.ShouldBe(userId);
+        item.FolderId.ShouldBeNull();
+        item.ContentType.ShouldBe(status == "PendingUpload" ? null : "text/plain");
+        item.Size.ShouldBe(status == "PendingUpload" ? null : 4L);
+    }
+
+    [Fact(DisplayName = "File list repository should preserve total count when requested page is beyond results")]
+    public async Task GetPageAsync_Should_PreserveTotalCount_When_RequestedPageIsBeyondResults()
+    {
+        var userId = Guid.NewGuid();
+        await AddFileAsync("file.txt", "Personal", userId);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FilesFilter("Personal"),
+            new FileReadAccess(userId),
+            new PaginationParameters(3, 1),
+            SortingParameters.Descending("Name"),
+            TestContext.Current.CancellationToken);
+
+        page.TotalCount.ShouldBe(1);
+        page.Items.ShouldBeEmpty();
+        page.PageNumber.ShouldBe(3);
+    }
+
     private async Task<File> AddFileAsync(bool personal, CancellationToken cancellationToken)
     {
         var file = File.Create(
@@ -227,6 +333,34 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
             .SaveChangesAsync(cancellationToken);
 
+        return file;
+    }
+
+    private async Task<File> AddFileAsync(
+        string name, string type, Guid? userId, bool deleted = false, string status = "Ready")
+    {
+        var file = File.Create(
+            FileName.Create(name).Value,
+            FileType.FromName(type),
+            userId is { } owner ? UserId.Create(owner).Value : null).Value;
+        if (status != "PendingUpload")
+        {
+            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        }
+        if (status == "Deleting" || deleted)
+        {
+            file.BeginDeletion();
+        }
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+        repository.Add(file);
+        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+        await unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        if (deleted)
+        {
+            repository.Delete(file);
+            await unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
         return file;
     }
 }

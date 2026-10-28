@@ -136,6 +136,22 @@ public sealed class FileAccessPolicyTests
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 
+    [Theory(DisplayName = "File access policy should restrict ownership when personal read scope varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetReadAccess_Should_RestrictOwnership_When_PersonalReadScopeVaries(bool all)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(true);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
+
+        var result = new FileAccessPolicy(currentUser).GetReadAccess(FileType.Personal);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.UserId.ShouldBe(all ? null : userId);
+    }
+
     private static ICurrentUser CreateCurrentUser(Guid? userId)
     {
         var currentUser = Substitute.For<ICurrentUser>();

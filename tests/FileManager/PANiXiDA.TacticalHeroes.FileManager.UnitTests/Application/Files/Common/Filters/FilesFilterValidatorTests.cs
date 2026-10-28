@@ -14,7 +14,7 @@ public sealed class FilesFilterValidatorTests
     {
         var validator = new FilesFilterValidator();
 
-        var result = validator.Validate(new FilesFilter(search));
+        var result = validator.Validate(new FilesFilter("Personal", search));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(FilesFilter.Search));
     }
@@ -24,7 +24,7 @@ public sealed class FilesFilterValidatorTests
     {
         var validator = new FilesFilterValidator();
 
-        var result = validator.Validate(new FilesFilter(new string('a', 256)));
+        var result = validator.Validate(new FilesFilter("Personal", new string('a', 256)));
 
         result.Errors.ShouldContain(error => error.PropertyName == nameof(FilesFilter.Search));
     }
@@ -37,7 +37,7 @@ public sealed class FilesFilterValidatorTests
     {
         var validator = new FilesFilterValidator();
 
-        var result = validator.Validate(new FilesFilter(search));
+        var result = validator.Validate(new FilesFilter("Personal", search));
 
         result.IsValid.ShouldBeTrue();
     }
@@ -50,7 +50,7 @@ public sealed class FilesFilterValidatorTests
         var validator = new FilesFilterValidator();
         var search = " " + new string('a', length) + " ";
 
-        var result = validator.Validate(new FilesFilter(search));
+        var result = validator.Validate(new FilesFilter("Personal", search));
 
         result.IsValid.ShouldBeTrue();
     }

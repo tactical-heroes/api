@@ -11,20 +11,38 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
 {
     public bool CanRead(File file)
     {
+        var access = GetReadAccess(file.Type);
+
+        return access.IsSuccess
+            && (access.Value.UserId is not { } userId || file.UserId?.Value == userId);
+    }
+
+    public Result<FileReadAccess> GetReadAccess(FileType type)
+    {
         if (!currentUser.IsAuthenticated)
         {
-            return false;
+            return Result.Failure<FileReadAccess>(Error.Unauthorized("Authentication is required."));
         }
 
-        if (file.Type == FileType.Personal)
+        if (type == FileType.Personal)
         {
-            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code)
-                || (currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code)
-                    && file.UserId is { } ownerId
-                    && currentUser.UserId == ownerId.Value);
+            if (currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code))
+            {
+                return Result.Success(new FileReadAccess(UserId: null));
+            }
+
+            if (currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code)
+                && currentUser.UserId is { } userId)
+            {
+                return Result.Success(new FileReadAccess(userId));
+            }
+        }
+        else if (type == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code))
+        {
+            return Result.Success(new FileReadAccess(UserId: null));
         }
 
-        return file.Type == FileType.Avatar
-            && currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code);
+        return Result.Failure<FileReadAccess>(Error.Forbidden("Access to this file type is denied."));
     }
 }
