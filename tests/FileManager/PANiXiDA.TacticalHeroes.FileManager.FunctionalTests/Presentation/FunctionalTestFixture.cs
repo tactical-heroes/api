@@ -79,5 +79,7 @@ public class FunctionalTestFixture : IAsyncLifetime
         {
             Environment.SetEnvironmentVariable(variable, value);
         }
+
+        GC.SuppressFinalize(this);
     }
 }
