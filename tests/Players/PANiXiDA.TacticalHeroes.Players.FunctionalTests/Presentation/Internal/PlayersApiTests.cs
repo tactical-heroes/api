@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
-using PANiXiDA.Core.ResultPattern;
 
 using PANiXiDA.TacticalHeroes.Players.Contracts.Players;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players;
@@ -35,14 +34,14 @@ public sealed class PlayersApiTests(FunctionalTestFixture fixture)
         var result = await scope.ServiceProvider.GetRequiredService<IPlayersApi>()
             .GetByUserIdAsync(createdPlayer.UserId.Value, ct);
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Id.ShouldBe(createdPlayer.Id.Value);
-        result.Value.Rating.ShouldBe(1742);
-        result.Value.Id.ShouldNotBe(createdPlayer.UserId.Value);
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(createdPlayer.Id.Value);
+        result.Rating.ShouldBe(1742);
+        result.Id.ShouldNotBe(createdPlayer.UserId.Value);
     }
 
-    [Fact(DisplayName = "Module API should return not found when player is missing")]
-    public async Task GetByUserIdAsync_Should_ReturnNotFound_When_PlayerIsMissing()
+    [Fact(DisplayName = "Module API should return null when player is missing")]
+    public async Task GetByUserIdAsync_Should_ReturnNull_When_PlayerIsMissing()
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -51,12 +50,11 @@ public sealed class PlayersApiTests(FunctionalTestFixture fixture)
         var result = await scope.ServiceProvider.GetRequiredService<IPlayersApi>()
             .GetByUserIdAsync(Guid.CreateVersion7(), ct);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+        result.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Module API should return not found when player was deleted")]
-    public async Task GetByUserIdAsync_Should_ReturnNotFound_When_PlayerWasDeleted()
+    [Fact(DisplayName = "Module API should return null when player was deleted")]
+    public async Task GetByUserIdAsync_Should_ReturnNull_When_PlayerWasDeleted()
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -76,19 +74,17 @@ public sealed class PlayersApiTests(FunctionalTestFixture fixture)
         var result = await scope.ServiceProvider.GetRequiredService<IPlayersApi>()
             .GetByUserIdAsync(createdPlayer.UserId.Value, ct);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
+        result.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Module API should return validation error when user id is empty")]
-    public async Task GetByUserIdAsync_Should_ReturnValidationError_When_UserIdIsEmpty()
+    [Fact(DisplayName = "Module API should return null when user id is empty")]
+    public async Task GetByUserIdAsync_Should_ReturnNull_When_UserIdIsEmpty()
     {
         await using var scope = fixture.Services.CreateAsyncScope();
 
         var result = await scope.ServiceProvider.GetRequiredService<IPlayersApi>()
             .GetByUserIdAsync(Guid.Empty, TestContext.Current.CancellationToken);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Validation);
+        result.ShouldBeNull();
     }
 }

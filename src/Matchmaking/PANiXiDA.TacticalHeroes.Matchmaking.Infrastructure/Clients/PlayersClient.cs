@@ -8,8 +8,10 @@ public sealed class PlayersClient(IPlayersApi playersApi) : IPlayersClient
 {
     public async Task<Result<MatchmakingPlayer>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var result = await playersApi.GetByUserIdAsync(userId, cancellationToken);
+        var player = await playersApi.GetByUserIdAsync(userId, cancellationToken);
 
-        return result.Map(player => new MatchmakingPlayer(player.Id, player.Rating));
+        return player is null
+            ? Result.Failure<MatchmakingPlayer>(Error.NotFound("Player was not found."))
+            : Result.Success(new MatchmakingPlayer(player.Id, player.Rating));
     }
 }

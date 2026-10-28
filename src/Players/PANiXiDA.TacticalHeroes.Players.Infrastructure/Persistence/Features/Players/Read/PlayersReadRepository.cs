@@ -15,7 +15,7 @@ public sealed class PlayersReadRepository(PlayersReadDbContext dbContext)
 {
     public Task<PlayerReadModel?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var query = Query.Where(player => player.UserId == userId && player.DeletedAt == null);
+        var query = Query.Where(player => player.UserId == userId);
 
         return PlayerReadModelMapper.ProjectTo(query).SingleOrDefaultAsync(cancellationToken);
     }
