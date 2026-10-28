@@ -3,7 +3,7 @@ using PANiXiDA.Core.Application.Persistence;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Start;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.ReadModels;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
@@ -72,7 +72,7 @@ public sealed class StartMatchSearchHandlerTests
     {
         var context = new HandlerContext();
         context.Players.GetByUserIdAsync(context.UserId, Arg.Any<CancellationToken>())
-            .Returns(Result.Failure<MatchmakingPlayer>(Error.NotFound("Player was not found.")));
+            .Returns(Result.Failure<MatchmakingPlayerReadModel>(Error.NotFound("Player was not found.")));
 
         var result = await context.Handler.HandleAsync(context.Command, TestContext.Current.CancellationToken);
 
@@ -156,7 +156,7 @@ public sealed class StartMatchSearchHandlerTests
         }
 
         public Guid UserId { get; } = Guid.CreateVersion7();
-        public MatchmakingPlayer Player { get; } = new(Guid.CreateVersion7(), 1742);
+        public MatchmakingPlayerReadModel Player { get; } = new(Guid.CreateVersion7(), 1742);
         public StartMatchSearchCommand Command { get; } = new(Guid.CreateVersion7(), "RankedDuel");
         public IMatchSearchesRepository Repository { get; } = Substitute.For<IMatchSearchesRepository>();
         public IPlayersClient Players { get; } = Substitute.For<IPlayersClient>();
