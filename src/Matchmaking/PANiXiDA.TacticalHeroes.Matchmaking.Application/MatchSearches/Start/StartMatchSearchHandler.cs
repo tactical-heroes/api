@@ -1,7 +1,6 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
@@ -40,12 +39,13 @@ public sealed class StartMatchSearchHandler(
             return Result.Failure<StartMatchSearchResult>(validation.Errors);
         }
 
-        var player = await playersClient.GetByUserIdAsync(userId, cancellationToken);
-        if (player is null)
+        var playerResult = await playersClient.GetByUserIdAsync(userId, cancellationToken);
+        if (playerResult.IsFailure)
         {
-            return Result.Failure<StartMatchSearchResult>(Error.NotFound("Player was not found."));
+            return Result.Failure<StartMatchSearchResult>(playerResult.Errors);
         }
 
+        var player = playerResult.Value;
         if (!await buildsClient.IsOwnedByPlayerAsync(
             buildId: command.BuildId,
             playerId: player.Id,

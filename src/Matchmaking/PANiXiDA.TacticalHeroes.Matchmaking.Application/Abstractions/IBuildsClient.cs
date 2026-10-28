@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Builds;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 
 public interface IBuildsClient
 {

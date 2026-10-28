@@ -5,44 +5,48 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Cl
 
 public sealed class PlayersClientTests
 {
-    [Fact(DisplayName = "Client should map contract profile when player exists")]
-    public async Task GetByUserIdAsync_Should_MapContractProfile_When_PlayerExists()
+    [Fact(DisplayName = "Client should map contract player when player exists")]
+    public async Task GetByUserIdAsync_Should_MapContractPlayer_When_PlayerExists()
     {
         var userId = Guid.CreateVersion7();
-        var profile = new PlayerProfileResponse(Guid.CreateVersion7(), 1742);
-        var api = new StubPlayersApi(profile);
+        var player = new PlayerResponse(Guid.CreateVersion7(), 1742);
+        var api = new StubPlayersApi(Result.Success(player));
         var client = new PlayersClient(api);
         var ct = TestContext.Current.CancellationToken;
 
-        var result = (await client.GetByUserIdAsync(userId, ct))!;
+        var result = await client.GetByUserIdAsync(userId, ct);
 
-        result.Id.ShouldBe(profile.Id);
-        result.Rating.ShouldBe(profile.Rating);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Id.ShouldBe(player.Id);
+        result.Value.Rating.ShouldBe(player.Rating);
         api.UserId.ShouldBe(userId);
         (api.CancellationToken == ct).ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Client should return null when player is missing")]
-    public async Task GetByUserIdAsync_Should_ReturnNull_When_PlayerIsMissing()
+    [Fact(DisplayName = "Client should preserve errors when module query fails")]
+    public async Task GetByUserIdAsync_Should_PreserveErrors_When_ModuleQueryFails()
     {
-        var client = new PlayersClient(new StubPlayersApi(null));
+        var error = Error.Validation("Invalid player lookup.");
+        var api = new StubPlayersApi(Result.Failure<PlayerResponse>(error));
+        var client = new PlayersClient(api);
 
         var result = await client.GetByUserIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
-        result.ShouldBeNull();
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().ShouldBe(error);
     }
 
-    private sealed class StubPlayersApi(PlayerProfileResponse? profile) : IPlayersApi
+    private sealed class StubPlayersApi(Result<PlayerResponse> result) : IPlayersApi
     {
         public Guid UserId { get; private set; }
         public CancellationToken CancellationToken { get; private set; }
 
-        public Task<PlayerProfileResponse?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public Task<Result<PlayerResponse>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
             UserId = userId;
             CancellationToken = cancellationToken;
 
-            return Task.FromResult(profile);
+            return Task.FromResult(result);
         }
     }
 }

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Players.Application.Players.GetProfileByUserId;
+using PANiXiDA.TacticalHeroes.Players.Application.Players.GetInternalPlayer;
 
 namespace PANiXiDA.TacticalHeroes.Players.Application.Players.Abstractions;
 
 public interface IPlayersReadRepository : IReadRepository<Guid>
 {
-    Task<PlayerProfileReadModel?> GetProfileByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task<PlayerReadModel?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken);
 }

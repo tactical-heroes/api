@@ -55,60 +55,60 @@ public sealed class PlayersReadRepositoryTests(IntegrationTestFixture fixture)
         (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
     }
 
-    [Fact(DisplayName = "Read repository should return matching profile when user has a player")]
-    public async Task GetProfileByUserIdAsync_Should_ReturnMatchingProfile_When_UserHasAPlayer()
+    [Fact(DisplayName = "Read repository should return matching player when user has a player")]
+    public async Task GetByUserIdAsync_Should_ReturnMatchingPlayer_When_UserHasAPlayer()
     {
         var ct = TestContext.Current.CancellationToken;
-        var player = Player.Create(UserId.New());
-        player.ChangeRating(Rating.Create(1742));
+        var createdPlayer = Player.Create(UserId.New());
+        createdPlayer.ChangeRating(Rating.Create(1742));
         await using (var writeScope = Fixture.CreateScope())
         {
             var repository = writeScope.ServiceProvider.GetRequiredService<IPlayersRepository>();
             repository.Add(Player.Create(UserId.New()));
-            repository.Add(player);
+            repository.Add(createdPlayer);
             await writeScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(PlayersWriteDbContext))
                 .SaveChangesAsync(ct);
         }
 
         await using var scope = Fixture.CreateScope();
-        var profile = (await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
-            .GetProfileByUserIdAsync(player.UserId.Value, ct))!;
+        var player = (await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
+            .GetByUserIdAsync(createdPlayer.UserId.Value, ct))!;
 
-        profile.Id.ShouldBe(player.Id.Value);
-        profile.Rating.ShouldBe(1742);
+        player.Id.ShouldBe(createdPlayer.Id.Value);
+        player.Rating.ShouldBe(1742);
     }
 
     [Fact(DisplayName = "Read repository should return null when user has no player")]
-    public async Task GetProfileByUserIdAsync_Should_ReturnNull_When_UserHasNoPlayer()
+    public async Task GetByUserIdAsync_Should_ReturnNull_When_UserHasNoPlayer()
     {
         await using var scope = Fixture.CreateScope();
 
-        var profile = await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
-            .GetProfileByUserIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+        var player = await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
+            .GetByUserIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
-        profile.ShouldBeNull();
+        player.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Read repository should return null when player was deleted")]
-    public async Task GetProfileByUserIdAsync_Should_ReturnNull_When_PlayerWasDeleted()
+    public async Task GetByUserIdAsync_Should_ReturnNull_When_PlayerWasDeleted()
     {
         var ct = TestContext.Current.CancellationToken;
-        var player = Player.Create(UserId.New());
+        var createdPlayer = Player.Create(UserId.New());
         await using (var writeScope = Fixture.CreateScope())
         {
             var repository = writeScope.ServiceProvider.GetRequiredService<IPlayersRepository>();
             var unitOfWork = writeScope.ServiceProvider
                 .GetRequiredKeyedService<IUnitOfWork>(typeof(PlayersWriteDbContext));
-            repository.Add(player);
+            repository.Add(createdPlayer);
             await unitOfWork.SaveChangesAsync(ct);
-            repository.Delete(player);
+            repository.Delete(createdPlayer);
             await unitOfWork.SaveChangesAsync(ct);
         }
 
         await using var scope = Fixture.CreateScope();
-        var profile = await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
-            .GetProfileByUserIdAsync(player.UserId.Value, ct);
+        var player = await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
+            .GetByUserIdAsync(createdPlayer.UserId.Value, ct);
 
-        profile.ShouldBeNull();
+        player.ShouldBeNull();
     }
 }

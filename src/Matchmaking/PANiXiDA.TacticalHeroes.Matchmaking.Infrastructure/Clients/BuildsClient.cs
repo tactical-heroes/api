@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
 

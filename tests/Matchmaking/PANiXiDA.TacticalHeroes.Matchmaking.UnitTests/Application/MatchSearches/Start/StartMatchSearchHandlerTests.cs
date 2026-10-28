@@ -1,7 +1,7 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Persistence;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Start;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
@@ -73,7 +73,7 @@ public sealed class StartMatchSearchHandlerTests
     {
         var context = new HandlerContext();
         context.Players.GetByUserIdAsync(context.UserId, Arg.Any<CancellationToken>())
-            .Returns((MatchmakingPlayer?)null);
+            .Returns(Result.Failure<MatchmakingPlayer>(Error.NotFound("Player was not found.")));
 
         var result = await context.Handler.HandleAsync(context.Command, TestContext.Current.CancellationToken);
 
@@ -148,7 +148,7 @@ public sealed class StartMatchSearchHandlerTests
         public HandlerContext()
         {
             CurrentUser.UserId.Returns(UserId);
-            Players.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(Player);
+            Players.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(Result.Success(Player));
             Builds.IsOwnedByPlayerAsync(Command.BuildId, Player.Id, Arg.Any<CancellationToken>()).Returns(true);
             var clock = Substitute.For<TimeProvider>();
             clock.GetUtcNow().Returns(At(300).Value);
