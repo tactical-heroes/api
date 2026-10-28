@@ -47,13 +47,14 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         page.PageSize.ShouldBe(1);
         var item = page.Items.ShouldHaveSingleItem();
         item.Name.ShouldBe(name);
+        item.Type.ShouldBe("Personal");
         item.Status.ShouldBe("Ready");
         item.ContentType.ShouldBe("text/plain");
         item.Size.ShouldBe(4);
         using var json = JsonDocument.Parse(
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         json.RootElement.GetProperty("items")[0].EnumerateObject().Select(property => property.Name)
-            .ShouldBe(["id", "name", "status", "contentType", "size"], ignoreOrder: true);
+            .ShouldBe(["id", "name", "type", "status", "contentType", "size"], ignoreOrder: true);
     }
 
     [Fact(DisplayName = "File list endpoint should return avatars when avatar reading is allowed")]
@@ -72,6 +73,7 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         page.TotalCount.ShouldBe(1);
         var item = page.Items.ShouldHaveSingleItem();
         item.Id.ShouldBe(avatar.Id.Value);
+        item.Type.ShouldBe("Avatar");
     }
 
     [Fact(DisplayName = "File list endpoint should filter and sort metadata when search and sorting are provided")]

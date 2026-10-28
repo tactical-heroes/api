@@ -244,6 +244,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         page.TotalCount.ShouldBe(expectedTotal);
         var item = page.Items.ShouldHaveSingleItem();
         item.Name.ShouldBe(expectedName);
+        item.Type.ShouldBe(type);
         item.ContentType.ShouldBe("text/plain");
         item.Size.ShouldBe(4);
         scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
