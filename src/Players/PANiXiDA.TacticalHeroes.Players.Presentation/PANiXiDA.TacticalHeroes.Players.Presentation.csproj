@@ -10,6 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Players.Contracts\PANiXiDA.TacticalHeroes.Players.Contracts.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Players.Application\PANiXiDA.TacticalHeroes.Players.Application.csproj" />
     </ItemGroup>
 

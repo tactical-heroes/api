@@ -12,6 +12,12 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Start;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
+
+using Player = PANiXiDA.TacticalHeroes.Players.Domain.Players.Player;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Start;
 
@@ -27,7 +33,8 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
-        var userId = Guid.CreateVersion7();
+        var player = await SeedPlayerAsync(ct);
+        var userId = player.UserId.Value;
         var buildId = Guid.CreateVersion7();
         var before = DateTimeOffset.UtcNow;
 
@@ -45,9 +52,9 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var row = await scope.ServiceProvider.GetRequiredService<MatchmakingReadDbContext>()
             .Set<MatchSearchReadDbModel>()
             .SingleAsync(x => x.Id == result.Id, ct);
-        row.PlayerId.ShouldBe(userId);
+        row.PlayerId.ShouldBe(player.Id.Value);
         row.BuildId.ShouldBe(buildId);
-        row.Rating.ShouldBe(1000);
+        row.Rating.ShouldBe(1742);
         row.Mode.ShouldBe(mode);
         row.GameId.ShouldBeNull();
     }
@@ -90,11 +97,11 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
-        var playerId = Guid.CreateVersion7();
-        var search = await SeedSearchAsync(playerId, matched, overdue, ct);
+        var player = await SeedPlayerAsync(ct);
+        var search = await SeedSearchAsync(player.Id.Value, matched, overdue, ct);
 
         using var response = await PostAsync(
-            playerId,
+            player.UserId.Value,
             new StartMatchSearchRequest(Guid.CreateVersion7(), "CasualDuel"),
             ct);
 
@@ -111,11 +118,11 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
-        var playerId = Guid.CreateVersion7();
-        var previous = await SeedSearchAsync(playerId, matched: false, overdue: true, ct);
+        var player = await SeedPlayerAsync(ct);
+        var previous = await SeedSearchAsync(player.Id.Value, matched: false, overdue: true, ct);
 
         using var response = await PostAsync(
-            playerId,
+            player.UserId.Value,
             new StartMatchSearchRequest(Guid.CreateVersion7(), "RankedDuel"),
             ct);
 
@@ -132,10 +139,10 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
-        var playerId = Guid.CreateVersion7();
+        var player = await SeedPlayerAsync(ct);
         var buildId = Guid.CreateVersion7();
         var requests = new[] { "RankedDuel", "CasualDuel" }.Select(mode =>
-            PostAsync(playerId, new StartMatchSearchRequest(buildId, mode), ct));
+            PostAsync(player.UserId.Value, new StartMatchSearchRequest(buildId, mode), ct));
 
         var responses = await Task.WhenAll(requests);
 
@@ -152,6 +159,31 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
                 response.Dispose();
             }
         }
+    }
+
+    [Fact(DisplayName = "Endpoint should reject request when player is missing")]
+    public async Task Post_Should_RejectRequest_When_PlayerIsMissing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(ct);
+
+        using var response = await PostAsync(
+            Guid.CreateVersion7(), new StartMatchSearchRequest(Guid.CreateVersion7(), "RankedDuel"), ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await AssertSearchCountAsync(0, ct);
+    }
+
+    private async Task<Player> SeedPlayerAsync(CancellationToken ct)
+    {
+        var player = Player.Create(UserId.New());
+        player.ChangeRating(Rating.Create(1742));
+        await using var scope = fixture.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<IPlayersRepository>().Add(player);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(PlayersWriteDbContext))
+            .SaveChangesAsync(ct);
+
+        return player;
     }
 
     private async Task<MatchSearch> SeedSearchAsync(

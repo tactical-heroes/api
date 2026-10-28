@@ -1,14 +1,14 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Players;
+using PANiXiDA.TacticalHeroes.Players.Contracts.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
 
-public sealed class PlayersClient : IPlayersClient
+public sealed class PlayersClient(IPlayersApi playersApi) : IPlayersClient
 {
-    public Task<MatchmakingPlayer?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<MatchmakingPlayer?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        var profile = await playersApi.GetByUserIdAsync(userId, cancellationToken);
 
-        // Until Players is connected, use a stable mock profile for each user.
-        return Task.FromResult<MatchmakingPlayer?>(new MatchmakingPlayer(userId, Rating: 1000));
+        return profile is null ? null : new MatchmakingPlayer(profile.Id, profile.Rating);
     }
 }

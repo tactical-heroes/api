@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Players.Application.Players.Abstractions;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
@@ -52,5 +53,62 @@ public sealed class PlayersReadRepositoryTests(IntegrationTestFixture fixture)
         var populatedRepository = verificationScope.ServiceProvider.GetRequiredService<IPlayersReadRepository>();
 
         (await populatedRepository.AnyAsync(cancellationToken)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Read repository should return matching profile when user has a player")]
+    public async Task GetProfileByUserIdAsync_Should_ReturnMatchingProfile_When_UserHasAPlayer()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var player = Player.Create(UserId.New());
+        player.ChangeRating(Rating.Create(1742));
+        await using (var writeScope = Fixture.CreateScope())
+        {
+            var repository = writeScope.ServiceProvider.GetRequiredService<IPlayersRepository>();
+            repository.Add(Player.Create(UserId.New()));
+            repository.Add(player);
+            await writeScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(PlayersWriteDbContext))
+                .SaveChangesAsync(ct);
+        }
+
+        await using var scope = Fixture.CreateScope();
+        var profile = (await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
+            .GetProfileByUserIdAsync(player.UserId.Value, ct))!;
+
+        profile.Id.ShouldBe(player.Id.Value);
+        profile.Rating.ShouldBe(1742);
+    }
+
+    [Fact(DisplayName = "Read repository should return null when user has no player")]
+    public async Task GetProfileByUserIdAsync_Should_ReturnNull_When_UserHasNoPlayer()
+    {
+        await using var scope = Fixture.CreateScope();
+
+        var profile = await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
+            .GetProfileByUserIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        profile.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Read repository should return null when player was deleted")]
+    public async Task GetProfileByUserIdAsync_Should_ReturnNull_When_PlayerWasDeleted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var player = Player.Create(UserId.New());
+        await using (var writeScope = Fixture.CreateScope())
+        {
+            var repository = writeScope.ServiceProvider.GetRequiredService<IPlayersRepository>();
+            var unitOfWork = writeScope.ServiceProvider
+                .GetRequiredKeyedService<IUnitOfWork>(typeof(PlayersWriteDbContext));
+            repository.Add(player);
+            await unitOfWork.SaveChangesAsync(ct);
+            repository.Delete(player);
+            await unitOfWork.SaveChangesAsync(ct);
+        }
+
+        await using var scope = Fixture.CreateScope();
+        var profile = await scope.ServiceProvider.GetRequiredService<IPlayersReadRepository>()
+            .GetProfileByUserIdAsync(player.UserId.Value, ct);
+
+        profile.ShouldBeNull();
     }
 }

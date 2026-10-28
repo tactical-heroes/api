@@ -1,23 +1,48 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
+using PANiXiDA.TacticalHeroes.Players.Contracts.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Clients;
 
 public sealed class PlayersClientTests
 {
-    [Fact(DisplayName = "Client should return stable mock profile when user is supplied")]
-    public async Task GetByUserIdAsync_Should_ReturnStableMockProfile_When_UserIsSupplied()
+    [Fact(DisplayName = "Client should map contract profile when player exists")]
+    public async Task GetByUserIdAsync_Should_MapContractProfile_When_PlayerExists()
     {
-        var client = new PlayersClient();
         var userId = Guid.CreateVersion7();
+        var profile = new PlayerProfileResponse(Guid.CreateVersion7(), 1742);
+        var api = new StubPlayersApi(profile);
+        var client = new PlayersClient(api);
         var ct = TestContext.Current.CancellationToken;
 
-        var first = (await client.GetByUserIdAsync(userId, ct))!;
-        var repeated = await client.GetByUserIdAsync(userId, ct);
-        var another = (await client.GetByUserIdAsync(Guid.CreateVersion7(), ct))!;
+        var result = (await client.GetByUserIdAsync(userId, ct))!;
 
-        repeated.ShouldBe(first);
-        first.Id.ShouldBe(userId);
-        first.Rating.ShouldBe(1000);
-        another.Id.ShouldNotBe(first.Id);
+        result.Id.ShouldBe(profile.Id);
+        result.Rating.ShouldBe(profile.Rating);
+        api.UserId.ShouldBe(userId);
+        (api.CancellationToken == ct).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Client should return null when player is missing")]
+    public async Task GetByUserIdAsync_Should_ReturnNull_When_PlayerIsMissing()
+    {
+        var client = new PlayersClient(new StubPlayersApi(null));
+
+        var result = await client.GetByUserIdAsync(Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+
+        result.ShouldBeNull();
+    }
+
+    private sealed class StubPlayersApi(PlayerProfileResponse? profile) : IPlayersApi
+    {
+        public Guid UserId { get; private set; }
+        public CancellationToken CancellationToken { get; private set; }
+
+        public Task<PlayerProfileResponse?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            UserId = userId;
+            CancellationToken = cancellationToken;
+
+            return Task.FromResult(profile);
+        }
     }
 }

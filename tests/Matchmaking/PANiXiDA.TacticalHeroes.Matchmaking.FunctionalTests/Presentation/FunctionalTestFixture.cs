@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
@@ -70,11 +71,15 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
             .Build();
         var services = new ServiceCollection();
         services.AddInfrastructure(configuration);
+        PANiXiDA.TacticalHeroes.Players.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+            .AddInfrastructure(services, configuration);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
         var dbContext =
             scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
 
         await dbContext.Database.MigrateAsync(cancellationToken);
+        var playersDbContext = scope.ServiceProvider.GetRequiredService<PlayersWriteDbContext>();
+        await playersDbContext.Database.MigrateAsync(cancellationToken);
     }
 }
