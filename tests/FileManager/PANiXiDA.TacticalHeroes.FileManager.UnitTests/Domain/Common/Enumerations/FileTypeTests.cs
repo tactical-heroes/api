@@ -102,4 +102,35 @@ public sealed class FileTypeTests
         result.ShouldHaveSingleError(ErrorType.Validation, "File type 'Unknown' is invalid.")
             .ShouldHaveField(nameof(FileType));
     }
+
+    [Fact(DisplayName = "Optional file type should return null when name is omitted")]
+    public void CreateOptional_Should_ReturnNull_When_NameIsOmitted()
+    {
+        var result = FileType.CreateOptional(null);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeNull();
+    }
+
+    [Theory(DisplayName = "Optional file type should normalize known names when name is known")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public void CreateOptional_Should_ReturnValue_When_NameIsKnown(string name)
+    {
+        var result = FileType.CreateOptional($"  {name}  ");
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull().Name.ShouldBe(name);
+    }
+
+    [Theory(DisplayName = "Optional file type should preserve validation errors when name is invalid")]
+    [InlineData("", "File type is required.")]
+    [InlineData("  ", "File type is required.")]
+    [InlineData("Unknown", "File type 'Unknown' is invalid.")]
+    public void CreateOptional_Should_ReturnValidationFailure_When_NameIsInvalid(string name, string message)
+    {
+        var result = FileType.CreateOptional(name);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, message).ShouldHaveField(nameof(FileType));
+    }
 }

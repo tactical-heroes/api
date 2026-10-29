@@ -1,6 +1,6 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
-
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -133,6 +133,122 @@ public sealed class FileAccessPolicyTests
         var allowed = new FileAccessPolicy(currentUser).CanRead(file);
 
         allowed.ShouldBeFalse();
+        currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
+    }
+
+    [Theory(DisplayName = "File access policy should match aggregate and filter decisions when permissions vary")]
+    [InlineData("Personal", "file-manager.personal-files.read.own", true, true)]
+    [InlineData("Personal", "file-manager.personal-files.read.own", false, false)]
+    [InlineData("Personal", "file-manager.personal-files.read.all", false, true)]
+    [InlineData("Avatar", "file-manager.avatars.read", false, true)]
+    [InlineData("Avatar", "file-manager.personal-files.read.all", false, false)]
+    [InlineData("Personal", "file-manager.avatars.read", true, false)]
+    public void CanRead_Should_MatchAggregateAndFilterDecisions_When_PermissionsVary(
+        string type, string permission, bool own, bool expected)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(permission).Returns(true);
+        var file = CreateFile(type, own ? userId : Guid.NewGuid());
+        var filter = new FilesFilter(Type: file.Type.Name, UserId: file.UserId?.Value);
+        var policy = new FileAccessPolicy(currentUser);
+
+        var aggregateAllowed = policy.CanRead(file);
+        var filterAllowed = policy.CanRead(filter);
+
+        aggregateAllowed.ShouldBe(expected);
+        filterAllowed.ShouldBe(expected);
+    }
+
+    [Theory(DisplayName = "File access policy should require the full selection when type is omitted")]
+    [InlineData(true, true, false, true)]
+    [InlineData(true, false, false, false)]
+    [InlineData(false, true, false, false)]
+    [InlineData(false, true, true, true)]
+    public void CanRead_Should_RequireFullSelection_When_TypeIsOmitted(bool all, bool avatars, bool own, bool expected)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(own);
+        currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code).Returns(avatars);
+        var filter = new FilesFilter(UserId: own ? userId : null);
+
+        var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
+
+        allowed.ShouldBe(expected);
+    }
+
+    [Theory(DisplayName = "File access policy should apply owner restriction when type and owner vary")]
+    [InlineData("Personal", "own", false, true, false, true, "Personal", "own")]
+    [InlineData("Personal", "foreign", false, true, false, false, null, "none")]
+    [InlineData("Personal", "none", false, true, false, true, "Personal", "own")]
+    [InlineData("Personal", "foreign", true, false, false, true, "Personal", "foreign")]
+    [InlineData("Personal", "foreign", true, true, false, true, "Personal", "foreign")]
+    [InlineData("Personal", "none", true, true, false, true, "Personal", "none")]
+    [InlineData(" Personal ", "none", false, true, false, true, " Personal ", "own")]
+    [InlineData("Avatar", "none", false, false, true, true, "Avatar", "none")]
+    [InlineData(null, "own", false, true, true, true, null, "own")]
+    [InlineData(null, "own", false, true, false, false, null, "none")]
+    [InlineData(null, "foreign", false, true, true, false, null, "none")]
+    [InlineData("Unknown", "none", true, true, true, false, null, "none")]
+    [InlineData("", "none", true, true, true, false, null, "none")]
+    [InlineData(null, "none", false, false, true, false, null, "none")]
+    [InlineData(null, "none", false, true, false, false, null, "none")]
+    [InlineData(null, "none", false, true, true, true, null, "own")]
+    [InlineData(null, "none", true, false, false, false, null, "none")]
+    [InlineData(null, "none", true, true, true, true, null, "none")]
+    [InlineData(null, "none", false, false, false, false, null, "none")]
+    public void ApplyReadRestrictions_Should_ApplyOwnerRestriction_When_TypeAndOwnerVary(
+        string? type,
+        string owner,
+        bool all,
+        bool own,
+        bool avatars,
+        bool expected,
+        string? expectedType,
+        string expectedOwner)
+    {
+        var userId = Guid.NewGuid();
+        var foreignUserId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(own);
+        currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code).Returns(avatars);
+        var ownerId = owner == "own" ? userId : owner == "foreign" ? foreignUserId : (Guid?)null;
+        var filter = new FilesFilter(Type: type, Search: "report", UserId: ownerId);
+
+        var result = new FileAccessPolicy(currentUser).ApplyReadRestrictions(filter);
+
+        result.IsSuccess.ShouldBe(expected);
+        filter.Type.ShouldBe(type);
+        filter.UserId.ShouldBe(ownerId);
+        if (expected)
+        {
+            var expectedOwnerId = expectedOwner == "own"
+                ? userId : expectedOwner == "foreign" ? foreignUserId : (Guid?)null;
+            result.Value.ShouldBe(new FilesFilter(Type: expectedType, Search: "report", UserId: expectedOwnerId));
+        }
+        else
+        {
+            result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
+        }
+    }
+
+    [Theory(DisplayName = "File access policy should reject caller when authentication or user id is absent")]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public void ApplyReadRestrictions_Should_RejectCaller_When_AuthenticationOrUserIdIsAbsent(
+        bool authenticated,
+        bool hasUserId)
+    {
+        var currentUser = CreateCurrentUser(hasUserId ? Guid.NewGuid() : null);
+        currentUser.IsAuthenticated.Returns(authenticated);
+        currentUser.HasPermission(Arg.Any<string>()).Returns(true);
+
+        var result = new FileAccessPolicy(currentUser).ApplyReadRestrictions(new FilesFilter());
+
+        result.ShouldHaveSingleError(ErrorType.Unauthorized, "A user account is required.");
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 

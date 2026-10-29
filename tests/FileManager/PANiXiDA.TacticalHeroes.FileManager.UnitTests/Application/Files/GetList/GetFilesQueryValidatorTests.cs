@@ -1,0 +1,93 @@
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
+
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.GetList;
+
+public sealed class GetFilesQueryValidatorTests
+{
+    [Theory(DisplayName = "File list validator should accept query when type and paging are valid")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    [InlineData(" Personal ")]
+    [InlineData(null)]
+    public void Validate_Should_AcceptQuery_When_TypeAndPagingAreValid(string? type)
+    {
+        var query = new GetFilesQuery(new FilesFilter(type), new PaginationParameters(), SortingParameters.None);
+
+        var result = new GetFilesQueryValidator().Validate(query);
+
+        result.IsValid.ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "File list validator should reject type when type is invalid")]
+    [InlineData("", "File type is required.")]
+    [InlineData(" ", "File type is required.")]
+    [InlineData("Unknown", "File type 'Unknown' is invalid.")]
+    public void Validate_Should_RejectType_When_TypeIsInvalid(string type, string message)
+    {
+        var query = new GetFilesQuery(new FilesFilter(type), new PaginationParameters(), SortingParameters.None);
+
+        var result = new GetFilesQueryValidator().Validate(query);
+
+        var error = result.Errors.ShouldHaveSingleItem();
+        error.PropertyName.ShouldBe("Filter.Type");
+        error.ErrorMessage.ShouldBe(message);
+    }
+
+    [Fact(DisplayName = "File list validator should reject owner when user id is empty")]
+    public void Validate_Should_RejectOwner_When_UserIdIsEmpty()
+    {
+        var query = new GetFilesQuery(
+            new FilesFilter(UserId: Guid.Empty), new PaginationParameters(), SortingParameters.None);
+
+        var result = new GetFilesQueryValidator().Validate(query);
+
+        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Filter.UserId");
+    }
+
+    [Theory(DisplayName = "File list validator should reject paging when limits are exceeded")]
+    [InlineData(0, 10, "PaginationParameters.PageNumber")]
+    [InlineData(1, 201, "PaginationParameters.PageSize")]
+    [InlineData(int.MaxValue, 2, "PaginationParameters.PageNumber")]
+    public void Validate_Should_RejectPaging_When_LimitsAreExceeded(int number, int size, string property)
+    {
+        var query = new GetFilesQuery(
+            new FilesFilter("Personal"), new PaginationParameters(number, size), SortingParameters.None);
+
+        var result = new GetFilesQueryValidator().Validate(query);
+
+        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(property);
+    }
+
+    [Theory(DisplayName = "File list validator should reject sorting when field is not exposed")]
+    [InlineData("StorageKey")]
+    [InlineData("CreatedAt")]
+    [InlineData("UserId")]
+    public void Validate_Should_RejectSorting_When_FieldIsNotExposed(string field)
+    {
+        var query = new GetFilesQuery(
+            new FilesFilter("Personal"), new PaginationParameters(), SortingParameters.Ascending(field));
+
+        var result = new GetFilesQueryValidator().Validate(query);
+
+        result.IsValid.ShouldBeFalse();
+        result.Errors
+            .ShouldContain(error => error.PropertyName.StartsWith("SortingParameters", StringComparison.Ordinal));
+    }
+
+    [Theory(DisplayName = "File list validator should reject query when required parameters are absent")]
+    [InlineData("Filter")]
+    [InlineData("PaginationParameters")]
+    [InlineData("SortingParameters")]
+    public void Validate_Should_RejectQuery_When_RequiredParametersAreAbsent(string missing)
+    {
+        var query = new GetFilesQuery(
+            missing == "Filter" ? null! : new FilesFilter("Personal"),
+            missing == "PaginationParameters" ? null! : new PaginationParameters(),
+            missing == "SortingParameters" ? null! : SortingParameters.None);
+
+        var result = new GetFilesQueryValidator().Validate(query);
+
+        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(missing);
+    }
+}

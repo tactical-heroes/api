@@ -31,4 +31,11 @@ public sealed partial class FileType : Enumeration<FileType>
                 Error.Validation($"File type '{normalizedValue}' is invalid.")
                     .WithField(nameof(FileType)));
     }
+
+    public static Result<FileType?> CreateOptional(string? value)
+    {
+        return value is null
+            ? Result.Success<FileType?>(value: null)
+            : Create(value).Map(type => (FileType?)type);
+    }
 }
