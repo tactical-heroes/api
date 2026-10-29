@@ -6,7 +6,7 @@ internal sealed class GetFilesEndpoint : IEndpoint<FilesEndpoints>
 {
     public string Route { get; } = "/";
     public string Name { get; } = "GetFiles";
-    public string Summary { get; } = "Get file metadata";
+    public string Summary { get; } = "Get a paginated list of file metadata";
 
     public void Map(EndpointMapBuilder builder)
     {
