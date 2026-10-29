@@ -8,7 +8,7 @@ public sealed class MatchFoundProbe
 {
     private readonly ConcurrentQueue<MatchFound> _events = new();
 
-    public IReadOnlyList<MatchFound> Events => _events.ToArray();
+    public IReadOnlyList<MatchFound> Events => [.. _events];
 
     public void Record(MatchFound matchFound)
     {
