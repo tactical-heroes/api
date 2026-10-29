@@ -81,6 +81,24 @@ public sealed class StartMatchSearchHandlerTests
         context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
+    [Fact(DisplayName = "Handler should reject request when player id is invalid")]
+    public async Task HandleAsync_Should_RejectRequest_When_PlayerIdIsInvalid()
+    {
+        var context = new HandlerContext();
+        context.Players.GetByUserIdAsync(context.UserId, Arg.Any<CancellationToken>())
+            .Returns(new PlayerReadModel(Guid.Empty, context.Player.Rating));
+
+        var result = await context.Handler.HandleAsync(context.Command, TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Validation);
+        await context.Builds.DidNotReceiveWithAnyArgs()
+            .GetByIdAsync(default, TestContext.Current.CancellationToken);
+        await context.Repository.DidNotReceiveWithAnyArgs()
+            .GetActiveByPlayerIdAsync(default, TestContext.Current.CancellationToken);
+        context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
+    }
+
     [Theory(DisplayName = "Handler should reject request when build is unavailable")]
     [InlineData(false)]
     [InlineData(true)]

@@ -44,14 +44,19 @@ public sealed class StartMatchSearchHandler(
             return Result.Failure(Error.NotFound("Player was not found."));
         }
 
+        var playerId = PlayerId.Create(player.Id);
+        if (playerId.IsFailure)
+        {
+            return Result.Failure(playerId.Errors);
+        }
+
         var build = await buildsClient.GetByIdAsync(command.BuildId, cancellationToken);
         if (build is null || build.PlayerId != player.Id)
         {
             return Result.Failure(Error.NotFound("Build was not found."));
         }
 
-        var playerId = PlayerId.Create(player.Id).Value;
-        var existing = await matchSearchesRepository.GetActiveByPlayerIdAsync(playerId, cancellationToken);
+        var existing = await matchSearchesRepository.GetActiveByPlayerIdAsync(playerId.Value, cancellationToken);
         if (existing is not null)
         {
             return Result.Failure(Error.Conflict("Player is already searching or playing."));
@@ -59,7 +64,7 @@ public sealed class StartMatchSearchHandler(
 
         var now = MatchmakingTimestamp.Create(timeProvider.GetUtcNow());
         var created = MatchSearch.Create(
-            playerId: playerId,
+            playerId: playerId.Value,
             buildId: buildId.Value,
             rating: Raiting.Create(player.Rating),
             mode: mode.Value,
