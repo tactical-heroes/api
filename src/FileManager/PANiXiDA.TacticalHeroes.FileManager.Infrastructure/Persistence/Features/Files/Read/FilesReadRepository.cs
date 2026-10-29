@@ -4,7 +4,6 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetPersonalDetails;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
@@ -20,16 +19,17 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
 {
     public Task<PaginationResult<FileListItemReadModel>> GetPageAsync(
         FilesFilter filter,
-        FileReadAccess access,
         PaginationParameters paginationParameters,
         SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
-        var query = Query.Where(file =>
-            (file.Type == FileType.Personal.Name
-                && (access.CanReadAllPersonalFiles
-                    || (access.PersonalFilesUserId != null && file.UserId == access.PersonalFilesUserId)))
-                || (access.CanReadAvatars && file.Type == FileType.Avatar.Name));
+        var types = filter.Types.ToArray();
+        var query = Query.Where(file => types.Contains(file.Type));
+        if (filter.UserId is { } userId)
+        {
+            query = query.Where(file => file.Type != FileType.Personal.Name || file.UserId == userId);
+        }
+
         if (filter.Type is { } type)
         {
             query = query.Where(file => file.Type == type);

@@ -1,6 +1,6 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
-
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -136,52 +136,52 @@ public sealed class FileAccessPolicyTests
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 
-    [Theory(DisplayName = "File access policy should restrict ownership when personal read scope varies")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void GetReadAccess_Should_RestrictOwnership_When_PersonalReadScopeVaries(bool all)
-    {
-        var userId = Guid.NewGuid();
-        var currentUser = CreateCurrentUser(userId);
-        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(true);
-        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
-
-        var result = new FileAccessPolicy(currentUser).GetReadAccess(FileType.Personal);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.PersonalFilesUserId.ShouldBe(all ? null : userId);
-        result.Value.CanReadAllPersonalFiles.ShouldBe(all);
-        result.Value.CanReadAvatars.ShouldBeFalse();
-    }
-
-    [Theory(DisplayName = "File access policy should combine permissions when type is omitted")]
-    [InlineData(true, true, true)]
-    [InlineData(true, false, false)]
-    [InlineData(false, true, true)]
-    [InlineData(false, true, false)]
-    [InlineData(false, false, true)]
-    [InlineData(false, false, false)]
-    public void GetReadAccess_Should_CombinePermissions_When_TypeIsOmitted(bool all, bool own, bool avatars)
+    [Theory(DisplayName = "File access policy should check the full filter when requested scopes vary")]
+    [InlineData("Personal", "own", false, true, false, true)]
+    [InlineData("Personal", "foreign", false, true, false, false)]
+    [InlineData("Personal", "none", false, true, false, false)]
+    [InlineData("Personal", "foreign", true, false, false, true)]
+    [InlineData("Personal", "none", true, true, false, true)]
+    [InlineData("Avatar", "none", false, false, true, true)]
+    [InlineData("Personal,Avatar", "own", false, true, true, true)]
+    [InlineData("Personal,Avatar", "own", false, true, false, false)]
+    [InlineData("Personal,Avatar", "foreign", false, true, true, false)]
+    [InlineData("Unknown", "none", true, true, true, false)]
+    [InlineData("", "none", true, true, true, false)]
+    public void CanRead_Should_CheckFullFilter_When_RequestedScopesVary(
+        string types, string owner, bool all, bool own, bool avatars, bool expected)
     {
         var userId = Guid.NewGuid();
         var currentUser = CreateCurrentUser(userId);
         currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
         currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(own);
         currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code).Returns(avatars);
-
-        var result = new FileAccessPolicy(currentUser).GetReadAccess();
-
-        result.IsSuccess.ShouldBe(all || own || avatars);
-        if (result.IsSuccess)
+        var filter = new FilesFilter(UserId: owner == "own" ? userId : owner == "foreign" ? Guid.NewGuid() : null)
         {
-            result.Value.CanReadAllPersonalFiles.ShouldBe(all);
-            result.Value.PersonalFilesUserId.ShouldBe(!all && own ? userId : null);
-            result.Value.CanReadAvatars.ShouldBe(avatars);
-        }
-        else
-        {
-            result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
-        }
+            Types = types.Length == 0 ? [] : types.Split(',')
+        };
+        var originalTypes = filter.Types.ToArray();
+        var originalUserId = filter.UserId;
+
+        var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
+
+        allowed.ShouldBe(expected);
+        filter.Types.ShouldBe(originalTypes);
+        filter.UserId.ShouldBe(originalUserId);
+    }
+
+    [Fact(DisplayName = "File access policy should deny a filter when the caller is unauthenticated")]
+    public void CanRead_Should_DenyFilter_When_TheCallerIsUnauthenticated()
+    {
+        var currentUser = CreateCurrentUser(Guid.NewGuid());
+        currentUser.IsAuthenticated.Returns(false);
+        currentUser.HasPermission(Arg.Any<string>()).Returns(true);
+        var filter = new FilesFilter { Types = ["Personal", "Avatar"] };
+
+        var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
+
+        allowed.ShouldBeFalse();
+        currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 
     private static ICurrentUser CreateCurrentUser(Guid? userId)

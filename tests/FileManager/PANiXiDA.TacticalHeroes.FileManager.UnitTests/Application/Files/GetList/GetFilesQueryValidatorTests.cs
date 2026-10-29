@@ -34,6 +34,17 @@ public sealed class GetFilesQueryValidatorTests
         error.ErrorMessage.ShouldBe(message);
     }
 
+    [Fact(DisplayName = "File list validator should reject owner when user id is empty")]
+    public void Validate_Should_RejectOwner_When_UserIdIsEmpty()
+    {
+        var query = new GetFilesQuery(
+            new FilesFilter(UserId: Guid.Empty), new PaginationParameters(), SortingParameters.None);
+
+        var result = new GetFilesQueryValidator().Validate(query);
+
+        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Filter.UserId");
+    }
+
     [Theory(DisplayName = "File list validator should reject paging when limits are exceeded")]
     [InlineData(0, 10, "PaginationParameters.PageNumber")]
     [InlineData(1, 201, "PaginationParameters.PageSize")]

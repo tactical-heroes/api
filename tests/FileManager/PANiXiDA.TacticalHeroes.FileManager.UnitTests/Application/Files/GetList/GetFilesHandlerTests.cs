@@ -25,12 +25,14 @@ public sealed class GetFilesHandlerTests
         var filter = new FilesFilter(type, "file");
         var pagination = new PaginationParameters(2, 10);
         var sorting = SortingParameters.Descending("Name");
-        var expectedAccess = new FileReadAccess(
-            type.Trim() == "Personal" && !own,
-            own ? userId : null,
-            type.Trim() == "Avatar");
+        var expectedFilter = filter with
+        {
+            Type = type.Trim(),
+            UserId = own ? userId : null,
+            Types = [type.Trim()]
+        };
         repository.GetPageAsync(
-            filter with { Type = type.Trim() }, expectedAccess, pagination, sorting, cancellationToken)
+            Arg.Any<FilesFilter>(), pagination, sorting, cancellationToken)
             .Returns(page);
         var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
 
@@ -39,7 +41,13 @@ public sealed class GetFilesHandlerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeSameAs(page);
         await repository.Received(1).GetPageAsync(
-            filter with { Type = type.Trim() }, expectedAccess, pagination, sorting, cancellationToken);
+            Arg.Is<FilesFilter>(actual => actual.Type == expectedFilter.Type
+                && actual.Search == expectedFilter.Search
+                && actual.UserId == expectedFilter.UserId
+                && actual.Types.SequenceEqual(expectedFilter.Types)),
+            pagination,
+            sorting,
+            cancellationToken);
     }
 
     [Theory(DisplayName = "File list handler should avoid the repository when requested type is forbidden")]
@@ -112,9 +120,12 @@ public sealed class GetFilesHandlerTests
         var repository = Substitute.For<IFilesReadRepository>();
         var filter = new FilesFilter(Search: "report");
         var pagination = new PaginationParameters();
-        var access = new FileReadAccess(allPersonal, ownPersonal ? userId : null, avatars);
+        var expectedTypes = new List<string>();
+        if (allPersonal || ownPersonal) expectedTypes.Add("Personal");
+        if (avatars) expectedTypes.Add("Avatar");
         var page = PaginationResult<FileListItemReadModel>.Empty(1, 10);
-        repository.GetPageAsync(filter, access, pagination, SortingParameters.None, cancellationToken).Returns(page);
+        repository.GetPageAsync(Arg.Any<FilesFilter>(), pagination, SortingParameters.None, cancellationToken)
+            .Returns(page);
         var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
@@ -124,7 +135,74 @@ public sealed class GetFilesHandlerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeSameAs(page);
         await repository.Received(1)
-            .GetPageAsync(filter, access, pagination, SortingParameters.None, cancellationToken);
+            .GetPageAsync(
+                Arg.Is<FilesFilter>(actual => actual.Types.SequenceEqual(expectedTypes)
+                    && actual.UserId == (ownPersonal
+                        ? userId
+                        : null)),
+                pagination,
+                SortingParameters.None,
+                cancellationToken);
+    }
+
+    [Theory(DisplayName = "File list handler should enforce the requested owner when owner and permissions vary")]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, true)]
+    public async Task HandleAsync_Should_EnforceRequestedOwner_When_OwnerAndPermissionsVary(
+        bool all, bool own, bool allowed)
+    {
+        var userId = Guid.NewGuid();
+        var ownerId = own ? userId : Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission("file-manager.personal-files.read.all").Returns(all);
+        currentUser.HasPermission("file-manager.personal-files.read.own").Returns(true);
+        currentUser.HasPermission("file-manager.avatars.read").Returns(true);
+        var repository = Substitute.For<IFilesReadRepository>();
+        repository.GetPageAsync(
+            Arg.Any<FilesFilter>(),
+            Arg.Any<PaginationParameters>(),
+            Arg.Any<SortingParameters>(),
+            Arg.Any<CancellationToken>())
+            .Returns(PaginationResult<FileListItemReadModel>.Empty(1, 10));
+        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+
+        var result = await handler.HandleAsync(
+            new GetFilesQuery(new FilesFilter(UserId: ownerId), new PaginationParameters(), SortingParameters.None),
+            TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBe(allowed);
+        if (allowed)
+        {
+            await repository.Received(1).GetPageAsync(
+                Arg.Is<FilesFilter>(filter => filter.UserId == ownerId
+                    && filter.Types.SequenceEqual(new[] { "Personal", "Avatar" })),
+                Arg.Any<PaginationParameters>(),
+                Arg.Any<SortingParameters>(),
+                Arg.Any<CancellationToken>());
+        }
+        else
+        {
+            result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
+            repository.ReceivedCalls().ShouldBeEmpty();
+        }
+    }
+
+    [Fact(DisplayName = "File list handler should reject caller when authentication is absent")]
+    public async Task HandleAsync_Should_RejectCaller_When_AuthenticationIsAbsent()
+    {
+        var currentUser = CreateCurrentUser(Guid.NewGuid());
+        currentUser.IsAuthenticated.Returns(false);
+        var repository = Substitute.For<IFilesReadRepository>();
+        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+
+        var result = await handler.HandleAsync(
+            new GetFilesQuery(new FilesFilter(), new PaginationParameters(), SortingParameters.None),
+            TestContext.Current.CancellationToken);
+
+        result.ShouldHaveSingleError(ErrorType.Unauthorized, "A user account is required.");
+        repository.ReceivedCalls().ShouldBeEmpty();
     }
 
     private static ICurrentUser CreateCurrentUser(Guid? userId)

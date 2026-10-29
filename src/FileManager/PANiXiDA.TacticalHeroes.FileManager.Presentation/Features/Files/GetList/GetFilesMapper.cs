@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
 
 using Riok.Mapperly.Abstractions;
@@ -15,4 +16,7 @@ internal static partial class GetFilesMapper
 
     internal static partial PaginationResult<FileListItemResponse> ToResponse(
         PaginationResult<FileListItemReadModel> page);
+
+    [MapperIgnoreTarget(nameof(FilesFilter.Types))]
+    private static partial FilesFilter ToFilter(GetFilesRequest request);
 }

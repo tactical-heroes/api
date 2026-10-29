@@ -36,7 +36,7 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         await AddFileAsync("Aardvark", "Personal", userId, deleted: true);
 
         using var response = await SendAsync(
-            $"?type=Personal&pageNumber=2&pageSize=1&userId={foreignUserId}", userId.ToString(), permission);
+            "?type=Personal&pageNumber=2&pageSize=1", userId.ToString(), permission);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
@@ -119,6 +119,8 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
     [Theory(DisplayName = "File list endpoint should reject the request when query parameters are invalid")]
     [InlineData("?type=")]
     [InlineData("?type=Unknown")]
+    [InlineData("?userId=00000000-0000-0000-0000-000000000000")]
+    [InlineData("?userId=invalid")]
     [InlineData("?type=Personal&search=ab")]
     [InlineData("?type=Personal&pageNumber=0")]
     [InlineData("?type=Personal&pageSize=201")]
@@ -199,6 +201,58 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         using var response = await SendAsync("", Guid.NewGuid().ToString(), "file-manager.personal-files.create.all");
 
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Theory(DisplayName = "File list endpoint should enforce owner selection when user id is supplied")]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, true)]
+    public async Task HandleAsync_Should_EnforceOwnerSelection_When_UserIdIsSupplied(bool all, bool own, bool allowed)
+    {
+        var userId = Guid.NewGuid();
+        var ownerId = own ? userId : Guid.NewGuid();
+        await AddFileAsync("Selected owner", "Personal", ownerId);
+        await AddFileAsync("Other owner", "Personal", Guid.NewGuid());
+        await AddFileAsync("Avatar", "Avatar", null);
+        var permissions = all ? "file-manager.personal-files.read.all" : "file-manager.personal-files.read.own";
+        permissions += ",file-manager.avatars.read";
+
+        using var response = await SendAsync(
+            $"?userId={ownerId}&pageSize=1&pageNumber=2",
+            userId.ToString(),
+            permissions);
+
+        response.StatusCode.ShouldBe(allowed ? HttpStatusCode.OK : HttpStatusCode.Forbidden);
+        if (allowed)
+        {
+            var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
+                TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+            page.ShouldNotBeNull();
+            page.TotalCount.ShouldBe(2);
+            page.Items.ShouldHaveSingleItem().Name.ShouldBe("Selected owner");
+        }
+    }
+
+    [Fact(
+        DisplayName = "File list endpoint should ignore internal type selection when query attempts to broaden access")]
+    public async Task HandleAsync_Should_IgnoreInternalTypeSelection_When_QueryAttemptsToBroadenAccess()
+    {
+        var userId = Guid.NewGuid();
+        await AddFileAsync("Foreign personal", "Personal", Guid.NewGuid());
+        var avatar = await AddFileAsync("Avatar", "Avatar", null);
+
+        using var response = await SendAsync(
+            "?types=Personal&types=Avatar",
+            userId.ToString(),
+            "file-manager.avatars.read");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
+            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+        page.ShouldNotBeNull();
+        page.TotalCount.ShouldBe(1);
+        page.Items.ShouldHaveSingleItem().Id.ShouldBe(avatar.Id.Value);
     }
 
     private async Task<HttpResponseMessage> SendAsync(string query, string? subject, string permission)

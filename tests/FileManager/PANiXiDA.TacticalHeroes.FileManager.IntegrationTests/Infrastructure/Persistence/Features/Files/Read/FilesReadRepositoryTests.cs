@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -235,8 +234,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter(type),
-            new FileReadAccess(type == "Personal" && !own, own ? userId : null, type == "Avatar"),
+            new FilesFilter(type, UserId: own ? userId : null) { Types = [type] },
             new PaginationParameters(type == "Avatar" ? 1 : 2, 1),
             SortingParameters.None,
             TestContext.Current.CancellationToken);
@@ -263,8 +261,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter("Personal", " RePoRt "),
-            new FileReadAccess(false, userId, false),
+            new FilesFilter("Personal", " RePoRt ", userId) { Types = ["Personal"] },
             new PaginationParameters(),
             SortingParameters.None,
             TestContext.Current.CancellationToken);
@@ -285,8 +282,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter("Personal"),
-            new FileReadAccess(false, userId, false),
+            new FilesFilter("Personal", UserId: userId) { Types = ["Personal"] },
             new PaginationParameters(),
             SortingParameters.None,
             TestContext.Current.CancellationToken);
@@ -306,8 +302,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter("Personal"),
-            new FileReadAccess(false, userId, false),
+            new FilesFilter("Personal", UserId: userId) { Types = ["Personal"] },
             new PaginationParameters(3, 1),
             SortingParameters.Descending("Name"),
             TestContext.Current.CancellationToken);
@@ -340,8 +335,12 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter(),
-            new FileReadAccess(allPersonal, ownPersonal ? userId : null, avatars),
+            new FilesFilter(UserId: ownPersonal && !allPersonal ? userId : null)
+            {
+                Types = (allPersonal || ownPersonal ? new[] { "Personal" } : [])
+                    .Concat(avatars ? new[] { "Avatar" } : [])
+                    .ToArray()
+            },
             new PaginationParameters(total > 2 ? 2 : 1, 2),
             SortingParameters.None,
             TestContext.Current.CancellationToken);
@@ -363,8 +362,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter(type),
-            new FileReadAccess(true, null, true),
+            new FilesFilter(type) { Types = ["Personal", "Avatar"] },
             new PaginationParameters(),
             SortingParameters.None,
             TestContext.Current.CancellationToken);
@@ -385,8 +383,7 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter(Search: " RePoRt "),
-            new FileReadAccess(false, userId, true),
+            new FilesFilter(Search: " RePoRt ", UserId: userId) { Types = ["Personal", "Avatar"] },
             new PaginationParameters(),
             SortingParameters.None,
             TestContext.Current.CancellationToken);

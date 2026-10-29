@@ -16,7 +16,7 @@ public sealed class GetFilesHandler(
         GetFilesQuery query,
         CancellationToken cancellationToken)
     {
-        if (currentUser.UserId is null)
+        if (!currentUser.IsAuthenticated || currentUser.UserId is not { } userId)
         {
             return Result.Failure<PaginationResult<FileListItemReadModel>>(
                 Error.Unauthorized("A user account is required."));
@@ -28,15 +28,34 @@ public sealed class GetFilesHandler(
             return Result.Failure<PaginationResult<FileListItemReadModel>>(type.Errors);
         }
 
-        var access = fileAccessPolicy.GetReadAccess(type.Value);
-        if (access.IsFailure)
+        var filter = query.Filter with { Type = type.Value?.Name };
+        var includesPersonal = type.Value is null || type.Value == FileType.Personal;
+        if (includesPersonal
+            && filter.UserId is null
+            && !fileAccessPolicy.CanRead(filter with { Types = [FileType.Personal.Name] }))
         {
-            return Result.Failure<PaginationResult<FileListItemReadModel>>(access.Errors);
+            filter = filter with { UserId = userId };
+        }
+
+        var requestedTypes = type.Value is { } requestedType
+            ? [requestedType.Name]
+            : FileType.GetAll().Select(fileType => fileType.Name).ToArray();
+        var types = requestedTypes.Where(fileType => fileAccessPolicy.CanRead(filter with { Types = [fileType] }))
+            .ToArray();
+        filter = filter with
+        {
+            Types = types,
+            UserId = types.Contains(FileType.Personal.Name) ? filter.UserId : null
+        };
+        if (!fileAccessPolicy.CanRead(filter)
+            || (query.Filter.UserId.HasValue && includesPersonal && !types.Contains(FileType.Personal.Name)))
+        {
+            return Result.Failure<PaginationResult<FileListItemReadModel>>(
+                Error.Forbidden("Access to files is denied."));
         }
 
         var files = await filesReadRepository.GetPageAsync(
-            filter: query.Filter with { Type = type.Value?.Name },
-            access: access.Value,
+            filter: filter,
             paginationParameters: query.PaginationParameters,
             sortingParameters: query.SortingParameters,
             cancellationToken: cancellationToken);
