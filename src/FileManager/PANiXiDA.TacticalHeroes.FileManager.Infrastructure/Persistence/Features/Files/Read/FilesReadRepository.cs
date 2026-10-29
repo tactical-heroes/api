@@ -23,24 +23,9 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
         SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
-        var query = Query;
-        if (filter.UserId is { } userId)
-        {
-            query = query.Where(file => file.Type != FileType.Personal.Name || file.UserId == userId);
-        }
-
-        if (filter.Type is { } type)
-        {
-            query = query.Where(file => file.Type == type);
-        }
-
-        if (!string.IsNullOrWhiteSpace(filter.Search))
-        {
-            query = query.Where(file => EF.Functions.ILike(
-                matchExpression: file.Name,
-                pattern: $"%{filter.Search.Trim()}%"));
-        }
-
+        var query = ApplyFilter(
+            query: Query,
+            filter: filter);
         return GetPagedResultAsync<FileListItemReadModel, FileListItemReadModelMapper, FileListItemReadModelSorting>(
             query: query,
             paginationParameters: paginationParameters,
@@ -60,5 +45,29 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
 
         return PersonalFileDetailsReadModelMapper.ProjectTo(query)
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private static IQueryable<FileReadDbModel> ApplyFilter(
+        IQueryable<FileReadDbModel> query,
+        FilesFilter filter)
+    {
+        if (filter.UserId is { } userId)
+        {
+            query = query.Where(file => file.Type != FileType.Personal.Name || file.UserId == userId);
+        }
+
+        if (filter.Type is { } type)
+        {
+            query = query.Where(file => file.Type == type);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            query = query.Where(file => EF.Functions.ILike(
+                matchExpression: file.Name,
+                pattern: $"%{filter.Search.Trim()}%"));
+        }
+
+        return query;
     }
 }
