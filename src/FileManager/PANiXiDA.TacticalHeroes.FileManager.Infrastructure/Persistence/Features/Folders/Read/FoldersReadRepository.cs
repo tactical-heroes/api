@@ -2,10 +2,12 @@ using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetDetails;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetDetails;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read;
@@ -33,6 +35,11 @@ public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
                 paginationParameters: paginationParameters,
                 sortingParameters: sortingParameters,
                 cancellationToken: cancellationToken);
+    }
+
+    public Task<FolderDetailsReadModel?> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return GetByIdAsync<FolderDetailsReadModel, FolderDetailsReadModelMapper>(id, cancellationToken);
     }
 
     private static IQueryable<FolderReadDbModel> ApplyFilter(

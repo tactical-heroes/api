@@ -286,6 +286,72 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         page.Items.ShouldBeEmpty();
     }
 
+    [Theory(DisplayName = "Folder details should project persisted metadata when type and parent state vary")]
+    [InlineData("Personal", "root")]
+    [InlineData("Personal", "nested")]
+    [InlineData("Personal", "deleted-parent")]
+    [InlineData("Avatar", "root")]
+    [InlineData("Avatar", "nested")]
+    [InlineData("Avatar", "deleted-parent")]
+    public async Task GetDetailsByIdAsync_Should_ProjectPersistedMetadata_When_TypeAndParentStateVary(
+        string type, string parentState)
+    {
+        var userId = type == "Personal" ? Guid.NewGuid() : (Guid?)null;
+        var parent = await AddFolderAsync("Parent", type, userId);
+        var folder = parent;
+        if (parentState != "root")
+        {
+            folder = parent.CreateChild(FolderName.Create("Child").Value);
+            await using (var writeScope = Fixture.CreateScope())
+            {
+                writeScope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
+                await writeScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                    .SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+            if (parentState == "deleted-parent")
+            {
+                await using var deletionScope = Fixture.CreateScope();
+                var writeRepository = deletionScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+                var stored = await writeRepository.GetByIdAsync(parent.Id, TestContext.Current.CancellationToken);
+                writeRepository.Delete(stored!);
+                await deletionScope.ServiceProvider
+                    .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                    .SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+        }
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var details = await repository.GetDetailsByIdAsync(folder.Id.Value, TestContext.Current.CancellationToken);
+
+        details.ShouldNotBeNull();
+        details.Id.ShouldBe(folder.Id.Value);
+        details.Name.ShouldBe(folder.Name.Value);
+        details.AllowedFileType.ShouldBe(type);
+        details.UserId.ShouldBe(userId);
+        details.ParentId.ShouldBe(parentState == "root" ? null : parent.Id.Value);
+        details.ParentName.ShouldBe(parentState == "nested" ? "Parent" : null);
+        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Folder details should be absent when folder is unknown or deleted")]
+    [InlineData("Personal", false)]
+    [InlineData("Personal", true)]
+    [InlineData("Avatar", false)]
+    [InlineData("Avatar", true)]
+    public async Task GetDetailsByIdAsync_Should_BeAbsent_When_FolderIsUnknownOrDeleted(string type, bool deleted)
+    {
+        var folder = await AddFolderAsync("Folder", type, type == "Personal" ? Guid.NewGuid() : null, deleted);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var details = await repository.GetDetailsByIdAsync(
+            deleted ? folder.Id.Value : Guid.NewGuid(),
+            TestContext.Current.CancellationToken);
+
+        details.ShouldBeNull();
+    }
+
     private async Task<Folder> AddFolderAsync(string name, string type, Guid? userId, bool deleted = false)
     {
         var folder = Folder.Create(
