@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetPersonalDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonal;
 
@@ -35,7 +35,7 @@ internal sealed class CreatePersonalFileEndpoint : IEndpoint<FilesEndpoints>
         return result.ToHttpResult(onSuccess: id =>
             TypedResults.CreatedAtRoute(
                 value: CreatePersonalFileMapper.ToResponse(id: id),
-                routeName: new GetPersonalFileDetailsEndpoint().Name,
+                routeName: new GetFileDetailsEndpoint().Name,
                 routeValues: new { id }));
     }
 }

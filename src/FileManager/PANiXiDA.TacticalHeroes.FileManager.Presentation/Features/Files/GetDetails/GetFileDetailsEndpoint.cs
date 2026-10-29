@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetPersonalDetails;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
 
-internal sealed class GetPersonalFileDetailsEndpoint : IEndpoint<FilesEndpoints>
+internal sealed class GetFileDetailsEndpoint : IEndpoint<FilesEndpoints>
 {
-    public string Route { get; } = FilesEndpoints.PersonalRoute + FilesEndpoints.IdRoute;
-    public string Name { get; } = "GetPersonalFileDetails";
-    public string Summary { get; } = "Get personal file";
+    public string Route { get; } = FilesEndpoints.IdRoute;
+    public string Name { get; } = "GetFileDetails";
+    public string Summary { get; } = "Get file";
 
     public void Map(EndpointMapBuilder builder)
     {
         builder.MapGet(builder.Route, HandleAsync)
-            .Produces<GetPersonalFileDetailsResponse>(StatusCodes.Status200OK)
+            .Produces<GetFileDetailsResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound);
@@ -23,10 +23,10 @@ internal sealed class GetPersonalFileDetailsEndpoint : IEndpoint<FilesEndpoints>
         CancellationToken cancellationToken)
     {
         var result = await mediator.QueryAsync(
-            GetPersonalFileDetailsMapper.ToQuery(id: id),
+            GetFileDetailsMapper.ToQuery(id: id),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: file =>
-            TypedResults.Ok(value: GetPersonalFileDetailsMapper.ToResponse(file: file)));
+            TypedResults.Ok(value: GetFileDetailsMapper.ToResponse(file: file)));
     }
 }

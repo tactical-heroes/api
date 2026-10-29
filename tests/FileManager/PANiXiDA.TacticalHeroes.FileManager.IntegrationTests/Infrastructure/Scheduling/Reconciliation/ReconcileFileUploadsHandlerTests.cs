@@ -222,12 +222,9 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
         var aggregate = await scope.ServiceProvider.GetRequiredService<IFilesRepository>()
             .GetByIdAsync(file.Id, TestContext.Current.CancellationToken);
         aggregate.ShouldBeNull();
-        if (file.UserId is { } userId)
-        {
-            var details = await scope.ServiceProvider.GetRequiredService<IFilesReadRepository>()
-                .GetPersonalDetailsByIdAsync(file.Id.Value, userId.Value, TestContext.Current.CancellationToken);
-            details.ShouldBeNull();
-        }
+        var details = await scope.ServiceProvider.GetRequiredService<IFilesReadRepository>()
+            .GetDetailsByIdAsync(file.Id.Value, TestContext.Current.CancellationToken);
+        details.ShouldBeNull();
     }
 
     [Theory(DisplayName = "Reconciliation should soft delete an expired upload when stored metadata is invalid")]

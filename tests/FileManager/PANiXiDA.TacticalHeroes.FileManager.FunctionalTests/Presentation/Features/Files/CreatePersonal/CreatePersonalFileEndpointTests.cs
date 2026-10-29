@@ -16,7 +16,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
 using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonal;
-using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetPersonalDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Files.CreatePersonal;
@@ -52,12 +52,13 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         body.ShouldNotBeNull();
         response.Headers.Location.ShouldNotBeNull();
         var location = new Uri(Fixture.Client.BaseAddress!, response.Headers.Location);
-        location.AbsolutePath.ShouldBe($"{Route}/{body.Id}");
+        location.AbsolutePath.ShouldBe($"/api/v1/files/{body.Id}");
         using var getRequest = new HttpRequestMessage(HttpMethod.Get, location);
         getRequest.Headers.Add(TestAuthenticationHandler.UserIdHeader, userId.ToString());
+        getRequest.Headers.Add(TestAuthenticationHandler.PermissionsHeader, "file-manager.personal-files.read.own");
         using var getResponse = await Fixture.Client.SendAsync(getRequest, cancellationToken);
         getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var details = await getResponse.Content.ReadFromJsonAsync<GetPersonalFileDetailsResponse>(cancellationToken);
+        var details = await getResponse.Content.ReadFromJsonAsync<GetFileDetailsResponse>(cancellationToken);
         details.ShouldNotBeNull();
         details.Id.ShouldBe(body.Id);
         details.Name.ShouldBe("file.bin");
