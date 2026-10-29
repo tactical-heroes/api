@@ -3,8 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Builders;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Handlers;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Messaging;
@@ -46,24 +47,39 @@ public sealed class IdentityMessagingConfigurationTests
             "Identity:Messaging:PasswordResetUrlTemplate", StringComparison.Ordinal));
     }
 
-    [Theory(DisplayName = "Build should preserve query values when configured email links contain encoded tokens")]
+    [Theory(DisplayName = "Handler preserves payload and metadata when configured email links contain encoded tokens")]
     [InlineData("https://dev.tactical-heroes.panixida.ru")]
     [InlineData("https://tactical-heroes.panixida.ru")]
     [InlineData("https://localhost:5173")]
     [InlineData("http://localhost:5084")]
-    public void Build_Should_PreserveQueryValues_When_ConfiguredEmailLinksContainEncodedTokens(string origin)
+    public void Handle_Should_PreservePayloadAndMetadata_When_ConfiguredEmailLinksContainEncodedTokens(string origin)
     {
         using var services = CreateServices(
             origin + "/confirm-email?userId={userId}&emailConfirmationToken={token}",
             origin + "/reset-password?userId={userId}&passwordResetToken={token}");
         services.GetRequiredService<IStartupValidator>().Validate();
-        var options = services.GetRequiredService<IOptions<IdentityMessagingOptions>>().Value;
+        var options = services.GetRequiredService<IOptions<IdentityMessagingOptions>>();
         var userId = Guid.NewGuid();
         const string Token = "token/+==&?% value";
+        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(15);
+        var confirmationRequested = new EmailConfirmationRequested(userId, "hero@example.com", Token, expiresAt);
+        var passwordResetRequested = new PasswordResetRequested(userId, "hero@example.com", Token, expiresAt);
 
-        var confirmationUrl = new Uri(IdentityLinkBuilder.Build(options.EmailConfirmationUrlTemplate, userId, Token));
-        var passwordResetUrl = new Uri(IdentityLinkBuilder.Build(options.PasswordResetUrlTemplate, userId, Token));
+        var confirmation = new EmailConfirmationRequestedHandler(options).Handle(confirmationRequested);
+        var passwordReset = new PasswordResetRequestedHandler(options).Handle(passwordResetRequested);
 
+        confirmation.Id.ShouldBe(confirmationRequested.Id);
+        confirmation.OccurredOnUtc.ShouldBe(confirmationRequested.OccurredOnUtc);
+        confirmation.UserId.ShouldBe(userId);
+        confirmation.Email.ShouldBe(confirmationRequested.Email);
+        confirmation.ExpiresAtUtc.ShouldBe(expiresAt);
+        passwordReset.Id.ShouldBe(passwordResetRequested.Id);
+        passwordReset.OccurredOnUtc.ShouldBe(passwordResetRequested.OccurredOnUtc);
+        passwordReset.UserId.ShouldBe(userId);
+        passwordReset.Email.ShouldBe(passwordResetRequested.Email);
+        passwordReset.ExpiresAtUtc.ShouldBe(expiresAt);
+        var confirmationUrl = new Uri(confirmation.ConfirmationUrl);
+        var passwordResetUrl = new Uri(passwordReset.PasswordResetUrl);
         confirmationUrl.GetLeftPart(UriPartial.Authority).ShouldBe(origin);
         confirmationUrl.AbsolutePath.ShouldBe("/confirm-email");
         var confirmationQuery = QueryHelpers.ParseQuery(confirmationUrl.Query);

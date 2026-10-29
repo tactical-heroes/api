@@ -22,6 +22,10 @@ public sealed class PasswordResetRequestedHandler(
             UserId: domainEvent.UserId,
             Email: domainEvent.Email,
             PasswordResetUrl: passwordResetUrl,
-            ExpiresAtUtc: domainEvent.ExpiresAtUtc);
+            ExpiresAtUtc: domainEvent.ExpiresAtUtc)
+        {
+            Id = domainEvent.Id,
+            OccurredOnUtc = domainEvent.OccurredOnUtc
+        };
     }
 }
