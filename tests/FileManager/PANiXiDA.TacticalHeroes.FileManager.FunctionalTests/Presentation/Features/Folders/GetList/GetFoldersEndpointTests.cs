@@ -47,10 +47,11 @@ public sealed class GetFoldersEndpointTests(FunctionalTestFixture fixture) : Fun
         item.Name.ShouldBe(name);
         item.AllowedFileType.ShouldBe("Personal");
         item.ParentId.ShouldBeNull();
+        item.ParentName.ShouldBeNull();
         using var json = JsonDocument.Parse(
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         json.RootElement.GetProperty("items")[0].EnumerateObject().Select(property => property.Name)
-            .ShouldBe(["id", "name", "allowedFileType", "parentId"], ignoreOrder: true);
+            .ShouldBe(["id", "name", "allowedFileType", "parentId", "parentName"], ignoreOrder: true);
     }
 
     [Fact(DisplayName = "Folder list endpoint should return avatars when avatar reading is allowed")]
@@ -241,8 +242,10 @@ public sealed class GetFoldersEndpointTests(FunctionalTestFixture fixture) : Fun
         }
     }
 
-    [Fact(DisplayName = "Folder list should return parent identifiers when nested folders exist")]
-    public async Task HandleAsync_Should_ReturnParentIdentifiers_When_NestedFoldersExist()
+    [Theory(DisplayName = "Folder list should return parent metadata when parent visibility varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_ReturnParentMetadata_When_ParentVisibilityVaries(bool parentDeleted)
     {
         var userId = Guid.NewGuid();
         var parent = await AddFolderAsync("Parent", "Personal", userId);
@@ -252,6 +255,16 @@ public sealed class GetFoldersEndpointTests(FunctionalTestFixture fixture) : Fun
             scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(child);
             await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
                 .SaveChangesAsync(TestContext.Current.CancellationToken);
+            if (parentDeleted)
+            {
+                await using var deletionScope = Fixture.CreateScope();
+                var repository = deletionScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+                var stored = await repository.GetByIdAsync(parent.Id, TestContext.Current.CancellationToken);
+                repository.Delete(stored!);
+                await deletionScope.ServiceProvider
+                    .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                    .SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
         }
 
         using var response = await SendAsync(
@@ -263,9 +276,16 @@ public sealed class GetFoldersEndpointTests(FunctionalTestFixture fixture) : Fun
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<FolderListItemResponse>>(
             TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
         page.ShouldNotBeNull();
-        page.TotalCount.ShouldBe(2);
-        page.Items.Single(folder => folder.Id == child.Id.Value).ParentId.ShouldBe(parent.Id.Value);
-        page.Items.Single(folder => folder.Id == parent.Id.Value).ParentId.ShouldBeNull();
+        page.TotalCount.ShouldBe(parentDeleted ? 1 : 2);
+        var item = page.Items.Single(folder => folder.Id == child.Id.Value);
+        item.ParentId.ShouldBe(parent.Id.Value);
+        item.ParentName.ShouldBe(parentDeleted ? null : parent.Name.Value);
+        if (!parentDeleted)
+        {
+            var root = page.Items.Single(folder => folder.Id == parent.Id.Value);
+            root.ParentId.ShouldBeNull();
+            root.ParentName.ShouldBeNull();
+        }
     }
 
     private async Task<HttpResponseMessage> SendAsync(string query, string? subject, string permission)

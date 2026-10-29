@@ -196,8 +196,10 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         page.Items.ShouldHaveSingleItem().Id.ShouldBe(folder.Id.Value);
     }
 
-    [Fact(DisplayName = "Folder repository should project parent identifiers when folder is nested")]
-    public async Task GetPageAsync_Should_ProjectParentIdentifiers_When_FolderIsNested()
+    [Theory(DisplayName = "Folder repository should project parent metadata when parent visibility varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetPageAsync_Should_ProjectParentMetadata_When_ParentVisibilityVaries(bool parentDeleted)
     {
         var parent = await AddFolderAsync("Parent", "Avatar", null);
         var child = parent.CreateChild(FolderName.Create("Child").Value);
@@ -205,6 +207,15 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(child);
         await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
             .SaveChangesAsync(TestContext.Current.CancellationToken);
+        if (parentDeleted)
+        {
+            await using var deletionScope = Fixture.CreateScope();
+            var writeRepository = deletionScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+            var stored = await writeRepository.GetByIdAsync(parent.Id, TestContext.Current.CancellationToken);
+            writeRepository.Delete(stored!);
+            await deletionScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
 
         var page = await repository.GetPageAsync(
@@ -217,7 +228,15 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         item.Name.ShouldBe(child.Name.Value);
         item.AllowedFileType.ShouldBe("Avatar");
         item.ParentId.ShouldBe(parent.Id.Value);
-        page.Items.Single(folder => folder.Id == parent.Id.Value).ParentId.ShouldBeNull();
+        item.ParentName.ShouldBe(parentDeleted ? null : parent.Name.Value);
+        page.TotalCount.ShouldBe(parentDeleted ? 1 : 2);
+        if (!parentDeleted)
+        {
+            var root = page.Items.Single(folder => folder.Id == parent.Id.Value);
+            root.ParentId.ShouldBeNull();
+            root.ParentName.ShouldBeNull();
+        }
+        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Folder repository should break ties by descending id when names are equal")]

@@ -11,5 +11,8 @@ internal sealed partial class FolderListItemReadModelMapper
 {
     public static partial IQueryable<FolderListItemReadModel> ProjectTo(IQueryable<FolderReadDbModel> query);
 
+    [MapProperty(
+        [nameof(FolderReadDbModel.Parent), nameof(FolderReadDbModel.Name)],
+        nameof(FolderListItemReadModel.ParentName))]
     private static partial FolderListItemReadModel ToReadModel(FolderReadDbModel folder);
 }
