@@ -14,7 +14,7 @@ public sealed class GetFilesHandler(
         GetFilesQuery query,
         CancellationToken cancellationToken)
     {
-        var filter = fileAccessPolicy.AuthorizeRead(query.Filter);
+        var filter = fileAccessPolicy.ApplyReadRestrictions(query.Filter);
         if (filter.IsFailure)
         {
             return Result.Failure<PaginationResult<FileListItemReadModel>>(filter.Errors);

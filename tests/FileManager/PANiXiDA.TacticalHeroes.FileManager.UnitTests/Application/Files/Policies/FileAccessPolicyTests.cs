@@ -136,6 +136,30 @@ public sealed class FileAccessPolicyTests
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 
+    [Theory(DisplayName = "File access policy should match aggregate and filter decisions when permissions vary")]
+    [InlineData("Personal", "file-manager.personal-files.read.own", true, true)]
+    [InlineData("Personal", "file-manager.personal-files.read.own", false, false)]
+    [InlineData("Personal", "file-manager.personal-files.read.all", false, true)]
+    [InlineData("Avatar", "file-manager.avatars.read", false, true)]
+    [InlineData("Avatar", "file-manager.personal-files.read.all", false, false)]
+    [InlineData("Personal", "file-manager.avatars.read", true, false)]
+    public void CanRead_Should_MatchAggregateAndFilterDecisions_When_PermissionsVary(
+        string type, string permission, bool own, bool expected)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(permission).Returns(true);
+        var file = CreateFile(type, own ? userId : Guid.NewGuid());
+        var filter = new FilesFilter(Type: file.Type.Name, UserId: file.UserId?.Value);
+        var policy = new FileAccessPolicy(currentUser);
+
+        var aggregateAllowed = policy.CanRead(file);
+        var filterAllowed = policy.CanRead(filter);
+
+        aggregateAllowed.ShouldBe(expected);
+        filterAllowed.ShouldBe(expected);
+    }
+
     [Theory(DisplayName = "File access policy should authorize and normalize the filter when type and owner vary")]
     [InlineData("Personal", "own", false, true, false, true, "Personal", "own")]
     [InlineData("Personal", "foreign", false, true, false, false, null, "none")]
@@ -156,7 +180,7 @@ public sealed class FileAccessPolicyTests
     [InlineData(null, "none", true, false, false, true, "Personal", "none")]
     [InlineData(null, "none", true, true, true, true, null, "none")]
     [InlineData(null, "none", false, false, false, false, null, "none")]
-    public void AuthorizeRead_Should_AuthorizeAndNormalizeFilter_When_TypeAndOwnerVary(
+    public void ApplyReadRestrictions_Should_AuthorizeAndNormalizeFilter_When_TypeAndOwnerVary(
         string? type,
         string owner,
         bool all,
@@ -175,7 +199,7 @@ public sealed class FileAccessPolicyTests
         var ownerId = owner == "own" ? userId : owner == "foreign" ? foreignUserId : (Guid?)null;
         var filter = new FilesFilter(Type: type, Search: "report", UserId: ownerId);
 
-        var result = new FileAccessPolicy(currentUser).AuthorizeRead(filter);
+        var result = new FileAccessPolicy(currentUser).ApplyReadRestrictions(filter);
 
         result.IsSuccess.ShouldBe(expected);
         filter.Type.ShouldBe(type);
@@ -196,7 +220,7 @@ public sealed class FileAccessPolicyTests
     [Theory(DisplayName = "File access policy should reject caller when authentication or user id is absent")]
     [InlineData(false, true)]
     [InlineData(true, false)]
-    public void AuthorizeRead_Should_RejectCaller_When_AuthenticationOrUserIdIsAbsent(
+    public void ApplyReadRestrictions_Should_RejectCaller_When_AuthenticationOrUserIdIsAbsent(
         bool authenticated,
         bool hasUserId)
     {
@@ -204,7 +228,7 @@ public sealed class FileAccessPolicyTests
         currentUser.IsAuthenticated.Returns(authenticated);
         currentUser.HasPermission(Arg.Any<string>()).Returns(true);
 
-        var result = new FileAccessPolicy(currentUser).AuthorizeRead(new FilesFilter());
+        var result = new FileAccessPolicy(currentUser).ApplyReadRestrictions(new FilesFilter());
 
         result.ShouldHaveSingleError(ErrorType.Unauthorized, "A user account is required.");
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
