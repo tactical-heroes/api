@@ -4,7 +4,6 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetPersonalDetails;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
@@ -13,7 +12,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Fi
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read;
 
-public sealed class FilesReadRepository(FileManagerReadDbContext dbContext, FileAccessPolicy fileAccessPolicy)
+public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
     :
         EfReadRepository<FileManagerReadDbContext, Guid, FileReadDbModel>(dbContext),
         IFilesReadRepository
@@ -24,12 +23,7 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext, File
         SortingParameters sortingParameters,
         CancellationToken cancellationToken)
     {
-        var canRead = fileAccessPolicy.CanRead(filter);
-        var canReadPersonal = canRead && fileAccessPolicy.CanRead(filter with { Type = FileType.Personal.Name });
-        var canReadAvatars = canRead && fileAccessPolicy.CanRead(filter with { Type = FileType.Avatar.Name });
-        var query = Query.Where(file =>
-            (canReadPersonal && file.Type == FileType.Personal.Name)
-                || (canReadAvatars && file.Type == FileType.Avatar.Name));
+        var query = Query;
         if (filter.UserId is { } userId)
         {
             query = query.Where(file => file.Type != FileType.Personal.Name || file.UserId == userId);

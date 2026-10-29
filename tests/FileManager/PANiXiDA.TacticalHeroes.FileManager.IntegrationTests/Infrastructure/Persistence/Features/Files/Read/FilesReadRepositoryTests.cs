@@ -1,9 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using NSubstitute;
-
-using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
@@ -234,7 +231,6 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         await AddFileAsync("Avatar", "Avatar", null);
         await AddFileAsync("Aardvark", "Personal", userId, deleted: true);
         await using var scope = Fixture.CreateScope();
-        ConfigureReadAccess(scope, userId, type == "Personal" && !own, own, type == "Avatar");
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
@@ -262,7 +258,6 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         await AddFileAsync("Avatar report.png", "Avatar", null);
         await AddFileAsync("Deleted report.txt", "Personal", userId, deleted: true);
         await using var scope = Fixture.CreateScope();
-        ConfigureReadAccess(scope, userId, allPersonal: false, ownPersonal: true, avatars: false);
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
@@ -318,14 +313,14 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Theory(
-        DisplayName = "File list repository should combine allowed types before paging when type filter is omitted")]
-    [InlineData(true, false, true, 6, "Charlie avatar", "Delta personal")]
-    [InlineData(false, true, true, 4, "Delta personal", "Foxtrot avatar")]
-    [InlineData(true, false, false, 4, "Delta personal", "Echo foreign")]
-    [InlineData(false, true, false, 2, "Alpha personal", "Delta personal")]
-    [InlineData(false, false, true, 2, "Charlie avatar", "Foxtrot avatar")]
-    public async Task GetPageAsync_Should_CombineAllowedTypesBeforePaging_When_TypeFilterIsOmitted(
-        bool allPersonal, bool ownPersonal, bool avatars, long total, string first, string second)
+        DisplayName = "File list repository should apply filters before paging when type and owner vary")]
+    [InlineData(null, false, 6, "Charlie avatar", "Delta personal")]
+    [InlineData(null, true, 4, "Delta personal", "Foxtrot avatar")]
+    [InlineData("Personal", false, 4, "Delta personal", "Echo foreign")]
+    [InlineData("Personal", true, 2, "Alpha personal", "Delta personal")]
+    [InlineData("Avatar", false, 2, "Charlie avatar", "Foxtrot avatar")]
+    public async Task GetPageAsync_Should_ApplyFiltersBeforePaging_When_TypeAndOwnerVary(
+        string? type, bool own, long total, string first, string second)
     {
         var userId = Guid.NewGuid();
         await AddFileAsync("Alpha personal", "Personal", userId);
@@ -337,11 +332,10 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         await AddFileAsync("Deleted personal", "Personal", userId, deleted: true);
         await AddFileAsync("Deleted avatar", "Avatar", null, deleted: true);
         await using var scope = Fixture.CreateScope();
-        ConfigureReadAccess(scope, userId, allPersonal, ownPersonal, avatars);
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
-            new FilesFilter(UserId: ownPersonal && !allPersonal ? userId : null),
+            new FilesFilter(Type: type, UserId: own ? userId : null),
             new PaginationParameters(total > 2 ? 2 : 1, 2),
             SortingParameters.None,
             TestContext.Current.CancellationToken);
@@ -372,8 +366,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         page.Items.ShouldAllBe(item => item.Type == type);
     }
 
-    [Fact(DisplayName = "File list repository should search all permitted types when type filter is omitted")]
-    public async Task GetPageAsync_Should_SearchAllPermittedTypes_When_TypeFilterIsOmitted()
+    [Fact(DisplayName = "File list repository should search across types when type is omitted")]
+    public async Task GetPageAsync_Should_SearchAcrossTypes_When_TypeIsOmitted()
     {
         var userId = Guid.NewGuid();
         await AddFileAsync("Owned REPORT", "Personal", userId);
@@ -381,7 +375,6 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         await AddFileAsync("Avatar report", "Avatar", null);
         await AddFileAsync("Unmatched avatar", "Avatar", null);
         await using var scope = Fixture.CreateScope();
-        ConfigureReadAccess(scope, userId, allPersonal: false, ownPersonal: true, avatars: true);
         var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
         var page = await repository.GetPageAsync(
@@ -392,37 +385,6 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
 
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name).ShouldBe(["Avatar report", "Owned REPORT"]);
-    }
-
-    [Fact(DisplayName = "File list repository should return no rows when read permission is absent")]
-    public async Task GetPageAsync_Should_ReturnNoRows_When_ReadPermissionIsAbsent()
-    {
-        var userId = Guid.NewGuid();
-        await AddFileAsync("Personal", "Personal", userId);
-        await AddFileAsync("Avatar", "Avatar", null);
-        await using var scope = Fixture.CreateScope();
-        ConfigureReadAccess(scope, userId, allPersonal: false, ownPersonal: false, avatars: false);
-        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
-
-        var page = await repository.GetPageAsync(
-            new FilesFilter(),
-            new PaginationParameters(),
-            SortingParameters.None,
-            TestContext.Current.CancellationToken);
-
-        page.TotalCount.ShouldBe(0);
-        page.Items.ShouldBeEmpty();
-    }
-
-    private static void ConfigureReadAccess(
-        AsyncServiceScope scope, Guid userId, bool allPersonal, bool ownPersonal, bool avatars)
-    {
-        var user = scope.ServiceProvider.GetRequiredService<ICurrentUser>();
-        user.UserId.Returns(userId);
-        user.HasPermission(Arg.Any<string>()).Returns(false);
-        user.HasPermission("file-manager.personal-files.read.all").Returns(allPersonal);
-        user.HasPermission("file-manager.personal-files.read.own").Returns(ownPersonal);
-        user.HasPermission("file-manager.avatars.read").Returns(avatars);
     }
 
     private async Task<File> AddFileAsync(bool personal, CancellationToken cancellationToken)

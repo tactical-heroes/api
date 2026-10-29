@@ -44,6 +44,20 @@ public sealed class GetFilesHandler(
                 Error.Forbidden("Access to files is denied."));
         }
 
+        if (filter.Type is null)
+        {
+            var canReadPersonal = fileAccessPolicy.CanRead(filter with { Type = FileType.Personal.Name });
+            var canReadAvatars = fileAccessPolicy.CanRead(filter with { Type = FileType.Avatar.Name });
+            if (!canReadPersonal)
+            {
+                filter = filter with { Type = FileType.Avatar.Name };
+            }
+            else if (!canReadAvatars)
+            {
+                filter = filter with { Type = FileType.Personal.Name };
+            }
+        }
+
         var files = await filesReadRepository.GetPageAsync(
             filter: filter,
             paginationParameters: query.PaginationParameters,

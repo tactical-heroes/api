@@ -1,11 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
-using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
@@ -48,8 +44,6 @@ internal static class InfrastructureServiceCollectionFactory
             {
                 if (parameter.ParameterType == typeof(IServiceCollection))
                 {
-                    serviceCollection.TryAddScoped<ICurrentUser>(_ => new AnonymousCurrentUser());
-
                     return serviceCollection;
                 }
 
@@ -68,29 +62,6 @@ internal static class InfrastructureServiceCollectionFactory
             obj: null,
             parameters: arguments);
 
-        serviceCollection.TryAddScoped<ICurrentUser>(_ => new AnonymousCurrentUser());
-
         return serviceCollection;
-    }
-
-    private sealed class AnonymousCurrentUser : ICurrentUser
-    {
-        public bool IsAuthenticated => false;
-        public Guid? UserId => null;
-        public string? UserName => null;
-        public string? AccessToken => null;
-        public IReadOnlyCollection<string> Roles => [];
-
-        public bool TryGetClaimValue<T>(string claimType, [MaybeNullWhen(false)] out T value)
-            where T : IParsable<T>
-        {
-            value = default;
-            return false;
-        }
-
-        public bool HasPermission(string permission)
-        {
-            return false;
-        }
     }
 }

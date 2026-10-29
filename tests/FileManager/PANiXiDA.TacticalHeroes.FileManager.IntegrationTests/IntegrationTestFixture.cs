@@ -2,9 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using NSubstitute;
-
-using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
@@ -49,13 +46,6 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
             .Build();
 
         var services = new ServiceCollection();
-        services.AddScoped<ICurrentUser>(_ =>
-        {
-            var user = Substitute.For<ICurrentUser>();
-            user.IsAuthenticated.Returns(true);
-            user.HasPermission(Arg.Any<string>()).Returns(true);
-            return user;
-        });
         services.AddInfrastructure(configuration);
 
         _serviceProvider = services.BuildServiceProvider(

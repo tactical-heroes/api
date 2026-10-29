@@ -99,14 +99,14 @@ public sealed class GetFilesHandlerTests
         repository.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "File list handler should pass combined access when type is omitted")]
-    [InlineData("file-manager.personal-files.read.all,file-manager.avatars.read", false)]
-    [InlineData("file-manager.personal-files.read.own,file-manager.avatars.read", true)]
-    [InlineData("file-manager.personal-files.read.all", false)]
-    [InlineData("file-manager.personal-files.read.own", true)]
-    [InlineData("file-manager.avatars.read", false)]
-    public async Task HandleAsync_Should_PassCombinedAccess_When_TypeIsOmitted(
-        string permissions, bool ownPersonal)
+    [Theory(DisplayName = "File list handler should normalize type when type is omitted")]
+    [InlineData("file-manager.personal-files.read.all,file-manager.avatars.read", false, null)]
+    [InlineData("file-manager.personal-files.read.own,file-manager.avatars.read", true, null)]
+    [InlineData("file-manager.personal-files.read.all", false, "Personal")]
+    [InlineData("file-manager.personal-files.read.own", true, "Personal")]
+    [InlineData("file-manager.avatars.read", false, "Avatar")]
+    public async Task HandleAsync_Should_NormalizeType_When_TypeIsOmitted(
+        string permissions, bool ownPersonal, string? expectedType)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var userId = Guid.NewGuid();
@@ -131,7 +131,7 @@ public sealed class GetFilesHandlerTests
         result.Value.ShouldBeSameAs(page);
         await repository.Received(1)
             .GetPageAsync(
-                Arg.Is<FilesFilter>(actual => actual.Type == null
+                Arg.Is<FilesFilter>(actual => actual.Type == expectedType
                     && actual.Search == filter.Search
                     && actual.UserId == (ownPersonal
                         ? userId
