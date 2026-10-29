@@ -99,14 +99,14 @@ public sealed class GetFilesHandlerTests
         repository.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "File list handler should normalize type when type is omitted")]
-    [InlineData("file-manager.personal-files.read.all,file-manager.avatars.read", false, null)]
-    [InlineData("file-manager.personal-files.read.own,file-manager.avatars.read", true, null)]
-    [InlineData("file-manager.personal-files.read.all", false, "Personal")]
-    [InlineData("file-manager.personal-files.read.own", true, "Personal")]
-    [InlineData("file-manager.avatars.read", false, "Avatar")]
-    public async Task HandleAsync_Should_NormalizeType_When_TypeIsOmitted(
-        string permissions, bool ownPersonal, string? expectedType)
+    [Theory(DisplayName = "File list handler should require both file types when type is omitted")]
+    [InlineData("file-manager.personal-files.read.all,file-manager.avatars.read", false, true)]
+    [InlineData("file-manager.personal-files.read.own,file-manager.avatars.read", true, true)]
+    [InlineData("file-manager.personal-files.read.all", false, false)]
+    [InlineData("file-manager.personal-files.read.own", true, false)]
+    [InlineData("file-manager.avatars.read", false, false)]
+    public async Task HandleAsync_Should_RequireBothFileTypes_When_TypeIsOmitted(
+        string permissions, bool ownPersonal, bool allowed)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var userId = Guid.NewGuid();
@@ -127,11 +127,18 @@ public sealed class GetFilesHandlerTests
             new GetFilesQuery(filter, pagination, SortingParameters.None),
             cancellationToken);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess.ShouldBe(allowed);
+        if (!allowed)
+        {
+            result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
+            repository.ReceivedCalls().ShouldBeEmpty();
+            return;
+        }
+
         result.Value.ShouldBeSameAs(page);
         await repository.Received(1)
             .GetPageAsync(
-                Arg.Is<FilesFilter>(actual => actual.Type == expectedType
+                Arg.Is<FilesFilter>(actual => actual.Type == null
                     && actual.Search == filter.Search
                     && actual.UserId == (ownPersonal
                         ? userId

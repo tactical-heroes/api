@@ -27,18 +27,6 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
             return Result.Failure<FilesFilter>(Error.Unauthorized("A user account is required."));
         }
 
-        if (filter.Type is null)
-        {
-            if (filter.UserId is null && !CanRead(FileType.Personal.Name, userId))
-            {
-                filter = filter with { Type = FileType.Avatar.Name };
-            }
-            else if (!CanRead(FileType.Avatar.Name, userId: null))
-            {
-                filter = filter with { Type = FileType.Personal.Name };
-            }
-        }
-
         if (!CanRead(filter) && filter.UserId is null)
         {
             filter = filter with { UserId = userId };

@@ -179,7 +179,7 @@ public sealed class FileAccessPolicyTests
         allowed.ShouldBe(expected);
     }
 
-    [Theory(DisplayName = "File access policy should authorize and normalize the filter when type and owner vary")]
+    [Theory(DisplayName = "File access policy should apply owner restriction when type and owner vary")]
     [InlineData("Personal", "own", false, true, false, true, "Personal", "own")]
     [InlineData("Personal", "foreign", false, true, false, false, null, "none")]
     [InlineData("Personal", "none", false, true, false, true, "Personal", "own")]
@@ -189,17 +189,17 @@ public sealed class FileAccessPolicyTests
     [InlineData(" Personal ", "none", false, true, false, true, " Personal ", "own")]
     [InlineData("Avatar", "none", false, false, true, true, "Avatar", "none")]
     [InlineData(null, "own", false, true, true, true, null, "own")]
-    [InlineData(null, "own", false, true, false, true, "Personal", "own")]
+    [InlineData(null, "own", false, true, false, false, null, "none")]
     [InlineData(null, "foreign", false, true, true, false, null, "none")]
     [InlineData("Unknown", "none", true, true, true, false, null, "none")]
     [InlineData("", "none", true, true, true, false, null, "none")]
-    [InlineData(null, "none", false, false, true, true, "Avatar", "none")]
-    [InlineData(null, "none", false, true, false, true, "Personal", "own")]
+    [InlineData(null, "none", false, false, true, false, null, "none")]
+    [InlineData(null, "none", false, true, false, false, null, "none")]
     [InlineData(null, "none", false, true, true, true, null, "own")]
-    [InlineData(null, "none", true, false, false, true, "Personal", "none")]
+    [InlineData(null, "none", true, false, false, false, null, "none")]
     [InlineData(null, "none", true, true, true, true, null, "none")]
     [InlineData(null, "none", false, false, false, false, null, "none")]
-    public void ApplyReadRestrictions_Should_AuthorizeAndNormalizeFilter_When_TypeAndOwnerVary(
+    public void ApplyReadRestrictions_Should_ApplyOwnerRestriction_When_TypeAndOwnerVary(
         string? type,
         string owner,
         bool all,

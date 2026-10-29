@@ -167,9 +167,6 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         4,
         "Delta personal",
         "Foxtrot avatar")]
-    [InlineData("file-manager.personal-files.read.all", 4, "Delta personal", "Echo foreign")]
-    [InlineData("file-manager.personal-files.read.own", 2, "Alpha personal", "Delta personal")]
-    [InlineData("file-manager.avatars.read", 2, "Charlie avatar", "Foxtrot avatar")]
     public async Task HandleAsync_Should_CombineAccessibleTypes_When_TypeIsOmitted(
         string permissions, long total, string first, string second)
     {
@@ -193,6 +190,17 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         page.ShouldNotBeNull();
         page.TotalCount.ShouldBe(total);
         page.Items.Select(item => item.Name).ShouldBe([first, second]);
+    }
+
+    [Theory(DisplayName = "File list endpoint should forbid the full selection when only one type is permitted")]
+    [InlineData("file-manager.personal-files.read.all")]
+    [InlineData("file-manager.personal-files.read.own")]
+    [InlineData("file-manager.avatars.read")]
+    public async Task HandleAsync_Should_ForbidFullSelection_When_OnlyOneTypeIsPermitted(string permission)
+    {
+        using var response = await SendAsync("", Guid.NewGuid().ToString(), permission);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact(DisplayName = "File list endpoint should forbid listing when type and read permissions are absent")]
