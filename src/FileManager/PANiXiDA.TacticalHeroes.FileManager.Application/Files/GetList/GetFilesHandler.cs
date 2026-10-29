@@ -22,26 +22,20 @@ public sealed class GetFilesHandler(
                 Error.Unauthorized("A user account is required."));
         }
 
-        FileType? type = null;
-        if (query.Filter.Type is { } requestedType)
+        var type = FileType.CreateOptional(query.Filter.Type);
+        if (type.IsFailure)
         {
-            var typeResult = FileType.Create(requestedType);
-            if (typeResult.IsFailure)
-            {
-                return Result.Failure<PaginationResult<FileListItemReadModel>>(typeResult.Errors);
-            }
-
-            type = typeResult.Value;
+            return Result.Failure<PaginationResult<FileListItemReadModel>>(type.Errors);
         }
 
-        var access = fileAccessPolicy.GetReadAccess(type);
+        var access = fileAccessPolicy.GetReadAccess(type.Value);
         if (access.IsFailure)
         {
             return Result.Failure<PaginationResult<FileListItemReadModel>>(access.Errors);
         }
 
         var files = await filesReadRepository.GetPageAsync(
-            filter: query.Filter with { Type = type?.Name },
+            filter: query.Filter with { Type = type.Value?.Name },
             access: access.Value,
             paginationParameters: query.PaginationParameters,
             sortingParameters: query.SortingParameters,

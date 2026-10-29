@@ -20,16 +20,18 @@ public sealed class GetFilesQueryValidatorTests
     }
 
     [Theory(DisplayName = "File list validator should reject type when type is invalid")]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Unknown")]
-    public void Validate_Should_RejectType_When_TypeIsInvalid(string type)
+    [InlineData("", "File type is required.")]
+    [InlineData(" ", "File type is required.")]
+    [InlineData("Unknown", "File type 'Unknown' is invalid.")]
+    public void Validate_Should_RejectType_When_TypeIsInvalid(string type, string message)
     {
         var query = new GetFilesQuery(new FilesFilter(type), new PaginationParameters(), SortingParameters.None);
 
         var result = new GetFilesQueryValidator().Validate(query);
 
-        result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe("Filter.Type");
+        var error = result.Errors.ShouldHaveSingleItem();
+        error.PropertyName.ShouldBe("Filter.Type");
+        error.ErrorMessage.ShouldBe(message);
     }
 
     [Theory(DisplayName = "File list validator should reject paging when limits are exceeded")]

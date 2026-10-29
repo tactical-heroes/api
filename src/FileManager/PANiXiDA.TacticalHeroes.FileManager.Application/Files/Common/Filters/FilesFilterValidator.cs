@@ -8,19 +8,7 @@ public sealed class FilesFilterValidator : AbstractValidator<FilesFilter>
     public FilesFilterValidator()
     {
         RuleFor(filter => filter.Type)
-            .Custom((value, context) =>
-            {
-                if (value is null)
-                {
-                    return;
-                }
-
-                var type = FileType.Create(value);
-                foreach (var error in type.Errors)
-                {
-                    context.AddFailure(error.Message);
-                }
-            });
+            .MustBeValidDomainValue(FileType.CreateOptional);
 
         RuleFor(filter => filter.Search == null ? null : filter.Search.Trim())
             .Length(3, FileName.MaxLength)

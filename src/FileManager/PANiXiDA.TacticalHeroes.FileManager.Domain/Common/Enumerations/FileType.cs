@@ -14,6 +14,13 @@ public sealed partial class FileType : Enumeration<FileType>
     {
     }
 
+    public static Result<FileType?> CreateOptional(string? value)
+    {
+        return value is null
+            ? Result.Success<FileType?>(null)
+            : Create(value).Map(type => (FileType?)type);
+    }
+
     public static Result<FileType> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
