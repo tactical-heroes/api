@@ -9,6 +9,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
 using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
@@ -62,7 +63,11 @@ internal static class MessagingConfiguration
                     typeof(PlayersWriteDbContext).Assembly),
             configureKafka: null,
             configureRequestBehaviors: null,
-            configureSchedules: schedules => schedules.AddFileManagerSchedules());
+            configureSchedules: schedules =>
+            {
+                schedules.AddFileManagerSchedules();
+                schedules.AddMatchmakingSchedules();
+            });
 
         return builder;
     }

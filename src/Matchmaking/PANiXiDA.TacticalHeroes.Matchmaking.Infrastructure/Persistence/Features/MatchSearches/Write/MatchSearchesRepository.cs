@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
+using PANiXiDA.Core.SpecificationPattern.Abstractions;
+using PANiXiDA.Core.SpecificationPattern.Extensions;
+
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
@@ -14,6 +17,17 @@ public sealed class MatchSearchesRepository(
         EfRepository<MatchmakingWriteDbContext, MatchSearchId, MatchSearch>(dbContext),
         IMatchSearchesRepository
 {
+    public Task<List<MatchSearch>> GetAllAsync(
+        ISpecification<MatchSearch> specification,
+        CancellationToken cancellationToken)
+    {
+        return Query
+            .Where(specification)
+            .OrderBy(search => search.QueuedAt)
+            .ThenBy(search => search.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<MatchSearch?> GetActiveByPlayerIdAsync(
         PlayerId playerId,
         CancellationToken cancellationToken)

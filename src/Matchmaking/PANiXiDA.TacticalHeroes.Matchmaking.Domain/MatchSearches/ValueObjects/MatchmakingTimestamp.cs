@@ -13,4 +13,24 @@ public sealed partial class MatchmakingTimestamp : ValueObject
     {
         return new MatchmakingTimestamp(value.ToUniversalTime());
     }
+
+    public static bool operator <(MatchmakingTimestamp left, MatchmakingTimestamp right)
+    {
+        return left.Value < right.Value;
+    }
+
+    public static bool operator >(MatchmakingTimestamp left, MatchmakingTimestamp right)
+    {
+        return left.Value > right.Value;
+    }
+
+    public static bool operator <=(MatchmakingTimestamp left, MatchmakingTimestamp right)
+    {
+        return left.Value <= right.Value;
+    }
+
+    public static bool operator >=(MatchmakingTimestamp left, MatchmakingTimestamp right)
+    {
+        return left.Value >= right.Value;
+    }
 }

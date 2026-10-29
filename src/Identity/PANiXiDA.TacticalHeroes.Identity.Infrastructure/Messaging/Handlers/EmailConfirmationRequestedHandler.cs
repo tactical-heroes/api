@@ -22,6 +22,10 @@ public sealed class EmailConfirmationRequestedHandler(
             UserId: domainEvent.UserId,
             Email: domainEvent.Email,
             ConfirmationUrl: confirmationUrl,
-            ExpiresAtUtc: domainEvent.ExpiresAtUtc);
+            ExpiresAtUtc: domainEvent.ExpiresAtUtc)
+        {
+            Id = domainEvent.Id,
+            OccurredOnUtc = domainEvent.OccurredOnUtc
+        };
     }
 }

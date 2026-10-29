@@ -10,20 +10,31 @@ using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
-public sealed class FunctionalTestFixture : IAsyncLifetime
+public class FunctionalTestFixture : IAsyncLifetime
 {
+    private const string ScheduleEnabledVariable = "Matchmaking__Schedules__ProcessMatchmakingCommand__Enabled";
+    private const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
+
     private readonly PostgreSqlTestDatabase _database = new("matchmaking", isolateDatabase: true);
 
     private FunctionalTestWebApplicationFactory? _factory;
     private string? _previousConnectionString;
+    private string? _previousScheduleEnabled;
+    private string? _previousFileManagerSchedule;
 
     public HttpClient Client { get; private set; } = null!;
     public IServiceProvider Services => _factory!.Services;
+
+    protected virtual bool MatchmakingScheduleEnabled => false;
 
     public async ValueTask InitializeAsync()
     {
         await _database.InitializeAsync(TestContext.Current.CancellationToken);
 
+        _previousScheduleEnabled = Environment.GetEnvironmentVariable(ScheduleEnabledVariable);
+        Environment.SetEnvironmentVariable(ScheduleEnabledVariable, MatchmakingScheduleEnabled.ToString());
+        _previousFileManagerSchedule = Environment.GetEnvironmentVariable(FileManagerScheduleVariable);
+        Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
         _previousConnectionString = Environment.GetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable);
         Environment.SetEnvironmentVariable(
@@ -32,7 +43,7 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
 
         await MigrateDatabaseAsync(TestContext.Current.CancellationToken);
 
-        _factory = new FunctionalTestWebApplicationFactory();
+        _factory = new FunctionalTestWebApplicationFactory(MatchmakingScheduleEnabled);
         Client = _factory.CreateClient();
     }
 
@@ -55,6 +66,8 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         Environment.SetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
             _previousConnectionString);
+        Environment.SetEnvironmentVariable(ScheduleEnabledVariable, _previousScheduleEnabled);
+        Environment.SetEnvironmentVariable(FileManagerScheduleVariable, _previousFileManagerSchedule);
     }
 
     private async Task MigrateDatabaseAsync(CancellationToken cancellationToken)

@@ -5,6 +5,10 @@ using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Domain.Enumerations;
 using PANiXiDA.Core.Domain.Identifiers;
 using PANiXiDA.Core.Domain.ValueObjects;
+using PANiXiDA.Core.SpecificationPattern.Abstractions;
+using PANiXiDA.Core.SpecificationPattern.Core;
+
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 
@@ -64,7 +68,7 @@ public sealed class RepositoryConventionTests
                             new HashSet<Type>())))
             .Select(target =>
                 $"{target.Repository.FullName}.{target.Method.Name} may use "
-                    + $"only aggregate roots, value objects, Enumerations, "
+                    + $"only aggregate roots, aggregate specifications, value objects, Enumerations, "
                     + $"strongly typed IDs, CancellationToken, and framework "
                     + $"wrappers; found signature '{target.Method}'.")
             .ToArray();
@@ -90,6 +94,24 @@ public sealed class RepositoryConventionTests
         var visited = new HashSet<Type>();
 
         var allowed = IsAllowedRepositoryMethodType(resultType, visited);
+
+        Assert.Equal(expected, allowed);
+    }
+
+    [Theory(DisplayName = "Repository parameters should preserve domain boundaries when specifications are used")]
+    [InlineData(typeof(ISpecification<IAggregateRoot>), true)]
+    [InlineData(typeof(Specification<IAggregateRoot>), true)]
+    [InlineData(typeof(SearchingMatchSearchSpecification), true)]
+    [InlineData(typeof(ISpecification<Guid>), false)]
+    [InlineData(typeof(ISpecification<string>), false)]
+    [InlineData(typeof(Specification<object>), false)]
+    public void IsAllowedRepositoryMethodType_Should_PreserveDomainBoundaries_When_SpecificationsAreUsed(
+        Type parameterType,
+        bool expected)
+    {
+        var visited = new HashSet<Type>();
+
+        var allowed = IsAllowedRepositoryMethodType(parameterType, visited);
 
         Assert.Equal(expected, allowed);
     }
@@ -323,6 +345,15 @@ public sealed class RepositoryConventionTests
         if (!visitedTypes.Add(type))
         {
             return true;
+        }
+
+        var specification = type.GetInterfaces()
+            .Append(type)
+            .FirstOrDefault(candidate => candidate.IsGenericType
+                && candidate.GetGenericTypeDefinition() == typeof(ISpecification<>));
+        if (specification is not null)
+        {
+            return typeof(IAggregateRoot).IsAssignableFrom(specification.GetGenericArguments()[0]);
         }
 
         if (typeof(IAggregateRoot).IsAssignableFrom(type)
