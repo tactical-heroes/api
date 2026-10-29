@@ -39,13 +39,12 @@ public sealed class StartMatchSearchHandler(
             return Result.Failure(validation.Errors);
         }
 
-        var playerResult = await playersClient.GetByUserIdAsync(userId, cancellationToken);
-        if (playerResult.IsFailure)
+        var player = await playersClient.GetByUserIdAsync(userId, cancellationToken);
+        if (player is null)
         {
-            return Result.Failure(playerResult.Errors);
+            return Result.Failure(Error.NotFound("Player was not found."));
         }
 
-        var player = playerResult.Value;
         if (!await buildsClient.IsOwnedByPlayerAsync(
             buildId: command.BuildId,
             playerId: player.Id,

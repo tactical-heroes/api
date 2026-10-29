@@ -4,5 +4,5 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 
 public interface IPlayersClient
 {
-    Task<Result<MatchmakingPlayerReadModel>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task<PlayerReadModel?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken);
 }

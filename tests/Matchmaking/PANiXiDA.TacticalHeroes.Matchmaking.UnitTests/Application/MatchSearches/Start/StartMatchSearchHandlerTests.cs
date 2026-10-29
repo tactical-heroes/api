@@ -72,11 +72,12 @@ public sealed class StartMatchSearchHandlerTests
     {
         var context = new HandlerContext();
         context.Players.GetByUserIdAsync(context.UserId, Arg.Any<CancellationToken>())
-            .Returns(Result.Failure<MatchmakingPlayerReadModel>(Error.NotFound("Player was not found.")));
+            .Returns((PlayerReadModel?)null);
 
         var result = await context.Handler.HandleAsync(context.Command, TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
         await context.Builds.DidNotReceiveWithAnyArgs()
             .IsOwnedByPlayerAsync(default, default, TestContext.Current.CancellationToken);
         context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
@@ -148,7 +149,7 @@ public sealed class StartMatchSearchHandlerTests
         public HandlerContext()
         {
             CurrentUser.UserId.Returns(UserId);
-            Players.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(Result.Success(Player));
+            Players.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(Player);
             Builds.IsOwnedByPlayerAsync(Command.BuildId, Player.Id, Arg.Any<CancellationToken>()).Returns(true);
             var clock = Substitute.For<TimeProvider>();
             clock.GetUtcNow().Returns(At(300).Value);
@@ -156,7 +157,7 @@ public sealed class StartMatchSearchHandlerTests
         }
 
         public Guid UserId { get; } = Guid.CreateVersion7();
-        public MatchmakingPlayerReadModel Player { get; } = new(Guid.CreateVersion7(), 1742);
+        public PlayerReadModel Player { get; } = new(Guid.CreateVersion7(), 1742);
         public StartMatchSearchCommand Command { get; } = new(Guid.CreateVersion7(), "RankedDuel");
         public IMatchSearchesRepository Repository { get; } = Substitute.For<IMatchSearchesRepository>();
         public IPlayersClient Players { get; } = Substitute.For<IPlayersClient>();
