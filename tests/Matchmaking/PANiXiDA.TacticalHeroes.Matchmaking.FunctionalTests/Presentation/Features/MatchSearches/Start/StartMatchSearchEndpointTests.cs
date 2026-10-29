@@ -31,6 +31,8 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
 {
     private const string Path = "/api/v1/match-searches";
 
+    private static readonly string[] s_modes = ["RankedDuel", "CasualDuel"];
+
     [Theory(DisplayName = "Endpoint should create search using server data when request is valid")]
     [InlineData("RankedDuel")]
     [InlineData("CasualDuel")]
@@ -148,7 +150,7 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await fixture.ResetDatabaseAsync(ct);
         var player = await SeedPlayerAsync(ct);
         var buildId = (await SeedBuildAsync(player.Id.Value, deleted: false, ct)).Id.Value;
-        var requests = new[] { "RankedDuel", "CasualDuel" }.Select(mode =>
+        var requests = s_modes.Select(mode =>
             PostAsync(player.UserId.Value, new StartMatchSearchRequest(buildId, mode), ct));
 
         var responses = await Task.WhenAll(requests);
