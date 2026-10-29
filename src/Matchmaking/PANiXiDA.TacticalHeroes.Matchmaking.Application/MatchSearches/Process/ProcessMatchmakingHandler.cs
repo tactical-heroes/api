@@ -18,19 +18,14 @@ public sealed class ProcessMatchmakingHandler(
     public async Task<Result> HandleAsync(ProcessMatchmakingCommand command, CancellationToken cancellationToken)
     {
         var now = MatchmakingTimestamp.Create(timeProvider.GetUtcNow());
+
         var searches = await matchSearchesRepository.GetAllAsync(
             new SearchingMatchSearchSpecification(now), cancellationToken);
-        var candidates = searches.Select(search => new MatchmakingCandidate(
-            Id: search.Id.Value,
-            PlayerId: search.PlayerId.Value,
-            Rating: search.Rating.Value,
-            Mode: search.Mode.Name,
-            QueuedAt: search.QueuedAt.Value,
-            ExpiresAt: search.ExpiresAt.Value));
-        var pairs = MatchmakingPolicy.SelectPairs(candidates: candidates, now: now.Value, rules: rules);
+
+        var pairs = MatchmakingPolicy.SelectPairs(searches: searches, now: now, rules: rules);
+
         foreach (var pair in pairs)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             await scheduler.ScheduleAsync(
                 command: new ConfirmMatchCommand(pair.FirstSearchId, pair.SecondSearchId),
                 delay: TimeSpan.Zero,

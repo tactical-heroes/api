@@ -33,13 +33,15 @@ public sealed class ConfirmMatchHandler(
         }
 
         var now = MatchmakingTimestamp.Create(timeProvider.GetUtcNow());
+
         if (!MatchmakingPolicy.CanMatch(
-            first: ToCandidate(first), second: ToCandidate(second), now: now.Value, rules: rules))
+            first: first, second: second, now: now, rules: rules))
         {
             return Result.Success();
         }
 
         var matched = first.MatchWith(second, now);
+
         if (matched.IsFailure)
         {
             return matched;
@@ -49,16 +51,5 @@ public sealed class ConfirmMatchHandler(
         matchSearchesRepository.Update(second);
 
         return Result.Success();
-    }
-
-    private static MatchmakingCandidate ToCandidate(MatchSearch search)
-    {
-        return new MatchmakingCandidate(
-            Id: search.Id.Value,
-            PlayerId: search.PlayerId.Value,
-            Rating: search.Rating.Value,
-            Mode: search.Mode.Name,
-            QueuedAt: search.QueuedAt.Value,
-            ExpiresAt: search.ExpiresAt.Value);
     }
 }
