@@ -15,15 +15,77 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
         return CanRead(file.Type.Name, file.UserId?.Value);
     }
 
-    public bool CanRead(FilesFilter filter)
+    public Result<FilesFilter> AuthorizeRead(FilesFilter filter)
     {
-        if (filter.Type is { } type)
+        if (!currentUser.IsAuthenticated || currentUser.UserId is not { } userId)
         {
-            return CanRead(type, filter.UserId);
+            return Result.Failure<FilesFilter>(Error.Unauthorized("A user account is required."));
         }
 
-        return CanRead(FileType.Personal.Name, filter.UserId)
-            || (filter.UserId is null && CanRead(FileType.Avatar.Name, userId: null));
+        var type = FileType.CreateOptional(filter.Type);
+        if (type.IsFailure)
+        {
+            return Result.Failure<FilesFilter>(type.Errors);
+        }
+
+        filter = filter with { Type = type.Value?.Name };
+        var includesPersonal = type.Value is null || type.Value == FileType.Personal;
+        var includesAvatars = type.Value is null || type.Value == FileType.Avatar;
+        var canReadAllPersonal = includesPersonal
+            && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code);
+        var canReadOwnPersonal = includesPersonal
+            && !canReadAllPersonal
+            && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code);
+        var canReadPersonal = canReadAllPersonal || canReadOwnPersonal;
+        var canReadAvatars = includesAvatars
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code);
+
+        if (includesPersonal
+            && !canReadAllPersonal
+            && filter.UserId is { } ownerId
+            && (!canReadOwnPersonal || ownerId != userId))
+        {
+            return Result.Failure<FilesFilter>(Error.Forbidden("Access to files is denied."));
+        }
+
+        if (!canReadPersonal && !canReadAvatars)
+        {
+            return Result.Failure<FilesFilter>(Error.Forbidden("Access to files is denied."));
+        }
+
+        return Result.Success(ApplyReadRestrictions(
+            filter: filter,
+            userId: userId,
+            canReadOwnPersonal: canReadOwnPersonal,
+            canReadPersonal: canReadPersonal,
+            canReadAvatars: canReadAvatars));
+    }
+
+    private static FilesFilter ApplyReadRestrictions(
+        FilesFilter filter,
+        Guid userId,
+        bool canReadOwnPersonal,
+        bool canReadPersonal,
+        bool canReadAvatars)
+    {
+        if (canReadOwnPersonal && filter.UserId is null)
+        {
+            filter = filter with { UserId = userId };
+        }
+
+        if (filter.Type is null)
+        {
+            if (!canReadPersonal)
+            {
+                filter = filter with { Type = FileType.Avatar.Name };
+            }
+            else if (!canReadAvatars)
+            {
+                filter = filter with { Type = FileType.Personal.Name };
+            }
+        }
+
+        return filter;
     }
 
     private bool CanRead(string type, Guid? userId)

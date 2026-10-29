@@ -33,7 +33,7 @@ public sealed class GetFilesHandlerTests
         repository.GetPageAsync(
             Arg.Any<FilesFilter>(), pagination, sorting, cancellationToken)
             .Returns(page);
-        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFilesHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(new GetFilesQuery(filter, pagination, sorting), cancellationToken);
 
@@ -59,7 +59,7 @@ public sealed class GetFilesHandlerTests
         var currentUser = CreateCurrentUser(Guid.NewGuid());
         currentUser.HasPermission(permission).Returns(true);
         var repository = Substitute.For<IFilesReadRepository>();
-        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFilesHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
             new GetFilesQuery(new FilesFilter(type), new PaginationParameters(), SortingParameters.None),
@@ -74,7 +74,7 @@ public sealed class GetFilesHandlerTests
     {
         var currentUser = CreateCurrentUser(null);
         var repository = Substitute.For<IFilesReadRepository>();
-        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFilesHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
             new GetFilesQuery(new FilesFilter("Personal"), new PaginationParameters(), SortingParameters.None),
@@ -89,7 +89,7 @@ public sealed class GetFilesHandlerTests
     {
         var currentUser = CreateCurrentUser(Guid.NewGuid());
         var repository = Substitute.For<IFilesReadRepository>();
-        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFilesHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
             new GetFilesQuery(new FilesFilter("Unknown"), new PaginationParameters(), SortingParameters.None),
@@ -121,7 +121,7 @@ public sealed class GetFilesHandlerTests
         var page = PaginationResult<FileListItemReadModel>.Empty(1, 10);
         repository.GetPageAsync(Arg.Any<FilesFilter>(), pagination, SortingParameters.None, cancellationToken)
             .Returns(page);
-        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFilesHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
             new GetFilesQuery(filter, pagination, SortingParameters.None),
@@ -162,7 +162,7 @@ public sealed class GetFilesHandlerTests
             Arg.Any<SortingParameters>(),
             Arg.Any<CancellationToken>())
             .Returns(PaginationResult<FileListItemReadModel>.Empty(1, 10));
-        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFilesHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
             new GetFilesQuery(new FilesFilter(UserId: ownerId), new PaginationParameters(), SortingParameters.None),
@@ -190,7 +190,7 @@ public sealed class GetFilesHandlerTests
         var currentUser = CreateCurrentUser(Guid.NewGuid());
         currentUser.IsAuthenticated.Returns(false);
         var repository = Substitute.For<IFilesReadRepository>();
-        var handler = new GetFilesHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFilesHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
             new GetFilesQuery(new FilesFilter(), new PaginationParameters(), SortingParameters.None),

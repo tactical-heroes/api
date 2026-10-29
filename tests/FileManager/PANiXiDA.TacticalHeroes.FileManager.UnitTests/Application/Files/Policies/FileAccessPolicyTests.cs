@@ -136,54 +136,77 @@ public sealed class FileAccessPolicyTests
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 
-    [Theory(DisplayName = "File access policy should check the full filter when requested scopes vary")]
-    [InlineData("Personal", "own", false, true, false, true)]
-    [InlineData("Personal", "foreign", false, true, false, false)]
-    [InlineData("Personal", "none", false, true, false, false)]
-    [InlineData("Personal", "foreign", true, false, false, true)]
-    [InlineData("Personal", "none", true, true, false, true)]
-    [InlineData("Avatar", "none", false, false, true, true)]
-    [InlineData(null, "own", false, true, true, true)]
-    [InlineData(null, "own", false, true, false, true)]
-    [InlineData(null, "foreign", false, true, true, false)]
-    [InlineData("Unknown", "none", true, true, true, false)]
-    [InlineData("", "none", true, true, true, false)]
-    [InlineData(null, "none", false, false, true, true)]
-    [InlineData(null, "none", false, true, false, false)]
-    [InlineData(null, "none", true, false, false, true)]
-    [InlineData(null, "none", false, false, false, false)]
-    public void CanRead_Should_CheckFullFilter_When_RequestedScopesVary(
-        string? type, string owner, bool all, bool own, bool avatars, bool expected)
+    [Theory(DisplayName = "File access policy should authorize and normalize the filter when type and owner vary")]
+    [InlineData("Personal", "own", false, true, false, true, "Personal", "own")]
+    [InlineData("Personal", "foreign", false, true, false, false, null, "none")]
+    [InlineData("Personal", "none", false, true, false, true, "Personal", "own")]
+    [InlineData("Personal", "foreign", true, false, false, true, "Personal", "foreign")]
+    [InlineData("Personal", "foreign", true, true, false, true, "Personal", "foreign")]
+    [InlineData("Personal", "none", true, true, false, true, "Personal", "none")]
+    [InlineData(" Personal ", "none", false, true, false, true, "Personal", "own")]
+    [InlineData("Avatar", "none", false, false, true, true, "Avatar", "none")]
+    [InlineData(null, "own", false, true, true, true, null, "own")]
+    [InlineData(null, "own", false, true, false, true, "Personal", "own")]
+    [InlineData(null, "foreign", false, true, true, false, null, "none")]
+    [InlineData("Unknown", "none", true, true, true, false, null, "none")]
+    [InlineData("", "none", true, true, true, false, null, "none")]
+    [InlineData(null, "none", false, false, true, true, "Avatar", "none")]
+    [InlineData(null, "none", false, true, false, true, "Personal", "own")]
+    [InlineData(null, "none", false, true, true, true, null, "own")]
+    [InlineData(null, "none", true, false, false, true, "Personal", "none")]
+    [InlineData(null, "none", true, true, true, true, null, "none")]
+    [InlineData(null, "none", false, false, false, false, null, "none")]
+    public void AuthorizeRead_Should_AuthorizeAndNormalizeFilter_When_TypeAndOwnerVary(
+        string? type,
+        string owner,
+        bool all,
+        bool own,
+        bool avatars,
+        bool expected,
+        string? expectedType,
+        string expectedOwner)
     {
         var userId = Guid.NewGuid();
+        var foreignUserId = Guid.NewGuid();
         var currentUser = CreateCurrentUser(userId);
         currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
         currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(own);
         currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code).Returns(avatars);
-        var filter = new FilesFilter(
-            Type: type,
-            UserId: owner == "own" ? userId : owner == "foreign" ? Guid.NewGuid() : null);
-        var originalType = filter.Type;
-        var originalUserId = filter.UserId;
+        var ownerId = owner == "own" ? userId : owner == "foreign" ? foreignUserId : (Guid?)null;
+        var filter = new FilesFilter(Type: type, Search: "report", UserId: ownerId);
 
-        var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
+        var result = new FileAccessPolicy(currentUser).AuthorizeRead(filter);
 
-        allowed.ShouldBe(expected);
-        filter.Type.ShouldBe(originalType);
-        filter.UserId.ShouldBe(originalUserId);
+        result.IsSuccess.ShouldBe(expected);
+        filter.Type.ShouldBe(type);
+        filter.UserId.ShouldBe(ownerId);
+        if (expected)
+        {
+            var expectedOwnerId = expectedOwner == "own"
+                ? userId : expectedOwner == "foreign" ? foreignUserId : (Guid?)null;
+            result.Value.ShouldBe(new FilesFilter(Type: expectedType, Search: "report", UserId: expectedOwnerId));
+        }
+        else
+        {
+            result.Errors.ShouldHaveSingleItem().Type.ShouldBe(
+                type is "Unknown" or "" ? ErrorType.Validation : ErrorType.Forbidden);
+        }
     }
 
-    [Fact(DisplayName = "File access policy should deny a filter when the caller is unauthenticated")]
-    public void CanRead_Should_DenyFilter_When_TheCallerIsUnauthenticated()
+    [Theory(DisplayName = "File access policy should reject caller when authentication or user id is absent")]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public void AuthorizeRead_Should_RejectCaller_When_AuthenticationOrUserIdIsAbsent(
+        bool authenticated,
+        bool hasUserId)
     {
-        var currentUser = CreateCurrentUser(Guid.NewGuid());
-        currentUser.IsAuthenticated.Returns(false);
+        var currentUser = CreateCurrentUser(hasUserId ? Guid.NewGuid() : null);
+        currentUser.IsAuthenticated.Returns(authenticated);
         currentUser.HasPermission(Arg.Any<string>()).Returns(true);
-        var filter = new FilesFilter();
 
-        var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
+        var result = new FileAccessPolicy(currentUser).AuthorizeRead(new FilesFilter());
 
-        allowed.ShouldBeFalse();
+        result.ShouldHaveSingleError(ErrorType.Unauthorized, "A user account is required.");
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 
