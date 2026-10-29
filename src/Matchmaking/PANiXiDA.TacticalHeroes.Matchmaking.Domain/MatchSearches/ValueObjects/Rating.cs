@@ -1,16 +1,16 @@
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
-public sealed partial class Raiting : ValueObject
+public sealed partial class Rating : ValueObject
 {
-    private Raiting(int value)
+    private Rating(int value)
     {
         Value = value;
     }
 
     public int Value { get; }
 
-    public static Raiting Create(int value)
+    public static Rating Create(int value)
     {
-        return new Raiting(value);
+        return new Rating(value);
     }
 }

@@ -10,7 +10,7 @@ namespace PANiXiDA.TacticalHeroes.Builds.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase _database = new("builds");
+    private readonly PostgreSqlTestDatabase _database = new("builds", isolateDatabase: true);
 
     private FunctionalTestWebApplicationFactory? _factory;
     private string? _previousConnectionString;

@@ -17,7 +17,8 @@ internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactor
             new Dictionary<string, string?>
             {
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
-                ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret"
+                ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret",
+                ["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] = "false"
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>

@@ -11,6 +11,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Builds.Application\PANiXiDA.TacticalHeroes.Builds.Application.csproj" />
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Builds.Contracts\PANiXiDA.TacticalHeroes.Builds.Contracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>

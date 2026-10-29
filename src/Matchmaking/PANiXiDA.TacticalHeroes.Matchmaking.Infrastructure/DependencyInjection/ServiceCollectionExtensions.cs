@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.DependencyInjection;
@@ -15,6 +16,8 @@ public static class ServiceCollectionExtensions
             MatchmakingWriteDbContext,
             MatchmakingReadDbContext>(
                 configuration);
+
+        serviceCollection.AddClients();
 
         return serviceCollection;
     }
