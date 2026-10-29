@@ -66,7 +66,7 @@ public sealed class StartMatchSearchHandler(
         var created = MatchSearch.Create(
             playerId: playerId.Value,
             buildId: buildId.Value,
-            rating: Raiting.Create(player.Rating),
+            rating: Rating.Create(player.Rating),
             mode: mode.Value,
             queuedAt: now);
         if (created.IsFailure)

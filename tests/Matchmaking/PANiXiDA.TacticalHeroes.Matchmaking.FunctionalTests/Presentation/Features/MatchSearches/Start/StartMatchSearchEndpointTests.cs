@@ -16,13 +16,13 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Start;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
 using Build = PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build;
 using BuildPlayerId = PANiXiDA.TacticalHeroes.Builds.Domain.Players.PlayerId;
 using Player = PANiXiDA.TacticalHeroes.Players.Domain.Players.Player;
+using PlayerRating = PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects.Rating;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Start;
 
@@ -223,7 +223,7 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
     private async Task<Player> SeedPlayerAsync(CancellationToken ct)
     {
         var player = Player.Create(UserId.New());
-        player.ChangeRating(Rating.Create(1742));
+        player.ChangeRating(PlayerRating.Create(1742));
         await using var scope = fixture.Services.CreateAsyncScope();
         scope.ServiceProvider.GetRequiredService<IPlayersRepository>().Add(player);
         await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(PlayersWriteDbContext))
@@ -239,7 +239,7 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var search = MatchSearch.Create(
             PlayerId.Create(playerId).Value,
             BuildId.New(),
-            Raiting.Create(1000),
+            Rating.Create(1000),
             MatchmakingMode.RankedDuel,
             MatchmakingTimestamp.Create(queuedAt)).Value;
         if (matched)
