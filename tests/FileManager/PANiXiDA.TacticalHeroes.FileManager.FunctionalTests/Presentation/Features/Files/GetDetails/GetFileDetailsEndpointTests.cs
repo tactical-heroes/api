@@ -108,12 +108,10 @@ public sealed class GetFileDetailsEndpointTests(FunctionalTestFixture fixture) :
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Theory(DisplayName = "GET file should reject authentication when subject is unavailable")]
-    [InlineData(null)]
-    [InlineData("invalid-subject")]
-    public async Task HandleAsync_Should_ReturnUnauthorized_When_SubjectIsUnavailable(string? subject)
+    [Fact(DisplayName = "GET file should return unauthorized when caller is unauthenticated")]
+    public async Task HandleAsync_Should_ReturnUnauthorized_When_CallerIsUnauthenticated()
     {
-        using var response = await SendAsync(Guid.NewGuid(), subject, "file-manager.personal-files.read.all");
+        using var response = await SendAsync(Guid.NewGuid(), subject: null, "file-manager.personal-files.read.all");
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }

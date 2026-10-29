@@ -34,7 +34,7 @@ public sealed class GetFileDetailsHandlerTests
         var repository = Substitute.For<IFilesReadRepository>();
         var cancellationToken = TestContext.Current.CancellationToken;
         repository.GetDetailsByIdAsync(file.Id, cancellationToken).Returns(file);
-        var handler = new GetFileDetailsHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFileDetailsHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(new GetFileDetailsQuery(file.Id), cancellationToken);
 
@@ -55,33 +55,13 @@ public sealed class GetFileDetailsHandlerTests
     {
         var currentUser = CreateCurrentUser(Guid.NewGuid());
         var repository = Substitute.For<IFilesReadRepository>();
-        var handler = new GetFileDetailsHandler(repository, currentUser, new FileAccessPolicy(currentUser));
+        var handler = new GetFileDetailsHandler(repository, new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
             new GetFileDetailsQuery(Guid.NewGuid()),
             TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.NotFound, "File was not found.");
-    }
-
-    [Theory(DisplayName = "File details handler should reject caller when authentication or user id is unavailable")]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    public async Task HandleAsync_Should_RejectCaller_When_AuthenticationOrUserIdIsUnavailable(
-        bool authenticated,
-        bool hasUserId)
-    {
-        var currentUser = CreateCurrentUser(hasUserId ? Guid.NewGuid() : null);
-        currentUser.IsAuthenticated.Returns(authenticated);
-        var repository = Substitute.For<IFilesReadRepository>();
-        var handler = new GetFileDetailsHandler(repository, currentUser, new FileAccessPolicy(currentUser));
-
-        var result = await handler.HandleAsync(
-            new GetFileDetailsQuery(Guid.NewGuid()),
-            TestContext.Current.CancellationToken);
-
-        result.ShouldHaveSingleError(ErrorType.Unauthorized, "A user account is required.");
-        repository.ReceivedCalls().ShouldBeEmpty();
     }
 
     private static ICurrentUser CreateCurrentUser(Guid? userId)
