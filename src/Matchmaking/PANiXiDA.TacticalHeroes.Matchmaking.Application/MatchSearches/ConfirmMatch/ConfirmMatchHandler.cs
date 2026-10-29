@@ -1,6 +1,9 @@
+using PANiXiDA.Core.Application.Messaging.EventBus;
+
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Policies;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
@@ -8,6 +11,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmM
 
 public sealed class ConfirmMatchHandler(
     IMatchSearchesRepository matchSearchesRepository,
+    IEventBus eventBus,
     TimeProvider timeProvider)
     : ICommandHandler<ConfirmMatchCommand, Result>, IRequireTransaction
 {
@@ -38,7 +42,7 @@ public sealed class ConfirmMatchHandler(
             return Result.Success();
         }
 
-        var matched = first.MatchWith(second, now);
+        var matched = Result.Combine(first.Matched(now), second.Matched(now));
 
         if (matched.IsFailure)
         {
@@ -47,6 +51,20 @@ public sealed class ConfirmMatchHandler(
 
         matchSearchesRepository.Update(first);
         matchSearchesRepository.Update(second);
+
+        await eventBus.PublishAsync(
+            @event: new MatchFound(
+                FirstMatchSearchId: first.Id.Value,
+                FirstPlayerId: first.PlayerId.Value,
+                FirstBuildId: first.BuildId.Value,
+                FirstRating: first.Rating.Value,
+                SecondMatchSearchId: second.Id.Value,
+                SecondPlayerId: second.PlayerId.Value,
+                SecondBuildId: second.BuildId.Value,
+                SecondRating: second.Rating.Value,
+                Mode: first.Mode.Name,
+                MatchedAt: now.Value),
+            cancellationToken: cancellationToken);
 
         return Result.Success();
     }

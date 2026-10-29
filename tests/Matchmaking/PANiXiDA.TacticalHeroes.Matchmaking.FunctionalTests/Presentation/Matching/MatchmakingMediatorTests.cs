@@ -72,6 +72,44 @@ public sealed class MatchmakingMediatorTests(FunctionalTestFixture fixture)
         published.Count(found => found.FirstMatchSearchId == first.Id.Value).ShouldBe(1);
     }
 
+    [Fact(DisplayName = "Confirmation should publish after commit when saving is paused")]
+    public async Task HandleAsync_Should_PublishAfterCommit_When_SavingIsPaused()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(ct);
+        var first = CreateSearch();
+        var second = CreateSearch();
+        await SeedAsync(fixture.Services, [first, second], ct);
+        var barrier = fixture.Services.GetRequiredService<ConcurrentMatchSaveBarrier>();
+        var reached = barrier.PauseNextMatchSave();
+
+        var confirmation = ConfirmAsync(new ConfirmMatchCommand(first.Id.Value, second.Id.Value), ct);
+
+        try
+        {
+            await reached.WaitAsync(TimeSpan.FromSeconds(15), ct);
+            var beforeCommit = await ReadAsync(fixture.Services, [first.Id.Value, second.Id.Value], ct);
+            beforeCommit.Count.ShouldBe(2);
+            beforeCommit.ShouldAllBe(search => search.Status == "Searching");
+            fixture.Services.GetRequiredService<MatchFoundProbe>().Events.ShouldNotContain(
+                found => found.FirstMatchSearchId == first.Id.Value || found.SecondMatchSearchId == first.Id.Value);
+        }
+        finally
+        {
+            barrier.ResumeMatchSave();
+            await confirmation;
+        }
+
+        var result = await confirmation;
+        var found = await WaitForFoundAsync(fixture.Services, first.Id.Value, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        found.SecondMatchSearchId.ShouldBe(second.Id.Value);
+        var afterCommit = await ReadAsync(fixture.Services, [first.Id.Value, second.Id.Value], ct);
+        afterCommit.Count.ShouldBe(2);
+        afterCommit.ShouldAllBe(search => search.Status == "Matched");
+    }
+
     [Theory(DisplayName = "Confirmation should preserve searches when pair became stale")]
     [InlineData(false)]
     [InlineData(true)]
