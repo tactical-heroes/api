@@ -2,13 +2,13 @@ using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetPersonalDetails;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.GetDetails;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.GetList;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.GetPersonalDetails;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read;
 
@@ -34,18 +34,9 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
             cancellationToken: cancellationToken);
     }
 
-    public Task<PersonalFileDetailsReadModel?> GetPersonalDetailsByIdAsync(
-        Guid id,
-        Guid userId,
-        CancellationToken cancellationToken)
+    public Task<FileDetailsReadModel?> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var query = Query.Where(file =>
-            file.Id == id
-                && file.Type == FileType.Personal.Name
-                && file.UserId == userId);
-
-        return PersonalFileDetailsReadModelMapper.ProjectTo(query)
-            .FirstOrDefaultAsync(cancellationToken);
+        return GetByIdAsync<FileDetailsReadModel, FileDetailsReadModelMapper>(id, cancellationToken);
     }
 
     private static IQueryable<FileReadDbModel> ApplyFilter(

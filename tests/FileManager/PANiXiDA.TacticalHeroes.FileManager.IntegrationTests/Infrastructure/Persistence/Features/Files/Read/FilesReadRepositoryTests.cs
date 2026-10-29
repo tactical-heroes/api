@@ -22,18 +22,22 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Personal file details should project persisted metadata when upload state varies")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetPersonalDetailsByIdAsync_Should_ProjectMetadata_When_UploadStateVaries(bool completed)
+    [Theory(DisplayName = "File details should project persisted metadata when type and upload state vary")]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    public async Task GetDetailsByIdAsync_Should_ProjectMetadata_When_TypeAndUploadStateVary(
+        bool personal,
+        bool completed)
     {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var file = await AddFileAsync(true, cancellationToken);
+        var ct = TestContext.Current.CancellationToken;
+        var file = await AddFileAsync(personal, ct);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-        var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
+        var stored = await repository.GetByIdAsync(file.Id, ct);
         stored.ShouldNotBeNull();
-        var folder = Folder.Create(FolderName.Create("Documents").Value, FileType.Personal, file.UserId).Value;
+        var folder = Folder.Create(FolderName.Create("Documents").Value, file.Type, file.UserId).Value;
         scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
         stored.MoveTo(folder).IsSuccess.ShouldBeTrue();
         if (completed)
@@ -42,52 +46,46 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
                 .IsSuccess
                 .ShouldBeTrue();
         }
-
         repository.Update(stored);
         await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
-            .SaveChangesAsync(cancellationToken);
+            .SaveChangesAsync(ct);
         var readRepository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
-        var model = await readRepository.GetPersonalDetailsByIdAsync(
-            file.Id.Value, file.UserId!.Value.Value, cancellationToken);
+        var model = await readRepository.GetDetailsByIdAsync(file.Id.Value, ct);
 
         model.ShouldNotBeNull();
         model.Id.ShouldBe(file.Id.Value);
         model.Name.ShouldBe(file.Name.Value);
+        model.Type.ShouldBe(file.Type.Name);
+        model.UserId.ShouldBe(file.UserId?.Value);
         model.FolderId.ShouldBe(folder.Id.Value);
         model.Status.ShouldBe(completed ? FileStatus.Ready.Name : FileStatus.PendingUpload.Name);
         model.ContentType.ShouldBe(completed ? "image/png" : null);
         model.Size.ShouldBe(completed ? 4096L : null);
-        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>()
-            .ChangeTracker
-            .Entries()
-            .ShouldBeEmpty();
+        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Personal file details should be absent when file is unavailable")]
-    [InlineData("missing")]
-    [InlineData("foreign")]
-    [InlineData("avatar")]
-    [InlineData("deleted")]
-    public async Task GetPersonalDetailsByIdAsync_Should_ReturnNull_When_FileIsUnavailable(string fileKind)
+    [Theory(DisplayName = "File details should be absent when file is missing or deleted")]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    public async Task GetDetailsByIdAsync_Should_ReturnNull_When_FileIsMissingOrDeleted(bool personal, bool deleted)
     {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var file = await AddFileAsync(fileKind != "avatar", cancellationToken);
-        var id = fileKind == "missing" ? Guid.NewGuid() : file.Id.Value;
-        var userId = fileKind is "missing" or "deleted" ? file.UserId!.Value.Value : Guid.NewGuid();
+        var ct = TestContext.Current.CancellationToken;
+        var file = await AddFileAsync(personal, ct);
         await using var scope = Fixture.CreateScope();
-        if (fileKind == "deleted")
+        if (deleted)
         {
-            var writeRepository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
-            var stored = await writeRepository.GetByIdAsync(file.Id, cancellationToken);
-            writeRepository.Delete(stored!);
+            var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+            var stored = await repository.GetByIdAsync(file.Id, ct);
+            repository.Delete(stored!);
             await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
-                .SaveChangesAsync(cancellationToken);
+                .SaveChangesAsync(ct);
         }
+        var readRepository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
 
-        var repository = scope.ServiceProvider.GetRequiredService<IFilesReadRepository>();
-
-        var model = await repository.GetPersonalDetailsByIdAsync(id, userId, cancellationToken);
+        var model = await readRepository.GetDetailsByIdAsync(deleted ? file.Id.Value : Guid.NewGuid(), ct);
 
         model.ShouldBeNull();
     }

@@ -9,7 +9,7 @@ using PANiXiDA.Core.Application.Querying.Pagination;
 using PANiXiDA.Core.Application.Storage.Models;
 using PANiXiDA.Core.ResultPattern;
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetPersonalDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
 using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
@@ -155,8 +155,8 @@ public sealed class ReadModelConventionTests
     [InlineData(typeof(IReadOnlyList<PresignedDownloadUrl>), true)]
     [InlineData(typeof(PaginationResult<PresignedDownloadUrl>), true)]
     [InlineData(typeof(CursorPaginationResult<FileMetadata>), true)]
-    [InlineData(typeof(PersonalFileDetailsReadModel), true)]
-    [InlineData(typeof(Task<Result<PaginationResult<PersonalFileDetailsReadModel>>>), true)]
+    [InlineData(typeof(FileDetailsReadModel), true)]
+    [InlineData(typeof(Task<Result<PaginationResult<FileDetailsReadModel>>>), true)]
     [InlineData(typeof(IQuery<Result<PresignedDownloadUrl>>), true)]
     [InlineData(typeof(File), false)]
     [InlineData(typeof(Result<File>), false)]
