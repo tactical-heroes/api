@@ -24,7 +24,7 @@ public sealed class ProcessMatchmakingHandlerTests
         var now = At(10).Value;
         var searches = Enumerable.Range(0, count)
             .Select(index => CreateSearch(mode: MatchmakingMode.CasualDuel, queuedAt: index))
-            .ToArray();
+            .ToList();
         var repository = Substitute.For<IMatchSearchesRepository>();
         var scheduler = Substitute.For<IScheduler>();
         var clock = Substitute.For<TimeProvider>();

@@ -17,11 +17,11 @@ public sealed class MatchSearchesRepository(
         EfRepository<MatchmakingWriteDbContext, MatchSearchId, MatchSearch>(dbContext),
         IMatchSearchesRepository
 {
-    public async Task<IReadOnlyCollection<MatchSearch>> GetAllAsync(
+    public Task<List<MatchSearch>> GetAllAsync(
         ISpecification<MatchSearch> specification,
         CancellationToken cancellationToken)
     {
-        return await Query
+        return Query
             .Where(specification)
             .OrderBy(search => search.QueuedAt)
             .ThenBy(search => search.Id)

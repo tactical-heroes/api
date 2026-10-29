@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 
 public interface IMatchSearchesRepository : IRepository<MatchSearchId, MatchSearch>
 {
-    Task<IReadOnlyCollection<MatchSearch>> GetAllAsync(
+    Task<List<MatchSearch>> GetAllAsync(
         ISpecification<MatchSearch> specification,
         CancellationToken cancellationToken);
 
