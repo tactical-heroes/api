@@ -44,10 +44,8 @@ public sealed class StartMatchSearchHandler(
             return Result.Failure(Error.NotFound("Player was not found."));
         }
 
-        if (!await buildsClient.IsOwnedByPlayerAsync(
-            buildId: command.BuildId,
-            playerId: player.Id,
-            cancellationToken: cancellationToken))
+        var build = await buildsClient.GetByIdAsync(command.BuildId, cancellationToken);
+        if (build is null || build.PlayerId != player.Id)
         {
             return Result.Failure(Error.NotFound("Build was not found."));
         }

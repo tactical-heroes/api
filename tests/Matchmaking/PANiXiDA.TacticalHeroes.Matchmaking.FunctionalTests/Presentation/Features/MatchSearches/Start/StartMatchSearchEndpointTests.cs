@@ -3,6 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
 
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Abstractions;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
@@ -17,6 +20,8 @@ using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
+using Build = PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build;
+using BuildPlayerId = PANiXiDA.TacticalHeroes.Builds.Domain.Players.PlayerId;
 using Player = PANiXiDA.TacticalHeroes.Players.Domain.Players.Player;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Start;
@@ -35,7 +40,7 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await fixture.ResetDatabaseAsync(ct);
         var player = await SeedPlayerAsync(ct);
         var userId = player.UserId.Value;
-        var buildId = Guid.CreateVersion7();
+        var buildId = (await SeedBuildAsync(player.Id.Value, deleted: false, ct)).Id.Value;
         var before = DateTimeOffset.UtcNow;
 
         using var response = await PostAsync(
@@ -99,10 +104,11 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await fixture.ResetDatabaseAsync(ct);
         var player = await SeedPlayerAsync(ct);
         var search = await SeedSearchAsync(player.Id.Value, matched, overdue, ct);
+        var build = await SeedBuildAsync(player.Id.Value, deleted: false, ct);
 
         using var response = await PostAsync(
             player.UserId.Value,
-            new StartMatchSearchRequest(Guid.CreateVersion7(), "CasualDuel"),
+            new StartMatchSearchRequest(build.Id.Value, "CasualDuel"),
             ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict, await response.Content.ReadAsStringAsync(ct));
@@ -120,10 +126,11 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await fixture.ResetDatabaseAsync(ct);
         var player = await SeedPlayerAsync(ct);
         var previous = await SeedSearchAsync(player.Id.Value, matched: false, overdue: true, ct);
+        var build = await SeedBuildAsync(player.Id.Value, deleted: false, ct);
 
         using var response = await PostAsync(
             player.UserId.Value,
-            new StartMatchSearchRequest(Guid.CreateVersion7(), "RankedDuel"),
+            new StartMatchSearchRequest(build.Id.Value, "RankedDuel"),
             ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
@@ -140,7 +147,7 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
         var player = await SeedPlayerAsync(ct);
-        var buildId = Guid.CreateVersion7();
+        var buildId = (await SeedBuildAsync(player.Id.Value, deleted: false, ct)).Id.Value;
         var requests = new[] { "RankedDuel", "CasualDuel" }.Select(mode =>
             PostAsync(player.UserId.Value, new StartMatchSearchRequest(buildId, mode), ct));
 
@@ -171,6 +178,46 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         await AssertSearchCountAsync(0, ct);
+    }
+
+    [Theory(DisplayName = "Endpoint should reject request when build is unavailable")]
+    [InlineData("Missing")]
+    [InlineData("Foreign")]
+    [InlineData("Deleted")]
+    public async Task Post_Should_RejectRequest_When_BuildIsUnavailable(string scenario)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(ct);
+        var player = await SeedPlayerAsync(ct);
+        var buildId = scenario == "Missing"
+            ? Guid.CreateVersion7()
+            : (await SeedBuildAsync(
+                scenario == "Foreign" ? Guid.CreateVersion7() : player.Id.Value,
+                deleted: scenario == "Deleted",
+                ct)).Id.Value;
+
+        using var response = await PostAsync(
+            player.UserId.Value, new StartMatchSearchRequest(buildId, "RankedDuel"), ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await AssertSearchCountAsync(0, ct);
+    }
+
+    private async Task<Build> SeedBuildAsync(Guid playerId, bool deleted, CancellationToken ct)
+    {
+        var build = Build.Create(BuildPlayerId.Create(playerId).Value, BuildName.Create("Matchmaking build").Value);
+        await using var scope = fixture.Services.CreateAsyncScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IBuildsRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(BuildsWriteDbContext));
+        repository.Add(build);
+        await unitOfWork.SaveChangesAsync(ct);
+        if (deleted)
+        {
+            repository.Delete(build);
+            await unitOfWork.SaveChangesAsync(ct);
+        }
+
+        return build;
     }
 
     private async Task<Player> SeedPlayerAsync(CancellationToken ct)

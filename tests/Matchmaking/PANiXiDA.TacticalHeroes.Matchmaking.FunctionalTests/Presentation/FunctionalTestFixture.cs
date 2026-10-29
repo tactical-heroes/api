@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
@@ -73,6 +74,8 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         services.AddInfrastructure(configuration);
         PANiXiDA.TacticalHeroes.Players.Infrastructure.DependencyInjection.ServiceCollectionExtensions
             .AddInfrastructure(services, configuration);
+        PANiXiDA.TacticalHeroes.Builds.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+            .AddInfrastructure(services, configuration);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
         var dbContext =
@@ -81,5 +84,7 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
         await dbContext.Database.MigrateAsync(cancellationToken);
         var playersDbContext = scope.ServiceProvider.GetRequiredService<PlayersWriteDbContext>();
         await playersDbContext.Database.MigrateAsync(cancellationToken);
+        var buildsDbContext = scope.ServiceProvider.GetRequiredService<BuildsWriteDbContext>();
+        await buildsDbContext.Database.MigrateAsync(cancellationToken);
     }
 }

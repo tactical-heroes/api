@@ -1,14 +1,15 @@
+using PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.ReadModels;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
 
-public sealed class BuildsClient : IBuildsClient
+public sealed class BuildsClient(IBuildsApi buildsApi) : IBuildsClient
 {
-    public Task<bool> IsOwnedByPlayerAsync(Guid buildId, Guid playerId, CancellationToken cancellationToken)
+    public async Task<BuildReadModel?> GetByIdAsync(Guid buildId, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        var build = await buildsApi.GetByIdAsync(buildId, cancellationToken);
 
-        // Build ownership is mocked until Builds is connected.
-        return Task.FromResult(result: true);
+        return build is null ? null : new BuildReadModel(build.Id, build.PlayerId);
     }
 }

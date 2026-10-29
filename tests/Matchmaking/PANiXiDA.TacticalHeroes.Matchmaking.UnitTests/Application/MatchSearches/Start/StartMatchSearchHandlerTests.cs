@@ -34,8 +34,7 @@ public sealed class StartMatchSearchHandlerTests
                     && search.GameId == null
                     && search.Mode == MatchmakingMode.RankedDuel));
         await context.Players.Received(1).GetByUserIdAsync(context.UserId, cancellationToken);
-        await context.Builds.Received(1).IsOwnedByPlayerAsync(
-            context.Command.BuildId, context.Player.Id, cancellationToken);
+        await context.Builds.Received(1).GetByIdAsync(context.Command.BuildId, cancellationToken);
     }
 
     [Fact(DisplayName = "Handler should reject request when user id is missing")]
@@ -78,20 +77,23 @@ public sealed class StartMatchSearchHandlerTests
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
         await context.Builds.DidNotReceiveWithAnyArgs()
-            .IsOwnedByPlayerAsync(default, default, TestContext.Current.CancellationToken);
+            .GetByIdAsync(default, TestContext.Current.CancellationToken);
         context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
-    [Fact(DisplayName = "Handler should reject request when build is unavailable")]
-    public async Task HandleAsync_Should_RejectRequest_When_BuildIsUnavailable()
+    [Theory(DisplayName = "Handler should reject request when build is unavailable")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_RejectRequest_When_BuildIsUnavailable(bool ownedByAnotherPlayer)
     {
         var context = new HandlerContext();
-        context.Builds.IsOwnedByPlayerAsync(context.Command.BuildId, context.Player.Id, Arg.Any<CancellationToken>())
-            .Returns(false);
+        context.Builds.GetByIdAsync(context.Command.BuildId, Arg.Any<CancellationToken>())
+            .Returns(ownedByAnotherPlayer ? new BuildReadModel(context.Command.BuildId, Guid.CreateVersion7()) : null);
 
         var result = await context.Handler.HandleAsync(context.Command, TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.NotFound);
         await context.Repository.DidNotReceiveWithAnyArgs()
             .GetActiveByPlayerIdAsync(default, TestContext.Current.CancellationToken);
         context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
@@ -145,7 +147,8 @@ public sealed class StartMatchSearchHandlerTests
         {
             CurrentUser.UserId.Returns(UserId);
             Players.GetByUserIdAsync(UserId, Arg.Any<CancellationToken>()).Returns(Player);
-            Builds.IsOwnedByPlayerAsync(Command.BuildId, Player.Id, Arg.Any<CancellationToken>()).Returns(true);
+            Builds.GetByIdAsync(Command.BuildId, Arg.Any<CancellationToken>())
+                .Returns(new BuildReadModel(Command.BuildId, Player.Id));
             var clock = Substitute.For<TimeProvider>();
             clock.GetUtcNow().Returns(At(300).Value);
             Handler = new StartMatchSearchHandler(Repository, Players, Builds, CurrentUser, clock);
