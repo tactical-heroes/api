@@ -11,18 +11,6 @@ public sealed class ConcurrentMatchSaveBarrier : SaveChangesInterceptor
 {
     private TaskCompletionSource? _release;
     private int _remaining;
-    private long _queueDelayTicks;
-    private int _activeQueueSaves;
-    private int _maximumQueueSaves;
-    private int _failedQueueSaves;
-
-    public int MaximumConcurrentQueueSaves => Volatile.Read(ref _maximumQueueSaves);
-    public int FailedQueueSaves => Volatile.Read(ref _failedQueueSaves);
-
-    public void DelayAndFailNextQueueSave()
-    {
-        Interlocked.Exchange(ref _queueDelayTicks, TimeSpan.FromMilliseconds(2200).Ticks);
-    }
 
     public void Arm()
     {
@@ -37,38 +25,6 @@ public sealed class ConcurrentMatchSaveBarrier : SaveChangesInterceptor
         InterceptionResult<int> result,
         CancellationToken cancellationToken)
     {
-        if (eventData.Context is MatchmakingWriteDbContext queueContext
-            && !queueContext.ChangeTracker.Entries<MatchSearch>().Any())
-        {
-            var active = Interlocked.Increment(ref _activeQueueSaves);
-            var observed = Volatile.Read(ref _maximumQueueSaves);
-            while (active > observed)
-            {
-                var previous = Interlocked.CompareExchange(ref _maximumQueueSaves, active, observed);
-                if (previous == observed)
-                {
-                    break;
-                }
-
-                observed = previous;
-            }
-
-            try
-            {
-                var delayTicks = Interlocked.Exchange(ref _queueDelayTicks, 0);
-                if (delayTicks > 0)
-                {
-                    await Task.Delay(TimeSpan.FromTicks(delayTicks), cancellationToken);
-                    Interlocked.Increment(ref _failedQueueSaves);
-                    throw new InvalidOperationException("Injected matchmaking queue save failure.");
-                }
-            }
-            finally
-            {
-                Interlocked.Decrement(ref _activeQueueSaves);
-            }
-        }
-
         var release = Volatile.Read(ref _release);
         if (release is not null
             && eventData.Context is MatchmakingWriteDbContext context

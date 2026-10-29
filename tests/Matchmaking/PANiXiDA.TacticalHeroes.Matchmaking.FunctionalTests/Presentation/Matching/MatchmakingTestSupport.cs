@@ -56,7 +56,7 @@ internal static class MatchmakingTestSupport
         IServiceProvider services, Guid searchId, CancellationToken ct)
     {
         var probe = services.GetRequiredService<MatchFoundProbe>();
-        var deadline = DateTimeOffset.UtcNow.AddSeconds(15);
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(45);
         while (DateTimeOffset.UtcNow < deadline)
         {
             var found = probe.Events.FirstOrDefault(found =>

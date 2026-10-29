@@ -12,27 +12,27 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
 public class FunctionalTestFixture : IAsyncLifetime
 {
-    private const string ProcessingEnabledVariable = "Matchmaking__Processing__Enabled";
+    private const string ScheduleEnabledVariable = "Matchmaking__Schedules__ProcessMatchmakingCommand__Enabled";
     private const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
 
     private readonly PostgreSqlTestDatabase _database = new("matchmaking", isolateDatabase: true);
 
     private FunctionalTestWebApplicationFactory? _factory;
     private string? _previousConnectionString;
-    private string? _previousProcessingEnabled;
+    private string? _previousScheduleEnabled;
     private string? _previousFileManagerSchedule;
 
     public HttpClient Client { get; private set; } = null!;
     public IServiceProvider Services => _factory!.Services;
 
-    protected virtual bool MatchmakingProcessingEnabled => false;
+    protected virtual bool MatchmakingScheduleEnabled => false;
 
     public async ValueTask InitializeAsync()
     {
         await _database.InitializeAsync(TestContext.Current.CancellationToken);
 
-        _previousProcessingEnabled = Environment.GetEnvironmentVariable(ProcessingEnabledVariable);
-        Environment.SetEnvironmentVariable(ProcessingEnabledVariable, MatchmakingProcessingEnabled.ToString());
+        _previousScheduleEnabled = Environment.GetEnvironmentVariable(ScheduleEnabledVariable);
+        Environment.SetEnvironmentVariable(ScheduleEnabledVariable, MatchmakingScheduleEnabled.ToString());
         _previousFileManagerSchedule = Environment.GetEnvironmentVariable(FileManagerScheduleVariable);
         Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
         _previousConnectionString = Environment.GetEnvironmentVariable(
@@ -43,7 +43,7 @@ public class FunctionalTestFixture : IAsyncLifetime
 
         await MigrateDatabaseAsync(TestContext.Current.CancellationToken);
 
-        _factory = new FunctionalTestWebApplicationFactory(MatchmakingProcessingEnabled);
+        _factory = new FunctionalTestWebApplicationFactory(MatchmakingScheduleEnabled);
         Client = _factory.CreateClient();
     }
 
@@ -66,7 +66,7 @@ public class FunctionalTestFixture : IAsyncLifetime
         Environment.SetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,
             _previousConnectionString);
-        Environment.SetEnvironmentVariable(ProcessingEnabledVariable, _previousProcessingEnabled);
+        Environment.SetEnvironmentVariable(ScheduleEnabledVariable, _previousScheduleEnabled);
         Environment.SetEnvironmentVariable(FileManagerScheduleVariable, _previousFileManagerSchedule);
     }
 

@@ -2,5 +2,5 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Match
 
 public sealed class BackgroundMatchmakingTestFixture : FunctionalTestFixture
 {
-    protected override bool MatchmakingProcessingEnabled => true;
+    protected override bool MatchmakingScheduleEnabled => true;
 }

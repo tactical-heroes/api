@@ -13,7 +13,7 @@ using Wolverine;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
-internal sealed class FunctionalTestWebApplicationFactory(bool matchmakingProcessingEnabled)
+internal sealed class FunctionalTestWebApplicationFactory(bool matchmakingScheduleEnabled)
     : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -25,7 +25,7 @@ internal sealed class FunctionalTestWebApplicationFactory(bool matchmakingProces
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
                 ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret",
                 ["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] = "false",
-                ["Matchmaking:Processing:Enabled"] = matchmakingProcessingEnabled.ToString()
+                ["Matchmaking:Schedules:ProcessMatchmakingCommand:Enabled"] = matchmakingScheduleEnabled.ToString()
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
