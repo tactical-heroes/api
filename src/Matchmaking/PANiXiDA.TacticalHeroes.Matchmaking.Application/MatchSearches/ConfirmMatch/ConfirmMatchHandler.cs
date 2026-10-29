@@ -8,7 +8,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmM
 
 public sealed class ConfirmMatchHandler(
     IMatchSearchesRepository matchSearchesRepository,
-    MatchmakingRules rules,
     TimeProvider timeProvider)
     : ICommandHandler<ConfirmMatchCommand, Result>, IRequireTransaction
 {
@@ -34,8 +33,7 @@ public sealed class ConfirmMatchHandler(
 
         var now = MatchmakingTimestamp.Create(timeProvider.GetUtcNow());
 
-        if (!MatchmakingPolicy.CanMatch(
-            first: first, second: second, now: now, rules: rules))
+        if (!MatchmakingPolicy.CanMatch(first: first, second: second, now: now))
         {
             return Result.Success();
         }

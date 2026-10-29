@@ -7,7 +7,6 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
 
@@ -33,8 +32,7 @@ public sealed class ProcessMatchmakingHandlerTests
         repository.GetAllAsync(Arg.Any<ISpecification<MatchSearch>>(), ct).Returns(searches);
         var active = CreateSearch(queuedAt: 10);
         var future = CreateSearch(queuedAt: 11);
-        var handler = new ProcessMatchmakingHandler(
-            repository, scheduler, MatchmakingRules.Create(100, 50, TimeSpan.FromSeconds(15), 500).Value, clock);
+        var handler = new ProcessMatchmakingHandler(repository, scheduler, clock);
 
         var result = await handler.HandleAsync(new ProcessMatchmakingCommand(), ct);
 

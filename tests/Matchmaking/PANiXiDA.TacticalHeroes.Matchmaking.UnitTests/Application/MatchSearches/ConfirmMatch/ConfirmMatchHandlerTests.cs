@@ -109,7 +109,6 @@ public sealed class ConfirmMatchHandlerTests
     {
         var clock = Substitute.For<TimeProvider>();
         clock.GetUtcNow().Returns(At(10).Value);
-        return new ConfirmMatchHandler(
-            repository, MatchmakingRules.Create(100, 50, TimeSpan.FromSeconds(15), 500).Value, clock);
+        return new ConfirmMatchHandler(repository, clock);
     }
 }

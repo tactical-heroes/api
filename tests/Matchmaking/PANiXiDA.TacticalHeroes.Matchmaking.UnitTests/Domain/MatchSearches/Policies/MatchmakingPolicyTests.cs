@@ -12,9 +12,6 @@ public sealed class MatchmakingPolicyTests
     private static readonly MatchmakingTimestamp s_now =
         MatchmakingTimestamp.Create(DateTimeOffset.UnixEpoch.AddDays(1));
 
-    private static readonly MatchmakingRules s_rules =
-        MatchmakingRules.Create(100, 50, TimeSpan.FromSeconds(15), 500).Value;
-
     [Theory(DisplayName = "Policy should choose oldest or closest opponent when mode is selected")]
     [InlineData("CasualDuel", true)]
     [InlineData("RankedDuel", false)]
@@ -24,7 +21,7 @@ public sealed class MatchmakingPolicyTests
         var older = Search(1050, mode, waited: 20);
         var closer = Search(1001, mode, waited: 10);
 
-        var pair = MatchmakingPolicy.SelectPairs([closer, older, first], s_now, s_rules).ShouldHaveSingleItem();
+        var pair = MatchmakingPolicy.SelectPairs([closer, older, first], s_now).ShouldHaveSingleItem();
 
         pair.FirstSearchId.ShouldBe(first.Id.Value);
         pair.SecondSearchId.ShouldBe(fifo ? older.Id.Value : closer.Id.Value);
@@ -39,7 +36,7 @@ public sealed class MatchmakingPolicyTests
         searches.Add(first);
         searches.Add(second);
 
-        var pair = MatchmakingPolicy.SelectPairs(searches, s_now, s_rules).ShouldHaveSingleItem();
+        var pair = MatchmakingPolicy.SelectPairs(searches, s_now).ShouldHaveSingleItem();
 
         pair.FirstSearchId.ShouldBe(first.Id.Value);
         pair.SecondSearchId.ShouldBe(second.Id.Value);
@@ -50,7 +47,7 @@ public sealed class MatchmakingPolicyTests
     {
         var searches = Enumerable.Range(0, 9).Select(index => Search(1000 + index)).ToArray();
 
-        var pairs = MatchmakingPolicy.SelectPairs(searches, s_now, s_rules);
+        var pairs = MatchmakingPolicy.SelectPairs(searches, s_now);
 
         pairs.Count.ShouldBe(4);
         pairs.SelectMany(pair => new[] { pair.FirstSearchId, pair.SecondSearchId }).Distinct().Count().ShouldBe(8);
@@ -62,7 +59,7 @@ public sealed class MatchmakingPolicyTests
         var searches = new[] { Search(1000), Search(1000) };
         var events = searches.SelectMany(search => search.GetDomainEvents()).ToArray();
 
-        var pairs = MatchmakingPolicy.SelectPairs(searches, s_now, s_rules);
+        var pairs = MatchmakingPolicy.SelectPairs(searches, s_now);
 
         pairs.ShouldHaveSingleItem();
         searches.ShouldAllBe(search => search.Status == MatchSearchStatus.Searching);
@@ -70,10 +67,14 @@ public sealed class MatchmakingPolicyTests
     }
 
     [Theory(DisplayName = "Policy should respect both rating windows when waiting time changes")]
+    [InlineData(0, 0, 100, true)]
+    [InlineData(0, 0, 101, false)]
     [InlineData(14, 14, 150, false)]
     [InlineData(15, 15, 150, true)]
     [InlineData(30, 30, 200, true)]
     [InlineData(30, 0, 150, false)]
+    [InlineData(119, 119, 500, false)]
+    [InlineData(120, 120, 500, true)]
     [InlineData(299, 299, 500, true)]
     [InlineData(299, 299, 501, false)]
     public void CanMatch_Should_RespectBothRatingWindows_When_WaitingTimeChanges(
@@ -82,7 +83,7 @@ public sealed class MatchmakingPolicyTests
         var first = Search(1000, waited: firstWait);
         var second = Search(1000 + difference, waited: secondWait);
 
-        var result = MatchmakingPolicy.CanMatch(first, second, s_now, s_rules);
+        var result = MatchmakingPolicy.CanMatch(first, second, s_now);
 
         result.ShouldBe(expected);
     }
@@ -138,8 +139,8 @@ public sealed class MatchmakingPolicyTests
         }
 
         var result = reverse
-            ? MatchmakingPolicy.CanMatch(second, first, s_now, s_rules)
-            : MatchmakingPolicy.CanMatch(first, second, s_now, s_rules);
+            ? MatchmakingPolicy.CanMatch(second, first, s_now)
+            : MatchmakingPolicy.CanMatch(first, second, s_now);
 
         result.ShouldBeFalse();
     }
@@ -152,7 +153,7 @@ public sealed class MatchmakingPolicyTests
         var first = Search(int.MinValue, mode);
         var second = Search(int.MaxValue, mode);
 
-        var result = MatchmakingPolicy.CanMatch(first, second, s_now, s_rules);
+        var result = MatchmakingPolicy.CanMatch(first, second, s_now);
 
         result.ShouldBe(expected);
     }
@@ -162,7 +163,7 @@ public sealed class MatchmakingPolicyTests
     {
         var searches = Enumerable.Range(0, 3).Select(_ => Search(1000)).OrderBy(search => search.Id.Value).ToArray();
 
-        var pair = MatchmakingPolicy.SelectPairs(searches.Reverse(), s_now, s_rules).ShouldHaveSingleItem();
+        var pair = MatchmakingPolicy.SelectPairs(searches.Reverse(), s_now).ShouldHaveSingleItem();
 
         pair.FirstSearchId.ShouldBe(searches[0].Id.Value);
         pair.SecondSearchId.ShouldBe(searches[1].Id.Value);

@@ -11,7 +11,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
 public sealed class ProcessMatchmakingHandler(
     IMatchSearchesRepository matchSearchesRepository,
     IScheduler scheduler,
-    MatchmakingRules rules,
     TimeProvider timeProvider)
     : ICommandHandler<ProcessMatchmakingCommand, Result>, IRequireTransaction
 {
@@ -22,7 +21,7 @@ public sealed class ProcessMatchmakingHandler(
         var searches = await matchSearchesRepository.GetAllAsync(
             new SearchingMatchSearchSpecification(now), cancellationToken);
 
-        var pairs = MatchmakingPolicy.SelectPairs(searches: searches, now: now, rules: rules);
+        var pairs = MatchmakingPolicy.SelectPairs(searches, now);
 
         foreach (var pair in pairs)
         {
