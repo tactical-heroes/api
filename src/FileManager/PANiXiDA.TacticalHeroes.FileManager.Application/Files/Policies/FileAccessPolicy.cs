@@ -20,6 +20,24 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
         return CanRead(filter.Type, filter.UserId);
     }
 
+    public bool CanDelete(File file)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (file.Type == FileType.Personal)
+        {
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.DeleteAll.Code)
+                || (file.UserId?.Value == currentUser.UserId
+                    && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.DeleteOwn.Code));
+        }
+
+        return file.Type == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Delete.Code);
+    }
+
     public Result<FilesFilter> ApplyReadRestrictions(FilesFilter filter)
     {
         if (!currentUser.IsAuthenticated || currentUser.UserId is not { } userId)
