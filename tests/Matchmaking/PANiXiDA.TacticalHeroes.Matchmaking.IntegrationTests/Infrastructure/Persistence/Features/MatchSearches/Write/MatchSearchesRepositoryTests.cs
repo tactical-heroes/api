@@ -8,6 +8,7 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
@@ -20,6 +21,80 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Pe
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
 {
+    [Fact(DisplayName = "Repository should read entire queue when more than one hundred players are waiting")]
+    public async Task GetAllAsync_Should_ReadEntireQueue_When_MoreThanOneHundredPlayersAreWaiting()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(ct);
+        var searches = Enumerable.Range(0, 151).Select(index => CreateSearch(queuedAt: index)).ToArray();
+        await using (var writeScope = fixture.CreateScope())
+        {
+            var repository = writeScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+            foreach (var search in searches)
+            {
+                repository.Add(search);
+            }
+
+            await UnitOfWork(writeScope.ServiceProvider).SaveChangesAsync(ct);
+        }
+
+        await using var scope = fixture.CreateScope();
+        var result = await scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
+            .GetAllAsync(new SearchingMatchSearchSpecification(At(151)), ct);
+
+        result.Count.ShouldBe(151);
+        result.First().Id.ShouldBe(searches[0].Id);
+        result.Last().Id.ShouldBe(searches[^1].Id);
+        result.First().PlayerId.ShouldBe(searches[0].PlayerId);
+        result.First().Rating.ShouldBe(searches[0].Rating);
+        result.First().Mode.ShouldBe(MatchmakingMode.RankedDuel);
+        result.First().QueuedAt.ShouldBe(searches[0].QueuedAt);
+        result.First().ExpiresAt.ShouldBe(searches[0].ExpiresAt);
+        var context = scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
+        var entries = context.ChangeTracker.Entries<Domain.MatchSearches.MatchSearch>().ToArray();
+        entries.Length.ShouldBe(151);
+        entries.ShouldAllBe(entry => entry.State == EntityState.Unchanged);
+    }
+
+    [Fact(DisplayName = "Repository should exclude inactive searches when queue is read")]
+    public async Task GetAllAsync_Should_ExcludeInactiveSearches_When_QueueIsRead()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(ct);
+        var active = CreateSearch(queuedAt: 10);
+        var cancelled = CreateSearch(queuedAt: 10);
+        cancelled.Cancel();
+        var matched = CreateSearch(queuedAt: 10);
+        matched.Matched(At(11));
+        var closed = CreateSearch(queuedAt: 10);
+        closed.Matched(At(11));
+        closed.Close();
+        var expired = CreateSearch();
+        expired.Expire(At(300));
+        var deleted = CreateSearch(queuedAt: 10);
+        await using (var writeScope = fixture.CreateScope())
+        {
+            var repository = writeScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+            repository.Add(active);
+            repository.Add(cancelled);
+            repository.Add(matched);
+            repository.Add(closed);
+            repository.Add(expired);
+            repository.Add(deleted);
+            repository.Add(CreateSearch());
+            repository.Add(CreateSearch(queuedAt: 301));
+            await UnitOfWork(writeScope.ServiceProvider).SaveChangesAsync(ct);
+            repository.Delete(deleted);
+            await UnitOfWork(writeScope.ServiceProvider).SaveChangesAsync(ct);
+        }
+
+        await using var scope = fixture.CreateScope();
+        var result = await scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
+            .GetAllAsync(new SearchingMatchSearchSpecification(At(300)), ct);
+
+        result.ShouldHaveSingleItem().Id.ShouldBe(active.Id);
+    }
+
     [Theory(DisplayName = "Repository should preserve selection when reloaded")]
     [InlineData("RankedDuel")]
     [InlineData("CasualDuel")]

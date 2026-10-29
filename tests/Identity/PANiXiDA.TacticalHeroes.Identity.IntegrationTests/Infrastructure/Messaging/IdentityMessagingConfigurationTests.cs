@@ -47,7 +47,7 @@ public sealed class IdentityMessagingConfigurationTests
             "Identity:Messaging:PasswordResetUrlTemplate", StringComparison.Ordinal));
     }
 
-    [Theory(DisplayName = "Handler preserves payload and metadata when configured email links contain encoded tokens")]
+    [Theory(DisplayName = "Mapping should preserve event data when configured email links contain encoded tokens")]
     [InlineData("https://dev.tactical-heroes.panixida.ru")]
     [InlineData("https://tactical-heroes.panixida.ru")]
     [InlineData("https://localhost:5173")]
