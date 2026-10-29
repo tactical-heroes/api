@@ -28,8 +28,7 @@ public sealed class GetFilesHandlerTests
         var expectedFilter = filter with
         {
             Type = type.Trim(),
-            UserId = own ? userId : null,
-            Types = [type.Trim()]
+            UserId = own ? userId : null
         };
         repository.GetPageAsync(
             Arg.Any<FilesFilter>(), pagination, sorting, cancellationToken)
@@ -43,8 +42,7 @@ public sealed class GetFilesHandlerTests
         await repository.Received(1).GetPageAsync(
             Arg.Is<FilesFilter>(actual => actual.Type == expectedFilter.Type
                 && actual.Search == expectedFilter.Search
-                && actual.UserId == expectedFilter.UserId
-                && actual.Types.SequenceEqual(expectedFilter.Types)),
+                && actual.UserId == expectedFilter.UserId),
             pagination,
             sorting,
             cancellationToken);
@@ -102,13 +100,13 @@ public sealed class GetFilesHandlerTests
     }
 
     [Theory(DisplayName = "File list handler should pass combined access when type is omitted")]
-    [InlineData("file-manager.personal-files.read.all,file-manager.avatars.read", true, false, true)]
-    [InlineData("file-manager.personal-files.read.own,file-manager.avatars.read", false, true, true)]
-    [InlineData("file-manager.personal-files.read.all", true, false, false)]
-    [InlineData("file-manager.personal-files.read.own", false, true, false)]
-    [InlineData("file-manager.avatars.read", false, false, true)]
+    [InlineData("file-manager.personal-files.read.all,file-manager.avatars.read", false)]
+    [InlineData("file-manager.personal-files.read.own,file-manager.avatars.read", true)]
+    [InlineData("file-manager.personal-files.read.all", false)]
+    [InlineData("file-manager.personal-files.read.own", true)]
+    [InlineData("file-manager.avatars.read", false)]
     public async Task HandleAsync_Should_PassCombinedAccess_When_TypeIsOmitted(
-        string permissions, bool allPersonal, bool ownPersonal, bool avatars)
+        string permissions, bool ownPersonal)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var userId = Guid.NewGuid();
@@ -120,9 +118,6 @@ public sealed class GetFilesHandlerTests
         var repository = Substitute.For<IFilesReadRepository>();
         var filter = new FilesFilter(Search: "report");
         var pagination = new PaginationParameters();
-        var expectedTypes = new List<string>();
-        if (allPersonal || ownPersonal) expectedTypes.Add("Personal");
-        if (avatars) expectedTypes.Add("Avatar");
         var page = PaginationResult<FileListItemReadModel>.Empty(1, 10);
         repository.GetPageAsync(Arg.Any<FilesFilter>(), pagination, SortingParameters.None, cancellationToken)
             .Returns(page);
@@ -136,7 +131,8 @@ public sealed class GetFilesHandlerTests
         result.Value.ShouldBeSameAs(page);
         await repository.Received(1)
             .GetPageAsync(
-                Arg.Is<FilesFilter>(actual => actual.Types.SequenceEqual(expectedTypes)
+                Arg.Is<FilesFilter>(actual => actual.Type == null
+                    && actual.Search == filter.Search
                     && actual.UserId == (ownPersonal
                         ? userId
                         : null)),
@@ -176,8 +172,7 @@ public sealed class GetFilesHandlerTests
         if (allowed)
         {
             await repository.Received(1).GetPageAsync(
-                Arg.Is<FilesFilter>(filter => filter.UserId == ownerId
-                    && filter.Types.SequenceEqual(new[] { "Personal", "Avatar" })),
+                Arg.Is<FilesFilter>(filter => filter.Type == null && filter.UserId == ownerId),
                 Arg.Any<PaginationParameters>(),
                 Arg.Any<SortingParameters>(),
                 Arg.Any<CancellationToken>());

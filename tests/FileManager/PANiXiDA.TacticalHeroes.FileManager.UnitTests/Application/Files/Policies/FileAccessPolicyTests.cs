@@ -143,30 +143,33 @@ public sealed class FileAccessPolicyTests
     [InlineData("Personal", "foreign", true, false, false, true)]
     [InlineData("Personal", "none", true, true, false, true)]
     [InlineData("Avatar", "none", false, false, true, true)]
-    [InlineData("Personal,Avatar", "own", false, true, true, true)]
-    [InlineData("Personal,Avatar", "own", false, true, false, false)]
-    [InlineData("Personal,Avatar", "foreign", false, true, true, false)]
+    [InlineData(null, "own", false, true, true, true)]
+    [InlineData(null, "own", false, true, false, true)]
+    [InlineData(null, "foreign", false, true, true, false)]
     [InlineData("Unknown", "none", true, true, true, false)]
     [InlineData("", "none", true, true, true, false)]
+    [InlineData(null, "none", false, false, true, true)]
+    [InlineData(null, "none", false, true, false, false)]
+    [InlineData(null, "none", true, false, false, true)]
+    [InlineData(null, "none", false, false, false, false)]
     public void CanRead_Should_CheckFullFilter_When_RequestedScopesVary(
-        string types, string owner, bool all, bool own, bool avatars, bool expected)
+        string? type, string owner, bool all, bool own, bool avatars, bool expected)
     {
         var userId = Guid.NewGuid();
         var currentUser = CreateCurrentUser(userId);
         currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
         currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(own);
         currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code).Returns(avatars);
-        var filter = new FilesFilter(UserId: owner == "own" ? userId : owner == "foreign" ? Guid.NewGuid() : null)
-        {
-            Types = types.Length == 0 ? [] : types.Split(',')
-        };
-        var originalTypes = filter.Types.ToArray();
+        var filter = new FilesFilter(
+            Type: type,
+            UserId: owner == "own" ? userId : owner == "foreign" ? Guid.NewGuid() : null);
+        var originalType = filter.Type;
         var originalUserId = filter.UserId;
 
         var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
 
         allowed.ShouldBe(expected);
-        filter.Types.ShouldBe(originalTypes);
+        filter.Type.ShouldBe(originalType);
         filter.UserId.ShouldBe(originalUserId);
     }
 
@@ -176,7 +179,7 @@ public sealed class FileAccessPolicyTests
         var currentUser = CreateCurrentUser(Guid.NewGuid());
         currentUser.IsAuthenticated.Returns(false);
         currentUser.HasPermission(Arg.Any<string>()).Returns(true);
-        var filter = new FilesFilter { Types = ["Personal", "Avatar"] };
+        var filter = new FilesFilter();
 
         var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
 

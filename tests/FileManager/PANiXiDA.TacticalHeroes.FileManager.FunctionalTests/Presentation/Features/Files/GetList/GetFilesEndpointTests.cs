@@ -234,27 +234,6 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         }
     }
 
-    [Fact(
-        DisplayName = "File list endpoint should ignore internal type selection when query attempts to broaden access")]
-    public async Task HandleAsync_Should_IgnoreInternalTypeSelection_When_QueryAttemptsToBroadenAccess()
-    {
-        var userId = Guid.NewGuid();
-        await AddFileAsync("Foreign personal", "Personal", Guid.NewGuid());
-        var avatar = await AddFileAsync("Avatar", "Avatar", null);
-
-        using var response = await SendAsync(
-            "?types=Personal&types=Avatar",
-            userId.ToString(),
-            "file-manager.avatars.read");
-
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
-            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
-        page.ShouldNotBeNull();
-        page.TotalCount.ShouldBe(1);
-        page.Items.ShouldHaveSingleItem().Id.ShouldBe(avatar.Id.Value);
-    }
-
     private async Task<HttpResponseMessage> SendAsync(string query, string? subject, string permission)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, Route + query);

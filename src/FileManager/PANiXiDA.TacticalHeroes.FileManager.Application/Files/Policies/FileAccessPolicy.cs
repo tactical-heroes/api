@@ -17,9 +17,13 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
 
     public bool CanRead(FilesFilter filter)
     {
-        return filter.Types.Count > 0
-            && filter.Types.All(type => (filter.Type is null || type == filter.Type)
-                && CanRead(type, filter.UserId));
+        if (filter.Type is { } type)
+        {
+            return CanRead(type, filter.UserId);
+        }
+
+        return CanRead(FileType.Personal.Name, filter.UserId)
+            || (filter.UserId is null && CanRead(FileType.Avatar.Name, userId: null));
     }
 
     private bool CanRead(string type, Guid? userId)
