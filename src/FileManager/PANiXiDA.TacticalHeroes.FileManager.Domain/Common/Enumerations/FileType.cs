@@ -14,13 +14,6 @@ public sealed partial class FileType : Enumeration<FileType>
     {
     }
 
-    public static Result<FileType?> CreateOptional(string? value)
-    {
-        return value is null
-            ? Result.Success<FileType?>(value: null)
-            : Create(value).Map(type => (FileType?)type);
-    }
-
     public static Result<FileType> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -37,5 +30,12 @@ public sealed partial class FileType : Enumeration<FileType>
             : Result.Failure<FileType>(
                 Error.Validation($"File type '{normalizedValue}' is invalid.")
                     .WithField(nameof(FileType)));
+    }
+
+    public static Result<FileType?> CreateOptional(string? value)
+    {
+        return value is null
+            ? Result.Success<FileType?>(value: null)
+            : Create(value).Map(type => (FileType?)type);
     }
 }
