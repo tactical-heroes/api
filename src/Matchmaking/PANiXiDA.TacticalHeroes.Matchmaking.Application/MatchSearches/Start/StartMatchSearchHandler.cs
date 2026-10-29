@@ -15,7 +15,6 @@ public sealed class StartMatchSearchHandler(
     IPlayersClient playersClient,
     IBuildsClient buildsClient,
     ICurrentUser currentUser,
-    IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
     :
         ICommandHandler<StartMatchSearchCommand, Result>,
@@ -55,19 +54,12 @@ public sealed class StartMatchSearchHandler(
 
         var playerId = PlayerId.Create(player.Id).Value;
         var existing = await matchSearchesRepository.GetActiveByPlayerIdAsync(playerId, cancellationToken);
-        var now = MatchmakingTimestamp.Create(timeProvider.GetUtcNow());
         if (existing is not null)
         {
-            var expiration = existing.Expire(now);
-            if (expiration.IsFailure)
-            {
-                return Result.Failure(Error.Conflict("Player is already searching or playing."));
-            }
-
-            matchSearchesRepository.Update(existing);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result.Failure(Error.Conflict("Player is already searching or playing."));
         }
 
+        var now = MatchmakingTimestamp.Create(timeProvider.GetUtcNow());
         var created = MatchSearch.Create(
             playerId: playerId,
             buildId: buildId.Value,

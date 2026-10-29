@@ -1,5 +1,4 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
-using PANiXiDA.Core.Application.Persistence;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Start;
@@ -119,11 +118,11 @@ public sealed class StartMatchSearchHandlerTests
         result.IsFailure.ShouldBeTrue();
         search.Status.ShouldBe(matched ? MatchSearchStatus.Matched : MatchSearchStatus.Searching);
         context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
-        await context.UnitOfWork.DidNotReceiveWithAnyArgs().SaveChangesAsync(TestContext.Current.CancellationToken);
+        context.Repository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 
-    [Fact(DisplayName = "Handler should expire previous search before adding replacement when search reached deadline")]
-    public async Task HandleAsync_Should_ExpirePreviousSearchBeforeAddingReplacement_When_SearchReachedDeadline()
+    [Fact(DisplayName = "Handler should reject request when search reached deadline")]
+    public async Task HandleAsync_Should_RejectRequest_When_SearchReachedDeadline()
     {
         var context = new HandlerContext();
         var search = CreateSearch(context.Player.Id);
@@ -133,15 +132,11 @@ public sealed class StartMatchSearchHandlerTests
 
         var result = await context.Handler.HandleAsync(context.Command, TestContext.Current.CancellationToken);
 
-        result.IsSuccess.ShouldBeTrue();
-        search.Status.ShouldBe(MatchSearchStatus.Expired);
-        Received.InOrder(() =>
-        {
-            context.Repository.Update(search);
-            context.UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
-            context.Repository.Add(Arg.Is<MatchSearch>(newSearch =>
-                newSearch.Id != search.Id && newSearch.Status == MatchSearchStatus.Searching));
-        });
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Conflict);
+        search.Status.ShouldBe(MatchSearchStatus.Searching);
+        context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
+        context.Repository.DidNotReceiveWithAnyArgs().Update(null!);
     }
 
     private sealed class HandlerContext
@@ -153,7 +148,7 @@ public sealed class StartMatchSearchHandlerTests
             Builds.IsOwnedByPlayerAsync(Command.BuildId, Player.Id, Arg.Any<CancellationToken>()).Returns(true);
             var clock = Substitute.For<TimeProvider>();
             clock.GetUtcNow().Returns(At(300).Value);
-            Handler = new StartMatchSearchHandler(Repository, Players, Builds, CurrentUser, UnitOfWork, clock);
+            Handler = new StartMatchSearchHandler(Repository, Players, Builds, CurrentUser, clock);
         }
 
         public Guid UserId { get; } = Guid.CreateVersion7();
@@ -163,7 +158,6 @@ public sealed class StartMatchSearchHandlerTests
         public IPlayersClient Players { get; } = Substitute.For<IPlayersClient>();
         public IBuildsClient Builds { get; } = Substitute.For<IBuildsClient>();
         public ICurrentUser CurrentUser { get; } = Substitute.For<ICurrentUser>();
-        public IUnitOfWork UnitOfWork { get; } = Substitute.For<IUnitOfWork>();
         public StartMatchSearchHandler Handler { get; }
     }
 }

@@ -113,8 +113,8 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         restored.Status.ShouldBe(matched ? MatchSearchStatus.Matched : MatchSearchStatus.Searching);
     }
 
-    [Fact(DisplayName = "Endpoint should expire previous search when search deadline passed")]
-    public async Task Post_Should_ExpirePreviousSearch_When_SearchDeadlinePassed()
+    [Fact(DisplayName = "Endpoint should reject another search when search deadline passed")]
+    public async Task Post_Should_RejectAnotherSearch_When_SearchDeadlinePassed()
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -126,12 +126,12 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
             new StartMatchSearchRequest(Guid.CreateVersion7(), "RankedDuel"),
             ct);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
-        await AssertSearchCountAsync(2, ct);
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        await AssertSearchCountAsync(1, ct);
         await using var scope = fixture.Services.CreateAsyncScope();
         var restored = (await scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
             .GetByIdAsync(previous.Id, ct))!;
-        restored.Status.ShouldBe(MatchSearchStatus.Expired);
+        restored.Status.ShouldBe(MatchSearchStatus.Searching);
     }
 
     [Fact(DisplayName = "Endpoint should create one search when requests arrive concurrently")]
