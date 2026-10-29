@@ -13,10 +13,17 @@ public sealed class ConcurrentMatchSaveBarrier : SaveChangesInterceptor
     private int _remaining;
     private TaskCompletionSource? _saveReached;
     private TaskCompletionSource? _saveRelease;
+    private MatchSearchStatus _saveStatus = MatchSearchStatus.Matched;
 
     public Task PauseNextMatchSave()
     {
+        return PauseNextSave(MatchSearchStatus.Matched);
+    }
+
+    public Task PauseNextSave(MatchSearchStatus status)
+    {
         var reached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Volatile.Write(ref _saveStatus, status);
         Interlocked.Exchange(
             ref _saveRelease,
             new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously));
@@ -43,19 +50,29 @@ public sealed class ConcurrentMatchSaveBarrier : SaveChangesInterceptor
         InterceptionResult<int> result,
         CancellationToken cancellationToken)
     {
-        if (eventData.Context is not MatchmakingWriteDbContext context
-            || !context.ChangeTracker.Entries<MatchSearch>()
-                .Any(entry => entry.State == EntityState.Modified && entry.Entity.Status == MatchSearchStatus.Matched))
+        if (eventData.Context is not MatchmakingWriteDbContext context)
         {
             return result;
         }
 
-        var reached = Interlocked.Exchange(ref _saveReached, null);
-        if (reached is not null)
+        var entries = context.ChangeTracker.Entries<MatchSearch>()
+            .Where(entry => entry.State == EntityState.Modified)
+            .ToArray();
+        var status = Volatile.Read(ref _saveStatus);
+        if (entries.Any(entry => entry.Entity.Status == status))
         {
-            var saveRelease = Volatile.Read(ref _saveRelease)!;
-            reached.TrySetResult();
-            await saveRelease.Task.WaitAsync(TimeSpan.FromSeconds(15), cancellationToken);
+            var reached = Interlocked.Exchange(ref _saveReached, null);
+            if (reached is not null)
+            {
+                var saveRelease = Volatile.Read(ref _saveRelease)!;
+                reached.TrySetResult();
+                await saveRelease.Task.WaitAsync(TimeSpan.FromSeconds(15), cancellationToken);
+            }
+        }
+
+        if (!entries.Any(entry => entry.Entity.Status == MatchSearchStatus.Matched))
+        {
+            return result;
         }
 
         var release = Volatile.Read(ref _release);
