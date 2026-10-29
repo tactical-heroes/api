@@ -17,7 +17,7 @@ public sealed partial class FileType : Enumeration<FileType>
     public static Result<FileType?> CreateOptional(string? value)
     {
         return value is null
-            ? Result.Success<FileType?>(null)
+            ? Result.Success<FileType?>(value: null)
             : Create(value).Map(type => (FileType?)type);
     }
 
