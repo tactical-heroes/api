@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
@@ -142,5 +143,146 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
             folders.Where(folder => folder.ParentId == folders[depth].Id)
                 .Select(folder => folder.Id.Value));
         readContext.ChangeTracker.Entries().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Folder repository should filter before paging when type and owner vary")]
+    [InlineData("Personal", true, 2, "Gamma")]
+    [InlineData("Personal", false, 4, "Beta")]
+    [InlineData("Avatar", false, 1, "Avatar")]
+    [InlineData(null, true, 3, "Avatar")]
+    [InlineData(null, false, 5, "Avatar")]
+    public async Task GetPageAsync_Should_FilterBeforePaging_When_TypeAndOwnerVary(
+        string? type, bool own, long total, string name)
+    {
+        var userId = Guid.NewGuid();
+        await AddFolderAsync("Alpha", "Personal", userId);
+        await AddFolderAsync("Gamma", "Personal", userId);
+        await AddFolderAsync("Beta", "Personal", Guid.NewGuid());
+        await AddFolderAsync("Delta", "Personal", Guid.NewGuid());
+        await AddFolderAsync("Avatar", "Avatar", null);
+        await AddFolderAsync("Aardvark", "Personal", userId, deleted: true);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FoldersFilter(AllowedFileType: type, UserId: own ? userId : null),
+            new PaginationParameters(type == "Avatar" ? 1 : 2, 1),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        page.TotalCount.ShouldBe(total);
+        page.Items.ShouldHaveSingleItem().Name.ShouldBe(name);
+        scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>().ChangeTracker.Entries().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Folder repository should search inside the selection when search and type have whitespace")]
+    public async Task GetPageAsync_Should_SearchInsideSelection_When_SearchAndTypeHaveWhitespace()
+    {
+        var userId = Guid.NewGuid();
+        var folder = await AddFolderAsync("Annual REPORT", "Personal", userId);
+        await AddFolderAsync("Foreign report", "Personal", Guid.NewGuid());
+        await AddFolderAsync("Avatar report", "Avatar", null);
+        await AddFolderAsync("Deleted report", "Personal", userId, deleted: true);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FoldersFilter(Search: " RePoRt ", AllowedFileType: " Personal ", UserId: userId),
+            new PaginationParameters(),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        page.TotalCount.ShouldBe(1);
+        page.Items.ShouldHaveSingleItem().Id.ShouldBe(folder.Id.Value);
+    }
+
+    [Fact(DisplayName = "Folder repository should project parent identifiers when folder is nested")]
+    public async Task GetPageAsync_Should_ProjectParentIdentifiers_When_FolderIsNested()
+    {
+        var parent = await AddFolderAsync("Parent", "Avatar", null);
+        var child = parent.CreateChild(FolderName.Create("Child").Value);
+        await using var scope = Fixture.CreateScope();
+        scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(child);
+        await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(TestContext.Current.CancellationToken);
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FoldersFilter(AllowedFileType: "Avatar"),
+            new PaginationParameters(),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        var item = page.Items.Single(folder => folder.Id == child.Id.Value);
+        item.Name.ShouldBe(child.Name.Value);
+        item.AllowedFileType.ShouldBe("Avatar");
+        item.ParentId.ShouldBe(parent.Id.Value);
+        page.Items.Single(folder => folder.Id == parent.Id.Value).ParentId.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Folder repository should break ties by descending id when names are equal")]
+    public async Task GetPageAsync_Should_BreakTiesByDescendingId_When_NamesAreEqual()
+    {
+        var first = await AddFolderAsync("Same", "Avatar", null);
+        var second = await AddFolderAsync("Same", "Avatar", null);
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+        var filter = new FoldersFilter(AllowedFileType: "Avatar");
+
+        var firstPage = await repository.GetPageAsync(
+            filter,
+            new PaginationParameters(1, 1),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+        var secondPage = await repository.GetPageAsync(
+            filter,
+            new PaginationParameters(2, 1),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        var ids = new[] { first.Id.Value, second.Id.Value }.OrderDescending().ToArray();
+        firstPage.Items.ShouldHaveSingleItem().Id.ShouldBe(ids[0]);
+        secondPage.Items.ShouldHaveSingleItem().Id.ShouldBe(ids[1]);
+    }
+
+    [Theory(DisplayName = "Folder repository should preserve total when the requested page has no items")]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task GetPageAsync_Should_PreserveTotal_When_TheRequestedPageHasNoItems(int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            await AddFolderAsync("Folder", "Avatar", null);
+        }
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var page = await repository.GetPageAsync(
+            new FoldersFilter(AllowedFileType: "Avatar"),
+            new PaginationParameters(2, 1),
+            SortingParameters.None,
+            TestContext.Current.CancellationToken);
+
+        page.TotalCount.ShouldBe(count);
+        page.Items.ShouldBeEmpty();
+    }
+
+    private async Task<Folder> AddFolderAsync(string name, string type, Guid? userId, bool deleted = false)
+    {
+        var folder = Folder.Create(
+            FolderName.Create(name).Value,
+            FileType.FromName(type),
+            userId is { } owner ? UserId.Create(owner).Value : null).Value;
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+        repository.Add(folder);
+        await unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        if (deleted)
+        {
+            repository.Delete(folder);
+            await unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+        return folder;
     }
 }

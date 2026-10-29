@@ -54,4 +54,40 @@ public sealed class FoldersFilterValidatorTests
 
         result.IsValid.ShouldBeTrue();
     }
+
+    [Theory(DisplayName = "Folder filter should validate allowed type when optional type varies")]
+    [InlineData(null, true)]
+    [InlineData("Personal", true)]
+    [InlineData("Avatar", true)]
+    [InlineData(" Personal ", true)]
+    [InlineData("Unknown", false)]
+    [InlineData("", false)]
+    public void Validate_Should_ValidateAllowedType_When_OptionalTypeVaries(string? type, bool valid)
+    {
+        var filter = new FoldersFilter(AllowedFileType: type);
+
+        var result = new FoldersFilterValidator().Validate(filter);
+
+        result.IsValid.ShouldBe(valid);
+        if (!valid)
+        {
+            result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(nameof(filter.AllowedFileType));
+        }
+    }
+
+    [Theory(DisplayName = "Folder filter should validate owner when user id validity varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Validate_Should_ValidateOwner_When_UserIdValidityVaries(bool valid)
+    {
+        var filter = new FoldersFilter(UserId: valid ? Guid.NewGuid() : Guid.Empty);
+
+        var result = new FoldersFilterValidator().Validate(filter);
+
+        result.IsValid.ShouldBe(valid);
+        if (!valid)
+        {
+            result.Errors.ShouldHaveSingleItem().PropertyName.ShouldBe(nameof(filter.UserId));
+        }
+    }
 }
