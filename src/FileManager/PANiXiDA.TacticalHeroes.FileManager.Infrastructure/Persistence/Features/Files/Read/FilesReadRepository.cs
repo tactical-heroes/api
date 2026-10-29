@@ -26,6 +26,7 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
         var query = ApplyFilter(
             query: Query,
             filter: filter);
+
         return GetPagedResultAsync<FileListItemReadModel, FileListItemReadModelMapper, FileListItemReadModelSorting>(
             query: query,
             paginationParameters: paginationParameters,
