@@ -318,7 +318,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("Cancelled", false)]
     [InlineData("Expired", false)]
     [InlineData("Closed", false)]
-    public async Task GetActiveByPlayerIdForUpdateAsync_Should_ReturnOccupiedSearch_When_PlayerHasStoredHistory(
+    public async Task GetActiveByPlayerIdAsync_Should_ReturnOccupiedSearch_When_PlayerHasStoredHistory(
         string status, bool expected)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -350,12 +350,8 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         }
 
         await using var scope = fixture.CreateScope();
-        var unitOfWork = UnitOfWork(scope.ServiceProvider);
-        await unitOfWork.BeginTransactionAsync(ct);
         var restored = await scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
-            .GetActiveByPlayerIdForUpdateAsync(search.PlayerId, ct);
-        await unitOfWork.RollbackTransactionAsync(ct);
-        await unitOfWork.DisposeTransactionAsync();
+            .GetActiveByPlayerIdAsync(search.PlayerId, ct);
 
         (restored is not null).ShouldBe(expected);
         if (expected)
@@ -365,16 +361,41 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         }
     }
 
-    [Fact(DisplayName = "Repository should reject locking when transaction is missing")]
-    public async Task GetActiveByPlayerIdForUpdateAsync_Should_RejectLocking_When_TransactionIsMissing()
+    [Fact(DisplayName = "Repository should return null when player has no search")]
+    public async Task GetActiveByPlayerIdAsync_Should_ReturnNull_When_PlayerHasNoSearch()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var scope = fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
 
-        var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
-            repository.GetActiveByPlayerIdForUpdateAsync(PlayerId.New(), ct));
+        var search = await repository.GetActiveByPlayerIdAsync(PlayerId.New(), ct);
 
-        exception.Message.ShouldContain("active transaction");
+        search.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Repository should return null when active search is deleted")]
+    public async Task GetActiveByPlayerIdAsync_Should_ReturnNull_When_ActiveSearchIsDeleted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.ResetDatabaseAsync(ct);
+        var search = CreateSearch();
+        await using (var writeScope = fixture.CreateScope())
+        {
+            writeScope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>().Add(search);
+            await UnitOfWork(writeScope.ServiceProvider).SaveChangesAsync(ct);
+            writeScope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>().Remove(search);
+            await UnitOfWork(writeScope.ServiceProvider).SaveChangesAsync(ct);
+        }
+
+        await using var scope = fixture.CreateScope();
+        var restored = await scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>()
+            .GetActiveByPlayerIdAsync(search.PlayerId, ct);
+
+        restored.ShouldBeNull();
+        var context = scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
+        var exists = await context.Set<Domain.MatchSearches.MatchSearch>()
+            .IgnoreQueryFilters()
+            .AnyAsync(row => row.Id == search.Id, ct);
+        exists.ShouldBeTrue();
     }
 }

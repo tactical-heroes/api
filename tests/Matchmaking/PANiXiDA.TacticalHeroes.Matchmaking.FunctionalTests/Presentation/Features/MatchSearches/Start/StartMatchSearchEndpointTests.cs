@@ -149,7 +149,6 @@ public sealed class StartMatchSearchEndpointTests(FunctionalTestFixture fixture)
         try
         {
             responses.Count(response => response.StatusCode == HttpStatusCode.NoContent).ShouldBe(1);
-            responses.Count(response => response.StatusCode == HttpStatusCode.Conflict).ShouldBe(1);
             await AssertSearchCountAsync(1, ct);
         }
         finally

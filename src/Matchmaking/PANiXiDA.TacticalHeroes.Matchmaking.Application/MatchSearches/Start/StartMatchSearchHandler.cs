@@ -54,7 +54,7 @@ public sealed class StartMatchSearchHandler(
         }
 
         var playerId = PlayerId.Create(player.Id).Value;
-        var existing = await matchSearchesRepository.GetActiveByPlayerIdForUpdateAsync(playerId, cancellationToken);
+        var existing = await matchSearchesRepository.GetActiveByPlayerIdAsync(playerId, cancellationToken);
         var now = MatchmakingTimestamp.Create(timeProvider.GetUtcNow());
         if (existing is not null)
         {

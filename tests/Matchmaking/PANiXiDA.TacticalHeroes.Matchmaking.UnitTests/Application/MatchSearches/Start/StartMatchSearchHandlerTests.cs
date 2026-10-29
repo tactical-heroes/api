@@ -94,7 +94,7 @@ public sealed class StartMatchSearchHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         await context.Repository.DidNotReceiveWithAnyArgs()
-            .GetActiveByPlayerIdForUpdateAsync(default, TestContext.Current.CancellationToken);
+            .GetActiveByPlayerIdAsync(default, TestContext.Current.CancellationToken);
         context.Repository.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
@@ -110,7 +110,7 @@ public sealed class StartMatchSearchHandlerTests
             search.Matched(At(2)).IsSuccess.ShouldBeTrue();
         }
 
-        context.Repository.GetActiveByPlayerIdForUpdateAsync(
+        context.Repository.GetActiveByPlayerIdAsync(
             PlayerId.Create(context.Player.Id).Value, Arg.Any<CancellationToken>())
             .Returns(search);
 
@@ -127,7 +127,7 @@ public sealed class StartMatchSearchHandlerTests
     {
         var context = new HandlerContext();
         var search = CreateSearch(context.Player.Id);
-        context.Repository.GetActiveByPlayerIdForUpdateAsync(
+        context.Repository.GetActiveByPlayerIdAsync(
             PlayerId.Create(context.Player.Id).Value, Arg.Any<CancellationToken>())
             .Returns(search);
 
