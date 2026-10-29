@@ -160,6 +160,25 @@ public sealed class FileAccessPolicyTests
         filterAllowed.ShouldBe(expected);
     }
 
+    [Theory(DisplayName = "File access policy should require the full selection when type is omitted")]
+    [InlineData(true, true, false, true)]
+    [InlineData(true, false, false, false)]
+    [InlineData(false, true, false, false)]
+    [InlineData(false, true, true, true)]
+    public void CanRead_Should_RequireFullSelection_When_TypeIsOmitted(bool all, bool avatars, bool own, bool expected)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadAll.Code).Returns(all);
+        currentUser.HasPermission(Permissions.FileManager.PersonalFiles.ReadOwn.Code).Returns(own);
+        currentUser.HasPermission(Permissions.FileManager.Avatars.Read.Code).Returns(avatars);
+        var filter = new FilesFilter(UserId: own ? userId : null);
+
+        var allowed = new FileAccessPolicy(currentUser).CanRead(filter);
+
+        allowed.ShouldBe(expected);
+    }
+
     [Theory(DisplayName = "File access policy should authorize and normalize the filter when type and owner vary")]
     [InlineData("Personal", "own", false, true, false, true, "Personal", "own")]
     [InlineData("Personal", "foreign", false, true, false, false, null, "none")]
@@ -167,7 +186,7 @@ public sealed class FileAccessPolicyTests
     [InlineData("Personal", "foreign", true, false, false, true, "Personal", "foreign")]
     [InlineData("Personal", "foreign", true, true, false, true, "Personal", "foreign")]
     [InlineData("Personal", "none", true, true, false, true, "Personal", "none")]
-    [InlineData(" Personal ", "none", false, true, false, true, "Personal", "own")]
+    [InlineData(" Personal ", "none", false, true, false, true, " Personal ", "own")]
     [InlineData("Avatar", "none", false, false, true, true, "Avatar", "none")]
     [InlineData(null, "own", false, true, true, true, null, "own")]
     [InlineData(null, "own", false, true, false, true, "Personal", "own")]
@@ -212,8 +231,7 @@ public sealed class FileAccessPolicyTests
         }
         else
         {
-            result.Errors.ShouldHaveSingleItem().Type.ShouldBe(
-                type is "Unknown" or "" ? ErrorType.Validation : ErrorType.Forbidden);
+            result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
         }
     }
 

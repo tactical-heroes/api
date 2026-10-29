@@ -59,7 +59,7 @@ public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
 
         if (filter.Type is { } type)
         {
-            query = query.Where(file => file.Type == type);
+            query = query.Where(file => file.Type == type.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Search))

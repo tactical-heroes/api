@@ -27,29 +27,9 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
             return Result.Failure<FilesFilter>(Error.Unauthorized("A user account is required."));
         }
 
-        var type = FileType.CreateOptional(filter.Type);
-        if (type.IsFailure)
-        {
-            return Result.Failure<FilesFilter>(type.Errors);
-        }
-
-        filter = filter with { Type = type.Value?.Name };
-        if (filter.UserId is null
-            && filter.Type != FileType.Avatar.Name
-            && !CanRead(FileType.Personal.Name, userId: null)
-            && CanRead(FileType.Personal.Name, userId))
-        {
-            filter = filter with { UserId = userId };
-        }
-
-        if (!CanRead(filter))
-        {
-            return Result.Failure<FilesFilter>(Error.Forbidden("Access to files is denied."));
-        }
-
         if (filter.Type is null)
         {
-            if (!CanRead(FileType.Personal.Name, filter.UserId))
+            if (filter.UserId is null && !CanRead(FileType.Personal.Name, userId))
             {
                 filter = filter with { Type = FileType.Avatar.Name };
             }
@@ -59,7 +39,14 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
             }
         }
 
-        return Result.Success(filter);
+        if (!CanRead(filter) && filter.UserId is null)
+        {
+            filter = filter with { UserId = userId };
+        }
+
+        return CanRead(filter)
+            ? Result.Success(filter)
+            : Result.Failure<FilesFilter>(Error.Forbidden("Access to files is denied."));
     }
 
     private bool CanRead(string? type, Guid? userId)
@@ -72,8 +59,10 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
         if (type is null)
         {
             return CanRead(FileType.Personal.Name, userId)
-                || (userId is null && CanRead(FileType.Avatar.Name, userId: null));
+                && CanRead(FileType.Avatar.Name, userId: null);
         }
+
+        type = type.Trim();
 
         if (type == FileType.Personal.Name)
         {

@@ -27,7 +27,7 @@ public sealed class GetFilesHandlerTests
         var sorting = SortingParameters.Descending("Name");
         var expectedFilter = filter with
         {
-            Type = type.Trim(),
+            Type = type,
             UserId = own ? userId : null
         };
         repository.GetPageAsync(
@@ -95,7 +95,7 @@ public sealed class GetFilesHandlerTests
             new GetFilesQuery(new FilesFilter("Unknown"), new PaginationParameters(), SortingParameters.None),
             TestContext.Current.CancellationToken);
 
-        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to files is denied.");
         repository.ReceivedCalls().ShouldBeEmpty();
     }
 
