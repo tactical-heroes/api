@@ -10,6 +10,70 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchSearches;
 
 public sealed class MatchSearchTests
 {
+    [Fact(DisplayName = "Search should match both players and publish pair once when pair is valid")]
+    public void MatchWith_Should_MatchBothPlayersAndPublishPairOnce_When_PairIsValid()
+    {
+        var first = CreateSearch();
+        var second = CreateSearch();
+
+        var result = first.MatchWith(second, At(1));
+
+        result.IsSuccess.ShouldBeTrue();
+        first.Status.ShouldBe(MatchSearchStatus.Matched);
+        second.Status.ShouldBe(MatchSearchStatus.Matched);
+        var found = first.GetDomainEvents().OfType<MatchFound>().ShouldHaveSingleItem();
+        found.FirstMatchSearchId.ShouldBe(first.Id.Value);
+        found.FirstPlayerId.ShouldBe(first.PlayerId.Value);
+        found.FirstBuildId.ShouldBe(first.BuildId.Value);
+        found.FirstRating.ShouldBe(first.Rating.Value);
+        found.SecondMatchSearchId.ShouldBe(second.Id.Value);
+        found.SecondPlayerId.ShouldBe(second.PlayerId.Value);
+        found.SecondBuildId.ShouldBe(second.BuildId.Value);
+        found.SecondRating.ShouldBe(second.Rating.Value);
+        found.Mode.ShouldBe(first.Mode.Name);
+        found.MatchedAt.ShouldBe(At(1).Value);
+        first.MatchWith(second, At(2)).IsFailure.ShouldBeTrue();
+        first.GetDomainEvents().OfType<MatchFound>().Count().ShouldBe(1);
+        second.GetDomainEvents().OfType<MatchFound>().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Search should preserve both states when pair is invalid")]
+    [InlineData("SameSearch")]
+    [InlineData("SamePlayer")]
+    [InlineData("DifferentMode")]
+    [InlineData("Cancelled")]
+    [InlineData("Expired")]
+    [InlineData("AlreadyMatched")]
+    public void MatchWith_Should_PreserveBothStates_When_PairIsInvalid(string scenario)
+    {
+        var first = CreateSearch();
+        var second = CreateSearch(
+            playerId: scenario == "SamePlayer" ? first.PlayerId.Value : null,
+            mode: scenario == "DifferentMode" ? MatchmakingMode.CasualDuel : MatchmakingMode.RankedDuel);
+        if (scenario == "SameSearch")
+        {
+            second = first;
+        }
+
+        if (scenario == "Cancelled")
+        {
+            second.Cancel();
+        }
+        else if (scenario == "AlreadyMatched")
+        {
+            second.Matched(At(1));
+        }
+
+        var before = second.Status;
+
+        var result = first.MatchWith(second, At(scenario == "Expired" ? 300 : 2));
+
+        result.IsFailure.ShouldBeTrue();
+        first.Status.ShouldBe(MatchSearchStatus.Searching);
+        second.Status.ShouldBe(before);
+        first.GetDomainEvents().OfType<MatchFound>().ShouldBeEmpty();
+    }
+
     [Fact(DisplayName = "Search should capture selection and announce searching when created")]
     public void Create_Should_CaptureSelectionAndAnnounceSearching_When_Created()
     {

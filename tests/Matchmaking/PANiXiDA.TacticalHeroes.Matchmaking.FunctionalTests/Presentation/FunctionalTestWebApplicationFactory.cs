@@ -1,16 +1,20 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
+
 using Wolverine;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
-internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactory<Program>
+internal sealed class FunctionalTestWebApplicationFactory(bool matchmakingProcessingEnabled)
+    : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -20,7 +24,8 @@ internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactor
             {
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
                 ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret",
-                ["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] = "false"
+                ["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] = "false",
+                ["Matchmaking:Processing:Enabled"] = matchmakingProcessingEnabled.ToString()
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services =>
@@ -45,6 +50,14 @@ internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactor
                 .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
                     TestAuthenticationHandler.SchemeName, _ => { });
             services.RunWolverineInSoloMode();
+            services.AddSingleton<MatchFoundProbe>();
+            services.AddSingleton<ConcurrentMatchSaveBarrier>();
+            services.AddSingleton<IInterceptor>(provider => provider.GetRequiredService<ConcurrentMatchSaveBarrier>());
+            services.ConfigureWolverine(options =>
+            {
+                options.CodeGeneration.SourceCodeWritingEnabled = false;
+                options.Discovery.IncludeType(typeof(MatchFoundProbeHandler));
+            });
         });
     }
 }

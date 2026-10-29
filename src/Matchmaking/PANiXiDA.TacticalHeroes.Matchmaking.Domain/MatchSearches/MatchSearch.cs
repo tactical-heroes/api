@@ -87,6 +87,36 @@ public sealed class MatchSearch : AggregateRoot<MatchSearchId>
         return Result.Success();
     }
 
+    public Result MatchWith(MatchSearch opponent, MatchmakingTimestamp now)
+    {
+        if (Id == opponent.Id
+            || PlayerId == opponent.PlayerId
+            || Mode != opponent.Mode
+            || !IsActive(now)
+            || !opponent.IsActive(now))
+        {
+            return Result.Failure(Error.Conflict("Only two active searches from different players can be matched."));
+        }
+
+        Status = MatchSearchStatus.Matched;
+        opponent.Status = MatchSearchStatus.Matched;
+        RecordStateChanged();
+        opponent.RecordStateChanged();
+        AddDomainEvent(new MatchFound(
+            FirstMatchSearchId: Id.Value,
+            FirstPlayerId: PlayerId.Value,
+            FirstBuildId: BuildId.Value,
+            FirstRating: Rating.Value,
+            SecondMatchSearchId: opponent.Id.Value,
+            SecondPlayerId: opponent.PlayerId.Value,
+            SecondBuildId: opponent.BuildId.Value,
+            SecondRating: opponent.Rating.Value,
+            Mode: Mode.Name,
+            MatchedAt: now.Value));
+
+        return Result.Success();
+    }
+
     public Result AssignGame(GameId gameId)
     {
         if (GameId == gameId)
