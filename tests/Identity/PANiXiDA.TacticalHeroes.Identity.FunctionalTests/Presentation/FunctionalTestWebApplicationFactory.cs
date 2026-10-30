@@ -68,14 +68,18 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
         {
             var variable = PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable;
             var previous = Environment.GetEnvironmentVariable(variable);
+            const string ExpirationVariable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
+            var previousExpiration = Environment.GetEnvironmentVariable(ExpirationVariable);
             try
             {
                 Environment.SetEnvironmentVariable(variable, connectionString);
+                Environment.SetEnvironmentVariable(ExpirationVariable, "false");
                 return base.CreateHost(builder);
             }
             finally
             {
                 Environment.SetEnvironmentVariable(variable, previous);
+                Environment.SetEnvironmentVariable(ExpirationVariable, previousExpiration);
             }
         }
     }
