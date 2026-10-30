@@ -20,7 +20,7 @@ public sealed class CreateFolderEndpointTests(FunctionalTestFixture fixture) : F
     private const string Route = "/api/v1/folders";
 
     [Theory(DisplayName = "POST folder should persist a root and return its location when creation is permitted")]
-    [InlineData("Personal", "file-manager.personal-files.create.own", "implicit")]
+    [InlineData("Personal", "file-manager.personal-files.create.all", "self")]
     [InlineData("Personal", "file-manager.personal-files.create.own", "self")]
     [InlineData("Personal", "file-manager.personal-files.create.all", "foreign")]
     [InlineData("Avatar", "file-manager.avatars.create", "none")]
@@ -47,7 +47,7 @@ public sealed class CreateFolderEndpointTests(FunctionalTestFixture fixture) : F
         stored.Id.ShouldBe(body.Id);
         stored.Name.ShouldBe("Documents");
         stored.AllowedFileType.ShouldBe(type);
-        stored.UserId.ShouldBe(type == "Personal" ? ownerId ?? userId : null);
+        stored.UserId.ShouldBe(ownerId);
         stored.ParentId.ShouldBeNull();
         using var get = new HttpRequestMessage(HttpMethod.Get, location);
         get.Headers.Add(TestAuthenticationHandler.UserIdHeader, userId.ToString());
@@ -109,9 +109,11 @@ public sealed class CreateFolderEndpointTests(FunctionalTestFixture fixture) : F
     public async Task HandleAsync_Should_ReturnForbidden_When_PermissionDoesNotAuthorizeTheRoot(
         string type, string permission, bool foreignOwner)
     {
-        var request = new CreateFolderRequest("Documents", type, foreignOwner ? Guid.NewGuid() : null);
+        var userId = Guid.NewGuid();
+        Guid? ownerId = type == "Personal" ? foreignOwner ? Guid.NewGuid() : userId : null;
+        var request = new CreateFolderRequest("Documents", type, ownerId);
 
-        using var response = await SendAsync(request, Guid.NewGuid().ToString(), permission);
+        using var response = await SendAsync(request, userId.ToString(), permission);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         await AssertFolderCountAsync(0);
@@ -182,13 +184,27 @@ public sealed class CreateFolderEndpointTests(FunctionalTestFixture fixture) : F
     [Fact(DisplayName = "POST folder should accept missing optional properties when only required fields are supplied")]
     public async Task HandleAsync_Should_AcceptMissingOptionalProperties_When_OnlyRequiredFieldsAreSupplied()
     {
-        var request = new { Name = "Documents", AllowedFileType = "Personal" };
+        var request = new { Name = "Documents", AllowedFileType = "Avatar" };
 
         using var response = await SendAsync(
-            request, Guid.NewGuid().ToString(), "file-manager.personal-files.create.own");
+            request, Guid.NewGuid().ToString(), "file-manager.avatars.create");
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         await AssertFolderCountAsync(1);
+    }
+
+    [Fact(DisplayName = "POST folder should reject missing ownership when personal root has no user id")]
+    public async Task HandleAsync_Should_RejectMissingOwnership_When_PersonalRootHasNoUserId()
+    {
+        var request = new { Name = "Documents", AllowedFileType = "Personal" };
+
+        using var response = await SendAsync(
+            request, Guid.NewGuid().ToString(), "file-manager.personal-files.create.all");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        body.ShouldContain("Personal folders require a user id.");
+        await AssertFolderCountAsync(0);
     }
 
     [Fact(DisplayName = "POST folder should require authentication when caller is unauthenticated")]

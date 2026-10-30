@@ -11,8 +11,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Create;
 
 public sealed class CreateFolderHandler(
     IFoldersRepository foldersRepository,
-    FolderAccessPolicy folderAccessPolicy,
-    ICurrentUser currentUser)
+    FolderAccessPolicy folderAccessPolicy)
     : ICommandHandler<CreateFolderCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction
 {
     public async Task<Result<Guid>> HandleAsync(CreateFolderCommand command, CancellationToken cancellationToken)
@@ -34,29 +33,17 @@ public sealed class CreateFolderHandler(
     {
         var name = FolderName.Create(command.Name);
         var type = FileType.Create(command.AllowedFileType);
-        var validation = Result.Combine(name, type);
+        var userId = UserId.CreateOptional(command.UserId);
+        var validation = Result.Combine(name, type, userId);
         if (validation.IsFailure)
         {
             return Result.Failure<Folder>(validation.Errors);
         }
 
-        var ownerId = command.UserId ?? (type.Value == FileType.Personal ? currentUser.UserId : null);
-        UserId? userId = null;
-        if (ownerId is { } id)
-        {
-            var owner = UserId.Create(id);
-            if (owner.IsFailure)
-            {
-                return Result.Failure<Folder>(owner.Errors);
-            }
-
-            userId = owner.Value;
-        }
-
         var result = Folder.Create(
             name: name.Value,
             allowedFileType: type.Value,
-            userId: userId);
+            userId: userId.Value);
         if (result.IsFailure)
         {
             return result;

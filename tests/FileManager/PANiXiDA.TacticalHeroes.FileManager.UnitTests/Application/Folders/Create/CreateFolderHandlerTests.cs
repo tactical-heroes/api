@@ -31,7 +31,7 @@ public sealed class CreateFolderHandlerTests
         string type, string permission, bool foreignOwner)
     {
         _currentUser.HasPermission(permission).Returns(true);
-        Guid? ownerId = foreignOwner ? Guid.NewGuid() : null;
+        Guid? ownerId = type == "Personal" ? foreignOwner ? Guid.NewGuid() : _userId : null;
         var command = new CreateFolderCommand(" Documents ", type, ownerId, ParentId: null);
 
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
@@ -40,7 +40,7 @@ public sealed class CreateFolderHandlerTests
         _folders.Received(1).Add(Arg.Is<Folder>(folder => folder.Id.Value == result.Value
             && folder.Name.Value == "Documents"
             && folder.AllowedFileType.Name == type
-            && folder.UserId == (type == "Personal" ? UserId.Create(ownerId ?? _userId).Value : null)
+            && folder.UserId == (type == "Personal" ? UserId.Create(ownerId!.Value).Value : null)
             && folder.ParentId == null));
         await _folders.DidNotReceiveWithAnyArgs().GetByIdAsync(default, TestContext.Current.CancellationToken);
     }
@@ -120,7 +120,7 @@ public sealed class CreateFolderHandlerTests
     [Fact(DisplayName = "Create folder handler should refuse insertion when root creation is forbidden")]
     public async Task HandleAsync_Should_RefuseInsertion_When_RootCreationIsForbidden()
     {
-        var command = new CreateFolderCommand("Documents", "Personal", UserId: null, ParentId: null);
+        var command = new CreateFolderCommand("Documents", "Personal", _userId, ParentId: null);
 
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
@@ -128,11 +128,22 @@ public sealed class CreateFolderHandlerTests
         _folders.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
+    [Fact(DisplayName = "Create folder handler should reject missing ownership when personal root has no user id")]
+    public async Task HandleAsync_Should_RejectMissingOwnership_When_PersonalRootHasNoUserId()
+    {
+        _currentUser.HasPermission("file-manager.personal-files.create.all").Returns(true);
+        var command = new CreateFolderCommand("Documents", "Personal", UserId: null, ParentId: null);
+
+        var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "Personal folders require a user id.");
+        _folders.DidNotReceiveWithAnyArgs().Add(null!);
+    }
+
     private CreateFolderHandler CreateHandler()
     {
         return new CreateFolderHandler(
             _folders,
-            new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)),
-            _currentUser);
+            new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)));
     }
 }

@@ -23,6 +23,35 @@ public sealed class UserIdTests
         result.Value.Value.ShouldBe(value);
     }
 
+    [Fact(DisplayName = "Optional user id should return null when id is omitted")]
+    public void CreateOptional_Should_ReturnNull_When_IdIsOmitted()
+    {
+        var result = UserId.CreateOptional(value: null);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Optional user id should reject an empty identifier when id is empty")]
+    public void CreateOptional_Should_ReturnValidationFailure_When_IdIsEmpty()
+    {
+        var result = UserId.CreateOptional(Guid.Empty);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "User id cannot be empty.");
+    }
+
+    [Fact(DisplayName = "Optional user id should preserve an external identifier when id is valid")]
+    public void CreateOptional_Should_PreserveValue_When_IdIsValid()
+    {
+        var value = Guid.NewGuid();
+
+        var result = UserId.CreateOptional(value);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Value.Value.ShouldBe(value);
+    }
+
     [Fact(DisplayName = "User id should format its value when converted to string")]
     public void ToString_Should_ReturnValue_When_ConvertedToString()
     {
