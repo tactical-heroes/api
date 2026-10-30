@@ -23,14 +23,15 @@ public sealed class UserRegistrationTests(FunctionalTestFixture fixture)
 {
     private static readonly TimeSpan s_trackingTimeout = TimeSpan.FromSeconds(30);
 
-    [Fact(DisplayName = "Scheduling should disable expiration when only players schema is migrated")]
-    public void Scheduling_Should_DisableExpiration_When_OnlyPlayersSchemaIsMigrated()
+    [Fact(DisplayName = "Scheduling should disable foreign schedules when only players schema is migrated")]
+    public void Scheduling_Should_DisableForeignSchedules_When_OnlyPlayersSchemaIsMigrated()
     {
         var runtime = fixture.Services.GetRequiredService<IWolverineRuntime>();
 
         var schedule = runtime.Options.Schedules.FindByName("matchmaking-expire-searches");
 
         schedule.ShouldBeNull();
+        runtime.Options.Schedules.FindByName("file-manager-reconcile-uploads").ShouldBeNull();
     }
 
     [Fact(DisplayName = "User registration should create a player through both mappings when user is registered")]

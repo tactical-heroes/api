@@ -14,14 +14,18 @@ internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactor
     {
         const string Variable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
         var previous = Environment.GetEnvironmentVariable(Variable);
+        const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
+        var previousFileManagerSchedule = Environment.GetEnvironmentVariable(FileManagerScheduleVariable);
         try
         {
             Environment.SetEnvironmentVariable(Variable, "false");
+            Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
             return base.CreateHost(builder);
         }
         finally
         {
             Environment.SetEnvironmentVariable(Variable, previous);
+            Environment.SetEnvironmentVariable(FileManagerScheduleVariable, previousFileManagerSchedule);
         }
     }
 

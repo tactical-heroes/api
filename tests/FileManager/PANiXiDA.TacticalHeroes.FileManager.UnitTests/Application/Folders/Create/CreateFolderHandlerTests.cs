@@ -3,6 +3,7 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Create;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
@@ -112,8 +113,7 @@ public sealed class CreateFolderHandlerTests
 
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        result.ShouldHaveSingleError(ErrorType.NotFound, "Folder was not found.");
         _folders.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
@@ -142,8 +142,9 @@ public sealed class CreateFolderHandlerTests
 
     private CreateFolderHandler CreateHandler()
     {
-        return new CreateFolderHandler(
+        var service = new FolderCreationService(
             _folders,
             new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)));
+        return new CreateFolderHandler(service);
     }
 }
