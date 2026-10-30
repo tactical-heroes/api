@@ -1,13 +1,35 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
+
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 
 public sealed class FolderAccessPolicy(ICurrentUser currentUser, FileAccessPolicy fileAccessPolicy)
 {
+    public bool CanCreate(Folder folder)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (folder.AllowedFileType == FileType.Personal)
+        {
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.CreateAll.Code)
+                || (folder.UserId?.Value == currentUser.UserId
+                    && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.CreateOwn.Code));
+        }
+
+        return folder.AllowedFileType == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Create.Code);
+    }
+
     public bool CanRead(FoldersFilter filter)
     {
         return fileAccessPolicy.CanRead(new FilesFilter(Type: filter.AllowedFileType, UserId: filter.UserId));
