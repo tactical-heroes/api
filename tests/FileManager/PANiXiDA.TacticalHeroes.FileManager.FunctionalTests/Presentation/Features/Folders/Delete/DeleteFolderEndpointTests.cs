@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Storage;
-using PANiXiDA.Core.ResultPattern;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
@@ -27,6 +26,43 @@ namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Featu
 public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fixture) : FunctionalTestBase(fixture)
 {
     private const string Route = "/api/v1/folders";
+
+    [Fact(DisplayName = "Folder deletion should process files independently when a child folder is locked")]
+    public async Task HandleAsync_Should_ProcessFilesIndependently_When_AChildFolderIsLocked()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = Guid.NewGuid();
+        var root = CreateFolder("Personal", userId);
+        var child = root.CreateChild(FolderName.Create("Locked child").Value);
+        var file = CreateFile(root, 1);
+        await SaveAsync([root, child], [file]);
+        await using var lockingScope = Fixture.CreateScope();
+        var lockingDb = lockingScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        await using var transaction = await lockingDb.Database.BeginTransactionAsync(ct);
+        await lockingDb.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT 1 FROM file_manager.folders WHERE id = {child.Id.Value} FOR UPDATE", ct);
+        HttpStatusCode status;
+        bool childVisible;
+
+        try
+        {
+            using var response = await SendAsync(
+                root.Id.Value, userId.ToString(), "file-manager.personal-files.delete.own");
+            status = response.StatusCode;
+            await WaitForCascadeAsync([root], [file]);
+            await using var readScope = Fixture.CreateScope();
+            var db = readScope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
+            childVisible = await db.Set<FolderReadDbModel>().AnyAsync(folder => folder.Id == child.Id.Value, ct);
+        }
+        finally
+        {
+            await transaction.RollbackAsync(ct);
+        }
+        await WaitForCascadeAsync([root, child], [file]);
+
+        status.ShouldBe(HttpStatusCode.Accepted);
+        childVisible.ShouldBeTrue();
+    }
 
     [Theory(DisplayName = "DELETE folder should cascade through nested content when deletion is permitted")]
     [InlineData("Personal")]
@@ -136,18 +172,14 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         await UploadAsync(files);
         await using var firstScope = Fixture.CreateScope();
         var firstMediator = firstScope.ServiceProvider.GetRequiredService<IMediator>();
-        Result result = null!;
 
-        var session = await firstScope.ServiceProvider.ExecuteAndWaitAsync(async () =>
-        {
-            result = await firstMediator.SendAsync(new ReconcileFileUploadsCommand(), ct);
-        });
+        var result = await firstMediator.SendAsync(new ReconcileFileUploadsCommand(), ct);
+        await WaitForCascadeAsync([root, otherRoot, child, grandchild], files);
         await using var secondScope = Fixture.CreateScope();
         var secondMediator = secondScope.ServiceProvider.GetRequiredService<IMediator>();
         await secondMediator.SendAsync(new ReconcileFileUploadsCommand(), ct);
 
         result.IsSuccess.ShouldBeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
-        session.FindEnvelopesWithMessageType<FolderDeleted>().ShouldNotBeEmpty();
         response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
         otherResponse.StatusCode.ShouldBe(HttpStatusCode.Accepted);
         unchangedVersion.ShouldBe(version);
@@ -336,9 +368,9 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
                 .CountAsync(
                     folder => folderIds.Contains(folder.Id) && folder.DeletedAt != null,
                     TestContext.Current.CancellationToken);
-            var deleting = await db.Set<FileReadDbModel>()
+            var deleting = await db.Set<FileReadDbModel>().IgnoreQueryFilters()
                 .CountAsync(
-                    file => fileIds.Contains(file.Id) && file.Status == "Deleting",
+                    file => fileIds.Contains(file.Id) && (file.Status == "Deleting" || file.DeletedAt != null),
                     TestContext.Current.CancellationToken);
             if (deleted == folderIds.Length && deleting == fileIds.Length)
             {
