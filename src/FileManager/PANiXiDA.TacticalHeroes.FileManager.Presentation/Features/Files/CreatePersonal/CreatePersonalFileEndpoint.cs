@@ -17,8 +17,7 @@ internal sealed class CreatePersonalFileEndpoint : IEndpoint<FilesEndpoints>
             .Produces<CreatePersonalFileResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(

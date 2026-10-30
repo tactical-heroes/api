@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using Npgsql;
 
+using NSubstitute;
+
+using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
@@ -15,6 +18,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -412,6 +416,8 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
 
         return new ReconcileFileUploadsHandler(
             filesRepository: filesRepository,
+            foldersRepository: services.GetRequiredService<IFoldersRepository>(),
+            eventBus: Substitute.For<IEventBus>(),
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);

@@ -76,8 +76,6 @@ public sealed class CreatePersonalFileHandler(
             {
                 return Result.Failure<Guid>(moveResult.Errors);
             }
-
-            foldersRepository.Update(folder);
         }
 
         filesRepository.Add(aggregateRoot: file);

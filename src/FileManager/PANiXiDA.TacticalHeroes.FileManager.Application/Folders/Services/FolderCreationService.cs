@@ -90,8 +90,6 @@ public sealed class FolderCreationService(IFoldersRepository foldersRepository, 
             return Result.Failure<Folder>(Error.NotFound("Folder was not found."));
         }
 
-        foldersRepository.Update(parent);
-
         return Result.Success(parent.CreateChild(name));
     }
 }

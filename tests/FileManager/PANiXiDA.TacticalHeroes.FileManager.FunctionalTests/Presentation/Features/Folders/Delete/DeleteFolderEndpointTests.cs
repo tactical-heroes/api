@@ -3,11 +3,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.ResultPattern;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
@@ -86,6 +88,79 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         preserved.Status.ShouldBe("Ready");
         using var repeated = await SendAsync(root.Id.Value, userId.ToString(), permission);
         repeated.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Theory(
+        DisplayName = "Reconciliation should resume cascading deletion when entries commit after the cascade drained")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task HandleAsync_Should_ResumeCascadingDeletion_When_EntriesCommitAfterTheCascadeDrained(string type)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userId = Guid.NewGuid();
+        var root = CreateFolder(type, userId);
+        var otherRoot = CreateFolder(type, userId);
+        await SaveAsync([root, otherRoot], []);
+        await using var creatingScope = Fixture.CreateScope();
+        var repository = creatingScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        var staleParent = await repository.GetByIdAsync(root.Id, ct);
+        var child = staleParent!.CreateChild(FolderName.Create("Late child").Value);
+        var grandchild = child.CreateChild(FolderName.Create("Late grandchild").Value);
+        var files = new[]
+        {
+            CreateFile(staleParent, 1), CreateFile(child, 0), CreateFile(grandchild, 1), CreateFile(otherRoot, 1)
+        };
+        var permission = type == "Personal" ? "file-manager.personal-files.delete.own" : "file-manager.avatars.delete";
+        using var response = await SendAsync(
+            root.Id.Value, userId.ToString(), permission);
+        using var otherResponse = await SendAsync(otherRoot.Id.Value, userId.ToString(), permission);
+        await WaitForCascadeAsync([root, otherRoot], []);
+        await creatingScope.ServiceProvider.TrackActivity()
+            .PublishMessageAndWaitAsync(new FolderDeleted(root.Id.Value));
+        await creatingScope.ServiceProvider.TrackActivity()
+            .PublishMessageAndWaitAsync(new FolderDeleted(otherRoot.Id.Value));
+        var creatingDb = creatingScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var version = await creatingDb.Set<Folder>()
+            .IgnoreQueryFilters()
+            .Where(folder => folder.Id == root.Id)
+            .Select(folder => EF.Property<uint>(folder, "xmin"))
+            .SingleAsync(ct);
+        creatingDb.AddRange(child, grandchild);
+        creatingDb.AddRange(files);
+        await creatingDb.SaveChangesAsync(ct);
+        var unchangedVersion = await creatingDb.Set<Folder>()
+            .IgnoreQueryFilters()
+            .Where(folder => folder.Id == root.Id)
+            .Select(folder => EF.Property<uint>(folder, "xmin"))
+            .SingleAsync(ct);
+        await UploadAsync(files);
+        await using var firstScope = Fixture.CreateScope();
+        var firstMediator = firstScope.ServiceProvider.GetRequiredService<IMediator>();
+        Result result = null!;
+
+        var session = await firstScope.ServiceProvider.ExecuteAndWaitAsync(async () =>
+        {
+            result = await firstMediator.SendAsync(new ReconcileFileUploadsCommand(), ct);
+        });
+        await using var secondScope = Fixture.CreateScope();
+        var secondMediator = secondScope.ServiceProvider.GetRequiredService<IMediator>();
+        await secondMediator.SendAsync(new ReconcileFileUploadsCommand(), ct);
+
+        result.IsSuccess.ShouldBeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
+        session.FindEnvelopesWithMessageType<FolderDeleted>().ShouldNotBeEmpty();
+        response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
+        otherResponse.StatusCode.ShouldBe(HttpStatusCode.Accepted);
+        unchangedVersion.ShouldBe(version);
+        var db = secondScope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
+        (await db.Set<FolderReadDbModel>().AnyAsync(ct)).ShouldBeFalse();
+        (await db.Set<FileReadDbModel>().AnyAsync(ct)).ShouldBeFalse();
+        (await db.Set<FolderReadDbModel>().IgnoreQueryFilters().CountAsync(ct)).ShouldBe(4);
+        (await db.Set<FileReadDbModel>().IgnoreQueryFilters().CountAsync(ct)).ShouldBe(4);
+        var storage = secondScope.ServiceProvider.GetRequiredService<IFileStorage>();
+        foreach (var file in files)
+        {
+            (await storage.GetMetadataAsync(file.StorageKey.Value, ct)).ShouldBeNull();
+        }
     }
 
     [Fact(DisplayName = "DELETE folder should drain bounded batches when files and child counts exceed the limit")]

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute.ExceptionExtensions;
 
+using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
@@ -12,6 +13,10 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -20,12 +25,18 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Reconc
 
 public sealed class ReconcileFileUploadsHandlerTests
 {
+    private readonly IFoldersRepository _folders = Substitute.For<IFoldersRepository>();
+    private readonly IEventBus _events = Substitute.For<IEventBus>();
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
     private readonly IFileStorage _fileStorage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
 
     public ReconcileFileUploadsHandlerTests()
     {
+        _unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
+        _folders.GetDeletedWithActiveContentsAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Folder>().ToAsyncEnumerable());
         _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>())
@@ -331,6 +342,44 @@ public sealed class ReconcileFileUploadsHandlerTests
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
+    [Fact(DisplayName = "Reconciliation should republish deletion when deleted folders still have active contents")]
+    public async Task HandleAsync_Should_RepublishDeletion_When_DeletedFoldersStillHaveActiveContents()
+    {
+        var folder = Folder.Create(FolderName.Create("Deleted").Value, FileType.Avatar, userId: null).Value;
+        _folders.GetDeletedWithActiveContentsAsync(Arg.Any<CancellationToken>())
+            .Returns(new[] { folder }.ToAsyncEnumerable());
+
+        var result = await CreateHandler().HandleAsync(
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await _events.Received(1).PublishAsync(
+            Arg.Is<FolderDeleted>(message => message.FolderId == folder.Id.Value),
+            TestContext.Current.CancellationToken);
+        await _unitOfWork.Received(1).ExecuteInTransactionAsync(
+            Arg.Any<Func<CancellationToken, Task>>(), TestContext.Current.CancellationToken);
+        await _unitOfWork.Received(1).SaveChangesAsync(TestContext.Current.CancellationToken);
+        _folders.DidNotReceiveWithAnyArgs().Update(null!);
+        _folders.DidNotReceiveWithAnyArgs().Delete(null!);
+    }
+
+    [Fact(DisplayName = "Reconciliation should propagate failure when deletion publication fails")]
+    public async Task HandleAsync_Should_PropagateFailure_When_DeletionPublicationFails()
+    {
+        var folder = Folder.Create(FolderName.Create("Deleted").Value, FileType.Avatar, userId: null).Value;
+        _folders.GetDeletedWithActiveContentsAsync(Arg.Any<CancellationToken>())
+            .Returns(new[] { folder }.ToAsyncEnumerable());
+        _events.PublishAsync(Arg.Any<FolderDeleted>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Outbox unavailable"));
+
+        var exception = await Record.ExceptionAsync(() => CreateHandler().HandleAsync(
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken));
+
+        exception.ShouldBeOfType<InvalidOperationException>();
+        _files.DidNotReceiveWithAnyArgs().GetPendingUploadsAsync(TestContext.Current.CancellationToken);
+        await _unitOfWork.DidNotReceiveWithAnyArgs().SaveChangesAsync(TestContext.Current.CancellationToken);
+    }
+
     private static File CreateFile()
     {
         return File.Create(
@@ -348,6 +397,8 @@ public sealed class ReconcileFileUploadsHandlerTests
     {
         return new ReconcileFileUploadsHandler(
             filesRepository: _files,
+            foldersRepository: _folders,
+            eventBus: _events,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);

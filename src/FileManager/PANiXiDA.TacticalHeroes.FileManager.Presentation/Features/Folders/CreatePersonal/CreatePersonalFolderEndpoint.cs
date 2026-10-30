@@ -17,8 +17,7 @@ internal sealed class CreatePersonalFolderEndpoint : IEndpoint<FoldersEndpoints>
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> HandleAsync(
