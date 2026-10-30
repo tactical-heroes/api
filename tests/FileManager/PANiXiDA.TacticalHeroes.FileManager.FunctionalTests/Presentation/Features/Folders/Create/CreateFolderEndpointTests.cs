@@ -152,9 +152,7 @@ public sealed class CreateFolderEndpointTests(FunctionalTestFixture fixture) : F
 
         using var response = await SendAsync(request, userId.ToString(), "file-manager.personal-files.create.all");
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        body.ShouldContain(wrongType ? "AllowedFileType" : "UserId");
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         await AssertFolderCountAsync(1);
     }
 

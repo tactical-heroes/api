@@ -68,23 +68,12 @@ public sealed class CreateFolderHandler(
         }
 
         var parent = await foldersRepository.GetByIdAsync(parentId.Value, cancellationToken);
-        if (parent is null || !folderAccessPolicy.CanCreate(parent))
+        if (parent is null
+            || !folderAccessPolicy.CanCreate(parent)
+            || type.Value != parent.AllowedFileType
+            || (command.UserId is { } ownerId && ownerId != parent.UserId?.Value))
         {
             return Result.Failure<Folder>(Error.NotFound("Folder was not found."));
-        }
-
-        if (type.Value != parent.AllowedFileType)
-        {
-            return Result.Failure<Folder>(
-                Error.Validation("Folder type must match the parent's allowed file type.")
-                    .WithField(nameof(command.AllowedFileType)));
-        }
-
-        if (command.UserId is { } ownerId && ownerId != parent.UserId?.Value)
-        {
-            return Result.Failure<Folder>(
-                Error.Validation("Folder user id must match the parent's user id.")
-                    .WithField(nameof(command.UserId)));
         }
 
         return Result.Success(parent.CreateChild(name.Value));

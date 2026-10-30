@@ -112,8 +112,7 @@ public sealed class CreateFolderHandlerTests
 
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        result.ShouldHaveSingleError(ErrorType.NotFound, "Folder was not found.");
         _folders.DidNotReceiveWithAnyArgs().Add(null!);
     }
 
