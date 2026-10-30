@@ -22,6 +22,7 @@ internal sealed class DeleteFileEndpoint : IEndpoint<FilesEndpoints>
     {
         var result = await mediator.SendAsync(DeleteFileMapper.ToCommand(id), cancellationToken);
 
-        return result.ToHttpResult(onSuccess: () => TypedResults.Accepted(uri: (string?)null));
+        return result.ToHttpResult(
+            onSuccess: () => TypedResults.StatusCode(statusCode: StatusCodes.Status202Accepted));
     }
 }
