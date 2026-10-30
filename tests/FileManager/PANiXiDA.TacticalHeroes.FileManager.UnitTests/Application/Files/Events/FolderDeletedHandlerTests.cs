@@ -1,7 +1,3 @@
-using NSubstitute.ExceptionExtensions;
-
-using PANiXiDA.Core.Application.Messaging.EventBus;
-
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Events;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -18,38 +14,36 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Events
 public sealed class FolderDeletedHandlerTests
 {
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
-    private readonly IEventBus _eventBus = Substitute.For<IEventBus>();
 
     private readonly Folder _folder = Folder.Create(
         FolderName.Create("Avatars").Value, FileType.Avatar, userId: null).Value;
 
     public FolderDeletedHandlerTests()
     {
-        _files.GetBatchByFolderForDeletionAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
+        _files.GetByFolderForDeletionAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
             .Returns(new List<File>());
     }
 
     [Fact(DisplayName = "File deletion subscriber should do nothing when no active files remain")]
     public async Task HandleAsync_Should_DoNothing_When_NoActiveFilesRemain()
     {
-        var handler = new FolderDeletedHandler(_files, _eventBus);
+        var handler = new FolderDeletedHandler(_files);
 
         await handler.HandleAsync(new FolderDeleted(_folder.Id.Value), TestContext.Current.CancellationToken);
 
         _files.DidNotReceiveWithAnyArgs().Update(null!);
-        _eventBus.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "File deletion subscriber should enqueue continuation when active files are present")]
+    [Theory(DisplayName = "File deletion subscriber should begin deletion for all files when active files are present")]
     [InlineData(3)]
-    [InlineData(100)]
-    public async Task HandleAsync_Should_EnqueueContinuation_When_ActiveFilesArePresent(int count)
+    [InlineData(107)]
+    public async Task HandleAsync_Should_BeginDeletionForAllFiles_When_ActiveFilesArePresent(int count)
     {
         var files = Enumerable.Range(0, count).Select(_ => CreateFile()).ToList();
         files[1].CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
         files[2].BeginDeletion();
-        _files.GetBatchByFolderForDeletionAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns(files);
-        var handler = new FolderDeletedHandler(_files, _eventBus);
+        _files.GetByFolderForDeletionAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns(files);
+        var handler = new FolderDeletedHandler(_files);
 
         await handler.HandleAsync(new FolderDeleted(_folder.Id.Value), TestContext.Current.CancellationToken);
 
@@ -58,25 +52,7 @@ public sealed class FolderDeletedHandlerTests
             file.Status.ShouldBe(FileStatus.Deleting);
             _files.Received(1).Update(file);
         }
-        await _files.Received(1).GetBatchByFolderForDeletionAsync(_folder.Id, TestContext.Current.CancellationToken);
-        await _eventBus.Received(1).PublishAsync(
-            Arg.Is<FolderDeleted>(message => message.FolderId == _folder.Id.Value),
-            TestContext.Current.CancellationToken);
-    }
-
-    [Fact(DisplayName = "File deletion subscriber should propagate failure when continuation publication fails")]
-    public async Task HandleAsync_Should_PropagateFailure_When_ContinuationPublicationFails()
-    {
-        _files.GetBatchByFolderForDeletionAsync(_folder.Id, Arg.Any<CancellationToken>())
-            .Returns([CreateFile()]);
-        _eventBus.PublishAsync(Arg.Any<FolderDeleted>(), Arg.Any<CancellationToken>())
-            .ThrowsAsync(new IOException("Outbox unavailable."));
-        var handler = new FolderDeletedHandler(_files, _eventBus);
-
-        var exception = await Record.ExceptionAsync(() => handler.HandleAsync(
-            new FolderDeleted(_folder.Id.Value), TestContext.Current.CancellationToken));
-
-        exception.ShouldBeOfType<IOException>();
+        await _files.Received(1).GetByFolderForDeletionAsync(_folder.Id, TestContext.Current.CancellationToken);
     }
 
     private File CreateFile()

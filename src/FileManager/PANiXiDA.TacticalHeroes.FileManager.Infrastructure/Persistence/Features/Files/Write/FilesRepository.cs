@@ -23,16 +23,12 @@ public sealed class FilesRepository(
             dbContext),
         IFilesRepository
 {
-    private const int DeletionBatchSize = 100;
-
-    public Task<List<File>> GetBatchByFolderForDeletionAsync(
+    public Task<List<File>> GetByFolderForDeletionAsync(
         FolderId folderId,
         CancellationToken cancellationToken)
     {
         return Query
             .Where(file => file.FolderId == folderId && file.Status != FileStatus.Deleting)
-            .OrderBy(file => file.Id)
-            .Take(DeletionBatchSize)
             .ToListAsync(cancellationToken);
     }
 
