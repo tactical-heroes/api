@@ -10,6 +10,7 @@ using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
+using Wolverine.Runtime;
 using Wolverine.Tracking;
 
 using IdentityDomainEvent = PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events.UserRegistered;
@@ -20,6 +21,18 @@ namespace PANiXiDA.TacticalHeroes.Players.FunctionalTests.Presentation;
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class UserRegistrationTests(FunctionalTestFixture fixture)
 {
+    private static readonly TimeSpan s_trackingTimeout = TimeSpan.FromSeconds(30);
+
+    [Fact(DisplayName = "Scheduling should disable expiration when only players schema is migrated")]
+    public void Scheduling_Should_DisableExpiration_When_OnlyPlayersSchemaIsMigrated()
+    {
+        var runtime = fixture.Services.GetRequiredService<IWolverineRuntime>();
+
+        var schedule = runtime.Options.Schedules.FindByName("matchmaking-expire-searches");
+
+        schedule.ShouldBeNull();
+    }
+
     [Fact(DisplayName = "User registration should create a player through both mappings when user is registered")]
     public async Task PublishAsync_Should_CreatePlayerThroughBothMappings_When_UserIsRegistered()
     {
@@ -27,7 +40,9 @@ public sealed class UserRegistrationTests(FunctionalTestFixture fixture)
         var domainEvent = new IdentityDomainEvent(userId.Value, "hero@example.com");
         var ct = TestContext.Current.CancellationToken;
 
-        var tracked = await fixture.Services.TrackActivity().PublishMessageAndWaitAsync(domainEvent);
+        var tracked = await fixture.Services.TrackActivity()
+            .Timeout(s_trackingTimeout)
+            .PublishMessageAndWaitAsync(domainEvent);
 
         var integrationEvent = tracked.FindSingleTrackedMessageOfType<IntegrationEvent>();
         integrationEvent.Id.ShouldBe(domainEvent.Id);
@@ -48,7 +63,9 @@ public sealed class UserRegistrationTests(FunctionalTestFixture fixture)
         var ct = TestContext.Current.CancellationToken;
         var userId = UserId.New();
         var integrationEvent = new IntegrationEvent(userId.Value);
-        await fixture.Services.TrackActivity().PublishMessageAndWaitAsync(integrationEvent);
+        await fixture.Services.TrackActivity()
+            .Timeout(s_trackingTimeout)
+            .PublishMessageAndWaitAsync(integrationEvent);
         var avatarFileId = FileId.New();
         Guid playerId;
         await using (var scope = fixture.Services.CreateAsyncScope())
@@ -63,8 +80,9 @@ public sealed class UserRegistrationTests(FunctionalTestFixture fixture)
                 .SaveChangesAsync(ct);
         }
 
-        await fixture.Services.TrackActivity().PublishMessageAndWaitAsync(
-            sameEvent ? integrationEvent : new IntegrationEvent(userId.Value));
+        await fixture.Services.TrackActivity()
+            .Timeout(s_trackingTimeout)
+            .PublishMessageAndWaitAsync(sameEvent ? integrationEvent : new IntegrationEvent(userId.Value));
 
         await using var verificationScope = fixture.Services.CreateAsyncScope();
         var verificationContext = verificationScope.ServiceProvider.GetRequiredService<PlayersWriteDbContext>();

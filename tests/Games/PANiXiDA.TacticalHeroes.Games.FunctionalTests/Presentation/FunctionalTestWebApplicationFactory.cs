@@ -10,6 +10,21 @@ namespace PANiXiDA.TacticalHeroes.Games.FunctionalTests.Presentation;
 
 internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactory<Program>
 {
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        const string Variable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
+        var previous = Environment.GetEnvironmentVariable(Variable);
+        try
+        {
+            Environment.SetEnvironmentVariable(Variable, "false");
+            return base.CreateHost(builder);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(Variable, previous);
+        }
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Test");
