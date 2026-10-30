@@ -45,12 +45,8 @@ public sealed class GameTests
 
         var game = Game.Create(
             GameMode.RankedDuel,
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1000),
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1200),
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1000)),
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1200)),
             firstSearchId,
             secondSearchId).Value;
 
@@ -67,12 +63,8 @@ public sealed class GameTests
 
         var result = Game.Create(
             GameMode.RankedDuel,
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1000),
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1200),
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1000)),
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1200)),
             searchId,
             searchId);
 
@@ -86,12 +78,8 @@ public sealed class GameTests
 
         var result = Game.Create(
             GameMode.RankedDuel,
-            playerId,
-            BuildId.New(),
-            Rating.Create(1000),
-            playerId,
-            BuildId.New(),
-            Rating.Create(1000),
+            GameParticipantSelection.Create(playerId, BuildId.New(), Rating.Create(1000)),
+            GameParticipantSelection.Create(playerId, BuildId.New(), Rating.Create(1000)),
             MatchSearchId.New(),
             MatchSearchId.New());
 

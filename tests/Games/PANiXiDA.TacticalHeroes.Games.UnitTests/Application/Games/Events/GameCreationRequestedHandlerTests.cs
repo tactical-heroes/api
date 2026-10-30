@@ -1,8 +1,5 @@
 using FluentValidation;
 
-using PANiXiDA.Core.Application.Messaging.EventBus;
-using PANiXiDA.Core.Domain.DomainEvents;
-
 using PANiXiDA.TacticalHeroes.Games.Application.Games.Events;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Abstractions;
@@ -12,17 +9,14 @@ namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Application.Games.Events;
 
 public sealed class GameCreationRequestedHandlerTests
 {
-    [Theory(DisplayName = "Handler should create a waiting game and publish correlation when match is found")]
+    [Theory(DisplayName = "Handler should create a waiting game and record correlation when match is found")]
     [InlineData("RankedDuel")]
     [InlineData("CasualDuel")]
-    public async Task HandleAsync_Should_CreateWaitingGameAndPublishCorrelation_When_MatchIsFound(string mode)
+    public async Task HandleAsync_Should_CreateWaitingGameAndRecordCorrelation_When_MatchIsFound(string mode)
     {
         var ct = TestContext.Current.CancellationToken;
         var repository = Substitute.For<IGamesRepository>();
-        var eventBus = Substitute.For<IEventBus>();
-        List<DomainEvent> published = [];
-        eventBus.PublishAsync(Arg.Do<DomainEvent>(published.Add), ct).Returns(Task.CompletedTask);
-        var handler = new GameCreationRequestedHandler(repository, eventBus);
+        var handler = new GameCreationRequestedHandler(repository);
         var requested = CreateRequest(mode);
         Game? added = null;
         repository.When(item => item.Add(Arg.Any<Game>())).Do(call => added = call.Arg<Game>());
@@ -40,11 +34,10 @@ public sealed class GameCreationRequestedHandlerTests
         var second = game.Participants.Single(item => item.PlayerId.Value == requested.SecondPlayerId);
         second.BuildId.Value.ShouldBe(requested.SecondBuildId);
         second.Rating.Value.ShouldBe(requested.SecondRating);
-        var created = published.ShouldHaveSingleItem().ShouldBeOfType<GameCreated>();
+        var created = game.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<GameCreated>();
         created.GameId.ShouldBe(game.Id.Value);
         created.FirstMatchSearchId.ShouldBe(requested.FirstMatchSearchId);
         created.SecondMatchSearchId.ShouldBe(requested.SecondMatchSearchId);
-        game.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Theory(DisplayName = "Handler should reject invalid matches before persistence when match data is invalid")]
@@ -58,8 +51,7 @@ public sealed class GameCreationRequestedHandlerTests
     public async Task HandleAsync_Should_RejectInvalidMatchBeforePersistence_When_MatchDataIsInvalid(string scenario)
     {
         var repository = Substitute.For<IGamesRepository>();
-        var eventBus = Substitute.For<IEventBus>();
-        var handler = new GameCreationRequestedHandler(repository, eventBus);
+        var handler = new GameCreationRequestedHandler(repository);
         var request = CreateRequest("RankedDuel");
         request = scenario switch
         {
@@ -77,15 +69,13 @@ public sealed class GameCreationRequestedHandlerTests
 
         exception.Errors.ShouldHaveSingleItem().ErrorMessage.ShouldNotBeNullOrWhiteSpace();
         repository.ReceivedCalls().ShouldBeEmpty();
-        eventBus.ReceivedCalls().ShouldBeEmpty();
     }
 
     [Fact(DisplayName = "Handler should collect validation errors when several fields are invalid")]
     public async Task HandleAsync_Should_CollectValidationErrors_When_SeveralFieldsAreInvalid()
     {
         var repository = Substitute.For<IGamesRepository>();
-        var eventBus = Substitute.For<IEventBus>();
-        var handler = new GameCreationRequestedHandler(repository, eventBus);
+        var handler = new GameCreationRequestedHandler(repository);
         var request = CreateRequest("Unknown") with
         {
             FirstPlayerId = Guid.Empty,
@@ -98,18 +88,16 @@ public sealed class GameCreationRequestedHandlerTests
 
         exception.Errors.Count().ShouldBe(4);
         repository.ReceivedCalls().ShouldBeEmpty();
-        eventBus.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Handler should propagate publication failure when outbox fails")]
-    public async Task HandleAsync_Should_PropagatePublicationFailure_When_OutboxFails()
+    [Fact(DisplayName = "Handler should propagate persistence failure when repository fails")]
+    public async Task HandleAsync_Should_PropagatePersistenceFailure_When_RepositoryFails()
     {
         var repository = Substitute.For<IGamesRepository>();
-        var eventBus = Substitute.For<IEventBus>();
         var ct = TestContext.Current.CancellationToken;
-        var failure = new InvalidOperationException("Outbox unavailable.");
-        eventBus.PublishAsync(Arg.Any<DomainEvent>(), ct).Returns(Task.FromException(failure));
-        var handler = new GameCreationRequestedHandler(repository, eventBus);
+        var failure = new InvalidOperationException("Repository unavailable.");
+        repository.When(item => item.Add(Arg.Any<Game>())).Do(_ => throw failure);
+        var handler = new GameCreationRequestedHandler(repository);
 
         var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
             handler.HandleAsync(CreateRequest("RankedDuel"), ct));

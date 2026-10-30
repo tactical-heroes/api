@@ -7,6 +7,7 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
@@ -83,6 +84,29 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
         var repeated = await ReadAsync(fixture.Services, [first.Id.Value, second.Id.Value], ct);
         repeated.ShouldAllBe(search => search.GameId == created.GameId);
         var changes = fixture.Services.GetRequiredService<MatchSearchStateChangedProbe>().Events;
+        changes.Count(item => item.MatchSearchId == first.Id.Value && item.GameId == created.GameId).ShouldBe(1);
+        changes.Count(item => item.MatchSearchId == second.Id.Value && item.GameId == created.GameId).ShouldBe(1);
+    }
+
+    [Fact(DisplayName = "Pipeline should publish each transition once when command and event pipelines are used")]
+    public async Task InvokeAsync_Should_PublishEachTransitionOnce_When_CommandAndEventPipelinesAreUsed()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var first = CreateSearch();
+        var second = CreateSearch();
+        await SeedAsync(fixture.Services, [first, second], ct);
+        var command = new ConfirmMatchCommand(first.Id.Value, second.Id.Value);
+
+        var tracked = await fixture.Services.TrackActivity().Timeout(s_timeout).InvokeMessageAndWaitAsync(command);
+
+        var created = tracked.FindSingleTrackedMessageOfType<CreatedContract>();
+        var changes = fixture.Services.GetRequiredService<MatchSearchStateChangedProbe>().Events
+            .Where(item => item.MatchSearchId == first.Id.Value || item.MatchSearchId == second.Id.Value)
+            .Where(item => item.Status == "Matched")
+            .ToArray();
+        changes.Length.ShouldBe(4);
+        changes.Count(item => item.MatchSearchId == first.Id.Value && item.GameId == null).ShouldBe(1);
+        changes.Count(item => item.MatchSearchId == second.Id.Value && item.GameId == null).ShouldBe(1);
         changes.Count(item => item.MatchSearchId == first.Id.Value && item.GameId == created.GameId).ShouldBe(1);
         changes.Count(item => item.MatchSearchId == second.Id.Value && item.GameId == created.GameId).ShouldBe(1);
     }

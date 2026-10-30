@@ -1,7 +1,5 @@
 using FluentValidation.Results;
 
-using PANiXiDA.Core.Application.Messaging.EventBus;
-
 using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Abstractions;
@@ -13,10 +11,10 @@ using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Games.Application.Games.Events;
 
-public sealed class GameCreationRequestedHandler(IGamesRepository gamesRepository, IEventBus eventBus)
+public sealed class GameCreationRequestedHandler(IGamesRepository gamesRepository)
     : IEventHandler<GameCreationRequested>
 {
-    public async Task HandleAsync(GameCreationRequested domainEvent, CancellationToken cancellationToken)
+    public Task HandleAsync(GameCreationRequested domainEvent, CancellationToken cancellationToken)
     {
         var mode = GameMode.Create(domainEvent.Mode);
         var firstPlayerId = PlayerId.Create(domainEvent.FirstPlayerId);
@@ -26,46 +24,45 @@ public sealed class GameCreationRequestedHandler(IGamesRepository gamesRepositor
         var firstMatchSearchId = MatchSearchId.Create(domainEvent.FirstMatchSearchId);
         var secondMatchSearchId = MatchSearchId.Create(domainEvent.SecondMatchSearchId);
 
-        ThrowIfInvalid(Result.Combine(
+        var validation = Result.Combine(
             mode,
             firstPlayerId,
             firstBuildId,
             secondPlayerId,
             secondBuildId,
             firstMatchSearchId,
-            secondMatchSearchId));
+            secondMatchSearchId);
+
+        if (validation.IsFailure)
+        {
+            throw new ValidationException(validation.Errors.Select(error => new ValidationFailure(
+                propertyName: error.Metadata.GetValueOrDefault(Error.FieldMetadataKey) as string ?? string.Empty,
+                errorMessage: error.Message)));
+        }
 
         var created = Game.Create(
             mode: mode.Value,
-            firstPlayerId: firstPlayerId.Value,
-            firstBuildId: firstBuildId.Value,
-            firstRating: Rating.Create(domainEvent.FirstRating),
-            secondPlayerId: secondPlayerId.Value,
-            secondBuildId: secondBuildId.Value,
-            secondRating: Rating.Create(domainEvent.SecondRating),
+            firstParticipant: GameParticipantSelection.Create(
+                playerId: firstPlayerId.Value,
+                buildId: firstBuildId.Value,
+                rating: Rating.Create(domainEvent.FirstRating)),
+            secondParticipant: GameParticipantSelection.Create(
+                playerId: secondPlayerId.Value,
+                buildId: secondBuildId.Value,
+                rating: Rating.Create(domainEvent.SecondRating)),
             firstMatchSearchId: firstMatchSearchId.Value,
             secondMatchSearchId: secondMatchSearchId.Value);
 
-        ThrowIfInvalid(created);
+        if (created.IsFailure)
+        {
+            throw new ValidationException(created.Errors.Select(error => new ValidationFailure(
+                propertyName: error.Metadata.GetValueOrDefault(Error.FieldMetadataKey) as string ?? string.Empty,
+                errorMessage: error.Message)));
+        }
 
         var game = created.Value;
         gamesRepository.Add(game);
 
-        foreach (var domainEventToPublish in game.GetDomainEvents())
-        {
-            await eventBus.PublishAsync(domainEventToPublish, cancellationToken);
-        }
-
-        game.ClearDomainEvents();
-    }
-
-    private static void ThrowIfInvalid(Result result)
-    {
-        if (result.IsFailure)
-        {
-            throw new ValidationException(result.Errors.Select(error => new ValidationFailure(
-                propertyName: error.Metadata.GetValueOrDefault(Error.FieldMetadataKey) as string ?? string.Empty,
-                errorMessage: error.Message)));
-        }
+        return Task.CompletedTask;
     }
 }

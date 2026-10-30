@@ -1,3 +1,5 @@
+using PANiXiDA.Core.Domain.AggregateRoots;
+using PANiXiDA.Core.Domain.DomainEvents;
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.DependencyInjection;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants;
 
@@ -11,6 +13,8 @@ using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
+
+using Wolverine.EntityFrameworkCore;
 
 using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
 using BuildsApplicationAssembly = PANiXiDA.TacticalHeroes.Builds.Application.ApplicationAssembly;
@@ -68,6 +72,14 @@ internal static class MessagingConfiguration
                 schedules.AddFileManagerSchedules();
                 schedules.AddMatchmakingSchedules();
             });
+
+        builder.Services.AddSingleton<IDomainEventScraper>(
+            new DomainEventScraper<IAggregateRoot, DomainEvent>(aggregate =>
+            {
+                var events = aggregate.GetDomainEvents().ToArray();
+                aggregate.ClearDomainEvents();
+                return events;
+            }));
 
         return builder;
     }

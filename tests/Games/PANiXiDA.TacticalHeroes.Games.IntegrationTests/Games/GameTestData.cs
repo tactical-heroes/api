@@ -14,12 +14,8 @@ internal static class GameTestData
     {
         return Game.Create(
             mode ?? GameMode.RankedDuel,
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1000),
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1200),
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1000)),
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1200)),
             MatchSearchId.New(),
             MatchSearchId.New()).Value;
     }

@@ -1,6 +1,3 @@
-using PANiXiDA.Core.Application.Messaging.EventBus;
-using PANiXiDA.Core.Domain.DomainEvents;
-
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
@@ -23,11 +20,7 @@ public sealed class GameAssignmentRequestedHandlerTests
         first.ClearDomainEvents();
         second.ClearDomainEvents();
         var repository = Repository(first, second);
-        var eventBus = Substitute.For<IEventBus>();
-        List<DomainEvent> published = [];
-        eventBus.PublishAsync(Arg.Do<DomainEvent>(published.Add), Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
-        var handler = new GameAssignmentRequestedHandler(repository, eventBus);
+        var handler = new GameAssignmentRequestedHandler(repository);
         var request = new GameAssignmentRequested(Guid.CreateVersion7(), first.Id.Value, second.Id.Value);
         var ct = TestContext.Current.CancellationToken;
 
@@ -38,12 +31,13 @@ public sealed class GameAssignmentRequestedHandlerTests
         second.GameId.ShouldBe(first.GameId);
         repository.Received(1).Update(first);
         repository.Received(1).Update(second);
-        var changes = published.OfType<MatchSearchStateChanged>().ToArray();
+        var changes = first.GetDomainEvents()
+            .Concat(second.GetDomainEvents())
+            .OfType<MatchSearchStateChanged>()
+            .ToArray();
         changes.Length.ShouldBe(2);
         changes.ShouldAllBe(item => item.GameId == request.GameId);
         changes.Select(item => item.MatchSearchId).ShouldBe([first.Id.Value, second.Id.Value]);
-        first.GetDomainEvents().ShouldBeEmpty();
-        second.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Theory(DisplayName = "Handler should preserve stored games when conflicting assignment arrives")]
@@ -59,7 +53,7 @@ public sealed class GameAssignmentRequestedHandlerTests
         var conflicting = firstConflicts ? first : second;
         conflicting.AssignGame(original);
         var repository = Repository(first, second);
-        var handler = new GameAssignmentRequestedHandler(repository, Substitute.For<IEventBus>());
+        var handler = new GameAssignmentRequestedHandler(repository);
         var request = new GameAssignmentRequested(Guid.CreateVersion7(), first.Id.Value, second.Id.Value);
 
         await Should.ThrowAsync<InvalidOperationException>(() =>
@@ -79,7 +73,7 @@ public sealed class GameAssignmentRequestedHandlerTests
         var repository = Substitute.For<IMatchSearchesRepository>();
         repository.GetByIdAsync(first.Id, Arg.Any<CancellationToken>()).Returns(firstMissing ? null : first);
         repository.GetByIdAsync(second.Id, Arg.Any<CancellationToken>()).Returns(firstMissing ? second : null);
-        var handler = new GameAssignmentRequestedHandler(repository, Substitute.For<IEventBus>());
+        var handler = new GameAssignmentRequestedHandler(repository);
 
         await Should.ThrowAsync<InvalidOperationException>(() => handler.HandleAsync(
             new GameAssignmentRequested(Guid.CreateVersion7(), first.Id.Value, second.Id.Value),
@@ -92,7 +86,7 @@ public sealed class GameAssignmentRequestedHandlerTests
     public async Task HandleAsync_Should_RejectRepeatedSearchId_When_PairContainsOneSearch()
     {
         var repository = Substitute.For<IMatchSearchesRepository>();
-        var handler = new GameAssignmentRequestedHandler(repository, Substitute.For<IEventBus>());
+        var handler = new GameAssignmentRequestedHandler(repository);
         var id = Guid.CreateVersion7();
 
         await Should.ThrowAsync<InvalidOperationException>(() => handler.HandleAsync(

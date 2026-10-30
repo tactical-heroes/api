@@ -1,5 +1,3 @@
-using PANiXiDA.Core.Application.Messaging.EventBus;
-
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
@@ -7,9 +5,7 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Events;
 
-public sealed class GameAssignmentRequestedHandler(
-    IMatchSearchesRepository matchSearchesRepository,
-    IEventBus eventBus)
+public sealed class GameAssignmentRequestedHandler(IMatchSearchesRepository matchSearchesRepository)
     : IEventHandler<GameAssignmentRequested>
 {
     public async Task HandleAsync(GameAssignmentRequested domainEvent, CancellationToken cancellationToken)
@@ -49,13 +45,5 @@ public sealed class GameAssignmentRequestedHandler(
         {
             matchSearchesRepository.Update(second);
         }
-
-        foreach (var stateChanged in first.GetDomainEvents().Concat(second.GetDomainEvents()))
-        {
-            await eventBus.PublishAsync(stateChanged, cancellationToken);
-        }
-
-        first.ClearDomainEvents();
-        second.ClearDomainEvents();
     }
 }

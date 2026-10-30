@@ -1,12 +1,10 @@
 using PANiXiDA.TacticalHeroes.Games.Domain.Battles;
-using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
 using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
 using ResultFactory = PANiXiDA.Core.ResultPattern.Result;
 
@@ -32,12 +30,8 @@ public sealed class Game : AggregateRoot<GameId>
 
     public static Result<Game> Create(
         GameMode mode,
-        PlayerId firstPlayerId,
-        BuildId firstBuildId,
-        Rating firstRating,
-        PlayerId secondPlayerId,
-        BuildId secondBuildId,
-        Rating secondRating,
+        GameParticipantSelection firstParticipant,
+        GameParticipantSelection secondParticipant,
         MatchSearchId firstMatchSearchId,
         MatchSearchId secondMatchSearchId)
     {
@@ -46,7 +40,7 @@ public sealed class Game : AggregateRoot<GameId>
             return ResultFactory.Failure<Game>(Error.Validation("A game requires two different match searches."));
         }
 
-        if (firstPlayerId == secondPlayerId)
+        if (firstParticipant.PlayerId == secondParticipant.PlayerId)
         {
             return ResultFactory.Failure<Game>(Error.Validation("A game requires two different players."));
         }
@@ -55,15 +49,15 @@ public sealed class Game : AggregateRoot<GameId>
 
         game._participants.Add(GameParticipant.Create(
             gameId: game.Id,
-            playerId: firstPlayerId,
-            buildId: firstBuildId,
-            rating: firstRating));
+            playerId: firstParticipant.PlayerId,
+            buildId: firstParticipant.BuildId,
+            rating: firstParticipant.Rating));
 
         game._participants.Add(GameParticipant.Create(
             gameId: game.Id,
-            playerId: secondPlayerId,
-            buildId: secondBuildId,
-            rating: secondRating));
+            playerId: secondParticipant.PlayerId,
+            buildId: secondParticipant.BuildId,
+            rating: secondParticipant.Rating));
 
         game.AddDomainEvent(new GameCreated(
             GameId: game.Id.Value,
