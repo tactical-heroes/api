@@ -7,13 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 
 using Wolverine;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
-internal sealed class FunctionalTestWebApplicationFactory(bool matchmakingScheduleEnabled)
+internal sealed class FunctionalTestWebApplicationFactory(
+    bool matchmakingScheduleEnabled,
+    bool expirationScheduleEnabled)
     : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -25,6 +28,7 @@ internal sealed class FunctionalTestWebApplicationFactory(bool matchmakingSchedu
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
                 ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret",
                 ["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] = "false",
+                ["Matchmaking:Schedules:ExpireMatchSearchesCommand:Enabled"] = expirationScheduleEnabled.ToString(),
                 ["Matchmaking:Schedules:ProcessMatchmakingCommand:Enabled"] = matchmakingScheduleEnabled.ToString()
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
@@ -51,12 +55,14 @@ internal sealed class FunctionalTestWebApplicationFactory(bool matchmakingSchedu
                     TestAuthenticationHandler.SchemeName, _ => { });
             services.RunWolverineInSoloMode();
             services.AddSingleton<MatchFoundProbe>();
+            services.AddSingleton<MatchSearchStateChangedProbe>();
             services.AddSingleton<ConcurrentMatchSaveBarrier>();
             services.AddSingleton<IInterceptor>(provider => provider.GetRequiredService<ConcurrentMatchSaveBarrier>());
             services.ConfigureWolverine(options =>
             {
                 options.CodeGeneration.SourceCodeWritingEnabled = false;
                 options.Discovery.IncludeType(typeof(MatchFoundProbeHandler));
+                options.Discovery.IncludeType(typeof(MatchSearchStateChangedProbeHandler));
             });
         });
     }
