@@ -56,6 +56,8 @@ internal sealed class FunctionalTestWebApplicationFactory(
             services.RunWolverineInSoloMode();
             services.AddSingleton<MatchFoundProbe>();
             services.AddSingleton<MatchSearchStateChangedProbe>();
+            services.AddSingleton<GameCreationSaveBarrier>();
+            services.AddSingleton<IInterceptor>(provider => provider.GetRequiredService<GameCreationSaveBarrier>());
             services.AddSingleton<ConcurrentMatchSaveBarrier>();
             services.AddSingleton<IInterceptor>(provider => provider.GetRequiredService<ConcurrentMatchSaveBarrier>());
             services.ConfigureWolverine(options =>
