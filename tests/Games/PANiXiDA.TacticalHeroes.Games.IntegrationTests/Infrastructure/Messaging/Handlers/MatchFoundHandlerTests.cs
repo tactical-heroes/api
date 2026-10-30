@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Messagin
 
 public sealed class MatchFoundHandlerTests
 {
-    [Fact(DisplayName = "Mapper should preserve event data when MatchFound is handled")]
+    [Fact(DisplayName = "Mapper should preserve event data when match found is handled")]
     public void Handle_Should_PreserveEventData_When_MatchFoundIsHandled()
     {
         var source = new SourceEvent(

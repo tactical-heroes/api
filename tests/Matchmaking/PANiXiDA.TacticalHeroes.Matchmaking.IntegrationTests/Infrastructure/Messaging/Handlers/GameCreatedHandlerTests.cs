@@ -6,7 +6,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Me
 
 public sealed class GameCreatedHandlerTests
 {
-    [Fact(DisplayName = "Mapper should preserve event data when GameCreated is handled")]
+    [Fact(DisplayName = "Mapper should preserve event data when game created is handled")]
     public void Handle_Should_PreserveEventData_When_GameCreatedIsHandled()
     {
         var source = new SourceEvent(

@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Application.Games.Events;
 
 public sealed class GameCreationRequestedHandlerTests
 {
-    [Theory(DisplayName = "Handler should create a waiting game and publish correlation when a match is found")]
+    [Theory(DisplayName = "Handler should create a waiting game and publish correlation when match is found")]
     [InlineData("RankedDuel")]
     [InlineData("CasualDuel")]
     public async Task HandleAsync_Should_CreateWaitingGameAndPublishCorrelation_When_MatchIsFound(string mode)
@@ -68,7 +68,7 @@ public sealed class GameCreationRequestedHandlerTests
         eventBus.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Handler should propagate publication failure when the outbox fails")]
+    [Fact(DisplayName = "Handler should propagate publication failure when outbox fails")]
     public async Task HandleAsync_Should_PropagatePublicationFailure_When_OutboxFails()
     {
         var repository = Substitute.For<IGamesRepository>();

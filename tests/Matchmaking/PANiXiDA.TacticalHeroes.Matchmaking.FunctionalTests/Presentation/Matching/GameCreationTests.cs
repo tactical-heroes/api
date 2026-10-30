@@ -29,7 +29,7 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
-    [Theory(DisplayName = "MatchFound should create one game and assign both searches when a pair is confirmed")]
+    [Theory(DisplayName = "MatchFound should create one game and assign both searches when pair is confirmed")]
     [InlineData("RankedDuel")]
     [InlineData("CasualDuel")]
     public async Task PublishAsync_Should_CreateGameAndAssignBothSearches_When_PairIsConfirmed(string mode)
@@ -87,7 +87,7 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
         changes.Count(item => item.MatchSearchId == second.Id.Value && item.GameId == created.GameId).ShouldBe(1);
     }
 
-    [Fact(DisplayName = "Inbox should prevent a second game when the same match envelope is redelivered")]
+    [Fact(DisplayName = "Inbox should prevent a second game when same match envelope is redelivered")]
     public async Task PublishAsync_Should_PreventSecondGame_When_SameMatchEnvelopeIsRedelivered()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -135,7 +135,7 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
         after.ShouldAllBe(search => search.GameId == gameId);
     }
 
-    [Theory(DisplayName = "Game creation should publish after commit and preserve atomicity when saving completes")]
+    [Theory(DisplayName = "Game creation should publish after commit and preserve atomicity when game saving completes")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task InvokeAsync_Should_PreserveAtomicity_When_GameSavingCompletes(bool fail)
@@ -189,7 +189,7 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
         (await GameCountAsync(ct)).ShouldBe(before + 1);
     }
 
-    [Fact(DisplayName = "Assignment should roll back both searches and events when a concurrent close wins")]
+    [Fact(DisplayName = "Assignment should roll back both searches and events when concurrent close wins")]
     public async Task InvokeAsync_Should_RollBackBothSearchesAndEvents_When_ConcurrentCloseWins()
     {
         var ct = TestContext.Current.CancellationToken;

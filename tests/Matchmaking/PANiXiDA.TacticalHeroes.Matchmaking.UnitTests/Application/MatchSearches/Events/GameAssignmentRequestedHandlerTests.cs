@@ -46,7 +46,7 @@ public sealed class GameAssignmentRequestedHandlerTests
         second.GetDomainEvents().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Handler should preserve stored games when a conflicting assignment arrives")]
+    [Theory(DisplayName = "Handler should preserve stored games when conflicting assignment arrives")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task HandleAsync_Should_PreserveStoredGames_When_ConflictingAssignmentArrives(bool firstConflicts)
@@ -88,7 +88,7 @@ public sealed class GameAssignmentRequestedHandlerTests
         repository.DidNotReceive().Update(Arg.Any<MatchSearch>());
     }
 
-    [Fact(DisplayName = "Handler should reject a repeated search id when the pair contains one search")]
+    [Fact(DisplayName = "Handler should reject a repeated search id when pair contains one search")]
     public async Task HandleAsync_Should_RejectRepeatedSearchId_When_PairContainsOneSearch()
     {
         var repository = Substitute.For<IMatchSearchesRepository>();
