@@ -17,25 +17,9 @@ public sealed class CreateFolderHandler(
 {
     public async Task<Result<Guid>> HandleAsync(CreateFolderCommand command, CancellationToken cancellationToken)
     {
-        var name = FolderName.Create(command.Name);
-        var type = FileType.Create(command.AllowedFileType);
-        var validation = Result.Combine(name, type);
-        if (validation.IsFailure)
-        {
-            return Result.Failure<Guid>(validation.Errors);
-        }
-
-        var result = command.ParentId is { } parentId
-            ? await CreateChildAsync(
-                command: command,
-                name: name.Value,
-                type: type.Value,
-                parentId: parentId,
-                cancellationToken: cancellationToken)
-            : CreateRoot(
-                command: command,
-                name: name.Value,
-                type: type.Value);
+        var result = command.ParentId is not null
+            ? await CreateChildAsync(command, cancellationToken)
+            : CreateRoot(command);
         if (result.IsFailure)
         {
             return Result.Failure<Guid>(result.Errors);
@@ -46,9 +30,17 @@ public sealed class CreateFolderHandler(
         return Result.Success(result.Value.Id.Value);
     }
 
-    private Result<Folder> CreateRoot(CreateFolderCommand command, FolderName name, FileType type)
+    private Result<Folder> CreateRoot(CreateFolderCommand command)
     {
-        var ownerId = command.UserId ?? (type == FileType.Personal ? currentUser.UserId : null);
+        var name = FolderName.Create(command.Name);
+        var type = FileType.Create(command.AllowedFileType);
+        var validation = Result.Combine(name, type);
+        if (validation.IsFailure)
+        {
+            return Result.Failure<Folder>(validation.Errors);
+        }
+
+        var ownerId = command.UserId ?? (type.Value == FileType.Personal ? currentUser.UserId : null);
         UserId? userId = null;
         if (ownerId is { } id)
         {
@@ -62,8 +54,8 @@ public sealed class CreateFolderHandler(
         }
 
         var result = Folder.Create(
-            name: name,
-            allowedFileType: type,
+            name: name.Value,
+            allowedFileType: type.Value,
             userId: userId);
         if (result.IsFailure)
         {
@@ -77,15 +69,15 @@ public sealed class CreateFolderHandler(
 
     private async Task<Result<Folder>> CreateChildAsync(
         CreateFolderCommand command,
-        FolderName name,
-        FileType type,
-        Guid parentId,
         CancellationToken cancellationToken)
     {
-        var id = FolderId.Create(parentId);
-        if (id.IsFailure)
+        var name = FolderName.Create(command.Name);
+        var type = FileType.Create(command.AllowedFileType);
+        var id = FolderId.Create(command.ParentId.GetValueOrDefault());
+        var validation = Result.Combine(name, type, id);
+        if (validation.IsFailure)
         {
-            return Result.Failure<Folder>(id.Errors);
+            return Result.Failure<Folder>(validation.Errors);
         }
 
         var parent = await foldersRepository.GetByIdAsync(id.Value, cancellationToken);
@@ -94,7 +86,7 @@ public sealed class CreateFolderHandler(
             return Result.Failure<Folder>(Error.NotFound("Folder was not found."));
         }
 
-        if (type != parent.AllowedFileType)
+        if (type.Value != parent.AllowedFileType)
         {
             return Result.Failure<Folder>(
                 Error.Validation("Folder type must match the parent's allowed file type.")
@@ -108,6 +100,6 @@ public sealed class CreateFolderHandler(
                     .WithField(nameof(command.UserId)));
         }
 
-        return Result.Success(parent.CreateChild(name));
+        return Result.Success(parent.CreateChild(name.Value));
     }
 }
