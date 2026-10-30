@@ -176,10 +176,10 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Theory(
-        DisplayName = "Folder repository should limit direct active children when nested and deleted folders exist")]
+        DisplayName = "Repository should return all direct active children when nested and deleted folders exist")]
     [InlineData("Personal")]
     [InlineData("Avatar")]
-    public async Task GetChildrenBatchAsync_Should_LimitDirectActiveChildren_When_NestedAndDeletedFoldersExist(
+    public async Task GetChildrenAsync_Should_ReturnAllDirectActiveChildren_When_NestedAndDeletedFoldersExist(
         string type)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -208,12 +208,12 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         await using var verificationScope = Fixture.CreateScope();
         var folders = verificationScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
 
-        var loaded = await folders.GetChildrenBatchAsync(root.Id, ct);
+        var loaded = await folders.GetChildrenAsync(root.Id, ct);
 
-        var expectedIds = children.Take(104).Select(folder => folder.Id.Value).Order().Take(100);
-        loaded.Select(folder => folder.Id.Value).ShouldBe(expectedIds);
+        var expectedIds = children.Take(104).Select(folder => folder.Id.Value).Order();
+        loaded.Select(folder => folder.Id.Value).Order().ShouldBe(expectedIds);
         var context = verificationScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
-        context.ChangeTracker.Entries<Folder>().Count().ShouldBe(100);
+        context.ChangeTracker.Entries<Folder>().Count().ShouldBe(104);
     }
 
     [Theory(DisplayName = "Folder reconciliation should find all pages when old deleted parents have active contents")]

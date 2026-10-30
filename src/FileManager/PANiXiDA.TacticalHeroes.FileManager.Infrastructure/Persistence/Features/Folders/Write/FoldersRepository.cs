@@ -18,16 +18,14 @@ public sealed class FoldersRepository(
             dbContext),
         IFoldersRepository
 {
-    private const int DeletionBatchSize = 100;
+    private const int ReconciliationBatchSize = 100;
 
     private readonly DbSet<File> _files = dbContext.Set<File>();
 
-    public Task<List<Folder>> GetChildrenBatchAsync(FolderId parentId, CancellationToken cancellationToken)
+    public Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken cancellationToken)
     {
         return Query
             .Where(folder => folder.ParentId == parentId)
-            .OrderBy(folder => folder.Id)
-            .Take(DeletionBatchSize)
             .ToListAsync(cancellationToken);
     }
 
@@ -56,7 +54,7 @@ public sealed class FoldersRepository(
 
             var folders = await pageQuery
                 .OrderBy(folder => folder.Id)
-                .Take(DeletionBatchSize)
+                .Take(ReconciliationBatchSize)
                 .ToListAsync(cancellationToken);
             if (folders.Count == 0)
             {

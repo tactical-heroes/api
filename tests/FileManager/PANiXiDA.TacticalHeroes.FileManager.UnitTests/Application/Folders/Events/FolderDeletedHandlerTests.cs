@@ -22,7 +22,7 @@ public sealed class FolderDeletedHandlerTests
 
     public FolderDeletedHandlerTests()
     {
-        _folders.GetChildrenBatchAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
+        _folders.GetChildrenAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
             .Returns(new List<Folder>());
     }
 
@@ -37,13 +37,15 @@ public sealed class FolderDeletedHandlerTests
         _eventBus.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Folder deletion event should cascade locally when direct children are present")]
-    public async Task HandleAsync_Should_CascadeLocally_When_DirectChildrenArePresent()
+    [Theory(DisplayName = "Folder deletion event should cascade locally when direct children are present")]
+    [InlineData(2)]
+    [InlineData(103)]
+    public async Task HandleAsync_Should_CascadeLocally_When_DirectChildrenArePresent(int count)
     {
-        var children = Enumerable.Range(0, 2)
+        var children = Enumerable.Range(0, count)
             .Select(index => _parent.CreateChild(FolderName.Create($"Child {index}").Value))
             .ToList();
-        _folders.GetChildrenBatchAsync(_parent.Id, Arg.Any<CancellationToken>()).Returns(children);
+        _folders.GetChildrenAsync(_parent.Id, Arg.Any<CancellationToken>()).Returns(children);
 
         await CreateHandler().HandleAsync(new FolderDeleted(_parent.Id.Value), TestContext.Current.CancellationToken);
 
@@ -53,29 +55,14 @@ public sealed class FolderDeletedHandlerTests
             await _eventBus.Received(1).PublishAsync(
                 Arg.Is<FolderDeleted>(e => e.FolderId == child.Id.Value), TestContext.Current.CancellationToken);
         }
-        await _eventBus.Received(1).PublishAsync(
-            Arg.Is<FolderDeleted>(e => e.FolderId == _parent.Id.Value), TestContext.Current.CancellationToken);
-    }
-
-    [Fact(DisplayName = "Folder deletion event should enqueue continuation when a batch is full")]
-    public async Task HandleAsync_Should_EnqueueContinuation_When_ABatchIsFull()
-    {
-        var children = Enumerable.Range(0, 100)
-            .Select(index => _parent.CreateChild(FolderName.Create($"Child {index}").Value))
-            .ToList();
-        _folders.GetChildrenBatchAsync(_parent.Id, Arg.Any<CancellationToken>()).Returns(children);
-
-        await CreateHandler().HandleAsync(new FolderDeleted(_parent.Id.Value), TestContext.Current.CancellationToken);
-
-        await _eventBus.Received(1).PublishAsync(
-            Arg.Is<FolderDeleted>(e => e.FolderId == _parent.Id.Value), TestContext.Current.CancellationToken);
-        await _folders.Received(1).GetChildrenBatchAsync(_parent.Id, TestContext.Current.CancellationToken);
+        _eventBus.ReceivedCalls().Count().ShouldBe(children.Count);
+        await _folders.Received(1).GetChildrenAsync(_parent.Id, TestContext.Current.CancellationToken);
     }
 
     [Fact(DisplayName = "Folder deletion event should propagate failure when child event publication fails")]
     public async Task HandleAsync_Should_PropagateFailure_When_ChildEventPublicationFails()
     {
-        _folders.GetChildrenBatchAsync(_parent.Id, Arg.Any<CancellationToken>())
+        _folders.GetChildrenAsync(_parent.Id, Arg.Any<CancellationToken>())
             .Returns([_parent.CreateChild(FolderName.Create("Child").Value)]);
         _eventBus.PublishAsync(Arg.Any<FolderDeleted>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new IOException("Outbox unavailable."));

@@ -195,8 +195,9 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         }
     }
 
-    [Fact(DisplayName = "DELETE folder should drain bounded batches when files and child counts exceed the limit")]
-    public async Task HandleAsync_Should_DrainBoundedBatches_When_FilesAndChildCountsExceedTheLimit()
+    [Fact(
+        DisplayName = "Folder should process all direct contents when files and child counts exceed one hundred")]
+    public async Task HandleAsync_Should_ProcessAllDirectContents_When_FilesAndChildCountsExceedOneHundred()
     {
         var userId = Guid.NewGuid();
         var root = CreateFolder("Personal", userId);
