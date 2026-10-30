@@ -135,7 +135,7 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
         after.ShouldAllBe(search => search.GameId == gameId);
     }
 
-    [Theory(DisplayName = "Game creation should publish after commit and preserve atomicity when game saving completes")]
+    [Theory(DisplayName = "Game creation should preserve atomicity when game saving completes")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task InvokeAsync_Should_PreserveAtomicity_When_GameSavingCompletes(bool fail)
