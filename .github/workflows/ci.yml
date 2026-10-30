@@ -78,21 +78,6 @@ jobs:
                 --data-urlencode 'resolved=false' \
                 --data-urlencode 'ps=100' \
                 | jq '{total, issues: [.issues[] | {rule, component, line, message}]}'
-
-              if jq -e '.projectStatus.conditions[] | select(.metricKey == "new_duplicated_lines_density" and .status == "ERROR")' \
-                <<< "$status" > /dev/null; then
-                curl --fail --silent --show-error --max-time 60 \
-                  --header "Authorization: Bearer $SONAR_TOKEN" \
-                  --get "${SONAR_HOST_URL%/}/api/measures/component_tree" \
-                  --data-urlencode "component=$SONAR_PROJECT_KEY" \
-                  --data-urlencode "$selector" \
-                  --data-urlencode 'metricKeys=new_duplicated_lines_density,new_duplicated_lines,new_lines' \
-                  --data-urlencode 'metricSort=new_duplicated_lines_density' \
-                  --data-urlencode 'asc=false' \
-                  --data-urlencode 'qualifiers=FIL' \
-                  --data-urlencode 'ps=100' \
-                  | jq '{paging, components: [.components[] | {key, path, measures}]}'
-              fi
             fi
           done
 
