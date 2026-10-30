@@ -16,4 +16,11 @@ public readonly partial record struct UserId : IStronglyTypedId
                 error: Error.Validation(message: "User id cannot be empty."))
             : Result.Success(value: new UserId(value: value));
     }
+
+    public static Result<UserId?> Create(Guid? value)
+    {
+        return value is null
+            ? Result.Success<UserId?>(value: null)
+            : Create(value.Value).Map(id => (UserId?)id);
+    }
 }
