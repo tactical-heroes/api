@@ -17,10 +17,10 @@ using Wolverine;
 using Wolverine.Runtime;
 using Wolverine.Tracking;
 
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
+
 using CreatedContract = PANiXiDA.TacticalHeroes.Games.Contracts.Games.GameCreated;
 using FoundContract = PANiXiDA.TacticalHeroes.Matchmaking.Contracts.MatchSearches.MatchFound;
-
-using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 
