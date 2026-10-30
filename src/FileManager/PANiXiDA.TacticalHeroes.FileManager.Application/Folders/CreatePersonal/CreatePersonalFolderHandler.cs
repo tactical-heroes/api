@@ -8,16 +8,16 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.CreatePersonal
 public sealed class CreatePersonalFolderHandler(FolderCreationService folderCreationService, ICurrentUser currentUser)
     : ICommandHandler<CreatePersonalFolderCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction
 {
-    public async Task<Result<Guid>> HandleAsync(
+    public Task<Result<Guid>> HandleAsync(
         CreatePersonalFolderCommand command,
         CancellationToken cancellationToken)
     {
         if (currentUser.UserId is not { } userId)
         {
-            return Result.Failure<Guid>(Error.Unauthorized("A user account is required."));
+            return Task.FromResult(Result.Failure<Guid>(Error.Unauthorized("A user account is required.")));
         }
 
-        return await folderCreationService.CreateAsync(
+        return folderCreationService.CreateAsync(
             name: command.Name,
             allowedFileType: FileType.Personal,
             userId: userId,
