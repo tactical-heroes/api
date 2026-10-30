@@ -68,6 +68,8 @@ public class FunctionalTestFixture : IAsyncLifetime
             _previousConnectionString);
         Environment.SetEnvironmentVariable(ScheduleEnabledVariable, _previousScheduleEnabled);
         Environment.SetEnvironmentVariable(FileManagerScheduleVariable, _previousFileManagerSchedule);
+
+        GC.SuppressFinalize(this);
     }
 
     private async Task MigrateDatabaseAsync(CancellationToken cancellationToken)
