@@ -6,6 +6,7 @@ using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.Value
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 using PANiXiDA.TacticalHeroes.Games.UnitTests.Games;
 
@@ -36,6 +37,48 @@ public sealed class GameTests
             .ShouldBeTrue();
     }
 
+    [Fact(DisplayName = "Game should raise its creation event when match searches are provided")]
+    public void Create_Should_RaiseCreationEvent_When_MatchSearchesAreProvided()
+    {
+        var firstSearchId = MatchSearchId.New();
+        var secondSearchId = MatchSearchId.New();
+
+        var game = Game.Create(
+            GameMode.RankedDuel,
+            PlayerId.New(),
+            BuildId.New(),
+            Rating.Create(1000),
+            PlayerId.New(),
+            BuildId.New(),
+            Rating.Create(1200),
+            firstSearchId,
+            secondSearchId).Value;
+
+        var created = game.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<GameCreated>();
+        created.GameId.ShouldBe(game.Id.Value);
+        created.FirstMatchSearchId.ShouldBe(firstSearchId.Value);
+        created.SecondMatchSearchId.ShouldBe(secondSearchId.Value);
+    }
+
+    [Fact(DisplayName = "Game should reject duplicate searches when match search ids are equal")]
+    public void Create_Should_RejectDuplicateSearches_When_MatchSearchIdsAreEqual()
+    {
+        var searchId = MatchSearchId.New();
+
+        var result = Game.Create(
+            GameMode.RankedDuel,
+            PlayerId.New(),
+            BuildId.New(),
+            Rating.Create(1000),
+            PlayerId.New(),
+            BuildId.New(),
+            Rating.Create(1200),
+            searchId,
+            searchId);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "A game requires two different match searches.");
+    }
+
     [Fact(DisplayName = "Game should reject duplicate participants when player ids are equal")]
     public void Create_Should_RejectDuplicateParticipants_When_PlayerIdsAreEqual()
     {
@@ -48,7 +91,9 @@ public sealed class GameTests
             Rating.Create(1000),
             playerId,
             BuildId.New(),
-            Rating.Create(1000));
+            Rating.Create(1000),
+            MatchSearchId.New(),
+            MatchSearchId.New());
 
         result.ShouldHaveSingleError(ErrorType.Validation, "A game requires two different players.");
     }
@@ -57,6 +102,7 @@ public sealed class GameTests
     public void Start_Should_PreserveBattleAndTime_When_StartIsRepeated()
     {
         var game = GameTestData.Create();
+        game.ClearDomainEvents();
         var battleId = BattleId.New();
 
         game.Start(battleId, GameTestData.At(10)).IsSuccess.ShouldBeTrue();
@@ -77,6 +123,7 @@ public sealed class GameTests
     public void Finish_Should_PreserveResultAndTime_When_FinishIsRepeated(bool draw)
     {
         var game = GameTestData.Create();
+        game.ClearDomainEvents();
         var battleId = BattleId.New();
         var winner = game.Participants.First().PlayerId;
         var result = draw ? GameResult.Draw() : GameResult.Victory(winner);
@@ -107,6 +154,7 @@ public sealed class GameTests
     public void Finish_Should_RejectResult_When_BattleIsDifferent()
     {
         var game = GameTestData.Create();
+        game.ClearDomainEvents();
         game.Start(BattleId.New(), GameTestData.At(10));
 
         var result = game.Finish(BattleId.New(), GameResult.Draw(), GameTestData.At(20));
@@ -121,6 +169,7 @@ public sealed class GameTests
     public void Finish_Should_RejectWinner_When_PlayerDoesNotParticipate()
     {
         var game = GameTestData.Create();
+        game.ClearDomainEvents();
         var battleId = BattleId.New();
         game.Start(battleId, GameTestData.At(10));
 
@@ -138,6 +187,7 @@ public sealed class GameTests
     public void Finish_Should_ValidateTime_When_TimeIsComparedWithStart(int seconds, bool expected)
     {
         var game = GameTestData.Create();
+        game.ClearDomainEvents();
         var battleId = BattleId.New();
         game.Start(battleId, GameTestData.At(10));
 
@@ -151,6 +201,7 @@ public sealed class GameTests
     public void Cancel_Should_PreserveTime_When_CancellationIsRepeated()
     {
         var game = GameTestData.Create();
+        game.ClearDomainEvents();
 
         game.Cancel(GameTestData.At(10)).IsSuccess.ShouldBeTrue();
         game.Cancel(GameTestData.At(20)).IsSuccess.ShouldBeTrue();
@@ -169,6 +220,7 @@ public sealed class GameTests
     public void Finish_Should_RejectCompletion_When_WaitingForPlayers()
     {
         var game = GameTestData.Create();
+        game.ClearDomainEvents();
 
         var result = game.Finish(BattleId.New(), GameResult.Draw(), GameTestData.At(10));
 

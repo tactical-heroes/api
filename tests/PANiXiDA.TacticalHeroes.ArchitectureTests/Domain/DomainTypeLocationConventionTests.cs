@@ -422,12 +422,15 @@ public sealed class DomainTypeLocationConventionTests
             $"External identifier '{identifier.FullName}' must reside in its owner's plural directory.");
         var isReferenced = owners.Any(owner =>
             owner.Assembly == identifier.Assembly
-                && owner.GetProperties().Any(property =>
-                    (Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType) == identifier));
+                && (owner.GetProperties().Any(property =>
+                    (Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType) == identifier)
+                    || owner.GetMethods()
+                        .Any(method => method.GetParameters().Any(parameter =>
+                            parameter.ParameterType == identifier))));
         if (!isReferenced)
         {
             violations.Add(
-                $"{identifier.FullName} must be referenced by an aggregate root or entity in its module.");
+                $"{identifier.FullName} must be referenced by aggregate state or method parameters in its module.");
         }
 
         return violations;

@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.Value
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
 using ResultFactory = PANiXiDA.Core.ResultPattern.Result;
@@ -36,8 +37,15 @@ public sealed class Game : AggregateRoot<GameId>
         Rating firstRating,
         PlayerId secondPlayerId,
         BuildId secondBuildId,
-        Rating secondRating)
+        Rating secondRating,
+        MatchSearchId firstMatchSearchId,
+        MatchSearchId secondMatchSearchId)
     {
+        if (firstMatchSearchId == secondMatchSearchId)
+        {
+            return ResultFactory.Failure<Game>(Error.Validation("A game requires two different match searches."));
+        }
+
         if (firstPlayerId == secondPlayerId)
         {
             return ResultFactory.Failure<Game>(Error.Validation("A game requires two different players."));
@@ -56,6 +64,11 @@ public sealed class Game : AggregateRoot<GameId>
             playerId: secondPlayerId,
             buildId: secondBuildId,
             rating: secondRating));
+
+        game.AddDomainEvent(new GameCreated(
+            GameId: game.Id.Value,
+            FirstMatchSearchId: firstMatchSearchId.Value,
+            SecondMatchSearchId: secondMatchSearchId.Value));
 
         return ResultFactory.Success(game);
     }

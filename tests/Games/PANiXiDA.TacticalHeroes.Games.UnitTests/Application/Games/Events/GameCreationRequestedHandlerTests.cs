@@ -1,4 +1,7 @@
+using FluentValidation;
+
 using PANiXiDA.Core.Application.Messaging.EventBus;
+using PANiXiDA.Core.Domain.DomainEvents;
 
 using PANiXiDA.TacticalHeroes.Games.Application.Games.Events;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games;
@@ -17,6 +20,8 @@ public sealed class GameCreationRequestedHandlerTests
         var ct = TestContext.Current.CancellationToken;
         var repository = Substitute.For<IGamesRepository>();
         var eventBus = Substitute.For<IEventBus>();
+        List<DomainEvent> published = [];
+        eventBus.PublishAsync(Arg.Do<DomainEvent>(published.Add), ct).Returns(Task.CompletedTask);
         var handler = new GameCreationRequestedHandler(repository, eventBus);
         var requested = CreateRequest(mode);
         Game? added = null;
@@ -35,11 +40,11 @@ public sealed class GameCreationRequestedHandlerTests
         var second = game.Participants.Single(item => item.PlayerId.Value == requested.SecondPlayerId);
         second.BuildId.Value.ShouldBe(requested.SecondBuildId);
         second.Rating.Value.ShouldBe(requested.SecondRating);
-        await eventBus.Received(1).PublishAsync(
-            Arg.Is<GameCreated>(created => created.GameId == game.Id.Value
-                && created.FirstMatchSearchId == requested.FirstMatchSearchId
-                && created.SecondMatchSearchId == requested.SecondMatchSearchId),
-            ct);
+        var created = published.ShouldHaveSingleItem().ShouldBeOfType<GameCreated>();
+        created.GameId.ShouldBe(game.Id.Value);
+        created.FirstMatchSearchId.ShouldBe(requested.FirstMatchSearchId);
+        created.SecondMatchSearchId.ShouldBe(requested.SecondMatchSearchId);
+        game.GetDomainEvents().ShouldBeEmpty();
     }
 
     [Theory(DisplayName = "Handler should reject invalid matches before persistence when match data is invalid")]
@@ -47,6 +52,9 @@ public sealed class GameCreationRequestedHandlerTests
     [InlineData("EmptyPlayer")]
     [InlineData("EmptyBuild")]
     [InlineData("SamePlayer")]
+    [InlineData("EmptyFirstSearch")]
+    [InlineData("EmptySecondSearch")]
+    [InlineData("SameSearch")]
     public async Task HandleAsync_Should_RejectInvalidMatchBeforePersistence_When_MatchDataIsInvalid(string scenario)
     {
         var repository = Substitute.For<IGamesRepository>();
@@ -58,12 +66,37 @@ public sealed class GameCreationRequestedHandlerTests
             "UnknownMode" => request with { Mode = "Unknown" },
             "EmptyPlayer" => request with { FirstPlayerId = Guid.Empty },
             "EmptyBuild" => request with { SecondBuildId = Guid.Empty },
-            _ => request with { SecondPlayerId = request.FirstPlayerId }
+            "SamePlayer" => request with { SecondPlayerId = request.FirstPlayerId },
+            "EmptyFirstSearch" => request with { FirstMatchSearchId = Guid.Empty },
+            "EmptySecondSearch" => request with { SecondMatchSearchId = Guid.Empty },
+            _ => request with { SecondMatchSearchId = request.FirstMatchSearchId }
         };
 
-        await Should.ThrowAsync<InvalidOperationException>(() =>
+        var exception = await Should.ThrowAsync<ValidationException>(() =>
             handler.HandleAsync(request, TestContext.Current.CancellationToken));
 
+        exception.Errors.ShouldHaveSingleItem().ErrorMessage.ShouldNotBeNullOrWhiteSpace();
+        repository.ReceivedCalls().ShouldBeEmpty();
+        eventBus.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Handler should collect validation errors when several fields are invalid")]
+    public async Task HandleAsync_Should_CollectValidationErrors_When_SeveralFieldsAreInvalid()
+    {
+        var repository = Substitute.For<IGamesRepository>();
+        var eventBus = Substitute.For<IEventBus>();
+        var handler = new GameCreationRequestedHandler(repository, eventBus);
+        var request = CreateRequest("Unknown") with
+        {
+            FirstPlayerId = Guid.Empty,
+            SecondBuildId = Guid.Empty,
+            FirstMatchSearchId = Guid.Empty
+        };
+
+        var exception = await Should.ThrowAsync<ValidationException>(() =>
+            handler.HandleAsync(request, TestContext.Current.CancellationToken));
+
+        exception.Errors.Count().ShouldBe(4);
         repository.ReceivedCalls().ShouldBeEmpty();
         eventBus.ReceivedCalls().ShouldBeEmpty();
     }
@@ -75,7 +108,7 @@ public sealed class GameCreationRequestedHandlerTests
         var eventBus = Substitute.For<IEventBus>();
         var ct = TestContext.Current.CancellationToken;
         var failure = new InvalidOperationException("Outbox unavailable.");
-        eventBus.PublishAsync(Arg.Any<GameCreated>(), ct).Returns(Task.FromException(failure));
+        eventBus.PublishAsync(Arg.Any<DomainEvent>(), ct).Returns(Task.FromException(failure));
         var handler = new GameCreationRequestedHandler(repository, eventBus);
 
         var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
