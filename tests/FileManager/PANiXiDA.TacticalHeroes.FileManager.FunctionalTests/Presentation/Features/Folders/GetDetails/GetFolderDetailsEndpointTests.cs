@@ -34,12 +34,13 @@ public sealed class GetFolderDetailsEndpointTests(FunctionalTestFixture fixture)
         details.Id.ShouldBe(folder.Id.Value);
         details.Name.ShouldBe(folder.Name.Value);
         details.AllowedFileType.ShouldBe(type);
+        details.UserId.ShouldBe(folder.UserId?.Value);
         details.ParentId.ShouldBeNull();
         details.ParentName.ShouldBeNull();
         using var json = JsonDocument.Parse(
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         json.RootElement.EnumerateObject().Select(property => property.Name)
-            .ShouldBe(["id", "name", "allowedFileType", "parentId", "parentName"], ignoreOrder: true);
+            .ShouldBe(["id", "name", "allowedFileType", "userId", "parentId", "parentName"], ignoreOrder: true);
     }
 
     [Fact(DisplayName = "GET folder should allow another owner when read all is granted")]
@@ -58,6 +59,7 @@ public sealed class GetFolderDetailsEndpointTests(FunctionalTestFixture fixture)
         details.ShouldNotBeNull();
         details.Id.ShouldBe(folder.Id.Value);
         details.AllowedFileType.ShouldBe("Personal");
+        details.UserId.ShouldBe(folder.UserId?.Value);
     }
 
     [Theory(DisplayName = "GET folder should conceal metadata when folder is missing deleted or forbidden")]
@@ -161,6 +163,7 @@ public sealed class GetFolderDetailsEndpointTests(FunctionalTestFixture fixture)
         details.Id.ShouldBe(child.Id.Value);
         details.Name.ShouldBe("Child");
         details.AllowedFileType.ShouldBe(type);
+        details.UserId.ShouldBe(child.UserId?.Value);
         details.ParentId.ShouldBe(parent.Id.Value);
         details.ParentName.ShouldBe(parentDeleted ? null : "Parent");
     }
