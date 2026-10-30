@@ -256,7 +256,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         var tracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+        var unitOfWork = scope.ServiceProvider
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
         var file = CreateFile();
 
         repository.Add(file);
@@ -376,7 +377,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+        var unitOfWork = scope.ServiceProvider
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
         var stored = await repository.GetByIdAsync(file.Id, cancellationToken);
         stored!.BeginDeletion();
         repository.Update(stored);
@@ -486,6 +488,59 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         await using var scope = Fixture.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         (await context.Set<File>().AnyAsync(cancellationToken)).ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "Folder file selection should skip processed entries when parent is soft deleted")]
+    public async Task GetBatchByFolderForDeletionAsync_Should_SkipProcessedEntries_When_ParentIsSoftDeleted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = Folder.Create(FolderName.Create("Root").Value, FileType.Avatar, userId: null).Value;
+        var nested = root.CreateChild(FolderName.Create("Nested").Value);
+        var files = Enumerable.Range(0, 106).Select(_ => CreateFile()).ToList();
+        foreach (var file in files)
+        {
+            file.MoveTo(root);
+        }
+        files[4].MoveTo(nested);
+        files[1].CompleteUpload(FileContentType.Create("image/png").Value, FileSize.Create(1).Value);
+        files[2].BeginDeletion();
+        await using (var scope = Fixture.CreateScope())
+        {
+            var folders = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+            folders.Add(root);
+            folders.Add(nested);
+            var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
+            foreach (var file in files)
+            {
+                repository.Add(file);
+            }
+            var unitOfWork = scope.ServiceProvider
+                .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+            await unitOfWork.SaveChangesAsync(ct);
+            repository.Delete(files[3]);
+            await unitOfWork.SaveChangesAsync(ct);
+        }
+        await using (var scope = Fixture.CreateScope())
+        {
+            var folders = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+            var stored = await folders.GetByIdAsync(root.Id, ct);
+            folders.Delete(stored!);
+            await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(ct);
+        }
+        await using var check = Fixture.CreateScope();
+        var repo = check.ServiceProvider.GetRequiredService<IFilesRepository>();
+
+        var loaded = await repo.GetBatchByFolderForDeletionAsync(root.Id, ct);
+
+        var expectedIds = files.Where((_, index) => index is not (2 or 3 or 4))
+            .Select(file => file.Id.Value)
+            .Order()
+            .Take(100);
+        loaded.Select(file => file.Id.Value).ShouldBe(expectedIds);
+        var db = check.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        db.ChangeTracker.Entries<File>().Count().ShouldBe(100);
+        db.ChangeTracker.Entries<Folder>().ShouldBeEmpty();
     }
 
     private static File CreateFile()

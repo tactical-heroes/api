@@ -1,3 +1,6 @@
 namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 
-public interface IFoldersRepository : IRepository<FolderId, Folder>;
+public interface IFoldersRepository : IRepository<FolderId, Folder>
+{
+    Task<List<Folder>> GetChildrenBatchAsync(FolderId parentId, CancellationToken cancellationToken);
+}

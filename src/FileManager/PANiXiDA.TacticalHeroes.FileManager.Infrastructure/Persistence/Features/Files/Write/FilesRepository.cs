@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
@@ -22,6 +23,19 @@ public sealed class FilesRepository(
             dbContext),
         IFilesRepository
 {
+    private const int DeletionBatchSize = 100;
+
+    public Task<List<File>> GetBatchByFolderForDeletionAsync(
+        FolderId folderId,
+        CancellationToken cancellationToken)
+    {
+        return Query
+            .Where(file => file.FolderId == folderId && file.Status != FileStatus.Deleting)
+            .OrderBy(file => file.Id)
+            .Take(DeletionBatchSize)
+            .ToListAsync(cancellationToken);
+    }
+
     public IAsyncEnumerable<File> GetPendingUploadsAsync(CancellationToken cancellationToken)
     {
         var reconciliationOptions = options.Value;

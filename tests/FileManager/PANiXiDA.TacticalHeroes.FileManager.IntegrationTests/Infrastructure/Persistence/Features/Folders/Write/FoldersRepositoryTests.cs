@@ -5,11 +5,15 @@ using Npgsql;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Persistence.Features.Folders.Write;
 
@@ -170,6 +174,119 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         var exception = await deleteParent.ShouldThrowAsync<PostgresException>();
         exception.SqlState.ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
         (await context.Set<Folder>().CountAsync(cancellationToken)).ShouldBe(2);
+    }
+
+    [Theory(
+        DisplayName = "Folder repository should limit direct active children when nested and deleted folders exist")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task GetChildrenBatchAsync_Should_LimitDirectActiveChildren_When_NestedAndDeletedFoldersExist(
+        string type)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = Folder.Create(
+            FolderName.Create("Root").Value,
+            FileType.FromName(type),
+            type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : null).Value;
+        var children = Enumerable.Range(0, 105)
+            .Select(index => root.CreateChild(FolderName.Create($"Child {index}").Value))
+            .ToList();
+        await using (var scope = Fixture.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+            repository.Add(root);
+            foreach (var child in children)
+            {
+                repository.Add(child);
+            }
+            repository.Add(children[0].CreateChild(FolderName.Create("Grandchild").Value));
+            var unitOfWork = scope.ServiceProvider
+                .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+            await unitOfWork.SaveChangesAsync(ct);
+            repository.Delete(children[104]);
+            await unitOfWork.SaveChangesAsync(ct);
+        }
+        await using var verificationScope = Fixture.CreateScope();
+        var folders = verificationScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+
+        var loaded = await folders.GetChildrenBatchAsync(root.Id, ct);
+
+        var expectedIds = children.Take(104).Select(folder => folder.Id.Value).Order().Take(100);
+        loaded.Select(folder => folder.Id.Value).ShouldBe(expectedIds);
+        var context = verificationScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        context.ChangeTracker.Entries<Folder>().Count().ShouldBe(100);
+    }
+
+    [Theory(DisplayName = "Folder writes should reject a stale child entry when parent was deleted")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveChangesAsync_Should_RejectStaleChildEntry_When_ParentWasDeleted(bool fileEntry)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = Folder.Create(FolderName.Create("Root").Value, FileType.Avatar, userId: null).Value;
+        await SaveNewFolderAsync(root, ct);
+        await using var writerScope = Fixture.CreateScope();
+        var writer = writerScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        var parent = await writer.GetByIdAsync(root.Id, ct);
+        await using (var deletingScope = Fixture.CreateScope())
+        {
+            var deleting = deletingScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+            var stored = await deleting.GetByIdAsync(root.Id, ct);
+            deleting.Delete(stored!);
+            await deletingScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(ct);
+        }
+        if (fileEntry)
+        {
+            var file = File.Create(FileName.Create("avatar.png").Value, FileType.Avatar, userId: null).Value;
+            file.MoveTo(parent!);
+            writerScope.ServiceProvider.GetRequiredService<IFilesRepository>().Add(file);
+        }
+        else
+        {
+            writer.Add(parent!.CreateChild(FolderName.Create("Child").Value));
+        }
+        writer.Update(parent!);
+
+        Func<Task> save = () => writerScope.ServiceProvider
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(ct);
+
+        await save.ShouldThrowAsync<ConcurrencyException>();
+        await using var checkScope = Fixture.CreateScope();
+        var db = checkScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        (await db.Set<File>().AnyAsync(ct)).ShouldBeFalse();
+        (await db.Set<Folder>().AnyAsync(ct)).ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "Folder deletion should reject a stale delete when a child entry was saved first")]
+    public async Task SaveChangesAsync_Should_RejectStaleDelete_When_AChildEntryWasSavedFirst()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = Folder.Create(FolderName.Create("Root").Value, FileType.Avatar, userId: null).Value;
+        await SaveNewFolderAsync(root, ct);
+        await using var deletingScope = Fixture.CreateScope();
+        var deleting = deletingScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        var stale = await deleting.GetByIdAsync(root.Id, ct);
+        await using (var creatingScope = Fixture.CreateScope())
+        {
+            var creating = creatingScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+            var parent = await creating.GetByIdAsync(root.Id, ct);
+            creating.Add(parent!.CreateChild(FolderName.Create("Child").Value));
+            creating.Update(parent);
+            await creatingScope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+                .SaveChangesAsync(ct);
+        }
+        deleting.Delete(stale!);
+
+        Func<Task> save = () => deletingScope.ServiceProvider
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(ct);
+
+        await save.ShouldThrowAsync<ConcurrencyException>();
+        await using var scope = Fixture.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        (await db.Set<Folder>().CountAsync(ct)).ShouldBe(2);
     }
 
     private async Task SaveNewFolderAsync(Folder folder, CancellationToken cancellationToken)
