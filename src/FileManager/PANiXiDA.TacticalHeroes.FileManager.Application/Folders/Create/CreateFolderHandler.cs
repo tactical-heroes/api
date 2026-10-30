@@ -10,15 +10,9 @@ public sealed class CreateFolderHandler(FolderCreationService folderCreationServ
 {
     public Task<Result<Guid>> HandleAsync(CreateFolderCommand command, CancellationToken cancellationToken)
     {
-        var type = FileType.Create(command.AllowedFileType);
-        if (type.IsFailure)
-        {
-            return Task.FromResult(Result.Failure<Guid>(type.Errors));
-        }
-
         return folderCreationService.CreateAsync(
             name: command.Name,
-            allowedFileType: type.Value,
+            allowedFileType: FileType.Create(command.AllowedFileType).Value,
             userId: command.UserId,
             parentId: command.ParentId,
             cancellationToken: cancellationToken);
