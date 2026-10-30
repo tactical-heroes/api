@@ -30,57 +30,6 @@ jobs:
       registry-user: ${{ secrets.REGISTRY_USER }}
       registry-token: ${{ secrets.REGISTRY_TOKEN }}
 
-  sonar-report:
-    if: ${{ always() && (needs.sonar.result == 'success' || needs.sonar.result == 'failure') }}
-    needs: sonar
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Report Sonar quality gate conditions
-        env:
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_BRANCH: ${{ github.ref_name }}
-          SONAR_PR: ${{ github.event.pull_request.number }}
-          SONAR_BASE: ${{ github.base_ref }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          selectors=("branch=$SONAR_BRANCH")
-          if [[ -n "$SONAR_PR" ]]; then
-            selectors=("pullRequest=$SONAR_PR" "branch=$SONAR_BASE")
-          fi
-
-          for selector in "${selectors[@]}"; do
-            echo "Quality gate: $selector"
-            status=$(curl --fail --silent --show-error --max-time 60 \
-              --header "Authorization: Bearer $SONAR_TOKEN" \
-              --get "${SONAR_HOST_URL%/}/api/qualitygates/project_status" \
-              --data-urlencode "projectKey=$SONAR_PROJECT_KEY" \
-              --data-urlencode "$selector")
-            jq '.projectStatus' <<< "$status"
-            {
-              echo "### Sonar quality gate: $selector"
-              echo '```json'
-              jq '.projectStatus' <<< "$status"
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-
-            if [[ "$(jq -r '.projectStatus.status' <<< "$status")" == "ERROR" ]]; then
-              curl --fail --silent --show-error --max-time 60 \
-                --header "Authorization: Bearer $SONAR_TOKEN" \
-                --get "${SONAR_HOST_URL%/}/api/issues/search" \
-                --data-urlencode "componentKeys=$SONAR_PROJECT_KEY" \
-                --data-urlencode "$selector" \
-                --data-urlencode 'resolved=false' \
-                --data-urlencode 'ps=100' \
-                | jq '{total, issues: [.issues[] | {rule, component, line, message}]}'
-            fi
-          done
-
   helm:
     uses: PANiXiDA-Infrastructure/ci-cd/.github/workflows/helm-validation.yml@main
     with:
