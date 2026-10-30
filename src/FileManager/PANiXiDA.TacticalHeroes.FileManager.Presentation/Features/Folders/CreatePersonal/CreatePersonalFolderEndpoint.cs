@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.Core.Application.Authentication.Abstractions;
-
 using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.CreatePersonal;
@@ -24,17 +22,11 @@ internal sealed class CreatePersonalFolderEndpoint : IEndpoint<FoldersEndpoints>
 
     private static async Task<IResult> HandleAsync(
         CreatePersonalFolderRequest request,
-        ICurrentUser currentUser,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        if (currentUser.UserId is not { } userId)
-        {
-            return TypedResults.Unauthorized();
-        }
-
         var result = await mediator.SendAsync(
-            CreatePersonalFolderMapper.ToCommand(request: request, userId: userId),
+            CreatePersonalFolderMapper.ToCommand(request: request),
             cancellationToken);
 
         return result.ToHttpResult(onSuccess: id =>
