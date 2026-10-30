@@ -32,6 +32,7 @@ public sealed class FolderDeletedHandlerTests
         await handler.HandleAsync(new FolderDeleted(_folder.Id.Value), TestContext.Current.CancellationToken);
 
         _files.DidNotReceiveWithAnyArgs().Update(null!);
+        _files.ReceivedCalls().ShouldHaveSingleItem();
     }
 
     [Theory(DisplayName = "File deletion subscriber should begin deletion for all files when active files are present")]
