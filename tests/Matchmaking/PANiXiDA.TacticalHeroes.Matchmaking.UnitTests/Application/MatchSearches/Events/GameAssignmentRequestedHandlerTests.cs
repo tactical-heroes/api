@@ -66,7 +66,7 @@ public sealed class GameAssignmentRequestedHandlerTests
             handler.HandleAsync(request, TestContext.Current.CancellationToken));
 
         conflicting.GameId.ShouldBe(original);
-        repository.DidNotReceiveWithAnyArgs().Update(null!);
+        repository.DidNotReceive().Update(Arg.Any<MatchSearch>());
     }
 
     [Theory(DisplayName = "Handler should reject unavailable searches when either search is missing")]
@@ -85,7 +85,7 @@ public sealed class GameAssignmentRequestedHandlerTests
             new GameAssignmentRequested(Guid.CreateVersion7(), first.Id.Value, second.Id.Value),
             TestContext.Current.CancellationToken));
 
-        repository.DidNotReceiveWithAnyArgs().Update(null!);
+        repository.DidNotReceive().Update(Arg.Any<MatchSearch>());
     }
 
     [Fact(DisplayName = "Handler should reject a repeated search id when the pair contains one search")]
