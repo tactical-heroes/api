@@ -60,14 +60,14 @@ public sealed class CreateFolderHandler(
     {
         var name = FolderName.Create(command.Name);
         var type = FileType.Create(command.AllowedFileType);
-        var id = FolderId.Create(command.ParentId.GetValueOrDefault());
-        var validation = Result.Combine(name, type, id);
+        var parentId = FolderId.Create(command.ParentId.GetValueOrDefault());
+        var validation = Result.Combine(name, type, parentId);
         if (validation.IsFailure)
         {
             return Result.Failure<Folder>(validation.Errors);
         }
 
-        var parent = await foldersRepository.GetByIdAsync(id.Value, cancellationToken);
+        var parent = await foldersRepository.GetByIdAsync(parentId.Value, cancellationToken);
         if (parent is null || !folderAccessPolicy.CanCreate(parent))
         {
             return Result.Failure<Folder>(Error.NotFound("Folder was not found."));
