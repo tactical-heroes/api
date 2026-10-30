@@ -17,7 +17,7 @@ public readonly partial record struct UserId : IStronglyTypedId
             : Result.Success(value: new UserId(value: value));
     }
 
-    public static Result<UserId?> CreateOptional(Guid? value)
+    public static Result<UserId?> Create(Guid? value)
     {
         return value is null
             ? Result.Success<UserId?>(value: null)

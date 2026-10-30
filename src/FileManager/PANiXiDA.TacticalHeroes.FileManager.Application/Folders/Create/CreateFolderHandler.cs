@@ -33,7 +33,7 @@ public sealed class CreateFolderHandler(
     {
         var name = FolderName.Create(command.Name);
         var type = FileType.Create(command.AllowedFileType);
-        var userId = UserId.CreateOptional(command.UserId);
+        var userId = UserId.Create(command.UserId);
         var validation = Result.Combine(name, type, userId);
         if (validation.IsFailure)
         {

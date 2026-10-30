@@ -24,28 +24,28 @@ public sealed class UserIdTests
     }
 
     [Fact(DisplayName = "Optional user id should return null when id is omitted")]
-    public void CreateOptional_Should_ReturnNull_When_IdIsOmitted()
+    public void Create_Should_ReturnNull_When_IdIsOmitted()
     {
-        var result = UserId.CreateOptional(value: null);
+        var result = UserId.Create(value: null);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "Optional user id should reject an empty identifier when id is empty")]
-    public void CreateOptional_Should_ReturnValidationFailure_When_IdIsEmpty()
+    [Fact(DisplayName = "Optional user id should reject an empty identifier when nullable id is empty")]
+    public void Create_Should_ReturnValidationFailure_When_NullableIdIsEmpty()
     {
-        var result = UserId.CreateOptional(Guid.Empty);
+        var result = UserId.Create((Guid?)Guid.Empty);
 
         result.ShouldHaveSingleError(ErrorType.Validation, "User id cannot be empty.");
     }
 
-    [Fact(DisplayName = "Optional user id should preserve an external identifier when id is valid")]
-    public void CreateOptional_Should_PreserveValue_When_IdIsValid()
+    [Fact(DisplayName = "Optional user id should preserve an external identifier when nullable id is valid")]
+    public void Create_Should_PreserveValue_When_NullableIdIsValid()
     {
         var value = Guid.NewGuid();
 
-        var result = UserId.CreateOptional(value);
+        var result = UserId.Create((Guid?)value);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();

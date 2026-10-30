@@ -16,7 +16,7 @@ public sealed class CreateFolderCommandValidator : AbstractValidator<CreateFolde
             .MustBeValidDomainValue(FileType.Create);
 
         RuleFor(command => command.UserId)
-            .MustBeValidDomainValue(UserId.CreateOptional);
+            .MustBeValidDomainValue(UserId.Create);
 
         RuleFor(command => command.ParentId)
             .MustBeValidDomainValue(value => FolderId.Create(value.GetValueOrDefault()))
