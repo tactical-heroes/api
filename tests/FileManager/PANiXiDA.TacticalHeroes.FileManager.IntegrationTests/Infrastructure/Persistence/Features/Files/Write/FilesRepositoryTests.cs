@@ -491,7 +491,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Fact(DisplayName = "Folder file selection should return all unprocessed files when parent is soft deleted")]
-    public async Task GetByFolderForDeletionAsync_Should_ReturnAllUnprocessedFiles_When_ParentIsSoftDeleted()
+    public async Task GetNonDeletingByFolderAsync_Should_ReturnAllUnprocessedFiles_When_ParentIsSoftDeleted()
     {
         var ct = TestContext.Current.CancellationToken;
         var root = Folder.Create(FolderName.Create("Root").Value, FileType.Avatar, userId: null).Value;
@@ -531,7 +531,7 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         await using var check = Fixture.CreateScope();
         var repo = check.ServiceProvider.GetRequiredService<IFilesRepository>();
 
-        var loaded = await repo.GetByFolderForDeletionAsync(root.Id, ct);
+        var loaded = await repo.GetNonDeletingByFolderAsync(root.Id, ct);
 
         var expectedIds = files.Where((_, index) => index is not (2 or 3 or 4))
             .Select(file => file.Id.Value)

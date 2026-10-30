@@ -9,7 +9,7 @@ public sealed class FolderDeletedHandler(IFilesRepository filesRepository) : IEv
     public async Task HandleAsync(FolderDeleted domainEvent, CancellationToken cancellationToken)
     {
         var folderId = FolderId.Create(domainEvent.FolderId).Value;
-        var files = await filesRepository.GetByFolderForDeletionAsync(
+        var files = await filesRepository.GetNonDeletingByFolderAsync(
             folderId: folderId,
             cancellationToken: cancellationToken);
         foreach (var file in files)

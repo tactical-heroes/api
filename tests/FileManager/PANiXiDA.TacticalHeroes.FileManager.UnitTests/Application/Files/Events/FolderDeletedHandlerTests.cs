@@ -20,7 +20,7 @@ public sealed class FolderDeletedHandlerTests
 
     public FolderDeletedHandlerTests()
     {
-        _files.GetByFolderForDeletionAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
+        _files.GetNonDeletingByFolderAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
             .Returns(new List<File>());
     }
 
@@ -43,7 +43,7 @@ public sealed class FolderDeletedHandlerTests
         var files = Enumerable.Range(0, count).Select(_ => CreateFile()).ToList();
         files[1].CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
         files[2].BeginDeletion();
-        _files.GetByFolderForDeletionAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns(files);
+        _files.GetNonDeletingByFolderAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns(files);
         var handler = new FolderDeletedHandler(_files);
 
         await handler.HandleAsync(new FolderDeleted(_folder.Id.Value), TestContext.Current.CancellationToken);
@@ -53,7 +53,7 @@ public sealed class FolderDeletedHandlerTests
             file.Status.ShouldBe(FileStatus.Deleting);
             _files.Received(1).Update(file);
         }
-        await _files.Received(1).GetByFolderForDeletionAsync(_folder.Id, TestContext.Current.CancellationToken);
+        await _files.Received(1).GetNonDeletingByFolderAsync(_folder.Id, TestContext.Current.CancellationToken);
     }
 
     private File CreateFile()

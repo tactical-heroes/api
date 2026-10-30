@@ -23,7 +23,7 @@ public sealed class FilesRepository(
             dbContext),
         IFilesRepository
 {
-    public Task<List<File>> GetByFolderForDeletionAsync(
+    public Task<List<File>> GetNonDeletingByFolderAsync(
         FolderId folderId,
         CancellationToken cancellationToken)
     {
