@@ -86,6 +86,7 @@ public sealed class CreatePersonalFileHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         steps.ShouldBe(["pending", "save", "upload", "ready", "save"]);
+        _folders.DidNotReceiveWithAnyArgs().Update(null!);
         content.CanRead.ShouldBeTrue();
     }
 

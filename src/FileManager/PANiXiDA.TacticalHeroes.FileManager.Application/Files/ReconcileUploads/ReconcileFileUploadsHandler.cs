@@ -1,11 +1,14 @@
 using Microsoft.Extensions.Logging;
 
+using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -13,6 +16,8 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads
 
 public sealed class ReconcileFileUploadsHandler(
     IFilesRepository filesRepository,
+    IFoldersRepository foldersRepository,
+    IEventBus eventBus,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
     ILogger<ReconcileFileUploadsHandler> logger)
@@ -22,6 +27,17 @@ public sealed class ReconcileFileUploadsHandler(
         ReconcileFileUploadsCommand command,
         CancellationToken cancellationToken)
     {
+        await foreach (var folder in foldersRepository.GetDeletedWithActiveContentsAsync(cancellationToken))
+        {
+            await unitOfWork.ExecuteInTransactionAsync(
+                action: async token =>
+                {
+                    await eventBus.PublishAsync(new FolderDeleted(folder.Id.Value), token);
+                    await unitOfWork.SaveChangesAsync(token);
+                },
+                cancellationToken: cancellationToken);
+        }
+
         await foreach (var file in filesRepository.GetPendingUploadsAsync(cancellationToken))
         {
             await ReconcileFileAsync(file: file, expireUnusable: false, cancellationToken: cancellationToken);

@@ -30,6 +30,24 @@ public sealed class FolderAccessPolicy(ICurrentUser currentUser, FileAccessPolic
             && currentUser.HasPermission(Permissions.FileManager.Avatars.Create.Code);
     }
 
+    public bool CanDelete(Folder folder)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (folder.AllowedFileType == FileType.Personal)
+        {
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.DeleteAll.Code)
+                || (folder.UserId?.Value == currentUser.UserId
+                    && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.DeleteOwn.Code));
+        }
+
+        return folder.AllowedFileType == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Delete.Code);
+    }
+
     public bool CanRead(FoldersFilter filter)
     {
         return fileAccessPolicy.CanRead(new FilesFilter(Type: filter.AllowedFileType, UserId: filter.UserId));
