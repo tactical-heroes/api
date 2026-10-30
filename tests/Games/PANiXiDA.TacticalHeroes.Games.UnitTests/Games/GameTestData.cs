@@ -3,6 +3,7 @@ using PANiXiDA.TacticalHeroes.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
 using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Games;
@@ -13,12 +14,10 @@ internal static class GameTestData
     {
         return Game.Create(
             mode ?? GameMode.RankedDuel,
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1000),
-            PlayerId.New(),
-            BuildId.New(),
-            Rating.Create(1200)).Value;
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1000)),
+            GameParticipantSelection.Create(PlayerId.New(), BuildId.New(), Rating.Create(1200)),
+            MatchSearchId.New(),
+            MatchSearchId.New()).Value;
     }
 
     internal static GameTimestamp At(int seconds)

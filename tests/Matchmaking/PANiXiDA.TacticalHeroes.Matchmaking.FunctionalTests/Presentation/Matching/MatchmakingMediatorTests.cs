@@ -45,7 +45,8 @@ public sealed class MatchmakingMediatorTests(FunctionalTestFixture fixture)
         var rows = await ReadAsync(fixture.Services, ids, ct);
         rows.Count(search => search.Status == "Matched").ShouldBe(4);
         rows.Single(search => search.Id == outlier.Id.Value).Status.ShouldBe("Searching");
-        rows.ShouldAllBe(search => search.GameId == null);
+        rows.Where(search => search.Status == "Matched").ShouldAllBe(search => search.GameId != null);
+        rows.Single(search => search.Id == outlier.Id.Value).GameId.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Confirmation should publish one pair when confirmation is repeated")]

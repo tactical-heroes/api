@@ -63,12 +63,16 @@ internal static class MatchmakingTestSupport
                 found.FirstMatchSearchId == searchId || found.SecondMatchSearchId == searchId);
             if (found is not null)
             {
-                return found;
+                var rows = await ReadAsync(services, [found.FirstMatchSearchId, found.SecondMatchSearchId], ct);
+                if (rows.Count == 2 && rows.All(search => search.GameId is not null))
+                {
+                    return found;
+                }
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(50), ct);
         }
 
-        throw new TimeoutException($"MatchFound was not delivered for search {searchId}.");
+        throw new TimeoutException($"MatchFound and game assignment were not completed for search {searchId}.");
     }
 }

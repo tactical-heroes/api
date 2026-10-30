@@ -34,6 +34,7 @@ public sealed class GamesRepositoryTests(IntegrationTestFixture fixture) : Integ
         restored.ShouldNotBeNull();
         restored.Mode.ShouldBe(game.Mode);
         restored.Status.ShouldBe(GameStatus.WaitingForPlayers);
+        restored.GetDomainEvents().ShouldBeEmpty();
         restored.Result.ShouldBeNull();
         restored.BattleId.ShouldBeNull();
         restored.Participants.Count.ShouldBe(2);
