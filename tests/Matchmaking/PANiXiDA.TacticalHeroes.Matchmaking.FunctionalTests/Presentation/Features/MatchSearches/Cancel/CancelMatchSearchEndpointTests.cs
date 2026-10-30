@@ -42,7 +42,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
     [InlineData("RankedDuel", true)]
     [InlineData("CasualDuel", false)]
     [InlineData("CasualDuel", true)]
-    public async Task Delete_Should_CancelOwnSearch_When_SearchIsStillSearching(string mode, bool overdue)
+    public async Task Post_Should_CancelOwnSearch_When_SearchIsStillSearching(string mode, bool overdue)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -55,7 +55,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
             hasGame: false,
             ct: ct);
 
-        using var response = await DeleteAsync(player.UserId.Value, search.Id.Value, ct);
+        using var response = await CancelAsync(player.UserId.Value, search.Id.Value, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         (await response.Content.ReadAsStringAsync(ct)).ShouldBeEmpty();
@@ -67,15 +67,15 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
     }
 
     [Fact(DisplayName = "Endpoint should succeed when cancellation is repeated")]
-    public async Task Delete_Should_Succeed_When_CancellationIsRepeated()
+    public async Task Post_Should_Succeed_When_CancellationIsRepeated()
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
         var player = await SeedPlayerAsync(ct);
         var search = await SeedSearchAsync(player.Id.Value, ct);
 
-        using var initial = await DeleteAsync(player.UserId.Value, search.Id.Value, ct);
-        using var repeated = await DeleteAsync(player.UserId.Value, search.Id.Value, ct);
+        using var initial = await CancelAsync(player.UserId.Value, search.Id.Value, ct);
+        using var repeated = await CancelAsync(player.UserId.Value, search.Id.Value, ct);
 
         initial.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         repeated.StatusCode.ShouldBe(HttpStatusCode.NoContent);
@@ -83,17 +83,17 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
     }
 
     [Fact(DisplayName = "Endpoint should reject request when user is unauthenticated")]
-    public async Task Delete_Should_RejectRequest_When_UserIsUnauthenticated()
+    public async Task Post_Should_RejectRequest_When_UserIsUnauthenticated()
     {
-        using var response = await DeleteAsync(null, Guid.CreateVersion7(), TestContext.Current.CancellationToken);
+        using var response = await CancelAsync(null, Guid.CreateVersion7(), TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     [Fact(DisplayName = "Endpoint should reject request when search id is empty")]
-    public async Task Delete_Should_RejectRequest_When_SearchIdIsEmpty()
+    public async Task Post_Should_RejectRequest_When_SearchIdIsEmpty()
     {
-        using var response = await DeleteAsync(
+        using var response = await CancelAsync(
             Guid.CreateVersion7(), Guid.Empty, TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -104,7 +104,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
     [InlineData("Foreign")]
     [InlineData("Deleted")]
     [InlineData("MissingPlayer")]
-    public async Task Delete_Should_HideSearch_When_SearchIsUnavailableToUser(string scenario)
+    public async Task Post_Should_HideSearch_When_SearchIsUnavailableToUser(string scenario)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -127,7 +127,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
                 .SaveChangesAsync(ct);
         }
 
-        using var response = await DeleteAsync(userId, searchId, ct);
+        using var response = await CancelAsync(userId, searchId, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await ReadSearchAsync(search.Id.Value, ct)).Status.ShouldBe("Searching");
@@ -138,7 +138,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
     [InlineData("Matched", true)]
     [InlineData("Closed", false)]
     [InlineData("Expired", false)]
-    public async Task Delete_Should_RejectCancellation_When_SearchIsNoLongerCancellable(string status, bool hasGame)
+    public async Task Post_Should_RejectCancellation_When_SearchIsNoLongerCancellable(string status, bool hasGame)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -151,7 +151,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
             hasGame: hasGame,
             ct: ct);
 
-        using var response = await DeleteAsync(player.UserId.Value, search.Id.Value, ct);
+        using var response = await CancelAsync(player.UserId.Value, search.Id.Value, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var stored = await ReadSearchAsync(search.Id.Value, ct);
@@ -160,7 +160,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
     }
 
     [Fact(DisplayName = "Endpoint should preserve new search when cancellation is retried after restart")]
-    public async Task Delete_Should_PreserveNewSearch_When_CancellationIsRetriedAfterRestart()
+    public async Task Post_Should_PreserveNewSearch_When_CancellationIsRetriedAfterRestart()
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -168,13 +168,13 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
         var previous = await SeedSearchAsync(player.Id.Value, ct);
         var buildId = await SeedBuildAsync(player.Id.Value, ct);
 
-        using var initial = await DeleteAsync(player.UserId.Value, previous.Id.Value, ct);
+        using var initial = await CancelAsync(player.UserId.Value, previous.Id.Value, ct);
         using var request = new HttpRequestMessage(HttpMethod.Post, Path);
         request.Headers.Add("X-Test-UserId", player.UserId.Value.ToString());
         request.Content = JsonContent.Create(
             new StartMatchSearchRequest(buildId, "CasualDuel"), options: TestJsonSerializerOptions.Web);
         using var restarted = await fixture.Client.SendAsync(request, ct);
-        using var repeated = await DeleteAsync(player.UserId.Value, previous.Id.Value, ct);
+        using var repeated = await CancelAsync(player.UserId.Value, previous.Id.Value, ct);
 
         initial.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         restarted.StatusCode.ShouldBe(HttpStatusCode.NoContent);
@@ -192,7 +192,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
     [Theory(DisplayName = "Endpoint should resolve concurrency when cancellation races with confirmation")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Delete_Should_ResolveConcurrency_When_CancellationRacesWithConfirmation(bool matchWins)
+    public async Task Post_Should_ResolveConcurrency_When_CancellationRacesWithConfirmation(bool matchWins)
     {
         var ct = TestContext.Current.CancellationToken;
         await fixture.ResetDatabaseAsync(ct);
@@ -207,7 +207,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
         Task<Result> confirmation;
         if (matchWins)
         {
-            cancellation = DeleteAsync(player.UserId.Value, search.Id.Value, ct);
+            cancellation = CancelAsync(player.UserId.Value, search.Id.Value, ct);
             try
             {
                 await reached.WaitAsync(TimeSpan.FromSeconds(15), ct);
@@ -225,7 +225,7 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
             try
             {
                 await reached.WaitAsync(TimeSpan.FromSeconds(15), ct);
-                cancellation = DeleteAsync(player.UserId.Value, search.Id.Value, ct);
+                cancellation = CancelAsync(player.UserId.Value, search.Id.Value, ct);
                 await cancellation;
             }
             finally
@@ -337,9 +337,9 @@ public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture
             .SingleAsync(search => search.Id == id, ct);
     }
 
-    private async Task<HttpResponseMessage> DeleteAsync(Guid? userId, Guid id, CancellationToken ct)
+    private async Task<HttpResponseMessage> CancelAsync(Guid? userId, Guid id, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Delete, $"{Path}/{id}");
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{Path}/{id}/cancel");
         if (userId is { } value)
         {
             request.Headers.Add("X-Test-UserId", value.ToString());

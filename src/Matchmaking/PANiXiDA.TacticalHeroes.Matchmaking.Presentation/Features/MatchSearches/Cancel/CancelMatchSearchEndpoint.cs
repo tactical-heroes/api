@@ -4,13 +4,13 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearche
 
 internal sealed class CancelMatchSearchEndpoint : IEndpoint<MatchSearchesEndpoints>
 {
-    public string Route { get; } = "/{id:guid}";
+    public string Route { get; } = "/{id:guid}/cancel";
     public string Name { get; } = "CancelMatchSearch";
     public string Summary { get; } = "Cancel match search";
 
     public void Map(EndpointMapBuilder builder)
     {
-        builder.MapDelete(builder.Route, HandleAsync)
+        builder.MapPost(builder.Route, HandleAsync)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
