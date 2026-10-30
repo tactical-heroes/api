@@ -143,7 +143,7 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
             .ExecuteAndWaitAsync(_ => sender.StoreAndForwardAsync(envelope));
 
         var rows = await ReadAsync(fixture.Services, [first.Id.Value, second.Id.Value], ct);
-        var gameId = rows.First().GameId.ShouldNotBeNull();
+        var gameId = rows[0].GameId.ShouldNotBeNull();
         rows.ShouldAllBe(search => search.GameId == gameId);
         (await GameCountAsync(ct)).ShouldBe(before + 1);
         (await runtime.Storage.Inbox.IsHandledAsync(envelope, ct)).ShouldBeTrue();
