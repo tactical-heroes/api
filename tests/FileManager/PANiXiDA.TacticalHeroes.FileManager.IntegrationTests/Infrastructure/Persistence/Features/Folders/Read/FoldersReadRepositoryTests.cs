@@ -425,6 +425,88 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         context.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
+    [Theory(DisplayName = "Ancestor lookup should return the complete chain when depth and deletion vary")]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    [InlineData(105, false)]
+    [InlineData(5, true)]
+    public async Task GetAncestorIdsAsync_Should_ReturnCompleteChain_When_DepthAndDeletionVary(int depth, bool deleted)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = CreateFolder();
+        List<Folder> chain = [root];
+        for (var index = 0; index < depth; index++)
+        {
+            chain.Add(chain[^1].CreateChild(FolderName.Create($"Level {index}").Value));
+        }
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.AddRange(chain);
+            db.Add(root.CreateChild(FolderName.Create("Sibling").Value));
+            db.Add(CreateFolder());
+            await db.SaveChangesAsync(ct);
+        }
+        if (deleted)
+        {
+            await using var scope = Fixture.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            var deletedFolder = await db.Set<Folder>().SingleAsync(folder => folder.Id == chain[1].Id, ct);
+            db.Remove(deletedFolder);
+            await db.SaveChangesAsync(ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var ancestors = await repository.GetAncestorIdsAsync(chain[^1].Id.Value, ct);
+
+        ancestors.ShouldBe(chain.Take(depth).Select(folder => folder.Id.Value), ignoreOrder: true);
+        readScope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>()
+            .ChangeTracker
+            .Entries()
+            .ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Ancestor lookup should return no identifiers when folder is missing")]
+    public async Task GetAncestorIdsAsync_Should_ReturnNoIdentifiers_When_FolderIsMissing()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var ancestors = await repository.GetAncestorIdsAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+        ancestors.ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Ancestor lookup should terminate when existing rows contain a cycle")]
+    public async Task GetAncestorIdsAsync_Should_Terminate_When_ExistingRowsContainACycle()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var first = CreateFolder();
+        var second = CreateFolder();
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.AddRange(first, second);
+            await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.folders SET parent_id = {second.Id.Value} WHERE id = {first.Id.Value}", ct);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.folders SET parent_id = {first.Id.Value} WHERE id = {second.Id.Value}", ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var ancestors = await repository.GetAncestorIdsAsync(first.Id.Value, ct);
+
+        ancestors.ShouldBe([first.Id.Value, second.Id.Value], ignoreOrder: true);
+    }
+
+    private static Folder CreateFolder()
+    {
+        return Folder.Create(FolderName.Create("Avatars").Value, FileType.Avatar, userId: null).Value;
+    }
+
     private async Task<Folder> AddFolderAsync(string name, string type, Guid? userId, bool deleted = false)
     {
         var folder = Folder.Create(

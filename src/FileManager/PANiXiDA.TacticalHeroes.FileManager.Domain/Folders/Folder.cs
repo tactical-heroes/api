@@ -62,6 +62,37 @@ public sealed class Folder : AggregateRoot<FolderId>
             userId: UserId);
     }
 
+    public Result MoveTo(Folder? parent)
+    {
+        if (parent is not null)
+        {
+            if (parent.Id == Id)
+            {
+                return Result.Failure(
+                    Error.Validation("A folder cannot be its own parent.")
+                        .WithField(nameof(ParentId)));
+            }
+
+            if (AllowedFileType != parent.AllowedFileType)
+            {
+                return Result.Failure(
+                    Error.Validation("Folder and parent allowed file types must match.")
+                        .WithField(nameof(ParentId)));
+            }
+
+            if (UserId != parent.UserId)
+            {
+                return Result.Failure(
+                    Error.Validation("Folder and parent user ids must match.")
+                        .WithField(nameof(ParentId)));
+            }
+        }
+
+        ParentId = parent?.Id;
+
+        return Result.Success();
+    }
+
     public void Rename(FolderName name)
     {
         Name = name;

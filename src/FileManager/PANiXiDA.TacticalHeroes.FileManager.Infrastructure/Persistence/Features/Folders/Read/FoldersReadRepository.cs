@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
@@ -18,6 +19,8 @@ public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
         EfReadRepository<FileManagerReadDbContext, Guid, FolderReadDbModel>(dbContext),
         IFoldersReadRepository
 {
+    private readonly DatabaseFacade _database = dbContext.Database;
+
     public Task<PaginationResult<FolderListItemReadModel>> GetPageAsync(
         FoldersFilter filter,
         PaginationParameters paginationParameters,
@@ -41,6 +44,25 @@ public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
     public Task<FolderDetailsReadModel?> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return GetByIdAsync<FolderDetailsReadModel, FolderDetailsReadModelMapper>(id, cancellationToken);
+    }
+
+    public Task<List<Guid>> GetAncestorIdsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _database.SqlQuery<Guid>(
+            $"""
+            WITH RECURSIVE ancestors AS (
+                SELECT parent_id AS id
+                FROM file_manager.folders
+                WHERE id = {id} AND parent_id IS NOT NULL
+                UNION
+                SELECT folder.parent_id
+                FROM file_manager.folders AS folder
+                JOIN ancestors ON folder.id = ancestors.id
+                WHERE folder.parent_id IS NOT NULL
+            )
+            SELECT id AS "Value" FROM ancestors
+            """)
+            .ToListAsync(cancellationToken);
     }
 
     public Task<List<Guid>> GetDeletedIdsWithActiveContentsAsync(CancellationToken cancellationToken)
