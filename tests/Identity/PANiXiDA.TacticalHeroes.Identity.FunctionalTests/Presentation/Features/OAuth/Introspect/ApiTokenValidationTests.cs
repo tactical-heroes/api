@@ -35,10 +35,15 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
             HttpMethod.Get, $"/api/v1/users?access_token={Uri.EscapeDataString(token)}");
         unrelated.Headers.Accept.ParseAdd("text/event-stream");
         using var unrelatedResponse = await Fixture.Client.SendAsync(unrelated, ct);
+        using var negotiate = await Fixture.Client.PostAsync(
+            $"/api/v1/match-searches/state/negotiate?negotiateVersion=1&access_token={Uri.EscapeDataString(token)}",
+            null,
+            ct);
 
         response.StatusCode.ShouldBe(valid ? HttpStatusCode.BadRequest : HttpStatusCode.Unauthorized);
-        queryOnly.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        queryOnly.StatusCode.ShouldBe(valid ? HttpStatusCode.BadRequest : HttpStatusCode.Unauthorized);
         unrelatedResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        negotiate.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     [Theory(DisplayName = "Protected API should reject invalid tokens when token validation fails")]

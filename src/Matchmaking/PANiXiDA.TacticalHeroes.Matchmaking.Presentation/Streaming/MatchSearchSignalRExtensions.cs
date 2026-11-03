@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,9 +37,6 @@ public static class MatchSearchSignalRExtensions
                 a: request.Path.Value?.TrimEnd('/'),
                 b: Path,
                 comparisonType: StringComparison.OrdinalIgnoreCase)
-                && HttpMethods.IsGet(request.Method)
-                && (context.WebSockets.IsWebSocketRequest
-                    || request.GetTypedHeaders().Accept?.Any(value => value.MediaType == "text/event-stream") == true)
                 && !request.Headers.ContainsKey("Authorization")
                 && request.Query.TryGetValue("access_token", out var token)
                 && token.Count == 1)

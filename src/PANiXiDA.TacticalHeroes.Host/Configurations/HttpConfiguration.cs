@@ -41,12 +41,6 @@ internal static class HttpConfiguration
 
     internal static WebApplication UseHttp(this WebApplication app)
     {
-        app.UseWebSockets(new WebSocketOptions
-        {
-            KeepAliveInterval = TimeSpan.FromSeconds(30),
-            KeepAliveTimeout = TimeSpan.FromSeconds(15)
-        });
-
         app.UseMatchSearchSignalRAuthentication();
 
         HttpServiceCollectionExtensions.UseHttp(app);
