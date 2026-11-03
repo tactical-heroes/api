@@ -16,6 +16,7 @@ public sealed class MoveFolderHandlerTests
 {
     private readonly IFoldersRepository _folders = Substitute.For<IFoldersRepository>();
     private readonly IFoldersReadRepository _foldersReadRepository = Substitute.For<IFoldersReadRepository>();
+    private readonly IFolderHierarchyLock _hierarchyLock = Substitute.For<IFolderHierarchyLock>();
     private readonly ICurrentUser _currentUser = Substitute.For<ICurrentUser>();
     private readonly Guid _userId = Guid.NewGuid();
 
@@ -40,11 +41,31 @@ public sealed class MoveFolderHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         folder.ParentId.ShouldBe(parent.Id);
-        _folders.ReceivedCalls().First().GetMethodInfo().Name.ShouldBe(nameof(IFoldersRepository.LockHierarchyAsync));
+        await _hierarchyLock.Received(1).AcquireAsync(TestContext.Current.CancellationToken);
         _folders.Received(1).Update(Arg.Any<Folder>());
         _folders.Received(1).Update(folder);
         await _foldersReadRepository.Received(1).GetAncestorIdsAsync(
             parent.Id.Value, TestContext.Current.CancellationToken);
+    }
+
+    [Fact(DisplayName = "Move folder handler should wait before reading when lock acquisition is pending")]
+    public async Task HandleAsync_Should_WaitBeforeReading_When_LockAcquisitionIsPending()
+    {
+        var folder = CreateFolder(_userId);
+        var acquisition = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _hierarchyLock.AcquireAsync(Arg.Any<CancellationToken>()).Returns(acquisition.Task);
+        _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
+        var handler = CreateHandler();
+
+        var pending = handler.HandleAsync(
+            new MoveFolderCommand(folder.Id.Value), TestContext.Current.CancellationToken);
+        var queriedBeforeAcquisition = _folders.ReceivedCalls().Any();
+        acquisition.SetResult();
+        var result = await pending;
+
+        queriedBeforeAcquisition.ShouldBeFalse();
+        result.IsSuccess.ShouldBeTrue();
+        _folders.Received(1).Update(folder);
     }
 
     [Fact(DisplayName = "Move folder handler should detach the folder when parent is omitted")]
@@ -148,6 +169,7 @@ public sealed class MoveFolderHandlerTests
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
+        _hierarchyLock.ReceivedCalls().ShouldBeEmpty();
         _folders.ReceivedCalls().ShouldBeEmpty();
         _foldersReadRepository.ReceivedCalls().ShouldBeEmpty();
     }
@@ -161,6 +183,9 @@ public sealed class MoveFolderHandlerTests
     private MoveFolderHandler CreateHandler()
     {
         return new MoveFolderHandler(
-            _folders, _foldersReadRepository, new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)));
+            _folders,
+            _foldersReadRepository,
+            _hierarchyLock,
+            new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)));
     }
 }

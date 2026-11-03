@@ -3,21 +3,21 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Persistence.Features.Folders.Write;
 
-public sealed class FolderHierarchyLockTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
+public sealed class PostgreSqlFolderHierarchyLockTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
     [Fact(DisplayName = "Hierarchy lock should require a transaction when no transaction is active")]
-    public async Task LockHierarchyAsync_Should_RequireTransaction_When_NoTransactionIsActive()
+    public async Task AcquireAsync_Should_RequireTransaction_When_NoTransactionIsActive()
     {
         await using var scope = Fixture.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+        var hierarchyLock = scope.ServiceProvider.GetRequiredService<IFolderHierarchyLock>();
 
         var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
-            repository.LockHierarchyAsync(TestContext.Current.CancellationToken));
+            hierarchyLock.AcquireAsync(TestContext.Current.CancellationToken));
 
         exception.Message.ShouldContain("active transaction");
     }
@@ -25,18 +25,18 @@ public sealed class FolderHierarchyLockTests(IntegrationTestFixture fixture) : I
     [Theory(DisplayName = "Hierarchy lock should release waiting writers when commit or rollback completes")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task LockHierarchyAsync_Should_ReleaseWaitingWriters_When_CommitOrRollbackCompletes(bool commit)
+    public async Task AcquireAsync_Should_ReleaseWaitingWriters_When_CommitOrRollbackCompletes(bool commit)
     {
         var ct = TestContext.Current.CancellationToken;
         await using var firstScope = Fixture.CreateScope();
         var firstDb = firstScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         await using var firstTransaction = await firstDb.Database.BeginTransactionAsync(ct);
-        await firstScope.ServiceProvider.GetRequiredService<IFoldersRepository>().LockHierarchyAsync(ct);
+        await firstScope.ServiceProvider.GetRequiredService<IFolderHierarchyLock>().AcquireAsync(ct);
         await using var secondScope = Fixture.CreateScope();
         var secondDb = secondScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         await using var secondTransaction = await secondDb.Database.BeginTransactionAsync(ct);
         var backendId = ((NpgsqlConnection)secondDb.Database.GetDbConnection()).ProcessID;
-        var pending = secondScope.ServiceProvider.GetRequiredService<IFoldersRepository>().LockHierarchyAsync(ct);
+        var pending = secondScope.ServiceProvider.GetRequiredService<IFolderHierarchyLock>().AcquireAsync(ct);
         bool waited;
 
         try

@@ -10,6 +10,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Move;
 public sealed class MoveFolderHandler(
     IFoldersRepository foldersRepository,
     IFoldersReadRepository foldersReadRepository,
+    IFolderHierarchyLock folderHierarchyLock,
     FolderAccessPolicy folderAccessPolicy)
     : ICommandHandler<MoveFolderCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
@@ -33,7 +34,7 @@ public sealed class MoveFolderHandler(
             parentId = result.Value;
         }
 
-        await foldersRepository.LockHierarchyAsync(cancellationToken);
+        await folderHierarchyLock.AcquireAsync(cancellationToken);
         var folder = await foldersRepository.GetByIdAsync(id.Value, cancellationToken);
         if (folder is null || !folderAccessPolicy.CanUpdate(folder))
         {

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -137,7 +137,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         await using var scope = Fixture.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        await scope.ServiceProvider.GetRequiredService<IFoldersRepository>().LockHierarchyAsync(ct);
+        await scope.ServiceProvider.GetRequiredService<IFolderHierarchyLock>().AcquireAsync(ct);
         var firstMove = SendAsync(
             first.Id.Value, new MoveFolderRequest(second.Id.Value), userId.ToString(), Permission(type));
         var secondMove = SendAsync(
