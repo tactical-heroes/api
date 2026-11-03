@@ -44,6 +44,24 @@ public sealed class Folder : AggregateRoot<FolderId>
             userId: userId));
     }
 
+    public Result Update(FolderName name, FileType allowedFileType, UserId? userId, Folder? parent)
+    {
+        var validation = Result.Combine(
+            ValidateOwnership(allowedFileType, userId),
+            ValidateParent(parent: parent, allowedFileType: allowedFileType, userId: userId));
+        if (validation.IsFailure)
+        {
+            return validation;
+        }
+
+        Name = name;
+        AllowedFileType = allowedFileType;
+        UserId = userId;
+        ParentId = parent?.Id;
+
+        return Result.Success();
+    }
+
     public Folder CreateChild(FolderName name)
     {
         return new Folder(
@@ -62,24 +80,6 @@ public sealed class Folder : AggregateRoot<FolderId>
             return validation;
         }
 
-        ParentId = parent?.Id;
-
-        return Result.Success();
-    }
-
-    public Result Update(FolderName name, FileType allowedFileType, UserId? userId, Folder? parent)
-    {
-        var validation = Result.Combine(
-            ValidateOwnership(allowedFileType, userId),
-            ValidateParent(parent: parent, allowedFileType: allowedFileType, userId: userId));
-        if (validation.IsFailure)
-        {
-            return validation;
-        }
-
-        Name = name;
-        AllowedFileType = allowedFileType;
-        UserId = userId;
         ParentId = parent?.Id;
 
         return Result.Success();
