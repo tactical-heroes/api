@@ -93,7 +93,7 @@ public sealed class FolderDeletionReconciliationTests(FunctionalTestFixture fixt
         return file;
     }
 
-    private async Task WaitForDeletionAsync(FolderId childId, IReadOnlyList<File> files)
+    private async Task WaitForDeletionAsync(FolderId childId, File[] files)
     {
         var ct = TestContext.Current.CancellationToken;
         var fileIds = files.Select(file => file.Id.Value).ToArray();
@@ -106,7 +106,7 @@ public sealed class FolderDeletionReconciliationTests(FunctionalTestFixture fixt
                 .AnyAsync(folder => folder.Id == childId.Value && folder.DeletedAt != null, ct);
             var filesDeleted = await db.Set<FileReadDbModel>().IgnoreQueryFilters()
                 .CountAsync(file => fileIds.Contains(file.Id) && file.DeletedAt != null, ct);
-            if (folderDeleted && filesDeleted == files.Count)
+            if (folderDeleted && filesDeleted == files.Length)
             {
                 return;
             }

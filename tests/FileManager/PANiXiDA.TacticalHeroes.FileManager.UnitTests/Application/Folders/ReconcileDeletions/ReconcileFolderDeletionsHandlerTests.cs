@@ -17,7 +17,7 @@ public sealed class ReconcileFolderDeletionsHandlerTests
     public async Task HandleAsync_Should_DoNothing_When_NoDeletedFoldersHaveActiveContents()
     {
         _foldersReadRepository.GetDeletedIdsWithActiveContentsAsync(Arg.Any<CancellationToken>())
-            .Returns(new List<Guid>());
+            .Returns([]);
         var handler = new ReconcileFolderDeletionsHandler(_foldersReadRepository, _events);
 
         var result = await handler.HandleAsync(
@@ -52,7 +52,7 @@ public sealed class ReconcileFolderDeletionsHandlerTests
     public async Task HandleAsync_Should_PropagateFailure_When_DeletionPublicationFails()
     {
         _foldersReadRepository.GetDeletedIdsWithActiveContentsAsync(Arg.Any<CancellationToken>())
-            .Returns(new List<Guid> { Guid.NewGuid() });
+            .Returns([Guid.NewGuid()]);
         _events.PublishAsync(Arg.Any<FolderDeleted>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new IOException("Outbox unavailable"));
         var handler = new ReconcileFolderDeletionsHandler(_foldersReadRepository, _events);

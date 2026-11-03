@@ -23,7 +23,7 @@ public sealed class FolderDeletedHandlerTests
     public FolderDeletedHandlerTests()
     {
         _folders.GetChildrenAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
-            .Returns(new List<Folder>());
+            .Returns([]);
     }
 
     [Fact(DisplayName = "Folder deletion event should do nothing when no active children remain")]

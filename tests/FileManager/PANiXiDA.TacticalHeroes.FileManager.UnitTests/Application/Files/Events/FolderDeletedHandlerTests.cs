@@ -21,7 +21,7 @@ public sealed class FolderDeletedHandlerTests
     public FolderDeletedHandlerTests()
     {
         _files.GetNonDeletingByFolderAsync(Arg.Any<FolderId>(), Arg.Any<CancellationToken>())
-            .Returns(new List<File>());
+            .Returns([]);
     }
 
     [Fact(DisplayName = "File deletion subscriber should do nothing when no active files remain")]
