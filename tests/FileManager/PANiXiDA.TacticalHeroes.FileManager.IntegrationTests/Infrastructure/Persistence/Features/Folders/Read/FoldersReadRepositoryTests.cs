@@ -425,6 +425,102 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         context.ChangeTracker.Entries().ShouldBeEmpty();
     }
 
+    [Theory(DisplayName = "Ancestor check should match ancestry when depth and deletion vary")]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    [InlineData(105, false)]
+    [InlineData(5, true)]
+    public async Task HasAncestorAsync_Should_MatchAncestry_When_DepthAndDeletionVary(int depth, bool deleted)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = CreateFolder();
+        var sibling = root.CreateChild(FolderName.Create("Sibling").Value);
+        var otherRoot = CreateFolder();
+        List<Folder> chain = [root];
+        for (var index = 0; index < depth; index++)
+        {
+            chain.Add(chain[^1].CreateChild(FolderName.Create($"Level {index}").Value));
+        }
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.AddRange(chain);
+            db.AddRange(sibling, otherRoot);
+            await db.SaveChangesAsync(ct);
+        }
+        if (deleted)
+        {
+            await using var scope = Fixture.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            var deletedFolder = await db.Set<Folder>().SingleAsync(folder => folder.Id == chain[1].Id, ct);
+            db.Remove(deletedFolder);
+            await db.SaveChangesAsync(ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        List<bool> matches = [];
+        foreach (var ancestor in chain.Take(depth))
+        {
+            matches.Add(await repository.HasAncestorAsync(chain[^1].Id.Value, ancestor.Id.Value, ct));
+        }
+        var self = await repository.HasAncestorAsync(chain[^1].Id.Value, chain[^1].Id.Value, ct);
+        var siblingMatch = await repository.HasAncestorAsync(chain[^1].Id.Value, sibling.Id.Value, ct);
+        var otherRootMatch = await repository.HasAncestorAsync(chain[^1].Id.Value, otherRoot.Id.Value, ct);
+
+        matches.ShouldAllBe(match => match);
+        self.ShouldBeFalse();
+        siblingMatch.ShouldBeFalse();
+        otherRootMatch.ShouldBeFalse();
+        readScope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>()
+            .ChangeTracker
+            .Entries()
+            .ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Ancestor check should return false when folder is missing")]
+    public async Task HasAncestorAsync_Should_ReturnFalse_When_FolderIsMissing()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var exists = await repository.HasAncestorAsync(
+            Guid.NewGuid(), Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+        exists.ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "Ancestor check should terminate when existing rows contain a cycle")]
+    public async Task HasAncestorAsync_Should_Terminate_When_ExistingRowsContainACycle()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var first = CreateFolder();
+        var second = CreateFolder();
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.AddRange(first, second);
+            await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.folders SET parent_id = {second.Id.Value} WHERE id = {first.Id.Value}", ct);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.folders SET parent_id = {first.Id.Value} WHERE id = {second.Id.Value}", ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var missing = await repository.HasAncestorAsync(first.Id.Value, Guid.NewGuid(), ct);
+        var existing = await repository.HasAncestorAsync(first.Id.Value, second.Id.Value, ct);
+
+        missing.ShouldBeFalse();
+        existing.ShouldBeTrue();
+    }
+
+    private static Folder CreateFolder()
+    {
+        return Folder.Create(FolderName.Create("Avatars").Value, FileType.Avatar, userId: null).Value;
+    }
+
     private async Task<Folder> AddFolderAsync(string name, string type, Guid? userId, bool deleted = false)
     {
         var folder = Folder.Create(
