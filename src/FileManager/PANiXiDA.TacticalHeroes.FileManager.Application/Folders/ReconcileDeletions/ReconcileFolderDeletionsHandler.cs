@@ -12,7 +12,8 @@ public sealed class ReconcileFolderDeletionsHandler(IFoldersRepository foldersRe
         ReconcileFolderDeletionsCommand command,
         CancellationToken cancellationToken)
     {
-        await foreach (var folder in foldersRepository.GetDeletedWithActiveContentsAsync(cancellationToken))
+        var folders = await foldersRepository.GetDeletedWithActiveContentsAsync(cancellationToken);
+        foreach (var folder in folders)
         {
             await eventBus.PublishAsync(new FolderDeleted(folder.Id.Value), cancellationToken);
         }

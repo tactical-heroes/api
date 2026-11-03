@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -18,8 +16,6 @@ public sealed class FoldersRepository(
             dbContext),
         IFoldersRepository
 {
-    private const int ReconciliationBatchSize = 100;
-
     private readonly DbSet<File> _files = dbContext.Set<File>();
 
     public Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken cancellationToken)
@@ -29,10 +25,9 @@ public sealed class FoldersRepository(
             .ToListAsync(cancellationToken);
     }
 
-    public async IAsyncEnumerable<Folder> GetDeletedWithActiveContentsAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    public Task<List<Folder>> GetDeletedWithActiveContentsAsync(CancellationToken cancellationToken)
     {
-        var query = Query
+        return Query
             .IgnoreQueryFilters()
             .AsNoTracking()
             .Where(folder => EF.Property<DateTime?>(folder, EfConstants.DeletedAt) != null
@@ -40,34 +35,7 @@ public sealed class FoldersRepository(
                     && EF.Property<DateTime?>(child, EfConstants.DeletedAt) == null)
                     || _files.Any(file => file.FolderId == folder.Id
                         && EF.Property<DateTime?>(file, EfConstants.DeletedAt) == null
-                        && file.Status != FileStatus.Deleting)));
-        FolderId? afterId = null;
-        while (true)
-        {
-            var pageQuery = query;
-            if (afterId is { } cursor)
-            {
-                pageQuery = pageQuery.Where(folder => EF.Functions.GreaterThan(
-                    ValueTuple.Create(folder.Id),
-                    ValueTuple.Create(cursor)));
-            }
-
-            var folders = await pageQuery
-                .OrderBy(folder => folder.Id)
-                .Take(ReconciliationBatchSize)
-                .ToListAsync(cancellationToken);
-            if (folders.Count == 0)
-            {
-                yield break;
-            }
-
-            foreach (var folder in folders)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                yield return folder;
-            }
-
-            afterId = folders[^1].Id;
-        }
+                        && file.Status != FileStatus.Deleting)))
+            .ToListAsync(cancellationToken);
     }
 }

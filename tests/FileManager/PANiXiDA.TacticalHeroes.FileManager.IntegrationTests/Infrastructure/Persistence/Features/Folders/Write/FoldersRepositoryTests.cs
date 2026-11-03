@@ -216,10 +216,11 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         context.ChangeTracker.Entries<Folder>().Count().ShouldBe(104);
     }
 
-    [Theory(DisplayName = "Folder reconciliation should find all pages when old deleted parents have active contents")]
+    [Theory(
+        DisplayName = "Folder reconciliation should return all matches when old deleted parents have active contents")]
     [InlineData("Personal")]
     [InlineData("Avatar")]
-    public async Task GetDeletedWithActiveContentsAsync_Should_FindAllPages_When_OldDeletedParentsHaveActiveContents(
+    public async Task GetDeletedWithActiveContentsAsync_Should_ReturnAll_When_OldDeletedParentsHaveActiveContents(
         string type)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -273,15 +274,10 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         }
         await using var queryScope = Fixture.CreateScope();
         var repository = queryScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
-        var loaded = new List<Folder>();
-
-        await foreach (var folder in repository.GetDeletedWithActiveContentsAsync(ct))
-        {
-            loaded.Add(folder);
-        }
+        var loaded = await repository.GetDeletedWithActiveContentsAsync(ct);
 
         var expectedIds = parents.Take(105).Select(folder => folder.Id.Value).Order();
-        loaded.Select(folder => folder.Id.Value).ShouldBe(expectedIds);
+        loaded.Select(folder => folder.Id.Value).Order().ShouldBe(expectedIds);
         var context = queryScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         context.ChangeTracker.Entries().ShouldBeEmpty();
     }

@@ -20,7 +20,7 @@ public sealed class ReconcileFolderDeletionsHandlerTests
     public async Task HandleAsync_Should_DoNothing_When_NoDeletedFoldersHaveActiveContents()
     {
         _folders.GetDeletedWithActiveContentsAsync(Arg.Any<CancellationToken>())
-            .Returns(Array.Empty<Folder>().ToAsyncEnumerable());
+            .Returns(new List<Folder>());
         var handler = new ReconcileFolderDeletionsHandler(_folders, _events);
 
         var result = await handler.HandleAsync(
@@ -33,9 +33,9 @@ public sealed class ReconcileFolderDeletionsHandlerTests
     [Fact(DisplayName = "Folder reconciliation should publish deletion when deleted folders have active contents")]
     public async Task HandleAsync_Should_PublishDeletion_When_DeletedFoldersHaveActiveContents()
     {
-        var folders = new[] { CreateFolder("First"), CreateFolder("Second") };
+        var folders = new List<Folder> { CreateFolder("First"), CreateFolder("Second") };
         _folders.GetDeletedWithActiveContentsAsync(Arg.Any<CancellationToken>())
-            .Returns(folders.ToAsyncEnumerable());
+            .Returns(folders);
         var handler = new ReconcileFolderDeletionsHandler(_folders, _events);
 
         var result = await handler.HandleAsync(
@@ -48,7 +48,7 @@ public sealed class ReconcileFolderDeletionsHandlerTests
                 Arg.Is<FolderDeleted>(message => message.FolderId == folder.Id.Value),
                 TestContext.Current.CancellationToken);
         }
-        _events.ReceivedCalls().Count().ShouldBe(folders.Length);
+        _events.ReceivedCalls().Count().ShouldBe(folders.Count);
         _folders.DidNotReceiveWithAnyArgs().Update(null!);
         _folders.DidNotReceiveWithAnyArgs().Delete(null!);
     }
@@ -57,7 +57,7 @@ public sealed class ReconcileFolderDeletionsHandlerTests
     public async Task HandleAsync_Should_PropagateFailure_When_DeletionPublicationFails()
     {
         _folders.GetDeletedWithActiveContentsAsync(Arg.Any<CancellationToken>())
-            .Returns(new[] { CreateFolder("Deleted") }.ToAsyncEnumerable());
+            .Returns(new List<Folder> { CreateFolder("Deleted") });
         _events.PublishAsync(Arg.Any<FolderDeleted>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new IOException("Outbox unavailable"));
         var handler = new ReconcileFolderDeletionsHandler(_folders, _events);
