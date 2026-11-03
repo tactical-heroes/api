@@ -7,6 +7,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 
@@ -32,19 +33,24 @@ public sealed class FolderAccessPolicy(ICurrentUser currentUser, FileAccessPolic
 
     public bool CanUpdate(Folder folder)
     {
+        return CanUpdate(folder.AllowedFileType, folder.UserId);
+    }
+
+    public bool CanUpdate(FileType allowedFileType, UserId? userId)
+    {
         if (!currentUser.IsAuthenticated)
         {
             return false;
         }
 
-        if (folder.AllowedFileType == FileType.Personal)
+        if (allowedFileType == FileType.Personal)
         {
             return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateAll.Code)
-                || (folder.UserId?.Value == currentUser.UserId
+                || (userId?.Value == currentUser.UserId
                     && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateOwn.Code));
         }
 
-        return folder.AllowedFileType == FileType.Avatar
+        return allowedFileType == FileType.Avatar
             && currentUser.HasPermission(Permissions.FileManager.Avatars.Update.Code);
     }
 

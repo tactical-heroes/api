@@ -21,4 +21,11 @@ public readonly partial record struct FolderId : IStronglyTypedId
                 error: Error.Validation(message: "Folder id cannot be empty."))
             : Result.Success(value: new FolderId(value: value));
     }
+
+    public static Result<FolderId?> Create(Guid? value)
+    {
+        return value is null
+            ? Result.Success<FolderId?>(value: null)
+            : Create(value.Value).Map(id => (FolderId?)id);
+    }
 }

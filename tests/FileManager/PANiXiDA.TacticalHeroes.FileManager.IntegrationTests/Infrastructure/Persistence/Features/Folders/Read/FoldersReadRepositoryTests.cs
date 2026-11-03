@@ -516,6 +516,63 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         existing.ShouldBeTrue();
     }
 
+    [Theory(DisplayName = "Folder contents check should match active contents when content state varies")]
+    [InlineData("empty", false)]
+    [InlineData("child", true)]
+    [InlineData("pending", true)]
+    [InlineData("deleting", true)]
+    [InlineData("deleted-child", false)]
+    [InlineData("deleted-file", false)]
+    [InlineData("missing", false)]
+    public async Task HasContentsAsync_Should_MatchActiveContents_When_ContentStateVaries(string kind, bool expected)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var folder = CreateFolder();
+        var child = folder.CreateChild(FolderName.Create("Child").Value);
+        var file = File.Create(FileName.Create("file.txt").Value, FileType.Avatar, userId: null).Value;
+        file.MoveTo(folder);
+        if (kind == "deleting")
+        {
+            file.BeginDeletion();
+        }
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.Add(folder);
+            var other = CreateFolder();
+            db.AddRange(other, other.CreateChild(FolderName.Create("Other child").Value));
+            if (kind is "child" or "deleted-child")
+            {
+                db.Add(child);
+            }
+            if (kind is "pending" or "deleting" or "deleted-file")
+            {
+                db.Add(file);
+            }
+            await db.SaveChangesAsync(ct);
+        }
+        if (kind is "deleted-child" or "deleted-file")
+        {
+            await using var scope = Fixture.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            if (kind == "deleted-child")
+            {
+                db.Remove(await db.Set<Folder>().SingleAsync(item => item.Id == child.Id, ct));
+            }
+            else
+            {
+                db.Remove(await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct));
+            }
+            await db.SaveChangesAsync(ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var exists = await repository.HasContentsAsync(kind == "missing" ? Guid.NewGuid() : folder.Id.Value, ct);
+
+        exists.ShouldBe(expected);
+    }
+
     private static Folder CreateFolder()
     {
         return Folder.Create(FolderName.Create("Avatars").Value, FileType.Avatar, userId: null).Value;

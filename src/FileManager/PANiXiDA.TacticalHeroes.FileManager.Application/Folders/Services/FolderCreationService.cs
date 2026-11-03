@@ -1,3 +1,4 @@
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -7,7 +8,10 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 
-public sealed class FolderCreationService(IFoldersRepository foldersRepository, FolderAccessPolicy folderAccessPolicy)
+public sealed class FolderCreationService(
+    IFoldersRepository foldersRepository,
+    FolderAccessPolicy folderAccessPolicy,
+    IFolderHierarchyLock folderHierarchyLock)
 {
     public async Task<Result<Guid>> CreateAsync(
         string name,
@@ -81,6 +85,7 @@ public sealed class FolderCreationService(IFoldersRepository foldersRepository, 
         FolderId parentId,
         CancellationToken cancellationToken)
     {
+        await folderHierarchyLock.AcquireAsync(cancellationToken);
         var parent = await foldersRepository.GetByIdAsync(parentId, cancellationToken);
         if (parent is null
             || !folderAccessPolicy.CanCreate(parent)

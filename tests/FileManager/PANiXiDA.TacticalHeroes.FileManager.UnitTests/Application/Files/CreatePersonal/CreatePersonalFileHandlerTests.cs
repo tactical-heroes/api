@@ -5,6 +5,7 @@ using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -21,6 +22,7 @@ public sealed class CreatePersonalFileHandlerTests
 {
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
     private readonly IFoldersRepository _folders = Substitute.For<IFoldersRepository>();
+    private readonly IFolderHierarchyLock _hierarchyLock = Substitute.For<IFolderHierarchyLock>();
     private readonly IFileStorage _storage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ICurrentUser _currentUser = Substitute.For<ICurrentUser>();
@@ -30,6 +32,9 @@ public sealed class CreatePersonalFileHandlerTests
     {
         _currentUser.IsAuthenticated.Returns(true);
         _currentUser.UserId.Returns(_userId);
+        _unitOfWork.ExecuteInTransactionAsync(
+            Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(call => call.Arg<Func<CancellationToken, Task>>()(call.Arg<CancellationToken>()));
     }
 
     [Theory(DisplayName = "Personal file upload should save pending metadata before uploading when command is valid")]
@@ -49,7 +54,15 @@ public sealed class CreatePersonalFileHandlerTests
             _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         }
 
-        var steps = new List<string>();
+        List<string> steps = [];
+        _unitOfWork.ExecuteInTransactionAsync(
+            Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(async call =>
+            {
+                steps.Add("begin");
+                await call.Arg<Func<CancellationToken, Task>>()(call.Arg<CancellationToken>());
+                steps.Add("commit");
+            });
         File? stagedFile = null;
         _files.When(repository => repository.Add(Arg.Any<File>())).Do(call =>
         {
@@ -85,7 +98,8 @@ public sealed class CreatePersonalFileHandlerTests
         var result = await CreateHandler().HandleAsync(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        steps.ShouldBe(["pending", "save", "upload", "ready", "save"]);
+        steps.ShouldBe(["begin", "pending", "save", "commit", "upload", "ready", "save"]);
+        await _hierarchyLock.Received(hasFolder ? 1 : 0).AcquireAsync(TestContext.Current.CancellationToken);
         _folders.DidNotReceiveWithAnyArgs().Update(null!);
         content.CanRead.ShouldBeTrue();
     }
@@ -222,6 +236,6 @@ public sealed class CreatePersonalFileHandlerTests
 
     private CreatePersonalFileHandler CreateHandler()
     {
-        return new CreatePersonalFileHandler(_files, _folders, _storage, _unitOfWork, _currentUser);
+        return new CreatePersonalFileHandler(_files, _folders, _hierarchyLock, _storage, _unitOfWork, _currentUser);
     }
 }
