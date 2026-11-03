@@ -33,6 +33,7 @@ public sealed class UserRegistrationTests(FunctionalTestFixture fixture)
         schedule.ShouldBeNull();
         runtime.Options.Schedules.FindByName("file-manager-reconcile-uploads").ShouldBeNull();
         runtime.Options.Schedules.FindByName("file-manager-reconcile-folder-deletions").ShouldBeNull();
+        runtime.Options.Schedules.FindByName("matchmaking-process").ShouldBeNull();
     }
 
     [Fact(DisplayName = "User registration should create a player through both mappings when user is registered")]

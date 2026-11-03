@@ -68,6 +68,8 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
         {
             var variable = PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable;
             var previous = Environment.GetEnvironmentVariable(variable);
+            const string MatchmakingVariable = "Matchmaking__Schedules__ProcessMatchmakingCommand__Enabled";
+            var previousMatchmaking = Environment.GetEnvironmentVariable(MatchmakingVariable);
             const string ExpirationVariable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
             var previousExpiration = Environment.GetEnvironmentVariable(ExpirationVariable);
             const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
@@ -79,6 +81,7 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
             try
             {
                 Environment.SetEnvironmentVariable(variable, connectionString);
+                Environment.SetEnvironmentVariable(MatchmakingVariable, "false");
                 Environment.SetEnvironmentVariable(ExpirationVariable, "false");
                 Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
                 Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, "false");
@@ -87,6 +90,7 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
             finally
             {
                 Environment.SetEnvironmentVariable(variable, previous);
+                Environment.SetEnvironmentVariable(MatchmakingVariable, previousMatchmaking);
                 Environment.SetEnvironmentVariable(ExpirationVariable, previousExpiration);
                 Environment.SetEnvironmentVariable(FileManagerScheduleVariable, previousFileManagerSchedule);
                 Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, previousFolderDeletionSchedule);

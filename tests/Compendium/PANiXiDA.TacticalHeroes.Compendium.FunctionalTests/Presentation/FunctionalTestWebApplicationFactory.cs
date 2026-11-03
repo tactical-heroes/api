@@ -15,6 +15,8 @@ internal sealed class FunctionalTestWebApplicationFactory
 {
     protected override IHost CreateHost(IHostBuilder builder)
     {
+        const string MatchmakingScheduleVariable = "Matchmaking__Schedules__ProcessMatchmakingCommand__Enabled";
+        var previousMatchmakingSchedule = Environment.GetEnvironmentVariable(MatchmakingScheduleVariable);
         const string Variable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
         var previous = Environment.GetEnvironmentVariable(Variable);
         const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
@@ -25,6 +27,7 @@ internal sealed class FunctionalTestWebApplicationFactory
             Environment.GetEnvironmentVariable(FolderDeletionScheduleVariable);
         try
         {
+            Environment.SetEnvironmentVariable(MatchmakingScheduleVariable, "false");
             Environment.SetEnvironmentVariable(Variable, "false");
             Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
             Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, "false");
@@ -32,6 +35,7 @@ internal sealed class FunctionalTestWebApplicationFactory
         }
         finally
         {
+            Environment.SetEnvironmentVariable(MatchmakingScheduleVariable, previousMatchmakingSchedule);
             Environment.SetEnvironmentVariable(Variable, previous);
             Environment.SetEnvironmentVariable(FileManagerScheduleVariable, previousFileManagerSchedule);
             Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, previousFolderDeletionSchedule);
