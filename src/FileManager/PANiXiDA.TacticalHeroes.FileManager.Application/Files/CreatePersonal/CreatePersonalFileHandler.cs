@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -15,6 +16,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
 public sealed class CreatePersonalFileHandler(
     IFilesRepository filesRepository,
     IFoldersRepository foldersRepository,
+    IFolderHierarchyLock folderHierarchyLock,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser)
@@ -33,11 +35,13 @@ public sealed class CreatePersonalFileHandler(
         var contentTypeResult = FileContentType.Create(command.ContentType);
         var sizeResult = FileSize.Create(command.Size);
         var userIdResult = UserId.Create(userId);
+        var folderIdResult = FolderId.Create(command.FolderId);
         var validationResult = Result.Combine(
             nameResult,
             contentTypeResult,
             sizeResult,
-            userIdResult);
+            userIdResult,
+            folderIdResult);
 
         if (validationResult.IsFailure)
         {
@@ -54,32 +58,35 @@ public sealed class CreatePersonalFileHandler(
             type: FileType.Personal,
             userId: userIdResult.Value).Value;
 
-        if (command.FolderId is { } folderId)
+        var reservation = Result.Success();
+        await unitOfWork.ExecuteInTransactionAsync(
+            action: async token =>
+            {
+                if (folderIdResult.Value is { } folderId)
+                {
+                    await folderHierarchyLock.AcquireAsync(token);
+                    var folder = await foldersRepository.GetByIdAsync(folderId, token);
+                    if (folder is null || folder.UserId != file.UserId)
+                    {
+                        reservation = Result.Failure(Error.NotFound("Folder was not found."));
+                        return;
+                    }
+
+                    reservation = file.MoveTo(folder);
+                    if (reservation.IsFailure)
+                    {
+                        return;
+                    }
+                }
+
+                filesRepository.Add(aggregateRoot: file);
+                await unitOfWork.SaveChangesAsync(token);
+            },
+            cancellationToken: cancellationToken);
+        if (reservation.IsFailure)
         {
-            var folderIdResult = FolderId.Create(folderId);
-            if (folderIdResult.IsFailure)
-            {
-                return Result.Failure<Guid>(folderIdResult.Errors);
-            }
-
-            var folder = await foldersRepository.GetByIdAsync(
-                id: folderIdResult.Value,
-                cancellationToken: cancellationToken);
-
-            if (folder is null || folder.UserId != file.UserId)
-            {
-                return Result.Failure<Guid>(Error.NotFound("Folder was not found."));
-            }
-
-            var moveResult = file.MoveTo(folder);
-            if (moveResult.IsFailure)
-            {
-                return Result.Failure<Guid>(moveResult.Errors);
-            }
+            return Result.Failure<Guid>(reservation.Errors);
         }
-
-        filesRepository.Add(aggregateRoot: file);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         await fileStorage.UploadAsync(
             key: file.StorageKey.Value,

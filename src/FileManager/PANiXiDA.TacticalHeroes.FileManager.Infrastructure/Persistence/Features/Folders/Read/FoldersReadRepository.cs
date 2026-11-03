@@ -67,6 +67,13 @@ public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
             .SingleAsync(cancellationToken);
     }
 
+    public Task<bool> HasContentsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return Query
+            .Where(folder => folder.Id == id)
+            .AnyAsync(folder => folder.Children.Any() || folder.Files.Any(), cancellationToken);
+    }
+
     public Task<List<Guid>> GetDeletedIdsWithActiveContentsAsync(CancellationToken cancellationToken)
     {
         return Query

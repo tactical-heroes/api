@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Create;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
@@ -144,7 +145,8 @@ public sealed class CreateFolderHandlerTests
     {
         var service = new FolderCreationService(
             _folders,
-            new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)));
+            new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)),
+            Substitute.For<IFolderHierarchyLock>());
         return new CreateFolderHandler(service);
     }
 }

@@ -30,18 +30,10 @@ public sealed class Folder : AggregateRoot<FolderId>
         FileType allowedFileType,
         UserId? userId)
     {
-        if (allowedFileType == FileType.Personal && userId is null)
+        var validation = ValidateOwnership(allowedFileType, userId);
+        if (validation.IsFailure)
         {
-            return Result.Failure<Folder>(
-                Error.Validation("Personal folders require a user id.")
-                    .WithField(nameof(UserId)));
-        }
-
-        if (allowedFileType != FileType.Personal && userId is not null)
-        {
-            return Result.Failure<Folder>(
-                Error.Validation("Only personal folders can have a user id.")
-                    .WithField(nameof(UserId)));
+            return Result.Failure<Folder>(validation.Errors);
         }
 
         return Result.Success(new Folder(
@@ -64,6 +56,58 @@ public sealed class Folder : AggregateRoot<FolderId>
 
     public Result MoveTo(Folder? parent)
     {
+        var validation = ValidateParent(parent: parent, allowedFileType: AllowedFileType, userId: UserId);
+        if (validation.IsFailure)
+        {
+            return validation;
+        }
+
+        ParentId = parent?.Id;
+
+        return Result.Success();
+    }
+
+    public Result Update(FolderName name, FileType allowedFileType, UserId? userId, Folder? parent)
+    {
+        var validation = Result.Combine(
+            ValidateOwnership(allowedFileType, userId),
+            ValidateParent(parent: parent, allowedFileType: allowedFileType, userId: userId));
+        if (validation.IsFailure)
+        {
+            return validation;
+        }
+
+        Name = name;
+        AllowedFileType = allowedFileType;
+        UserId = userId;
+        ParentId = parent?.Id;
+
+        return Result.Success();
+    }
+
+    public void Rename(FolderName name)
+    {
+        Name = name;
+    }
+
+    private static Result ValidateOwnership(FileType allowedFileType, UserId? userId)
+    {
+        if (allowedFileType == FileType.Personal && userId is null)
+        {
+            return Result.Failure(
+                Error.Validation("Personal folders require a user id.")
+                    .WithField(nameof(UserId)));
+        }
+
+        return allowedFileType != FileType.Personal && userId is not null
+            ? Result.Failure(
+                Error.Validation("Only personal folders can have a user id.")
+                    .WithField(nameof(UserId)))
+            : Result.Success();
+    }
+
+    private Result ValidateParent(Folder? parent, FileType allowedFileType, UserId? userId)
+    {
         if (parent is not null)
         {
             if (parent.Id == Id)
@@ -73,14 +117,14 @@ public sealed class Folder : AggregateRoot<FolderId>
                         .WithField(nameof(ParentId)));
             }
 
-            if (AllowedFileType != parent.AllowedFileType)
+            if (allowedFileType != parent.AllowedFileType)
             {
                 return Result.Failure(
                     Error.Validation("Folder and parent allowed file types must match.")
                         .WithField(nameof(ParentId)));
             }
 
-            if (UserId != parent.UserId)
+            if (userId != parent.UserId)
             {
                 return Result.Failure(
                     Error.Validation("Folder and parent user ids must match.")
@@ -88,13 +132,6 @@ public sealed class Folder : AggregateRoot<FolderId>
             }
         }
 
-        ParentId = parent?.Id;
-
         return Result.Success();
-    }
-
-    public void Rename(FolderName name)
-    {
-        Name = name;
     }
 }

@@ -184,6 +184,59 @@ public sealed class FolderTests
         folder.ParentId.ShouldBe(root.Id);
     }
 
+    [Theory(DisplayName = "Folder update should replace metadata when target scope and parent are compatible")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public void Update_Should_ReplaceMetadata_When_TargetScopeAndParentAreCompatible(string type)
+    {
+        var owner = type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
+        var parent = Folder.Create(FolderName.Create("Target").Value, FileType.FromName(type), owner).Value;
+        var folder = Folder.Create(
+            FolderName.Create("Before").Value, FileType.Personal, UserId.Create(Guid.NewGuid()).Value).Value;
+        var id = folder.Id;
+        var name = FolderName.Create("After").Value;
+
+        var result = folder.Update(name: name, allowedFileType: parent.AllowedFileType, userId: owner, parent: parent);
+
+        result.IsSuccess.ShouldBeTrue();
+        folder.Id.ShouldBe(id);
+        folder.Name.ShouldBe(name);
+        folder.AllowedFileType.ShouldBe(parent.AllowedFileType);
+        folder.UserId.ShouldBe(owner);
+        folder.ParentId.ShouldBe(parent.Id);
+        parent.ParentId.ShouldBeNull();
+    }
+
+    [Theory(DisplayName = "Folder update should preserve all metadata when proposed state is invalid")]
+    [InlineData("missing-owner")]
+    [InlineData("avatar-owner")]
+    [InlineData("parent-type")]
+    [InlineData("parent-owner")]
+    [InlineData("self")]
+    public void Update_Should_PreserveAllMetadata_When_ProposedStateIsInvalid(string kind)
+    {
+        var owner = UserId.Create(Guid.NewGuid()).Value;
+        var root = Folder.Create(FolderName.Create("Root").Value, FileType.Personal, owner).Value;
+        var folder = root.CreateChild(FolderName.Create("Before").Value);
+        var parent = kind == "self" ? folder : Folder.Create(
+            FolderName.Create("Target").Value,
+            kind == "parent-type" ? FileType.Avatar : FileType.Personal,
+            kind == "parent-type" ? null : UserId.Create(Guid.NewGuid()).Value).Value;
+        var newType = kind == "avatar-owner" ? FileType.Avatar : FileType.Personal;
+
+        var result = folder.Update(
+            name: FolderName.Create("After").Value,
+            allowedFileType: newType,
+            userId: kind == "missing-owner" ? null : owner,
+            parent: kind is "missing-owner" or "avatar-owner" ? null : parent);
+
+        result.IsFailure.ShouldBeTrue();
+        folder.Name.Value.ShouldBe("Before");
+        folder.AllowedFileType.ShouldBe(FileType.Personal);
+        folder.UserId.ShouldBe(owner);
+        folder.ParentId.ShouldBe(root.Id);
+    }
+
     [Fact(DisplayName = "Rename should preserve folder identity and placement when folder is nested")]
     public void Rename_Should_PreserveIdentityAllowedFileTypeAndParent_When_FolderIsNested()
     {
