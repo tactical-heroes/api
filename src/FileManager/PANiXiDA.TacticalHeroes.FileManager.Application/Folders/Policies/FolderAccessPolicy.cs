@@ -30,6 +30,24 @@ public sealed class FolderAccessPolicy(ICurrentUser currentUser, FileAccessPolic
             && currentUser.HasPermission(Permissions.FileManager.Avatars.Create.Code);
     }
 
+    public bool CanUpdate(Folder folder)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (folder.AllowedFileType == FileType.Personal)
+        {
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateAll.Code)
+                || (folder.UserId?.Value == currentUser.UserId
+                    && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateOwn.Code));
+        }
+
+        return folder.AllowedFileType == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Update.Code);
+    }
+
     public bool CanDelete(Folder folder)
     {
         if (!currentUser.IsAuthenticated)
