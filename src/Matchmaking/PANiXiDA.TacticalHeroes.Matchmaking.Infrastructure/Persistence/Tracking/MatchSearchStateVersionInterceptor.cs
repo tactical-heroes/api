@@ -48,12 +48,14 @@ internal sealed class MatchSearchStateVersionInterceptor : SaveChangesIntercepto
 
     private static EntityEntry<MatchSearch>[] GetChangedSearches(MatchmakingWriteDbContext context)
     {
-        return context.ChangeTracker.Entries<MatchSearch>()
-            .Where(entry => entry.State == EntityState.Added
-                || entry.State == EntityState.Modified
-                    && (Changed(entry.Property(search => search.Status))
-                        || Changed(entry.Property(search => search.GameId))))
-            .ToArray();
+        return
+        [
+            .. context.ChangeTracker.Entries<MatchSearch>()
+                .Where(entry => entry.State == EntityState.Added
+                    || entry.State == EntityState.Modified
+                        && (Changed(entry.Property(search => search.Status))
+                            || Changed(entry.Property(search => search.GameId))))
+        ];
     }
 
     private static bool Changed(PropertyEntry property)
