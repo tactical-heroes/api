@@ -15,15 +15,19 @@ internal sealed class FunctionalTestWebApplicationFactory
 {
     protected override IHost CreateHost(IHostBuilder builder)
     {
+        const string MatchmakingScheduleVariable = "Matchmaking__Schedules__ProcessMatchmakingCommand__Enabled";
+        var previousMatchmakingSchedule = Environment.GetEnvironmentVariable(MatchmakingScheduleVariable);
         const string Variable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
         var previous = Environment.GetEnvironmentVariable(Variable);
         try
         {
+            Environment.SetEnvironmentVariable(MatchmakingScheduleVariable, "false");
             Environment.SetEnvironmentVariable(Variable, "false");
             return base.CreateHost(builder);
         }
         finally
         {
+            Environment.SetEnvironmentVariable(MatchmakingScheduleVariable, previousMatchmakingSchedule);
             Environment.SetEnvironmentVariable(Variable, previous);
         }
     }
