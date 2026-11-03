@@ -92,7 +92,7 @@ public sealed class ReadRepositoryConventionTests
                 $"{target.Repository.FullName}.{target.Method.Name} must "
                     + $"return an IReadModel, optionally wrapped in Task, a "
                     + $"Result, a collection, or a pagination model, or the "
-                    + $"repository identifier, optionally nullable or wrapped in Task; found "
+                    + $"repository identifier, optionally nullable, in a collection, or wrapped in Task; found "
                     + $"'{target.Method.ReturnType}'.")
             .ToArray();
 
@@ -110,8 +110,20 @@ public sealed class ReadRepositoryConventionTests
     [InlineData(typeof(Task<Guid?>), true)]
     [InlineData(typeof(string), false)]
     [InlineData(typeof(Task<string>), false)]
-    [InlineData(typeof(Guid[]), false)]
-    [InlineData(typeof(Task<Guid[]>), false)]
+    [InlineData(typeof(Guid[]), true)]
+    [InlineData(typeof(Task<Guid[]>), true)]
+    [InlineData(typeof(List<Guid>), true)]
+    [InlineData(typeof(Task<List<Guid>>), true)]
+    [InlineData(typeof(IEnumerable<Guid>), true)]
+    [InlineData(typeof(IReadOnlyList<Guid>), true)]
+    [InlineData(typeof(Task<IReadOnlyList<Guid>>), true)]
+    [InlineData(typeof(List<Guid?>), true)]
+    [InlineData(typeof(List<string>), false)]
+    [InlineData(typeof(Task<List<string>>), false)]
+    [InlineData(typeof(List<int>), false)]
+    [InlineData(typeof(List<List<Guid>>), false)]
+    [InlineData(typeof(Dictionary<Guid, Guid>), false)]
+    [InlineData(typeof(ValueTask<List<Guid>>), false)]
     [InlineData(typeof(Task), false)]
     public void IsIdentifierResult_Should_MatchRepositoryIdentifier_When_ResultTypeIsExamined(
         Type resultType,
@@ -224,7 +236,12 @@ public sealed class ReadRepositoryConventionTests
             resultType = resultType.GetGenericArguments()[0];
         }
 
-        return (Nullable.GetUnderlyingType(resultType) ?? resultType) == identifierType;
+        return (Nullable.GetUnderlyingType(resultType) ?? resultType) == identifierType
+            || resultType.GetInterfaces().Append(resultType).Any(contract =>
+                contract.IsGenericType
+                    && contract.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                    && (Nullable.GetUnderlyingType(contract.GetGenericArguments()[0])
+                        ?? contract.GetGenericArguments()[0]) == identifierType);
     }
 
     private static ReadRepository[] GetReadRepositories()

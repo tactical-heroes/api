@@ -13,4 +13,5 @@ public interface IFoldersReadRepository : IReadRepository<Guid>
         CancellationToken cancellationToken);
 
     Task<FolderDetailsReadModel?> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<List<Guid>> GetDeletedIdsWithActiveContentsAsync(CancellationToken cancellationToken);
 }
