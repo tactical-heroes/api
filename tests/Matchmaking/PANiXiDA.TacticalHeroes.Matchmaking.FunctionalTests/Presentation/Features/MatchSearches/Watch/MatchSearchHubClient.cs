@@ -1,6 +1,5 @@
 using System.Threading.Channels;
 
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 
@@ -24,8 +23,8 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
                 "http://localhost/api/v1/match-searches/state",
                 options =>
             {
-                options.Transports = HttpTransportType.WebSockets;
-                options.SkipNegotiation = true;
+                options.Headers["X-Test-UserId"] = userId.ToString();
+                options.HttpMessageHandlerFactory = _ => factory.Server.CreateHandler();
                 options.WebSocketFactory = (context, token) =>
                 {
                     var client = factory.Server.CreateWebSocketClient();
