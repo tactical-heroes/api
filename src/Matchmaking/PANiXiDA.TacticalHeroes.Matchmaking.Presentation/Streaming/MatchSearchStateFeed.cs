@@ -6,12 +6,13 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Wa
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 
-internal sealed class MatchSearchStateFeed(IHubContext<MatchSearchHub> hubContext) : IMatchSearchStateFeed
+internal sealed class MatchSearchStateFeed(
+    IHubContext<MatchSearchHub, IMatchSearchClient> hubContext) : IMatchSearchStateFeed
 {
     public Task SendAsync(string connectionId, MatchSearchStateReadModel state, CancellationToken cancellationToken)
     {
-        return hubContext.Clients.Client(connectionId).SendAsync(
-            method: MatchSearchHub.StateChangedMethod, arg1: state, cancellationToken: cancellationToken);
+        return hubContext.Clients.Client(connectionId).StateChangedAsync(
+            WatchMatchSearchMapper.ToResponse(state), cancellationToken);
     }
 
     public Task SubscribeAsync(Guid playerId, string connectionId, CancellationToken cancellationToken)

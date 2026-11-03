@@ -17,6 +17,7 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
@@ -119,7 +120,14 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await using var scope = fixture.Services.CreateAsyncScope();
         var own = await scope.ServiceProvider.GetRequiredService<IMatchSearchesReadRepository>()
             .GetStateByPlayerIdAsync(owner.Id.Value, TestContext.Current.CancellationToken);
-        state.ShouldBe(own);
+        own.ShouldNotBeNull();
+        state.MatchSearchId.ShouldBe(own.MatchSearchId);
+        state.Version.ShouldBe(own.Version);
+        state.Status.ShouldBe(own.Status);
+        state.GameId.ShouldBe(own.GameId);
+        state.QueuedAt.ShouldBe(own.QueuedAt);
+        state.ExpiresAt.ShouldBe(own.ExpiresAt);
+        state.IsActive.ShouldBeTrue();
     }
 
     [Fact(DisplayName = "Endpoint should preserve changes when commit races with snapshot")]
@@ -207,10 +215,11 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         await publisher.PublishAsync(player.Id.Value, expected, TestContext.Current.CancellationToken);
 
-        (await ReadAsync(socket)).ShouldBe(expected);
+        (await ReadAsync(socket)).ShouldBe(
+            new MatchSearchStateResponse(1, expected.MatchSearchId, "Searching", null, null, null, true));
     }
 
-    private static async Task<MatchSearchStateReadModel> ReadAsync(MatchSearchHubClient socket)
+    private static async Task<MatchSearchStateResponse> ReadAsync(MatchSearchHubClient socket)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(s_timeout);

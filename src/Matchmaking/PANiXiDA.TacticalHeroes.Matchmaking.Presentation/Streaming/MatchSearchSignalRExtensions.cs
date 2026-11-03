@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,8 +10,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 
 public static class MatchSearchSignalRExtensions
 {
-    public const string Path = "/api/v1/match-searches/state";
-
     public static IServiceCollection AddMatchSearchSignalR(
         this IServiceCollection services, IConfiguration configuration)
     {
@@ -35,7 +32,7 @@ public static class MatchSearchSignalRExtensions
             var request = context.Request;
             if (string.Equals(
                 a: request.Path.Value?.TrimEnd('/'),
-                b: Path,
+                b: MatchSearchHubExtensions.Route,
                 comparisonType: StringComparison.OrdinalIgnoreCase)
                 && !request.Headers.ContainsKey("Authorization")
                 && request.Query.TryGetValue("access_token", out var token)
@@ -46,11 +43,5 @@ public static class MatchSearchSignalRExtensions
 
             await next(context);
         });
-    }
-
-    public static IEndpointRouteBuilder MapMatchSearchHub(this IEndpointRouteBuilder endpoints)
-    {
-        endpoints.MapHub<MatchSearchHub>(Path).RequireAuthorization();
-        return endpoints;
     }
 }

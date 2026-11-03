@@ -3,11 +3,11 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
 
-internal sealed class MatchSearchHubClient(HubConnection connection, ChannelReader<MatchSearchStateReadModel> messages)
+internal sealed class MatchSearchHubClient(HubConnection connection, ChannelReader<MatchSearchStateResponse> messages)
     : IAsyncDisposable
 {
     private long _version = -1;
@@ -17,7 +17,7 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
     internal static async Task<MatchSearchHubClient> ConnectAsync(
         WebApplicationFactory<Program> factory, Guid userId, CancellationToken cancellationToken)
     {
-        var messages = Channel.CreateUnbounded<MatchSearchStateReadModel>();
+        var messages = Channel.CreateUnbounded<MatchSearchStateResponse>();
         var connection = new HubConnectionBuilder()
             .WithUrl(
                 "http://localhost/api/v1/match-searches/state",
@@ -33,7 +33,7 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
                 };
             })
             .Build();
-        connection.On<MatchSearchStateReadModel>("StateChanged", state => { messages.Writer.TryWrite(state); });
+        connection.On<MatchSearchStateResponse>("StateChanged", state => { messages.Writer.TryWrite(state); });
         try
         {
             await connection.StartAsync(cancellationToken);
@@ -46,7 +46,7 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
         }
     }
 
-    internal async Task<MatchSearchStateReadModel> ReadAsync(CancellationToken cancellationToken)
+    internal async Task<MatchSearchStateResponse> ReadAsync(CancellationToken cancellationToken)
     {
         while (true)
         {

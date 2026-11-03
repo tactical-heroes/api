@@ -4,10 +4,8 @@ using Microsoft.AspNetCore.SignalR;
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
 [Authorize]
-public sealed class MatchSearchHub(IMediator mediator) : Hub
+public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>
 {
-    public const string StateChangedMethod = "StateChanged";
-
     public override async Task OnConnectedAsync()
     {
         var result = await mediator.SendAsync(
