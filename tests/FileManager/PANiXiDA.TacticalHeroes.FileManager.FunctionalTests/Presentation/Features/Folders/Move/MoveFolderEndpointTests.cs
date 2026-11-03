@@ -22,7 +22,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
 {
     private const string Route = "/api/v1/folders";
 
-    [Theory(DisplayName = "PATCH folder parent should preserve contents when destination is compatible")]
+    [Theory(DisplayName = "PATCH folder move should preserve contents when destination is compatible")]
     [InlineData("Personal")]
     [InlineData("Avatar")]
     public async Task HandleAsync_Should_PreserveContents_When_DestinationIsCompatible(string type)
@@ -78,7 +78,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         details.ParentName.ShouldBe(target.Name.Value);
     }
 
-    [Theory(DisplayName = "PATCH folder parent should detach the folder when parent is null or omitted")]
+    [Theory(DisplayName = "PATCH folder move should detach the folder when parent is null or omitted")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task HandleAsync_Should_DetachFolder_When_ParentIsNullOrOmitted(bool omitted)
@@ -99,7 +99,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         stored.Name.ShouldBe("Child");
     }
 
-    [Theory(DisplayName = "PATCH folder parent should reject cycles when destination is self or a descendant")]
+    [Theory(DisplayName = "PATCH folder move should reject cycles when destination is self or a descendant")]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(5)]
@@ -124,7 +124,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         }
     }
 
-    [Theory(DisplayName = "PATCH folder parent should prevent cycles when opposite moves execute concurrently")]
+    [Theory(DisplayName = "PATCH folder move should prevent cycles when opposite moves execute concurrently")]
     [InlineData("Personal")]
     [InlineData("Avatar")]
     public async Task HandleAsync_Should_PreventCycles_When_OppositeMovesExecuteConcurrently(string type)
@@ -164,7 +164,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         secondStored.ParentId.ShouldBe(secondResponse.StatusCode == HttpStatusCode.NoContent ? first.Id.Value : null);
     }
 
-    [Theory(DisplayName = "PATCH folder parent should apply update scopes when type and ownership vary")]
+    [Theory(DisplayName = "PATCH folder move should apply update scopes when type and ownership vary")]
     [InlineData("Personal", true, "file-manager.personal-files.update.own", true)]
     [InlineData("Personal", false, "file-manager.personal-files.update.own", false)]
     [InlineData("Personal", false, "file-manager.personal-files.update.all", true)]
@@ -188,7 +188,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         (await ReadAsync(folder.Id.Value)).ParentId.ShouldBe(allowed ? target.Id.Value : null);
     }
 
-    [Theory(DisplayName = "PATCH folder parent should reject the destination when type or owner is incompatible")]
+    [Theory(DisplayName = "PATCH folder move should reject the destination when type or owner is incompatible")]
     [InlineData("Avatar", "file-manager.personal-files.update.all,file-manager.avatars.update", 400)]
     [InlineData("Personal", "file-manager.personal-files.update.all", 400)]
     [InlineData("Personal", "file-manager.personal-files.update.own", 404)]
@@ -207,7 +207,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         (await ReadAsync(folder.Id.Value)).ParentId.ShouldBeNull();
     }
 
-    [Theory(DisplayName = "PATCH folder parent should reject the request when identifiers or account are unavailable")]
+    [Theory(DisplayName = "PATCH folder move should reject the request when identifiers or account are unavailable")]
     [InlineData("missing", 404)]
     [InlineData("deleted", 404)]
     [InlineData("parent-missing", 404)]
@@ -246,7 +246,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         (await ReadAsync(folder.Id.Value)).ParentId.ShouldBeNull();
     }
 
-    [Fact(DisplayName = "PATCH folder parent should accept retries when destination is unchanged")]
+    [Fact(DisplayName = "PATCH folder move should accept retries when destination is unchanged")]
     public async Task HandleAsync_Should_AcceptRetries_When_DestinationIsUnchanged()
     {
         var userId = Guid.NewGuid();
@@ -324,7 +324,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
 
     private async Task<HttpResponseMessage> SendAsync(Guid id, object body, string? subject, string permission)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Patch, $"{Route}/{id}/parent");
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"{Route}/{id}/move");
         request.Content = JsonContent.Create(body);
         if (subject is not null)
         {
