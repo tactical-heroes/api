@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Presentation.Http.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Host.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 
 using BattlePresentationAssembly = PANiXiDA.TacticalHeroes.Battle.Presentation.PresentationAssembly;
 using BuildsPresentationAssembly = PANiXiDA.TacticalHeroes.Builds.Presentation.PresentationAssembly;
@@ -40,6 +41,14 @@ internal static class HttpConfiguration
 
     internal static WebApplication UseHttp(this WebApplication app)
     {
+        app.UseWebSockets(new WebSocketOptions
+        {
+            KeepAliveInterval = TimeSpan.FromSeconds(30),
+            KeepAliveTimeout = TimeSpan.FromSeconds(15)
+        });
+
+        app.UseMatchSearchWebSocketAuthentication();
+
         HttpServiceCollectionExtensions.UseHttp(app);
 
         return app;

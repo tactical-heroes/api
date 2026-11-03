@@ -28,6 +28,8 @@ public class FunctionalTestFixture : IAsyncLifetime
     public HttpClient Client { get; private set; } = null!;
     public IServiceProvider Services => _factory!.Services;
 
+    internal FunctionalTestWebApplicationFactory Factory => _factory!;
+
     protected virtual bool MatchmakingScheduleEnabled => false;
     protected virtual bool ExpirationScheduleEnabled => false;
 

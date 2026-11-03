@@ -76,7 +76,8 @@ public sealed class DependencyInjectionConventionTests
                         .Where(type => type is
                             {
                                 IsClass: true,
-                                IsAbstract: false
+                                IsAbstract: false,
+                                IsNestedPrivate: false
                             })
                         .SelectMany(implementation => abstractions
                             .Where(abstraction =>

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Streaming.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.DependencyInjection;
 
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
                 configuration);
 
         serviceCollection.AddClients();
+        serviceCollection.AddMatchSearchStreaming(configuration);
 
         return serviceCollection;
     }

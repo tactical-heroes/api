@@ -12,6 +12,33 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
+    [Theory(DisplayName = "API should validate token when browser uses subprotocol")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetMatchSearchState_Should_ValidateToken_When_BrowserUsesSubprotocol(bool valid)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "websocket-auth@example.test", "websocket-auth", "StrongPassword1!", null, ct);
+        using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            oauthClient, "websocket-auth@example.test", "StrongPassword1!", ct);
+        var token = valid ? tokens.AccessToken : "invalid-reference-token";
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/match-searches/state");
+        request.Headers.Add("Sec-WebSocket-Protocol", $"match-search-state.v1, bearer.{token}");
+        using var response = await Fixture.Client.SendAsync(request, ct);
+        using var queryOnly = await Fixture.Client.GetAsync(
+            $"/api/v1/match-searches/state?access_token={Uri.EscapeDataString(token)}", ct);
+        using var unrelated = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users");
+        unrelated.Headers.Add("Sec-WebSocket-Protocol", $"match-search-state.v1, bearer.{token}");
+        using var unrelatedResponse = await Fixture.Client.SendAsync(unrelated, ct);
+
+        response.StatusCode.ShouldBe(valid ? HttpStatusCode.BadRequest : HttpStatusCode.Unauthorized);
+        queryOnly.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        unrelatedResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
     [Theory(DisplayName = "Protected API should reject invalid tokens when token validation fails")]
     [InlineData(false)]
     [InlineData(true)]

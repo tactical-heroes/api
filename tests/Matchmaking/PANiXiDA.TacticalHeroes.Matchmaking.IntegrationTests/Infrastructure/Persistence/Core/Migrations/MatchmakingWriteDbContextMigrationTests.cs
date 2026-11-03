@@ -31,7 +31,7 @@ public sealed class MatchmakingWriteDbContextMigrationTests(IntegrationTestFixtu
             """).ToListAsync(cancellationToken);
 
         tables.ShouldBe(["__EFMigrationsHistory", "match_searches"]);
-        sequences.ShouldBe(["EntityFrameworkHiLoSequence"]);
+        sequences.ShouldBe(["EntityFrameworkHiLoSequence", "match_search_state_versions"]);
         readContext.ChangeTracker.QueryTrackingBehavior.ShouldBe(QueryTrackingBehavior.NoTracking);
     }
 

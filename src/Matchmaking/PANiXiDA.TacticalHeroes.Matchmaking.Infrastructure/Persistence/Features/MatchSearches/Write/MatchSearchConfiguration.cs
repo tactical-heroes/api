@@ -16,6 +16,11 @@ internal sealed class MatchSearchConfiguration : AuditableEntityConfiguration<Ma
     {
         builder.HasKey(search => search.Id);
 
+        builder.Property<long>("StateVersion")
+            .HasDefaultValueSql("nextval('matchmaking.match_search_state_versions')");
+
+        builder.HasIndex("PlayerId", "StateVersion").IsDescending(false, true);
+
         builder.Property(search => search.Id)
             .HasConversion(
                 id => id.Value,
