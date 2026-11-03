@@ -13,6 +13,6 @@ public interface IFoldersReadRepository : IReadRepository<Guid>
         CancellationToken cancellationToken);
 
     Task<FolderDetailsReadModel?> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken);
-    Task<List<Guid>> GetAncestorIdsAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> HasAncestorAsync(Guid id, Guid ancestorId, CancellationToken cancellationToken);
     Task<List<Guid>> GetDeletedIdsWithActiveContentsAsync(CancellationToken cancellationToken);
 }

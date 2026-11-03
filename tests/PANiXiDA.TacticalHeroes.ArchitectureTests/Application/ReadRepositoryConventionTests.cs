@@ -77,13 +77,14 @@ public sealed class ReadRepositoryConventionTests
                 + string.Join(Environment.NewLine, violations));
     }
 
-    [Fact(DisplayName = "Read repository methods should return read models or identifiers when declared")]
-    public void ReadRepositoryMethods_Should_ReturnReadModelsOrIdentifiers_When_Declared()
+    [Fact(DisplayName = "Read repository methods should return read models identifiers or predicates when declared")]
+    public void ReadRepositoryMethods_Should_ReturnReadModelsIdentifiersOrPredicates_When_Declared()
     {
         var methods = GetDeclaredReadRepositoryMethods();
         var violations = methods
             .Where(target =>
                 !ReadSideConvention.IsReadModelResult(target.Method.ReturnType)
+                    && !IsPredicateResult(target.Method.ReturnType)
                     && !IsIdentifierResult(
                         target.Method.ReturnType,
                         GetClosedReadRepositoryContract(target.Repository)!
@@ -92,8 +93,8 @@ public sealed class ReadRepositoryConventionTests
                 $"{target.Repository.FullName}.{target.Method.Name} must "
                     + $"return an IReadModel, optionally wrapped in Task, a "
                     + $"Result, a collection, or a pagination model, or the "
-                    + $"repository identifier, optionally nullable, in a collection, or wrapped in Task; found "
-                    + $"'{target.Method.ReturnType}'.")
+                    + $"repository identifier, optionally nullable, in a collection, or wrapped in Task, "
+                    + $"or bool/Task<bool> for a predicate; found '{target.Method.ReturnType}'.")
             .ToArray();
 
         Assert.NotEmpty(methods);
@@ -101,6 +102,24 @@ public sealed class ReadRepositoryConventionTests
             violations.Length == 0,
             $"Read repository result type violations:{Environment.NewLine}"
                 + string.Join(Environment.NewLine, violations));
+    }
+
+    [Theory(DisplayName = "Predicate result check should allow only boolean results when result type varies")]
+    [InlineData(typeof(bool), true)]
+    [InlineData(typeof(Task<bool>), true)]
+    [InlineData(typeof(bool?), false)]
+    [InlineData(typeof(Task<bool?>), false)]
+    [InlineData(typeof(List<bool>), false)]
+    [InlineData(typeof(ValueTask<bool>), false)]
+    [InlineData(typeof(int), false)]
+    [InlineData(typeof(Task<int>), false)]
+    [InlineData(typeof(string), false)]
+    [InlineData(typeof(Task), false)]
+    public void IsPredicateResult_Should_AllowOnlyBooleanResults_When_ResultTypeVaries(Type resultType, bool expected)
+    {
+        var result = IsPredicateResult(resultType);
+
+        Assert.Equal(expected, result);
     }
 
     [Theory(DisplayName = "Identifier result check should match repository identifier when result type is examined")]
@@ -226,6 +245,11 @@ public sealed class ReadRepositoryConventionTests
         Assert.True(
             violations.Length == 0,
             string.Join(Environment.NewLine, violations));
+    }
+
+    private static bool IsPredicateResult(Type resultType)
+    {
+        return resultType == typeof(bool) || resultType == typeof(Task<bool>);
     }
 
     private static bool IsIdentifierResult(Type resultType, Type identifierType)

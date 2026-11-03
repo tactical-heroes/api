@@ -25,7 +25,6 @@ public sealed class MoveFolderHandlerTests
         _currentUser.IsAuthenticated.Returns(true);
         _currentUser.UserId.Returns(_userId);
         _currentUser.HasPermission("file-manager.personal-files.update.own").Returns(true);
-        _foldersReadRepository.GetAncestorIdsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
     }
 
     [Fact(DisplayName = "Move folder handler should update only the source when parent is compatible")]
@@ -44,8 +43,8 @@ public sealed class MoveFolderHandlerTests
         await _hierarchyLock.Received(1).AcquireAsync(TestContext.Current.CancellationToken);
         _folders.Received(1).Update(Arg.Any<Folder>());
         _folders.Received(1).Update(folder);
-        await _foldersReadRepository.Received(1).GetAncestorIdsAsync(
-            parent.Id.Value, TestContext.Current.CancellationToken);
+        await _foldersReadRepository.Received(1).HasAncestorAsync(
+            parent.Id.Value, folder.Id.Value, TestContext.Current.CancellationToken);
     }
 
     [Fact(DisplayName = "Move folder handler should wait before reading when lock acquisition is pending")]
@@ -91,8 +90,8 @@ public sealed class MoveFolderHandlerTests
         var parent = folder.CreateChild(FolderName.Create("Child").Value);
         _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         _folders.GetByIdAsync(parent.Id, Arg.Any<CancellationToken>()).Returns(parent);
-        _foldersReadRepository.GetAncestorIdsAsync(parent.Id.Value, Arg.Any<CancellationToken>())
-            .Returns([folder.Id.Value]);
+        _foldersReadRepository.HasAncestorAsync(parent.Id.Value, folder.Id.Value, Arg.Any<CancellationToken>())
+            .Returns(true);
 
         var result = await CreateHandler().HandleAsync(
             new MoveFolderCommand(folder.Id.Value, parent.Id.Value), TestContext.Current.CancellationToken);

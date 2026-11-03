@@ -50,8 +50,10 @@ public sealed class MoveFolderHandler(
                 return Result.Failure(Error.NotFound("Folder was not found."));
             }
 
-            var ancestorIds = await foldersReadRepository.GetAncestorIdsAsync(targetId.Value, cancellationToken);
-            if (ancestorIds.Contains(folder.Id.Value))
+            if (await foldersReadRepository.HasAncestorAsync(
+                id: targetId.Value,
+                ancestorId: folder.Id.Value,
+                cancellationToken: cancellationToken))
             {
                 return Result.Failure(
                     Error.Validation("A folder cannot be moved into one of its descendants.")

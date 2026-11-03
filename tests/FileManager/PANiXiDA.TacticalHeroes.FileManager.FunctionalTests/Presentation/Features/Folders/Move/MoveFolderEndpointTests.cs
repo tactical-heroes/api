@@ -112,7 +112,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
         {
             chain.Add(chain[^1].CreateChild(FolderName.Create($"Level {index}").Value));
         }
-        await SaveAsync(chain.ToArray());
+        await SaveAsync([.. chain]);
 
         using var response = await SendAsync(
             source.Id.Value, new MoveFolderRequest(chain[^1].Id.Value), userId.ToString(), Permission("Personal"));

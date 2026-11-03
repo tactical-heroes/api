@@ -46,9 +46,9 @@ public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
         return GetByIdAsync<FolderDetailsReadModel, FolderDetailsReadModelMapper>(id, cancellationToken);
     }
 
-    public Task<List<Guid>> GetAncestorIdsAsync(Guid id, CancellationToken cancellationToken)
+    public Task<bool> HasAncestorAsync(Guid id, Guid ancestorId, CancellationToken cancellationToken)
     {
-        return _database.SqlQuery<Guid>(
+        return _database.SqlQuery<bool>(
             $"""
             WITH RECURSIVE ancestors AS (
                 SELECT parent_id AS id
@@ -60,9 +60,11 @@ public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
                 JOIN ancestors ON folder.id = ancestors.id
                 WHERE folder.parent_id IS NOT NULL
             )
-            SELECT id AS "Value" FROM ancestors
+            SELECT EXISTS (
+                SELECT 1 FROM ancestors WHERE id = {ancestorId}
+            ) AS "Value"
             """)
-            .ToListAsync(cancellationToken);
+            .SingleAsync(cancellationToken);
     }
 
     public Task<List<Guid>> GetDeletedIdsWithActiveContentsAsync(CancellationToken cancellationToken)
