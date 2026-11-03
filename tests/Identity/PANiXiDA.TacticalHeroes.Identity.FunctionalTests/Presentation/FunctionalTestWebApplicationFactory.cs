@@ -71,12 +71,17 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
             const string ExpirationVariable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
             var previousExpiration = Environment.GetEnvironmentVariable(ExpirationVariable);
             const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
+            const string FolderDeletionScheduleVariable =
+                "FileManager__Schedules__ReconcileFolderDeletionsCommand__Enabled";
             var previousFileManagerSchedule = Environment.GetEnvironmentVariable(FileManagerScheduleVariable);
+            var previousFolderDeletionSchedule =
+                Environment.GetEnvironmentVariable(FolderDeletionScheduleVariable);
             try
             {
                 Environment.SetEnvironmentVariable(variable, connectionString);
                 Environment.SetEnvironmentVariable(ExpirationVariable, "false");
                 Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
+                Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, "false");
                 return base.CreateHost(builder);
             }
             finally
@@ -84,6 +89,7 @@ internal sealed class FunctionalTestWebApplicationFactory(string connectionStrin
                 Environment.SetEnvironmentVariable(variable, previous);
                 Environment.SetEnvironmentVariable(ExpirationVariable, previousExpiration);
                 Environment.SetEnvironmentVariable(FileManagerScheduleVariable, previousFileManagerSchedule);
+                Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, previousFolderDeletionSchedule);
             }
         }
     }

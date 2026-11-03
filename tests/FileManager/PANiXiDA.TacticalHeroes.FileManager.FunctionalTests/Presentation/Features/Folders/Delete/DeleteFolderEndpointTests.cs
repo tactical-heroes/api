@@ -5,6 +5,7 @@ using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -173,7 +174,7 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         await using var firstScope = Fixture.CreateScope();
         var firstMediator = firstScope.ServiceProvider.GetRequiredService<IMediator>();
 
-        var result = await firstMediator.SendAsync(new ReconcileFileUploadsCommand(), ct);
+        var result = await firstMediator.SendAsync(new ReconcileFolderDeletionsCommand(), ct);
         await WaitForCascadeAsync([root, otherRoot, child, grandchild], files);
         await using var secondScope = Fixture.CreateScope();
         var secondMediator = secondScope.ServiceProvider.GetRequiredService<IMediator>();

@@ -36,6 +36,9 @@ public class FunctionalTestFixture : IAsyncLifetime
         settings["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] =
             ReconciliationScheduleEnabled.ToString();
         settings["FileManager:Schedules:ReconcileFileUploadsCommand:CronExpression"] = "*/5 * * * * *";
+        settings["FileManager:Schedules:ReconcileFolderDeletionsCommand:Enabled"] =
+            ReconciliationScheduleEnabled.ToString();
+        settings["FileManager:Schedules:ReconcileFolderDeletionsCommand:CronExpression"] = "*/5 * * * * *";
         settings["ConnectionStrings:PostgreSqlConnectionString"] = _database.PostgreSqlConnectionString;
         foreach (var (key, value) in settings)
         {

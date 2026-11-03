@@ -15,17 +15,23 @@ internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactor
         const string Variable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
         var previous = Environment.GetEnvironmentVariable(Variable);
         const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
+        const string FolderDeletionScheduleVariable =
+            "FileManager__Schedules__ReconcileFolderDeletionsCommand__Enabled";
         var previousFileManagerSchedule = Environment.GetEnvironmentVariable(FileManagerScheduleVariable);
+        var previousFolderDeletionSchedule =
+            Environment.GetEnvironmentVariable(FolderDeletionScheduleVariable);
         try
         {
             Environment.SetEnvironmentVariable(Variable, "false");
             Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
+            Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, "false");
             return base.CreateHost(builder);
         }
         finally
         {
             Environment.SetEnvironmentVariable(Variable, previous);
             Environment.SetEnvironmentVariable(FileManagerScheduleVariable, previousFileManagerSchedule);
+            Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, previousFolderDeletionSchedule);
         }
     }
 

@@ -18,6 +18,7 @@ public sealed class HostSchedulingTests(FunctionalTestFixture fixture)
         var schedules = runtime.Options.Schedules;
 
         schedules.FindByName("file-manager-reconcile-uploads").ShouldBeNull();
+        schedules.FindByName("file-manager-reconcile-folder-deletions").ShouldBeNull();
         schedules.FindByName("matchmaking-process").ShouldBeNull();
         schedules.FindByName("matchmaking-expire-searches").ShouldBeNull();
     }

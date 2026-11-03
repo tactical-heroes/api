@@ -33,6 +33,9 @@ public sealed class ReconcileFileUploadsMediatorTests(ManualReconciliationTestFi
             scope.ServiceProvider.GetRequiredService<IConfiguration>()
                 .GetValue<bool>("FileManager:Schedules:ReconcileFileUploadsCommand:Enabled")
                 .ShouldBeFalse();
+            scope.ServiceProvider.GetRequiredService<IConfiguration>()
+                .GetValue<bool>("FileManager:Schedules:ReconcileFolderDeletionsCommand:Enabled")
+                .ShouldBeFalse();
             var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
             context.Add(file);
             await context.SaveChangesAsync(cancellationToken);
