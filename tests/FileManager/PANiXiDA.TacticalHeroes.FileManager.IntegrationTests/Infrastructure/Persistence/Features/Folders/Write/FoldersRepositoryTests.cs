@@ -172,6 +172,47 @@ public sealed class FoldersRepositoryTests(IntegrationTestFixture fixture)
         (await context.Set<Folder>().CountAsync(cancellationToken)).ShouldBe(2);
     }
 
+    [Theory(
+        DisplayName = "Repository should return all direct active children when nested and deleted folders exist")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task GetChildrenAsync_Should_ReturnAllDirectActiveChildren_When_NestedAndDeletedFoldersExist(
+        string type)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = Folder.Create(
+            FolderName.Create("Root").Value,
+            FileType.FromName(type),
+            type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : null).Value;
+        var children = Enumerable.Range(0, 105)
+            .Select(index => root.CreateChild(FolderName.Create($"Child {index}").Value))
+            .ToList();
+        await using (var scope = Fixture.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+            repository.Add(root);
+            foreach (var child in children)
+            {
+                repository.Add(child);
+            }
+            repository.Add(children[0].CreateChild(FolderName.Create("Grandchild").Value));
+            var unitOfWork = scope.ServiceProvider
+                .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
+            await unitOfWork.SaveChangesAsync(ct);
+            repository.Delete(children[104]);
+            await unitOfWork.SaveChangesAsync(ct);
+        }
+        await using var verificationScope = Fixture.CreateScope();
+        var folders = verificationScope.ServiceProvider.GetRequiredService<IFoldersRepository>();
+
+        var loaded = await folders.GetChildrenAsync(root.Id, ct);
+
+        var expectedIds = children.Take(104).Select(folder => folder.Id.Value).Order();
+        loaded.Select(folder => folder.Id.Value).Order().ShouldBe(expectedIds);
+        var context = verificationScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        context.ChangeTracker.Entries<Folder>().Count().ShouldBe(104);
+    }
+
     private async Task SaveNewFolderAsync(Folder folder, CancellationToken cancellationToken)
     {
         await using var scope = Fixture.CreateScope();

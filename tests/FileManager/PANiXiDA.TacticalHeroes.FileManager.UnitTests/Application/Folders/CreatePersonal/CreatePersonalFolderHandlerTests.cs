@@ -59,6 +59,7 @@ public sealed class CreatePersonalFolderHandlerTests
             && folder.Name.Value == "Child"
             && folder.UserId == parent.UserId
             && folder.AllowedFileType == FileType.Personal));
+        _folders.DidNotReceiveWithAnyArgs().Update(null!);
     }
 
     [Theory(

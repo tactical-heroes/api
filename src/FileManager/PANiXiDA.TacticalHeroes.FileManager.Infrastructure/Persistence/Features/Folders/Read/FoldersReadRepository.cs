@@ -5,6 +5,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetDetails;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetDetails;
@@ -40,6 +41,17 @@ public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
     public Task<FolderDetailsReadModel?> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return GetByIdAsync<FolderDetailsReadModel, FolderDetailsReadModelMapper>(id, cancellationToken);
+    }
+
+    public Task<List<Guid>> GetDeletedIdsWithActiveContentsAsync(CancellationToken cancellationToken)
+    {
+        return Query
+            .IgnoreQueryFilters()
+            .Where(folder => folder.DeletedAt != null
+                && (folder.Children.Any(child => child.DeletedAt == null)
+                    || folder.Files.Any(file => file.DeletedAt == null && file.Status != FileStatus.Deleting.Name)))
+            .Select(folder => folder.Id)
+            .ToListAsync(cancellationToken);
     }
 
     private static IQueryable<FolderReadDbModel> ApplyFilter(

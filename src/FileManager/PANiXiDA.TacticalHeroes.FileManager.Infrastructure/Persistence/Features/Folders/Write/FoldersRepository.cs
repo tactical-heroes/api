@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -9,4 +11,12 @@ public sealed class FoldersRepository(
     :
         EfRepository<FileManagerWriteDbContext, FolderId, Folder>(
             dbContext),
-        IFoldersRepository;
+        IFoldersRepository
+{
+    public Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken cancellationToken)
+    {
+        return Query
+            .Where(folder => folder.ParentId == parentId)
+            .ToListAsync(cancellationToken);
+    }
+}
