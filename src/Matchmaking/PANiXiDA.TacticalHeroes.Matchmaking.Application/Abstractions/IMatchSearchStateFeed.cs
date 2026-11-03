@@ -1,6 +1,9 @@
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
+
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 
 public interface IMatchSearchStateFeed
 {
-    Task<IMatchSearchStateSubscription> SubscribeAsync(Guid playerId, CancellationToken cancellationToken);
+    Task SendAsync(string connectionId, MatchSearchStateReadModel state, CancellationToken cancellationToken);
+    Task SubscribeAsync(Guid playerId, string connectionId, CancellationToken cancellationToken);
 }

@@ -1,0 +1,60 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
+
+using StackExchange.Redis;
+
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
+
+public static class MatchSearchSignalRExtensions
+{
+    public const string Path = "/api/v1/match-searches/state";
+
+    public static IServiceCollection AddMatchSearchSignalR(
+        this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("Redis")
+            ?? throw new InvalidOperationException("Redis connection string was not found.");
+        services.AddSignalR()
+            .AddStackExchangeRedis(
+                connectionString,
+                options => options.Configuration.ChannelPrefix = RedisChannel.Literal("tactical-heroes:matchmaking"));
+        services.AddScoped<IMatchSearchStateFeed, MatchSearchStateFeed>();
+        services.AddScoped<IMatchSearchStatePublisher, MatchSearchStatePublisher>();
+
+        return services;
+    }
+
+    public static IApplicationBuilder UseMatchSearchSignalRAuthentication(this IApplicationBuilder app)
+    {
+        return app.Use(async (context, next) =>
+        {
+            var request = context.Request;
+            if (string.Equals(
+                a: request.Path.Value?.TrimEnd('/'),
+                b: Path,
+                comparisonType: StringComparison.OrdinalIgnoreCase)
+                && HttpMethods.IsGet(request.Method)
+                && (context.WebSockets.IsWebSocketRequest
+                    || request.GetTypedHeaders().Accept?.Any(value => value.MediaType == "text/event-stream") == true)
+                && !request.Headers.ContainsKey("Authorization")
+                && request.Query.TryGetValue("access_token", out var token)
+                && token.Count == 1)
+            {
+                request.Headers.Authorization = $"Bearer {token[0]}";
+            }
+
+            await next(context);
+        });
+    }
+
+    public static IEndpointRouteBuilder MapMatchSearchHub(this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapHub<MatchSearchHub>(Path).RequireAuthorization();
+        return endpoints;
+    }
+}

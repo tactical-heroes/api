@@ -1,30 +1,50 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
 
 public sealed class WatchMatchSearchHandler(
     IPlayersClient playersClient,
     ICurrentUser currentUser,
-    IMatchSearchStateFeed stateFeed)
-    : ICommandHandler<WatchMatchSearchCommand, Result<IMatchSearchStateSubscription>>, IRequireAuthorization
+    IMatchSearchStateFeed stateFeed,
+    IMatchSearchesReadRepository matchSearchesReadRepository)
+    : ICommandHandler<WatchMatchSearchCommand, Result>, IRequireAuthorization
 {
-    public async Task<Result<IMatchSearchStateSubscription>> HandleAsync(
-        WatchMatchSearchCommand command,
-        CancellationToken cancellationToken)
+    public async Task<Result> HandleAsync(WatchMatchSearchCommand command, CancellationToken cancellationToken)
     {
         if (currentUser.UserId is not { } userId)
         {
-            return Result.Failure<IMatchSearchStateSubscription>(Error.Unauthorized("A user account is required."));
+            return Result.Failure(Error.Unauthorized("A user account is required."));
         }
 
         var player = await playersClient.GetByUserIdAsync(userId, cancellationToken);
         if (player is null)
         {
-            return Result.Failure<IMatchSearchStateSubscription>(Error.NotFound("Player was not found."));
+            return Result.Failure(Error.NotFound("Player was not found."));
         }
 
-        return Result.Success(await stateFeed.SubscribeAsync(player.Id, cancellationToken));
+        var snapshot = await ReadStateAsync(player.Id, cancellationToken);
+        await stateFeed.SendAsync(
+            connectionId: command.ConnectionId, state: snapshot, cancellationToken: cancellationToken);
+        await stateFeed.SubscribeAsync(
+            playerId: player.Id, connectionId: command.ConnectionId, cancellationToken: cancellationToken);
+
+        var current = await ReadStateAsync(player.Id, cancellationToken);
+        if (current.Version > snapshot.Version)
+        {
+            await stateFeed.SendAsync(
+                connectionId: command.ConnectionId, state: current, cancellationToken: cancellationToken);
+        }
+
+        return Result.Success();
+    }
+
+    private async Task<MatchSearchStateReadModel> ReadStateAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return await matchSearchesReadRepository.GetStateByPlayerIdAsync(playerId, cancellationToken)
+            ?? new MatchSearchStateReadModel(
+                Version: 0, MatchSearchId: null, Status: null, GameId: null, QueuedAt: null, ExpiresAt: null);
     }
 }

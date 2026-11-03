@@ -1,9 +1,4 @@
-using System.Net.WebSockets;
-using System.Text.Json;
-
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.ResultPattern;
@@ -22,8 +17,6 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Streaming;
-using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
@@ -61,11 +54,10 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     public async Task ConnectAsync_Should_SendEmptyState_When_NoSearchExists()
     {
         var player = await SeedPlayerAsync();
-        using var socket = await ConnectAsync(player.UserId.Value);
+        await using var socket = await ConnectAsync(player.UserId.Value);
 
         var state = await ReadAsync(socket);
 
-        socket.SubProtocol.ShouldBe(MatchSearchWebSocketExtensions.Protocol);
         state.Version.ShouldBe(0);
         state.MatchSearchId.ShouldBeNull();
         state.IsActive.ShouldBeFalse();
@@ -76,8 +68,8 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var player = await SeedPlayerAsync();
         var build = await SeedBuildAsync(player.Id.Value);
-        using var first = await ConnectAsync(player.UserId.Value);
-        using var second = await ConnectAsync(player.UserId.Value);
+        await using var first = await ConnectAsync(player.UserId.Value);
+        await using var second = await ConnectAsync(player.UserId.Value);
         await ReadAsync(first);
         await ReadAsync(second);
 
@@ -95,7 +87,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         cancelled.Version.ShouldBeGreaterThan(searching.Version);
         cancelled.IsActive.ShouldBeFalse();
 
-        using var reconnected = await ConnectAsync(player.UserId.Value);
+        await using var reconnected = await ConnectAsync(player.UserId.Value);
         (await ReadAsync(reconnected)).ShouldBe(cancelled);
         await StartAsync(player, build);
         var newer = await ReadAsync(first);
@@ -117,7 +109,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var owner = await SeedPlayerAsync();
         var other = await SeedPlayerAsync();
         await SeedSearchAsync(other.Id.Value);
-        using var socket = await ConnectAsync(owner.UserId.Value);
+        await using var socket = await ConnectAsync(owner.UserId.Value);
 
         (await ReadAsync(socket)).MatchSearchId.ShouldBeNull();
         await StartAsync(owner, await SeedBuildAsync(owner.Id.Value));
@@ -147,7 +139,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
             barrier.Release();
         }
 
-        using var socket = await connecting;
+        await using var socket = await connecting;
         var snapshot = await ReadAsync(socket);
         snapshot.IsActive.ShouldBeFalse();
         var changed = await ReadAsync(socket);
@@ -160,7 +152,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var player = await SeedPlayerAsync();
         var search = await SeedSearchAsync(player.Id.Value);
-        using var socket = await ConnectAsync(player.UserId.Value);
+        await using var socket = await ConnectAsync(player.UserId.Value);
         var previous = await ReadAsync(socket);
         var gameId = GameId.New();
         Func<MatchSearch, Result>[] transitions =
@@ -187,7 +179,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var player = await SeedPlayerAsync();
         var search = await SeedSearchAsync(player.Id.Value, expired: true);
-        using var socket = await ConnectAsync(player.UserId.Value);
+        await using var socket = await ConnectAsync(player.UserId.Value);
         await ReadAsync(socket);
 
         var now = MatchmakingTimestamp.Create(DateTimeOffset.UtcNow);
@@ -195,73 +187,39 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         var state = await ReadAsync(socket);
         state.Status.ShouldBe("Expired");
-        using var reconnected = await ConnectAsync(player.UserId.Value);
+        await using var reconnected = await ConnectAsync(player.UserId.Value);
         (await ReadAsync(reconnected)).ShouldBe(state);
     }
 
-    [Fact(DisplayName = "Endpoint should refresh another replica when outbox event is consumed")]
-    public async Task ReadChangesAsync_Should_RefreshAnotherReplica_When_OutboxEventIsConsumed()
+    [Fact(DisplayName = "Hub should deliver state when publication originates on another replica")]
+    public async Task ConnectAsync_Should_DeliverState_When_PublicationOriginatesOnAnotherReplica()
     {
         var player = await SeedPlayerAsync();
-        await using var scope = fixture.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
-        var connectionString = dbContext.Database.GetConnectionString()!;
-        var connections = new MatchSearchConnections();
-        using var listener = new MatchSearchStateListener(
-            connectionString,
-            connections,
-            NullLogger<MatchSearchStateListener>.Instance);
-        await listener.StartAsync(TestContext.Current.CancellationToken);
-        MatchSearchStateReadModel? observed = null;
-        try
-        {
-            var feed = new MatchSearchStateFeed(
-                connections,
-                fixture.Services.GetRequiredService<IServiceScopeFactory>());
-            await using var subscription = await feed.SubscribeAsync(
-                player.Id.Value, TestContext.Current.CancellationToken);
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-            timeout.CancelAfter(s_timeout);
-            await using var updates = subscription.ReadChangesAsync(timeout.Token).GetAsyncEnumerator(timeout.Token);
-            var next = updates.MoveNextAsync().AsTask();
+        await using var replica = new FunctionalTestWebApplicationFactory(false, false);
+        using var replicaHttp = replica.CreateClient();
+        await using var socket = await MatchSearchHubClient.ConnectAsync(
+            replica, player.UserId.Value, TestContext.Current.CancellationToken);
+        await ReadAsync(socket);
+        await using var publisherScope = fixture.Services.CreateAsyncScope();
+        var publisher = publisherScope.ServiceProvider.GetRequiredService<
+            PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions.IMatchSearchStatePublisher>();
+        var expected = new MatchSearchStateReadModel(1, Guid.NewGuid(), "Searching", null, null, null);
 
-            await StartAsync(player, await SeedBuildAsync(player.Id.Value));
+        await publisher.PublishAsync(player.Id.Value, expected, TestContext.Current.CancellationToken);
 
-            (await next).ShouldBeTrue();
-            observed = updates.Current;
-        }
-        finally
-        {
-            await listener.StopAsync(TestContext.Current.CancellationToken);
-        }
-
-        observed.ShouldNotBeNull().Status.ShouldBe("Searching");
+        (await ReadAsync(socket)).ShouldBe(expected);
     }
 
-    private static async Task<MatchSearchStateReadModel> ReadAsync(WebSocket socket)
+    private static async Task<MatchSearchStateReadModel> ReadAsync(MatchSearchHubClient socket)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(s_timeout);
-        await using var stream = new MemoryStream();
-        var buffer = new byte[4096];
-        WebSocketReceiveResult received;
-        do
-        {
-            received = await socket.ReceiveAsync(buffer, timeout.Token);
-            received.MessageType.ShouldBe(WebSocketMessageType.Text);
-            await stream.WriteAsync(buffer.AsMemory(0, received.Count), timeout.Token);
-        }
-        while (!received.EndOfMessage);
-
-        return JsonSerializer.Deserialize<MatchSearchStateReadModel>(stream.ToArray(), TestJsonSerializerOptions.Web)!;
+        return await socket.ReadAsync(timeout.Token);
     }
 
-    private Task<WebSocket> ConnectAsync(Guid userId)
+    private Task<MatchSearchHubClient> ConnectAsync(Guid userId)
     {
-        var client = fixture.Factory.Server.CreateWebSocketClient();
-        client.SubProtocols.Add(MatchSearchWebSocketExtensions.Protocol);
-        client.ConfigureRequest = request => request.Headers["X-Test-UserId"] = userId.ToString();
-        return client.ConnectAsync(new Uri($"ws://localhost{Path}"), TestContext.Current.CancellationToken);
+        return MatchSearchHubClient.ConnectAsync(fixture.Factory, userId, TestContext.Current.CancellationToken);
     }
 
     private async Task<Player> SeedPlayerAsync()

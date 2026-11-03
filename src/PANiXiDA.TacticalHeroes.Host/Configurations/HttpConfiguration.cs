@@ -47,9 +47,10 @@ internal static class HttpConfiguration
             KeepAliveTimeout = TimeSpan.FromSeconds(15)
         });
 
-        app.UseMatchSearchWebSocketAuthentication();
+        app.UseMatchSearchSignalRAuthentication();
 
         HttpServiceCollectionExtensions.UseHttp(app);
+        app.MapMatchSearchHub();
 
         return app;
     }

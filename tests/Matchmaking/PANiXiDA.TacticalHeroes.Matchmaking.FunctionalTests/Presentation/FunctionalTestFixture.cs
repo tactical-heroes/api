@@ -1,3 +1,6 @@
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,12 +16,15 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
 public class FunctionalTestFixture : IAsyncLifetime
 {
+    private const string RedisConnectionStringVariable = "ConnectionStrings__Redis";
     private const string ScheduleEnabledVariable = "Matchmaking__Schedules__ProcessMatchmakingCommand__Enabled";
     private const string ExpirationEnabledVariable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
     private const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
 
     private readonly PostgreSqlTestDatabase _database = new("matchmaking", isolateDatabase: true);
 
+    private IContainer? _redis;
+    private string? _previousRedisConnectionString;
     private FunctionalTestWebApplicationFactory? _factory;
     private string? _previousConnectionString;
     private string? _previousScheduleEnabled;
@@ -36,6 +42,17 @@ public class FunctionalTestFixture : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await _database.InitializeAsync(TestContext.Current.CancellationToken);
+        _previousRedisConnectionString = Environment.GetEnvironmentVariable(RedisConnectionStringVariable);
+        if (string.IsNullOrWhiteSpace(_previousRedisConnectionString))
+        {
+            _redis = new ContainerBuilder("redis:7.4-alpine")
+                .WithPortBinding(6379, true)
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("Ready to accept connections"))
+                .Build();
+            await _redis.StartAsync(TestContext.Current.CancellationToken);
+            Environment.SetEnvironmentVariable(
+                RedisConnectionStringVariable, $"{_redis.Hostname}:{_redis.GetMappedPublicPort(6379)}");
+        }
 
         _previousScheduleEnabled = Environment.GetEnvironmentVariable(ScheduleEnabledVariable);
         Environment.SetEnvironmentVariable(ScheduleEnabledVariable, MatchmakingScheduleEnabled.ToString());
@@ -72,6 +89,12 @@ public class FunctionalTestFixture : IAsyncLifetime
         }
 
         await _database.DisposeAsync();
+        if (_redis is not null)
+        {
+            await _redis.DisposeAsync();
+        }
+
+        Environment.SetEnvironmentVariable(RedisConnectionStringVariable, _previousRedisConnectionString);
 
         Environment.SetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable,

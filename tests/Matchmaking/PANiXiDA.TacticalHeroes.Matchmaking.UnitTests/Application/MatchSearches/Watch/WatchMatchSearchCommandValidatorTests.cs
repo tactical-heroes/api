@@ -4,11 +4,13 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearche
 
 public sealed class WatchMatchSearchCommandValidatorTests
 {
-    [Fact(DisplayName = "Validator should accept command when no client selection is required")]
-    public void Validate_Should_AcceptCommand_When_NoClientSelectionIsRequired()
+    [Theory(DisplayName = "Validator should require connection id when subscribing")]
+    [InlineData("", false)]
+    [InlineData("connection", true)]
+    public void Validate_Should_RequireConnectionId_When_Subscribing(string connectionId, bool valid)
     {
-        var result = new WatchMatchSearchCommandValidator().Validate(new WatchMatchSearchCommand());
+        var result = new WatchMatchSearchCommandValidator().Validate(new WatchMatchSearchCommand(connectionId));
 
-        result.IsValid.ShouldBeTrue();
+        result.IsValid.ShouldBe(valid);
     }
 }

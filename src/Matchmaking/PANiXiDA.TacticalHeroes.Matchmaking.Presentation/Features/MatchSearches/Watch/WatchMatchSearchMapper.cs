@@ -4,5 +4,5 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearche
 
 internal static class WatchMatchSearchMapper
 {
-    internal static WatchMatchSearchCommand ToCommand() => new();
+    internal static WatchMatchSearchCommand ToCommand(string connectionId) => new(connectionId);
 }

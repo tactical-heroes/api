@@ -12,10 +12,10 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
-    [Theory(DisplayName = "API should validate token when browser uses subprotocol")]
+    [Theory(DisplayName = "API should validate token when browser uses signal r")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task GetMatchSearchState_Should_ValidateToken_When_BrowserUsesSubprotocol(bool valid)
+    public async Task GetMatchSearchState_Should_ValidateToken_When_BrowserUsesSignalR(bool valid)
     {
         var ct = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
@@ -25,13 +25,15 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
             oauthClient, "websocket-auth@example.test", "StrongPassword1!", ct);
         var token = valid ? tokens.AccessToken : "invalid-reference-token";
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/match-searches/state");
-        request.Headers.Add("Sec-WebSocket-Protocol", $"match-search-state.v1, bearer.{token}");
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get, $"/api/v1/match-searches/state?access_token={Uri.EscapeDataString(token)}");
+        request.Headers.Accept.ParseAdd("text/event-stream");
         using var response = await Fixture.Client.SendAsync(request, ct);
         using var queryOnly = await Fixture.Client.GetAsync(
             $"/api/v1/match-searches/state?access_token={Uri.EscapeDataString(token)}", ct);
-        using var unrelated = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users");
-        unrelated.Headers.Add("Sec-WebSocket-Protocol", $"match-search-state.v1, bearer.{token}");
+        using var unrelated = new HttpRequestMessage(
+            HttpMethod.Get, $"/api/v1/users?access_token={Uri.EscapeDataString(token)}");
+        unrelated.Headers.Accept.ParseAdd("text/event-stream");
         using var unrelatedResponse = await Fixture.Client.SendAsync(unrelated, ct);
 
         response.StatusCode.ShouldBe(valid ? HttpStatusCode.BadRequest : HttpStatusCode.Unauthorized);
