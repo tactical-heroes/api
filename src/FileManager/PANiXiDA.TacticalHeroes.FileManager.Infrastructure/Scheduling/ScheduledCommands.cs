@@ -7,11 +7,11 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
 
 public static class ScheduledCommands
 {
+    private const string SectionName = $"{nameof(FileManager)}:Schedules";
+
     public static void AddFileManagerSchedules(this WolverineScheduleConfiguration schedules)
     {
-        schedules.AddRecurringCommand<ReconcileFileUploadsCommand>(
-            parentSectionName: $"{nameof(FileManager)}:Schedules");
-        schedules.AddRecurringCommand<ReconcileFolderDeletionsCommand>(
-            parentSectionName: $"{nameof(FileManager)}:Schedules");
+        schedules.AddRecurringCommand<ReconcileFileUploadsCommand>(parentSectionName: SectionName);
+        schedules.AddRecurringCommand<ReconcileFolderDeletionsCommand>(parentSectionName: SectionName);
     }
 }
