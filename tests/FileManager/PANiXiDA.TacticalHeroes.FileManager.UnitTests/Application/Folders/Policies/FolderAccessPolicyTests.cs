@@ -43,6 +43,57 @@ public sealed class FolderAccessPolicyTests
         result.ShouldBe(allowed);
     }
 
+    [Theory(DisplayName = "Folder access policy should check update when type owner and permissions vary")]
+    [InlineData("Personal", true, "file-manager.personal-files.update.own", true)]
+    [InlineData("Personal", false, "file-manager.personal-files.update.own", false)]
+    [InlineData("Personal", true, "file-manager.personal-files.update.all", true)]
+    [InlineData("Personal", false, "file-manager.personal-files.update.all", true)]
+    [InlineData("Personal", true, "file-manager.personal-files.read.all", false)]
+    [InlineData("Personal", true, "file-manager.personal-files.create.own", false)]
+    [InlineData("Personal", true, "file-manager.personal-files.delete.all", false)]
+    [InlineData("Personal", true, "file-manager.avatars.update", false)]
+    [InlineData("Personal", true, "", false)]
+    [InlineData("Avatar", false, "file-manager.avatars.update", true)]
+    [InlineData("Avatar", false, "file-manager.personal-files.update.all", false)]
+    [InlineData("Avatar", false, "file-manager.avatars.read", false)]
+    [InlineData("Avatar", false, "", false)]
+    public void CanUpdate_Should_CheckUpdate_When_TypeOwnerAndPermissionsVary(
+        string type, bool own, string permission, bool allowed)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.IsAuthenticated.Returns(true);
+        currentUser.UserId.Returns(userId);
+        currentUser.HasPermission(permission).Returns(true);
+        var folder = Folder.Create(
+            FolderName.Create("Documents").Value,
+            FileType.FromName(type),
+            type == "Personal" ? UserId.Create(own ? userId : Guid.NewGuid()).Value : null).Value;
+        var policy = new FolderAccessPolicy(currentUser, new FileAccessPolicy(currentUser));
+
+        var result = policy.CanUpdate(folder);
+
+        result.ShouldBe(allowed);
+    }
+
+    [Theory(DisplayName = "Folder access policy should deny update when caller is unauthenticated")]
+    [InlineData("Personal", "file-manager.personal-files.update.all")]
+    [InlineData("Avatar", "file-manager.avatars.update")]
+    public void CanUpdate_Should_DenyUpdate_When_CallerIsUnauthenticated(string type, string permission)
+    {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.HasPermission(permission).Returns(true);
+        var folder = Folder.Create(
+            FolderName.Create("Documents").Value,
+            FileType.FromName(type),
+            type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : null).Value;
+        var policy = new FolderAccessPolicy(currentUser, new FileAccessPolicy(currentUser));
+
+        var result = policy.CanUpdate(folder);
+
+        result.ShouldBeFalse();
+    }
+
     [Theory(DisplayName = "Folder access policy should deny creation when caller is unauthenticated")]
     [InlineData("Personal", "file-manager.personal-files.create.all")]
     [InlineData("Avatar", "file-manager.avatars.create")]
