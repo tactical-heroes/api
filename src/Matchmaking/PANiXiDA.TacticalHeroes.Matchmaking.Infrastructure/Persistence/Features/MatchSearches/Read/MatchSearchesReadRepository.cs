@@ -14,7 +14,7 @@ public sealed class MatchSearchesReadRepository(MatchmakingReadDbContext dbConte
         EfReadRepository<MatchmakingReadDbContext, Guid, MatchSearchReadDbModel>(dbContext),
         IMatchSearchesReadRepository
 {
-    public Task<MatchSearchStateReadModel?> GetStateByPlayerIdAsync(
+    public Task<MatchSearchReadModel?> GetStateByPlayerIdAsync(
         Guid playerId,
         CancellationToken cancellationToken)
     {
@@ -26,6 +26,6 @@ public sealed class MatchSearchesReadRepository(MatchmakingReadDbContext dbConte
             .ThenByDescending(search => search.CreatedAt)
             .ThenByDescending(search => search.Id);
 
-        return MatchSearchStateReadModelMapper.ProjectTo(query).FirstOrDefaultAsync(cancellationToken);
+        return MatchSearchReadModelMapper.ProjectTo(query).FirstOrDefaultAsync(cancellationToken);
     }
 }

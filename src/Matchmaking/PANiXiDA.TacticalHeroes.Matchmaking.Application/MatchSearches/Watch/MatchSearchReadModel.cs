@@ -1,7 +1,7 @@
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
 
-public sealed record MatchSearchStateReadModel(
-    Guid? MatchSearchId,
+public sealed record MatchSearchReadModel(
+    Guid? Id,
     string? Status,
     Guid? GameId,
     DateTimeOffset? QueuedAt,

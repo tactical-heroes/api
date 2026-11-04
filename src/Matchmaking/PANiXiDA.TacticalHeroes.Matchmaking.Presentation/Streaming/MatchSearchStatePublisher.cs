@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 internal sealed class MatchSearchStatePublisher(
     IHubContext<MatchSearchHub, IMatchSearchClient> hubContext) : IMatchSearchStatePublisher
 {
-    public Task PublishAsync(Guid playerId, MatchSearchStateReadModel state, CancellationToken cancellationToken)
+    public Task PublishAsync(Guid playerId, MatchSearchReadModel state, CancellationToken cancellationToken)
     {
         return hubContext.Clients.Group(MatchSearchHub.PlayerGroup(playerId)).StateChangedAsync(
             WatchMatchSearchMapper.ToResponse(state), cancellationToken);

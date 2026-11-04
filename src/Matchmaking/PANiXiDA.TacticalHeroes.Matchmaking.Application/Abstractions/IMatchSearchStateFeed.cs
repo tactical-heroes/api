@@ -4,6 +4,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 
 public interface IMatchSearchStateFeed
 {
-    Task SendAsync(string connectionId, MatchSearchStateReadModel state, CancellationToken cancellationToken);
+    Task SendAsync(string connectionId, MatchSearchReadModel state, CancellationToken cancellationToken);
     Task SubscribeAsync(Guid playerId, string connectionId, CancellationToken cancellationToken);
 }

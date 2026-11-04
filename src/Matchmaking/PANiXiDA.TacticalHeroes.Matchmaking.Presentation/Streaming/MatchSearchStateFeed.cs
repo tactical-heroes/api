@@ -9,7 +9,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 internal sealed class MatchSearchStateFeed(
     IHubContext<MatchSearchHub, IMatchSearchClient> hubContext) : IMatchSearchStateFeed
 {
-    public Task SendAsync(string connectionId, MatchSearchStateReadModel state, CancellationToken cancellationToken)
+    public Task SendAsync(string connectionId, MatchSearchReadModel state, CancellationToken cancellationToken)
     {
         return hubContext.Clients.Client(connectionId).StateChangedAsync(
             WatchMatchSearchMapper.ToResponse(state), cancellationToken);

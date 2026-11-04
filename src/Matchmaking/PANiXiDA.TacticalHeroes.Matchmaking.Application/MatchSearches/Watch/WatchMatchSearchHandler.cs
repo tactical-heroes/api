@@ -41,10 +41,10 @@ public sealed class WatchMatchSearchHandler(
         return Result.Success();
     }
 
-    private async Task<MatchSearchStateReadModel> ReadStateAsync(Guid playerId, CancellationToken cancellationToken)
+    private async Task<MatchSearchReadModel> ReadStateAsync(Guid playerId, CancellationToken cancellationToken)
     {
         return await matchSearchesReadRepository.GetStateByPlayerIdAsync(playerId, cancellationToken)
-            ?? new MatchSearchStateReadModel(
-                MatchSearchId: null, Status: null, GameId: null, QueuedAt: null, ExpiresAt: null);
+            ?? new MatchSearchReadModel(
+                Id: null, Status: null, GameId: null, QueuedAt: null, ExpiresAt: null);
     }
 }

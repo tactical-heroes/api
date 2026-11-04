@@ -62,7 +62,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         var state = await ReadAsync(socket);
 
-        state.MatchSearchId.ShouldBeNull();
+        state.Id.ShouldBeNull();
         state.Status.ShouldBeNull();
     }
 
@@ -82,7 +82,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         searching.Status.ShouldBe("Searching");
         searching.ExpiresAt.ShouldBe(searching.QueuedAt!.Value.AddMinutes(5));
 
-        await CancelAsync(player, searching.MatchSearchId!.Value);
+        await CancelAsync(player, searching.Id!.Value);
         var cancelled = await ReadAsync(first, searching);
         (await ReadAsync(second, searching)).ShouldBe(cancelled);
         cancelled.Status.ShouldBe("Cancelled");
@@ -91,13 +91,13 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         (await ReadAsync(reconnected)).ShouldBe(cancelled);
         await StartAsync(player, build);
         var newer = await ReadAsync(first, cancelled);
-        newer.MatchSearchId.ShouldNotBe(searching.MatchSearchId);
-        var delayed = new MatchSearchStateChanged(searching.MatchSearchId.Value, player.Id.Value, "Searching", null);
+        newer.Id.ShouldNotBe(searching.Id);
+        var delayed = new MatchSearchStateChanged(searching.Id.Value, player.Id.Value, "Searching", null);
         await fixture.Services.TrackActivity()
             .ExecuteAndWaitAsync(context => context.PublishAsync(delayed).AsTask());
-        await CancelAsync(player, newer.MatchSearchId!.Value);
+        await CancelAsync(player, newer.Id!.Value);
         var next = await ReadAsync(first, newer);
-        next.MatchSearchId.ShouldBe(newer.MatchSearchId);
+        next.Id.ShouldBe(newer.Id);
         next.Status.ShouldBe("Cancelled");
     }
 
@@ -109,7 +109,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await SeedSearchAsync(other.Id.Value);
         await using var socket = await ConnectAsync(owner.UserId.Value);
 
-        (await ReadAsync(socket)).MatchSearchId.ShouldBeNull();
+        (await ReadAsync(socket)).Id.ShouldBeNull();
         await StartAsync(owner, await SeedBuildAsync(owner.Id.Value));
         var state = await ReadAsync(socket);
 
@@ -118,7 +118,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var own = await scope.ServiceProvider.GetRequiredService<IMatchSearchesReadRepository>()
             .GetStateByPlayerIdAsync(owner.Id.Value, TestContext.Current.CancellationToken);
         own.ShouldNotBeNull();
-        state.MatchSearchId.ShouldBe(own.MatchSearchId);
+        state.Id.ShouldBe(own.Id);
         state.Status.ShouldBe(own.Status);
         state.GameId.ShouldBe(own.GameId);
         state.QueuedAt.ShouldBe(own.QueuedAt);
@@ -203,12 +203,12 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await using var publisherScope = fixture.Services.CreateAsyncScope();
         var publisher = publisherScope.ServiceProvider.GetRequiredService<
             PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions.IMatchSearchStatePublisher>();
-        var expected = new MatchSearchStateReadModel(Guid.NewGuid(), "Searching", null, null, null);
+        var expected = new MatchSearchReadModel(Guid.NewGuid(), "Searching", null, null, null);
 
         await publisher.PublishAsync(player.Id.Value, expected, TestContext.Current.CancellationToken);
 
         (await ReadAsync(socket)).ShouldBe(
-            new MatchSearchStateResponse(expected.MatchSearchId, "Searching", null, null, null));
+            new MatchSearchStateResponse(expected.Id, "Searching", null, null, null));
     }
 
     private static async Task<MatchSearchStateResponse> ReadAsync(

@@ -4,5 +4,5 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstract
 
 public interface IMatchSearchesReadRepository : IReadRepository<Guid>
 {
-    Task<MatchSearchStateReadModel?> GetStateByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken);
+    Task<MatchSearchReadModel?> GetStateByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken);
 }

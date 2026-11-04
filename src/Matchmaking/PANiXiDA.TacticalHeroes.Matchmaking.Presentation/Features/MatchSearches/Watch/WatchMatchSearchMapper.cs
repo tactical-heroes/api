@@ -9,5 +9,5 @@ internal static partial class WatchMatchSearchMapper
 {
     internal static WatchMatchSearchCommand ToCommand(string connectionId) => new(connectionId);
 
-    internal static partial MatchSearchStateResponse ToResponse(MatchSearchStateReadModel readModel);
+    internal static partial MatchSearchStateResponse ToResponse(MatchSearchReadModel readModel);
 }
