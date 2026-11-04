@@ -1,4 +1,5 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
@@ -20,8 +21,7 @@ public sealed class CreateFileHandler(FileCreationService fileCreationService)
             name: command.Name,
             type: type.Value,
             userId: command.UserId,
-            contentType: command.ContentType,
-            size: command.Size,
+            metadata: new FileMetadata(command.ContentType, command.Size),
             content: command.Content,
             folderId: command.FolderId,
             cancellationToken: cancellationToken);

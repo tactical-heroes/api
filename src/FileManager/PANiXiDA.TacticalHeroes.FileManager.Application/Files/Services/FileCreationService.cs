@@ -1,4 +1,5 @@
 using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
@@ -27,15 +28,14 @@ public sealed class FileCreationService(
         string name,
         FileType type,
         Guid? userId,
-        string contentType,
-        long size,
+        FileMetadata metadata,
         Stream content,
         Guid? folderId,
         CancellationToken cancellationToken)
     {
         var nameResult = FileName.Create(name);
-        var contentTypeResult = FileContentType.Create(contentType);
-        var sizeResult = FileSize.Create(size);
+        var contentTypeResult = FileContentType.Create(metadata.ContentType);
+        var sizeResult = FileSize.Create(metadata.Size);
         var userIdResult = UserId.Create(userId);
         var folderIdResult = FolderId.Create(folderId);
         var validationResult = Result.Combine(
