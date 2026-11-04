@@ -59,12 +59,13 @@ public sealed class MatchSearchesReadRepositoryTests(IntegrationTestFixture fixt
         repository.Add(first);
         await unitOfWork.SaveChangesAsync(ct);
         var initial = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
-        initial.Version.ShouldBeGreaterThan(0);
+        initial.MatchSearchId.ShouldBe(first.Id.Value);
+        initial.Status.ShouldBe("Searching");
         first.Cancel().IsSuccess.ShouldBeTrue();
         repository.Update(first);
         await unitOfWork.SaveChangesAsync(ct);
         var cancelled = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
-        cancelled.Version.ShouldBeGreaterThan(initial.Version);
+        cancelled.Status.ShouldBe("Cancelled");
         var newer = MatchSearch.Create(
             first.PlayerId,
             first.BuildId,
@@ -75,11 +76,16 @@ public sealed class MatchSearchesReadRepositoryTests(IntegrationTestFixture fixt
         await unitOfWork.SaveChangesAsync(ct);
         var latest = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
         latest.MatchSearchId.ShouldBe(newer.Id.Value);
-        latest.Version.ShouldBeGreaterThan(cancelled.Version);
         first.Cancel().IsSuccess.ShouldBeTrue();
         repository.Update(first);
         await unitOfWork.SaveChangesAsync(ct);
 
         (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldBe(latest);
+        newer.Cancel().IsSuccess.ShouldBeTrue();
+        repository.Update(newer);
+        await unitOfWork.SaveChangesAsync(ct);
+        var terminal = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
+        terminal.MatchSearchId.ShouldBe(newer.Id.Value);
+        terminal.Status.ShouldBe("Cancelled");
     }
 }

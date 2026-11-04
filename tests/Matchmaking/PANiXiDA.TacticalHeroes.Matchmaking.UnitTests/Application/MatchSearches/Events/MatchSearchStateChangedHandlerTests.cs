@@ -18,7 +18,7 @@ public sealed class MatchSearchStateChangedHandlerTests
         var handler = new MatchSearchStateChangedHandler(publisher, repository);
         var changed = new MatchSearchStateChanged(Guid.NewGuid(), Guid.NewGuid(), "Matched", Guid.NewGuid());
         var ct = TestContext.Current.CancellationToken;
-        var current = new MatchSearchStateReadModel(10, Guid.NewGuid(), "Cancelled", null, null, null);
+        var current = new MatchSearchStateReadModel(Guid.NewGuid(), "Cancelled", null, null, null);
         repository.GetStateByPlayerIdAsync(changed.PlayerId, ct).Returns(exists ? current : null);
 
         await handler.HandleAsync(changed, ct);

@@ -3,7 +3,6 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
 
 public sealed record MatchSearchStateReadModel(
-    long Version,
     Guid? MatchSearchId,
     string? Status,
     Guid? GameId,

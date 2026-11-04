@@ -9,10 +9,4 @@ public sealed class MatchmakingWriteDbContext(
     : WriteDbContext<MatchmakingWriteDbContext>(options, interceptors)
 {
     protected override bool UseContextNameAsSchema => true;
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-        modelBuilder.HasSequence<long>("match_search_state_versions", "matchmaking");
-    }
 }

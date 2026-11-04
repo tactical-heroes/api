@@ -26,8 +26,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.HasSequence("match_search_state_versions", "matchmaking");
-
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.MatchSearch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -74,12 +72,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("integer")
                         .HasColumnName("rating");
 
-                    b.Property<long>("StateVersion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("state_version")
-                        .HasDefaultValueSql("nextval('matchmaking.match_search_state_versions')");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -107,10 +99,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
                         .IsUnique()
                         .HasDatabaseName("ix_match_searches_player_id")
                         .HasFilter("deleted_at IS NULL AND status IN ('Searching', 'Matched')");
-
-                    b.HasIndex("PlayerId", "StateVersion")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_match_searches_player_id_state_version");
 
                     b.HasIndex("Status", "ExpiresAt")
                         .HasDatabaseName("ix_match_searches_status_expires_at");

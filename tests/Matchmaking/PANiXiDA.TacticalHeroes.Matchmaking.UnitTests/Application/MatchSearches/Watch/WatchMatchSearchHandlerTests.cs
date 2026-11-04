@@ -21,7 +21,7 @@ public sealed class WatchMatchSearchHandlerTests
         var userId = Guid.NewGuid();
         var player = new PlayerReadModel(Guid.NewGuid(), 1500);
         var ct = TestContext.Current.CancellationToken;
-        var current = new MatchSearchStateReadModel(1, Guid.NewGuid(), "Searching", null, null, null);
+        var current = new MatchSearchStateReadModel(Guid.NewGuid(), "Searching", null, null, null);
         user.UserId.Returns(userId);
         players.GetByUserIdAsync(userId, ct).Returns(player);
         repository.GetStateByPlayerIdAsync(player.Id, ct)
@@ -34,7 +34,7 @@ public sealed class WatchMatchSearchHandlerTests
         var calls = feed.ReceivedCalls().Select(call => call.GetMethodInfo().Name).ToArray();
         calls.ShouldBe(changed ? ["SendAsync", "SubscribeAsync", "SendAsync"] : ["SendAsync", "SubscribeAsync"]);
         await feed.Received(1).SendAsync(
-            "connection", Arg.Is<MatchSearchStateReadModel>(state => state.Version == 0), ct);
+            "connection", Arg.Is<MatchSearchStateReadModel>(state => state.MatchSearchId == null), ct);
         await feed.Received(1).SubscribeAsync(player.Id, "connection", ct);
         await players.Received(1).GetByUserIdAsync(userId, ct);
         if (changed)

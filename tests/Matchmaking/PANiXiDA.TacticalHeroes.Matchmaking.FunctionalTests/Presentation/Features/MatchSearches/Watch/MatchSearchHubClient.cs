@@ -10,8 +10,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Featu
 internal sealed class MatchSearchHubClient(HubConnection connection, ChannelReader<MatchSearchStateResponse> messages)
     : IAsyncDisposable
 {
-    private long _version = -1;
-
     public ValueTask DisposeAsync() => connection.DisposeAsync();
 
     internal static async Task<MatchSearchHubClient> ConnectAsync(
@@ -46,16 +44,8 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
         }
     }
 
-    internal async Task<MatchSearchStateResponse> ReadAsync(CancellationToken cancellationToken)
+    internal ValueTask<MatchSearchStateResponse> ReadAsync(CancellationToken cancellationToken)
     {
-        while (true)
-        {
-            var state = await messages.ReadAsync(cancellationToken);
-            if (state.Version > _version)
-            {
-                _version = state.Version;
-                return state;
-            }
-        }
+        return messages.ReadAsync(cancellationToken);
     }
 }

@@ -32,7 +32,7 @@ public sealed class WatchMatchSearchHandler(
             playerId: player.Id, connectionId: command.ConnectionId, cancellationToken: cancellationToken);
 
         var current = await ReadStateAsync(player.Id, cancellationToken);
-        if (current.Version > snapshot.Version)
+        if (current != snapshot)
         {
             await stateFeed.SendAsync(
                 connectionId: command.ConnectionId, state: current, cancellationToken: cancellationToken);
@@ -45,6 +45,6 @@ public sealed class WatchMatchSearchHandler(
     {
         return await matchSearchesReadRepository.GetStateByPlayerIdAsync(playerId, cancellationToken)
             ?? new MatchSearchStateReadModel(
-                Version: 0, MatchSearchId: null, Status: null, GameId: null, QueuedAt: null, ExpiresAt: null);
+                MatchSearchId: null, Status: null, GameId: null, QueuedAt: null, ExpiresAt: null);
     }
 }

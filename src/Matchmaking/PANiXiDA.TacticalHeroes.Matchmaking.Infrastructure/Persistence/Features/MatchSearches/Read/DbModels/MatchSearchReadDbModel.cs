@@ -2,7 +2,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Feature
 
 public sealed class MatchSearchReadDbModel : AuditableReadDbModel<Guid>
 {
-    public long StateVersion { get; set; }
     public Guid PlayerId { get; set; }
     public Guid BuildId { get; set; }
     public Guid? GameId { get; set; }

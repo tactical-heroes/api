@@ -11,7 +11,6 @@ internal sealed partial class MatchSearchStateReadModelMapper
 {
     public static partial IQueryable<MatchSearchStateReadModel> ProjectTo(IQueryable<MatchSearchReadDbModel> query);
 
-    [MapProperty(nameof(MatchSearchReadDbModel.StateVersion), nameof(MatchSearchStateReadModel.Version))]
     [MapProperty(nameof(MatchSearchReadDbModel.Id), nameof(MatchSearchStateReadModel.MatchSearchId))]
     private static partial MatchSearchStateReadModel ToReadModel(MatchSearchReadDbModel search);
 }
