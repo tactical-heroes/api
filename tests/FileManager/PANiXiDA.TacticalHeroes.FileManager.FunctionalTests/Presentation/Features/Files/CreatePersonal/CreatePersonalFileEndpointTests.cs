@@ -166,13 +166,33 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
         await AssertNoFilesAsync();
     }
 
+    [Theory(DisplayName = "Personal file endpoint should deny creation when create permission is missing")]
+    [InlineData("")]
+    [InlineData("file-manager.personal-files.read.own")]
+    [InlineData("file-manager.avatars.create")]
+    public async Task HandleAsync_Should_DenyCreation_When_CreatePermissionIsMissing(string permission)
+    {
+        using var response = await SendRequestAsync(
+            subject: Guid.NewGuid().ToString(),
+            bytes: [1],
+            name: "file.txt",
+            contentType: "text/plain",
+            folderId: null,
+            suppliedUserId: null,
+            permission: permission);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        await AssertNoFilesAsync();
+    }
+
     private async Task<HttpResponseMessage> SendRequestAsync(
         string? subject,
         byte[] bytes,
         string name,
         string contentType,
         Guid? folderId,
-        Guid? suppliedUserId)
+        Guid? suppliedUserId,
+        string permission = "file-manager.personal-files.create.own")
     {
         using var multipart = new MultipartFormDataContent();
         using var file = new ByteArrayContent(bytes);
@@ -190,7 +210,14 @@ public sealed class CreatePersonalFileEndpointTests(FunctionalTestFixture fixtur
             multipart.Add(userId, "UserId");
         }
 
+        using var type = suppliedUserId is not null ? new StringContent("Avatar") : null;
+        if (type is not null)
+        {
+            multipart.Add(type, "Type");
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Post, Route) { Content = multipart };
+        request.Headers.Add(TestAuthenticationHandler.PermissionsHeader, permission);
         if (subject is not null)
         {
             request.Headers.Add(TestAuthenticationHandler.UserIdHeader, subject);
