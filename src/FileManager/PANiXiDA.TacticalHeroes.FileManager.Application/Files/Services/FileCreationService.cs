@@ -62,13 +62,9 @@ public sealed class FileCreationService(
                 if (targetId.Value is { } destinationId)
                 {
                     var folder = await GetFolderAsync(destinationId, token);
-                    if (folder.IsFailure)
-                    {
-                        reservation = Result.Failure(folder.Errors);
-                        return;
-                    }
-
-                    if (folder.Value.UserId != file.UserId || folder.Value.AllowedFileType != file.Type)
+                    if (folder.IsFailure
+                        || folder.Value.UserId != file.UserId
+                        || folder.Value.AllowedFileType != file.Type)
                     {
                         reservation = Result.Failure(Error.NotFound("Folder was not found."));
                         return;
