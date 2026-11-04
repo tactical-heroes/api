@@ -1,11 +1,13 @@
 using NSubstitute.ExceptionExtensions;
 
 using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreateUploadUrl;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
@@ -174,7 +176,13 @@ public sealed class CreateFileUploadUrlHandlerTests
     private CreateFileUploadUrlHandler CreateHandler()
     {
         var policy = new FileAccessPolicy(_user);
-        return new CreateFileUploadUrlHandler(
-            _files, _folders, _hierarchyLock, _storage, policy, new FolderAccessPolicy(_user, policy));
+        return new CreateFileUploadUrlHandler(new FileCreationService(
+            filesRepository: _files,
+            foldersRepository: _folders,
+            folderHierarchyLock: _hierarchyLock,
+            fileStorage: _storage,
+            unitOfWork: Substitute.For<IUnitOfWork>(),
+            fileAccessPolicy: policy,
+            folderAccessPolicy: new FolderAccessPolicy(_user, policy)));
     }
 }
