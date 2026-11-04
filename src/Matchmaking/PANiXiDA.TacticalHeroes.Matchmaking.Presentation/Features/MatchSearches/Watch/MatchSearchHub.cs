@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
-[Authorize]
 public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>
 {
     public override async Task OnConnectedAsync()

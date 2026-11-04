@@ -43,6 +43,9 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         using var anonymous = await fixture.Client.GetAsync(Path, TestContext.Current.CancellationToken);
         anonymous.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        using var negotiation = await fixture.Client.PostAsync(
+            $"{Path}/negotiate?negotiateVersion=1", null, TestContext.Current.CancellationToken);
+        negotiation.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         using var request = new HttpRequestMessage(HttpMethod.Get, Path);
         request.Headers.Add("X-Test-UserId", Guid.NewGuid().ToString());
 
