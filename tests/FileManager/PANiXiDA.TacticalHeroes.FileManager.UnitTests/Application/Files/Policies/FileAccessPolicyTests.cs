@@ -12,6 +12,48 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Polici
 
 public sealed class FileAccessPolicyTests
 {
+    [Theory(DisplayName = "File access policy should enforce create scope when type ownership and permissions vary")]
+    [InlineData("Personal", true, "file-manager.personal-files.create.own", true)]
+    [InlineData("Personal", false, "file-manager.personal-files.create.own", false)]
+    [InlineData("Personal", true, "file-manager.personal-files.create.all", true)]
+    [InlineData("Personal", false, "file-manager.personal-files.create.all", true)]
+    [InlineData("Personal", true, "file-manager.personal-files.read.all", false)]
+    [InlineData("Personal", true, "file-manager.avatars.create", false)]
+    [InlineData("Personal", true, "", false)]
+    [InlineData("Avatar", false, "file-manager.avatars.create", true)]
+    [InlineData("Avatar", false, "file-manager.avatars.read", false)]
+    [InlineData("Avatar", false, "file-manager.personal-files.create.all", false)]
+    [InlineData("Avatar", false, "", false)]
+    public void CanCreate_Should_EnforceCreateScope_When_TypeOwnershipAndPermissionsVary(
+        string typeName, bool ownsFile, string permission, bool expected)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(permission).Returns(true);
+        var file = CreateFile(typeName, ownsFile ? userId : Guid.NewGuid());
+
+        var allowed = new FileAccessPolicy(currentUser).CanCreate(file);
+
+        allowed.ShouldBe(expected);
+    }
+
+    [Theory(DisplayName = "File access policy should deny creating when caller is unauthenticated")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public void CanCreate_Should_DenyCreating_When_CallerIsUnauthenticated(string typeName)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.IsAuthenticated.Returns(false);
+        currentUser.HasPermission(Arg.Any<string>()).Returns(true);
+        var file = CreateFile(typeName, userId);
+
+        var allowed = new FileAccessPolicy(currentUser).CanCreate(file);
+
+        allowed.ShouldBeFalse();
+        currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
+    }
+
     [Theory(DisplayName = "File access policy should allow reading when the matching permission is granted")]
     [InlineData("Personal", "file-manager.personal-files.read.own")]
     [InlineData("Avatar", "file-manager.avatars.read")]
