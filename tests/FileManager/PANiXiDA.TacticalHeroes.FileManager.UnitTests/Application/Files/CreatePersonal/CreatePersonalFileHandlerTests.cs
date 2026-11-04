@@ -164,10 +164,12 @@ public sealed class CreatePersonalFileHandlerTests
             .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
     }
 
-    [Fact(DisplayName = "Create personal file handler should reject the caller when user id is unavailable")]
-    public async Task HandleAsync_Should_ReturnUnauthorizedWithoutSaving_When_UserIdIsUnavailable()
+    [Theory(DisplayName = "Create personal file handler should reject the caller when user id is unavailable")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_ReturnUnauthorizedWithoutSaving_When_UserIdIsUnavailable(bool emptyUserId)
     {
-        _currentUser.UserId.Returns((Guid?)null);
+        _currentUser.UserId.Returns(emptyUserId ? Guid.Empty : null);
         await using var content = new MemoryStream([1]);
 
         var result = await CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken);

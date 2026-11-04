@@ -10,7 +10,7 @@ public sealed class CreatePersonalFileHandler(FileCreationService fileCreationSe
 {
     public Task<Result<Guid>> HandleAsync(CreatePersonalFileCommand command, CancellationToken cancellationToken)
     {
-        if (currentUser.UserId is not { } userId)
+        if (currentUser.UserId is not { } userId || userId == Guid.Empty)
         {
             return Task.FromResult(Result.Failure<Guid>(Error.Unauthorized("A user account is required.")));
         }
