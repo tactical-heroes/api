@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Models;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
@@ -33,21 +34,13 @@ public sealed class FileCreationService(
         Guid? folderId,
         CancellationToken cancellationToken)
     {
-        var nameResult = FileName.Create(name);
-        var contentTypeResult = FileContentType.Create(metadata.ContentType);
-        var sizeResult = FileSize.Create(metadata.Size);
-        var userIdResult = UserId.Create(userId);
-        var folderIdResult = FolderId.Create(folderId);
-        var validationResult = Result.Combine(
-            nameResult,
-            contentTypeResult,
-            sizeResult,
-            userIdResult,
-            folderIdResult);
-
-        if (validationResult.IsFailure)
+        var contentType = FileContentType.Create(metadata.ContentType);
+        var size = FileSize.Create(metadata.Size);
+        var targetId = FolderId.Create(folderId);
+        var validation = Result.Combine(contentType, size, targetId);
+        if (validation.IsFailure)
         {
-            return Result.Failure<Guid>(validationResult.Errors);
+            return Result.Failure<Guid>(validation.Errors);
         }
 
         if (content is not { CanRead: true })
@@ -55,36 +48,33 @@ public sealed class FileCreationService(
             return Result.Failure<Guid>(Error.Validation("File content must be readable."));
         }
 
-        var created = File.Create(name: nameResult.Value, type: type, userId: userIdResult.Value);
+        var created = CreateFile(name: name, type: type, userId: userId);
         if (created.IsFailure)
         {
             return Result.Failure<Guid>(created.Errors);
         }
 
         var file = created.Value;
-        if (!fileAccessPolicy.CanCreate(file))
-        {
-            return Result.Failure<Guid>(Error.Forbidden("Access to create the file is denied."));
-        }
-
         var reservation = Result.Success();
         await unitOfWork.ExecuteInTransactionAsync(
             action: async token =>
             {
-                if (folderIdResult.Value is { } targetId)
+                if (targetId.Value is { } destinationId)
                 {
-                    await folderHierarchyLock.AcquireAsync(token);
-                    var folder = await foldersRepository.GetByIdAsync(targetId, token);
-                    if (folder is null
-                        || !folderAccessPolicy.CanCreate(folder)
-                        || folder.UserId != file.UserId
-                        || folder.AllowedFileType != file.Type)
+                    var folder = await GetFolderAsync(destinationId, token);
+                    if (folder.IsFailure)
+                    {
+                        reservation = Result.Failure(folder.Errors);
+                        return;
+                    }
+
+                    if (folder.Value.UserId != file.UserId || folder.Value.AllowedFileType != file.Type)
                     {
                         reservation = Result.Failure(Error.NotFound("Folder was not found."));
                         return;
                     }
 
-                    reservation = file.MoveTo(folder);
+                    reservation = file.MoveTo(folder.Value);
                     if (reservation.IsFailure)
                     {
                         return;
@@ -103,20 +93,98 @@ public sealed class FileCreationService(
         await fileStorage.UploadAsync(
             key: file.StorageKey.Value,
             content: content,
-            contentType: contentTypeResult.Value.Value,
+            contentType: contentType.Value.Value,
             cancellationToken: cancellationToken);
 
-        var completeResult = file.CompleteUpload(
-            contentType: contentTypeResult.Value,
-            size: sizeResult.Value);
-        if (completeResult.IsFailure)
+        var completed = file.CompleteUpload(contentType: contentType.Value, size: size.Value);
+        if (completed.IsFailure)
         {
-            return Result.Failure<Guid>(completeResult.Errors);
+            return Result.Failure<Guid>(completed.Errors);
         }
 
         filesRepository.Update(aggregateRoot: file);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(file.Id.Value);
+    }
+
+    public async Task<Result<FileUploadUrl>> CreateUploadUrlAsync(
+        string name,
+        FileType type,
+        Guid? userId,
+        FileMetadata metadata,
+        Guid? folderId,
+        CancellationToken cancellationToken)
+    {
+        var contentType = FileContentType.Create(metadata.ContentType);
+        var size = FileSize.Create(metadata.Size);
+        var targetId = FolderId.Create(folderId);
+        var validation = Result.Combine(contentType, size, targetId);
+        if (validation.IsFailure)
+        {
+            return Result.Failure<FileUploadUrl>(validation.Errors);
+        }
+
+        var created = CreateFile(name: name, type: type, userId: userId);
+        if (created.IsFailure)
+        {
+            return Result.Failure<FileUploadUrl>(created.Errors);
+        }
+
+        var file = created.Value;
+        if (targetId.Value is { } destinationId)
+        {
+            var folder = await GetFolderAsync(destinationId, cancellationToken);
+            if (folder.IsFailure)
+            {
+                return Result.Failure<FileUploadUrl>(folder.Errors);
+            }
+
+            var moved = file.MoveTo(folder.Value);
+            if (moved.IsFailure)
+            {
+                return Result.Failure<FileUploadUrl>(moved.Errors);
+            }
+        }
+
+        var upload = await fileStorage.GetPresignedUploadUrlAsync(
+            key: file.StorageKey.Value,
+            contentType: contentType.Value.Value,
+            size: size.Value.Value,
+            cancellationToken: cancellationToken);
+        filesRepository.Add(aggregateRoot: file);
+
+        return Result.Success(new FileUploadUrl(file.Id.Value, upload));
+    }
+
+    private Result<File> CreateFile(string name, FileType type, Guid? userId)
+    {
+        var fileName = FileName.Create(name);
+        var ownerId = UserId.Create(userId);
+        var validation = Result.Combine(fileName, ownerId);
+        if (validation.IsFailure)
+        {
+            return Result.Failure<File>(validation.Errors);
+        }
+
+        var created = File.Create(name: fileName.Value, type: type, userId: ownerId.Value);
+        if (created.IsFailure)
+        {
+            return created;
+        }
+
+        return fileAccessPolicy.CanCreate(created.Value)
+            ? created
+            : Result.Failure<File>(Error.Forbidden("Access to create the file is denied."));
+    }
+
+    private async Task<Result<Folder>> GetFolderAsync(FolderId folderId, CancellationToken cancellationToken)
+    {
+        await folderHierarchyLock.AcquireAsync(cancellationToken);
+        var folder = await foldersRepository.GetByIdAsync(folderId, cancellationToken);
+
+        return folder is not null && folderAccessPolicy.CanCreate(folder)
+            ? Result.Success(folder)
+            : Result.Failure<Folder>(Error.NotFound("Folder was not found."));
     }
 }
