@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         serviceCollection.AddScoped<FileAccessPolicy>();
+        serviceCollection.AddScoped<FileCreationService>();
         serviceCollection.AddScoped<FolderAccessPolicy>();
         serviceCollection.AddScoped<FolderCreationService>();
         serviceCollection.AddScoped<IFolderHierarchyLock, PostgreSqlFolderHierarchyLock>();

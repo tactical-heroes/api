@@ -5,6 +5,9 @@ using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -32,6 +35,7 @@ public sealed class CreatePersonalFileHandlerTests
     {
         _currentUser.IsAuthenticated.Returns(true);
         _currentUser.UserId.Returns(_userId);
+        _currentUser.HasPermission("file-manager.personal-files.create.own").Returns(true);
         _unitOfWork.ExecuteInTransactionAsync(
             Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(call => call.Arg<Func<CancellationToken, Task>>()(call.Arg<CancellationToken>()));
@@ -160,12 +164,10 @@ public sealed class CreatePersonalFileHandlerTests
             .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
     }
 
-    [Theory(DisplayName = "Create personal file handler should reject the caller when user id is unavailable")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task HandleAsync_Should_ReturnUnauthorizedWithoutSaving_When_UserIdIsUnavailable(bool emptyUserId)
+    [Fact(DisplayName = "Create personal file handler should reject the caller when user id is unavailable")]
+    public async Task HandleAsync_Should_ReturnUnauthorizedWithoutSaving_When_UserIdIsUnavailable()
     {
-        _currentUser.UserId.Returns(emptyUserId ? Guid.Empty : null);
+        _currentUser.UserId.Returns((Guid?)null);
         await using var content = new MemoryStream([1]);
 
         var result = await CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken);
@@ -228,6 +230,24 @@ public sealed class CreatePersonalFileHandlerTests
         saves.ShouldBe(2);
     }
 
+    [Theory(DisplayName = "Personal file handler should deny creation when create permission is missing")]
+    [InlineData("")]
+    [InlineData("file-manager.personal-files.read.own")]
+    [InlineData("file-manager.avatars.create")]
+    public async Task HandleAsync_Should_DenyCreation_When_CreatePermissionIsMissing(string permission)
+    {
+        _currentUser.HasPermission("file-manager.personal-files.create.own").Returns(false);
+        _currentUser.HasPermission(permission).Returns(true);
+        await using var content = new MemoryStream([1]);
+
+        var result = await CreateHandler().HandleAsync(CreateCommand(content), TestContext.Current.CancellationToken);
+
+        result.ShouldHaveSingleError(ErrorType.Forbidden, "Access to create the file is denied.");
+        _files.ReceivedCalls().ShouldBeEmpty();
+        _storage.ReceivedCalls().ShouldBeEmpty();
+        _unitOfWork.ReceivedCalls().ShouldBeEmpty();
+    }
+
     private static CreatePersonalFileCommand CreateCommand(Stream content)
     {
         return new CreatePersonalFileCommand(
@@ -236,6 +256,15 @@ public sealed class CreatePersonalFileHandlerTests
 
     private CreatePersonalFileHandler CreateHandler()
     {
-        return new CreatePersonalFileHandler(_files, _folders, _hierarchyLock, _storage, _unitOfWork, _currentUser);
+        var policy = new FileAccessPolicy(_currentUser);
+        var service = new FileCreationService(
+            filesRepository: _files,
+            foldersRepository: _folders,
+            folderHierarchyLock: _hierarchyLock,
+            fileStorage: _storage,
+            unitOfWork: _unitOfWork,
+            fileAccessPolicy: policy,
+            folderAccessPolicy: new FolderAccessPolicy(_currentUser, policy));
+        return new CreatePersonalFileHandler(service, _currentUser);
     }
 }

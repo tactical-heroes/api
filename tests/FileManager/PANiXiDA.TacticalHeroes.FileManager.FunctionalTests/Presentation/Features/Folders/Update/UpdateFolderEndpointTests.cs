@@ -496,6 +496,7 @@ public sealed class UpdateFolderEndpointTests(ManualReconciliationTestFixture fi
         form.Add(folder, "FolderId");
         request.Content = form;
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, actorId.ToString());
+        request.Headers.Add(TestAuthenticationHandler.PermissionsHeader, "file-manager.personal-files.create.own");
         return await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
     }
 }
