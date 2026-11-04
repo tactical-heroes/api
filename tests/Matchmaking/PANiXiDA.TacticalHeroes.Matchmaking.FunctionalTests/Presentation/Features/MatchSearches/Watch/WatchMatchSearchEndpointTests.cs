@@ -63,7 +63,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var state = await ReadAsync(socket);
 
         state.MatchSearchId.ShouldBeNull();
-        state.IsActive.ShouldBeFalse();
+        state.Status.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Endpoint should stream and recover state when search changes")]
@@ -80,14 +80,12 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var searching = await ReadAsync(first);
         (await ReadAsync(second)).ShouldBe(searching);
         searching.Status.ShouldBe("Searching");
-        searching.IsActive.ShouldBeTrue();
         searching.ExpiresAt.ShouldBe(searching.QueuedAt!.Value.AddMinutes(5));
 
         await CancelAsync(player, searching.MatchSearchId!.Value);
         var cancelled = await ReadAsync(first, searching);
         (await ReadAsync(second, searching)).ShouldBe(cancelled);
         cancelled.Status.ShouldBe("Cancelled");
-        cancelled.IsActive.ShouldBeFalse();
 
         await using var reconnected = await ConnectAsync(player.UserId.Value);
         (await ReadAsync(reconnected)).ShouldBe(cancelled);
@@ -125,7 +123,6 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         state.GameId.ShouldBe(own.GameId);
         state.QueuedAt.ShouldBe(own.QueuedAt);
         state.ExpiresAt.ShouldBe(own.ExpiresAt);
-        state.IsActive.ShouldBeTrue();
     }
 
     [Fact(DisplayName = "Endpoint should preserve changes when commit races with snapshot")]
@@ -147,7 +144,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         await using var socket = await connecting;
         var snapshot = await ReadAsync(socket);
-        snapshot.IsActive.ShouldBeFalse();
+        snapshot.Status.ShouldBeNull();
         var changed = await ReadAsync(socket, snapshot);
         changed.Status.ShouldBe("Searching");
     }
@@ -175,7 +172,6 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         previous.Status.ShouldBe("Closed");
         previous.GameId.ShouldBe(gameId.Value);
-        previous.IsActive.ShouldBeFalse();
     }
 
     [Fact(DisplayName = "Endpoint should receive expiration when search expires")]
@@ -212,7 +208,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await publisher.PublishAsync(player.Id.Value, expected, TestContext.Current.CancellationToken);
 
         (await ReadAsync(socket)).ShouldBe(
-            new MatchSearchStateResponse(expected.MatchSearchId, "Searching", null, null, null, true));
+            new MatchSearchStateResponse(expected.MatchSearchId, "Searching", null, null, null));
     }
 
     private static async Task<MatchSearchStateResponse> ReadAsync(

@@ -5,5 +5,4 @@ public sealed record MatchSearchStateResponse(
     string? Status,
     Guid? GameId,
     DateTimeOffset? QueuedAt,
-    DateTimeOffset? ExpiresAt,
-    bool IsActive);
+    DateTimeOffset? ExpiresAt);
