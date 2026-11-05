@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<FileAccessPolicy>();
         serviceCollection.AddScoped<FileCreationService>();
         serviceCollection.AddScoped<FolderAccessPolicy>();
+        serviceCollection.AddScoped<FolderAccessService>();
         serviceCollection.AddScoped<FolderCreationService>();
         serviceCollection.AddScoped<IFolderHierarchyLock, PostgreSqlFolderHierarchyLock>();
         serviceCollection.AddPostgreSqlEfRepository<

@@ -1,21 +1,17 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Move;
 
 public sealed class MoveFileHandler(
     IFilesRepository filesRepository,
-    IFoldersRepository foldersRepository,
-    IFolderHierarchyLock folderHierarchyLock,
-    FileAccessPolicy fileAccessPolicy,
-    FolderAccessPolicy folderAccessPolicy)
+    FolderAccessService folderAccessService,
+    FileAccessPolicy fileAccessPolicy)
     : ICommandHandler<MoveFileCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
     public async Task<Result> HandleAsync(MoveFileCommand command, CancellationToken cancellationToken)
@@ -28,7 +24,6 @@ public sealed class MoveFileHandler(
             return Result.Failure(validation.Errors);
         }
 
-        await folderHierarchyLock.AcquireAsync(cancellationToken);
         var file = await filesRepository.GetByIdAsync(id.Value, cancellationToken);
         if (file is null || !fileAccessPolicy.CanUpdate(file))
         {
@@ -38,11 +33,13 @@ public sealed class MoveFileHandler(
         Folder? folder = null;
         if (folderId.Value is { } targetId)
         {
-            folder = await foldersRepository.GetByIdAsync(targetId, cancellationToken);
-            if (folder is null || !folderAccessPolicy.CanUpdate(folder))
+            var destination = await folderAccessService.GetForUpdateAsync(targetId, cancellationToken);
+            if (destination.IsFailure)
             {
-                return Result.Failure(Error.NotFound("Folder was not found."));
+                return Result.Failure(destination.Errors);
             }
+
+            folder = destination.Value;
         }
 
         var result = file.MoveTo(folder);

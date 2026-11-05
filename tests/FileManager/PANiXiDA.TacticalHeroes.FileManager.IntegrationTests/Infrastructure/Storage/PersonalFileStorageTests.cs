@@ -14,6 +14,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -97,14 +98,16 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         currentUser.HasPermission("file-manager.personal-files.create.own").Returns(true);
         var policy = new FileAccessPolicy(currentUser);
 
-        var service = new FileCreationService(
-            services.GetRequiredService<IFilesRepository>(),
+        var folderAccessService = new FolderAccessService(
             services.GetRequiredService<IFoldersRepository>(),
             services.GetRequiredService<IFolderHierarchyLock>(),
+            new FolderAccessPolicy(currentUser, policy));
+        var service = new FileCreationService(
+            services.GetRequiredService<IFilesRepository>(),
+            folderAccessService,
             services.GetRequiredService<IFileStorage>(),
             services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            policy,
-            new FolderAccessPolicy(currentUser, policy));
+            policy);
         return new CreatePersonalFileHandler(service, currentUser);
     }
 }

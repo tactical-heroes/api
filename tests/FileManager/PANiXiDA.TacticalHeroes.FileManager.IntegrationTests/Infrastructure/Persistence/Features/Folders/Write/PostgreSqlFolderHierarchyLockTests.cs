@@ -61,6 +61,52 @@ public sealed class PostgreSqlFolderHierarchyLockTests(IntegrationTestFixture fi
         pending.IsCompletedSuccessfully.ShouldBeTrue();
     }
 
+    [Theory(DisplayName = "Hierarchy lock should wait again when the same scope starts another transaction")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AcquireAsync_Should_WaitAgain_When_TheSameScopeStartsAnotherTransaction(bool commit)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var hierarchyLock = scope.ServiceProvider.GetRequiredService<IFolderHierarchyLock>();
+        await using (var initial = await db.Database.BeginTransactionAsync(ct))
+        {
+            await hierarchyLock.AcquireAsync(ct);
+            await hierarchyLock.AcquireAsync(ct);
+            if (commit)
+            {
+                await initial.CommitAsync(ct);
+            }
+            else
+            {
+                await initial.RollbackAsync(ct);
+            }
+        }
+        await using var competingScope = Fixture.CreateScope();
+        var competingDb = competingScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        await using var competing = await competingDb.Database.BeginTransactionAsync(ct);
+        await competingScope.ServiceProvider.GetRequiredService<IFolderHierarchyLock>().AcquireAsync(ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var backendId = ((NpgsqlConnection)db.Database.GetDbConnection()).ProcessID;
+        var pending = hierarchyLock.AcquireAsync(ct);
+        bool waited;
+
+        try
+        {
+            waited = await WaitForLockAsync(competingDb, backendId, ct);
+        }
+        finally
+        {
+            await competing.RollbackAsync(ct);
+        }
+        await pending.WaitAsync(TimeSpan.FromSeconds(10), ct);
+        await transaction.RollbackAsync(ct);
+
+        waited.ShouldBeTrue();
+        pending.IsCompletedSuccessfully.ShouldBeTrue();
+    }
+
     private static async Task<bool> WaitForLockAsync(
         FileManagerWriteDbContext dbContext, int backendId, CancellationToken cancellationToken)
     {

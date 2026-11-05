@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Move;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -61,23 +62,28 @@ public sealed class MoveFileHandlerTests
         await _hierarchyLock.Received(1).AcquireAsync(TestContext.Current.CancellationToken);
     }
 
-    [Fact(DisplayName = "Move file handler should wait before reading when lock acquisition is pending")]
-    public async Task HandleAsync_Should_WaitBeforeReading_When_LockAcquisitionIsPending()
+    [Fact(DisplayName = "Move file handler should protect folder lookup when lock acquisition is pending")]
+    public async Task HandleAsync_Should_ProtectFolderLookup_When_LockAcquisitionIsPending()
     {
         _user.HasPermission("file-manager.personal-files.update.own").Returns(true);
         var file = CreateFile("Personal", _userId);
+        var folder = CreateFolder("Personal", _userId);
         var acquisition = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _hierarchyLock.AcquireAsync(Arg.Any<CancellationToken>()).Returns(acquisition.Task);
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var pending = CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value), TestContext.Current.CancellationToken);
-        var readBeforeAcquisition = _files.ReceivedCalls().Any() || _folders.ReceivedCalls().Any();
+            new MoveFileCommand(file.Id.Value, folder.Id.Value), TestContext.Current.CancellationToken);
+        var fileWasRead = _files.ReceivedCalls().Any();
+        var folderWasRead = _folders.ReceivedCalls().Any();
         acquisition.SetResult();
         var result = await pending;
 
-        readBeforeAcquisition.ShouldBeFalse();
+        fileWasRead.ShouldBeTrue();
+        folderWasRead.ShouldBeFalse();
         result.IsSuccess.ShouldBeTrue();
+        file.FolderId.ShouldBe(folder.Id);
     }
 
     [Fact(DisplayName = "Move file handler should detach the file when folder is omitted")]
@@ -95,6 +101,7 @@ public sealed class MoveFileHandlerTests
         file.FolderId.ShouldBeNull();
         _files.Received(1).Update(file);
         _folders.ReceivedCalls().ShouldBeEmpty();
+        _hierarchyLock.ReceivedCalls().ShouldBeEmpty();
     }
 
     [Theory(DisplayName = "Move file handler should conceal the source when source is unavailable")]
@@ -114,6 +121,7 @@ public sealed class MoveFileHandlerTests
         result.ShouldHaveSingleError(ErrorType.NotFound, "File was not found.");
         _files.DidNotReceiveWithAnyArgs().Update(default!);
         _folders.ReceivedCalls().ShouldBeEmpty();
+        _hierarchyLock.ReceivedCalls().ShouldBeEmpty();
     }
 
     [Theory(DisplayName = "Move file handler should conceal the destination when destination is unavailable")]
@@ -218,6 +226,7 @@ public sealed class MoveFileHandlerTests
     private MoveFileHandler CreateHandler()
     {
         var policy = new FileAccessPolicy(_user);
-        return new MoveFileHandler(_files, _folders, _hierarchyLock, policy, new FolderAccessPolicy(_user, policy));
+        return new MoveFileHandler(
+            _files, new FolderAccessService(_folders, _hierarchyLock, new FolderAccessPolicy(_user, policy)), policy);
     }
 }

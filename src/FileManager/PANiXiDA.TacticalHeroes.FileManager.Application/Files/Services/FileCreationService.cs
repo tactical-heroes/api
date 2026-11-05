@@ -3,13 +3,11 @@ using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Models;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -18,12 +16,10 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 
 public sealed class FileCreationService(
     IFilesRepository filesRepository,
-    IFoldersRepository foldersRepository,
-    IFolderHierarchyLock folderHierarchyLock,
+    FolderAccessService folderAccessService,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    FileAccessPolicy fileAccessPolicy,
-    FolderAccessPolicy folderAccessPolicy)
+    FileAccessPolicy fileAccessPolicy)
 {
     public async Task<Result<Guid>> CreateAsync(
         string name,
@@ -61,7 +57,7 @@ public sealed class FileCreationService(
             {
                 if (targetId.Value is { } destinationId)
                 {
-                    var folder = await GetFolderAsync(destinationId, token);
+                    var folder = await folderAccessService.GetForCreateAsync(destinationId, token);
                     if (folder.IsFailure
                         || folder.Value.UserId != file.UserId
                         || folder.Value.AllowedFileType != file.Type)
@@ -130,7 +126,7 @@ public sealed class FileCreationService(
         var file = created.Value;
         if (targetId.Value is { } destinationId)
         {
-            var folder = await GetFolderAsync(destinationId, cancellationToken);
+            var folder = await folderAccessService.GetForCreateAsync(destinationId, cancellationToken);
             if (folder.IsFailure)
             {
                 return Result.Failure<FileUploadUrl>(folder.Errors);
@@ -172,15 +168,5 @@ public sealed class FileCreationService(
         return fileAccessPolicy.CanCreate(created.Value)
             ? created
             : Result.Failure<File>(Error.Forbidden("Access to create the file is denied."));
-    }
-
-    private async Task<Result<Folder>> GetFolderAsync(FolderId folderId, CancellationToken cancellationToken)
-    {
-        await folderHierarchyLock.AcquireAsync(cancellationToken);
-        var folder = await foldersRepository.GetByIdAsync(folderId, cancellationToken);
-
-        return folder is not null && folderAccessPolicy.CanCreate(folder)
-            ? Result.Success(folder)
-            : Result.Failure<Folder>(Error.NotFound("Folder was not found."));
     }
 }
