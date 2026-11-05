@@ -210,7 +210,7 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
         stored.Status.ShouldBe(FileStatus.Deleting.Name);
     }
 
-    [Fact(DisplayName = "PATCH file name should preserve the name when it exceeds the maximum length")]
+    [Fact(DisplayName = "PATCH file name should preserve the name when name exceeds maximum length")]
     public async Task HandleAsync_Should_PreserveName_When_NameExceedsMaximumLength()
     {
         var userId = Guid.NewGuid();
