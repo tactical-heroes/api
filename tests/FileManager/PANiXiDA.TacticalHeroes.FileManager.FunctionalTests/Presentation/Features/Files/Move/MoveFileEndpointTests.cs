@@ -323,6 +323,34 @@ public sealed class MoveFileEndpointTests(ManualReconciliationTestFixture fixtur
             type == "Personal" ? UserId.Create(ownerId).Value : null).Value;
     }
 
+    private static async Task<bool> WaitForWritersAsync(
+        FileManagerWriteDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (DateTime.UtcNow < deadline)
+        {
+            var waiting = await dbContext.Database.SqlQuery<int>(
+                $"""
+                SELECT COUNT(*)::int AS "Value"
+                FROM pg_locks AS waiting
+                JOIN pg_locks AS held
+                    ON waiting.database = held.database
+                    AND waiting.classid = held.classid
+                    AND waiting.objid = held.objid
+                    AND waiting.objsubid = held.objsubid
+                WHERE waiting.locktype = 'advisory' AND NOT waiting.granted
+                    AND held.locktype = 'advisory' AND held.granted AND held.pid = pg_backend_pid()
+                """)
+                .SingleAsync(cancellationToken);
+            if (waiting >= 2)
+            {
+                return true;
+            }
+            await Task.Delay(10, cancellationToken);
+        }
+        return false;
+    }
+
     private async Task SaveAsync(File file, params Folder[] folders)
     {
         await using var scope = Fixture.CreateScope();
@@ -350,33 +378,5 @@ public sealed class MoveFileEndpointTests(ManualReconciliationTestFixture fixtur
         }
         request.Headers.Add(TestAuthenticationHandler.PermissionsHeader, permission);
         return await Fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
-    }
-
-    private static async Task<bool> WaitForWritersAsync(
-        FileManagerWriteDbContext dbContext, CancellationToken cancellationToken)
-    {
-        var deadline = DateTime.UtcNow.AddSeconds(10);
-        while (DateTime.UtcNow < deadline)
-        {
-            var waiting = await dbContext.Database.SqlQuery<int>(
-                $"""
-                SELECT COUNT(*)::int AS "Value"
-                FROM pg_locks AS waiting
-                JOIN pg_locks AS held
-                    ON waiting.database = held.database
-                    AND waiting.classid = held.classid
-                    AND waiting.objid = held.objid
-                    AND waiting.objsubid = held.objsubid
-                WHERE waiting.locktype = 'advisory' AND NOT waiting.granted
-                    AND held.locktype = 'advisory' AND held.granted AND held.pid = pg_backend_pid()
-                """)
-                .SingleAsync(cancellationToken);
-            if (waiting >= 2)
-            {
-                return true;
-            }
-            await Task.Delay(10, cancellationToken);
-        }
-        return false;
     }
 }
