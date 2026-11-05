@@ -169,11 +169,15 @@ public sealed class MoveFileEndpointTests(ManualReconciliationTestFixture fixtur
             var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
             if (kind == "deleted-file")
             {
-                db.Remove(file);
+                var deleted = await db.Set<File>().SingleAsync(
+                    item => item.Id == file.Id, TestContext.Current.CancellationToken);
+                db.Remove(deleted);
             }
             else
             {
-                db.Remove(folder);
+                var deleted = await db.Set<Folder>().SingleAsync(
+                    item => item.Id == folder.Id, TestContext.Current.CancellationToken);
+                db.Remove(deleted);
             }
             await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
