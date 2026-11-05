@@ -38,6 +38,24 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
         return CanRead(filter.Type, filter.UserId);
     }
 
+    public bool CanUpdate(File file)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (file.Type == FileType.Personal)
+        {
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateAll.Code)
+                || (file.UserId?.Value == currentUser.UserId
+                    && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateOwn.Code));
+        }
+
+        return file.Type == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Update.Code);
+    }
+
     public bool CanDelete(File file)
     {
         if (!currentUser.IsAuthenticated)
