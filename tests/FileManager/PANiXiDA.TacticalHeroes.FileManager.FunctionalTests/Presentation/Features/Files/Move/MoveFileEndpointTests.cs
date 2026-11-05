@@ -80,7 +80,8 @@ public sealed class MoveFileEndpointTests(ManualReconciliationTestFixture fixtur
             var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
             versions = await db.Set<Folder>()
                 .OrderBy(folder => folder.Id)
-                .Select(folder => EF.Property<uint>(folder, "xmin")).ToArrayAsync(ct);
+                .Select(folder => EF.Property<uint>(folder, "xmin"))
+                .ToArrayAsync(ct);
             await using var content = new MemoryStream(bytes);
             await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
                 file.StorageKey.Value, content, "text/plain", ct);
@@ -104,7 +105,8 @@ public sealed class MoveFileEndpointTests(ManualReconciliationTestFixture fixtur
         var write = verification.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         var savedVersions = await write.Set<Folder>()
             .OrderBy(folder => folder.Id)
-            .Select(folder => EF.Property<uint>(folder, "xmin")).ToArrayAsync(ct);
+            .Select(folder => EF.Property<uint>(folder, "xmin"))
+            .ToArrayAsync(ct);
         savedVersions.ShouldBe(versions);
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{Route}/{file.Id.Value}/download-url");
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, actorId.ToString());
