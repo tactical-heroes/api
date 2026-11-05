@@ -338,6 +338,50 @@ public sealed class FileAccessPolicyTests
         currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
     }
 
+    [Theory(DisplayName = "File access policy should enforce update scope when type ownership and permissions vary")]
+    [InlineData("Personal", true, "file-manager.personal-files.update.own", true)]
+    [InlineData("Personal", false, "file-manager.personal-files.update.own", false)]
+    [InlineData("Personal", true, "file-manager.personal-files.update.all", true)]
+    [InlineData("Personal", false, "file-manager.personal-files.update.all", true)]
+    [InlineData("Personal", true, "file-manager.personal-files.create.all", false)]
+    [InlineData("Personal", true, "file-manager.personal-files.read.all", false)]
+    [InlineData("Personal", true, "file-manager.personal-files.delete.all", false)]
+    [InlineData("Personal", true, "file-manager.avatars.update", false)]
+    [InlineData("Personal", true, "", false)]
+    [InlineData("Avatar", false, "file-manager.avatars.update", true)]
+    [InlineData("Avatar", false, "file-manager.avatars.read", false)]
+    [InlineData("Avatar", false, "file-manager.personal-files.update.all", false)]
+    [InlineData("Avatar", false, "", false)]
+    public void CanUpdate_Should_EnforceUpdateScope_When_TypeOwnershipAndPermissionsVary(
+        string typeName, bool ownsFile, string permission, bool expected)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.HasPermission(permission).Returns(true);
+        var file = CreateFile(typeName, ownsFile ? userId : Guid.NewGuid());
+
+        var allowed = new FileAccessPolicy(currentUser).CanUpdate(file);
+
+        allowed.ShouldBe(expected);
+    }
+
+    [Theory(DisplayName = "File access policy should deny updating when caller is unauthenticated")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public void CanUpdate_Should_DenyUpdating_When_CallerIsUnauthenticated(string typeName)
+    {
+        var userId = Guid.NewGuid();
+        var currentUser = CreateCurrentUser(userId);
+        currentUser.IsAuthenticated.Returns(false);
+        currentUser.HasPermission(Arg.Any<string>()).Returns(true);
+        var file = CreateFile(typeName, userId);
+
+        var allowed = new FileAccessPolicy(currentUser).CanUpdate(file);
+
+        allowed.ShouldBeFalse();
+        currentUser.DidNotReceive().HasPermission(Arg.Any<string>());
+    }
+
     private static ICurrentUser CreateCurrentUser(Guid? userId)
     {
         var currentUser = Substitute.For<ICurrentUser>();
