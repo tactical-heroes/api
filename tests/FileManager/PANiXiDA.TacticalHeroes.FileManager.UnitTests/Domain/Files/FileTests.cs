@@ -193,6 +193,33 @@ public sealed class FileTests
         file.Status.Name.ShouldBe(status);
     }
 
+    [Theory(DisplayName = "File should detach only before deletion begins when destination is null")]
+    [InlineData("PendingUpload", true)]
+    [InlineData("Ready", true)]
+    [InlineData("Deleting", false)]
+    public void MoveTo_Should_DetachOnlyBeforeDeletionBegins_When_DestinationIsNull(string status, bool allowed)
+    {
+        var file = CreateFile(status == "Deleting" ? "Ready" : status);
+        var folder = Folder.Create(FolderName.Create("Avatars").Value, FileType.Avatar, null).Value;
+        file.MoveTo(folder).IsSuccess.ShouldBeTrue();
+        if (status == "Deleting")
+        {
+            file.BeginDeletion();
+        }
+        var key = file.StorageKey;
+        var contentType = file.ContentType;
+        var size = file.Size;
+
+        var result = file.MoveTo(null);
+
+        result.IsSuccess.ShouldBe(allowed);
+        file.FolderId.ShouldBe(allowed ? null : folder.Id);
+        file.StorageKey.ShouldBeSameAs(key);
+        file.ContentType.ShouldBeSameAs(contentType);
+        file.Size.ShouldBeSameAs(size);
+        file.Status.Name.ShouldBe(status);
+    }
+
     [Fact(DisplayName = "File should replace its folder reference when destination is changed")]
     public void MoveTo_Should_ReplaceFolderReference_When_DestinationIsChanged()
     {

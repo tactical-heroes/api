@@ -4,7 +4,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.Move
 
 internal sealed class MoveFolderEndpoint : IEndpoint<FoldersEndpoints>
 {
-    public string Route { get; } = FoldersEndpoints.IdRoute + "/move";
+    public string Route { get; } = FoldersEndpoints.IdRoute + "/parent";
     public string Name { get; } = "MoveFolder";
     public string Summary { get; } = "Move folder";
 

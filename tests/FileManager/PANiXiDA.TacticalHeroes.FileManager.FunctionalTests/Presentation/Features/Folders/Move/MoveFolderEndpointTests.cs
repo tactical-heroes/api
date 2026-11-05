@@ -324,7 +324,7 @@ public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixt
 
     private async Task<HttpResponseMessage> SendAsync(Guid id, object body, string? subject, string permission)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Patch, $"{Route}/{id}/move");
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"{Route}/{id}/parent");
         request.Content = JsonContent.Create(body);
         if (subject is not null)
         {
