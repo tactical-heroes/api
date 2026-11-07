@@ -35,7 +35,7 @@ internal static class ScalarConfiguration
                 && description.RelativePath is not null
                 && description.SupportedResponseTypes.Any(
                     response => response.StatusCode == StatusCodes.Status201Created))
-            .Select(description => "/" + description.RelativePath)
+            .Select(description => ("/" + description.RelativePath).TrimEnd('/'))
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
@@ -47,7 +47,8 @@ internal static class ScalarConfiguration
                 const method = operation.method.toLowerCase();
                 const index = methods.indexOf(method);
                 const rank = (index < 0 ? methods.length : index) * 2;
-                return rank + (method === 'post' && !creationPaths.has(operation.path) ? 1 : 0);
+                const path = operation.path.replace(/\/+$/, '');
+                return rank + (method === 'post' && !creationPaths.has(path) ? 1 : 0);
             }
 
             export default {
