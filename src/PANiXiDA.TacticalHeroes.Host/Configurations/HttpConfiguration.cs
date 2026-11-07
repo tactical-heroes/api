@@ -35,12 +35,15 @@ internal static class HttpConfiguration
             PlayersPresentationAssembly.Instance,
             FileManagerPresentationAssembly.Instance);
 
+        builder.Services.AddScalarOrdering();
+
         return builder;
     }
 
     internal static WebApplication UseHttp(this WebApplication app)
     {
         HttpServiceCollectionExtensions.UseHttp(app);
+        app.UseScalarOrdering();
 
         return app;
     }
