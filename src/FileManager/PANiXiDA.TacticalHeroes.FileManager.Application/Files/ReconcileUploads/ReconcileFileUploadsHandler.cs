@@ -4,6 +4,7 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -75,20 +76,8 @@ public sealed class ReconcileFileUploadsHandler(
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
-            try
+            if (!await TryDeleteUnusedContentAsync(content, cancellationToken))
             {
-                if (await fileStorage.GetMetadataAsync(content.StorageKey.Value, cancellationToken) is not null)
-                {
-                    await fileStorage.DeleteAsync(content.StorageKey.Value, cancellationToken);
-                }
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Could not delete unused content {ContentId}; will retry", content.Id.Value);
                 continue;
             }
 
@@ -98,6 +87,28 @@ public sealed class ReconcileFileUploadsHandler(
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             }
         }
+    }
+
+    private async Task<bool> TryDeleteUnusedContentAsync(FileContent content, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (await fileStorage.GetMetadataAsync(content.StorageKey.Value, cancellationToken) is not null)
+            {
+                await fileStorage.DeleteAsync(content.StorageKey.Value, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Could not delete unused content {ContentId}; will retry", content.Id.Value);
+            return false;
+        }
+
+        return true;
     }
 
     private async Task ReconcileFileAsync(
