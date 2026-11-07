@@ -34,6 +34,7 @@ public sealed class ScalarFaviconTests(FunctionalTestFixture fixture)
     [Theory(DisplayName = "Scalar and its favicon should not be mapped when environment is not development")]
     [InlineData("/scalar")]
     [InlineData("/favicon.ico")]
+    [InlineData("/scalar/operation-order.js")]
     public async Task GetScalarResource_Should_ReturnNotFound_When_EnvironmentIsNotDevelopment(string path)
     {
         using var response = await Client.GetAsync(path, TestContext.Current.CancellationToken);
