@@ -16,7 +16,7 @@ public sealed class WatchMatchSearchHandlerTests
     {
         var user = Substitute.For<ICurrentUser>();
         var players = Substitute.For<IPlayersClient>();
-        var feed = Substitute.For<IMatchSearchStateFeed>();
+        var subscription = Substitute.For<IMatchSearchStateSubscription>();
         var repository = Substitute.For<IMatchSearchesReadRepository>();
         var userId = Guid.NewGuid();
         var player = new PlayerReadModel(Guid.NewGuid(), 1500);
@@ -26,20 +26,20 @@ public sealed class WatchMatchSearchHandlerTests
         players.GetByUserIdAsync(userId, ct).Returns(player);
         repository.GetStateByPlayerIdAsync(player.Id, ct)
             .Returns((MatchSearchReadModel?)null, changed ? current : null);
-        var handler = new WatchMatchSearchHandler(players, user, feed, repository);
+        var handler = new WatchMatchSearchHandler(players, user, subscription, repository);
 
         var result = await handler.HandleAsync(new WatchMatchSearchCommand("connection"), ct);
 
         result.IsSuccess.ShouldBeTrue();
-        var calls = feed.ReceivedCalls().Select(call => call.GetMethodInfo().Name).ToArray();
+        var calls = subscription.ReceivedCalls().Select(call => call.GetMethodInfo().Name).ToArray();
         calls.ShouldBe(changed ? ["SendAsync", "SubscribeAsync", "SendAsync"] : ["SendAsync", "SubscribeAsync"]);
-        await feed.Received(1).SendAsync(
+        await subscription.Received(1).SendAsync(
             "connection", Arg.Is<MatchSearchReadModel>(state => state.Id == null), ct);
-        await feed.Received(1).SubscribeAsync(player.Id, "connection", ct);
+        await subscription.Received(1).SubscribeAsync(player.Id, "connection", ct);
         await players.Received(1).GetByUserIdAsync(userId, ct);
         if (changed)
         {
-            await feed.Received(1).SendAsync("connection", current, ct);
+            await subscription.Received(1).SendAsync("connection", current, ct);
         }
     }
 
@@ -50,16 +50,16 @@ public sealed class WatchMatchSearchHandlerTests
     {
         var user = Substitute.For<ICurrentUser>();
         user.UserId.Returns(authenticated ? Guid.NewGuid() : (Guid?)null);
-        var feed = Substitute.For<IMatchSearchStateFeed>();
+        var subscription = Substitute.For<IMatchSearchStateSubscription>();
         var repository = Substitute.For<IMatchSearchesReadRepository>();
-        var handler = new WatchMatchSearchHandler(Substitute.For<IPlayersClient>(), user, feed, repository);
+        var handler = new WatchMatchSearchHandler(Substitute.For<IPlayersClient>(), user, subscription, repository);
 
         var result = await handler.HandleAsync(
             new WatchMatchSearchCommand("connection"), TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldHaveSingleItem().Type.ShouldBe(authenticated ? ErrorType.NotFound : ErrorType.Unauthorized);
-        feed.ReceivedCalls().ShouldBeEmpty();
+        subscription.ReceivedCalls().ShouldBeEmpty();
         repository.ReceivedCalls().ShouldBeEmpty();
     }
 }

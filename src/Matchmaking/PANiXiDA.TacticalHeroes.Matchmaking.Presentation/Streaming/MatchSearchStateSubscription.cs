@@ -6,8 +6,8 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Wa
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 
-internal sealed class MatchSearchStateFeed(
-    IHubContext<MatchSearchHub, IMatchSearchClient> hubContext) : IMatchSearchStateFeed
+internal sealed class MatchSearchStateSubscription(
+    IHubContext<MatchSearchHub, IMatchSearchClient> hubContext) : IMatchSearchStateSubscription
 {
     public Task SendAsync(string connectionId, MatchSearchReadModel state, CancellationToken cancellationToken)
     {

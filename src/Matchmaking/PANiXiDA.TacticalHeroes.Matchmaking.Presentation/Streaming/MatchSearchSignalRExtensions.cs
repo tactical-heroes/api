@@ -19,7 +19,7 @@ public static class MatchSearchSignalRExtensions
             .AddStackExchangeRedis(
                 connectionString,
                 options => options.Configuration.ChannelPrefix = RedisChannel.Literal("tactical-heroes:matchmaking"));
-        services.AddScoped<IMatchSearchStateFeed, MatchSearchStateFeed>();
+        services.AddScoped<IMatchSearchStateSubscription, MatchSearchStateSubscription>();
         services.AddScoped<IMatchSearchStatePublisher, MatchSearchStatePublisher>();
 
         return services;
