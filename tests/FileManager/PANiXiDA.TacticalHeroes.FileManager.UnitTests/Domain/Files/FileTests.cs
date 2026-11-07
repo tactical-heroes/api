@@ -39,6 +39,125 @@ public sealed class FileTests
         file.FolderId.ShouldBeNull();
     }
 
+    [Theory(DisplayName = "File should preserve active content when replacement upload begins")]
+    [InlineData("Ready", true)]
+    [InlineData("PendingUpload", false)]
+    [InlineData("Deleting", false)]
+    public void BeginContentUpload_Should_PreserveActiveContent_When_ReplacementUploadBegins(
+        string status,
+        bool allowed)
+    {
+        var file = CreateFile(status);
+        var key = file.StorageKey;
+        var contentType = file.ContentType;
+        var size = file.Size;
+
+        var result = file.BeginContentUpload(FileContentTimestamp.Create(DateTimeOffset.UtcNow));
+
+        result.IsSuccess.ShouldBe(allowed);
+        file.StorageKey.ShouldBeSameAs(key);
+        file.ContentType.ShouldBeSameAs(contentType);
+        file.Size.ShouldBeSameAs(size);
+        file.UnusedContents.Count.ShouldBe(allowed ? 1 : 0);
+        if (allowed)
+        {
+            result.Value.StorageKey.ShouldNotBe(key);
+            file.BeginContentUpload(FileContentTimestamp.Create(DateTimeOffset.UtcNow)).IsFailure.ShouldBeTrue();
+            file.UnusedContents.Count.ShouldBe(1);
+        }
+    }
+
+    [Fact(DisplayName = "File should switch addresses atomically when replacement content is ready")]
+    public void ReplaceContent_Should_SwitchAddressesAtomically_When_ReplacementContentIsReady()
+    {
+        var file = CreateFile("Ready");
+        var oldKey = file.StorageKey;
+        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
+        var upload = file.BeginContentUpload(now).Value;
+        var contentType = FileContentType.Create("text/plain").Value;
+        var size = FileSize.Create(4).Value;
+
+        var result = file.ReplaceContent(upload.Id, contentType, size, now);
+
+        result.IsSuccess.ShouldBeTrue();
+        file.Status.ShouldBe(FileStatus.Ready);
+        file.StorageKey.ShouldBe(upload.StorageKey);
+        file.ContentType.ShouldBeSameAs(contentType);
+        file.Size.ShouldBeSameAs(size);
+        var retired = file.UnusedContents.ShouldHaveSingleItem();
+        retired.StorageKey.ShouldBe(oldKey);
+        retired.DeletionStartedAt.ShouldBe(now);
+    }
+
+    [Theory(DisplayName = "File should preserve active content when replacement cannot complete")]
+    [InlineData("unknown")]
+    [InlineData("deleting")]
+    [InlineData("expired")]
+    public void ReplaceContent_Should_PreserveActiveContent_When_ReplacementCannotComplete(string condition)
+    {
+        var file = CreateFile("Ready");
+        var oldKey = file.StorageKey;
+        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
+        var upload = file.BeginContentUpload(now).Value;
+        if (condition == "deleting")
+        {
+            file.BeginDeletion();
+        }
+        if (condition == "expired")
+        {
+            file.BeginContentDeletion(upload.Id, now);
+        }
+
+        var result = file.ReplaceContent(
+            condition == "unknown" ? FileContentId.New() : upload.Id,
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            now);
+
+        result.IsFailure.ShouldBeTrue();
+        file.StorageKey.ShouldBeSameAs(oldKey);
+        file.ContentType!.Value.ShouldBe("image/png");
+        file.Size!.Value.ShouldBe(128);
+        file.UnusedContents.ShouldHaveSingleItem().ShouldBeSameAs(upload);
+    }
+
+    [Theory(DisplayName = "File should mark only unused content when content deletion begins")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BeginContentDeletion_Should_MarkOnlyUnusedContent_When_ContentDeletionBegins(bool unknown)
+    {
+        var file = CreateFile("Ready");
+        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
+        var upload = file.BeginContentUpload(now).Value;
+        var key = file.StorageKey;
+
+        var result = file.BeginContentDeletion(unknown ? FileContentId.New() : upload.Id, now);
+
+        result.IsSuccess.ShouldBe(!unknown);
+        upload.DeletionStartedAt.ShouldBe(unknown ? null : now);
+        file.StorageKey.ShouldBeSameAs(key);
+    }
+
+    [Theory(DisplayName = "File should remove only retired content when cleanup is complete")]
+    [InlineData("retired", true)]
+    [InlineData("pending", false)]
+    [InlineData("unknown", false)]
+    public void ForgetContent_Should_RemoveOnlyRetiredContent_When_CleanupIsComplete(string condition, bool allowed)
+    {
+        var file = CreateFile("Ready");
+        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
+        var upload = file.BeginContentUpload(now).Value;
+        if (condition == "retired")
+        {
+            file.BeginContentDeletion(upload.Id, now);
+        }
+
+        var result = file.ForgetContent(condition == "unknown" ? FileContentId.New() : upload.Id);
+
+        result.IsSuccess.ShouldBe(allowed);
+        file.UnusedContents.Count.ShouldBe(allowed ? 0 : 1);
+    }
+
     [Theory(DisplayName = "File should retain its storage key when metadata and lifecycle change")]
     [InlineData("Avatar")]
     [InlineData("Personal")]
@@ -385,125 +504,6 @@ public sealed class FileTests
         file.Status.Name.ShouldBe(expectedStatus);
         file.ContentType.ShouldBeSameAs(contentType);
         file.Size.ShouldBeSameAs(size);
-    }
-
-    [Theory(DisplayName = "File should preserve active content when replacement upload begins")]
-    [InlineData("Ready", true)]
-    [InlineData("PendingUpload", false)]
-    [InlineData("Deleting", false)]
-    public void BeginContentUpload_Should_PreserveActiveContent_When_ReplacementUploadBegins(
-        string status,
-        bool allowed)
-    {
-        var file = CreateFile(status);
-        var key = file.StorageKey;
-        var contentType = file.ContentType;
-        var size = file.Size;
-
-        var result = file.BeginContentUpload(FileContentTimestamp.Create(DateTimeOffset.UtcNow));
-
-        result.IsSuccess.ShouldBe(allowed);
-        file.StorageKey.ShouldBeSameAs(key);
-        file.ContentType.ShouldBeSameAs(contentType);
-        file.Size.ShouldBeSameAs(size);
-        file.UnusedContents.Count.ShouldBe(allowed ? 1 : 0);
-        if (allowed)
-        {
-            result.Value.StorageKey.ShouldNotBe(key);
-            file.BeginContentUpload(FileContentTimestamp.Create(DateTimeOffset.UtcNow)).IsFailure.ShouldBeTrue();
-            file.UnusedContents.Count.ShouldBe(1);
-        }
-    }
-
-    [Fact(DisplayName = "File should switch addresses atomically when replacement content is ready")]
-    public void ReplaceContent_Should_SwitchAddressesAtomically_When_ReplacementContentIsReady()
-    {
-        var file = CreateFile("Ready");
-        var oldKey = file.StorageKey;
-        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
-        var upload = file.BeginContentUpload(now).Value;
-        var contentType = FileContentType.Create("text/plain").Value;
-        var size = FileSize.Create(4).Value;
-
-        var result = file.ReplaceContent(upload.Id, contentType, size, now);
-
-        result.IsSuccess.ShouldBeTrue();
-        file.Status.ShouldBe(FileStatus.Ready);
-        file.StorageKey.ShouldBe(upload.StorageKey);
-        file.ContentType.ShouldBeSameAs(contentType);
-        file.Size.ShouldBeSameAs(size);
-        var retired = file.UnusedContents.ShouldHaveSingleItem();
-        retired.StorageKey.ShouldBe(oldKey);
-        retired.DeletionStartedAt.ShouldBe(now);
-    }
-
-    [Theory(DisplayName = "File should preserve active content when replacement cannot complete")]
-    [InlineData("unknown")]
-    [InlineData("deleting")]
-    [InlineData("expired")]
-    public void ReplaceContent_Should_PreserveActiveContent_When_ReplacementCannotComplete(string condition)
-    {
-        var file = CreateFile("Ready");
-        var oldKey = file.StorageKey;
-        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
-        var upload = file.BeginContentUpload(now).Value;
-        if (condition == "deleting")
-        {
-            file.BeginDeletion();
-        }
-        if (condition == "expired")
-        {
-            file.BeginContentDeletion(upload.Id, now);
-        }
-
-        var result = file.ReplaceContent(
-            condition == "unknown" ? FileContentId.New() : upload.Id,
-            FileContentType.Create("text/plain").Value,
-            FileSize.Create(4).Value,
-            now);
-
-        result.IsFailure.ShouldBeTrue();
-        file.StorageKey.ShouldBeSameAs(oldKey);
-        file.ContentType!.Value.ShouldBe("image/png");
-        file.Size!.Value.ShouldBe(128);
-        file.UnusedContents.ShouldHaveSingleItem().ShouldBeSameAs(upload);
-    }
-
-    [Theory(DisplayName = "File should mark only unused content when content deletion begins")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void BeginContentDeletion_Should_MarkOnlyUnusedContent_When_ContentDeletionBegins(bool unknown)
-    {
-        var file = CreateFile("Ready");
-        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
-        var upload = file.BeginContentUpload(now).Value;
-        var key = file.StorageKey;
-
-        var result = file.BeginContentDeletion(unknown ? FileContentId.New() : upload.Id, now);
-
-        result.IsSuccess.ShouldBe(!unknown);
-        upload.DeletionStartedAt.ShouldBe(unknown ? null : now);
-        file.StorageKey.ShouldBeSameAs(key);
-    }
-
-    [Theory(DisplayName = "File should remove only retired content when cleanup is complete")]
-    [InlineData("retired", true)]
-    [InlineData("pending", false)]
-    [InlineData("unknown", false)]
-    public void ForgetContent_Should_RemoveOnlyRetiredContent_When_CleanupIsComplete(string condition, bool allowed)
-    {
-        var file = CreateFile("Ready");
-        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
-        var upload = file.BeginContentUpload(now).Value;
-        if (condition == "retired")
-        {
-            file.BeginContentDeletion(upload.Id, now);
-        }
-
-        var result = file.ForgetContent(condition == "unknown" ? FileContentId.New() : upload.Id);
-
-        result.IsSuccess.ShouldBe(allowed);
-        file.UnusedContents.Count.ShouldBe(allowed ? 0 : 1);
     }
 
     private static File CreateFile(string status)
