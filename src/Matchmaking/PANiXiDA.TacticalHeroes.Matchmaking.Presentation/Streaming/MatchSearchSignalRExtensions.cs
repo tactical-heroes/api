@@ -32,7 +32,7 @@ public static class MatchSearchSignalRExtensions
             var request = context.Request;
             if (string.Equals(
                 a: request.Path.Value?.TrimEnd('/'),
-                b: MatchSearchHubExtensions.Route,
+                b: MatchSearchHub.Route,
                 comparisonType: StringComparison.OrdinalIgnoreCase)
                 && !request.Headers.ContainsKey("Authorization")
                 && request.Query.TryGetValue("access_token", out var token)

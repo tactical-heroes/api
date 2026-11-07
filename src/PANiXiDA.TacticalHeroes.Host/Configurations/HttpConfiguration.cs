@@ -45,7 +45,7 @@ internal static class HttpConfiguration
         app.UseMatchSearchSignalRAuthentication();
 
         HttpServiceCollectionExtensions.UseHttp(app);
-        app.MapMatchSearchHub();
+        MatchSearchHub.Map(app);
 
         return app;
     }
