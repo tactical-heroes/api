@@ -2,8 +2,10 @@ using Microsoft.Extensions.Logging;
 
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
-
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
@@ -15,7 +17,9 @@ public sealed class ReconcileFileUploadsHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    ILogger<ReconcileFileUploadsHandler> logger)
+    ILogger<ReconcileFileUploadsHandler> logger,
+    IFileContentCleanupPolicy contentCleanupPolicy,
+    TimeProvider timeProvider)
     : ICommandHandler<ReconcileFileUploadsCommand, Result>
 {
     public async Task<Result> HandleAsync(
@@ -42,7 +46,69 @@ public sealed class ReconcileFileUploadsHandler(
             await DeleteFileContentAsync(file: file, inspectFirst: true, cancellationToken: cancellationToken);
         }
 
+        await foreach (var file in filesRepository.GetFilesWithUnusedContentsAsync(cancellationToken))
+        {
+            await DeleteUnusedContentAsync(file, cancellationToken);
+        }
+
         return Result.Success();
+    }
+
+    private async Task DeleteUnusedContentAsync(File file, CancellationToken cancellationToken)
+    {
+        foreach (var content in file.UnusedContents.ToArray())
+        {
+            if (!contentCleanupPolicy.CanBeginDeletion(content))
+            {
+                continue;
+            }
+
+            var wasPending = content.DeletionStartedAt is null;
+            var result = file.BeginContentDeletion(content.Id, FileContentTimestamp.Create(timeProvider.GetUtcNow()));
+            if (result.IsFailure)
+            {
+                continue;
+            }
+
+            if (wasPending)
+            {
+                filesRepository.Update(file);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
+            if (!await TryDeleteUnusedContentAsync(content, cancellationToken))
+            {
+                continue;
+            }
+
+            if (contentCleanupPolicy.CanForget(content) && file.ForgetContent(content.Id).IsSuccess)
+            {
+                filesRepository.Update(file);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+        }
+    }
+
+    private async Task<bool> TryDeleteUnusedContentAsync(FileContent content, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (await fileStorage.GetMetadataAsync(content.StorageKey.Value, cancellationToken) is not null)
+            {
+                await fileStorage.DeleteAsync(content.StorageKey.Value, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Could not delete unused content {ContentId}; will retry", content.Id.Value);
+            return false;
+        }
+
+        return true;
     }
 
     private async Task ReconcileFileAsync(

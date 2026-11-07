@@ -6,10 +6,11 @@ using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
-
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
@@ -20,6 +21,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Reconc
 
 public sealed class ReconcileFileUploadsHandlerTests
 {
+    private readonly IFileContentCleanupPolicy _contentCleanup = Substitute.For<IFileContentCleanupPolicy>();
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
     private readonly IFileStorage _fileStorage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -31,6 +33,8 @@ public sealed class ReconcileFileUploadsHandlerTests
         _files.GetExpiredUploadsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetFilesForDeletionAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<File>().ToAsyncEnumerable());
+        _files.GetFilesWithUnusedContentsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetDeletedFilesAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
@@ -331,6 +335,91 @@ public sealed class ReconcileFileUploadsHandlerTests
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
+    [Theory(DisplayName = "Reconciliation should delete only unused content when content is retired or abandoned")]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public async Task HandleAsync_Should_DeleteOnlyUnusedContent_When_ContentIsRetiredOrAbandoned(
+        bool retired,
+        bool forget)
+    {
+        var file = CreateFile();
+        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
+        var upload = file.BeginContentUpload(now).Value;
+        if (retired)
+        {
+            file.ReplaceContent(upload.Id, file.ContentType!, file.Size!, now);
+        }
+        var content = file.UnusedContents.Single();
+        _files.GetFilesWithUnusedContentsAsync(Arg.Any<CancellationToken>())
+            .Returns(new[] { file }.ToAsyncEnumerable());
+        _contentCleanup.CanBeginDeletion(content).Returns(true);
+        _contentCleanup.CanForget(content).Returns(forget);
+        _fileStorage.GetMetadataAsync(content.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4));
+        _fileStorage.DeleteAsync(content.StorageKey.Value, Arg.Any<CancellationToken>()).Returns(_ =>
+        {
+            content.DeletionStartedAt.ShouldNotBeNull();
+            content.StorageKey.ShouldNotBe(file.StorageKey);
+            if (!retired)
+            {
+                _unitOfWork.ReceivedCalls().Count().ShouldBe(1);
+            }
+            return Task.CompletedTask;
+        });
+
+        var result = await CreateHandler().HandleAsync(
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        file.UnusedContents.Count.ShouldBe(forget ? 0 : 1);
+        file.Status.ShouldBe(FileStatus.Ready);
+        await _fileStorage.Received(1).DeleteAsync(content.StorageKey.Value, TestContext.Current.CancellationToken);
+    }
+
+    [Theory(DisplayName = "Reconciliation should retain cleanup records when unused content storage fails")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_RetainCleanupRecords_When_UnusedContentStorageFails(bool inspect)
+    {
+        var file = CreateFile();
+        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        var now = FileContentTimestamp.Create(DateTimeOffset.UtcNow);
+        var content = file.BeginContentUpload(now).Value;
+        file.BeginContentDeletion(content.Id, now);
+        _files.GetFilesWithUnusedContentsAsync(Arg.Any<CancellationToken>())
+            .Returns(new[] { file }.ToAsyncEnumerable());
+        _contentCleanup.CanBeginDeletion(content).Returns(true);
+        _contentCleanup.CanForget(content).Returns(true);
+        _fileStorage.GetMetadataAsync(content.StorageKey.Value, Arg.Any<CancellationToken>()).Returns(_ =>
+            inspect ? throw new IOException("Inspection failed.") : new FileMetadata("text/plain", 4));
+        _fileStorage.DeleteAsync(content.StorageKey.Value, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new IOException("Deletion failed."));
+
+        var result = await CreateHandler().HandleAsync(
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        file.UnusedContents.ShouldHaveSingleItem().ShouldBeSameAs(content);
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact(DisplayName = "Reconciliation should preserve a fresh candidate when upload is still eligible")]
+    public async Task HandleAsync_Should_PreserveFreshCandidate_When_UploadIsStillEligible()
+    {
+        var file = CreateFile();
+        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        var upload = file.BeginContentUpload(FileContentTimestamp.Create(DateTimeOffset.UtcNow)).Value;
+        _files.GetFilesWithUnusedContentsAsync(Arg.Any<CancellationToken>())
+            .Returns(new[] { file }.ToAsyncEnumerable());
+
+        await CreateHandler().HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        upload.DeletionStartedAt.ShouldBeNull();
+        _fileStorage.ReceivedCalls().ShouldBeEmpty();
+        _unitOfWork.ReceivedCalls().ShouldBeEmpty();
+    }
+
     private static File CreateFile()
     {
         return File.Create(
@@ -350,6 +439,8 @@ public sealed class ReconcileFileUploadsHandlerTests
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
+            contentCleanupPolicy: _contentCleanup,
+            timeProvider: TimeProvider.System);
     }
 }
