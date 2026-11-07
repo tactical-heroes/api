@@ -10,6 +10,8 @@
         <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.13" />
         <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
         <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+        <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.14" />
+        <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.14" />
         <PackageVersion Include="Microsoft.CodeAnalysis" Version="5.9.0" />
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.9.0" />

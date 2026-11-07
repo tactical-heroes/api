@@ -1,6 +1,8 @@
 using PANiXiDA.Core.Presentation.Http.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Host.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Streaming;
 
 using BattlePresentationAssembly = PANiXiDA.TacticalHeroes.Battle.Presentation.PresentationAssembly;
 using BuildsPresentationAssembly = PANiXiDA.TacticalHeroes.Builds.Presentation.PresentationAssembly;
@@ -40,7 +42,10 @@ internal static class HttpConfiguration
 
     internal static WebApplication UseHttp(this WebApplication app)
     {
+        app.UseMatchSearchSignalRAuthentication();
+
         HttpServiceCollectionExtensions.UseHttp(app);
+        MatchSearchHub.Map(app);
 
         return app;
     }
