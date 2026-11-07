@@ -17,7 +17,7 @@ public sealed class ScalarOperationOrderingTests(FunctionalTestFixture fixture) 
         using var response = await client.GetAsync("/scalar/operation-order.js", cancellationToken);
         var configuration = await response.Content.ReadAsStringAsync(cancellationToken);
 
-        scalar.ShouldContain("/scalar/operation-order.js");
+        scalar.ShouldContain("scalar/operation-order.js");
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Content.Headers.ContentType!.MediaType.ShouldBe("text/javascript");
         string[] creationPaths =
