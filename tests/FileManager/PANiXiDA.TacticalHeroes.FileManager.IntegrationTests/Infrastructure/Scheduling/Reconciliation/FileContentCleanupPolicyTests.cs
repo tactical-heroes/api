@@ -40,4 +40,22 @@ public sealed class FileContentCleanupPolicyTests
         shouldDelete.ShouldBe(canDelete);
         shouldForget.ShouldBe(canForget);
     }
+
+    [Fact(DisplayName = "Content cleanup should retain pending uploads when recheck window has elapsed")]
+    public void CanForget_Should_RetainPendingUploads_When_RecheckWindowHasElapsed()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var then = FileContentTimestamp.Create(now.AddDays(-2));
+        var file = File.Create(FileName.Create("file.txt").Value, FileType.Avatar, userId: null).Value;
+        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        var content = file.BeginContentUpload(then).Value;
+        var clock = Substitute.For<TimeProvider>();
+        clock.GetUtcNow().Returns(now);
+        var options = Microsoft.Extensions.Options.Options.Create(new FileUploadReconciliationOptions());
+        var policy = new FileContentCleanupPolicy(options, clock);
+
+        var shouldForget = policy.CanForget(content);
+
+        shouldForget.ShouldBeFalse();
+    }
 }

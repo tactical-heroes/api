@@ -20,7 +20,11 @@ public sealed class FileContent : Entity<FileContentId>
 
     internal static FileContent Create(FileId fileId, FileStorageKey storageKey, FileContentTimestamp registeredAt)
     {
-        return new FileContent(FileContentId.New(), fileId, storageKey, registeredAt);
+        return new FileContent(
+            id: FileContentId.New(),
+            fileId: fileId,
+            storageKey: storageKey,
+            registeredAt: registeredAt);
     }
 
     internal void BeginDeletion(FileContentTimestamp now)

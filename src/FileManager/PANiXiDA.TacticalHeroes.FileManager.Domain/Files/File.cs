@@ -168,7 +168,7 @@ public sealed class File : AggregateRoot<FileId>
         }
 
         var key = FileStorageKey.Create($"contents/{Id.Value:D}/{Guid.CreateVersion7():D}").Value;
-        var content = FileContent.Create(Id, key, now);
+        var content = FileContent.Create(fileId: Id, storageKey: key, registeredAt: now);
         _unusedContents.Add(content);
 
         return Result.Success(content);
@@ -186,7 +186,7 @@ public sealed class File : AggregateRoot<FileId>
             return Result.Failure(Error.Conflict("File content upload is no longer available."));
         }
 
-        var previous = FileContent.Create(Id, StorageKey, now);
+        var previous = FileContent.Create(fileId: Id, storageKey: StorageKey, registeredAt: now);
         previous.BeginDeletion(now);
         _unusedContents.Remove(content);
         _unusedContents.Add(previous);
