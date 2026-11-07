@@ -8,6 +8,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -144,12 +145,11 @@ public sealed class CreatePersonalFileUploadUrlHandlerTests
         var policy = new FileAccessPolicy(_user);
         var service = new FileCreationService(
             filesRepository: _files,
-            foldersRepository: _folders,
-            folderHierarchyLock: _hierarchyLock,
+            folderAccessService: new FolderAccessService(
+                _folders, _hierarchyLock, new FolderAccessPolicy(_user, policy)),
             fileStorage: _storage,
             unitOfWork: Substitute.For<IUnitOfWork>(),
-            fileAccessPolicy: policy,
-            folderAccessPolicy: new FolderAccessPolicy(_user, policy));
+            fileAccessPolicy: policy);
         return new CreatePersonalFileUploadUrlHandler(service, _user);
     }
 }

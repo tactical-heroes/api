@@ -3,6 +3,7 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Update;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -162,7 +163,8 @@ public sealed class UpdateFolderHandlerTests
 
     private UpdateFolderHandler CreateHandler()
     {
+        var policy = new FolderAccessPolicy(_user, new FileAccessPolicy(_user));
         return new UpdateFolderHandler(
-            _folders, _read, _hierarchyLock, new FolderAccessPolicy(_user, new FileAccessPolicy(_user)));
+            _folders, _read, new FolderAccessService(_folders, _hierarchyLock, policy), policy);
     }
 }

@@ -132,7 +132,8 @@ public sealed class CreatePersonalFolderHandlerTests
     private CreatePersonalFolderHandler CreateHandler()
     {
         var policy = new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser));
-        return new CreatePersonalFolderHandler(
-            new FolderCreationService(_folders, policy, Substitute.For<IFolderHierarchyLock>()), _currentUser);
+        var service = new FolderCreationService(
+            _folders, policy, new FolderAccessService(_folders, Substitute.For<IFolderHierarchyLock>(), policy));
+        return new CreatePersonalFolderHandler(service, _currentUser);
     }
 }

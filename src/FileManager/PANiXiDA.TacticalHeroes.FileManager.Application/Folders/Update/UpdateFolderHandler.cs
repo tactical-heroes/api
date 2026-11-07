@@ -2,6 +2,7 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
@@ -13,7 +14,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Update;
 public sealed class UpdateFolderHandler(
     IFoldersRepository foldersRepository,
     IFoldersReadRepository foldersReadRepository,
-    IFolderHierarchyLock folderHierarchyLock,
+    FolderAccessService folderAccessService,
     FolderAccessPolicy folderAccessPolicy)
     : ICommandHandler<UpdateFolderCommand, Result>, IRequireAuthorization, IRequireTransaction
 {
@@ -30,12 +31,13 @@ public sealed class UpdateFolderHandler(
             return Result.Failure(validation.Errors);
         }
 
-        await folderHierarchyLock.AcquireAsync(cancellationToken);
-        var folder = await foldersRepository.GetByIdAsync(id.Value, cancellationToken);
-        if (folder is null || !folderAccessPolicy.CanUpdate(folder))
+        var source = await folderAccessService.GetForUpdateAsync(id.Value, cancellationToken);
+        if (source.IsFailure)
         {
-            return Result.Failure(Error.NotFound("Folder was not found."));
+            return Result.Failure(source.Errors);
         }
+
+        var folder = source.Value;
 
         if (!folderAccessPolicy.CanUpdate(type.Value, ownerId.Value))
         {
@@ -45,11 +47,13 @@ public sealed class UpdateFolderHandler(
         Folder? parent = null;
         if (parentId.Value is { } targetId)
         {
-            parent = await foldersRepository.GetByIdAsync(targetId, cancellationToken);
-            if (parent is null || !folderAccessPolicy.CanUpdate(parent))
+            var destination = await folderAccessService.GetForUpdateAsync(targetId, cancellationToken);
+            if (destination.IsFailure)
             {
-                return Result.Failure(Error.NotFound("Folder was not found."));
+                return Result.Failure(destination.Errors);
             }
+
+            parent = destination.Value;
 
             if (await foldersReadRepository.HasAncestorAsync(
                 id: targetId.Value,

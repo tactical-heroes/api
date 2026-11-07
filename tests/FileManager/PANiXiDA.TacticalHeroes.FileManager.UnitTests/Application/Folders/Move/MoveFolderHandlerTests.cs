@@ -4,6 +4,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Move;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
@@ -40,7 +41,7 @@ public sealed class MoveFolderHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         folder.ParentId.ShouldBe(parent.Id);
-        await _hierarchyLock.Received(1).AcquireAsync(TestContext.Current.CancellationToken);
+        await _hierarchyLock.Received(2).AcquireAsync(TestContext.Current.CancellationToken);
         _folders.Received(1).Update(Arg.Any<Folder>());
         _folders.Received(1).Update(folder);
         await _foldersReadRepository.Received(1).HasAncestorAsync(
@@ -184,7 +185,7 @@ public sealed class MoveFolderHandlerTests
         return new MoveFolderHandler(
             _folders,
             _foldersReadRepository,
-            _hierarchyLock,
-            new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser)));
+            new FolderAccessService(
+                _folders, _hierarchyLock, new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser))));
     }
 }

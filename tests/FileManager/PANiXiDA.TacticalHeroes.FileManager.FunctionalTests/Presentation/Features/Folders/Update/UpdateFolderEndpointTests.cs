@@ -469,7 +469,7 @@ public sealed class UpdateFolderEndpointTests(ManualReconciliationTestFixture fi
 
     private async Task<HttpResponseMessage> SendMoveAsync(Guid id, Guid parentId, Guid actorId)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Patch, $"{Route}/{id}/move");
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"{Route}/{id}/parent");
         request.Content = JsonContent.Create(new { ParentId = parentId });
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, actorId.ToString());
         request.Headers.Add(TestAuthenticationHandler.PermissionsHeader, AllUpdates);

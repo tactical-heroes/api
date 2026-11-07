@@ -9,6 +9,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -261,12 +262,11 @@ public sealed class CreatePersonalFileHandlerTests
         var policy = new FileAccessPolicy(_currentUser);
         var service = new FileCreationService(
             filesRepository: _files,
-            foldersRepository: _folders,
-            folderHierarchyLock: _hierarchyLock,
+            folderAccessService: new FolderAccessService(
+                _folders, _hierarchyLock, new FolderAccessPolicy(_currentUser, policy)),
             fileStorage: _storage,
             unitOfWork: _unitOfWork,
-            fileAccessPolicy: policy,
-            folderAccessPolicy: new FolderAccessPolicy(_currentUser, policy));
+            fileAccessPolicy: policy);
         return new CreatePersonalFileHandler(service, _currentUser);
     }
 }
