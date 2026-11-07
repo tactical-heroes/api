@@ -1,4 +1,6 @@
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -8,6 +10,8 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 
 public sealed class File : AggregateRoot<FileId>
 {
+    private readonly List<FileContent> _unusedContents = [];
+
     private File(
         FileId id,
         FileName name,
@@ -31,6 +35,7 @@ public sealed class File : AggregateRoot<FileId>
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
+    public IReadOnlyCollection<FileContent> UnusedContents => _unusedContents.AsReadOnly();
 
     public static Result<File> Create(
         FileName name,
@@ -146,6 +151,74 @@ public sealed class File : AggregateRoot<FileId>
         ContentType = contentType;
         Size = size;
         Status = FileStatus.Ready;
+
+        return Result.Success();
+    }
+
+    public Result<FileContent> BeginContentUpload(FileContentTimestamp now)
+    {
+        if (Status != FileStatus.Ready)
+        {
+            return Result.Failure<FileContent>(Error.Conflict("Only ready file content can be replaced."));
+        }
+
+        if (_unusedContents.Any(content => content.DeletionStartedAt is null))
+        {
+            return Result.Failure<FileContent>(Error.Conflict("A file content upload is already in progress."));
+        }
+
+        var key = FileStorageKey.Create($"contents/{Id.Value:D}/{Guid.CreateVersion7():D}").Value;
+        var content = FileContent.Create(Id, key, now);
+        _unusedContents.Add(content);
+
+        return Result.Success(content);
+    }
+
+    public Result ReplaceContent(
+        FileContentId contentId,
+        FileContentType contentType,
+        FileSize size,
+        FileContentTimestamp now)
+    {
+        var content = _unusedContents.SingleOrDefault(item => item.Id == contentId);
+        if (Status != FileStatus.Ready || content is null || content.DeletionStartedAt is not null)
+        {
+            return Result.Failure(Error.Conflict("File content upload is no longer available."));
+        }
+
+        var previous = FileContent.Create(Id, StorageKey, now);
+        previous.BeginDeletion(now);
+        _unusedContents.Remove(content);
+        _unusedContents.Add(previous);
+        StorageKey = content.StorageKey;
+        ContentType = contentType;
+        Size = size;
+
+        return Result.Success();
+    }
+
+    public Result BeginContentDeletion(FileContentId contentId, FileContentTimestamp now)
+    {
+        var content = _unusedContents.SingleOrDefault(item => item.Id == contentId);
+        if (content is null || content.StorageKey == StorageKey)
+        {
+            return Result.Failure(Error.Conflict("Active or unknown file content cannot be deleted."));
+        }
+
+        content.BeginDeletion(now);
+
+        return Result.Success();
+    }
+
+    public Result ForgetContent(FileContentId contentId)
+    {
+        var content = _unusedContents.SingleOrDefault(item => item.Id == contentId);
+        if (content is null || content.DeletionStartedAt is null || content.StorageKey == StorageKey)
+        {
+            return Result.Failure(Error.Conflict("Only deleted unused file content can be forgotten."));
+        }
+
+        _unusedContents.Remove(content);
 
         return Result.Success();
     }

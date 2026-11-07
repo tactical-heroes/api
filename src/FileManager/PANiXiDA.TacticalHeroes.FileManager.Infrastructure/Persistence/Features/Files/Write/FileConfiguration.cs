@@ -82,6 +82,14 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
         builder.HasIndex(file => file.FolderId);
         builder.HasIndex(file => file.UserId);
 
+        builder.HasMany(file => file.UnusedContents)
+            .WithOne()
+            .HasForeignKey(content => content.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(file => file.UnusedContents)
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .AutoInclude();
+
         builder.HasOne<Folder>()
             .WithMany()
             .HasForeignKey(file => file.FolderId)
