@@ -37,18 +37,10 @@ public sealed class File : AggregateRoot<FileId>
         FileType type,
         UserId? userId)
     {
-        if (type == FileType.Personal && userId is null)
+        var validation = ValidateOwnership(type, userId);
+        if (validation.IsFailure)
         {
-            return Result.Failure<File>(
-                Error.Validation("Personal files require a user id.")
-                    .WithField(nameof(UserId)));
-        }
-
-        if (type != FileType.Personal && userId is not null)
-        {
-            return Result.Failure<File>(
-                Error.Validation("Only personal files can have a user id.")
-                    .WithField(nameof(UserId)));
+            return Result.Failure<File>(validation.Errors);
         }
 
         var id = FileId.New();
@@ -66,6 +58,29 @@ public sealed class File : AggregateRoot<FileId>
             type: type,
             userId: userId,
             storageKey: storageKey));
+    }
+
+    public Result Update(FileName name, FileType type, UserId? userId, Folder? folder)
+    {
+        if (Status == FileStatus.Deleting)
+        {
+            return Result.Failure(Error.Conflict("A file being deleted cannot be updated."));
+        }
+
+        var validation = Result.Combine(
+            ValidateOwnership(type, userId),
+            ValidateFolder(folder: folder, type: type, userId: userId));
+        if (validation.IsFailure)
+        {
+            return validation;
+        }
+
+        Name = name;
+        Type = type;
+        UserId = userId;
+        FolderId = folder?.Id;
+
+        return Result.Success();
     }
 
     public Result<FileContentType> GetDownloadContentType()
@@ -99,28 +114,13 @@ public sealed class File : AggregateRoot<FileId>
                 Error.Conflict("A file being deleted cannot be moved."));
         }
 
-        if (folder is null)
+        var validation = ValidateFolder(folder: folder, type: Type, userId: UserId);
+        if (validation.IsFailure)
         {
-            FolderId = null;
-
-            return Result.Success();
+            return validation;
         }
 
-        if (Type != folder.AllowedFileType)
-        {
-            return Result.Failure(
-                Error.Validation("File type must match the folder's allowed file type.")
-                    .WithField(nameof(FolderId)));
-        }
-
-        if (UserId != folder.UserId)
-        {
-            return Result.Failure(
-                Error.Validation("File and folder user ids must match.")
-                    .WithField(nameof(FolderId)));
-        }
-
-        FolderId = folder.Id;
+        FolderId = folder?.Id;
 
         return Result.Success();
     }
@@ -158,6 +158,47 @@ public sealed class File : AggregateRoot<FileId>
         }
 
         Status = FileStatus.Deleting;
+
+        return Result.Success();
+    }
+
+    private static Result ValidateOwnership(FileType type, UserId? userId)
+    {
+        if (type == FileType.Personal && userId is null)
+        {
+            return Result.Failure(
+                Error.Validation("Personal files require a user id.")
+                    .WithField(nameof(UserId)));
+        }
+
+        if (type != FileType.Personal && userId is not null)
+        {
+            return Result.Failure(
+                Error.Validation("Only personal files can have a user id.")
+                    .WithField(nameof(UserId)));
+        }
+
+        return Result.Success();
+    }
+
+    private static Result ValidateFolder(Folder? folder, FileType type, UserId? userId)
+    {
+        if (folder is not null)
+        {
+            if (type != folder.AllowedFileType)
+            {
+                return Result.Failure(
+                    Error.Validation("File type must match the folder's allowed file type.")
+                        .WithField(nameof(FolderId)));
+            }
+
+            if (userId != folder.UserId)
+            {
+                return Result.Failure(
+                    Error.Validation("File and folder user ids must match.")
+                        .WithField(nameof(FolderId)));
+            }
+        }
 
         return Result.Success();
     }
