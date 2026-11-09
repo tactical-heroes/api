@@ -23,5 +23,5 @@ internal static partial class SignalRConfiguration
     }
 
     [GenerateShapeFor<MatchSearchStateResponse>]
-    private partial class SignalRMessagePackTypes;
+    private sealed partial class SignalRMessagePackTypes;
 }
