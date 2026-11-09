@@ -16,8 +16,8 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
     internal static async Task<MatchSearchHubClient> ConnectAsync(
         WebApplicationFactory<Program> factory,
         Guid userId,
-        CancellationToken cancellationToken,
-        bool messagePack = false)
+        bool messagePack,
+        CancellationToken cancellationToken)
     {
         var messages = Channel.CreateUnbounded<MatchSearchStateResponse>();
         var builder = new HubConnectionBuilder()

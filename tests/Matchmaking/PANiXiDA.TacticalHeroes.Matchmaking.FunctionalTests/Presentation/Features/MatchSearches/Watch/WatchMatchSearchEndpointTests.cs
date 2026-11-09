@@ -61,7 +61,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var player = await SeedPlayerAsync();
         await using var socket = await MatchSearchHubClient.ConnectAsync(
-            fixture.Factory, player.UserId.Value, TestContext.Current.CancellationToken, messagePack);
+            fixture.Factory, player.UserId.Value, messagePack, TestContext.Current.CancellationToken);
 
         var state = await ReadAsync(socket);
 
@@ -194,7 +194,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         (await ReadAsync(reconnected)).ShouldBe(state);
     }
 
-    [Theory(DisplayName = "Hub should deliver snapshots over both protocols when another replica publishes")]
+    [Theory(DisplayName = "Hub should deliver state when publication originates on another replica")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task ConnectAsync_Should_DeliverState_When_PublicationOriginatesOnAnotherReplica(bool messagePack)
@@ -203,7 +203,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await using var replica = new FunctionalTestWebApplicationFactory(false, false);
         using var replicaHttp = replica.CreateClient();
         await using var socket = await MatchSearchHubClient.ConnectAsync(
-            replica, player.UserId.Value, TestContext.Current.CancellationToken, messagePack);
+            replica, player.UserId.Value, messagePack, TestContext.Current.CancellationToken);
         await ReadAsync(socket);
         await using var publisherScope = fixture.Services.CreateAsyncScope();
         var publisher = publisherScope.ServiceProvider.GetRequiredService<
@@ -239,7 +239,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     private Task<MatchSearchHubClient> ConnectAsync(Guid userId, bool messagePack = false)
     {
         return MatchSearchHubClient.ConnectAsync(
-            fixture.Factory, userId, TestContext.Current.CancellationToken, messagePack);
+            fixture.Factory, userId, messagePack, TestContext.Current.CancellationToken);
     }
 
     private async Task<Player> SeedPlayerAsync()
