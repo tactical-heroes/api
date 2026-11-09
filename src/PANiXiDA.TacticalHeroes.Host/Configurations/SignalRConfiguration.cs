@@ -1,10 +1,14 @@
 using PANiXiDA.Core.Presentation.SignalR.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
+
+using PolyType;
+
 using MatchmakingPresentationAssembly = PANiXiDA.TacticalHeroes.Matchmaking.Presentation.PresentationAssembly;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations;
 
-internal static class SignalRConfiguration
+internal static partial class SignalRConfiguration
 {
     internal static WebApplicationBuilder AddSignalR(this WebApplicationBuilder builder)
     {
@@ -17,4 +21,7 @@ internal static class SignalRConfiguration
     {
         return app.UseSignalR(MatchmakingPresentationAssembly.Instance);
     }
+
+    [GenerateShapeFor<MatchSearchStateResponse>]
+    private partial class SignalRMessagePackTypes;
 }
