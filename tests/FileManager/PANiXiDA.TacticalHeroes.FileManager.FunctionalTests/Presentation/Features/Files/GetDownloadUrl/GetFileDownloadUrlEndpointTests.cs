@@ -40,6 +40,8 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
         {
             using var uploadRequest = new HttpRequestMessage(HttpMethod.Post, Route + "/personal");
             uploadRequest.Headers.Add(TestAuthenticationHandler.UserIdHeader, userId.ToString());
+            uploadRequest.Headers.Add(
+                TestAuthenticationHandler.PermissionsHeader, "file-manager.personal-files.create.own");
             using var content = new ByteArrayContent(bytes);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             uploadRequest.Content = new MultipartFormDataContent { { content, "File", name } };

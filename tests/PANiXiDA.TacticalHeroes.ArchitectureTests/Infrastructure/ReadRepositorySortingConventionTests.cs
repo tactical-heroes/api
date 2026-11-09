@@ -1,12 +1,15 @@
 using System.Reflection;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 
+using PANiXiDA.Core.Application.Querying;
 using PANiXiDA.Core.Application.Querying.Sorting;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Sorting;
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 
@@ -57,6 +60,34 @@ public sealed class ReadRepositorySortingConventionTests
 
         Assert.NotEmpty(sortingTypes);
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Theory(DisplayName = "Read result extraction should require read model payloads when result payload varies")]
+    [InlineData(typeof(Guid), false)]
+    [InlineData(typeof(IReadModel), true)]
+    [InlineData(typeof(FileDetailsReadModel), true)]
+    public void GetResultModel_Should_RequireReadModelPayloads_When_ResultPayloadVaries(
+        Type payloadType, bool readModel)
+    {
+        var compilation = CSharpCompilation.Create(
+            "ReadResultTypes",
+            references:
+            [
+                MetadataReference.CreateFromFile(typeof(Guid).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(IReadModel).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(FileDetailsReadModel).Assembly.Location)
+            ]);
+        var payload = compilation.GetTypeByMetadataName(payloadType.FullName!)!;
+        var list = compilation.GetTypeByMetadataName("System.Collections.Generic.List`1")!.Construct(payload);
+        var task = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1")!.Construct(list);
+
+        var result = GetResultModel(task, collectionsOnly: true);
+
+        Assert.Equal(readModel, result is not null);
+        if (readModel)
+        {
+            Assert.True(SymbolEqualityComparer.Default.Equals(payload, result));
+        }
     }
 
     private static async Task<ReadMethod[]> GetMethodsAsync(string repositoryRoot, Document document)
@@ -131,7 +162,7 @@ public sealed class ReadRepositorySortingConventionTests
     private static ITypeSymbol? GetResultModel(ITypeSymbol type, bool collectionsOnly)
     {
         if (!collectionsOnly
-            && type.AllInterfaces.Any(contract =>
+            && type.AllInterfaces.Prepend(type).Any(contract =>
                 contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
         {
             return type;
@@ -139,7 +170,7 @@ public sealed class ReadRepositorySortingConventionTests
 
         if (type is IArrayTypeSymbol array)
         {
-            return array.ElementType;
+            return GetResultModel(array.ElementType, collectionsOnly: false);
         }
 
         if (type is not INamedTypeSymbol named || type.SpecialType == SpecialType.System_String)
@@ -159,15 +190,17 @@ public sealed class ReadRepositorySortingConventionTests
                 "PANiXiDA.Core.Application.Querying.Cursor"
             && named.Name is "PaginationResult" or "CursorPaginationResult")
         {
-            return named.TypeArguments[0];
+            return GetResultModel(named.TypeArguments[0], collectionsOnly: false);
         }
 
-        return named.AllInterfaces.Prepend(named)
+        var elementType = named.AllInterfaces.Prepend(named)
             .FirstOrDefault(contract => contract.OriginalDefinition.SpecialType == SpecialType
                 .System_Collections_Generic_IEnumerable_T
                 || (contract.MetadataName == "IAsyncEnumerable`1"
                     && contract.ContainingNamespace.ToDisplayString() == "System.Collections.Generic"))
             ?.TypeArguments[0];
+
+        return elementType is null ? null : GetResultModel(elementType, collectionsOnly: false);
     }
 
     private static bool UsesOperation(

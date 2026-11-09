@@ -10,6 +10,24 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 
 public sealed class FileAccessPolicy(ICurrentUser currentUser)
 {
+    public bool CanCreate(File file)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (file.Type == FileType.Personal)
+        {
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.CreateAll.Code)
+                || (file.UserId?.Value == currentUser.UserId
+                    && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.CreateOwn.Code));
+        }
+
+        return file.Type == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Create.Code);
+    }
+
     public bool CanRead(File file)
     {
         return CanRead(file.Type.Name, file.UserId?.Value);
@@ -18,6 +36,24 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
     public bool CanRead(FilesFilter filter)
     {
         return CanRead(filter.Type, filter.UserId);
+    }
+
+    public bool CanUpdate(File file)
+    {
+        if (!currentUser.IsAuthenticated)
+        {
+            return false;
+        }
+
+        if (file.Type == FileType.Personal)
+        {
+            return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateAll.Code)
+                || (file.UserId?.Value == currentUser.UserId
+                    && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateOwn.Code));
+        }
+
+        return file.Type == FileType.Avatar
+            && currentUser.HasPermission(Permissions.FileManager.Avatars.Update.Code);
     }
 
     public bool CanDelete(File file)

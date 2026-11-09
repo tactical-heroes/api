@@ -30,6 +30,7 @@ internal sealed class FunctionalTestWebApplicationFactory(
                 ["OpenIddictValidationOptions:ClientSecret"] = "functional-test-introspection-secret",
                 ["Identity:Provider:Clients:1:ClientSecret"] = "functional-test-introspection-secret",
                 ["FileManager:Schedules:ReconcileFileUploadsCommand:Enabled"] = "false",
+                ["FileManager:Schedules:ReconcileFolderDeletionsCommand:Enabled"] = "false",
                 ["Matchmaking:Schedules:ExpireMatchSearchesCommand:Enabled"] = expirationScheduleEnabled.ToString(),
                 ["Matchmaking:Schedules:ProcessMatchmakingCommand:Enabled"] = matchmakingScheduleEnabled.ToString()
             }));

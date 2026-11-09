@@ -32,6 +32,27 @@ public sealed class FolderIdTests
         result.Value.Value.ShouldBe(value);
     }
 
+    [Theory(DisplayName = "Folder id should preserve optional values when nullable input varies")]
+    [InlineData("null")]
+    [InlineData("valid")]
+    [InlineData("empty")]
+    public void Create_Should_PreserveOptionalValues_When_NullableInputVaries(string kind)
+    {
+        Guid? value = kind == "null" ? null : kind == "empty" ? Guid.Empty : Guid.NewGuid();
+
+        var result = FolderId.Create(value);
+
+        result.IsSuccess.ShouldBe(kind != "empty");
+        if (result.IsSuccess)
+        {
+            (result.Value?.Value).ShouldBe(value);
+        }
+        else
+        {
+            result.ShouldHaveSingleError(ErrorType.Validation, "Folder id cannot be empty.");
+        }
+    }
+
     [Fact(DisplayName = "Folder id should format its value when converted to string")]
     public void ToString_Should_ReturnValue_When_ConvertedToString()
     {

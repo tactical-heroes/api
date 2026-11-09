@@ -91,12 +91,19 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result MoveTo(Folder folder)
+    public Result MoveTo(Folder? folder)
     {
         if (Status == FileStatus.Deleting)
         {
             return Result.Failure(
                 Error.Conflict("A file being deleted cannot be moved."));
+        }
+
+        if (folder is null)
+        {
+            FolderId = null;
+
+            return Result.Success();
         }
 
         if (Type != folder.AllowedFileType)

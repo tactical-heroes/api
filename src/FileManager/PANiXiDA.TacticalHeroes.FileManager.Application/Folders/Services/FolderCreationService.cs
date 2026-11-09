@@ -7,7 +7,10 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 
-public sealed class FolderCreationService(IFoldersRepository foldersRepository, FolderAccessPolicy folderAccessPolicy)
+public sealed class FolderCreationService(
+    IFoldersRepository foldersRepository,
+    FolderAccessPolicy folderAccessPolicy,
+    FolderAccessService folderAccessService)
 {
     public async Task<Result<Guid>> CreateAsync(
         string name,
@@ -81,10 +84,14 @@ public sealed class FolderCreationService(IFoldersRepository foldersRepository, 
         FolderId parentId,
         CancellationToken cancellationToken)
     {
-        var parent = await foldersRepository.GetByIdAsync(parentId, cancellationToken);
-        if (parent is null
-            || !folderAccessPolicy.CanCreate(parent)
-            || allowedFileType != parent.AllowedFileType
+        var result = await folderAccessService.GetForCreateAsync(parentId, cancellationToken);
+        if (result.IsFailure)
+        {
+            return result;
+        }
+
+        var parent = result.Value;
+        if (allowedFileType != parent.AllowedFileType
             || (userId is { } ownerId && ownerId != parent.UserId))
         {
             return Result.Failure<Folder>(Error.NotFound("Folder was not found."));

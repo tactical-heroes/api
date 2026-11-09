@@ -3,9 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Write;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
@@ -17,8 +20,11 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         serviceCollection.AddScoped<FileAccessPolicy>();
+        serviceCollection.AddScoped<FileCreationService>();
         serviceCollection.AddScoped<FolderAccessPolicy>();
+        serviceCollection.AddScoped<FolderAccessService>();
         serviceCollection.AddScoped<FolderCreationService>();
+        serviceCollection.AddScoped<IFolderHierarchyLock, PostgreSqlFolderHierarchyLock>();
         serviceCollection.AddPostgreSqlEfRepository<
             FileManagerWriteDbContext,
             FileManagerReadDbContext>(

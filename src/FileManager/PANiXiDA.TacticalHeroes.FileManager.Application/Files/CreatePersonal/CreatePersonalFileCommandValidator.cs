@@ -17,8 +17,7 @@ public sealed class CreatePersonalFileCommandValidator : AbstractValidator<Creat
             .MustBeValidDomainValue(FileSize.Create);
 
         RuleFor(command => command.FolderId)
-            .MustBeValidDomainValue(value => FolderId.Create(value.GetValueOrDefault()))
-            .When(command => command.FolderId is not null);
+            .MustBeValidDomainValue(FolderId.Create);
 
         RuleFor(command => command.Content)
             .NotNull();

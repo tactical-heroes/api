@@ -21,6 +21,9 @@ public class FunctionalTestFixture : IAsyncLifetime
     private const string ExpirationEnabledVariable = "Matchmaking__Schedules__ExpireMatchSearchesCommand__Enabled";
     private const string FileManagerScheduleVariable = "FileManager__Schedules__ReconcileFileUploadsCommand__Enabled";
 
+    private const string FolderDeletionScheduleVariable =
+        "FileManager__Schedules__ReconcileFolderDeletionsCommand__Enabled";
+
     private readonly PostgreSqlTestDatabase _database = new("matchmaking", isolateDatabase: true);
 
     private IContainer? _redis;
@@ -30,6 +33,7 @@ public class FunctionalTestFixture : IAsyncLifetime
     private string? _previousScheduleEnabled;
     private string? _previousExpirationEnabled;
     private string? _previousFileManagerSchedule;
+    private string? _previousFolderDeletionSchedule;
 
     public HttpClient Client { get; private set; } = null!;
     public IServiceProvider Services => _factory!.Services;
@@ -60,6 +64,8 @@ public class FunctionalTestFixture : IAsyncLifetime
         Environment.SetEnvironmentVariable(ExpirationEnabledVariable, ExpirationScheduleEnabled.ToString());
         _previousFileManagerSchedule = Environment.GetEnvironmentVariable(FileManagerScheduleVariable);
         Environment.SetEnvironmentVariable(FileManagerScheduleVariable, "false");
+        _previousFolderDeletionSchedule = Environment.GetEnvironmentVariable(FolderDeletionScheduleVariable);
+        Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, "false");
         _previousConnectionString = Environment.GetEnvironmentVariable(
             PostgreSqlTestDatabase.PostgreSqlConnectionStringEnvironmentVariable);
         Environment.SetEnvironmentVariable(
@@ -102,6 +108,7 @@ public class FunctionalTestFixture : IAsyncLifetime
         Environment.SetEnvironmentVariable(ScheduleEnabledVariable, _previousScheduleEnabled);
         Environment.SetEnvironmentVariable(ExpirationEnabledVariable, _previousExpirationEnabled);
         Environment.SetEnvironmentVariable(FileManagerScheduleVariable, _previousFileManagerSchedule);
+        Environment.SetEnvironmentVariable(FolderDeletionScheduleVariable, _previousFolderDeletionSchedule);
 
         GC.SuppressFinalize(this);
     }

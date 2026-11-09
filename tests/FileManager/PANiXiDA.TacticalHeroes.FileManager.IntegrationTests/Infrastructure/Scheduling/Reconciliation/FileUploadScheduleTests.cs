@@ -44,6 +44,7 @@ public sealed class FileUploadScheduleTests
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["FileManager:Schedules:ReconcileFolderDeletionsCommand:Enabled"] = "false",
                 [$"{Prefix}:Enabled"] = enabled.ToString(),
                 [$"{Prefix}:Name"] = "file-manager-reconcile-uploads",
                 [$"{Prefix}:CronExpression"] = cron,

@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.CreatePersonal;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
@@ -59,6 +60,7 @@ public sealed class CreatePersonalFolderHandlerTests
             && folder.Name.Value == "Child"
             && folder.UserId == parent.UserId
             && folder.AllowedFileType == FileType.Personal));
+        _folders.DidNotReceiveWithAnyArgs().Update(null!);
     }
 
     [Theory(
@@ -130,6 +132,8 @@ public sealed class CreatePersonalFolderHandlerTests
     private CreatePersonalFolderHandler CreateHandler()
     {
         var policy = new FolderAccessPolicy(_currentUser, new FileAccessPolicy(_currentUser));
-        return new CreatePersonalFolderHandler(new FolderCreationService(_folders, policy), _currentUser);
+        var service = new FolderCreationService(
+            _folders, policy, new FolderAccessService(_folders, Substitute.For<IFolderHierarchyLock>(), policy));
+        return new CreatePersonalFolderHandler(service, _currentUser);
     }
 }

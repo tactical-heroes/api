@@ -330,13 +330,16 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     публичное состояние которых рекурсивно состоит только из разрешённых типов.
     Любые типы из Domain и `IReadModel` во входных параметрах запрещены.
 
-55. `ReadRepositoryMethods_Should_ReturnReadModelsOrIdentifiers_When_Declared` — каждый
+55. `ReadRepositoryMethods_Should_ReturnReadModelsIdentifiersOrPredicates_When_Declared` — каждый
     дополнительный метод read repository должен возвращать реализацию
     `IReadModel` либо идентификатор того же типа, что указан в `IReadRepository<TId>`.
     Для `IReadModel` допускаются обёртки `Task`, `Result`, коллекции и модели
-    пагинации; для идентификатора — nullable и `Task`. Произвольные примитивы
-    вместо read model запрещены. Базовые методы `ExistsByIdAsync` и `AnyAsync`,
-    возвращающие `bool`, к этому правилу не относятся.
+    пагинации; для идентификатора — nullable, коллекции и `Task` над ними.
+    Элементы коллекции должны иметь тип идентификатора этого репозитория.
+    Для проверок допускаются `bool` и `Task<bool>`; nullable-результаты и коллекции
+    булевых значений запрещены. Другие произвольные примитивы вместо read model
+    запрещены. Базовые методы `ExistsByIdAsync` и `AnyAsync` к этому правилу
+    не относятся.
 
 56. `ReadModels_Should_EndWithReadModel_When_Declared` — каждый конкретный
     тип, реализующий `IReadModel`, должен оканчиваться на `ReadModel`.
@@ -778,13 +781,14 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 
 143. `ReadRepositoryMethods_Should_ApplyModelSorting_When_ReturningCollections`
      — публичные экземплярные методы и явные реализации интерфейсов
-     `IReadRepository<>` в Infrastructure, возвращающие коллекции, должны
+     `IReadRepository<>` в Infrastructure, возвращающие коллекции read-моделей, должны
      применять `IReadModelSorting<TReadModel>` для типа элемента результата.
      Учитываются обычные коллекции, массивы, `IAsyncEnumerable<>`, результаты
      страничной и курсорной пагинации, обёртки `Task`, `ValueTask` и `Result`.
      Проверяется применение `ApplySorting` либо подходящего sorter через
      `GetPagedResultAsync` в цепочке возвращаемого результата: неиспользуемого
      вызова сортировки недостаточно.
+     Коллекции идентификаторов репозитория не требуют read-model sorter.
 
 144. `ReadModelSorting_Should_BeNonempty_When_DefaultSortingIsDeclared` —
      реализации `IReadModelSorting<>` должны задавать непустой `DefaultSorting`.
@@ -801,6 +805,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      а также использование маппинга в цепочке возвращаемого значения.
      Это требование к проекциям EF read-репозиториев, а не ко всем ReadModel
      приложения независимо от способа их создания.
+     Проекции идентификаторов репозитория не требуют read-model mapper.
 
 ## Поиск через ILIKE
 

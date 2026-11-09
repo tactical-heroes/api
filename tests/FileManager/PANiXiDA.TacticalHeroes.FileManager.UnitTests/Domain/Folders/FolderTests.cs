@@ -112,6 +112,131 @@ public sealed class FolderTests
         folder.AllowedFileType.ShouldBe(FileType.Personal);
     }
 
+    [Theory(DisplayName = "Move should preserve folder metadata when parent is compatible")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public void MoveTo_Should_PreserveMetadata_When_ParentIsCompatible(string type)
+    {
+        var owner = type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
+        var folder = Folder.Create(FolderName.Create("Documents").Value, FileType.FromName(type), owner).Value;
+        var parent = Folder.Create(FolderName.Create("Target").Value, folder.AllowedFileType, owner).Value;
+        var id = folder.Id;
+        var name = folder.Name;
+
+        var result = folder.MoveTo(parent);
+
+        result.IsSuccess.ShouldBeTrue();
+        folder.ParentId.ShouldBe(parent.Id);
+        folder.Id.ShouldBe(id);
+        folder.Name.ShouldBe(name);
+        folder.AllowedFileType.ShouldBe(parent.AllowedFileType);
+        folder.UserId.ShouldBe(owner);
+        parent.ParentId.ShouldBeNull();
+    }
+
+    [Fact(DisplayName = "Move should detach the folder when parent is null")]
+    public void MoveTo_Should_DetachFolder_When_ParentIsNull()
+    {
+        var parent = Folder.Create(FolderName.Create("Root").Value, FileType.Avatar, userId: null).Value;
+        var folder = parent.CreateChild(FolderName.Create("Child").Value);
+
+        var result = folder.MoveTo(parent: null);
+
+        result.IsSuccess.ShouldBeTrue();
+        folder.ParentId.ShouldBeNull();
+        folder.Name.Value.ShouldBe("Child");
+        folder.AllowedFileType.ShouldBe(FileType.Avatar);
+    }
+
+    [Fact(DisplayName = "Move should reject the parent when parent is the folder itself")]
+    public void MoveTo_Should_RejectParent_When_ParentIsTheFolderItself()
+    {
+        var folder = Folder.Create(FolderName.Create("Root").Value, FileType.Avatar, userId: null).Value;
+
+        var result = folder.MoveTo(folder);
+
+        result.ShouldHaveSingleError(ErrorType.Validation, "A folder cannot be its own parent.")
+            .ShouldHaveField(nameof(Folder.ParentId));
+        folder.ParentId.ShouldBeNull();
+    }
+
+    [Theory(DisplayName = "Move should preserve placement when parent type or owner is incompatible")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MoveTo_Should_PreservePlacement_When_ParentTypeOrOwnerIsIncompatible(bool wrongOwner)
+    {
+        var owner = UserId.Create(Guid.NewGuid()).Value;
+        var root = Folder.Create(FolderName.Create("Root").Value, FileType.Personal, owner).Value;
+        var folder = root.CreateChild(FolderName.Create("Child").Value);
+        var parent = Folder.Create(
+            FolderName.Create("Target").Value,
+            wrongOwner ? FileType.Personal : FileType.Avatar,
+            wrongOwner ? UserId.Create(Guid.NewGuid()).Value : null).Value;
+
+        var result = folder.MoveTo(parent);
+
+        result.ShouldHaveSingleError(
+            ErrorType.Validation,
+            wrongOwner
+                ? "Folder and parent user ids must match."
+                : "Folder and parent allowed file types must match.")
+            .ShouldHaveField(nameof(Folder.ParentId));
+        folder.ParentId.ShouldBe(root.Id);
+    }
+
+    [Theory(DisplayName = "Folder update should replace metadata when target scope and parent are compatible")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public void Update_Should_ReplaceMetadata_When_TargetScopeAndParentAreCompatible(string type)
+    {
+        var owner = type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
+        var parent = Folder.Create(FolderName.Create("Target").Value, FileType.FromName(type), owner).Value;
+        var folder = Folder.Create(
+            FolderName.Create("Before").Value, FileType.Personal, UserId.Create(Guid.NewGuid()).Value).Value;
+        var id = folder.Id;
+        var name = FolderName.Create("After").Value;
+
+        var result = folder.Update(name: name, allowedFileType: parent.AllowedFileType, userId: owner, parent: parent);
+
+        result.IsSuccess.ShouldBeTrue();
+        folder.Id.ShouldBe(id);
+        folder.Name.ShouldBe(name);
+        folder.AllowedFileType.ShouldBe(parent.AllowedFileType);
+        folder.UserId.ShouldBe(owner);
+        folder.ParentId.ShouldBe(parent.Id);
+        parent.ParentId.ShouldBeNull();
+    }
+
+    [Theory(DisplayName = "Folder update should preserve all metadata when proposed state is invalid")]
+    [InlineData("missing-owner")]
+    [InlineData("avatar-owner")]
+    [InlineData("parent-type")]
+    [InlineData("parent-owner")]
+    [InlineData("self")]
+    public void Update_Should_PreserveAllMetadata_When_ProposedStateIsInvalid(string kind)
+    {
+        var owner = UserId.Create(Guid.NewGuid()).Value;
+        var root = Folder.Create(FolderName.Create("Root").Value, FileType.Personal, owner).Value;
+        var folder = root.CreateChild(FolderName.Create("Before").Value);
+        var parent = kind == "self" ? folder : Folder.Create(
+            FolderName.Create("Target").Value,
+            kind == "parent-type" ? FileType.Avatar : FileType.Personal,
+            kind == "parent-type" ? null : UserId.Create(Guid.NewGuid()).Value).Value;
+        var newType = kind == "avatar-owner" ? FileType.Avatar : FileType.Personal;
+
+        var result = folder.Update(
+            name: FolderName.Create("After").Value,
+            allowedFileType: newType,
+            userId: kind == "missing-owner" ? null : owner,
+            parent: kind is "missing-owner" or "avatar-owner" ? null : parent);
+
+        result.IsFailure.ShouldBeTrue();
+        folder.Name.Value.ShouldBe("Before");
+        folder.AllowedFileType.ShouldBe(FileType.Personal);
+        folder.UserId.ShouldBe(owner);
+        folder.ParentId.ShouldBe(root.Id);
+    }
+
     [Fact(DisplayName = "Rename should preserve folder identity and placement when folder is nested")]
     public void Rename_Should_PreserveIdentityAllowedFileTypeAndParent_When_FolderIsNested()
     {

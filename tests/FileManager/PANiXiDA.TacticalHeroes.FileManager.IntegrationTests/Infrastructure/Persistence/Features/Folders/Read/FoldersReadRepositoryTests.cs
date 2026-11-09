@@ -4,12 +4,15 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
+
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Persistence.Features.Folders.Read;
 
@@ -350,6 +353,229 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
             TestContext.Current.CancellationToken);
 
         details.ShouldBeNull();
+    }
+
+    [Theory(
+        DisplayName = "Folder reconciliation should return all matches when old deleted parents have active contents")]
+    [InlineData("Personal")]
+    [InlineData("Avatar")]
+    public async Task GetDeletedIdsWithActiveContentsAsync_Should_ReturnAll_When_OldDeletedParentsHaveActiveContents(
+        string type)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var owner = type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
+        var parents = Enumerable.Range(0, 109)
+            .Select(index => Folder.Create(
+                FolderName.Create($"Parent {index}").Value, FileType.FromName(type), owner).Value)
+            .ToArray();
+        var deletedChild = parents[108].CreateChild(FolderName.Create("Deleted child").Value);
+        var deletedFile = File.Create(FileName.Create("deleted.txt").Value, FileType.FromName(type), owner).Value;
+        deletedFile.MoveTo(parents[108]);
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.AddRange(parents);
+            for (var index = 0; index < 105; index++)
+            {
+                if (index % 3 == 0)
+                {
+                    db.Add(parents[index].CreateChild(FolderName.Create("Child").Value));
+                }
+                else
+                {
+                    var file = File.Create(
+                        FileName.Create($"file-{index}.txt").Value, FileType.FromName(type), owner).Value;
+                    file.MoveTo(parents[index]);
+                    if (index % 3 == 2)
+                    {
+                        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
+                    }
+                    db.Add(file);
+                }
+            }
+            var mixedFile = File.Create(
+                FileName.Create("also-active.txt").Value, FileType.FromName(type), owner).Value;
+            mixedFile.MoveTo(parents[0]);
+            db.Add(mixedFile);
+            db.Add(parents[105].CreateChild(FolderName.Create("Active parent child").Value));
+            var deletingFile = File.Create(
+                FileName.Create("deleting.txt").Value, FileType.FromName(type), owner).Value;
+            deletingFile.MoveTo(parents[107]);
+            deletingFile.BeginDeletion();
+            db.AddRange(deletingFile, deletedChild, deletedFile);
+            await db.SaveChangesAsync(ct);
+            var deletedIds = parents.Where((_, index) => index != 105)
+                .Select(folder => folder.Id.Value)
+                .Append(deletedChild.Id.Value)
+                .ToArray();
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.folders SET deleted_at = {DateTime.UnixEpoch} WHERE id = ANY({deletedIds})",
+                ct);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET deleted_at = {DateTime.UnixEpoch} WHERE id = {deletedFile.Id.Value}",
+                ct);
+        }
+        await using var queryScope = Fixture.CreateScope();
+        var repository = queryScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+        var loaded = await repository.GetDeletedIdsWithActiveContentsAsync(ct);
+
+        var expectedIds = parents.Take(105).Select(folder => folder.Id.Value).Order();
+        loaded.Order().ShouldBe(expectedIds);
+        var context = queryScope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
+        context.ChangeTracker.Entries().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Ancestor check should match ancestry when depth and deletion vary")]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    [InlineData(105, false)]
+    [InlineData(5, true)]
+    public async Task HasAncestorAsync_Should_MatchAncestry_When_DepthAndDeletionVary(int depth, bool deleted)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var root = CreateFolder();
+        var sibling = root.CreateChild(FolderName.Create("Sibling").Value);
+        var otherRoot = CreateFolder();
+        List<Folder> chain = [root];
+        for (var index = 0; index < depth; index++)
+        {
+            chain.Add(chain[^1].CreateChild(FolderName.Create($"Level {index}").Value));
+        }
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.AddRange(chain);
+            db.AddRange(sibling, otherRoot);
+            await db.SaveChangesAsync(ct);
+        }
+        if (deleted)
+        {
+            await using var scope = Fixture.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            var deletedFolder = await db.Set<Folder>().SingleAsync(folder => folder.Id == chain[1].Id, ct);
+            db.Remove(deletedFolder);
+            await db.SaveChangesAsync(ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        List<bool> matches = [];
+        foreach (var ancestor in chain.Take(depth))
+        {
+            matches.Add(await repository.HasAncestorAsync(chain[^1].Id.Value, ancestor.Id.Value, ct));
+        }
+        var self = await repository.HasAncestorAsync(chain[^1].Id.Value, chain[^1].Id.Value, ct);
+        var siblingMatch = await repository.HasAncestorAsync(chain[^1].Id.Value, sibling.Id.Value, ct);
+        var otherRootMatch = await repository.HasAncestorAsync(chain[^1].Id.Value, otherRoot.Id.Value, ct);
+
+        matches.ShouldAllBe(match => match);
+        self.ShouldBeFalse();
+        siblingMatch.ShouldBeFalse();
+        otherRootMatch.ShouldBeFalse();
+        readScope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>()
+            .ChangeTracker
+            .Entries()
+            .ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Ancestor check should return false when folder is missing")]
+    public async Task HasAncestorAsync_Should_ReturnFalse_When_FolderIsMissing()
+    {
+        await using var scope = Fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var exists = await repository.HasAncestorAsync(
+            Guid.NewGuid(), Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+        exists.ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "Ancestor check should terminate when existing rows contain a cycle")]
+    public async Task HasAncestorAsync_Should_Terminate_When_ExistingRowsContainACycle()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var first = CreateFolder();
+        var second = CreateFolder();
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.AddRange(first, second);
+            await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.folders SET parent_id = {second.Id.Value} WHERE id = {first.Id.Value}", ct);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.folders SET parent_id = {first.Id.Value} WHERE id = {second.Id.Value}", ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var missing = await repository.HasAncestorAsync(first.Id.Value, Guid.NewGuid(), ct);
+        var existing = await repository.HasAncestorAsync(first.Id.Value, second.Id.Value, ct);
+
+        missing.ShouldBeFalse();
+        existing.ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "Folder contents check should match active contents when content state varies")]
+    [InlineData("empty", false)]
+    [InlineData("child", true)]
+    [InlineData("pending", true)]
+    [InlineData("deleting", true)]
+    [InlineData("deleted-child", false)]
+    [InlineData("deleted-file", false)]
+    [InlineData("missing", false)]
+    public async Task HasContentsAsync_Should_MatchActiveContents_When_ContentStateVaries(string kind, bool expected)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var folder = CreateFolder();
+        var child = folder.CreateChild(FolderName.Create("Child").Value);
+        var file = File.Create(FileName.Create("file.txt").Value, FileType.Avatar, userId: null).Value;
+        file.MoveTo(folder);
+        if (kind == "deleting")
+        {
+            file.BeginDeletion();
+        }
+        await using (var scope = Fixture.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            db.Add(folder);
+            var other = CreateFolder();
+            db.AddRange(other, other.CreateChild(FolderName.Create("Other child").Value));
+            if (kind is "child" or "deleted-child")
+            {
+                db.Add(child);
+            }
+            if (kind is "pending" or "deleting" or "deleted-file")
+            {
+                db.Add(file);
+            }
+            await db.SaveChangesAsync(ct);
+        }
+        if (kind is "deleted-child" or "deleted-file")
+        {
+            await using var scope = Fixture.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            if (kind == "deleted-child")
+            {
+                db.Remove(await db.Set<Folder>().SingleAsync(item => item.Id == child.Id, ct));
+            }
+            else
+            {
+                db.Remove(await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct));
+            }
+            await db.SaveChangesAsync(ct);
+        }
+        await using var readScope = Fixture.CreateScope();
+        var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
+
+        var exists = await repository.HasContentsAsync(kind == "missing" ? Guid.NewGuid() : folder.Id.Value, ct);
+
+        exists.ShouldBe(expected);
+    }
+
+    private static Folder CreateFolder()
+    {
+        return Folder.Create(FolderName.Create("Avatars").Value, FileType.Avatar, userId: null).Value;
     }
 
     private async Task<Folder> AddFolderAsync(string name, string type, Guid? userId, bool deleted = false)
