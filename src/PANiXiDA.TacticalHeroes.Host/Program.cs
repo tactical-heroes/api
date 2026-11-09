@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddObservability();
 builder.AddHttp();
+builder.AddSignalR();
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
 builder.AddCompendiumModule();
@@ -20,6 +21,7 @@ builder.AddMessaging();
 
 var app = builder.Build();
 
+app.UseSignalR();
 app.UseHttp();
 
 return await app.RunJasperFxCommands(args);

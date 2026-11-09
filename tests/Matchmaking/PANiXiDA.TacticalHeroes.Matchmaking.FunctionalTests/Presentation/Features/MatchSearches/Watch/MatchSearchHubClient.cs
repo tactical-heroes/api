@@ -2,6 +2,7 @@ using System.Threading.Channels;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
@@ -13,10 +14,13 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
     public ValueTask DisposeAsync() => connection.DisposeAsync();
 
     internal static async Task<MatchSearchHubClient> ConnectAsync(
-        WebApplicationFactory<Program> factory, Guid userId, CancellationToken cancellationToken)
+        WebApplicationFactory<Program> factory,
+        Guid userId,
+        CancellationToken cancellationToken,
+        bool messagePack = false)
     {
         var messages = Channel.CreateUnbounded<MatchSearchStateResponse>();
-        var connection = new HubConnectionBuilder()
+        var builder = new HubConnectionBuilder()
             .WithUrl(
                 "http://localhost/api/v1/match-searches/state",
                 options =>
@@ -29,8 +33,9 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
                     client.ConfigureRequest = request => request.Headers["X-Test-UserId"] = userId.ToString();
                     return new ValueTask<System.Net.WebSockets.WebSocket>(client.ConnectAsync(context.Uri, token));
                 };
-            })
-            .Build();
+            });
+        if (messagePack) { builder.AddMessagePackProtocol(); }
+        var connection = builder.Build();
         connection.On<MatchSearchStateResponse>("StateChanged", state => { messages.Writer.TryWrite(state); });
         try
         {

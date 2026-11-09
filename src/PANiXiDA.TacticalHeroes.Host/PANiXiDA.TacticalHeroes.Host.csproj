@@ -11,6 +11,7 @@
     <ItemGroup>
         <PackageReference Include="PANiXiDA.Core.Infrastructure.Messaging.Wolverine" />
         <PackageReference Include="PANiXiDA.Core.Presentation.Http" />
+        <PackageReference Include="PANiXiDA.Core.Presentation.SignalR" />
     </ItemGroup>
 
     <ItemGroup>

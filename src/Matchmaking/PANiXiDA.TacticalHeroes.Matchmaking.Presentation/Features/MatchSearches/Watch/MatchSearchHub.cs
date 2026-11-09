@@ -1,15 +1,16 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
+
+using PANiXiDA.Core.Presentation.SignalR.Hubs;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
-public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>
+public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>, IHubEndpoint
 {
     public const string Route = "/api/v1/match-searches/state";
 
-    public static HubEndpointConventionBuilder Map(IEndpointRouteBuilder endpoints)
+    public static HubEndpointConventionBuilder Map(HubMapBuilder hubs)
     {
-        return endpoints.MapHub<MatchSearchHub>(Route).RequireAuthorization();
+        return hubs.MapHub<MatchSearchHub>(Route).RequireAuthorization();
     }
 
     public override async Task OnConnectedAsync()

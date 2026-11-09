@@ -54,11 +54,14 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         authenticated.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
-    [Fact(DisplayName = "Endpoint should send empty state when no search exists")]
-    public async Task ConnectAsync_Should_SendEmptyState_When_NoSearchExists()
+    [Theory(DisplayName = "Endpoint should send empty state over JSON and MessagePack when no search exists")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConnectAsync_Should_SendEmptyState_When_NoSearchExists(bool messagePack)
     {
         var player = await SeedPlayerAsync();
-        await using var socket = await ConnectAsync(player.UserId.Value);
+        await using var socket = await MatchSearchHubClient.ConnectAsync(
+            fixture.Factory, player.UserId.Value, TestContext.Current.CancellationToken, messagePack);
 
         var state = await ReadAsync(socket);
 
@@ -72,7 +75,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         var player = await SeedPlayerAsync();
         var build = await SeedBuildAsync(player.Id.Value);
         await using var first = await ConnectAsync(player.UserId.Value);
-        await using var second = await ConnectAsync(player.UserId.Value);
+        await using var second = await ConnectAsync(player.UserId.Value, messagePack: true);
         await ReadAsync(first);
         await ReadAsync(second);
 
@@ -191,24 +194,31 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         (await ReadAsync(reconnected)).ShouldBe(state);
     }
 
-    [Fact(DisplayName = "Hub should deliver state when publication originates on another replica")]
-    public async Task ConnectAsync_Should_DeliverState_When_PublicationOriginatesOnAnotherReplica()
+    [Theory(DisplayName = "Hub should deliver snapshots over both protocols when another replica publishes")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConnectAsync_Should_DeliverState_When_PublicationOriginatesOnAnotherReplica(bool messagePack)
     {
         var player = await SeedPlayerAsync();
         await using var replica = new FunctionalTestWebApplicationFactory(false, false);
         using var replicaHttp = replica.CreateClient();
         await using var socket = await MatchSearchHubClient.ConnectAsync(
-            replica, player.UserId.Value, TestContext.Current.CancellationToken);
+            replica, player.UserId.Value, TestContext.Current.CancellationToken, messagePack);
         await ReadAsync(socket);
         await using var publisherScope = fixture.Services.CreateAsyncScope();
         var publisher = publisherScope.ServiceProvider.GetRequiredService<
             PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions.IMatchSearchStatePublisher>();
-        var expected = new MatchSearchReadModel(Guid.NewGuid(), "Searching", null, null, null);
+        var queuedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(3));
+        var expected = new MatchSearchReadModel(
+            Guid.NewGuid(), "Matched", Guid.NewGuid(), queuedAt, queuedAt.AddMinutes(5));
 
         await publisher.PublishAsync(player.Id.Value, expected, TestContext.Current.CancellationToken);
 
-        (await ReadAsync(socket)).ShouldBe(
-            new MatchSearchStateResponse(expected.Id, "Searching", null, null, null));
+        var received = await ReadAsync(socket);
+        received.ShouldBe(new MatchSearchStateResponse(
+            expected.Id, expected.Status, expected.GameId, expected.QueuedAt, expected.ExpiresAt));
+        received.QueuedAt!.Value.Offset.ShouldBe(queuedAt.Offset);
+        received.ExpiresAt!.Value.Offset.ShouldBe(queuedAt.Offset);
     }
 
     private static async Task<MatchSearchStateResponse> ReadAsync(
@@ -226,9 +236,10 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         return state;
     }
 
-    private Task<MatchSearchHubClient> ConnectAsync(Guid userId)
+    private Task<MatchSearchHubClient> ConnectAsync(Guid userId, bool messagePack = false)
     {
-        return MatchSearchHubClient.ConnectAsync(fixture.Factory, userId, TestContext.Current.CancellationToken);
+        return MatchSearchHubClient.ConnectAsync(
+            fixture.Factory, userId, TestContext.Current.CancellationToken, messagePack);
     }
 
     private async Task<Player> SeedPlayerAsync()
