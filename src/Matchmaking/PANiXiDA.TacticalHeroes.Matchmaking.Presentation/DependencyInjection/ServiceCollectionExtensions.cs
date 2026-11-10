@@ -9,8 +9,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
-        services.AddScoped<IMatchSearchStateSubscription, MatchSearchStateSubscription>();
-        services.AddScoped<IMatchSearchStatePublisher, MatchSearchStatePublisher>();
+        services.AddScoped<IMatchSearchStateNotifier, MatchSearchStateNotifier>();
 
         return services;
     }

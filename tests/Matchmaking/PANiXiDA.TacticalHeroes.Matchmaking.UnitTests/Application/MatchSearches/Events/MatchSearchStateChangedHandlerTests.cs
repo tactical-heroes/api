@@ -13,9 +13,9 @@ public sealed class MatchSearchStateChangedHandlerTests
     [InlineData(true)]
     public async Task HandleAsync_Should_NotifyLatestState_When_StateChanges(bool exists)
     {
-        var publisher = Substitute.For<IMatchSearchStatePublisher>();
+        var notifier = Substitute.For<IMatchSearchStateNotifier>();
         var repository = Substitute.For<IMatchSearchesReadRepository>();
-        var handler = new MatchSearchStateChangedHandler(publisher, repository);
+        var handler = new MatchSearchStateChangedHandler(notifier, repository);
         var changed = new MatchSearchStateChanged(Guid.NewGuid(), Guid.NewGuid(), "Matched", Guid.NewGuid());
         var ct = TestContext.Current.CancellationToken;
         var current = new MatchSearchReadModel(Guid.NewGuid(), "Cancelled", null, null, null);
@@ -25,11 +25,11 @@ public sealed class MatchSearchStateChangedHandlerTests
 
         if (exists)
         {
-            await publisher.Received(1).PublishAsync(changed.PlayerId, current, ct);
+            await notifier.Received(1).PublishAsync(changed.PlayerId, current, ct);
         }
         else
         {
-            publisher.ReceivedCalls().ShouldBeEmpty();
+            notifier.ReceivedCalls().ShouldBeEmpty();
         }
     }
 }

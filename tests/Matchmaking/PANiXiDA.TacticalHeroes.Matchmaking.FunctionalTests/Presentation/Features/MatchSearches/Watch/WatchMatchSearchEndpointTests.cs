@@ -205,14 +205,14 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await using var socket = await MatchSearchHubClient.ConnectAsync(
             replica, player.UserId.Value, messagePack, TestContext.Current.CancellationToken);
         await ReadAsync(socket);
-        await using var publisherScope = fixture.Services.CreateAsyncScope();
-        var publisher = publisherScope.ServiceProvider.GetRequiredService<
-            PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions.IMatchSearchStatePublisher>();
+        await using var notifierScope = fixture.Services.CreateAsyncScope();
+        var notifier = notifierScope.ServiceProvider.GetRequiredService<
+            PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions.IMatchSearchStateNotifier>();
         var queuedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(3));
         var expected = new MatchSearchReadModel(
             Guid.NewGuid(), "Matched", Guid.NewGuid(), queuedAt, queuedAt.AddMinutes(5));
 
-        await publisher.PublishAsync(player.Id.Value, expected, TestContext.Current.CancellationToken);
+        await notifier.PublishAsync(player.Id.Value, expected, TestContext.Current.CancellationToken);
 
         var received = await ReadAsync(socket);
         received.ShouldBe(new MatchSearchStateResponse(

@@ -8,7 +8,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
 public sealed class WatchMatchSearchHandler(
     IPlayersClient playersClient,
     ICurrentUser currentUser,
-    IMatchSearchStateSubscription stateSubscription,
+    IMatchSearchStateNotifier stateNotifier,
     IMatchSearchesReadRepository matchSearchesReadRepository)
     : ICommandHandler<WatchMatchSearchCommand, Result>, IRequireAuthorization
 {
@@ -26,15 +26,15 @@ public sealed class WatchMatchSearchHandler(
         }
 
         var snapshot = await ReadStateAsync(player.Id, cancellationToken);
-        await stateSubscription.SendAsync(
+        await stateNotifier.SendAsync(
             connectionId: command.ConnectionId, state: snapshot, cancellationToken: cancellationToken);
-        await stateSubscription.SubscribeAsync(
+        await stateNotifier.SubscribeAsync(
             playerId: player.Id, connectionId: command.ConnectionId, cancellationToken: cancellationToken);
 
         var current = await ReadStateAsync(player.Id, cancellationToken);
         if (current != snapshot)
         {
-            await stateSubscription.SendAsync(
+            await stateNotifier.SendAsync(
                 connectionId: command.ConnectionId, state: current, cancellationToken: cancellationToken);
         }
 
