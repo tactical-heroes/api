@@ -26,26 +26,16 @@ public sealed class WatchMatchSearchHandler(
             return Result.Failure(Error.NotFound("Player was not found."));
         }
 
-        var snapshot = await ReadStateAsync(player.Id, cancellationToken);
-        await stateNotifier.SendAsync(
-            connectionId: command.ConnectionId, state: snapshot, cancellationToken: cancellationToken);
         await stateNotifier.SubscribeAsync(
             playerId: player.Id, connectionId: command.ConnectionId, cancellationToken: cancellationToken);
 
-        var current = await ReadStateAsync(player.Id, cancellationToken);
-        if (current != snapshot)
-        {
-            await stateNotifier.SendAsync(
-                connectionId: command.ConnectionId, state: current, cancellationToken: cancellationToken);
-        }
-
-        return Result.Success();
-    }
-
-    private async Task<MatchSearchReadModel> ReadStateAsync(Guid playerId, CancellationToken cancellationToken)
-    {
-        return await matchSearchesReadRepository.GetStateByPlayerIdAsync(playerId, cancellationToken)
+        var state = await matchSearchesReadRepository.GetStateByPlayerIdAsync(player.Id, cancellationToken)
             ?? new MatchSearchReadModel(
                 Id: null, Status: null, GameId: null, QueuedAt: null, ExpiresAt: null);
+
+        await stateNotifier.SendAsync(
+            connectionId: command.ConnectionId, state: state, cancellationToken: cancellationToken);
+
+        return Result.Success();
     }
 }

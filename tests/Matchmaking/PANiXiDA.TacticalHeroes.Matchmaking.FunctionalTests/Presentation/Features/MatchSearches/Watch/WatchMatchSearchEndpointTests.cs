@@ -128,8 +128,8 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         state.ExpiresAt.ShouldBe(own.ExpiresAt);
     }
 
-    [Fact(DisplayName = "Endpoint should preserve changes when commit races with snapshot")]
-    public async Task ConnectAsync_Should_PreserveChanges_When_CommitRacesWithSnapshot()
+    [Fact(DisplayName = "Endpoint should receive changes when commit races with snapshot")]
+    public async Task ConnectAsync_Should_ReceiveChanges_When_CommitRacesWithSnapshot()
     {
         var player = await SeedPlayerAsync();
         var barrier = fixture.Services.GetRequiredService<MatchSearchSnapshotBarrier>();
@@ -146,10 +146,13 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         }
 
         await using var socket = await connecting;
-        var snapshot = await ReadAsync(socket);
-        snapshot.Status.ShouldBeNull();
-        var changed = await ReadAsync(socket, snapshot);
-        changed.Status.ShouldBe("Searching");
+        var state = await ReadAsync(socket);
+        if (state.Status is null)
+        {
+            state = await ReadAsync(socket, state);
+        }
+
+        state.Status.ShouldBe("Searching");
     }
 
     [Fact(DisplayName = "Endpoint should stream domain transitions when match and game state change")]

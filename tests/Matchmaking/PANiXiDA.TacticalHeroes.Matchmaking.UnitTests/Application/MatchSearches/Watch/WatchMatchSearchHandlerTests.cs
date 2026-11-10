@@ -10,10 +10,10 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearche
 
 public sealed class WatchMatchSearchHandlerTests
 {
-    [Theory(DisplayName = "Handler should send snapshot before subscribing when user exists")]
+    [Theory(DisplayName = "Handler should subscribe before reading and sending state when user exists")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task HandleAsync_Should_SendSnapshotBeforeSubscribing_When_UserExists(bool changed)
+    public async Task HandleAsync_Should_SubscribeBeforeReadingAndSendingState_When_UserExists(bool exists)
     {
         var user = Substitute.For<ICurrentUser>();
         var players = Substitute.For<IPlayersClient>();
@@ -23,25 +23,26 @@ public sealed class WatchMatchSearchHandlerTests
         var player = new PlayerReadModel(Guid.NewGuid(), 1500);
         var ct = TestContext.Current.CancellationToken;
         var current = new MatchSearchReadModel(Guid.NewGuid(), "Searching", null, null, null);
+        var expected = exists ? current : new MatchSearchReadModel(null, null, null, null, null);
         user.UserId.Returns(userId);
         players.GetByUserIdAsync(userId, ct).Returns(player);
-        repository.GetStateByPlayerIdAsync(player.Id, ct)
-            .Returns((MatchSearchReadModel?)null, changed ? current : null);
+        repository.GetStateByPlayerIdAsync(player.Id, ct).Returns(exists ? current : null);
         var handler = new WatchMatchSearchHandler(players, user, notifier, repository);
 
         var result = await handler.HandleAsync(new WatchMatchSearchCommand("connection"), ct);
 
         result.IsSuccess.ShouldBeTrue();
-        var calls = notifier.ReceivedCalls().Select(call => call.GetMethodInfo().Name).ToArray();
-        calls.ShouldBe(changed ? ["SendAsync", "SubscribeAsync", "SendAsync"] : ["SendAsync", "SubscribeAsync"]);
-        await notifier.Received(1).SendAsync(
-            "connection", Arg.Is<MatchSearchReadModel>(state => state.Id == null), ct);
         await notifier.Received(1).SubscribeAsync(player.Id, "connection", ct);
+        await repository.Received(1).GetStateByPlayerIdAsync(player.Id, ct);
+        await notifier.Received(1).SendAsync("connection", expected, ct);
         await players.Received(1).GetByUserIdAsync(userId, ct);
-        if (changed)
+
+        Received.InOrder(() =>
         {
-            await notifier.Received(1).SendAsync("connection", current, ct);
-        }
+            _ = notifier.SubscribeAsync(player.Id, "connection", ct);
+            _ = repository.GetStateByPlayerIdAsync(player.Id, ct);
+            _ = notifier.SendAsync("connection", expected, ct);
+        });
     }
 
     [Theory(DisplayName = "Handler should reject subscription when player is unavailable")]
