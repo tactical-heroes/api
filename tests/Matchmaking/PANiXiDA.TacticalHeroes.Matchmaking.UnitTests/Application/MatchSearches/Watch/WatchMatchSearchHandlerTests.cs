@@ -36,7 +36,6 @@ public sealed class WatchMatchSearchHandlerTests
         await repository.Received(1).GetStateByPlayerIdAsync(player.Id, ct);
         await notifier.Received(1).SendAsync("connection", expected, ct);
         await players.Received(1).GetByUserIdAsync(userId, ct);
-
         Received.InOrder(() =>
         {
             _ = notifier.SubscribeAsync(player.Id, "connection", ct);
