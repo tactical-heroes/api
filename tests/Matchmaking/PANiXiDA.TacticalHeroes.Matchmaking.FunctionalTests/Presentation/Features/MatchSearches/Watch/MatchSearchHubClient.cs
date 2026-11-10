@@ -36,7 +36,7 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
             });
         if (messagePack) { builder.AddMessagePackProtocol(); }
         var connection = builder.Build();
-        connection.On<MatchSearchStateResponse>("StateChanged", state => { messages.Writer.TryWrite(state); });
+        connection.On<MatchSearchStateResponse>("StateChangedAsync", state => { messages.Writer.TryWrite(state); });
         try
         {
             await connection.StartAsync(cancellationToken);
