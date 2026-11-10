@@ -12,6 +12,40 @@ namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {
+    [Theory(DisplayName = "API should validate token when browser uses signal r")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetMatchSearchState_Should_ValidateToken_When_BrowserUsesSignalR(bool valid)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
+            Fixture, "websocket-auth@example.test", "websocket-auth", "StrongPassword1!", null, ct);
+        using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
+        var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
+            oauthClient, "websocket-auth@example.test", "StrongPassword1!", ct);
+        var token = valid ? tokens.AccessToken : "invalid-reference-token";
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get, $"/api/v1/match-searches/state?access_token={Uri.EscapeDataString(token)}");
+        request.Headers.Accept.ParseAdd("text/event-stream");
+        using var response = await Fixture.Client.SendAsync(request, ct);
+        using var queryOnly = await Fixture.Client.GetAsync(
+            $"/api/v1/match-searches/state?access_token={Uri.EscapeDataString(token)}", ct);
+        using var unrelated = new HttpRequestMessage(
+            HttpMethod.Get, $"/api/v1/users?access_token={Uri.EscapeDataString(token)}");
+        unrelated.Headers.Accept.ParseAdd("text/event-stream");
+        using var unrelatedResponse = await Fixture.Client.SendAsync(unrelated, ct);
+        using var negotiate = await Fixture.Client.PostAsync(
+            $"/api/v1/match-searches/state/negotiate?negotiateVersion=1&access_token={Uri.EscapeDataString(token)}",
+            null,
+            ct);
+
+        response.StatusCode.ShouldBe(valid ? HttpStatusCode.BadRequest : HttpStatusCode.Unauthorized);
+        queryOnly.StatusCode.ShouldBe(valid ? HttpStatusCode.BadRequest : HttpStatusCode.Unauthorized);
+        unrelatedResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        negotiate.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
     [Theory(DisplayName = "Protected API should reject invalid tokens when token validation fails")]
     [InlineData(false)]
     [InlineData(true)]

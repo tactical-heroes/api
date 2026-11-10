@@ -4,12 +4,15 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="PANiXiDA.Core.Application" />
         <PackageReference Include="Shouldly" />
         <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
         <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
         <PackageReference Include="xunit.v3" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" />
     </ItemGroup>
 
     <ItemGroup>
