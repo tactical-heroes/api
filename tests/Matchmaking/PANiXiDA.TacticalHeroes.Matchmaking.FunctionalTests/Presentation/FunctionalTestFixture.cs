@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.DependencyInjection;
@@ -55,7 +56,8 @@ public class FunctionalTestFixture : IAsyncLifetime
                 .Build();
             await _redis.StartAsync(TestContext.Current.CancellationToken);
             Environment.SetEnvironmentVariable(
-                RedisConnectionStringVariable, $"{_redis.Hostname}:{_redis.GetMappedPublicPort(6379)}");
+                RedisConnectionStringVariable,
+                $"{_redis.Hostname}:{_redis.GetMappedPublicPort(6379)}");
         }
 
         _previousScheduleEnabled = Environment.GetEnvironmentVariable(ScheduleEnabledVariable);
@@ -134,6 +136,8 @@ public class FunctionalTestFixture : IAsyncLifetime
             .AddInfrastructure(services, configuration);
         PANiXiDA.TacticalHeroes.Games.Infrastructure.DependencyInjection.ServiceCollectionExtensions
             .AddInfrastructure(services, configuration);
+        PANiXiDA.TacticalHeroes.Battle.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+            .AddInfrastructure(services, configuration);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
         var dbContext =
@@ -146,5 +150,7 @@ public class FunctionalTestFixture : IAsyncLifetime
         await buildsDbContext.Database.MigrateAsync(cancellationToken);
         var gamesDbContext = scope.ServiceProvider.GetRequiredService<GamesWriteDbContext>();
         await gamesDbContext.Database.MigrateAsync(cancellationToken);
+        var battleDbContext = scope.ServiceProvider.GetRequiredService<BattleWriteDbContext>();
+        await battleDbContext.Database.MigrateAsync(cancellationToken);
     }
 }

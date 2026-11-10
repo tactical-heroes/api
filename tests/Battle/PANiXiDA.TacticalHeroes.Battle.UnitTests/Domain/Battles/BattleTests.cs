@@ -1,13 +1,95 @@
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Heroes;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Heroes.ValueObjects;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Enumerations;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Games;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Players;
 using PANiXiDA.TacticalHeroes.Battle.UnitTests.Battles;
 
 using BattleAggregate = PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle;
+using HeroDefinitionId = PANiXiDA.TacticalHeroes.Battle.Domain.Heroes.HeroId;
 
 namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles;
 
 public sealed class BattleTests
 {
+    [Fact(DisplayName = "Battle should prepare two players when created from game")]
+    public void Create_Should_PrepareTwoPlayers_When_CreatedFromGame()
+    {
+        var game = GameId.New();
+        var first = PlayerId.New();
+        var second = PlayerId.New();
+
+        var battle = BattleAggregate.Create(game, first, second).Value;
+
+        battle.GameId.ShouldBe(game);
+        battle.FirstPlayerId.ShouldBe(first);
+        battle.SecondPlayerId.ShouldBe(second);
+        battle.Status.ShouldBe(BattleStatus.Preparing);
+        battle.GetDomainEvents().ShouldHaveSingleItem().ShouldBeOfType<BattleCreated>();
+    }
+
+    [Fact(DisplayName = "Battle should reject identical players when players are equal")]
+    public void Create_Should_RejectPlayers_When_PlayersAreEqual()
+    {
+        var player = PlayerId.New();
+
+        var result = BattleAggregate.Create(GameId.New(), player, player);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Battle should allow combat only when preparation is complete")]
+    public void Start_Should_AllowCombat_When_PreparationIsComplete()
+    {
+        var battle = BattleAggregate.Create(GameId.New(), PlayerId.New(), PlayerId.New()).Value;
+
+        var result = battle.Start();
+
+        result.IsSuccess.ShouldBeTrue();
+        battle.Status.ShouldBe(BattleStatus.InProgress);
+        battle.Start().IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Battle should preserve ownership when hero is added")]
+    public void AddHeroes_Should_PreserveOwnership_When_HeroIsAdded()
+    {
+        var owner = PlayerId.New();
+        var battle = BattleAggregate.Create(GameId.New(), owner, PlayerId.New()).Value;
+        var hero = Hero.Create(
+            battleId: battle.Id,
+            ownerPlayerId: owner,
+            definitionId: HeroDefinitionId.New(),
+            factionId: FactionId.New(),
+            stats: HeroCombatStats.Create(
+                attack: 1,
+                defense: 2,
+                minimumDamage: 1,
+                maximumDamage: 2,
+                initiative: 10,
+                morale: 1,
+                luck: 1).Value);
+
+        var result = battle.AddHeroes([hero]);
+
+        result.IsSuccess.ShouldBeTrue();
+        battle.Heroes.ShouldHaveSingleItem().OwnerPlayerId.ShouldBe(owner);
+    }
+
+    [Fact(DisplayName = "Battle should reject units without an owner when created for game")]
+    public void AddUnits_Should_RejectUnownedUnits_When_CreatedForGame()
+    {
+        var battle = BattleAggregate.Create(GameId.New(), PlayerId.New(), PlayerId.New()).Value;
+        var unit = BattleTestData.CreateUnit(battle.Id);
+
+        var result = battle.AddUnits([unit]);
+
+        result.IsFailure.ShouldBeTrue();
+        battle.Units.ShouldBeEmpty();
+    }
+
     [Fact(DisplayName = "Battle should generate its identity when a battle is created")]
     public void Create_Should_GenerateIdentity_When_ABattleIsCreated()
     {
@@ -243,8 +325,12 @@ public sealed class BattleTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.Count.ShouldBe(2);
-        result.Errors.ShouldContain(error => error.Message.Contains(attacker.Id.ToString(), StringComparison.Ordinal));
-        result.Errors.ShouldContain(error => error.Message.Contains(defender.Id.ToString(), StringComparison.Ordinal));
+        result.Errors.ShouldContain(error => error.Message.Contains(
+            attacker.Id.ToString(),
+            StringComparison.Ordinal));
+        result.Errors.ShouldContain(error => error.Message.Contains(
+            defender.Id.ToString(),
+            StringComparison.Ordinal));
         attacker.TotalHealth.ShouldBe(0);
         defender.TotalHealth.ShouldBe(0);
         battle.GetDomainEvents().ShouldBeEmpty();

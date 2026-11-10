@@ -1,5 +1,9 @@
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Players;
+
+using UnitDefinitionId = PANiXiDA.TacticalHeroes.Battle.Domain.Units.UnitId;
 
 namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
 
@@ -28,6 +32,10 @@ public sealed class Unit : Entity<UnitId>
     }
 
     public BattleId BattleId { get; private set; }
+    public PlayerId? OwnerPlayerId { get; private set; }
+    public UnitDefinitionId? DefinitionId { get; private set; }
+    public FactionId? FactionId { get; private set; }
+    public UnitTraits? Traits { get; private set; }
     public UnitCombatStats Stats { get; private set; }
     public DamageRange DamageRange { get; private set; }
     public UnitStackState StackState { get; private set; }
@@ -56,6 +64,39 @@ public sealed class Unit : Entity<UnitId>
                 stats: stats,
                 damageRange: damageRange,
                 stackState: stackState));
+    }
+
+    public static Result<Unit> Create(
+        BattleId battleId,
+        PlayerId ownerPlayerId,
+        UnitDefinitionId definitionId,
+        FactionId factionId,
+        UnitCombatStats stats,
+        DamageRange damageRange,
+        UnitStackState stackState,
+        UnitTraits traits)
+    {
+        if (battleId.Value == Guid.Empty
+            || ownerPlayerId.Value == Guid.Empty
+            || definitionId.Value == Guid.Empty
+            || factionId.Value == Guid.Empty
+            || stackState.CurrentUnitHealth > stats.MaxHealth)
+        {
+            return Result.Failure<Unit>(Error.Validation("Unit selection must have valid identifiers and health."));
+        }
+
+        return Result.Success(new Unit(
+            id: UnitId.New(),
+            battleId: battleId,
+            stats: stats,
+            damageRange: damageRange,
+            stackState: stackState)
+        {
+            OwnerPlayerId = ownerPlayerId,
+            DefinitionId = definitionId,
+            FactionId = factionId,
+            Traits = traits
+        });
     }
 
     internal Result<Damage> CalculateDamage(UnitCombatStats defenderStats)
