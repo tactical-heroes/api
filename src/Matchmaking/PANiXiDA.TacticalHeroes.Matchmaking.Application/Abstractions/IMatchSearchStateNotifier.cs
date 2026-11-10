@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 

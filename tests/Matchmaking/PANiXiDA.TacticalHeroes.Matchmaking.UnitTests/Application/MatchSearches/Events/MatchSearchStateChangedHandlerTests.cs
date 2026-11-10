@@ -1,7 +1,7 @@
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Events;
