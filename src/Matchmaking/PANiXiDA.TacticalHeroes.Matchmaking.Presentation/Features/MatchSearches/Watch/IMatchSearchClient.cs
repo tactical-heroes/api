@@ -4,5 +4,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearche
 
 public interface IMatchSearchClient
 {
+    /// <summary>Sends the current match search state to the connected player.</summary>
     Task StateChangedAsync(MatchSearchStateResponse response, CancellationToken cancellationToken);
 }

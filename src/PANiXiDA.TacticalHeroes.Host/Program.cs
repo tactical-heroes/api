@@ -1,5 +1,7 @@
 using JasperFx;
 
+using PANiXiDA.Core.Presentation.Scalar.DependencyInjection;
+
 using PANiXiDA.TacticalHeroes.Host.Configurations;
 using PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 
@@ -8,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddObservability();
 builder.AddHttp();
 builder.AddSignalR();
+builder.AddApiDocumentation();
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
 builder.AddCompendiumModule();
@@ -23,5 +26,6 @@ var app = builder.Build();
 
 app.UseSignalR();
 app.UseHttp();
+app.UseApiDocumentation();
 
 return await app.RunJasperFxCommands(args);
