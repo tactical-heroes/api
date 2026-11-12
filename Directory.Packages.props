@@ -32,7 +32,7 @@
         <PackageVersion Include="PANiXiDA.Core.Infrastructure.Storage.S3" Version="1.1.1" />
         <PackageVersion Include="PANiXiDA.Core.Presentation.Http" Version="6.0.1" />
         <PackageVersion Include="PANiXiDA.Core.Presentation.Scalar" Version="1.0.2" />
-        <PackageVersion Include="PANiXiDA.Core.Presentation.SignalR" Version="1.0.6" />
+        <PackageVersion Include="PANiXiDA.Core.Presentation.SignalR" Version="1.0.7" />
         <PackageVersion Include="PANiXiDA.Core.ResultPattern" Version="1.0.4" />
         <PackageVersion Include="PANiXiDA.Core.SpecificationPattern" Version="1.0.3" />
         <PackageVersion Include="PANiXiDA.Core.Ef.Migrator" Version="1.0.6" />

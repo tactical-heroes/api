@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddObservability();
 builder.AddHttp();
 builder.AddSignalR();
-builder.AddApiDocumentation();
+builder.Services.AddApiDocumentation(builder.Configuration);
 builder.AddIdentityModule();
 builder.AddNotificationsModule();
 builder.AddCompendiumModule();
