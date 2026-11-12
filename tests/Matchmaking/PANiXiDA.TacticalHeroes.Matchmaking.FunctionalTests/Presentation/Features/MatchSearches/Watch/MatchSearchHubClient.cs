@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
 
@@ -22,7 +23,7 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
         var messages = Channel.CreateUnbounded<MatchSearchStateResponse>();
         var builder = new HubConnectionBuilder()
             .WithUrl(
-                "http://localhost/api/v1/match-searches/state",
+                new Uri(factory.Server.BaseAddress, MatchSearchHub.Route),
                 options =>
             {
                 options.Headers["X-Test-UserId"] = userId.ToString();

@@ -34,7 +34,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Featu
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
 {
-    private const string Path = "/api/v1/match-searches/state";
+    private const string Path = "/api/v1/hubs/match-searches";
 
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
