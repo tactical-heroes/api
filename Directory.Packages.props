@@ -12,7 +12,6 @@
         <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
         <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.14" />
         <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.14" />
-        <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.15" />
         <PackageVersion Include="Microsoft.CodeAnalysis" Version="5.9.0" />
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.9.0" />
@@ -33,7 +32,7 @@
         <PackageVersion Include="PANiXiDA.Core.Infrastructure.Storage.S3" Version="1.1.1" />
         <PackageVersion Include="PANiXiDA.Core.Presentation.Http" Version="6.0.1" />
         <PackageVersion Include="PANiXiDA.Core.Presentation.Scalar" Version="1.0.2" />
-        <PackageVersion Include="PANiXiDA.Core.Presentation.SignalR" Version="1.0.5" />
+        <PackageVersion Include="PANiXiDA.Core.Presentation.SignalR" Version="1.0.6" />
         <PackageVersion Include="PANiXiDA.Core.ResultPattern" Version="1.0.4" />
         <PackageVersion Include="PANiXiDA.Core.SpecificationPattern" Version="1.0.3" />
         <PackageVersion Include="PANiXiDA.Core.Ef.Migrator" Version="1.0.6" />
