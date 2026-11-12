@@ -74,6 +74,13 @@ public sealed class FilesRepository(
             cancellationToken);
     }
 
+    public IAsyncEnumerable<File> GetFilesWithUnusedContentsAsync(CancellationToken cancellationToken)
+    {
+        return GetFilesAsync(
+            Query.IgnoreQueryFilters().Where(file => file.UnusedContents.Any()),
+            cancellationToken);
+    }
+
     private async IAsyncEnumerable<File> GetFilesAsync(
         IQueryable<File> query,
         [EnumeratorCancellation] CancellationToken cancellationToken)

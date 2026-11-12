@@ -414,7 +414,9 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
+            contentCleanupPolicy: services.GetRequiredService<IFileContentCleanupPolicy>(),
+            timeProvider: TimeProvider.System);
     }
 
     private async Task<File> SaveFileAsync(string condition = "pending", FileType? type = null)

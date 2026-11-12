@@ -9,4 +9,5 @@ public interface IFilesRepository : IRepository<FileId, File>
     IAsyncEnumerable<File> GetExpiredUploadsAsync(CancellationToken cancellationToken);
     IAsyncEnumerable<File> GetFilesForDeletionAsync(CancellationToken cancellationToken);
     IAsyncEnumerable<File> GetDeletedFilesAsync(CancellationToken cancellationToken);
+    IAsyncEnumerable<File> GetFilesWithUnusedContentsAsync(CancellationToken cancellationToken);
 }
