@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Asp.Versioning;
 
 using Microsoft.AspNetCore.SignalR;
@@ -15,7 +17,7 @@ public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>
     public static ApiVersion ApiVersion { get; } = new(1, 0);
 
     public static string Route { get; } =
-        FormattableString.Invariant($"/api/v{ApiVersion.MajorVersion}/hubs/match-searches");
+        string.Create(CultureInfo.InvariantCulture, $"/api/v{ApiVersion.MajorVersion}/hubs/match-searches");
 
     public static HubEndpointConventionBuilder Map(HubMapBuilder hubs)
     {
