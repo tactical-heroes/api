@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Asp.Versioning;
 
 using Microsoft.AspNetCore.SignalR;
@@ -8,13 +10,14 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearche
 
 public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>, IDocumentedHubEndpoint
 {
-    public const string Route = "/api/v1/match-searches/state";
-
     public static string Name => "matchmaking";
 
     public static string Summary => "Matchmaking SignalR";
 
-    public static ApiVersion ApiVersion => new(1, 0);
+    public static ApiVersion ApiVersion { get; } = new(1, 0);
+
+    public static string Route { get; } =
+        string.Create(CultureInfo.InvariantCulture, $"/api/v{ApiVersion.MajorVersion}/hubs/match-searches");
 
     public static HubEndpointConventionBuilder Map(HubMapBuilder hubs)
     {

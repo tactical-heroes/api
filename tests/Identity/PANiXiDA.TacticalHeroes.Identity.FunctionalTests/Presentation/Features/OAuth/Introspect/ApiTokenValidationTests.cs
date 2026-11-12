@@ -17,26 +17,27 @@ public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : Fun
     [InlineData(true)]
     public async Task GetMatchSearchState_Should_ValidateToken_When_BrowserUsesSignalR(bool valid)
     {
+        const string HubPath = "/api/v1/hubs/match-searches";
         var ct = TestContext.Current.CancellationToken;
         await OAuthAuthorizationRequestTestHelper.CreateConfirmedUserAsync(
             Fixture, "websocket-auth@example.test", "websocket-auth", "StrongPassword1!", null, ct);
         using var oauthClient = OAuthAuthorizationRequestTestHelper.CreateOAuthClient(Fixture);
         var tokens = await OAuthAuthorizationRequestTestHelper.IssueUserTokensAsync(
             oauthClient, "websocket-auth@example.test", "StrongPassword1!", ct);
-        var token = valid ? tokens.AccessToken : "invalid-reference-token";
+        var encodedToken = Uri.EscapeDataString(valid ? tokens.AccessToken : "invalid-reference-token");
 
         using var request = new HttpRequestMessage(
-            HttpMethod.Get, $"/api/v1/match-searches/state?access_token={Uri.EscapeDataString(token)}");
+            HttpMethod.Get, $"{HubPath}?access_token={encodedToken}");
         request.Headers.Accept.ParseAdd("text/event-stream");
         using var response = await Fixture.Client.SendAsync(request, ct);
         using var queryOnly = await Fixture.Client.GetAsync(
-            $"/api/v1/match-searches/state?access_token={Uri.EscapeDataString(token)}", ct);
+            $"{HubPath}?access_token={encodedToken}", ct);
         using var unrelated = new HttpRequestMessage(
-            HttpMethod.Get, $"/api/v1/users?access_token={Uri.EscapeDataString(token)}");
+            HttpMethod.Get, $"/api/v1/users?access_token={encodedToken}");
         unrelated.Headers.Accept.ParseAdd("text/event-stream");
         using var unrelatedResponse = await Fixture.Client.SendAsync(unrelated, ct);
         using var negotiate = await Fixture.Client.PostAsync(
-            $"/api/v1/match-searches/state/negotiate?negotiateVersion=1&access_token={Uri.EscapeDataString(token)}",
+            $"{HubPath}/negotiate?negotiateVersion=1&access_token={encodedToken}",
             null,
             ct);
 
