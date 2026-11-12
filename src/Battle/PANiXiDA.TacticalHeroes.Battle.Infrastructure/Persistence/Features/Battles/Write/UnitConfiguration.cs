@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Players;
+
+using UnitDefinitionId = PANiXiDA.TacticalHeroes.Battle.Domain.Units.UnitId;
 
 namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Features.Battles.Write;
 
@@ -19,6 +23,28 @@ internal sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
                 id => id.Value,
                 value => BattleId.Create(value).Value)
             .IsRequired();
+
+        builder.Property(unit => unit.OwnerPlayerId)
+            .HasConversion(id => id!.Value.Value, value => PlayerId.Create(value).Value)
+            .IsRequired(required: false);
+        builder.Property(unit => unit.DefinitionId)
+            .HasConversion(id => id!.Value.Value, value => UnitDefinitionId.Create(value).Value)
+            .IsRequired(required: false);
+        builder.Property(unit => unit.FactionId)
+            .HasConversion(id => id!.Value.Value, value => FactionId.Create(value).Value)
+            .IsRequired(required: false);
+        builder.ComplexProperty(
+            unit => unit.Traits,
+            traits =>
+            {
+                traits.IsRequired(required: false);
+                traits.Property(value => value.Initiative).IsRequired();
+                traits.Property(value => value.Speed).IsRequired();
+                traits.Property(value => value.Morale).IsRequired();
+                traits.Property(value => value.Luck).IsRequired();
+                traits.Property(value => value.Shots).IsRequired(required: false);
+                traits.Property(value => value.RangedAttackRange).IsRequired(required: false);
+            });
 
         builder.ComplexProperty(
             unit => unit.Stats,

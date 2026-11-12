@@ -16,6 +16,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\..\src\Battle\PANiXiDA.TacticalHeroes.Battle.Contracts\PANiXiDA.TacticalHeroes.Battle.Contracts.csproj" />
+        <ProjectReference Include="..\..\..\src\Battle\PANiXiDA.TacticalHeroes.Battle.Infrastructure\PANiXiDA.TacticalHeroes.Battle.Infrastructure.csproj" />
         <ProjectReference Include="..\..\..\src\Games\PANiXiDA.TacticalHeroes.Games.Domain\PANiXiDA.TacticalHeroes.Games.Domain.csproj" />
         <ProjectReference Include="..\..\..\src\Games\PANiXiDA.TacticalHeroes.Games.Infrastructure\PANiXiDA.TacticalHeroes.Games.Infrastructure.csproj" />
         <ProjectReference Include="..\..\..\src\Games\PANiXiDA.TacticalHeroes.Games.Contracts\PANiXiDA.TacticalHeroes.Games.Contracts.csproj" />

@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Battle\PANiXiDA.TacticalHeroes.Battle.Contracts\PANiXiDA.TacticalHeroes.Battle.Contracts.csproj" />
         <ProjectReference Include="..\..\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Contracts\PANiXiDA.TacticalHeroes.Matchmaking.Contracts.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Games.Application\PANiXiDA.TacticalHeroes.Games.Application.csproj" />
         <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Games.Contracts\PANiXiDA.TacticalHeroes.Games.Contracts.csproj" />

@@ -4,13 +4,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Battle.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 namespace PANiXiDA.TacticalHeroes.Battle.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlTestDatabase _database = new("battle");
+    private readonly PostgreSqlTestDatabase _database = new("battle", isolateDatabase: true);
 
     private FunctionalTestWebApplicationFactory? _factory;
     private string? _previousConnectionString;
@@ -70,11 +73,23 @@ public sealed class FunctionalTestFixture : IAsyncLifetime
             .Build();
         var services = new ServiceCollection();
         services.AddInfrastructure(configuration);
+        PANiXiDA.TacticalHeroes.Games.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+            .AddInfrastructure(services, configuration);
+        PANiXiDA.TacticalHeroes.Builds.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+            .AddInfrastructure(services, configuration);
+        PANiXiDA.TacticalHeroes.Compendium.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+            .AddInfrastructure(services, configuration);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
         var dbContext =
             scope.ServiceProvider.GetRequiredService<BattleWriteDbContext>();
 
         await dbContext.Database.MigrateAsync(cancellationToken);
+        var gamesContext = scope.ServiceProvider.GetRequiredService<GamesWriteDbContext>();
+        await gamesContext.Database.MigrateAsync(cancellationToken);
+        var buildsContext = scope.ServiceProvider.GetRequiredService<BuildsWriteDbContext>();
+        await buildsContext.Database.MigrateAsync(cancellationToken);
+        var compendiumContext = scope.ServiceProvider.GetRequiredService<CompendiumWriteDbContext>();
+        await compendiumContext.Database.MigrateAsync(cancellationToken);
     }
 }
