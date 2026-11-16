@@ -8,9 +8,14 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.St
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
 
-internal sealed class MatchSearchHubClient(HubConnection connection, ChannelReader<MatchSearchStateResponse> messages)
+internal sealed class MatchSearchHubClient(
+    HubConnection connection,
+    ChannelReader<MatchSearchStateResponse> messages,
+    Task<Exception?> closed)
     : IAsyncDisposable
 {
+    internal Task<Exception?> Closed { get; } = closed;
+
     public ValueTask DisposeAsync() => connection.DisposeAsync();
 
     internal static async Task<MatchSearchHubClient> ConnectAsync(
@@ -36,11 +41,17 @@ internal sealed class MatchSearchHubClient(HubConnection connection, ChannelRead
             });
         if (messagePack) { builder.AddMessagePackProtocol(); }
         var connection = builder.Build();
+        var closed = new TaskCompletionSource<Exception?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.Closed += exception =>
+        {
+            closed.TrySetResult(exception);
+            return Task.CompletedTask;
+        };
         connection.On<MatchSearchStateResponse>("StateChangedAsync", state => { messages.Writer.TryWrite(state); });
         try
         {
             await connection.StartAsync(cancellationToken);
-            return new MatchSearchHubClient(connection, messages.Reader);
+            return new MatchSearchHubClient(connection, messages.Reader, closed.Task);
         }
         catch
         {

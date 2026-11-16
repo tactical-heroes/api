@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
@@ -52,6 +53,18 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         using var authenticated = await fixture.Client.SendAsync(request, TestContext.Current.CancellationToken);
 
         authenticated.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Theory(DisplayName = "Hub should send the player not found error over JSON and MessagePack")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConnectAsync_Should_SendPlayerNotFoundError_When_NoPlayerProfileExists(bool messagePack)
+    {
+        await using var socket = await ConnectAsync(Guid.NewGuid(), messagePack);
+
+        var error = await socket.Closed.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        error.ShouldBeOfType<HubException>().Message.ShouldContain("Player was not found.");
     }
 
     [Theory(DisplayName = "Endpoint should send empty state over JSON and MessagePack when no search exists")]
