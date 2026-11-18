@@ -2,6 +2,7 @@ using System.Text.Json;
 
 using Microsoft.Extensions.Configuration;
 
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
 using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
@@ -41,7 +42,10 @@ public sealed class MatchSearchDocumentationTests(FunctionalTestFixture fixture)
         var arguments = message.GetProperty("payload").GetProperty("schema").GetProperty("properties")
             .GetProperty("arguments");
         arguments.GetProperty("minItems").GetInt32().ShouldBe(1);
-        arguments.GetProperty("prefixItems")[0].GetProperty("properties")
+        arguments.GetProperty("maxItems").GetInt32().ShouldBe(1);
+        arguments.GetProperty("items").GetProperty("$ref").GetString()
+            .ShouldEndWith("/properties/arguments/$defs/" + nameof(MatchSearchStateResponse));
+        arguments.GetProperty("$defs").GetProperty(nameof(MatchSearchStateResponse)).GetProperty("properties")
             .EnumerateObject()
             .Select(property => property.Name)
             .ShouldBe(["id", "status", "gameId", "queuedAt", "expiresAt"], ignoreOrder: true);
