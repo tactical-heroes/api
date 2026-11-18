@@ -2,6 +2,7 @@ using Asp.Versioning;
 
 using Microsoft.AspNetCore.SignalR;
 
+using PANiXiDA.Core.Presentation.SignalR.Helpers;
 using PANiXiDA.Core.Presentation.SignalR.Hubs;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
@@ -25,11 +26,7 @@ public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>
     {
         var result = await mediator.SendAsync(
             WatchMatchSearchMapper.ToCommand(Context.ConnectionId), Context.ConnectionAborted);
-        if (result.IsFailure)
-        {
-            Context.Abort();
-            return;
-        }
+        result.ThrowIfFailure();
 
         await base.OnConnectedAsync();
     }
