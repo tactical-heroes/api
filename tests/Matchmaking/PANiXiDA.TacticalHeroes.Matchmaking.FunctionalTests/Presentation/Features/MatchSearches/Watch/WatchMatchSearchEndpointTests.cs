@@ -55,7 +55,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         authenticated.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
-    [Theory(DisplayName = "Hub should send the player not found error over JSON and MessagePack")]
+    [Theory(DisplayName = "Hub should send the player not found error when no player profile exists")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task ConnectAsync_Should_SendPlayerNotFoundError_When_NoPlayerProfileExists(bool messagePack)
