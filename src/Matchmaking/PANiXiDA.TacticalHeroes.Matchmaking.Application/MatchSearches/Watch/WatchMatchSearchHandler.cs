@@ -2,7 +2,6 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
 
@@ -29,12 +28,13 @@ public sealed class WatchMatchSearchHandler(
         await stateNotifier.SubscribeAsync(
             playerId: player.Id, connectionId: command.ConnectionId, cancellationToken: cancellationToken);
 
-        var state = await matchSearchesReadRepository.GetStateByPlayerIdAsync(player.Id, cancellationToken)
-            ?? new MatchSearchReadModel(
-                Id: null, Status: null, GameId: null, QueuedAt: null, ExpiresAt: null);
+        var state = await matchSearchesReadRepository.GetStateByPlayerIdAsync(player.Id, cancellationToken);
 
-        await stateNotifier.SendAsync(
-            connectionId: command.ConnectionId, state: state, cancellationToken: cancellationToken);
+        if (state is not null)
+        {
+            await stateNotifier.SendAsync(
+                connectionId: command.ConnectionId, state: state, cancellationToken: cancellationToken);
+        }
 
         return Result.Success();
     }

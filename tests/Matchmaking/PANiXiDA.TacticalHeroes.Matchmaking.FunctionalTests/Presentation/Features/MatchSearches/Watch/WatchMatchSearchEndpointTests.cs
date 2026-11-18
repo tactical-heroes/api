@@ -67,19 +67,33 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         error.ShouldBeOfType<HubException>().Message.ShouldContain("Player was not found.");
     }
 
-    [Theory(DisplayName = "Endpoint should send empty state over JSON and MessagePack when no search exists")]
+    [Theory(DisplayName = "Endpoint should send first search state over JSON and MessagePack when search starts")]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task ConnectAsync_Should_SendEmptyState_When_NoSearchExists(bool messagePack)
+    public async Task ConnectAsync_Should_SendFirstSearchState_When_SearchStarts(bool messagePack)
     {
         var player = await SeedPlayerAsync();
-        await using var socket = await MatchSearchHubClient.ConnectAsync(
+        var build = await SeedBuildAsync(player.Id.Value);
+        var barrier = fixture.Services.GetRequiredService<MatchSearchSnapshotBarrier>();
+        barrier.Arm();
+        var connecting = MatchSearchHubClient.ConnectAsync(
             fixture.Factory, player.UserId.Value, messagePack, TestContext.Current.CancellationToken);
+        try
+        {
+            await barrier.Reached.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            barrier.Release();
+        }
 
+        await using var socket = await connecting;
+
+        await StartAsync(player, build);
         var state = await ReadAsync(socket);
 
-        state.Id.ShouldBeNull();
-        state.Status.ShouldBeNull();
+        state.Id.ShouldNotBeNull();
+        state.Status.ShouldBe("Searching");
     }
 
     [Fact(DisplayName = "Endpoint should stream and recover state when search changes")]
@@ -87,12 +101,9 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var player = await SeedPlayerAsync();
         var build = await SeedBuildAsync(player.Id.Value);
+        await StartAsync(player, build);
         await using var first = await ConnectAsync(player.UserId.Value);
         await using var second = await ConnectAsync(player.UserId.Value, messagePack: true);
-        await ReadAsync(first);
-        await ReadAsync(second);
-
-        await StartAsync(player, build);
         var searching = await ReadAsync(first);
         (await ReadAsync(second)).ShouldBe(searching);
         searching.Status.ShouldBe("Searching");
@@ -122,20 +133,18 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     {
         var owner = await SeedPlayerAsync();
         var other = await SeedPlayerAsync();
+        var search = await SeedSearchAsync(owner.Id.Value);
         await SeedSearchAsync(other.Id.Value);
         await using var socket = await ConnectAsync(owner.UserId.Value);
 
-        (await ReadAsync(socket)).Id.ShouldBeNull();
-        await StartAsync(owner, await SeedBuildAsync(owner.Id.Value));
         var state = await ReadAsync(socket);
 
         state.Status.ShouldBe("Searching");
+        state.Id.ShouldBe(search.Id.Value);
         await using var scope = fixture.Services.CreateAsyncScope();
         var own = await scope.ServiceProvider.GetRequiredService<IMatchSearchesReadRepository>()
             .GetStateByPlayerIdAsync(owner.Id.Value, TestContext.Current.CancellationToken);
         own.ShouldNotBeNull();
-        state.Id.ShouldBe(own.Id);
-        state.Status.ShouldBe(own.Status);
         state.GameId.ShouldBe(own.GameId);
         state.QueuedAt.ShouldBe(own.QueuedAt);
         state.ExpiresAt.ShouldBe(own.ExpiresAt);
@@ -160,11 +169,6 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
 
         await using var socket = await connecting;
         var state = await ReadAsync(socket);
-        if (state.Status is null)
-        {
-            state = await ReadAsync(socket, state);
-        }
-
         state.Status.ShouldBe("Searching");
     }
 
@@ -216,6 +220,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
     public async Task ConnectAsync_Should_DeliverState_When_PublicationOriginatesOnAnotherReplica(bool messagePack)
     {
         var player = await SeedPlayerAsync();
+        await SeedSearchAsync(player.Id.Value);
         await using var replica = new FunctionalTestWebApplicationFactory(false, false);
         using var replicaHttp = replica.CreateClient();
         await using var socket = await MatchSearchHubClient.ConnectAsync(

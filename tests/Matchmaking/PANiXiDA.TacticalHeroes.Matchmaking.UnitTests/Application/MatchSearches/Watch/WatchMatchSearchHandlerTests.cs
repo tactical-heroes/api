@@ -10,10 +10,8 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearche
 
 public sealed class WatchMatchSearchHandlerTests
 {
-    [Theory(DisplayName = "Handler should subscribe before reading and sending state when user exists")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task HandleAsync_Should_SubscribeBeforeReadingAndSendingState_When_UserExists(bool exists)
+    [Fact(DisplayName = "Handler should subscribe before reading and sending state when search exists")]
+    public async Task HandleAsync_Should_SubscribeBeforeReadingAndSendingState_When_SearchExists()
     {
         var user = Substitute.For<ICurrentUser>();
         var players = Substitute.For<IPlayersClient>();
@@ -23,10 +21,9 @@ public sealed class WatchMatchSearchHandlerTests
         var player = new PlayerReadModel(Guid.NewGuid(), 1500);
         var ct = TestContext.Current.CancellationToken;
         var current = new MatchSearchReadModel(Guid.NewGuid(), "Searching", null, null, null);
-        var expected = exists ? current : new MatchSearchReadModel(null, null, null, null, null);
         user.UserId.Returns(userId);
         players.GetByUserIdAsync(userId, ct).Returns(player);
-        repository.GetStateByPlayerIdAsync(player.Id, ct).Returns(exists ? current : null);
+        repository.GetStateByPlayerIdAsync(player.Id, ct).Returns(current);
         var handler = new WatchMatchSearchHandler(players, user, notifier, repository);
 
         var result = await handler.HandleAsync(new WatchMatchSearchCommand("connection"), ct);
@@ -34,13 +31,39 @@ public sealed class WatchMatchSearchHandlerTests
         result.IsSuccess.ShouldBeTrue();
         await notifier.Received(1).SubscribeAsync(player.Id, "connection", ct);
         await repository.Received(1).GetStateByPlayerIdAsync(player.Id, ct);
-        await notifier.Received(1).SendAsync("connection", expected, ct);
+        await notifier.Received(1).SendAsync("connection", current, ct);
         await players.Received(1).GetByUserIdAsync(userId, ct);
         Received.InOrder(() =>
         {
             _ = notifier.SubscribeAsync(player.Id, "connection", ct);
             _ = repository.GetStateByPlayerIdAsync(player.Id, ct);
-            _ = notifier.SendAsync("connection", expected, ct);
+            _ = notifier.SendAsync("connection", current, ct);
+        });
+    }
+
+    [Fact(DisplayName = "Handler should subscribe without sending state when no search exists")]
+    public async Task HandleAsync_Should_SubscribeWithoutSendingState_When_NoSearchExists()
+    {
+        var user = Substitute.For<ICurrentUser>();
+        var players = Substitute.For<IPlayersClient>();
+        var notifier = Substitute.For<IMatchSearchStateNotifier>();
+        var repository = Substitute.For<IMatchSearchesReadRepository>();
+        var userId = Guid.NewGuid();
+        var player = new PlayerReadModel(Guid.NewGuid(), 1500);
+        var ct = TestContext.Current.CancellationToken;
+        user.UserId.Returns(userId);
+        players.GetByUserIdAsync(userId, ct).Returns(player);
+        var handler = new WatchMatchSearchHandler(players, user, notifier, repository);
+
+        var result = await handler.HandleAsync(new WatchMatchSearchCommand("connection"), ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        await notifier.DidNotReceive().SendAsync(
+            Arg.Any<string>(), Arg.Any<MatchSearchReadModel>(), Arg.Any<CancellationToken>());
+        Received.InOrder(() =>
+        {
+            _ = notifier.SubscribeAsync(player.Id, "connection", ct);
+            _ = repository.GetStateByPlayerIdAsync(player.Id, ct);
         });
     }
 
