@@ -2,13 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 
 using PANiXiDA.Core.Application.Storage.Models;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 
-internal static class FileContentUpdateMetadata
+internal static class FileContentUpdatePolicy
 {
-    public static bool Matches(
+    public static bool CanAccept(
         [NotNullWhen(true)] FileMetadata? metadata,
         FileVersionId? activeVersion,
         FileContentUpdateAttemptId contentUpdateAttemptId)

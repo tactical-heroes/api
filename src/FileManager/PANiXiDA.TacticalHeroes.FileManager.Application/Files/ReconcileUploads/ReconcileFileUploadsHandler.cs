@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -148,7 +148,7 @@ public sealed class ReconcileFileUploadsHandler(
         CancellationToken cancellationToken)
     {
         var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
-        if (FileContentUpdateMetadata.Matches(
+        if (FileContentUpdatePolicy.CanAccept(
             metadata: current,
             activeVersion: file.VersionId,
             contentUpdateAttemptId: contentUpdateAttemptId))
@@ -169,7 +169,7 @@ public sealed class ReconcileFileUploadsHandler(
                 versionId: versionId,
                 cancellationToken: cancellationToken);
             if (metadata?.VersionId == versionId
-                && FileContentUpdateMetadata.Matches(
+                && FileContentUpdatePolicy.CanAccept(
                     metadata: metadata,
                     activeVersion: file.VersionId,
                     contentUpdateAttemptId: contentUpdateAttemptId))

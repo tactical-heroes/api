@@ -66,7 +66,7 @@ public sealed class UpdateFileContentHandler(
             key: file.StorageKey.Value,
             versionId: uploadedVersion.Value.Value,
             cancellationToken: cancellationToken);
-        if (!FileContentUpdateMetadata.Matches(
+        if (!FileContentUpdatePolicy.CanAccept(
             metadata: metadata,
             activeVersion: file.VersionId,
             contentUpdateAttemptId: started.Value)
