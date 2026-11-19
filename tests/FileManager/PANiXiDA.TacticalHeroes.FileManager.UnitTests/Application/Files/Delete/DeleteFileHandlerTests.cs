@@ -22,7 +22,8 @@ public sealed class DeleteFileHandlerTests
     [InlineData("Avatar", "Ready")]
     [InlineData("Avatar", "Deleting")]
     public async Task HandleAsync_Should_PersistDeletionIntent_When_TheMatchingPermissionIsGranted(
-        string type, string status)
+        string type,
+        string status)
     {
         var currentUser = CreateCurrentUser();
         currentUser.HasPermission(type == "Personal"
@@ -32,7 +33,10 @@ public sealed class DeleteFileHandlerTests
         var file = CreateFile(type, currentUser.UserId!.Value);
         if (status == "Ready")
         {
-            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create("initial").Value);
         }
         else if (status == "Deleting")
         {
@@ -59,7 +63,9 @@ public sealed class DeleteFileHandlerTests
     [InlineData("Avatar", false, "file-manager.personal-files.delete.all")]
     [InlineData("Avatar", false, "file-manager.avatars.read")]
     public async Task HandleAsync_Should_HideFileAndPreserveState_When_AccessIsDenied(
-        string type, bool ownsFile, string permission)
+        string type,
+        bool ownsFile,
+        string permission)
     {
         var currentUser = CreateCurrentUser();
         currentUser.HasPermission(permission).Returns(true);
@@ -84,7 +90,8 @@ public sealed class DeleteFileHandlerTests
         var handler = new DeleteFileHandler(repository, new FileAccessPolicy(CreateCurrentUser()));
 
         var result = await handler.HandleAsync(
-            new DeleteFileCommand(Guid.NewGuid()), TestContext.Current.CancellationToken);
+            new DeleteFileCommand(Guid.NewGuid()),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.NotFound, "File was not found.");
         repository.DidNotReceive().Update(Arg.Any<File>());
@@ -118,6 +125,7 @@ public sealed class DeleteFileHandlerTests
         return File.Create(
             FileName.Create("file.txt").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(userId).Value : null).Value;
+            type == "Personal" ? UserId.Create(userId).Value : null)
+            .Value;
     }
 }

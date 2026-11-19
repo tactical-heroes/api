@@ -140,18 +140,16 @@ public sealed class File : AggregateRoot<FileId>
     public Result CompleteUpload(
         FileContentType contentType,
         FileSize size,
-        FileVersionId? versionId = null)
+        FileVersionId versionId)
     {
         if (Status == FileStatus.Ready)
         {
             if (ContentType != contentType
                 || Size != size
-                || (versionId is not null && VersionId is not null && VersionId != versionId))
+                || VersionId != versionId)
             {
                 return Result.Failure(Error.Conflict("File content cannot be replaced after upload."));
             }
-
-            VersionId ??= versionId;
 
             return Result.Success();
         }
@@ -170,7 +168,7 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result<FileContentUpdateAttemptId> BeginContentUpdate(FileVersionId versionId)
+    public Result<FileContentUpdateAttemptId> BeginContentUpdate()
     {
         if (Status != FileStatus.Ready)
         {
@@ -178,13 +176,6 @@ public sealed class File : AggregateRoot<FileId>
                 Error.Conflict("Only ready file content can be replaced."));
         }
 
-        if (VersionId is not null && VersionId != versionId)
-        {
-            return Result.Failure<FileContentUpdateAttemptId>(
-                Error.Conflict("The active storage version has changed."));
-        }
-
-        VersionId = versionId;
         ContentUpdateAttemptId = FileContentUpdateAttemptId.New();
         Status = FileStatus.Updating;
 

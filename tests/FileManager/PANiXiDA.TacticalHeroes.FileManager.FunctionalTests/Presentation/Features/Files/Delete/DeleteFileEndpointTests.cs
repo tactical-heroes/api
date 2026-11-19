@@ -194,7 +194,10 @@ public sealed class DeleteFileEndpointTests(ManualReconciliationTestFixture fixt
         response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
         if (upload)
         {
-            stale.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value)
+            stale.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create("initial").Value)
                 .IsSuccess
                 .ShouldBeTrue();
         }
@@ -276,7 +279,10 @@ public sealed class DeleteFileEndpointTests(ManualReconciliationTestFixture fixt
             .Value;
         if (status == "Ready")
         {
-            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create("initial").Value);
         }
         else if (status == "Deleting")
         {

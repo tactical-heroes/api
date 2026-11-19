@@ -49,7 +49,7 @@ public sealed class UpdateFileContentHandlerTests
                 file.Status.ShouldBe(FileStatus.Updating);
                 file.VersionId!.Value.ShouldBe("initial");
                 call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.ContentUpdateAttemptId]
-                    .ShouldBe(file.ContentUpdateAttemptId!.Value.ToString("D"));
+                    .ShouldBe(file.ContentUpdateAttemptId!.Value.ToString());
                 _unitOfWork.ReceivedCalls().Count().ShouldBe(1);
                 return new FileUploadResult("replacement");
             });
@@ -109,7 +109,7 @@ public sealed class UpdateFileContentHandlerTests
                 Metadata = new Dictionary<string, string>
                 {
                     [FileMetadataNames.ContentUpdateAttemptId] =
-                        operationId.ToString("D")
+                        operationId.ToString()
                 }
             };
         });
@@ -164,40 +164,6 @@ public sealed class UpdateFileContentHandlerTests
             .SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
-    [Theory(DisplayName = "Content update should bind the stored version when legacy file has no active version")]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task HandleAsync_Should_BindStoredVersion_When_LegacyFileHasNoActiveVersion(bool versioned)
-    {
-        var file = CreateFile(ready: false);
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
-        _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
-        _storage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(new FileMetadata(
-                "text/plain",
-                4,
-                System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
-                versioned ? "initial" : null));
-        _storage.UploadAsync(
-            Arg.Any<string>(),
-            Arg.Any<Stream>(),
-            Arg.Any<string>(),
-            Arg.Any<IReadOnlyDictionary<string, string>>(),
-            Arg.Any<CancellationToken>())
-            .Returns(new FileUploadResult("replacement"));
-        _storage.GetMetadataAsync(file.StorageKey.Value, "replacement", Arg.Any<CancellationToken>())
-            .Returns(_ => UpdatedMetadata(file));
-        await using var content = new MemoryStream([1, 2, 3]);
-
-        var result = await CreateHandler().HandleAsync(
-            new UpdateFileContentCommand(file.Id.Value, "text/plain", 3, content),
-            TestContext.Current.CancellationToken);
-
-        result.IsSuccess.ShouldBe(versioned);
-        file.VersionId?.Value.ShouldBe(versioned ? "replacement" : null);
-        await _unitOfWork.Received(versioned ? 2 : 0).SaveChangesAsync(TestContext.Current.CancellationToken);
-    }
-
     [Theory(DisplayName = "Content update should avoid storage when the request is invalid or unavailable")]
     [InlineData("id")]
     [InlineData("content-type")]
@@ -213,7 +179,7 @@ public sealed class UpdateFileContentHandlerTests
         var file = CreateFile(condition != "pending");
         if (condition == "updating")
         {
-            file.BeginContentUpdate(FileVersionId.Create("initial").Value);
+            file.BeginContentUpdate();
         }
         if (condition == "deleting")
         {
@@ -268,7 +234,7 @@ public sealed class UpdateFileContentHandlerTests
             3,
             new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateAttemptId] = file.ContentUpdateAttemptId!.Value.ToString("D")
+                [FileMetadataNames.ContentUpdateAttemptId] = file.ContentUpdateAttemptId!.Value.ToString()
             },
             "replacement");
     }

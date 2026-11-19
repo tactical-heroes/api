@@ -365,7 +365,10 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
         var deletedAt = (await ReadFileAsync(file.Id)).DeletedAt;
         deletedAt.ShouldNotBeNull();
         await UploadAsync(file);
-        original!.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        original!.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         uploadRepository.Update(original);
         var unitOfWork = uploadScope.ServiceProvider
             .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
@@ -449,7 +452,10 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             .Value;
         if (condition is "ready" or "deleting" or "deleted")
         {
-            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(8).Value);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(8).Value,
+                FileVersionId.Create("initial").Value);
         }
 
         if (condition is "deleting" or "deleted")

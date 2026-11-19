@@ -30,7 +30,8 @@ public sealed class FolderDeletionReconciliationTests(FunctionalTestFixture fixt
         var root = Folder.Create(
             FolderName.Create("Deleted parent").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : null).Value;
+            type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : null)
+            .Value;
         await using (var scope = Fixture.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
@@ -88,7 +89,10 @@ public sealed class FolderDeletionReconciliationTests(FunctionalTestFixture fixt
     {
         var file = File.Create(FileName.Create("file.txt").Value, folder.AllowedFileType, folder.UserId).Value;
         file.MoveTo(folder);
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
 
         return file;
     }

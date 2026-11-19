@@ -5,7 +5,6 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
@@ -39,25 +38,7 @@ public sealed class UpdateFileContentHandler(
             return Result.Failure(Error.NotFound("File was not found."));
         }
 
-        if (file.Status != FileStatus.Ready)
-        {
-            return Result.Failure(Error.Conflict("File is not ready for content updates."));
-        }
-
-        var versionId = file.VersionId;
-        if (versionId is null)
-        {
-            var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
-            var storedVersion = FileVersionId.Create(current?.VersionId);
-            if (storedVersion.IsFailure)
-            {
-                return Result.Failure(Error.Conflict("File content has no active storage version."));
-            }
-
-            versionId = storedVersion.Value;
-        }
-
-        var started = file.BeginContentUpdate(versionId);
+        var started = file.BeginContentUpdate();
         if (started.IsFailure)
         {
             return Result.Failure(started.Errors);
@@ -72,7 +53,7 @@ public sealed class UpdateFileContentHandler(
             contentType: contentType.Value.Value,
             metadata: new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateAttemptId] = started.Value.Value.ToString("D")
+                [FileMetadataNames.ContentUpdateAttemptId] = started.Value.Value.ToString()
             },
             cancellationToken: cancellationToken);
         var uploadedVersion = FileVersionId.Create(uploaded.VersionId);

@@ -36,14 +36,20 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
     [InlineData("Avatar", false, "file-manager.personal-files.update.all", false)]
     [InlineData("Avatar", false, "file-manager.avatars.read", false)]
     public async Task HandleAsync_Should_RespectUpdateScopes_When_TypeAndOwnershipVary(
-        string type, bool own, string permission, bool allowed)
+        string type,
+        bool own,
+        string permission,
+        bool allowed)
     {
         var userId = Guid.NewGuid();
         var file = CreateFile(type, own ? userId : Guid.NewGuid());
         await SaveAsync(file);
 
         using var response = await SendAsync(
-            file.Id.Value, new RenameFileRequest(" Heroes "), userId.ToString(), permission);
+            file.Id.Value,
+            new RenameFileRequest(" Heroes "),
+            userId.ToString(),
+            permission);
 
         response.StatusCode.ShouldBe(allowed ? HttpStatusCode.NoContent : HttpStatusCode.NotFound);
         var stored = await ReadAsync(file.Id.Value);
@@ -78,7 +84,10 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
         await SaveAsync(file);
 
         using var response = await SendAsync(
-            file.Id.Value, new { Name = name }, userId.ToString(), "file-manager.personal-files.update.own");
+            file.Id.Value,
+            new { Name = name },
+            userId.ToString(),
+            "file-manager.personal-files.update.own");
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         (await ReadAsync(file.Id.Value)).Name.ShouldBe("file.txt");
@@ -92,7 +101,10 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
         await SaveAsync(file);
 
         using var response = await SendAsync(
-            file.Id.Value, new { }, userId.ToString(), "file-manager.personal-files.update.own");
+            file.Id.Value,
+            new { },
+            userId.ToString(),
+            "file-manager.personal-files.update.own");
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         (await ReadAsync(file.Id.Value)).Name.ShouldBe("file.txt");
@@ -127,10 +139,16 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
         await SaveAsync(file);
         var request = new RenameFileRequest("Heroes");
         using var first = await SendAsync(
-            file.Id.Value, request, userId.ToString(), "file-manager.personal-files.update.own");
+            file.Id.Value,
+            request,
+            userId.ToString(),
+            "file-manager.personal-files.update.own");
 
         using var second = await SendAsync(
-            file.Id.Value, request, userId.ToString(), "file-manager.personal-files.update.own");
+            file.Id.Value,
+            request,
+            userId.ToString(),
+            "file-manager.personal-files.update.own");
 
         first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         second.StatusCode.ShouldBe(HttpStatusCode.NoContent);
@@ -148,20 +166,31 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
         var folder = Folder.Create(FolderName.Create("Documents").Value, file.Type, file.UserId).Value;
         file.MoveTo(folder).IsSuccess.ShouldBeTrue();
         byte[] bytes = [1, 2, 3, 4];
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(bytes.Length).Value);
         await using (var scope = Fixture.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
             db.AddRange(folder, file);
             await db.SaveChangesAsync(cancellationToken);
             await using var content = new MemoryStream(bytes);
-            await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
-                file.StorageKey.Value, content, "text/plain", cancellationToken);
+            var uploaded = await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
+                file.StorageKey.Value,
+                content,
+                "text/plain",
+                System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
+                cancellationToken);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(bytes.Length).Value,
+                FileVersionId.Create(uploaded.VersionId).Value);
+            await db.SaveChangesAsync(cancellationToken);
         }
         var permission = type == "Personal" ? "file-manager.personal-files.update.own" : "file-manager.avatars.update";
 
         using var response = await SendAsync(
-            file.Id.Value, new RenameFileRequest(" отчёт 2026.txt "), userId.ToString(), permission);
+            file.Id.Value,
+            new RenameFileRequest(" отчёт 2026.txt "),
+            userId.ToString(),
+            permission);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         var stored = await ReadAsync(file.Id.Value);
@@ -202,7 +231,10 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
         await SaveAsync(file);
 
         using var response = await SendAsync(
-            file.Id.Value, new RenameFileRequest("new.txt"), userId.ToString(), permission);
+            file.Id.Value,
+            new RenameFileRequest("new.txt"),
+            userId.ToString(),
+            permission);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var stored = await ReadAsync(file.Id.Value);
@@ -232,7 +264,8 @@ public sealed class RenameFileEndpointTests(ManualReconciliationTestFixture fixt
         return File.Create(
             FileName.Create("file.txt").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(userId).Value : null).Value;
+            type == "Personal" ? UserId.Create(userId).Value : null)
+            .Value;
     }
 
     private async Task SaveAsync(File file, bool deleted = false)

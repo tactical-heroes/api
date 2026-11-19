@@ -378,9 +378,12 @@ public sealed class ReconcileFileUploadsHandlerTests
         bool completed)
     {
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         var key = file.StorageKey;
-        var operation = file.BeginContentUpdate(FileVersionId.Create("initial").Value).Value;
+        var operation = file.BeginContentUpdate().Value;
         _files.GetUpdatingFilesAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(key.Value, Arg.Any<CancellationToken>())
             .Returns(condition == "missing" ? null : new FileMetadata(
@@ -389,7 +392,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 new Dictionary<string, string>
                 {
                     [FileMetadataNames.ContentUpdateAttemptId] =
-                        (condition == "other" ? Guid.NewGuid() : operation.Value).ToString("D")
+                        (condition == "other" ? Guid.NewGuid() : operation.Value).ToString()
                 },
                 condition == "versionless" ? null : "replacement"));
 
@@ -410,8 +413,11 @@ public sealed class ReconcileFileUploadsHandlerTests
     public async Task HandleAsync_Should_FindMatchingVersion_When_ALateUploadBecomesCurrent()
     {
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
-        var operation = file.BeginContentUpdate(FileVersionId.Create("initial").Value).Value;
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
+        var operation = file.BeginContentUpdate().Value;
         _files.GetUpdatingFilesAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
             .Returns(new FileMetadata("text/plain", 1, ReadOnlyDictionary<string, string>.Empty, "late"));
@@ -429,7 +435,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 9,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString("D")
+                    [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
                 },
                 "replacement"));
 
@@ -450,9 +456,12 @@ public sealed class ReconcileFileUploadsHandlerTests
     public async Task HandleAsync_Should_RestoreOldContent_When_AnUnmatchedAttemptExpires(bool invalid)
     {
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         var key = file.StorageKey;
-        file.BeginContentUpdate(FileVersionId.Create("initial").Value);
+        file.BeginContentUpdate();
         _files.GetExpiredContentUpdatesAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(key.Value, Arg.Any<CancellationToken>())
@@ -478,8 +487,11 @@ public sealed class ReconcileFileUploadsHandlerTests
     public async Task HandleAsync_Should_RetainUpdating_When_StorageInspectionFails(bool listing)
     {
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
-        file.BeginContentUpdate(FileVersionId.Create("initial").Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
+        file.BeginContentUpdate();
         _files.GetExpiredContentUpdatesAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         if (listing)
@@ -505,8 +517,11 @@ public sealed class ReconcileFileUploadsHandlerTests
     public async Task HandleAsync_Should_PropagateDatabaseConflict_When_ContentUpdateIsFinalized(bool expired)
     {
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
-        var operation = file.BeginContentUpdate(FileVersionId.Create("initial").Value).Value;
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
+        var operation = file.BeginContentUpdate().Value;
         if (expired)
         {
             _files.GetExpiredContentUpdatesAsync(Arg.Any<CancellationToken>())
@@ -522,7 +537,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                     9,
                     new Dictionary<string, string>
                     {
-                        [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString("D")
+                        [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
                     },
                     "replacement"));
         }
@@ -542,8 +557,11 @@ public sealed class ReconcileFileUploadsHandlerTests
     public async Task HandleAsync_Should_PropagateCancellation_When_InspectingAContentUpdate(bool listing)
     {
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
-        file.BeginContentUpdate(FileVersionId.Create("initial").Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
+        file.BeginContentUpdate();
         _files.GetExpiredContentUpdatesAsync(Arg.Any<CancellationToken>())
             .Returns(new[] { file }.ToAsyncEnumerable());
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);

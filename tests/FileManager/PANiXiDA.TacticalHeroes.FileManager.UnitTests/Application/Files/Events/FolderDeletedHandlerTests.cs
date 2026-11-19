@@ -44,7 +44,10 @@ public sealed class FolderDeletedHandlerTests
     public async Task HandleAsync_Should_BeginDeletionForAllFiles_When_ActiveFilesArePresent(int count)
     {
         var files = Enumerable.Range(0, count).Select(_ => CreateFile()).ToList();
-        files[1].CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
+        files[1].CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(1).Value,
+            FileVersionId.Create("initial").Value);
         files[2].BeginDeletion();
         _files.GetNonDeletingByFolderAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns(files);
         var handler = new FolderDeletedHandler(_files);
@@ -63,8 +66,11 @@ public sealed class FolderDeletedHandlerTests
     public async Task HandleAsync_Should_LeaveUpdatingFileUnchanged_When_FolderIsDeleted()
     {
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
-        file.BeginContentUpdate(FileVersionId.Create("initial").Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(1).Value,
+            FileVersionId.Create("initial").Value);
+        file.BeginContentUpdate();
         _files.GetNonDeletingByFolderAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns([file]);
         var handler = new FolderDeletedHandler(_files);
 

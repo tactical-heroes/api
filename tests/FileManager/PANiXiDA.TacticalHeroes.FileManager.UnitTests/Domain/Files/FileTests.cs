@@ -64,7 +64,8 @@ public sealed class FileTests
         file.MoveTo(destination).IsSuccess.ShouldBeTrue();
         file.CompleteUpload(
             FileContentType.Create("image/png").Value,
-            FileSize.Create(128).Value)
+            FileSize.Create(128).Value,
+            FileVersionId.Create("initial").Value)
             .IsSuccess
             .ShouldBeTrue();
         file.BeginDeletion().IsSuccess.ShouldBeTrue();
@@ -317,7 +318,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             contentType,
-            size);
+            size,
+            FileVersionId.Create("initial").Value);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
@@ -334,7 +336,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             contentType,
-            size);
+            size,
+            FileVersionId.Create("initial").Value);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
@@ -355,7 +358,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             FileContentType.Create(contentType).Value,
-            FileSize.Create(size).Value);
+            FileSize.Create(size).Value,
+            FileVersionId.Create("initial").Value);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "File content cannot be replaced after upload.");
         file.Status.ShouldBe(FileStatus.Ready);
@@ -373,7 +377,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             contentType,
-            size);
+            size,
+            FileVersionId.Create("initial").Value);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "Only pending uploads can be completed.");
         file.Status.Name.ShouldBe(status);
@@ -409,7 +414,7 @@ public sealed class FileTests
         var size = file.Size;
         var version = FileVersionId.Create("initial").Value;
 
-        var result = file.BeginContentUpdate(version);
+        var result = file.BeginContentUpdate();
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.Version.ShouldBe(7);
@@ -419,11 +424,16 @@ public sealed class FileTests
         file.Size.ShouldBeSameAs(size);
         file.Status.ShouldBe(FileStatus.Updating);
         file.GetDownloadContentType().IsSuccess.ShouldBeTrue();
-        file.BeginContentUpdate(version).IsFailure.ShouldBeTrue();
+        file.BeginContentUpdate().IsFailure.ShouldBeTrue();
         file.Rename(FileName.Create("renamed.txt").Value).IsFailure.ShouldBeTrue();
         file.MoveTo(null).IsFailure.ShouldBeTrue();
         file.BeginDeletion().IsFailure.ShouldBeTrue();
-        file.CompleteUpload(file.ContentType!, file.Size!).IsFailure.ShouldBeTrue();
+        file.CompleteUpload(
+            file.ContentType!,
+            file.Size!,
+            FileVersionId.Create("initial").Value)
+            .IsFailure
+            .ShouldBeTrue();
     }
 
     [Theory(DisplayName = "Content update should require its operation and a new version when update is completed")]
@@ -443,7 +453,7 @@ public sealed class FileTests
         var contentType = file.ContentType;
         var initial = FileVersionId.Create("initial").Value;
         file.CompleteUpload(contentType!, size!, initial);
-        var operation = updating ? file.BeginContentUpdate(initial).Value : FileContentUpdateAttemptId.New();
+        var operation = updating ? file.BeginContentUpdate().Value : FileContentUpdateAttemptId.New();
         var supplied = matching ? operation : FileContentUpdateAttemptId.New();
         var version = FileVersionId.Create(newVersion ? "replacement" : "initial").Value;
 
@@ -469,7 +479,7 @@ public sealed class FileTests
     {
         var file = CreateFile(status);
 
-        var result = file.BeginContentUpdate(FileVersionId.Create("initial").Value);
+        var result = file.BeginContentUpdate();
 
         result.IsFailure.ShouldBeTrue();
         file.Status.Name.ShouldBe(status);
@@ -486,7 +496,7 @@ public sealed class FileTests
         var contentType = file.ContentType;
         var size = file.Size;
         var version = FileVersionId.Create("initial").Value;
-        var operation = file.BeginContentUpdate(version).Value;
+        var operation = file.BeginContentUpdate().Value;
 
         var result = file.CancelContentUpdate(matching ? operation : FileContentUpdateAttemptId.New());
 
@@ -499,7 +509,7 @@ public sealed class FileTests
         file.ContentUpdateAttemptId.ShouldBe(matching ? null : operation);
         if (matching)
         {
-            var next = file.BeginContentUpdate(version).Value;
+            var next = file.BeginContentUpdate().Value;
             next.ShouldNotBe(operation);
             file.CompleteContentUpdate(
                 operation,
@@ -510,20 +520,6 @@ public sealed class FileTests
                 .ShouldBeTrue();
             file.CancelContentUpdate(operation).IsFailure.ShouldBeTrue();
         }
-    }
-
-    [Fact(DisplayName = "Content update should reject a different baseline when active version exists")]
-    public void BeginContentUpdate_Should_RejectDifferentBaseline_When_ActiveVersionExists()
-    {
-        var file = CreateFile("Ready");
-        var version = FileVersionId.Create("initial").Value;
-        file.CompleteUpload(file.ContentType!, file.Size!, version);
-
-        var result = file.BeginContentUpdate(FileVersionId.Create("other").Value);
-
-        result.IsFailure.ShouldBeTrue();
-        file.Status.ShouldBe(FileStatus.Ready);
-        file.VersionId.ShouldBe(version);
     }
 
     [Fact(DisplayName = "Upload completion should reject a different version when metadata is identical")]
@@ -554,7 +550,8 @@ public sealed class FileTests
         {
             file.CompleteUpload(
                 FileContentType.Create("image/png").Value,
-                FileSize.Create(128).Value);
+                FileSize.Create(128).Value,
+                FileVersionId.Create("initial").Value);
         }
         else if (status == "Deleting")
         {

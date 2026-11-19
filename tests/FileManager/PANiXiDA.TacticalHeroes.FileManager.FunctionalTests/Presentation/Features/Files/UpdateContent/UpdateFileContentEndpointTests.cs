@@ -222,7 +222,7 @@ public sealed class UpdateFileContentEndpointTests(
                     "text/plain",
                     new Dictionary<string, string>
                     {
-                        [FileMetadataNames.ContentUpdateAttemptId] = cancelledOperation.Value.ToString("D")
+                        [FileMetadataNames.ContentUpdateAttemptId] = cancelledOperation.Value.ToString()
                     },
                     ct);
                 throw new IOException("Response lost after a late upload.");
@@ -235,7 +235,7 @@ public sealed class UpdateFileContentEndpointTests(
         updating.Status.ShouldBe(FileStatus.Updating);
         await AssertDownloadAsync(file.Id.Value, actorId, [1, 2, 3, 4]);
         var current = await storage.GetMetadataAsync(file.StorageKey.Value, ct);
-        current!.Metadata[FileMetadataNames.ContentUpdateAttemptId].ShouldBe(cancelledOperation.Value.ToString("D"));
+        current!.Metadata[FileMetadataNames.ContentUpdateAttemptId].ShouldBe(cancelledOperation.Value.ToString());
 
         await AgeUpdateAsync(file.Id.Value, expired: false);
         await ReconcileAsync();
@@ -386,7 +386,7 @@ public sealed class UpdateFileContentEndpointTests(
         }
         if (condition == "in-progress")
         {
-            file.BeginContentUpdate(file.VersionId!);
+            file.BeginContentUpdate();
         }
         var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         db.Add(file);

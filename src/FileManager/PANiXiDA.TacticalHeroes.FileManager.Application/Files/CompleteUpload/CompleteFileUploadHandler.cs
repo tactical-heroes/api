@@ -43,12 +43,11 @@ public sealed class CompleteFileUploadHandler(
         }
 
         var previousStatus = file.Status;
-        var previousVersion = file.VersionId;
         var result = file.CompleteUpload(
             contentType: contentType.Value,
             size: size.Value,
             versionId: versionId.Value);
-        if (result.IsSuccess && (previousStatus != file.Status || previousVersion != file.VersionId))
+        if (result.IsSuccess && previousStatus != file.Status)
         {
             filesRepository.Update(file);
         }

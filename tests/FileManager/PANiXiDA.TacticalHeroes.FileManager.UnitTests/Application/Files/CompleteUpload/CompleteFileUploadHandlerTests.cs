@@ -191,7 +191,10 @@ public sealed class CompleteFileUploadHandlerTests
         var ct = TestContext.Current.CancellationToken;
         _user.HasPermission("file-manager.personal-files.create.own").Returns(true);
         var file = CreateFile("Personal", _userId);
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         _files.GetByIdAsync(file.Id, ct).Returns(file);
         _storage.GetMetadataAsync(file.StorageKey.Value, ct)
             .Returns(new FileMetadata(contentType, size, ReadOnlyDictionary<string, string>.Empty, "initial-version"));
