@@ -282,6 +282,4 @@ public sealed class ReconcileFileUploadsHandler(
         logger.LogInformation("Deleted stored content for file {FileId}", file.Id.Value);
         return true;
     }
-
-
 }
