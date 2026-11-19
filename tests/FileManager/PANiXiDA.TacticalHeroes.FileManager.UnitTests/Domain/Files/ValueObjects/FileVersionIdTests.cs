@@ -38,13 +38,13 @@ public sealed class FileVersionIdTests
         result.IsSuccess.ShouldBe(valid);
     }
 
-    [Fact(DisplayName = "File version should return its identifier when version is created")]
-    public void ToString_Should_ReturnValue_When_VersionIsCreated()
+    [Fact(DisplayName = "File version should format its value when converted to string")]
+    public void ToString_Should_FormatValue_When_ConvertedToString()
     {
         var version = FileVersionId.Create("opaque/version+id==").Value;
 
         var result = version.ToString();
 
-        result.ShouldBe(version.Value);
+        result.ShouldBe("FileVersionId { Value = opaque/version+id== }");
     }
 }
