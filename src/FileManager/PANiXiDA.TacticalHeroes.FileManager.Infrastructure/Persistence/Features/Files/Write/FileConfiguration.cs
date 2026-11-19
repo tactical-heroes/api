@@ -65,11 +65,11 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
                 value => FileSize.Create(value).Value)
             .IsRequired(required: false);
 
-        builder.Property(file => file.VersionId)
+        builder.Property(file => file.PendingStorageKey)
             .HasConversion(
-                version => version!.Value,
-                value => FileVersionId.Create(value).Value)
-            .HasMaxLength(FileVersionId.MaxLength)
+                key => key!.Value,
+                value => FileStorageKey.Create(value).Value)
+            .HasMaxLength(FileStorageKey.MaxLength)
             .IsRequired(required: false);
 
         builder.Property(file => file.FolderId)

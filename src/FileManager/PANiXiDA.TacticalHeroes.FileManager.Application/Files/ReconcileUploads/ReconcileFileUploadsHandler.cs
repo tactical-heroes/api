@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -15,7 +16,8 @@ public sealed class ReconcileFileUploadsHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    ILogger<ReconcileFileUploadsHandler> logger)
+    ILogger<ReconcileFileUploadsHandler> logger,
+    IFileContentCleanupScheduler cleanupScheduler)
     : ICommandHandler<ReconcileFileUploadsCommand, Result>
 {
     public async Task<Result> HandleAsync(
@@ -37,6 +39,11 @@ public sealed class ReconcileFileUploadsHandler(
             await ReconcileFileAsync(file: file, expireUnusable: false, cancellationToken: cancellationToken);
         }
 
+        await foreach (var file in filesRepository.GetExpiredContentUpdatesAsync(cancellationToken))
+        {
+            await ReconcileFileAsync(file: file, expireUnusable: true, cancellationToken: cancellationToken);
+        }
+
         await foreach (var file in filesRepository.GetFilesForDeletionAsync(cancellationToken))
         {
             await DeleteFileAsync(file, cancellationToken);
@@ -56,10 +63,12 @@ public sealed class ReconcileFileUploadsHandler(
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var pendingKey = file.PendingStorageKey;
+        var storageKey = pendingKey ?? file.StorageKey;
         FileMetadata? metadata;
         try
         {
-            metadata = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
+            metadata = await fileStorage.GetMetadataAsync(storageKey.Value, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -72,14 +81,29 @@ public sealed class ReconcileFileUploadsHandler(
         }
 
         if (metadata is not null
-            && await TryCompleteUploadAsync(file: file, metadata: metadata, cancellationToken: cancellationToken))
+            && await TryCompleteUploadAsync(
+                file: file,
+                metadata: metadata,
+                pendingKey: pendingKey,
+                cancellationToken: cancellationToken))
         {
             return;
         }
 
         if (expireUnusable)
         {
-            await BeginDeletionAsync(file, cancellationToken);
+            if (pendingKey is not null)
+            {
+                var cancelled = file.CancelContentUpdate(pendingKey);
+                if (cancelled.IsSuccess)
+                {
+                    await SaveContentChangeAsync(file, cancelled.Value, cancellationToken);
+                }
+            }
+            else
+            {
+                await BeginDeletionAsync(file, cancellationToken);
+            }
         }
     }
 
@@ -104,6 +128,7 @@ public sealed class ReconcileFileUploadsHandler(
     private async Task<bool> TryCompleteUploadAsync(
         File file,
         FileMetadata metadata,
+        FileStorageKey? pendingKey,
         CancellationToken cancellationToken)
     {
         var contentType = FileContentType.Create(metadata.ContentType);
@@ -114,25 +139,23 @@ public sealed class ReconcileFileUploadsHandler(
             return false;
         }
 
-        Result result;
-        if (file.Status == FileStatus.Updating)
+        if (pendingKey is not null)
         {
-            var version = FileVersionId.Create(metadata.VersionId);
-            if (version.IsFailure)
+            var completed = file.CompleteContentUpdate(
+                pendingStorageKey: pendingKey,
+                contentType: contentType.Value,
+                size: size.Value);
+            if (completed.IsFailure)
             {
                 return false;
             }
 
-            result = file.CompleteContentUpdate(
-                contentType: contentType.Value,
-                size: size.Value,
-                versionId: version.Value);
-        }
-        else
-        {
-            result = file.CompleteUpload(contentType: contentType.Value, size: size.Value);
+            await SaveContentChangeAsync(file, completed.Value, cancellationToken);
+
+            return true;
         }
 
+        var result = file.CompleteUpload(contentType: contentType.Value, size: size.Value);
         if (result.IsSuccess)
         {
             filesRepository.Update(aggregateRoot: file);
@@ -141,6 +164,18 @@ public sealed class ReconcileFileUploadsHandler(
         }
 
         return result.IsSuccess;
+    }
+
+    private Task SaveContentChangeAsync(File file, FileStorageKey unusedKey, CancellationToken cancellationToken)
+    {
+        return unitOfWork.ExecuteInTransactionAsync(
+            action: async token =>
+            {
+                filesRepository.Update(file);
+                await cleanupScheduler.ScheduleAsync(unusedKey, token);
+                await unitOfWork.SaveChangesAsync(token);
+            },
+            cancellationToken: cancellationToken);
     }
 
     private async Task DeleteFileAsync(File file, CancellationToken cancellationToken)

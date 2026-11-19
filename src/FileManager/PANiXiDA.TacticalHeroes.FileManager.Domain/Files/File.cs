@@ -31,7 +31,7 @@ public sealed class File : AggregateRoot<FileId>
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
-    public FileVersionId? VersionId { get; private set; }
+    public FileStorageKey? PendingStorageKey { get; private set; }
 
     public static Result<File> Create(
         FileName name,
@@ -71,7 +71,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result<FileContentType> GetDownloadContentType()
     {
-        if (Status != FileStatus.Ready || ContentType is not { } contentType)
+        if ((Status != FileStatus.Ready && Status != FileStatus.Updating) || ContentType is not { } contentType)
         {
             return Result.Failure<FileContentType>(Error.Conflict("File is not ready for download."));
         }
@@ -161,35 +161,51 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result BeginContentUpdate(FileVersionId versionId)
+    public Result<FileStorageKey> BeginContentUpdate()
     {
         if (Status != FileStatus.Ready)
         {
-            return Result.Failure(Error.Conflict("Only ready file content can be replaced."));
+            return Result.Failure<FileStorageKey>(Error.Conflict("Only ready file content can be replaced."));
         }
 
-        VersionId = versionId;
+        var pendingKey = FileStorageKey.Create($"contents/{Id.Value:D}/{Guid.CreateVersion7():D}").Value;
+        PendingStorageKey = pendingKey;
         Status = FileStatus.Updating;
 
-        return Result.Success();
+        return Result.Success(pendingKey);
     }
 
-    public Result CompleteContentUpdate(
+    public Result<FileStorageKey> CompleteContentUpdate(
+        FileStorageKey pendingStorageKey,
         FileContentType contentType,
-        FileSize size,
-        FileVersionId versionId)
+        FileSize size)
     {
-        if (Status != FileStatus.Updating || VersionId == versionId)
+        if (Status != FileStatus.Updating || PendingStorageKey != pendingStorageKey)
         {
-            return Result.Failure(Error.Conflict("A new stored file version is required to complete the update."));
+            return Result.Failure<FileStorageKey>(Error.Conflict("File content upload is no longer available."));
         }
 
+        var previousKey = StorageKey;
+        StorageKey = pendingStorageKey;
+        PendingStorageKey = null;
         ContentType = contentType;
         Size = size;
-        VersionId = versionId;
         Status = FileStatus.Ready;
 
-        return Result.Success();
+        return Result.Success(previousKey);
+    }
+
+    public Result<FileStorageKey> CancelContentUpdate(FileStorageKey pendingStorageKey)
+    {
+        if (Status != FileStatus.Updating || PendingStorageKey != pendingStorageKey)
+        {
+            return Result.Failure<FileStorageKey>(Error.Conflict("File content upload is no longer available."));
+        }
+
+        PendingStorageKey = null;
+        Status = FileStatus.Ready;
+
+        return Result.Success(pendingStorageKey);
     }
 
     public Result BeginDeletion()

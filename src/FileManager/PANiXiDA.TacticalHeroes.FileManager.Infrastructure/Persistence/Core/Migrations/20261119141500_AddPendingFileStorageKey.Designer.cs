@@ -12,8 +12,8 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
-    [Migration("20261119130000_AddFileVersion")]
-    partial class AddFileVersion
+    [Migration("20261119141500_AddPendingFileStorageKey")]
+    partial class AddPendingFileStorageKey
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -59,6 +59,11 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("character varying(255)")
                         .HasColumnName("name");
 
+                    b.Property<string>("PendingStorageKey")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("pending_storage_key");
+
                     b.Property<long?>("Size")
                         .HasColumnType("bigint")
                         .HasColumnName("size");
@@ -89,11 +94,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
-
-                    b.Property<string>("VersionId")
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)")
-                        .HasColumnName("version_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()

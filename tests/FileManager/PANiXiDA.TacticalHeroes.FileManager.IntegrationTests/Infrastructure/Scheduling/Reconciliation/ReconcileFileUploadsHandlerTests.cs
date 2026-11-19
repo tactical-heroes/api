@@ -9,6 +9,9 @@ using Npgsql;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using NSubstitute;
+
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
@@ -414,7 +417,8 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
+            cleanupScheduler: Substitute.For<IFileContentCleanupScheduler>());
     }
 
     private async Task<File> SaveFileAsync(string condition = "pending", FileType? type = null)

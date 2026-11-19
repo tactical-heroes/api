@@ -7,6 +7,7 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -20,6 +21,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Reconc
 
 public sealed class ReconcileFileUploadsHandlerTests
 {
+    private readonly IFileContentCleanupScheduler _cleanup = Substitute.For<IFileContentCleanupScheduler>();
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
     private readonly IFileStorage _fileStorage = Substitute.For<IFileStorage>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -27,6 +29,11 @@ public sealed class ReconcileFileUploadsHandlerTests
     public ReconcileFileUploadsHandlerTests()
     {
         _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<File>().ToAsyncEnumerable());
+        _unitOfWork.ExecuteInTransactionAsync(
+                Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
+        _files.GetExpiredContentUpdatesAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetUpdatingFilesAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
@@ -333,44 +340,70 @@ public sealed class ReconcileFileUploadsHandlerTests
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    [Theory(DisplayName = "Reconciliation should finish updating when new valid object version appears")]
-    [InlineData("new", "text/plain", 4, true)]
-    [InlineData("new", "image/png", 9, true)]
-    [InlineData("old", "text/plain", 4, false)]
-    [InlineData(null, "text/plain", 4, false)]
-    [InlineData("null", "text/plain", 4, false)]
-    [InlineData("new", "invalid", 4, false)]
-    [InlineData("new", "text/plain", 0, false)]
-    [InlineData("missing", "text/plain", 4, false)]
-    public async Task HandleAsync_Should_FinishUpdating_When_NewValidObjectVersionAppears(
-        string? version, string contentType, long size, bool completed)
+    [Theory(DisplayName = "Reconciliation should activate pending content when stored metadata is valid")]
+    [InlineData("text/plain", 4, true)]
+    [InlineData("image/png", 9, true)]
+    [InlineData("invalid", 4, false)]
+    [InlineData("text/plain", 0, false)]
+    [InlineData("missing", 4, false)]
+    public async Task HandleAsync_Should_ActivatePendingContent_When_StoredMetadataIsValid(
+        string contentType, long size, bool completed)
     {
         var file = CreateFile();
         file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
-        file.BeginContentUpdate(FileVersionId.Create("old").Value);
+        var oldKey = file.StorageKey;
+        var candidate = file.BeginContentUpdate().Value;
         _files.GetUpdatingFilesAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
-        _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(version == "missing" ? null : new FileMetadata(contentType, size, version));
+        _fileStorage.GetMetadataAsync(candidate.Value, Arg.Any<CancellationToken>())
+            .Returns(contentType == "missing" ? null : new FileMetadata(contentType, size));
 
         var result = await CreateHandler().HandleAsync(
             new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(completed ? FileStatus.Ready : FileStatus.Updating);
-        file.VersionId!.Value.ShouldBe(completed ? version : "old");
+        file.StorageKey.ShouldBe(completed ? candidate : oldKey);
         file.Size!.Value.ShouldBe(completed ? size : 4);
         await _unitOfWork.Received(completed ? 1 : 0).SaveChangesAsync(TestContext.Current.CancellationToken);
+        await _cleanup.Received(completed ? 1 : 0).ScheduleAsync(oldKey, TestContext.Current.CancellationToken);
         await _fileStorage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, TestContext.Current.CancellationToken);
     }
 
-    [Fact(DisplayName = "Reconciliation should retain Updating when storage inspection fails")]
+    [Theory(DisplayName = "Reconciliation should restore old content when a pending update expires")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_RestoreOldContent_When_APendingUpdateExpires(bool invalid)
+    {
+        var file = CreateFile();
+        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        var oldKey = file.StorageKey;
+        var candidate = file.BeginContentUpdate().Value;
+        _files.GetExpiredContentUpdatesAsync(Arg.Any<CancellationToken>())
+            .Returns(new[] { file }.ToAsyncEnumerable());
+        _fileStorage.GetMetadataAsync(candidate.Value, Arg.Any<CancellationToken>())
+            .Returns(invalid ? new FileMetadata("invalid", 0) : null);
+
+        var result = await CreateHandler().HandleAsync(
+            new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        file.Status.ShouldBe(FileStatus.Ready);
+        file.StorageKey.ShouldBe(oldKey);
+        file.PendingStorageKey.ShouldBeNull();
+        file.Size!.Value.ShouldBe(4);
+        await _cleanup.Received(1).ScheduleAsync(candidate, TestContext.Current.CancellationToken);
+        _files.DidNotReceive().Delete(file);
+    }
+
+    [Fact(DisplayName = "Reconciliation should retain updating when storage inspection fails")]
     public async Task HandleAsync_Should_RetainUpdating_When_StorageInspectionFails()
     {
         var file = CreateFile();
         file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
-        file.BeginContentUpdate(FileVersionId.Create("old").Value);
-        _files.GetUpdatingFilesAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
-        _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
+        var candidate = file.BeginContentUpdate().Value;
+        _files.GetExpiredContentUpdatesAsync(Arg.Any<CancellationToken>())
+            .Returns(new[] { file }.ToAsyncEnumerable());
+        _fileStorage.GetMetadataAsync(candidate.Value, Arg.Any<CancellationToken>())
             .ThrowsAsync(new IOException("Inspection failed."));
 
         var result = await CreateHandler().HandleAsync(
@@ -379,7 +412,7 @@ public sealed class ReconcileFileUploadsHandlerTests
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Updating);
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
-        await _fileStorage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, TestContext.Current.CancellationToken);
+        _cleanup.ReceivedCalls().ShouldBeEmpty();
     }
 
     private static File CreateFile()
@@ -401,6 +434,7 @@ public sealed class ReconcileFileUploadsHandlerTests
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
+            cleanupScheduler: _cleanup);
     }
 }

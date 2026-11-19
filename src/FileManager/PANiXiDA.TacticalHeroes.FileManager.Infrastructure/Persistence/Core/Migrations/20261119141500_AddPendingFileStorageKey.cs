@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
-    public partial class AddFileVersion : Migration
+    public partial class AddPendingFileStorageKey : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "version_id",
+                name: "pending_storage_key",
                 schema: "file_manager",
                 table: "files",
                 type: "character varying(1024)",
@@ -20,7 +20,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "version_id",
+                name: "pending_storage_key",
                 schema: "file_manager",
                 table: "files");
         }
