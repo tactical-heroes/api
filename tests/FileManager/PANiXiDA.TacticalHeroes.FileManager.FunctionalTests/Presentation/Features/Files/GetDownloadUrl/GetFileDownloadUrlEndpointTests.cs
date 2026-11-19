@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
@@ -171,6 +172,28 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
     {
         var userId = Guid.NewGuid();
         var file = await AddFileAsync(FileType.Personal, userId, "PendingUpload", deleted: false);
+
+        using var response = await SendRequestAsync(
+            file.Id.Value,
+            userId.ToString(),
+            Permissions.FileManager.PersonalFiles.ReadOwn.Code);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact(DisplayName = "Download URL endpoint should return conflict when active version is missing")]
+    public async Task HandleAsync_Should_ReturnConflict_When_ActiveVersionIsMissing()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = Guid.NewGuid();
+        var file = await AddFileAsync(FileType.Personal, userId, "Ready", deleted: false);
+        await using (var scope = Fixture.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            await context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET version_id = NULL WHERE id = {file.Id.Value}",
+                cancellationToken);
+        }
 
         using var response = await SendRequestAsync(
             file.Id.Value,

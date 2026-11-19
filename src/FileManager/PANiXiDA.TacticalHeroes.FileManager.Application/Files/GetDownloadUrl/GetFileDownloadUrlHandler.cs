@@ -42,9 +42,15 @@ public sealed class GetFileDownloadUrlHandler(
             return Result.Failure<PresignedDownloadUrl>(contentTypeResult.Errors);
         }
 
+        if (file.VersionId is not { } versionId)
+        {
+            return Result.Failure<PresignedDownloadUrl>(
+                Error.Conflict("File content has no active storage version."));
+        }
+
         var download = await fileStorage.GetPresignedDownloadUrlAsync(
             key: file.StorageKey.Value,
-            versionId: file.VersionId!.Value,
+            versionId: versionId.Value,
             fileName: file.Name.Value,
             contentType: contentTypeResult.Value.Value,
             cancellationToken: cancellationToken);
