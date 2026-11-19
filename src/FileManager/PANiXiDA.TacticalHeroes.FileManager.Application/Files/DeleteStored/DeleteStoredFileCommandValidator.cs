@@ -6,7 +6,7 @@ public sealed class DeleteStoredFileCommandValidator : AbstractValidator<DeleteS
 {
     public DeleteStoredFileCommandValidator()
     {
-        RuleFor(command => command.StorageKey).MustBeValueObject(FileStorageKey.Create);
+        RuleFor(command => command.StorageKey).MustBeValidDomainValue(FileStorageKey.Create);
         RuleFor(command => command.RecheckUntil).NotEmpty();
     }
 }

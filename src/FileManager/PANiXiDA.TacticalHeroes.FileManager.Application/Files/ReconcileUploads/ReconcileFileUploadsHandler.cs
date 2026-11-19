@@ -97,7 +97,10 @@ public sealed class ReconcileFileUploadsHandler(
                 var cancelled = file.CancelContentUpdate(pendingKey);
                 if (cancelled.IsSuccess)
                 {
-                    await SaveContentChangeAsync(file, cancelled.Value, cancellationToken);
+                    await SaveContentChangeAsync(
+                        file: file,
+                        unusedKey: cancelled.Value,
+                        cancellationToken: cancellationToken);
                 }
             }
             else
@@ -150,7 +153,10 @@ public sealed class ReconcileFileUploadsHandler(
                 return false;
             }
 
-            await SaveContentChangeAsync(file, completed.Value, cancellationToken);
+            await SaveContentChangeAsync(
+                file: file,
+                unusedKey: completed.Value,
+                cancellationToken: cancellationToken);
 
             return true;
         }
