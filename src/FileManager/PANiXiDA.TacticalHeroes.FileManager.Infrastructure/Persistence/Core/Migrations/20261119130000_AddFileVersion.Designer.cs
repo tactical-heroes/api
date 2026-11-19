@@ -12,10 +12,9 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
-    [Migration("20261107175312_AddFileContentCleanup")]
-    partial class AddFileContentCleanup
+    [Migration("20261119130000_AddFileVersion")]
+    partial class AddFileVersion
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
@@ -28,49 +27,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
 
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
-
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.FileContent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("DeletionStartedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deletion_started_at");
-
-                    b.Property<Guid>("FileId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("file_id");
-
-                    b.Property<DateTimeOffset>("RegisteredAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("registered_at");
-
-                    b.Property<string>("StorageKey")
-                        .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)")
-                        .HasColumnName("storage_key");
-
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.HasKey("Id")
-                        .HasName("pk_file_contents");
-
-                    b.HasIndex("FileId")
-                        .HasDatabaseName("ix_file_contents_file_id");
-
-                    b.HasIndex("StorageKey")
-                        .IsUnique()
-                        .HasDatabaseName("ix_file_contents_storage_key");
-
-                    b.ToTable("file_contents", "file_manager");
-                });
 
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File", b =>
                 {
@@ -133,6 +89,11 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
+
+                    b.Property<string>("VersionId")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("version_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -218,16 +179,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     b.ToTable("folders", "file_manager");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.FileContent", b =>
-                {
-                    b.HasOne("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File", null)
-                        .WithMany("UnusedContents")
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_file_contents_file_file_id");
-                });
-
             modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File", b =>
                 {
                     b.HasOne("PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Folder", null)
@@ -244,11 +195,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_folders_folders_parent_id");
-                });
-
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File", b =>
-                {
-                    b.Navigation("UnusedContents");
                 });
 #pragma warning restore 612, 618
         }

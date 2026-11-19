@@ -1,3 +1,5 @@
+using NSubstitute.ExceptionExtensions;
+
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
@@ -7,6 +9,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -26,22 +29,23 @@ public sealed class UpdateFileContentHandlerTests
         _user.HasPermission("file-manager.avatars.update").Returns(true);
     }
 
-    [Fact(DisplayName = "Content update should register the candidate when storage upload starts")]
-    public async Task HandleAsync_Should_RegisterCandidate_When_StorageUploadStarts()
+    [Fact(DisplayName = "Content update should persist Updating before uploading to the existing key")]
+    public async Task HandleAsync_Should_PersistUpdating_When_UploadStarts()
     {
         var file = CreateFile();
         var oldKey = file.StorageKey;
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
-        _storage.UploadAsync(Arg.Any<string>(), Arg.Any<Stream>(), "text/plain", Arg.Any<CancellationToken>())
+        _storage.GetMetadataAsync(oldKey.Value, Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4, "old"), new FileMetadata("text/plain", 3, "new"));
+        _storage.UploadAsync(oldKey.Value, Arg.Any<Stream>(), "text/plain", Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
-                file.StorageKey.ShouldBeSameAs(oldKey);
-                file.UnusedContents.ShouldHaveSingleItem().StorageKey.ShouldNotBe(oldKey);
+                file.Status.ShouldBe(FileStatus.Updating);
+                file.VersionId!.Value.ShouldBe("old");
+                file.Size!.Value.ShouldBe(4);
                 _unitOfWork.ReceivedCalls().Count().ShouldBe(1);
                 return Task.CompletedTask;
             });
-        _storage.GetMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new FileMetadata("text/plain", 3));
         await using var content = new MemoryStream([1, 2, 3]);
 
         var result = await CreateHandler().HandleAsync(
@@ -49,46 +53,62 @@ public sealed class UpdateFileContentHandlerTests
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        file.StorageKey.ShouldNotBe(oldKey);
-        file.UnusedContents.ShouldHaveSingleItem().StorageKey.ShouldBe(oldKey);
+        file.StorageKey.ShouldBeSameAs(oldKey);
+        file.Status.ShouldBe(FileStatus.Ready);
+        file.VersionId!.Value.ShouldBe("new");
+        file.Size!.Value.ShouldBe(3);
         await _unitOfWork.Received(2).SaveChangesAsync(TestContext.Current.CancellationToken);
         await _storage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, TestContext.Current.CancellationToken);
     }
 
-    [Theory(DisplayName = "Content update should retain old content when storage cannot provide a valid replacement")]
+    [Theory(DisplayName = "Content update should remain Updating when upload cannot be confirmed")]
     [InlineData("upload-error")]
     [InlineData("metadata-error")]
+    [InlineData("save-error")]
     [InlineData("missing")]
     [InlineData("content-type")]
     [InlineData("size")]
-    [InlineData("deleting")]
-    public async Task HandleAsync_Should_RetainOldContent_When_StorageCannotProvideAValidReplacement(string condition)
+    [InlineData("same-version")]
+    [InlineData("unversioned")]
+    public async Task HandleAsync_Should_RemainUpdating_When_UploadCannotBeConfirmed(string condition)
     {
         var file = CreateFile();
-        var oldKey = file.StorageKey;
+        var key = file.StorageKey;
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
-        _storage.UploadAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(_ =>
-            {
-                if (condition == "upload-error")
-                {
-                    throw new IOException("Upload failed.");
-                }
-                if (condition == "deleting")
-                {
-                    file.BeginDeletion();
-                }
-                return Task.CompletedTask;
-            });
-        _storage.GetMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(_ =>
+        var inspections = 0;
+        _storage.GetMetadataAsync(key.Value, Arg.Any<CancellationToken>()).Returns(_ =>
         {
+            if (++inspections == 1)
+            {
+                return new FileMetadata("text/plain", 4, "old");
+            }
+
             if (condition == "metadata-error")
             {
                 throw new IOException("Metadata failed.");
             }
+
             return condition == "missing" ? null : new FileMetadata(
-                condition == "content-type" ? "image/png" : "text/plain", condition == "size" ? 99 : 3);
+                condition == "content-type" ? "image/png" : "text/plain",
+                condition == "size" ? 99 : 3,
+                condition == "same-version" ? "old" : condition == "unversioned" ? null : "new");
         });
+        if (condition == "upload-error")
+        {
+            _storage.UploadAsync(key.Value, Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .ThrowsAsync(new IOException("Upload failed."));
+        }
+        if (condition == "save-error")
+        {
+            var saves = 0;
+            _unitOfWork.When(work => work.SaveChangesAsync(Arg.Any<CancellationToken>())).Do(_ =>
+            {
+                if (++saves == 2)
+                {
+                    throw new IOException("Database failed.");
+                }
+            });
+        }
         await using var content = new MemoryStream([1, 2, 3]);
 
         var exception = await Record.ExceptionAsync(async () =>
@@ -107,10 +127,38 @@ public sealed class UpdateFileContentHandlerTests
         {
             exception.ShouldBeNull();
         }
-        file.StorageKey.ShouldBeSameAs(oldKey);
-        file.Size!.Value.ShouldBe(4);
-        file.UnusedContents.ShouldHaveSingleItem().DeletionStartedAt.ShouldBeNull();
-        await _unitOfWork.Received(1).SaveChangesAsync(TestContext.Current.CancellationToken);
+        file.StorageKey.ShouldBeSameAs(key);
+        if (condition != "save-error")
+        {
+            file.Status.ShouldBe(FileStatus.Updating);
+            file.VersionId!.Value.ShouldBe("old");
+            file.Size!.Value.ShouldBe(4);
+        }
+        await _unitOfWork.Received(condition == "save-error" ? 2 : 1)
+            .SaveChangesAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Theory(DisplayName = "Content update should avoid writes when the existing object is not versioned")]
+    [InlineData("missing")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("null")]
+    public async Task HandleAsync_Should_AvoidWrites_When_ExistingObjectIsNotVersioned(string? version)
+    {
+        var file = CreateFile();
+        _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _storage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(version == "missing" ? null : new FileMetadata("text/plain", 4, version));
+        await using var content = new MemoryStream([1]);
+
+        var result = await CreateHandler().HandleAsync(
+            new UpdateFileContentCommand(file.Id.Value, "text/plain", 1, content),
+            TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        file.Status.ShouldBe(FileStatus.Ready);
+        _unitOfWork.ReceivedCalls().ShouldBeEmpty();
+        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(default!, default!, default!, default);
     }
 
     [Theory(DisplayName = "Content update should avoid storage when the request is invalid or unavailable")]
@@ -121,9 +169,19 @@ public sealed class UpdateFileContentHandlerTests
     [InlineData("missing")]
     [InlineData("forbidden")]
     [InlineData("pending")]
+    [InlineData("updating")]
+    [InlineData("deleting")]
     public async Task HandleAsync_Should_AvoidStorage_When_TheRequestIsInvalidOrUnavailable(string condition)
     {
         var file = CreateFile(condition != "pending");
+        if (condition == "updating")
+        {
+            file.BeginContentUpdate(FileVersionId.Create("old").Value);
+        }
+        if (condition == "deleting")
+        {
+            file.BeginDeletion();
+        }
         if (condition != "missing")
         {
             _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
@@ -144,6 +202,24 @@ public sealed class UpdateFileContentHandlerTests
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
     }
 
+    [Fact(DisplayName = "Content update should avoid upload when reserving the file fails")]
+    public async Task HandleAsync_Should_AvoidUpload_When_ReservationFails()
+    {
+        var file = CreateFile();
+        _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
+        _storage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 4, "old"));
+        _unitOfWork.When(work => work.SaveChangesAsync(Arg.Any<CancellationToken>()))
+            .Do(_ => throw new IOException("Reservation failed."));
+        await using var content = new MemoryStream([1]);
+
+        await Should.ThrowAsync<IOException>(() => CreateHandler().HandleAsync(
+            new UpdateFileContentCommand(file.Id.Value, "text/plain", 1, content),
+            TestContext.Current.CancellationToken));
+
+        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(default!, default!, default!, default);
+    }
+
     private static File CreateFile(bool ready = true)
     {
         var file = File.Create(FileName.Create("original.txt").Value, FileType.Avatar, userId: null).Value;
@@ -156,11 +232,6 @@ public sealed class UpdateFileContentHandlerTests
 
     private UpdateFileContentHandler CreateHandler()
     {
-        return new UpdateFileContentHandler(
-            _files,
-            _storage,
-            _unitOfWork,
-            new FileAccessPolicy(_user),
-            TimeProvider.System);
+        return new UpdateFileContentHandler(_files, _storage, _unitOfWork, new FileAccessPolicy(_user));
     }
 }

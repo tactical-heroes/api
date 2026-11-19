@@ -1,9 +1,11 @@
+using Amazon.S3;
+using Amazon.S3.Model;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Persistence;
-using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
@@ -11,7 +13,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
@@ -50,8 +52,8 @@ public sealed class UpdateFileContentEndpointTests(
         stored.Status.Name.ShouldBe("Ready");
         stored.ContentType!.Value.ShouldBe("application/octet-stream");
         stored.Size!.Value.ShouldBe(bytes.Length);
-        stored.StorageKey.ShouldNotBe(file.StorageKey);
-        stored.UnusedContents.ShouldHaveSingleItem().StorageKey.ShouldBe(file.StorageKey);
+        stored.StorageKey.ShouldBe(file.StorageKey);
+        stored.VersionId.ShouldNotBeNull();
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{Route}/{file.Id.Value}/download-url");
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, actorId.ToString());
         request.Headers.Add(
@@ -68,8 +70,9 @@ public sealed class UpdateFileContentEndpointTests(
         await ReconcileAsync();
         await using var scope = Fixture.CreateScope();
         var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
-        (await storage.GetMetadataAsync(file.StorageKey.Value, ct)).ShouldBeNull();
-        (await storage.GetMetadataAsync(stored.StorageKey.Value, ct)).ShouldNotBeNull();
+        var metadata = await storage.GetMetadataAsync(stored.StorageKey.Value, ct);
+        metadata.ShouldNotBeNull();
+        metadata.VersionId.ShouldBe(stored.VersionId!.Value);
     }
 
     [Theory(DisplayName = "PUT file content should deny changes when update access is unavailable")]
@@ -94,7 +97,6 @@ public sealed class UpdateFileContentEndpointTests(
         ((int)response.StatusCode).ShouldBe(status);
         var stored = await ReadAsync(file.Id.Value);
         stored.StorageKey.ShouldBe(file.StorageKey);
-        stored.UnusedContents.ShouldBeEmpty();
         stored.Size!.Value.ShouldBe(4);
     }
 
@@ -123,136 +125,149 @@ public sealed class UpdateFileContentEndpointTests(
         (await ReadAsync(file.Id.Value)).StorageKey.ShouldBe(file.StorageKey);
     }
 
-    [Fact(DisplayName = "Content reconciliation should remove abandoned uploads when upload expires")]
-    public async Task Reconcile_Should_RemoveAbandonedUploads_When_UploadExpires()
+    [Fact(DisplayName = "Identical content should complete replacement when S3 creates a new version")]
+    public async Task HandleAsync_Should_CompleteReplacement_When_ContentIsIdentical()
     {
         var ct = TestContext.Current.CancellationToken;
-        var file = await SaveAsync("Avatar", Guid.NewGuid());
-        string pendingKey;
-        await using (var scope = Fixture.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
-            var stored = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
-            var pending = stored.BeginContentUpload(FileContentTimestamp.Create(DateTimeOffset.UtcNow.AddMinutes(-20)))
-                .Value;
-            pendingKey = pending.StorageKey.Value;
-            db.Update(stored);
-            await db.SaveChangesAsync(ct);
-            await using var bytes = new MemoryStream([9]);
-            await scope.ServiceProvider.GetRequiredService<IFileStorage>()
-                .UploadAsync(pendingKey, bytes, "text/plain", ct);
-        }
+        var actorId = Guid.NewGuid();
+        var file = await SaveAsync("Personal", actorId);
+        await using var scope = Fixture.CreateScope();
+        var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
+        var previous = await storage.GetMetadataAsync(file.StorageKey.Value, ct);
 
-        await ReconcileAsync();
+        using var response = await SendAsync(
+            file.Id.Value, [1, 2, 3, 4], "text/plain", actorId, "file-manager.personal-files.update.own");
 
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         var current = await ReadAsync(file.Id.Value);
+        current.Status.ShouldBe(FileStatus.Ready);
         current.StorageKey.ShouldBe(file.StorageKey);
-        current.UnusedContents.ShouldHaveSingleItem().DeletionStartedAt.ShouldNotBeNull();
-        await using var verification = Fixture.CreateScope();
-        var storage = verification.ServiceProvider.GetRequiredService<IFileStorage>();
-        (await storage.GetMetadataAsync(pendingKey, ct)).ShouldBeNull();
-        (await storage.GetMetadataAsync(file.StorageKey.Value, ct)).ShouldNotBeNull();
-        await using var late = new MemoryStream([8]);
-        await storage.UploadAsync(pendingKey, late, "text/plain", ct);
-        await ReconcileAsync();
-        (await storage.GetMetadataAsync(pendingKey, ct)).ShouldBeNull();
+        current.VersionId.ShouldNotBeNull();
+        current.VersionId.Value.ShouldNotBe(previous!.VersionId);
+        current.Size!.Value.ShouldBe(4);
     }
 
-    [Fact(DisplayName = "Content reconciliation should remove cleanup records when recheck window expires")]
-    public async Task Reconcile_Should_RemoveCleanupRecords_When_RecheckWindowExpires()
+    [Fact(DisplayName = "Reconciliation should wait for a new version when an old update has not finished uploading")]
+    public async Task Reconcile_Should_WaitForNewVersion_When_UploadHasNotFinished()
     {
         var ct = TestContext.Current.CancellationToken;
         var file = await SaveAsync("Avatar", Guid.NewGuid());
-        await using (var scope = Fixture.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
-            var stored = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
-            var then = FileContentTimestamp.Create(DateTimeOffset.UtcNow.AddDays(-2));
-            var pending = stored.BeginContentUpload(then).Value;
-            stored.BeginContentDeletion(pending.Id, then);
-            db.Update(stored);
-            await db.SaveChangesAsync(ct);
-        }
+        await using var scope = Fixture.CreateScope();
+        var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
+        var previous = await storage.GetMetadataAsync(file.StorageKey.Value, ct);
+        var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var stored = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
+        stored.BeginContentUpdate(FileVersionId.Create(previous!.VersionId).Value);
+        db.Update(stored);
+        await db.SaveChangesAsync(ct);
+        await AgeUpdateAsync(file.Id.Value);
 
         await ReconcileAsync();
 
-        var current = await ReadAsync(file.Id.Value);
-        current.UnusedContents.ShouldBeEmpty();
-        current.StorageKey.ShouldBe(file.StorageKey);
-    }
-
-    [Fact(DisplayName = "Content reconciliation should clean abandoned objects when the file is soft deleted")]
-    public async Task Reconcile_Should_CleanAbandonedObjects_When_TheFileIsSoftDeleted()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var file = await SaveAsync("Avatar", Guid.NewGuid());
-        string pendingKey;
-        await using (var scope = Fixture.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
-            var stored = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
-            var then = FileContentTimestamp.Create(DateTimeOffset.UtcNow.AddMinutes(-20));
-            pendingKey = stored.BeginContentUpload(then).Value.StorageKey.Value;
-            db.Update(stored);
-            await db.SaveChangesAsync(ct);
-            db.Remove(stored);
-            await db.SaveChangesAsync(ct);
-            await using var bytes = new MemoryStream([9]);
-            await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
-                pendingKey, bytes, "text/plain", ct);
-        }
+        var pending = await ReadAsync(file.Id.Value);
+        pending.Status.ShouldBe(FileStatus.Updating);
+        pending.VersionId!.Value.ShouldBe(previous.VersionId);
+        pending.Size!.Value.ShouldBe(4);
+        await using var bytes = new MemoryStream([9, 8, 7]);
+        await storage.UploadAsync(file.StorageKey.Value, bytes, "application/octet-stream", ct);
 
         await ReconcileAsync();
 
-        await using var verification = Fixture.CreateScope();
-        var write = verification.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
-        (await write.Set<File>().AnyAsync(item => item.Id == file.Id, ct)).ShouldBeFalse();
-        var storage = verification.ServiceProvider.GetRequiredService<IFileStorage>();
-        (await storage.GetMetadataAsync(pendingKey, ct)).ShouldBeNull();
-        (await storage.GetMetadataAsync(file.StorageKey.Value, ct)).ShouldBeNull();
+        var completed = await ReadAsync(file.Id.Value);
+        completed.Status.ShouldBe(FileStatus.Ready);
+        completed.StorageKey.ShouldBe(file.StorageKey);
+        completed.VersionId!.Value.ShouldNotBe(previous.VersionId);
+        completed.Size!.Value.ShouldBe(3);
+        completed.ContentType!.Value.ShouldBe("application/octet-stream");
     }
 
-    [Fact(DisplayName = "Content update should preserve committed metadata when another writer changes the file")]
-    public async Task HandleAsync_Should_PreserveCommittedMetadata_When_AnotherWriterChangesTheFile()
+    [Fact(DisplayName = "Reconciliation should finish content replacement when the upload response is lost")]
+    public async Task Reconcile_Should_FinishReplacement_When_UploadResponseIsLost()
     {
         var ct = TestContext.Current.CancellationToken;
         var file = await SaveAsync("Avatar", Guid.NewGuid());
         await using var scope = Fixture.CreateScope();
         var services = scope.ServiceProvider;
         var storage = services.GetRequiredService<IFileStorage>();
+        var previous = await storage.GetMetadataAsync(file.StorageKey.Value, ct);
         var intercepted = new InterceptingFileStorage(
-            storage,
+            storage, () => throw new IOException("Upload response was lost."));
+        var handler = new UpdateFileContentHandler(
+            services.GetRequiredService<IFilesRepository>(),
+            intercepted,
+            services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
+            new FileAccessPolicy(new UpdateUser()));
+        await using var content = new MemoryStream([7, 8, 9]);
+
+        await Should.ThrowAsync<IOException>(() => handler.HandleAsync(
+            new UpdateFileContentCommand(file.Id.Value, "image/png", 3, content), ct));
+
+        (await ReadAsync(file.Id.Value)).Status.ShouldBe(FileStatus.Updating);
+        await AgeUpdateAsync(file.Id.Value);
+        await ReconcileAsync();
+        var current = await ReadAsync(file.Id.Value);
+        current.Status.ShouldBe(FileStatus.Ready);
+        current.StorageKey.ShouldBe(file.StorageKey);
+        current.VersionId!.Value.ShouldNotBe(previous!.VersionId);
+        current.Size!.Value.ShouldBe(3);
+        current.ContentType!.Value.ShouldBe("image/png");
+    }
+
+    [Fact(DisplayName = "Content update should reject a concurrent replacement while Updating is persisted")]
+    public async Task HandleAsync_Should_RejectConcurrentReplacement_When_UpdatingIsPersisted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var actorId = Guid.NewGuid();
+        var file = await SaveAsync("Avatar", actorId);
+        await using var scope = Fixture.CreateScope();
+        var services = scope.ServiceProvider;
+        var intercepted = new InterceptingFileStorage(
+            services.GetRequiredService<IFileStorage>(),
             async () =>
             {
-                await using var other = Fixture.CreateScope();
-                var db = other.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
-                var stored = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
-                stored.Rename(FileName.Create("renamed.txt").Value);
-                db.Update(stored);
-                await db.SaveChangesAsync(ct);
+                (await ReadAsync(file.Id.Value)).Status.ShouldBe(FileStatus.Updating);
+                using var response = await SendAsync(
+                    file.Id.Value, [0], "text/plain", actorId, "file-manager.avatars.update");
+                response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
             });
         var handler = new UpdateFileContentHandler(
             services.GetRequiredService<IFilesRepository>(),
             intercepted,
             services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            new FileAccessPolicy(new UpdateUser()),
-            TimeProvider.System);
+            new FileAccessPolicy(new UpdateUser()));
         await using var content = new MemoryStream([7, 8, 9]);
 
-        var exception = await Record.ExceptionAsync(() => handler.HandleAsync(
-            new UpdateFileContentCommand(file.Id.Value, "text/plain", 3, content), ct));
+        var result = await handler.HandleAsync(
+            new UpdateFileContentCommand(file.Id.Value, "text/plain", 3, content), ct);
 
-        exception.ShouldBeOfType<ConcurrencyException>();
+        result.IsSuccess.ShouldBeTrue();
         var current = await ReadAsync(file.Id.Value);
-        current.Name.Value.ShouldBe("renamed.txt");
+        current.Status.ShouldBe(FileStatus.Ready);
         current.StorageKey.ShouldBe(file.StorageKey);
-        current.Size!.Value.ShouldBe(4);
-        current.UnusedContents.ShouldHaveSingleItem().DeletionStartedAt.ShouldBeNull();
+        current.Size!.Value.ShouldBe(3);
+    }
+
+    private async Task AgeUpdateAsync(Guid id)
+    {
+        await using var scope = Fixture.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+        var then = DateTime.UtcNow.AddMinutes(-20);
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE file_manager.files SET updated_at = {then} WHERE id = {id}",
+            TestContext.Current.CancellationToken);
     }
 
     private async Task<File> SaveAsync(string type, Guid ownerId, string condition = "ready")
     {
         var ct = TestContext.Current.CancellationToken;
+        using var client = Fixture.Storage.CreateClient();
+        await client.PutBucketVersioningAsync(
+            new PutBucketVersioningRequest
+            {
+                BucketName = PANiXiDA.TacticalHeroes.Testing.Storage.S3TestStorage.BucketName,
+                VersioningConfig = new S3BucketVersioningConfig { Status = VersionStatus.Enabled }
+            },
+            ct);
         var file = File.Create(
             FileName.Create("original.txt").Value,
             FileType.FromName(type),
@@ -261,15 +276,19 @@ public sealed class UpdateFileContentEndpointTests(
         {
             file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
         }
+        await using var scope = Fixture.CreateScope();
+        var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
+        await using var bytes = new MemoryStream([1, 2, 3, 4]);
+        await storage.UploadAsync(file.StorageKey.Value, bytes, "text/plain", ct);
         if (condition == "deleting")
         {
             file.BeginDeletion();
         }
         if (condition == "in-progress")
         {
-            file.BeginContentUpload(FileContentTimestamp.Create(DateTimeOffset.UtcNow));
+            var metadata = await storage.GetMetadataAsync(file.StorageKey.Value, ct);
+            file.BeginContentUpdate(FileVersionId.Create(metadata!.VersionId).Value);
         }
-        await using var scope = Fixture.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         db.Add(file);
         await db.SaveChangesAsync(ct);
@@ -278,9 +297,6 @@ public sealed class UpdateFileContentEndpointTests(
             db.Remove(file);
             await db.SaveChangesAsync(ct);
         }
-        await using var bytes = new MemoryStream([1, 2, 3, 4]);
-        await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
-            file.StorageKey.Value, bytes, "text/plain", ct);
         return file;
     }
 

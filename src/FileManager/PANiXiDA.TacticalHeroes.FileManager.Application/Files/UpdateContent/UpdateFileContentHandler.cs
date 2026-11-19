@@ -1,9 +1,10 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
+
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
@@ -12,8 +13,7 @@ public sealed class UpdateFileContentHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    FileAccessPolicy fileAccessPolicy,
-    TimeProvider timeProvider)
+    FileAccessPolicy fileAccessPolicy)
     : ICommandHandler<UpdateFileContentCommand, Result>, IRequireAuthorization
 {
     public async Task<Result> HandleAsync(UpdateFileContentCommand command, CancellationToken cancellationToken)
@@ -38,32 +38,46 @@ public sealed class UpdateFileContentHandler(
             return Result.Failure(Error.NotFound("File was not found."));
         }
 
-        var upload = file.BeginContentUpload(FileContentTimestamp.Create(timeProvider.GetUtcNow()));
-        if (upload.IsFailure)
+        if (file.Status != FileStatus.Ready)
         {
-            return Result.Failure(upload.Errors);
+            return Result.Failure(Error.Conflict("Only ready file content can be replaced."));
+        }
+
+        var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
+        var previousVersion = FileVersionId.Create(current?.VersionId);
+        if (previousVersion.IsFailure)
+        {
+            return Result.Failure(Error.Conflict("File content must exist in storage with bucket versioning enabled."));
+        }
+
+        var started = file.BeginContentUpdate(previousVersion.Value);
+        if (started.IsFailure)
+        {
+            return started;
         }
 
         filesRepository.Update(file);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         await fileStorage.UploadAsync(
-            key: upload.Value.StorageKey.Value,
+            key: file.StorageKey.Value,
             content: command.Content,
             contentType: contentType.Value.Value,
             cancellationToken: cancellationToken);
 
-        var metadata = await fileStorage.GetMetadataAsync(upload.Value.StorageKey.Value, cancellationToken);
+        var metadata = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
         if (metadata is null || metadata.ContentType != contentType.Value.Value || metadata.Size != size.Value.Value)
         {
             return Result.Failure(Error.Conflict("Uploaded file content does not match the requested metadata."));
         }
 
-        var result = file.ReplaceContent(
-            contentId: upload.Value.Id,
-            contentType: contentType.Value,
-            size: size.Value,
-            now: FileContentTimestamp.Create(timeProvider.GetUtcNow()));
+        var version = FileVersionId.Create(metadata.VersionId);
+        if (version.IsFailure)
+        {
+            return Result.Failure(Error.Conflict("Uploaded file content has no storage version."));
+        }
+
+        var result = file.CompleteContentUpdate(contentType.Value, size.Value, version.Value);
         if (result.IsFailure)
         {
             return result;

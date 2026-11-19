@@ -12,6 +12,7 @@ public sealed class FileReadDbModel : AuditableReadDbModel<Guid>
     public string Status { get; set; } = string.Empty;
     public string? ContentType { get; set; }
     public long? Size { get; set; }
+    public string? VersionId { get; set; }
 
     public FolderReadDbModel? Folder { get; set; }
 }

@@ -1,6 +1,4 @@
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Entities.FileContents.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -10,8 +8,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 
 public sealed class File : AggregateRoot<FileId>
 {
-    private readonly List<FileContent> _unusedContents = [];
-
     private File(
         FileId id,
         FileName name,
@@ -35,7 +31,7 @@ public sealed class File : AggregateRoot<FileId>
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
-    public IReadOnlyCollection<FileContent> UnusedContents => _unusedContents.AsReadOnly();
+    public FileVersionId? VersionId { get; private set; }
 
     public static Result<File> Create(
         FileName name,
@@ -85,10 +81,10 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Rename(FileName name)
     {
-        if (Status == FileStatus.Deleting)
+        if (Status == FileStatus.Updating || Status == FileStatus.Deleting)
         {
             return Result.Failure(
-                Error.Conflict("A file being deleted cannot be renamed."));
+                Error.Conflict("A file being updated or deleted cannot be renamed."));
         }
 
         Name = name;
@@ -98,10 +94,10 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result MoveTo(Folder? folder)
     {
-        if (Status == FileStatus.Deleting)
+        if (Status == FileStatus.Updating || Status == FileStatus.Deleting)
         {
             return Result.Failure(
-                Error.Conflict("A file being deleted cannot be moved."));
+                Error.Conflict("A file being updated or deleted cannot be moved."));
         }
 
         if (folder is null)
@@ -155,76 +151,44 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result<FileContent> BeginContentUpload(FileContentTimestamp now)
+    public Result BeginContentUpdate(FileVersionId versionId)
     {
         if (Status != FileStatus.Ready)
         {
-            return Result.Failure<FileContent>(Error.Conflict("Only ready file content can be replaced."));
+            return Result.Failure(Error.Conflict("Only ready file content can be replaced."));
         }
 
-        if (_unusedContents.Any(content => content.DeletionStartedAt is null))
-        {
-            return Result.Failure<FileContent>(Error.Conflict("A file content upload is already in progress."));
-        }
+        VersionId = versionId;
+        Status = FileStatus.Updating;
 
-        var key = FileStorageKey.Create($"contents/{Id.Value:D}/{Guid.CreateVersion7():D}").Value;
-        var content = FileContent.Create(fileId: Id, storageKey: key, registeredAt: now);
-        _unusedContents.Add(content);
-
-        return Result.Success(content);
+        return Result.Success();
     }
 
-    public Result ReplaceContent(
-        FileContentId contentId,
+    public Result CompleteContentUpdate(
         FileContentType contentType,
         FileSize size,
-        FileContentTimestamp now)
+        FileVersionId versionId)
     {
-        var content = _unusedContents.SingleOrDefault(item => item.Id == contentId);
-        if (Status != FileStatus.Ready || content is null || content.DeletionStartedAt is not null)
+        if (Status != FileStatus.Updating || VersionId == versionId)
         {
-            return Result.Failure(Error.Conflict("File content upload is no longer available."));
+            return Result.Failure(Error.Conflict("A new stored file version is required to complete the update."));
         }
 
-        var previous = FileContent.Create(fileId: Id, storageKey: StorageKey, registeredAt: now);
-        previous.BeginDeletion(now);
-        _unusedContents.Remove(content);
-        _unusedContents.Add(previous);
-        StorageKey = content.StorageKey;
         ContentType = contentType;
         Size = size;
-
-        return Result.Success();
-    }
-
-    public Result BeginContentDeletion(FileContentId contentId, FileContentTimestamp now)
-    {
-        var content = _unusedContents.SingleOrDefault(item => item.Id == contentId);
-        if (content is null || content.StorageKey == StorageKey)
-        {
-            return Result.Failure(Error.Conflict("Active or unknown file content cannot be deleted."));
-        }
-
-        content.BeginDeletion(now);
-
-        return Result.Success();
-    }
-
-    public Result ForgetContent(FileContentId contentId)
-    {
-        var content = _unusedContents.SingleOrDefault(item => item.Id == contentId);
-        if (content is null || content.DeletionStartedAt is null || content.StorageKey == StorageKey)
-        {
-            return Result.Failure(Error.Conflict("Only deleted unused file content can be forgotten."));
-        }
-
-        _unusedContents.Remove(content);
+        VersionId = versionId;
+        Status = FileStatus.Ready;
 
         return Result.Success();
     }
 
     public Result BeginDeletion()
     {
+        if (Status == FileStatus.Updating)
+        {
+            return Result.Failure(Error.Conflict("A file being updated cannot be deleted."));
+        }
+
         if (Status == FileStatus.Deleting)
         {
             return Result.Success();

@@ -67,8 +67,7 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
             var afterRollback = await readContext.Set<FileReadDbModel>().IgnoreQueryFilters()
                 .SingleAsync(item => item.Id == file.Id.Value, cancellationToken);
             afterRollback.DeletedAt.ShouldBe(stored.DeletedAt);
-            (await context.Set<File>().IgnoreAutoIncludes()
-                .AnyAsync(item => item.Id == file.Id, cancellationToken)).ShouldBeFalse();
+            (await repository.GetByIdAsync(file.Id, cancellationToken)).ShouldBeNull();
         }
         finally
         {
@@ -209,7 +208,6 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
             tables.Add(reader.GetString(0));
         }
 
-        tables.ShouldBe(
-            ["file_manager.__EFMigrationsHistory", "file_manager.file_contents", "file_manager.files", "file_manager.folders"]);
+        tables.ShouldBe(["file_manager.__EFMigrationsHistory", "file_manager.files", "file_manager.folders"]);
     }
 }

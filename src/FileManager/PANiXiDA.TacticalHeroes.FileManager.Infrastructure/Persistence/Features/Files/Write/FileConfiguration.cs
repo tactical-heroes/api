@@ -65,6 +65,13 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
                 value => FileSize.Create(value).Value)
             .IsRequired(required: false);
 
+        builder.Property(file => file.VersionId)
+            .HasConversion(
+                version => version!.Value,
+                value => FileVersionId.Create(value).Value)
+            .HasMaxLength(FileVersionId.MaxLength)
+            .IsRequired(required: false);
+
         builder.Property(file => file.FolderId)
             .HasConversion(
                 id => id!.Value.Value,
@@ -81,14 +88,6 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
         builder.HasIndex(file => file.StorageKey).IsUnique();
         builder.HasIndex(file => file.FolderId);
         builder.HasIndex(file => file.UserId);
-
-        builder.HasMany(file => file.UnusedContents)
-            .WithOne()
-            .HasForeignKey(content => content.FileId)
-            .OnDelete(DeleteBehavior.Cascade);
-        builder.Navigation(file => file.UnusedContents)
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .AutoInclude();
 
         builder.HasOne<Folder>()
             .WithMany()
