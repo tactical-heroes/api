@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Persistence.Errors;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
@@ -80,7 +79,8 @@ public sealed class FileContentUpdatePersistenceTests(IntegrationTestFixture fix
             .SaveChangesAsync(ct);
 
         await Should.ThrowAsync<ConcurrencyException>(() => second.ServiceProvider
-            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)).SaveChangesAsync(ct));
+            .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
+            .SaveChangesAsync(ct));
     }
 
     private static File CreateFile()

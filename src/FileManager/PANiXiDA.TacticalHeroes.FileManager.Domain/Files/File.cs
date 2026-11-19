@@ -81,10 +81,15 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Rename(FileName name)
     {
-        if (Status == FileStatus.Updating || Status == FileStatus.Deleting)
+        if (Status == FileStatus.Updating)
+        {
+            return Result.Failure(Error.Conflict("A file being updated cannot be renamed."));
+        }
+
+        if (Status == FileStatus.Deleting)
         {
             return Result.Failure(
-                Error.Conflict("A file being updated or deleted cannot be renamed."));
+                Error.Conflict("A file being deleted cannot be renamed."));
         }
 
         Name = name;
@@ -94,10 +99,15 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result MoveTo(Folder? folder)
     {
-        if (Status == FileStatus.Updating || Status == FileStatus.Deleting)
+        if (Status == FileStatus.Updating)
+        {
+            return Result.Failure(Error.Conflict("A file being updated cannot be moved."));
+        }
+
+        if (Status == FileStatus.Deleting)
         {
             return Result.Failure(
-                Error.Conflict("A file being updated or deleted cannot be moved."));
+                Error.Conflict("A file being deleted cannot be moved."));
         }
 
         if (folder is null)

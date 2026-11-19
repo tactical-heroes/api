@@ -360,7 +360,7 @@ public sealed class ReconcileFileUploadsHandlerTests
         file.VersionId!.Value.ShouldBe(completed ? version : "old");
         file.Size!.Value.ShouldBe(completed ? size : 4);
         await _unitOfWork.Received(completed ? 1 : 0).SaveChangesAsync(TestContext.Current.CancellationToken);
-        await _fileStorage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default);
+        await _fileStorage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact(DisplayName = "Reconciliation should retain Updating when storage inspection fails")]
@@ -379,7 +379,7 @@ public sealed class ReconcileFileUploadsHandlerTests
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Updating);
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
-        await _fileStorage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default);
+        await _fileStorage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, TestContext.Current.CancellationToken);
     }
 
     private static File CreateFile()
