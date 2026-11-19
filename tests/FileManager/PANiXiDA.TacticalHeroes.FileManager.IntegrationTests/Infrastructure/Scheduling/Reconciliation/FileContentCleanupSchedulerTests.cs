@@ -19,7 +19,10 @@ public sealed class FileContentCleanupSchedulerTests
         clock.GetUtcNow().Returns(now);
         var scheduler = Substitute.For<IScheduler>();
         var options = new FileUploadReconciliationOptions { DeletedFileRecheckWindow = TimeSpan.FromHours(2) };
-        var cleanup = new FileContentCleanupScheduler(scheduler, Microsoft.Extensions.Options.Options.Create(options), clock);
+        var cleanup = new FileContentCleanupScheduler(
+            scheduler,
+            Microsoft.Extensions.Options.Options.Create(options),
+            clock);
         var key = FileStorageKey.Create("contents/unused").Value;
 
         await cleanup.ScheduleAsync(key, TestContext.Current.CancellationToken);
@@ -44,7 +47,10 @@ public sealed class FileContentCleanupSchedulerTests
         clock.GetUtcNow().Returns(deadline.AddMinutes(minutesAfterDeadline));
         var scheduler = Substitute.For<IScheduler>();
         var options = new FileUploadReconciliationOptions { MinimumAge = TimeSpan.FromMinutes(5) };
-        var cleanup = new FileContentCleanupScheduler(scheduler, Microsoft.Extensions.Options.Options.Create(options), clock);
+        var cleanup = new FileContentCleanupScheduler(
+            scheduler,
+            Microsoft.Extensions.Options.Options.Create(options),
+            clock);
         var command = new DeleteStoredFileCommand("contents/unused", deadline);
 
         await cleanup.RescheduleAsync(command, TestContext.Current.CancellationToken);
