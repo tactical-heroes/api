@@ -171,18 +171,19 @@ public sealed class ReconcileFileUploadsHandler(
             return current;
         }
 
-        await foreach (var version in fileStorage.GetVersionsAsync(file.StorageKey.Value, cancellationToken))
+        var versions = fileStorage.GetVersionsAsync(file.StorageKey.Value, cancellationToken);
+        await foreach (var versionId in versions.Select(version => version.VersionId))
         {
-            if (version.VersionId == file.VersionId?.Value || version.VersionId == current?.VersionId)
+            if (versionId == file.VersionId?.Value || versionId == current?.VersionId)
             {
                 continue;
             }
 
             var metadata = await fileStorage.GetMetadataAsync(
                 key: file.StorageKey.Value,
-                versionId: version.VersionId,
+                versionId: versionId,
                 cancellationToken: cancellationToken);
-            if (metadata?.VersionId == version.VersionId
+            if (metadata?.VersionId == versionId
                 && MatchesContentUpdate(
                     metadata: metadata,
                     activeVersion: file.VersionId,
