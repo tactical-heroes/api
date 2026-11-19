@@ -72,7 +72,7 @@ public sealed class UpdateFileContentHandler(
             contentType: contentType.Value.Value,
             metadata: new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateId] = started.Value.ToString("D")
+                [FileMetadataNames.ContentUpdateAttemptId] = started.Value.Value.ToString("D")
             },
             cancellationToken: cancellationToken);
         var uploadedVersion = FileVersionId.Create(uploaded.VersionId);
@@ -89,15 +89,15 @@ public sealed class UpdateFileContentHandler(
             || metadata.ContentType != contentType.Value.Value
             || metadata.Size != size.Value.Value
             || metadata.VersionId != uploadedVersion.Value.Value
-            || !metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateId, out var storedUpdateId)
-            || !Guid.TryParse(storedUpdateId, out var contentUpdateId)
-            || contentUpdateId != started.Value)
+            || !metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateAttemptId, out var storedUpdateId)
+            || !Guid.TryParse(storedUpdateId, out var contentUpdateAttemptId)
+            || contentUpdateAttemptId != started.Value.Value)
         {
             return Result.Failure(Error.Conflict("Uploaded file content does not match the requested metadata."));
         }
 
         var completed = file.CompleteContentUpdate(
-            contentUpdateId: started.Value,
+            contentUpdateAttemptId: started.Value,
             contentType: contentType.Value,
             size: size.Value,
             versionId: uploadedVersion.Value);

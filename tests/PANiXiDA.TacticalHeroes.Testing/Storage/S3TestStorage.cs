@@ -37,6 +37,12 @@ public sealed class S3TestStorage : IAsyncDisposable
         using var client = CreateClient();
         var response = await client.ListBucketsAsync(cancellationToken);
         response.Buckets.ShouldContain(bucket => bucket.BucketName == BucketName);
+        await EnableVersioningAsync(cancellationToken);
+    }
+
+    public async Task EnableVersioningAsync(CancellationToken cancellationToken)
+    {
+        using var client = CreateClient();
         await client.PutBucketVersioningAsync(
             new PutBucketVersioningRequest
             {

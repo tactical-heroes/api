@@ -32,7 +32,7 @@ public sealed class File : AggregateRoot<FileId>
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
     public FileVersionId? VersionId { get; private set; }
-    public Guid? ContentUpdateId { get; private set; }
+    public FileContentUpdateAttemptId? ContentUpdateAttemptId { get; private set; }
 
     public static Result<File> Create(
         FileName name,
@@ -144,7 +144,8 @@ public sealed class File : AggregateRoot<FileId>
     {
         if (Status == FileStatus.Ready)
         {
-            if (ContentType != contentType || Size != size
+            if (ContentType != contentType
+                || Size != size
                 || (versionId is not null && VersionId is not null && VersionId != versionId))
             {
                 return Result.Failure(Error.Conflict("File content cannot be replaced after upload."));
@@ -169,32 +170,34 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result<Guid> BeginContentUpdate(FileVersionId versionId)
+    public Result<FileContentUpdateAttemptId> BeginContentUpdate(FileVersionId versionId)
     {
         if (Status != FileStatus.Ready)
         {
-            return Result.Failure<Guid>(Error.Conflict("Only ready file content can be replaced."));
+            return Result.Failure<FileContentUpdateAttemptId>(
+                Error.Conflict("Only ready file content can be replaced."));
         }
 
         if (VersionId is not null && VersionId != versionId)
         {
-            return Result.Failure<Guid>(Error.Conflict("The active storage version has changed."));
+            return Result.Failure<FileContentUpdateAttemptId>(
+                Error.Conflict("The active storage version has changed."));
         }
 
         VersionId = versionId;
-        ContentUpdateId = Guid.CreateVersion7();
+        ContentUpdateAttemptId = FileContentUpdateAttemptId.New();
         Status = FileStatus.Updating;
 
-        return Result.Success(ContentUpdateId.Value);
+        return Result.Success(ContentUpdateAttemptId.Value);
     }
 
     public Result CompleteContentUpdate(
-        Guid contentUpdateId,
+        FileContentUpdateAttemptId contentUpdateAttemptId,
         FileContentType contentType,
         FileSize size,
         FileVersionId versionId)
     {
-        if (Status != FileStatus.Updating || ContentUpdateId != contentUpdateId || VersionId == versionId)
+        if (Status != FileStatus.Updating || ContentUpdateAttemptId != contentUpdateAttemptId || VersionId == versionId)
         {
             return Result.Failure(Error.Conflict("File content upload is no longer available."));
         }
@@ -202,20 +205,20 @@ public sealed class File : AggregateRoot<FileId>
         ContentType = contentType;
         Size = size;
         VersionId = versionId;
-        ContentUpdateId = null;
+        ContentUpdateAttemptId = null;
         Status = FileStatus.Ready;
 
         return Result.Success();
     }
 
-    public Result CancelContentUpdate(Guid contentUpdateId)
+    public Result CancelContentUpdate(FileContentUpdateAttemptId contentUpdateAttemptId)
     {
-        if (Status != FileStatus.Updating || ContentUpdateId != contentUpdateId)
+        if (Status != FileStatus.Updating || ContentUpdateAttemptId != contentUpdateAttemptId)
         {
             return Result.Failure(Error.Conflict("File content upload is no longer available."));
         }
 
-        ContentUpdateId = null;
+        ContentUpdateAttemptId = null;
         Status = FileStatus.Ready;
 
         return Result.Success();

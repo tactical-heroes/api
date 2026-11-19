@@ -35,7 +35,11 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         await using var content = new MemoryStream([1, 2, 3, 4]);
         var userId = Guid.NewGuid();
         var command = new CreatePersonalFileCommand(
-            "file.bin", "application/octet-stream", content.Length, content, FolderId: null);
+            "file.bin",
+            "application/octet-stream",
+            content.Length,
+            content,
+            FolderId: null);
 
         var result = await CreateHandler(scope.ServiceProvider, userId).HandleAsync(command, cancellationToken);
 
@@ -70,7 +74,11 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
             await using var content = new MemoryStream([1]);
             var userId = Guid.NewGuid();
             var command = new CreatePersonalFileCommand(
-                "file.bin", "application/octet-stream", content.Length, content, FolderId: null);
+                "file.bin",
+                "application/octet-stream",
+                content.Length,
+                content,
+                FolderId: null);
 
             await Should.ThrowAsync<AmazonS3Exception>(() =>
                 CreateHandler(scope.ServiceProvider, userId).HandleAsync(command, cancellationToken));
@@ -87,6 +95,7 @@ public sealed class PersonalFileStorageTests(IntegrationTestFixture fixture)
         finally
         {
             await s3.PutBucketAsync(new PutBucketRequest { BucketName = S3TestStorage.BucketName }, cancellationToken);
+            await Fixture.Storage.EnableVersioningAsync(cancellationToken);
         }
     }
 

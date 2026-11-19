@@ -52,7 +52,7 @@ public sealed class GetFileDownloadUrlHandler(
             var storedVersion = FileVersionId.Create(metadata?.VersionId);
             if (file.Status != FileStatus.Ready
                 || storedVersion.IsFailure
-                || metadata!.Metadata.ContainsKey(FileMetadataNames.ContentUpdateId))
+                || metadata!.Metadata.ContainsKey(FileMetadataNames.ContentUpdateAttemptId))
             {
                 return Result.Failure<PresignedDownloadUrl>(
                     Error.Conflict("File content has no active storage version."));

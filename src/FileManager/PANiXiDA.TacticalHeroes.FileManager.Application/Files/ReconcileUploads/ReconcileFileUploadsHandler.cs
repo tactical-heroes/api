@@ -4,6 +4,7 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -78,7 +79,7 @@ public sealed class ReconcileFileUploadsHandler(
         }
 
         if (metadata is not null
-            && await TryCompleteUploadAsync(file, metadata, cancellationToken))
+            && await TryCompleteUploadAsync(file: file, metadata: metadata, cancellationToken: cancellationToken))
         {
             return;
         }
@@ -94,7 +95,7 @@ public sealed class ReconcileFileUploadsHandler(
         bool expireUnusable,
         CancellationToken cancellationToken)
     {
-        if (file.ContentUpdateId is not { } contentUpdateId)
+        if (file.ContentUpdateAttemptId is not { } contentUpdateAttemptId)
         {
             return;
         }
@@ -102,7 +103,10 @@ public sealed class ReconcileFileUploadsHandler(
         FileMetadata? metadata;
         try
         {
-            metadata = await FindUpdatedContentAsync(file, contentUpdateId, cancellationToken);
+            metadata = await FindUpdatedContentAsync(
+                file: file,
+                contentUpdateAttemptId: contentUpdateAttemptId,
+                cancellationToken: cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -118,14 +122,14 @@ public sealed class ReconcileFileUploadsHandler(
         if (metadata is not null)
         {
             result = file.CompleteContentUpdate(
-                contentUpdateId: contentUpdateId,
+                contentUpdateAttemptId: contentUpdateAttemptId,
                 contentType: FileContentType.Create(metadata.ContentType).Value,
                 size: FileSize.Create(metadata.Size).Value,
                 versionId: FileVersionId.Create(metadata.VersionId).Value);
         }
         else if (expireUnusable)
         {
-            result = file.CancelContentUpdate(contentUpdateId);
+            result = file.CancelContentUpdate(contentUpdateAttemptId);
         }
         else
         {
@@ -141,11 +145,14 @@ public sealed class ReconcileFileUploadsHandler(
 
     private async Task<FileMetadata?> FindUpdatedContentAsync(
         File file,
-        Guid contentUpdateId,
+        FileContentUpdateAttemptId contentUpdateAttemptId,
         CancellationToken cancellationToken)
     {
         var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
-        if (MatchesContentUpdate(current, file.VersionId, contentUpdateId))
+        if (MatchesContentUpdate(
+            metadata: current,
+            activeVersion: file.VersionId,
+            contentUpdateAttemptId: contentUpdateAttemptId))
         {
             return current;
         }
@@ -158,27 +165,20 @@ public sealed class ReconcileFileUploadsHandler(
             }
 
             var metadata = await fileStorage.GetMetadataAsync(
-                file.StorageKey.Value, version.VersionId, cancellationToken);
+                key: file.StorageKey.Value,
+                versionId: version.VersionId,
+                cancellationToken: cancellationToken);
             if (metadata?.VersionId == version.VersionId
-                && MatchesContentUpdate(metadata, file.VersionId, contentUpdateId))
+                && MatchesContentUpdate(
+                    metadata: metadata,
+                    activeVersion: file.VersionId,
+                    contentUpdateAttemptId: contentUpdateAttemptId))
             {
                 return metadata;
             }
         }
 
         return null;
-    }
-
-    private static bool MatchesContentUpdate(FileMetadata? metadata, FileVersionId? activeVersion, Guid contentUpdateId)
-    {
-        return metadata is not null
-            && metadata.VersionId != activeVersion?.Value
-            && metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateId, out var storedUpdateId)
-            && Guid.TryParse(storedUpdateId, out var storedId)
-            && storedId == contentUpdateId
-            && FileContentType.Create(metadata.ContentType).IsSuccess
-            && FileSize.Create(metadata.Size).IsSuccess
-            && FileVersionId.Create(metadata.VersionId).IsSuccess;
     }
 
     private async Task BeginDeletionAsync(File file, CancellationToken cancellationToken)
@@ -267,5 +267,20 @@ public sealed class ReconcileFileUploadsHandler(
 
         logger.LogInformation("Deleted stored content for file {FileId}", file.Id.Value);
         return true;
+    }
+
+    private static bool MatchesContentUpdate(
+        FileMetadata? metadata,
+        FileVersionId? activeVersion,
+        FileContentUpdateAttemptId contentUpdateAttemptId)
+    {
+        return metadata is not null
+            && metadata.VersionId != activeVersion?.Value
+            && metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateAttemptId, out var storedUpdateId)
+            && Guid.TryParse(storedUpdateId, out var storedId)
+            && storedId == contentUpdateAttemptId.Value
+            && FileContentType.Create(metadata.ContentType).IsSuccess
+            && FileSize.Create(metadata.Size).IsSuccess
+            && FileVersionId.Create(metadata.VersionId).IsSuccess;
     }
 }

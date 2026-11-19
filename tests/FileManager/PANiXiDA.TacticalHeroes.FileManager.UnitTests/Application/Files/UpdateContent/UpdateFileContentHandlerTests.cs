@@ -32,21 +32,24 @@ public sealed class UpdateFileContentHandlerTests
             .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
     }
 
-    [Fact(DisplayName = "Content update should reserve its operation before uploading the same key")]
+    [Fact(DisplayName = "Content update should reserve its operation when upload starts")]
     public async Task HandleAsync_Should_ReserveOperation_When_UploadStarts()
     {
         var file = CreateFile();
         var key = file.StorageKey;
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _storage.UploadAsync(
-                key.Value, Arg.Any<Stream>(), "text/plain",
-                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+            key.Value,
+            Arg.Any<Stream>(),
+            "text/plain",
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
             .Returns(call =>
             {
                 file.Status.ShouldBe(FileStatus.Updating);
                 file.VersionId!.Value.ShouldBe("initial");
-                call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.ContentUpdateId]
-                    .ShouldBe(file.ContentUpdateId!.Value.ToString("D"));
+                call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.ContentUpdateAttemptId]
+                    .ShouldBe(file.ContentUpdateAttemptId!.Value.Value.ToString("D"));
                 _unitOfWork.ReceivedCalls().Count().ShouldBe(1);
                 return new FileUploadResult("replacement");
             });
@@ -61,7 +64,7 @@ public sealed class UpdateFileContentHandlerTests
         result.IsSuccess.ShouldBeTrue();
         file.StorageKey.ShouldBe(key);
         file.VersionId!.Value.ShouldBe("replacement");
-        file.ContentUpdateId.ShouldBeNull();
+        file.ContentUpdateAttemptId.ShouldBeNull();
         file.Status.ShouldBe(FileStatus.Ready);
         file.Size!.Value.ShouldBe(3);
         await _unitOfWork.Received(2).SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -84,8 +87,11 @@ public sealed class UpdateFileContentHandlerTests
         var key = file.StorageKey;
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _storage.UploadAsync(
-                Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(),
-                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+            Arg.Any<string>(),
+            Arg.Any<Stream>(),
+            Arg.Any<string>(),
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
             .Returns(new FileUploadResult(condition == "versionless" ? null : "replacement"));
         _storage.GetMetadataAsync(key.Value, "replacement", Arg.Any<CancellationToken>()).Returns(_ =>
         {
@@ -101,16 +107,19 @@ public sealed class UpdateFileContentHandlerTests
                 VersionId = condition == "version" ? "different" : "replacement",
                 Metadata = new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateId] =
-                        (condition == "operation" ? Guid.NewGuid() : file.ContentUpdateId!.Value).ToString("D")
+                    [FileMetadataNames.ContentUpdateAttemptId] =
+                        (condition == "operation" ? Guid.NewGuid() : file.ContentUpdateAttemptId!.Value.Value).ToString("D")
                 }
             };
         });
         if (condition == "upload-error")
         {
             _storage.UploadAsync(
-                    Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(),
-                    Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+                Arg.Any<string>(),
+                Arg.Any<Stream>(),
+                Arg.Any<string>(),
+                Arg.Any<IReadOnlyDictionary<string, string>>(),
+                Arg.Any<CancellationToken>())
                 .ThrowsAsync(new IOException("Upload failed."));
         }
         if (condition == "save-error")
@@ -146,7 +155,7 @@ public sealed class UpdateFileContentHandlerTests
         if (condition != "save-error")
         {
             file.Status.ShouldBe(FileStatus.Updating);
-            file.ContentUpdateId.ShouldNotBeNull();
+            file.ContentUpdateAttemptId.ShouldNotBeNull();
             file.VersionId!.Value.ShouldBe("initial");
             file.Size!.Value.ShouldBe(4);
         }
@@ -154,7 +163,7 @@ public sealed class UpdateFileContentHandlerTests
             .SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
-    [Theory(DisplayName = "Content update should bind the stored version when a legacy file has no active version")]
+    [Theory(DisplayName = "Content update should bind the stored version when legacy file has no active version")]
     [InlineData(true)]
     [InlineData(false)]
     public async Task HandleAsync_Should_BindStoredVersion_When_LegacyFileHasNoActiveVersion(bool versioned)
@@ -163,12 +172,17 @@ public sealed class UpdateFileContentHandlerTests
         file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _storage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(new FileMetadata("text/plain", 4,
+            .Returns(new FileMetadata(
+                "text/plain",
+                4,
                 System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
                 versioned ? "initial" : null));
         _storage.UploadAsync(
-                Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(),
-                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+            Arg.Any<string>(),
+            Arg.Any<Stream>(),
+            Arg.Any<string>(),
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
             .Returns(new FileUploadResult("replacement"));
         _storage.GetMetadataAsync(file.StorageKey.Value, "replacement", Arg.Any<CancellationToken>())
             .Returns(_ => UpdatedMetadata(file));
@@ -239,16 +253,23 @@ public sealed class UpdateFileContentHandlerTests
 
         exception.ShouldBeOfType<IOException>();
         await _storage.DidNotReceiveWithAnyArgs().UploadAsync(
-            default!, default!, default!, default!, TestContext.Current.CancellationToken);
+            default!,
+            default!,
+            default!,
+            default!,
+            TestContext.Current.CancellationToken);
     }
 
     private static FileMetadata UpdatedMetadata(File file)
     {
-        return new FileMetadata("text/plain", 3,
+        return new FileMetadata(
+            "text/plain",
+            3,
             new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateId] = file.ContentUpdateId!.Value.ToString("D")
-            }, "replacement");
+                [FileMetadataNames.ContentUpdateAttemptId] = file.ContentUpdateAttemptId!.Value.Value.ToString("D")
+            },
+            "replacement");
     }
 
     private static File CreateFile(bool ready = true)
@@ -257,7 +278,8 @@ public sealed class UpdateFileContentHandlerTests
         if (ready)
         {
             file.CompleteUpload(
-                FileContentType.Create("text/plain").Value, FileSize.Create(4).Value,
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
                 FileVersionId.Create("initial").Value);
         }
         return file;

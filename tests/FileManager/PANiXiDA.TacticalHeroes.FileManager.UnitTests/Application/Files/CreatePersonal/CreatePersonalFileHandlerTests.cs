@@ -39,11 +39,15 @@ public sealed class CreatePersonalFileHandlerTests
         _currentUser.UserId.Returns(_userId);
         _currentUser.HasPermission("file-manager.personal-files.create.own").Returns(true);
         _storage.UploadAsync(
-                Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(),
-                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+            Arg.Any<string>(),
+            Arg.Any<Stream>(),
+            Arg.Any<string>(),
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
             .Returns(new FileUploadResult("initial-version"));
         _unitOfWork.ExecuteInTransactionAsync(
-            Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            Arg.Any<Func<CancellationToken, Task>>(),
+            Arg.Any<CancellationToken>())
             .Returns(call => call.Arg<Func<CancellationToken, Task>>()(call.Arg<CancellationToken>()));
     }
 
@@ -57,7 +61,8 @@ public sealed class CreatePersonalFileHandlerTests
         var folder = Folder.Create(
             FolderName.Create("Documents").Value,
             FileType.Personal,
-            UserId.Create(_userId).Value).Value;
+            UserId.Create(_userId).Value)
+            .Value;
         if (hasFolder)
         {
             command = command with { FolderId = folder.Id.Value };
@@ -66,7 +71,8 @@ public sealed class CreatePersonalFileHandlerTests
 
         List<string> steps = [];
         _unitOfWork.ExecuteInTransactionAsync(
-            Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            Arg.Any<Func<CancellationToken, Task>>(),
+            Arg.Any<CancellationToken>())
             .Returns(async call =>
             {
                 steps.Add("begin");
@@ -88,8 +94,12 @@ public sealed class CreatePersonalFileHandlerTests
             steps.Add("save");
             return Task.CompletedTask;
         });
-        _storage.UploadAsync(Arg.Any<string>(), content, "text/plain",
-                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+        _storage.UploadAsync(
+            Arg.Any<string>(),
+            content,
+            "text/plain",
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
                 steps.Add("upload");
@@ -125,7 +135,8 @@ public sealed class CreatePersonalFileHandlerTests
         var folder = Folder.Create(
             FolderName.Create("Documents").Value,
             folderKind == "avatar" ? FileType.Avatar : FileType.Personal,
-            folderKind == "avatar" ? null : UserId.Create(Guid.NewGuid()).Value).Value;
+            folderKind == "avatar" ? null : UserId.Create(Guid.NewGuid()).Value)
+            .Value;
         if (folderKind != "missing")
         {
             _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
@@ -212,8 +223,13 @@ public sealed class CreatePersonalFileHandlerTests
         Exception failure = cancelled
             ? new OperationCanceledException(cancellationToken)
             : new IOException("Upload failed.");
-        _storage.UploadAsync(Arg.Any<string>(), content, Arg.Any<string>(),
-            Arg.Any<IReadOnlyDictionary<string, string>>(), cancellationToken).ThrowsAsync(failure);
+        _storage.UploadAsync(
+            Arg.Any<string>(),
+            content,
+            Arg.Any<string>(),
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            cancellationToken)
+            .ThrowsAsync(failure);
 
         var thrown = await Record.ExceptionAsync(
             () => CreateHandler().HandleAsync(CreateCommand(content), cancellationToken));
@@ -261,7 +277,11 @@ public sealed class CreatePersonalFileHandlerTests
     private static CreatePersonalFileCommand CreateCommand(Stream content)
     {
         return new CreatePersonalFileCommand(
-            "file.txt", "text/plain", content.Length, content, FolderId: null);
+            "file.txt",
+            "text/plain",
+            content.Length,
+            content,
+            FolderId: null);
     }
 
     private CreatePersonalFileHandler CreateHandler()
@@ -270,7 +290,9 @@ public sealed class CreatePersonalFileHandlerTests
         var service = new FileCreationService(
             filesRepository: _files,
             folderAccessService: new FolderAccessService(
-                _folders, _hierarchyLock, new FolderAccessPolicy(_currentUser, policy)),
+                _folders,
+                _hierarchyLock,
+                new FolderAccessPolicy(_currentUser, policy)),
             fileStorage: _storage,
             unitOfWork: _unitOfWork,
             fileAccessPolicy: policy);

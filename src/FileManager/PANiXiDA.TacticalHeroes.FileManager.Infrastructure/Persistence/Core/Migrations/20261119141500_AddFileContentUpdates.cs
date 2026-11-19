@@ -18,7 +18,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                 maxLength: 1024,
                 nullable: true);
             migrationBuilder.AddColumn<Guid>(
-                name: "content_update_id",
+                name: "content_update_attempt_id",
                 schema: "file_manager",
                 table: "files",
                 type: "uuid",
@@ -32,7 +32,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                 schema: "file_manager",
                 table: "files");
             migrationBuilder.DropColumn(
-                name: "content_update_id",
+                name: "content_update_attempt_id",
                 schema: "file_manager",
                 table: "files");
         }

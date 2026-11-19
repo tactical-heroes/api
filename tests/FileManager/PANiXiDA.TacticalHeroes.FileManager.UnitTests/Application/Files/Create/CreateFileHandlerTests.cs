@@ -38,11 +38,15 @@ public sealed class CreateFileHandlerTests
         _user.HasPermission("file-manager.personal-files.create.all").Returns(true);
         _user.HasPermission("file-manager.avatars.create").Returns(true);
         _storage.UploadAsync(
-                Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(),
-                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+            Arg.Any<string>(),
+            Arg.Any<Stream>(),
+            Arg.Any<string>(),
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
             .Returns(new FileUploadResult("initial-version"));
         _unitOfWork.ExecuteInTransactionAsync(
-            Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            Arg.Any<Func<CancellationToken, Task>>(),
+            Arg.Any<CancellationToken>())
             .Returns(call => call.Arg<Func<CancellationToken, Task>>()(call.Arg<CancellationToken>()));
     }
 
@@ -52,12 +56,17 @@ public sealed class CreateFileHandlerTests
     [InlineData("Avatar", false, false)]
     [InlineData("Avatar", false, true)]
     public async Task HandleAsync_Should_UploadRequestedScope_When_CreationIsPermitted(
-        string type, bool foreignOwner, bool inFolder)
+        string type,
+        bool foreignOwner,
+        bool inFolder)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         Guid? ownerId = type == "Personal" ? foreignOwner ? Guid.NewGuid() : _userId : null;
         var folder = Folder.Create(
-            FolderName.Create("Folder").Value, FileType.FromName(type), UserId.Create(ownerId).Value).Value;
+            FolderName.Create("Folder").Value,
+            FileType.FromName(type),
+            UserId.Create(ownerId).Value)
+            .Value;
         _folders.GetByIdAsync(folder.Id, cancellationToken).Returns(folder);
         await using var content = new MemoryStream([1, 2, 3]);
         File? saved = null;
@@ -65,7 +74,13 @@ public sealed class CreateFileHandlerTests
 
         var result = await CreateHandler().HandleAsync(
             new CreateFileCommand(
-                " File.txt ", type, "TEXT/PLAIN", content.Length, content, ownerId, inFolder ? folder.Id.Value : null),
+                " File.txt ",
+                type,
+                "TEXT/PLAIN",
+                content.Length,
+                content,
+                ownerId,
+                inFolder ? folder.Id.Value : null),
             cancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -79,8 +94,11 @@ public sealed class CreateFileHandlerTests
         saved.Size!.Value.ShouldBe(content.Length);
         saved.ContentType!.Value.ShouldBe("text/plain");
         await _storage.Received(1).UploadAsync(
-            saved.StorageKey.Value, content, "text/plain",
-            Arg.Is<IReadOnlyDictionary<string, string>>(metadata => metadata.Count == 0), cancellationToken);
+            saved.StorageKey.Value,
+            content,
+            "text/plain",
+            Arg.Is<IReadOnlyDictionary<string, string>>(metadata => metadata.Count == 0),
+            cancellationToken);
         await _unitOfWork.Received(2).SaveChangesAsync(cancellationToken);
         await _hierarchyLock.Received(inFolder ? 1 : 0).AcquireAsync(cancellationToken);
         _folders.DidNotReceiveWithAnyArgs().Update(default!);
@@ -95,7 +113,8 @@ public sealed class CreateFileHandlerTests
     [InlineData("foreign-own", ErrorType.Forbidden)]
     [InlineData("missing-permission", ErrorType.Forbidden)]
     public async Task HandleAsync_Should_RejectCreation_When_MetadataOwnershipOrAccessIsInvalid(
-        string scenario, ErrorType expected)
+        string scenario,
+        ErrorType expected)
     {
         await using var content = new MemoryStream([1]);
         var command = new CreateFileCommand("file.txt", "Personal", "text/plain", content.Length, content, _userId);
@@ -129,7 +148,9 @@ public sealed class CreateFileHandlerTests
         return new CreateFileHandler(new FileCreationService(
             filesRepository: _files,
             folderAccessService: new FolderAccessService(
-                _folders, _hierarchyLock, new FolderAccessPolicy(_user, policy)),
+                _folders,
+                _hierarchyLock,
+                new FolderAccessPolicy(_user, policy)),
             fileStorage: _storage,
             unitOfWork: _unitOfWork,
             fileAccessPolicy: policy));

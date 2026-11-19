@@ -72,7 +72,10 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
             .HasMaxLength(FileVersionId.MaxLength)
             .IsRequired(required: false);
 
-        builder.Property(file => file.ContentUpdateId)
+        builder.Property(file => file.ContentUpdateAttemptId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => FileContentUpdateAttemptId.Create(value).Value)
             .IsRequired(required: false);
 
         builder.Property(file => file.FolderId)

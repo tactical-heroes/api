@@ -31,14 +31,19 @@ public sealed class GetFileDownloadUrlHandlerTests
             typeName,
             permission.EndsWith(".all", StringComparison.Ordinal) ? Guid.NewGuid() : userId);
         file.CompleteUpload(
-            FileContentType.Create("text/plain").Value, FileSize.Create(4).Value,
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
             FileVersionId.Create("initial").Value);
         var repository = Substitute.For<IFilesRepository>();
         repository.GetByIdAsync(file.Id, cancellationToken).Returns(file);
         var storage = Substitute.For<IFileStorage>();
         var signed = new PresignedDownloadUrl("https://storage.example/file?signature=original", DateTimeOffset.UtcNow);
         storage.GetPresignedDownloadUrlAsync(
-            file.StorageKey.Value, "initial", file.Name.Value, "text/plain", cancellationToken)
+            file.StorageKey.Value,
+            "initial",
+            file.Name.Value,
+            "text/plain",
+            cancellationToken)
             .Returns(signed);
         var handler = new GetFileDownloadUrlHandler(
             repository,
@@ -54,7 +59,11 @@ public sealed class GetFileDownloadUrlHandlerTests
         result.Value.ExpiresAt.ShouldBe(signed.ExpiresAt);
         await repository.Received(1).GetByIdAsync(file.Id, cancellationToken);
         await storage.Received(1).GetPresignedDownloadUrlAsync(
-            file.StorageKey.Value, "initial", file.Name.Value, "text/plain", cancellationToken);
+            file.StorageKey.Value,
+            "initial",
+            file.Name.Value,
+            "text/plain",
+            cancellationToken);
         storage.ReceivedCalls().Count().ShouldBe(1);
     }
 
@@ -71,7 +80,8 @@ public sealed class GetFileDownloadUrlHandlerTests
             new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
-            new GetFileDownloadUrlQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
+            new GetFileDownloadUrlQuery(Guid.NewGuid()),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.Unauthorized, "A user account is required.");
         repository.ReceivedCalls().ShouldBeEmpty();
@@ -84,10 +94,14 @@ public sealed class GetFileDownloadUrlHandlerTests
         var currentUser = CreateCurrentUser(Guid.NewGuid());
         var storage = Substitute.For<IFileStorage>();
         var handler = new GetFileDownloadUrlHandler(
-            Substitute.For<IFilesRepository>(), storage, currentUser, new FileAccessPolicy(currentUser));
+            Substitute.For<IFilesRepository>(),
+            storage,
+            currentUser,
+            new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
-            new GetFileDownloadUrlQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
+            new GetFileDownloadUrlQuery(Guid.NewGuid()),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.NotFound, "File was not found.");
         storage.ReceivedCalls().ShouldBeEmpty();
@@ -163,7 +177,8 @@ public sealed class GetFileDownloadUrlHandlerTests
             new FileAccessPolicy(currentUser));
 
         var result = await handler.HandleAsync(
-            new GetFileDownloadUrlQuery(Guid.Empty), TestContext.Current.CancellationToken);
+            new GetFileDownloadUrlQuery(Guid.Empty),
+            TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
@@ -176,7 +191,9 @@ public sealed class GetFileDownloadUrlHandlerTests
     [InlineData("replacement", true, false)]
     [InlineData(null, false, false)]
     public async Task HandleAsync_Should_BindVersion_When_LegacyMetadataHasNoActiveVersion(
-        string? versionId, bool updatingMetadata, bool allowed)
+        string? versionId,
+        bool updatingMetadata,
+        bool allowed)
     {
         var ct = TestContext.Current.CancellationToken;
         var user = CreateCurrentUser(Guid.NewGuid());
@@ -189,26 +206,37 @@ public sealed class GetFileDownloadUrlHandlerTests
         var metadata = new Dictionary<string, string>();
         if (updatingMetadata)
         {
-            metadata[FileMetadataNames.ContentUpdateId] = Guid.NewGuid().ToString("D");
+            metadata[FileMetadataNames.ContentUpdateAttemptId] = Guid.NewGuid().ToString("D");
         }
         storage.GetMetadataAsync(file.StorageKey.Value, ct)
             .Returns(new FileMetadata("text/plain", 4, metadata, versionId));
         storage.GetPresignedDownloadUrlAsync(
-                file.StorageKey.Value, "initial", file.Name.Value, "text/plain", ct)
+            file.StorageKey.Value,
+            "initial",
+            file.Name.Value,
+            "text/plain",
+            ct)
             .Returns(new PresignedDownloadUrl("https://storage.example/version", DateTimeOffset.UtcNow));
 
         var result = await new GetFileDownloadUrlHandler(
-            repository, storage, user, new FileAccessPolicy(user))
+            repository,
+            storage,
+            user,
+            new FileAccessPolicy(user))
             .HandleAsync(new GetFileDownloadUrlQuery(file.Id.Value), ct);
 
         result.IsSuccess.ShouldBe(allowed);
         file.VersionId.ShouldBeNull();
         repository.DidNotReceive().Update(Arg.Any<File>());
         await storage.Received(allowed ? 1 : 0).GetPresignedDownloadUrlAsync(
-            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), ct);
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            ct);
     }
 
-    [Fact(DisplayName = "Download URL should use the active version while content is updating")]
+    [Fact(DisplayName = "Download URL should use the active version when content is updating")]
     public async Task HandleAsync_Should_UseActiveVersion_When_ContentIsUpdating()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -221,17 +249,28 @@ public sealed class GetFileDownloadUrlHandlerTests
         repository.GetByIdAsync(file.Id, ct).Returns(file);
         var storage = Substitute.For<IFileStorage>();
         storage.GetPresignedDownloadUrlAsync(
-                file.StorageKey.Value, "initial", file.Name.Value, "text/plain", ct)
+            file.StorageKey.Value,
+            "initial",
+            file.Name.Value,
+            "text/plain",
+            ct)
             .Returns(new PresignedDownloadUrl("https://storage.example/version", DateTimeOffset.UtcNow));
 
         var result = await new GetFileDownloadUrlHandler(
-            repository, storage, user, new FileAccessPolicy(user))
+            repository,
+            storage,
+            user,
+            new FileAccessPolicy(user))
             .HandleAsync(new GetFileDownloadUrlQuery(file.Id.Value), ct);
 
         result.IsSuccess.ShouldBeTrue();
         storage.ReceivedCalls().Count().ShouldBe(1);
         await storage.Received(1).GetPresignedDownloadUrlAsync(
-            file.StorageKey.Value, "initial", file.Name.Value, "text/plain", ct);
+            file.StorageKey.Value,
+            "initial",
+            file.Name.Value,
+            "text/plain",
+            ct);
     }
 
     private static ICurrentUser CreateCurrentUser(Guid? userId)
@@ -248,6 +287,7 @@ public sealed class GetFileDownloadUrlHandlerTests
         return File.Create(
             FileName.Create("report.txt").Value,
             type,
-            type == FileType.Personal ? UserId.Create(userId).Value : null).Value;
+            type == FileType.Personal ? UserId.Create(userId).Value : null)
+            .Value;
     }
 }

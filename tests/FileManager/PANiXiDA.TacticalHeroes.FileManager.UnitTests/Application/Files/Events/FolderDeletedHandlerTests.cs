@@ -16,7 +16,10 @@ public sealed class FolderDeletedHandlerTests
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
 
     private readonly Folder _folder = Folder.Create(
-        FolderName.Create("Avatars").Value, FileType.Avatar, userId: null).Value;
+        FolderName.Create("Avatars").Value,
+        FileType.Avatar,
+        userId: null)
+        .Value;
 
     public FolderDeletedHandlerTests()
     {

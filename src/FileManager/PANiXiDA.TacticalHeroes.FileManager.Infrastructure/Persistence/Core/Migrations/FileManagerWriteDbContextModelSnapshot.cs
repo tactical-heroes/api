@@ -32,9 +32,9 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ContentUpdateId")
+                    b.Property<Guid?>("ContentUpdateAttemptId")
                         .HasColumnType("uuid")
-                        .HasColumnName("content_update_id");
+                        .HasColumnName("content_update_attempt_id");
 
                     b.Property<string>("ContentType")
                         .HasMaxLength(255)

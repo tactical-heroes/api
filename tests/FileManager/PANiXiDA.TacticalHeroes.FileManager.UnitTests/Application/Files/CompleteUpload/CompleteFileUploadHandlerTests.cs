@@ -36,7 +36,9 @@ public sealed class CompleteFileUploadHandlerTests
     [InlineData("Personal", true, "file-manager.personal-files.create.all")]
     [InlineData("Avatar", false, "file-manager.avatars.create")]
     public async Task HandleAsync_Should_UseStorageMetadata_When_CreationScopeIsPermitted(
-        string type, bool foreignOwner, string permission)
+        string type,
+        bool foreignOwner,
+        string permission)
     {
         var ct = TestContext.Current.CancellationToken;
         _user.HasPermission(permission).Returns(true);
@@ -62,13 +64,15 @@ public sealed class CompleteFileUploadHandlerTests
     [InlineData("Personal", "file-manager.personal-files.create.own")]
     [InlineData("Avatar", "file-manager.avatars.create")]
     public async Task HandleAsync_Should_AvoidUpdatingMetadata_When_UploadIsAlreadyComplete(
-        string type, string permission)
+        string type,
+        string permission)
     {
         var ct = TestContext.Current.CancellationToken;
         _user.HasPermission(permission).Returns(true);
         var file = CreateFile(type, _userId);
         file.CompleteUpload(
-            FileContentType.Create("text/plain").Value, FileSize.Create(4).Value,
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
             FileVersionId.Create("initial-version").Value);
         _files.GetByIdAsync(file.Id, ct).Returns(file);
         _storage.GetMetadataAsync(file.StorageKey.Value, ct)
@@ -89,14 +93,17 @@ public sealed class CompleteFileUploadHandlerTests
     [InlineData("Avatar", false, "file-manager.personal-files.create.all")]
     [InlineData("Avatar", false, "file-manager.avatars.read")]
     public async Task HandleAsync_Should_HideFile_When_CreationPermissionDoesNotCoverIt(
-        string type, bool foreignOwner, string permission)
+        string type,
+        bool foreignOwner,
+        string permission)
     {
         _user.HasPermission(permission).Returns(true);
         var file = CreateFile(type, foreignOwner ? Guid.NewGuid() : _userId);
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var result = await CreateHandler().HandleAsync(
-            new CompleteFileUploadCommand(file.Id.Value), TestContext.Current.CancellationToken);
+            new CompleteFileUploadCommand(file.Id.Value),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.NotFound, "File was not found.");
         file.Status.ShouldBe(FileStatus.PendingUpload);
@@ -108,7 +115,8 @@ public sealed class CompleteFileUploadHandlerTests
     [InlineData(false, ErrorType.NotFound)]
     [InlineData(true, ErrorType.Validation)]
     public async Task HandleAsync_Should_RejectLookup_When_IdentifierIsInvalidOrMissing(
-        bool emptyId, ErrorType errorType)
+        bool emptyId,
+        ErrorType errorType)
     {
         var command = new CompleteFileUploadCommand(emptyId ? Guid.Empty : Guid.NewGuid());
 
@@ -128,14 +136,18 @@ public sealed class CompleteFileUploadHandlerTests
     [InlineData("text/*", 4)]
     [InlineData("text/plain", 0)]
     public async Task HandleAsync_Should_PreservePendingMetadata_When_StoredContentIsUnusable(
-        string? contentType, long size)
+        string? contentType,
+        long size)
     {
         var ct = TestContext.Current.CancellationToken;
         _user.HasPermission("file-manager.personal-files.create.own").Returns(true);
         var file = CreateFile("Personal", _userId);
         _files.GetByIdAsync(file.Id, ct).Returns(file);
         FileMetadata? metadata = contentType is null ? null : new FileMetadata(
-            contentType, size, ReadOnlyDictionary<string, string>.Empty, "initial-version");
+            contentType,
+            size,
+            ReadOnlyDictionary<string, string>.Empty,
+            "initial-version");
         _storage.GetMetadataAsync(file.StorageKey.Value, ct).Returns(metadata);
 
         var result = await CreateHandler().HandleAsync(new CompleteFileUploadCommand(file.Id.Value), ct);
@@ -173,7 +185,8 @@ public sealed class CompleteFileUploadHandlerTests
     [InlineData("text/plain", 5)]
     [InlineData("application/octet-stream", 4)]
     public async Task HandleAsync_Should_PreserveConfirmedMetadata_When_StorageMetadataDiffers(
-        string contentType, long size)
+        string contentType,
+        long size)
     {
         var ct = TestContext.Current.CancellationToken;
         _user.HasPermission("file-manager.personal-files.create.own").Returns(true);
@@ -213,13 +226,31 @@ public sealed class CompleteFileUploadHandlerTests
         _files.DidNotReceiveWithAnyArgs().Delete(default!);
     }
 
+    [Fact(DisplayName = "Upload completion should reject storage without a version when content is present")]
+    public async Task HandleAsync_Should_RejectUnversionedContent_When_ContentIsPresent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        _user.HasPermission("file-manager.avatars.create").Returns(true);
+        var file = CreateFile("Avatar", _userId);
+        _files.GetByIdAsync(file.Id, ct).Returns(file);
+        _storage.GetMetadataAsync(file.StorageKey.Value, ct)
+            .Returns(new FileMetadata("text/plain", 4, ReadOnlyDictionary<string, string>.Empty));
+
+        var result = await CreateHandler().HandleAsync(new CompleteFileUploadCommand(file.Id.Value), ct);
+
+        result.IsFailure.ShouldBeTrue();
+        file.Status.ShouldBe(FileStatus.PendingUpload);
+        _files.DidNotReceive().Update(file);
+    }
+
     private static File CreateFile(string type, Guid ownerId)
     {
         var fileType = FileType.FromName(type);
         return File.Create(
             name: FileName.Create("file.txt").Value,
             type: fileType,
-            userId: fileType == FileType.Personal ? UserId.Create(ownerId).Value : null).Value;
+            userId: fileType == FileType.Personal ? UserId.Create(ownerId).Value : null)
+            .Value;
     }
 
     private CompleteFileUploadHandler CreateHandler()
