@@ -12,8 +12,8 @@ using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
-    [Migration("20261119141500_AddPendingFileStorageKey")]
-    partial class AddPendingFileStorageKey
+    [Migration("20261119141500_AddFileContentUpdates")]
+    partial class AddFileContentUpdates
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -33,6 +33,10 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid?>("ContentUpdateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("content_update_id");
 
                     b.Property<string>("ContentType")
                         .HasMaxLength(255)
@@ -58,11 +62,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("name");
-
-                    b.Property<string>("PendingStorageKey")
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)")
-                        .HasColumnName("pending_storage_key");
 
                     b.Property<long?>("Size")
                         .HasColumnType("bigint")
@@ -94,6 +93,11 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
+
+                    b.Property<string>("VersionId")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("version_id");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()

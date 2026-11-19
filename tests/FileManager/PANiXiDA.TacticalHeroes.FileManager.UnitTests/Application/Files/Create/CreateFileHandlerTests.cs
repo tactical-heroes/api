@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Create;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
@@ -36,6 +37,10 @@ public sealed class CreateFileHandlerTests
         _user.UserId.Returns(_userId);
         _user.HasPermission("file-manager.personal-files.create.all").Returns(true);
         _user.HasPermission("file-manager.avatars.create").Returns(true);
+        _storage.UploadAsync(
+                Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(),
+                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+            .Returns(new FileUploadResult("initial-version"));
         _unitOfWork.ExecuteInTransactionAsync(
             Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(call => call.Arg<Func<CancellationToken, Task>>()(call.Arg<CancellationToken>()));
@@ -73,7 +78,9 @@ public sealed class CreateFileHandlerTests
         saved.Status.ShouldBe(FileStatus.Ready);
         saved.Size!.Value.ShouldBe(content.Length);
         saved.ContentType!.Value.ShouldBe("text/plain");
-        await _storage.Received(1).UploadAsync(saved.StorageKey.Value, content, "text/plain", cancellationToken);
+        await _storage.Received(1).UploadAsync(
+            saved.StorageKey.Value, content, "text/plain",
+            Arg.Is<IReadOnlyDictionary<string, string>>(metadata => metadata.Count == 0), cancellationToken);
         await _unitOfWork.Received(2).SaveChangesAsync(cancellationToken);
         await _hierarchyLock.Received(inFolder ? 1 : 0).AcquireAsync(cancellationToken);
         _folders.DidNotReceiveWithAnyArgs().Update(default!);

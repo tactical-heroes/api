@@ -385,70 +385,73 @@ public sealed class FileTests
         file.Size.ShouldBeSameAs(size);
     }
 
-    [Fact(DisplayName = "Content update should retain active content when update starts")]
+    [Fact(DisplayName = "Content update should retain the active version when an update starts")]
     public void BeginContentUpdate_Should_RetainActiveContent_When_UpdateStarts()
     {
         var file = CreateFile("Ready");
         var key = file.StorageKey;
         var size = file.Size;
+        var version = FileVersionId.Create("initial").Value;
 
-        var result = file.BeginContentUpdate();
+        var result = file.BeginContentUpdate(version);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBe(key);
-        file.PendingStorageKey.ShouldBe(result.Value);
+        result.Value.Version.ShouldBe(7);
+        file.ContentUpdateId.ShouldBe(result.Value);
+        file.VersionId.ShouldBe(version);
         file.StorageKey.ShouldBeSameAs(key);
         file.Size.ShouldBeSameAs(size);
         file.Status.ShouldBe(FileStatus.Updating);
         file.GetDownloadContentType().IsSuccess.ShouldBeTrue();
-        file.BeginContentUpdate().IsFailure.ShouldBeTrue();
+        file.BeginContentUpdate(version).IsFailure.ShouldBeTrue();
         file.Rename(FileName.Create("renamed.txt").Value).IsFailure.ShouldBeTrue();
         file.MoveTo(null).IsFailure.ShouldBeTrue();
         file.BeginDeletion().IsFailure.ShouldBeTrue();
         file.CompleteUpload(file.ContentType!, file.Size!).IsFailure.ShouldBeTrue();
     }
 
-    [Theory(DisplayName = "Content update should require the pending key when update is completed")]
-    [InlineData(true, true, true)]
-    [InlineData(true, false, false)]
-    [InlineData(false, false, false)]
-    public void CompleteContentUpdate_Should_RequirePendingKey_When_UpdateIsCompleted(
-        bool updating, bool matching, bool success)
+    [Theory(DisplayName = "Content update should require its operation and a new version when completed")]
+    [InlineData(true, true, true, true)]
+    [InlineData(true, false, true, false)]
+    [InlineData(true, true, false, false)]
+    [InlineData(false, false, true, false)]
+    public void CompleteContentUpdate_Should_RequireMatchingOperation_When_UpdateIsCompleted(
+        bool updating, bool matching, bool newVersion, bool success)
     {
         var file = CreateFile("Ready");
-        var oldKey = file.StorageKey;
+        var key = file.StorageKey;
         var size = file.Size;
         var contentType = file.ContentType;
-        var candidate = updating ? file.BeginContentUpdate().Value : FileStorageKey.Create("unused/key").Value;
-        var supplied = matching ? candidate : FileStorageKey.Create("different/key").Value;
+        var initial = FileVersionId.Create("initial").Value;
+        file.CompleteUpload(contentType!, size!, initial);
+        var operation = updating ? file.BeginContentUpdate(initial).Value : Guid.NewGuid();
+        var supplied = matching ? operation : Guid.NewGuid();
+        var version = FileVersionId.Create(newVersion ? "replacement" : "initial").Value;
 
         var result = file.CompleteContentUpdate(
-            supplied, FileContentType.Create("image/png").Value, FileSize.Create(9).Value);
+            supplied, FileContentType.Create("image/png").Value, FileSize.Create(9).Value, version);
 
         result.IsSuccess.ShouldBe(success);
-        file.StorageKey.ShouldBe(success ? candidate : oldKey);
-        file.PendingStorageKey.ShouldBe(success || !updating ? null : candidate);
+        file.StorageKey.ShouldBe(key);
+        file.ContentUpdateId.ShouldBe(success || !updating ? null : operation);
+        file.VersionId.ShouldBe(success ? version : initial);
         file.Size.ShouldBe(success ? FileSize.Create(9).Value : size);
         file.ContentType.ShouldBe(success ? FileContentType.Create("image/png").Value : contentType);
         file.Status.ShouldBe(success || !updating ? FileStatus.Ready : FileStatus.Updating);
-        if (success)
-        {
-            result.Value.ShouldBe(oldKey);
-        }
     }
 
-    [Theory(DisplayName = "Content update should reject files when file is not ready")]
+    [Theory(DisplayName = "Content update should reject files when the file is not ready")]
     [InlineData("PendingUpload")]
     [InlineData("Deleting")]
     public void BeginContentUpdate_Should_RejectFile_When_FileIsNotReady(string status)
     {
         var file = CreateFile(status);
 
-        var result = file.BeginContentUpdate();
+        var result = file.BeginContentUpdate(FileVersionId.Create("initial").Value);
 
         result.IsFailure.ShouldBeTrue();
         file.Status.Name.ShouldBe(status);
-        file.PendingStorageKey.ShouldBeNull();
+        file.ContentUpdateId.ShouldBeNull();
     }
 
     [Theory(DisplayName = "Content update should restore active content when a matching attempt is cancelled")]
@@ -457,27 +460,57 @@ public sealed class FileTests
     public void CancelContentUpdate_Should_RestoreActiveContent_When_AMatchingAttemptIsCancelled(bool matching)
     {
         var file = CreateFile("Ready");
-        var oldKey = file.StorageKey;
+        var key = file.StorageKey;
         var contentType = file.ContentType;
         var size = file.Size;
-        var candidate = file.BeginContentUpdate().Value;
+        var version = FileVersionId.Create("initial").Value;
+        var operation = file.BeginContentUpdate(version).Value;
 
-        var result = file.CancelContentUpdate(
-            matching ? candidate : FileStorageKey.Create("different/key").Value);
+        var result = file.CancelContentUpdate(matching ? operation : Guid.NewGuid());
 
         result.IsSuccess.ShouldBe(matching);
-        file.StorageKey.ShouldBe(oldKey);
+        file.StorageKey.ShouldBe(key);
+        file.VersionId.ShouldBe(version);
         file.ContentType.ShouldBe(contentType);
         file.Size.ShouldBe(size);
         file.Status.ShouldBe(matching ? FileStatus.Ready : FileStatus.Updating);
-        file.PendingStorageKey.ShouldBe(matching ? null : candidate);
+        file.ContentUpdateId.ShouldBe(matching ? null : operation);
         if (matching)
         {
-            result.Value.ShouldBe(candidate);
-            var next = file.BeginContentUpdate().Value;
-            next.ShouldNotBe(candidate);
-            file.CompleteContentUpdate(candidate, contentType!, size!).IsFailure.ShouldBeTrue();
+            var next = file.BeginContentUpdate(version).Value;
+            next.ShouldNotBe(operation);
+            file.CompleteContentUpdate(
+                operation, contentType!, size!, FileVersionId.Create("late").Value).IsFailure.ShouldBeTrue();
+            file.CancelContentUpdate(operation).IsFailure.ShouldBeTrue();
         }
+    }
+
+    [Fact(DisplayName = "Content update should reject a different baseline when an active version exists")]
+    public void BeginContentUpdate_Should_RejectDifferentBaseline_When_ActiveVersionExists()
+    {
+        var file = CreateFile("Ready");
+        var version = FileVersionId.Create("initial").Value;
+        file.CompleteUpload(file.ContentType!, file.Size!, version);
+
+        var result = file.BeginContentUpdate(FileVersionId.Create("other").Value);
+
+        result.IsFailure.ShouldBeTrue();
+        file.Status.ShouldBe(FileStatus.Ready);
+        file.VersionId.ShouldBe(version);
+    }
+
+    [Fact(DisplayName = "Upload completion should reject a different version when metadata is identical")]
+    public void CompleteUpload_Should_RejectDifferentVersion_When_MetadataIsIdentical()
+    {
+        var file = CreateFile("Ready");
+        var version = FileVersionId.Create("initial").Value;
+        file.CompleteUpload(file.ContentType!, file.Size!, version);
+
+        var result = file.CompleteUpload(
+            file.ContentType!, file.Size!, FileVersionId.Create("different").Value);
+
+        result.IsFailure.ShouldBeTrue();
+        file.VersionId.ShouldBe(version);
     }
 
     private static File CreateFile(string status)

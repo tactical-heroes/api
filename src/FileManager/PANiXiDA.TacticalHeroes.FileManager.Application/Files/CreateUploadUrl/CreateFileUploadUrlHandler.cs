@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage.Models;
 
@@ -24,7 +26,7 @@ public sealed class CreateFileUploadUrlHandler(FileCreationService fileCreationS
             name: command.Name,
             type: type.Value,
             userId: command.UserId,
-            metadata: new FileMetadata(command.ContentType, command.Size),
+            metadata: new FileMetadata(command.ContentType, command.Size, ReadOnlyDictionary<string, string>.Empty),
             folderId: command.FolderId,
             cancellationToken: cancellationToken);
     }

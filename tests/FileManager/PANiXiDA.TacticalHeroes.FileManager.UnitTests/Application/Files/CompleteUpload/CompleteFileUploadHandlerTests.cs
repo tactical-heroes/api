@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 using NSubstitute.ExceptionExtensions;
 
 using PANiXiDA.Core.Application.Authentication.Abstractions;
@@ -40,7 +42,8 @@ public sealed class CompleteFileUploadHandlerTests
         _user.HasPermission(permission).Returns(true);
         var file = CreateFile(type, foreignOwner ? Guid.NewGuid() : _userId);
         _files.GetByIdAsync(file.Id, ct).Returns(file);
-        _storage.GetMetadataAsync(file.StorageKey.Value, ct).Returns(new FileMetadata("TEXT/PLAIN", 7));
+        _storage.GetMetadataAsync(file.StorageKey.Value, ct)
+            .Returns(new FileMetadata("TEXT/PLAIN", 7, ReadOnlyDictionary<string, string>.Empty, "initial-version"));
 
         var result = await CreateHandler().HandleAsync(new CompleteFileUploadCommand(file.Id.Value), ct);
 
@@ -64,9 +67,12 @@ public sealed class CompleteFileUploadHandlerTests
         var ct = TestContext.Current.CancellationToken;
         _user.HasPermission(permission).Returns(true);
         var file = CreateFile(type, _userId);
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value, FileSize.Create(4).Value,
+            FileVersionId.Create("initial-version").Value);
         _files.GetByIdAsync(file.Id, ct).Returns(file);
-        _storage.GetMetadataAsync(file.StorageKey.Value, ct).Returns(new FileMetadata("text/plain", 4));
+        _storage.GetMetadataAsync(file.StorageKey.Value, ct)
+            .Returns(new FileMetadata("text/plain", 4, ReadOnlyDictionary<string, string>.Empty, "initial-version"));
 
         var result = await CreateHandler().HandleAsync(new CompleteFileUploadCommand(file.Id.Value), ct);
 
@@ -128,7 +134,8 @@ public sealed class CompleteFileUploadHandlerTests
         _user.HasPermission("file-manager.personal-files.create.own").Returns(true);
         var file = CreateFile("Personal", _userId);
         _files.GetByIdAsync(file.Id, ct).Returns(file);
-        FileMetadata? metadata = contentType is null ? null : new FileMetadata(contentType, size);
+        FileMetadata? metadata = contentType is null ? null : new FileMetadata(
+            contentType, size, ReadOnlyDictionary<string, string>.Empty, "initial-version");
         _storage.GetMetadataAsync(file.StorageKey.Value, ct).Returns(metadata);
 
         var result = await CreateHandler().HandleAsync(new CompleteFileUploadCommand(file.Id.Value), ct);
@@ -152,7 +159,8 @@ public sealed class CompleteFileUploadHandlerTests
         var file = CreateFile("Personal", _userId);
         file.BeginDeletion();
         _files.GetByIdAsync(file.Id, ct).Returns(file);
-        _storage.GetMetadataAsync(file.StorageKey.Value, ct).Returns(new FileMetadata("text/plain", 4));
+        _storage.GetMetadataAsync(file.StorageKey.Value, ct)
+            .Returns(new FileMetadata("text/plain", 4, ReadOnlyDictionary<string, string>.Empty, "initial-version"));
 
         var result = await CreateHandler().HandleAsync(new CompleteFileUploadCommand(file.Id.Value), ct);
 
@@ -172,7 +180,8 @@ public sealed class CompleteFileUploadHandlerTests
         var file = CreateFile("Personal", _userId);
         file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
         _files.GetByIdAsync(file.Id, ct).Returns(file);
-        _storage.GetMetadataAsync(file.StorageKey.Value, ct).Returns(new FileMetadata(contentType, size));
+        _storage.GetMetadataAsync(file.StorageKey.Value, ct)
+            .Returns(new FileMetadata(contentType, size, ReadOnlyDictionary<string, string>.Empty, "initial-version"));
 
         var result = await CreateHandler().HandleAsync(new CompleteFileUploadCommand(file.Id.Value), ct);
 

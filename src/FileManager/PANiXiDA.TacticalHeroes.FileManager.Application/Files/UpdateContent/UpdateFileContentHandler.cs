@@ -1,10 +1,11 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
@@ -13,8 +14,7 @@ public sealed class UpdateFileContentHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    FileAccessPolicy fileAccessPolicy,
-    IFileContentCleanupScheduler cleanupScheduler)
+    FileAccessPolicy fileAccessPolicy)
     : ICommandHandler<UpdateFileContentCommand, Result>, IRequireAuthorization
 {
     public async Task<Result> HandleAsync(UpdateFileContentCommand command, CancellationToken cancellationToken)
@@ -39,45 +39,75 @@ public sealed class UpdateFileContentHandler(
             return Result.Failure(Error.NotFound("File was not found."));
         }
 
-        var started = file.BeginContentUpdate();
+        if (file.Status != FileStatus.Ready)
+        {
+            return Result.Failure(Error.Conflict("File is not ready for content updates."));
+        }
+
+        var versionId = file.VersionId;
+        if (versionId is null)
+        {
+            var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
+            var storedVersion = FileVersionId.Create(current?.VersionId);
+            if (storedVersion.IsFailure)
+            {
+                return Result.Failure(Error.Conflict("File content has no active storage version."));
+            }
+
+            versionId = storedVersion.Value;
+        }
+
+        var started = file.BeginContentUpdate(versionId);
         if (started.IsFailure)
         {
             return Result.Failure(started.Errors);
         }
 
-        var pendingKey = started.Value;
         filesRepository.Update(file);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await fileStorage.UploadAsync(
-            key: pendingKey.Value,
+        var uploaded = await fileStorage.UploadAsync(
+            key: file.StorageKey.Value,
             content: command.Content,
             contentType: contentType.Value.Value,
+            metadata: new Dictionary<string, string>
+            {
+                [FileMetadataNames.ContentUpdateId] = started.Value.ToString("D")
+            },
             cancellationToken: cancellationToken);
+        var uploadedVersion = FileVersionId.Create(uploaded.VersionId);
+        if (uploadedVersion.IsFailure)
+        {
+            return Result.Failure(Error.Conflict("Uploaded file content has no storage version."));
+        }
 
-        var metadata = await fileStorage.GetMetadataAsync(pendingKey.Value, cancellationToken);
-        if (metadata is null || metadata.ContentType != contentType.Value.Value || metadata.Size != size.Value.Value)
+        var metadata = await fileStorage.GetMetadataAsync(
+            key: file.StorageKey.Value,
+            versionId: uploadedVersion.Value.Value,
+            cancellationToken: cancellationToken);
+        if (metadata is null
+            || metadata.ContentType != contentType.Value.Value
+            || metadata.Size != size.Value.Value
+            || metadata.VersionId != uploadedVersion.Value.Value
+            || !metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateId, out var storedUpdateId)
+            || !Guid.TryParse(storedUpdateId, out var contentUpdateId)
+            || contentUpdateId != started.Value)
         {
             return Result.Failure(Error.Conflict("Uploaded file content does not match the requested metadata."));
         }
 
-        var result = file.CompleteContentUpdate(
-            pendingStorageKey: pendingKey,
+        var completed = file.CompleteContentUpdate(
+            contentUpdateId: started.Value,
             contentType: contentType.Value,
-            size: size.Value);
-        if (result.IsFailure)
+            size: size.Value,
+            versionId: uploadedVersion.Value);
+        if (completed.IsFailure)
         {
-            return Result.Failure(result.Errors);
+            return completed;
         }
 
-        await unitOfWork.ExecuteInTransactionAsync(
-            action: async token =>
-            {
-                filesRepository.Update(file);
-                await cleanupScheduler.ScheduleAsync(result.Value, token);
-                await unitOfWork.SaveChangesAsync(token);
-            },
-            cancellationToken: cancellationToken);
+        filesRepository.Update(file);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

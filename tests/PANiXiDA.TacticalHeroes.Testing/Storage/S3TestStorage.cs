@@ -37,6 +37,13 @@ public sealed class S3TestStorage : IAsyncDisposable
         using var client = CreateClient();
         var response = await client.ListBucketsAsync(cancellationToken);
         response.Buckets.ShouldContain(bucket => bucket.BucketName == BucketName);
+        await client.PutBucketVersioningAsync(
+            new PutBucketVersioningRequest
+            {
+                BucketName = BucketName,
+                VersioningConfig = new S3BucketVersioningConfig { Status = VersionStatus.Enabled }
+            },
+            cancellationToken);
     }
 
     public Dictionary<string, string?> GetConfiguration(string sectionName)
@@ -71,10 +78,10 @@ public sealed class S3TestStorage : IAsyncDisposable
 
         while (true)
         {
-            var response = await client.ListObjectsV2Async(
-                new ListObjectsV2Request { BucketName = BucketName },
+            var response = await client.ListVersionsAsync(
+                new ListVersionsRequest { BucketName = BucketName },
                 cancellationToken);
-            if (response.S3Objects is not { Count: > 0 } objects)
+            if (response.Versions is not { Count: > 0 } objects)
             {
                 return;
             }
@@ -83,7 +90,7 @@ public sealed class S3TestStorage : IAsyncDisposable
                 new DeleteObjectsRequest
                 {
                     BucketName = BucketName,
-                    Objects = [.. objects.Select(item => new KeyVersion { Key = item.Key })]
+                    Objects = [.. objects.Select(item => new KeyVersion { Key = item.Key, VersionId = item.VersionId })]
                 },
                 cancellationToken);
             (deleted.DeleteErrors?.Count ?? 0).ShouldBe(0);

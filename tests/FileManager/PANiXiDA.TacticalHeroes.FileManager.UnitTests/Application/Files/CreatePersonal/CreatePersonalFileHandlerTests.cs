@@ -3,6 +3,7 @@ using NSubstitute.ExceptionExtensions;
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
@@ -37,6 +38,10 @@ public sealed class CreatePersonalFileHandlerTests
         _currentUser.IsAuthenticated.Returns(true);
         _currentUser.UserId.Returns(_userId);
         _currentUser.HasPermission("file-manager.personal-files.create.own").Returns(true);
+        _storage.UploadAsync(
+                Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<string>(),
+                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+            .Returns(new FileUploadResult("initial-version"));
         _unitOfWork.ExecuteInTransactionAsync(
             Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(call => call.Arg<Func<CancellationToken, Task>>()(call.Arg<CancellationToken>()));
@@ -83,11 +88,12 @@ public sealed class CreatePersonalFileHandlerTests
             steps.Add("save");
             return Task.CompletedTask;
         });
-        _storage.UploadAsync(Arg.Any<string>(), content, "text/plain", Arg.Any<CancellationToken>())
+        _storage.UploadAsync(Arg.Any<string>(), content, "text/plain",
+                Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
                 steps.Add("upload");
-                return Task.CompletedTask;
+                return Task.FromResult(new FileUploadResult("initial-version"));
             });
         _files.When(repository => repository.Update(Arg.Any<File>())).Do(call =>
         {
@@ -133,7 +139,7 @@ public sealed class CreatePersonalFileHandlerTests
         result.Errors.Single().Message.ShouldBe("Folder was not found.");
         _files.DidNotReceiveWithAnyArgs().Add(null!);
         await _storage.DidNotReceiveWithAnyArgs()
-            .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
+            .UploadAsync(null!, null!, null!, null!, TestContext.Current.CancellationToken);
     }
 
     [Theory(DisplayName = "Create personal file handler should reject input before saving when command is invalid")]
@@ -162,7 +168,7 @@ public sealed class CreatePersonalFileHandlerTests
         result.IsFailure.ShouldBeTrue();
         _files.DidNotReceiveWithAnyArgs().Add(null!);
         await _storage.DidNotReceiveWithAnyArgs()
-            .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
+            .UploadAsync(null!, null!, null!, null!, TestContext.Current.CancellationToken);
     }
 
     [Theory(DisplayName = "Create personal file handler should reject the caller when user id is unavailable")]
@@ -193,7 +199,7 @@ public sealed class CreatePersonalFileHandlerTests
 
         exception.ShouldBeOfType<IOException>();
         await _storage.DidNotReceiveWithAnyArgs()
-            .UploadAsync(null!, null!, null!, TestContext.Current.CancellationToken);
+            .UploadAsync(null!, null!, null!, null!, TestContext.Current.CancellationToken);
     }
 
     [Theory(DisplayName = "Create personal file handler should not mark the file ready when upload fails")]
@@ -206,7 +212,8 @@ public sealed class CreatePersonalFileHandlerTests
         Exception failure = cancelled
             ? new OperationCanceledException(cancellationToken)
             : new IOException("Upload failed.");
-        _storage.UploadAsync(Arg.Any<string>(), content, Arg.Any<string>(), cancellationToken).ThrowsAsync(failure);
+        _storage.UploadAsync(Arg.Any<string>(), content, Arg.Any<string>(),
+            Arg.Any<IReadOnlyDictionary<string, string>>(), cancellationToken).ThrowsAsync(failure);
 
         var thrown = await Record.ExceptionAsync(
             () => CreateHandler().HandleAsync(CreateCommand(content), cancellationToken));

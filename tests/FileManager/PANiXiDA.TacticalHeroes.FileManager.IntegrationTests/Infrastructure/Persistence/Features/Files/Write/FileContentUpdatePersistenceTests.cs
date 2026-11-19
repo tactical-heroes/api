@@ -25,7 +25,7 @@ public sealed class FileContentUpdatePersistenceTests(IntegrationTestFixture fix
         var ready = CreateFile();
         foreach (var file in new[] { old, recent, deleted })
         {
-            file.BeginContentUpdate();
+            file.BeginContentUpdate(FileVersionId.Create("initial").Value);
         }
         await using (var scope = Fixture.CreateScope())
         {
@@ -49,7 +49,8 @@ public sealed class FileContentUpdatePersistenceTests(IntegrationTestFixture fix
         }
 
         result.ShouldHaveSingleItem().Id.ShouldBe(old.Id);
-        result[0].PendingStorageKey.ShouldBe(old.PendingStorageKey);
+        result[0].ContentUpdateId.ShouldBe(old.ContentUpdateId);
+        result[0].VersionId.ShouldBe(old.VersionId);
         result[0].Status.ShouldBe(FileStatus.Updating);
         result[0].StorageKey.ShouldBe(old.StorageKey);
     }
@@ -71,8 +72,8 @@ public sealed class FileContentUpdatePersistenceTests(IntegrationTestFixture fix
         var secondRepository = second.ServiceProvider.GetRequiredService<IFilesRepository>();
         var firstFile = await firstRepository.GetByIdAsync(file.Id, ct);
         var secondFile = await secondRepository.GetByIdAsync(file.Id, ct);
-        firstFile!.BeginContentUpdate();
-        secondFile!.BeginContentUpdate();
+        firstFile!.BeginContentUpdate(FileVersionId.Create("initial").Value);
+        secondFile!.BeginContentUpdate(FileVersionId.Create("initial").Value);
         firstRepository.Update(firstFile);
         secondRepository.Update(secondFile);
         await first.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))

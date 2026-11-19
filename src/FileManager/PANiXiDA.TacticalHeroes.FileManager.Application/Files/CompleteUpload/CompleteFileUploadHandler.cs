@@ -36,14 +36,19 @@ public sealed class CompleteFileUploadHandler(
 
         var contentType = FileContentType.Create(metadata.ContentType);
         var size = FileSize.Create(metadata.Size);
-        if (contentType.IsFailure || size.IsFailure)
+        var versionId = FileVersionId.Create(metadata.VersionId);
+        if (contentType.IsFailure || size.IsFailure || versionId.IsFailure)
         {
             return Result.Failure(Error.Conflict("Uploaded file metadata is invalid."));
         }
 
         var previousStatus = file.Status;
-        var result = file.CompleteUpload(contentType: contentType.Value, size: size.Value);
-        if (result.IsSuccess && previousStatus != file.Status)
+        var previousVersion = file.VersionId;
+        var result = file.CompleteUpload(
+            contentType: contentType.Value,
+            size: size.Value,
+            versionId: versionId.Value);
+        if (result.IsSuccess && (previousStatus != file.Status || previousVersion != file.VersionId))
         {
             filesRepository.Update(file);
         }
