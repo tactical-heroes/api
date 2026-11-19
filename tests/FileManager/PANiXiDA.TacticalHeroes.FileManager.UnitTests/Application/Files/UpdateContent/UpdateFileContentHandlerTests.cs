@@ -29,8 +29,7 @@ public sealed class UpdateFileContentHandlerTests
     {
         _user.IsAuthenticated.Returns(true);
         _user.HasPermission("file-manager.avatars.update").Returns(true);
-        _unitOfWork.ExecuteInTransactionAsync(
-                Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+        _unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
     }
 

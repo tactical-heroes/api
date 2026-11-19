@@ -27,11 +27,28 @@ public sealed class DeleteStoredFileHandlerTests
         await scheduler.Received(1).RescheduleAsync(command, TestContext.Current.CancellationToken);
     }
 
+    [Fact(DisplayName = "Stored file cleanup should retain rechecks when the object is absent")]
+    public async Task HandleAsync_Should_RetainRechecks_When_TheObjectIsAbsent()
+    {
+        var storage = Substitute.For<IFileStorage>();
+        var scheduler = Substitute.For<IFileContentCleanupScheduler>();
+        var handler = new DeleteStoredFileHandler(storage, scheduler);
+        var command = new DeleteStoredFileCommand("contents/unused", DateTimeOffset.UtcNow.AddDays(1));
+
+        var result = await handler.HandleAsync(command, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await storage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, TestContext.Current.CancellationToken);
+        await scheduler.Received(1).RescheduleAsync(command, TestContext.Current.CancellationToken);
+    }
+
     [Fact(DisplayName = "Stored file cleanup should propagate failures when deletion fails")]
     public async Task HandleAsync_Should_PropagateFailures_When_DeletionFails()
     {
         var storage = Substitute.For<IFileStorage>();
         var scheduler = Substitute.For<IFileContentCleanupScheduler>();
+        storage.GetMetadataAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new FileMetadata("text/plain", 1));
         storage.DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).ThrowsAsync(new IOException());
         var handler = new DeleteStoredFileHandler(storage, scheduler);
         var command = new DeleteStoredFileCommand("contents/unused", DateTimeOffset.UtcNow.AddDays(1));
