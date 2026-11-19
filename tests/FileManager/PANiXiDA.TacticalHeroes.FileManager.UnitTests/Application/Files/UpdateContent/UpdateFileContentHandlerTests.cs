@@ -29,7 +29,7 @@ public sealed class UpdateFileContentHandlerTests
         _user.HasPermission("file-manager.avatars.update").Returns(true);
     }
 
-    [Fact(DisplayName = "Content update should persist Updating before uploading to the existing key")]
+    [Fact(DisplayName = "Content update should persist Updating when upload starts")]
     public async Task HandleAsync_Should_PersistUpdating_When_UploadStarts()
     {
         var file = CreateFile();
@@ -138,7 +138,7 @@ public sealed class UpdateFileContentHandlerTests
             .SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
-    [Theory(DisplayName = "Content update should avoid writes when the existing object is not versioned")]
+    [Theory(DisplayName = "Content update should avoid writes when existing object is not versioned")]
     [InlineData("missing")]
     [InlineData(null)]
     [InlineData("")]
@@ -202,7 +202,7 @@ public sealed class UpdateFileContentHandlerTests
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Fact(DisplayName = "Content update should avoid upload when reserving the file fails")]
+    [Fact(DisplayName = "Content update should avoid upload when reservation fails")]
     public async Task HandleAsync_Should_AvoidUpload_When_ReservationFails()
     {
         var file = CreateFile();
@@ -213,10 +213,11 @@ public sealed class UpdateFileContentHandlerTests
             .Do(_ => throw new IOException("Reservation failed."));
         await using var content = new MemoryStream([1]);
 
-        await Should.ThrowAsync<IOException>(() => CreateHandler().HandleAsync(
+        var exception = await Record.ExceptionAsync(() => CreateHandler().HandleAsync(
             new UpdateFileContentCommand(file.Id.Value, "text/plain", 1, content),
             TestContext.Current.CancellationToken));
 
+        exception.ShouldBeOfType<IOException>();
         await _storage.DidNotReceiveWithAnyArgs().UploadAsync(default!, default!, default!, TestContext.Current.CancellationToken);
     }
 

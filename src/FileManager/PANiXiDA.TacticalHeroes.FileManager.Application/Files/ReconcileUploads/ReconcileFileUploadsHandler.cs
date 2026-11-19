@@ -123,7 +123,10 @@ public sealed class ReconcileFileUploadsHandler(
                 return false;
             }
 
-            result = file.CompleteContentUpdate(contentType.Value, size.Value, version.Value);
+            result = file.CompleteContentUpdate(
+                contentType: contentType.Value,
+                size: size.Value,
+                versionId: version.Value);
         }
         else
         {

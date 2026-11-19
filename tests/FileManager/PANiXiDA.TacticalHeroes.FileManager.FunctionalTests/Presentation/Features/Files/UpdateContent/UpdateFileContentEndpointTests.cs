@@ -125,7 +125,7 @@ public sealed class UpdateFileContentEndpointTests(
         (await ReadAsync(file.Id.Value)).StorageKey.ShouldBe(file.StorageKey);
     }
 
-    [Fact(DisplayName = "Identical content should complete replacement when S3 creates a new version")]
+    [Fact(DisplayName = "Content update should create a new version when content is identical")]
     public async Task HandleAsync_Should_CompleteReplacement_When_ContentIsIdentical()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -147,7 +147,7 @@ public sealed class UpdateFileContentEndpointTests(
         current.Size!.Value.ShouldBe(4);
     }
 
-    [Fact(DisplayName = "Reconciliation should wait for a new version when an old update has not finished uploading")]
+    [Fact(DisplayName = "Reconciliation should wait for a new version when upload has not finished")]
     public async Task Reconcile_Should_WaitForNewVersion_When_UploadHasNotFinished()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -181,7 +181,7 @@ public sealed class UpdateFileContentEndpointTests(
         completed.ContentType!.Value.ShouldBe("application/octet-stream");
     }
 
-    [Fact(DisplayName = "Reconciliation should finish content replacement when the upload response is lost")]
+    [Fact(DisplayName = "Reconciliation should finish content replacement when upload response is lost")]
     public async Task Reconcile_Should_FinishReplacement_When_UploadResponseIsLost()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -213,7 +213,7 @@ public sealed class UpdateFileContentEndpointTests(
         current.ContentType!.Value.ShouldBe("image/png");
     }
 
-    [Fact(DisplayName = "Content update should reject a concurrent replacement while Updating is persisted")]
+    [Fact(DisplayName = "Content update should reject a concurrent replacement when updating is persisted")]
     public async Task HandleAsync_Should_RejectConcurrentReplacement_When_UpdatingIsPersisted()
     {
         var ct = TestContext.Current.CancellationToken;

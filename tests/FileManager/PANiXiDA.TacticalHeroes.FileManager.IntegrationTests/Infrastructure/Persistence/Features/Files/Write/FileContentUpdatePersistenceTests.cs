@@ -15,7 +15,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 
 public sealed class FileContentUpdatePersistenceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Fact(DisplayName = "Updating query should return only old active updates and restore their version identifiers")]
+    [Fact(DisplayName = "Updating query should return old active updates when updates exist")]
     public async Task GetUpdatingFilesAsync_Should_ReturnOldActiveUpdates_When_UpdatesExist()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -78,9 +78,11 @@ public sealed class FileContentUpdatePersistenceTests(IntegrationTestFixture fix
         await first.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
             .SaveChangesAsync(ct);
 
-        await Should.ThrowAsync<ConcurrencyException>(() => second.ServiceProvider
+        var exception = await Record.ExceptionAsync(() => second.ServiceProvider
             .GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
             .SaveChangesAsync(ct));
+
+        exception.ShouldBeOfType<ConcurrencyException>();
     }
 
     private static File CreateFile()

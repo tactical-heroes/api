@@ -333,7 +333,7 @@ public sealed class ReconcileFileUploadsHandlerTests
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
-    [Theory(DisplayName = "Reconciliation should finish Updating only after a new valid object version appears")]
+    [Theory(DisplayName = "Reconciliation should finish updating when new valid object version appears")]
     [InlineData("new", "text/plain", 4, true)]
     [InlineData("new", "image/png", 9, true)]
     [InlineData("old", "text/plain", 4, false)]

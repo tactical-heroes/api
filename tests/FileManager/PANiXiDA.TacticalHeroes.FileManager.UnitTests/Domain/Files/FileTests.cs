@@ -385,28 +385,7 @@ public sealed class FileTests
         file.Size.ShouldBeSameAs(size);
     }
 
-    private static File CreateFile(string status)
-    {
-        var file = File.Create(
-            FileName.Create("avatar.png").Value,
-            FileType.Avatar,
-            userId: null).Value;
-
-        if (status == "Ready")
-        {
-            file.CompleteUpload(
-                FileContentType.Create("image/png").Value,
-                FileSize.Create(128).Value);
-        }
-        else if (status == "Deleting")
-        {
-            file.BeginDeletion();
-        }
-
-        return file;
-    }
-
-    [Fact(DisplayName = "Content update should retain the key and metadata until a new version is confirmed")]
+    [Fact(DisplayName = "Content update should retain key and metadata when update starts")]
     public void BeginContentUpdate_Should_RetainKeyAndMetadata_When_UpdateStarts()
     {
         var file = File.Create(FileName.Create("file.txt").Value, FileType.Avatar, userId: null).Value;
@@ -431,7 +410,7 @@ public sealed class FileTests
         file.Status.ShouldBe(FileStatus.Updating);
     }
 
-    [Theory(DisplayName = "Content update should accept only a different version while Updating")]
+    [Theory(DisplayName = "Content update should require a different version when update is completed")]
     [InlineData(true, "new", true)]
     [InlineData(true, "old", false)]
     [InlineData(false, "new", false)]
@@ -458,7 +437,7 @@ public sealed class FileTests
         file.Status.ShouldBe(success || !updating ? FileStatus.Ready : FileStatus.Updating);
     }
 
-    [Theory(DisplayName = "Content update should reject non-ready files")]
+    [Theory(DisplayName = "Content update should reject files when file is not ready")]
     [InlineData(false)]
     [InlineData(true)]
     public void BeginContentUpdate_Should_RejectFile_When_FileIsNotReady(bool deleting)
@@ -474,5 +453,26 @@ public sealed class FileTests
         result.IsFailure.ShouldBeTrue();
         file.Status.ShouldBe(deleting ? FileStatus.Deleting : FileStatus.PendingUpload);
         file.VersionId.ShouldBeNull();
+    }
+
+    private static File CreateFile(string status)
+    {
+        var file = File.Create(
+            FileName.Create("avatar.png").Value,
+            FileType.Avatar,
+            userId: null).Value;
+
+        if (status == "Ready")
+        {
+            file.CompleteUpload(
+                FileContentType.Create("image/png").Value,
+                FileSize.Create(128).Value);
+        }
+        else if (status == "Deleting")
+        {
+            file.BeginDeletion();
+        }
+
+        return file;
     }
 }

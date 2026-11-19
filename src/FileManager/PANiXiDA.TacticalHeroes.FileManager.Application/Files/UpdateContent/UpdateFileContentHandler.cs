@@ -77,7 +77,10 @@ public sealed class UpdateFileContentHandler(
             return Result.Failure(Error.Conflict("Uploaded file content has no storage version."));
         }
 
-        var result = file.CompleteContentUpdate(contentType.Value, size.Value, version.Value);
+        var result = file.CompleteContentUpdate(
+            contentType: contentType.Value,
+            size: size.Value,
+            versionId: version.Value);
         if (result.IsFailure)
         {
             return result;

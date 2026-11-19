@@ -56,7 +56,7 @@ public sealed class FolderDeletedHandlerTests
         await _files.Received(1).GetNonDeletingByFolderAsync(_folder.Id, TestContext.Current.CancellationToken);
     }
 
-    [Fact(DisplayName = "Folder deletion should leave an updating file unchanged until reconciliation finishes it")]
+    [Fact(DisplayName = "Folder deletion should leave updating files unchanged when folder is deleted")]
     public async Task HandleAsync_Should_LeaveUpdatingFileUnchanged_When_FolderIsDeleted()
     {
         var file = CreateFile();
