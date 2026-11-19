@@ -196,7 +196,7 @@ public sealed class UpdateFileContentEndpointTests(
         var ct = TestContext.Current.CancellationToken;
         var actorId = Guid.NewGuid();
         var file = await SaveAsync("Avatar", actorId, "in-progress");
-        var cancelledOperation = file.ContentUpdateAttemptId!.Value;
+        var cancelledOperation = file.ContentUpdateAttemptId!;
         await AgeUpdateAsync(file.Id.Value, expired: false);
         await ReconcileAsync();
         (await ReadAsync(file.Id.Value)).Status.ShouldBe(FileStatus.Updating);

@@ -74,7 +74,7 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
 
         builder.Property(file => file.ContentUpdateAttemptId)
             .HasConversion(
-                id => id!.Value.Value,
+                id => id!.Value,
                 value => FileContentUpdateAttemptId.Create(value).Value)
             .IsRequired(required: false);
 

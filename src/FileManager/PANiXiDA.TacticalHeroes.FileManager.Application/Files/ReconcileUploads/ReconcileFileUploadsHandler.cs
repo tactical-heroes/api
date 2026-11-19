@@ -4,7 +4,6 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -55,6 +54,21 @@ public sealed class ReconcileFileUploadsHandler(
         }
 
         return Result.Success();
+    }
+
+    private static bool MatchesContentUpdate(
+        FileMetadata? metadata,
+        FileVersionId? activeVersion,
+        FileContentUpdateAttemptId contentUpdateAttemptId)
+    {
+        return metadata is not null
+            && metadata.VersionId != activeVersion?.Value
+            && metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateAttemptId, out var storedUpdateId)
+            && Guid.TryParse(storedUpdateId, out var storedId)
+            && storedId == contentUpdateAttemptId.Value
+            && FileContentType.Create(metadata.ContentType).IsSuccess
+            && FileSize.Create(metadata.Size).IsSuccess
+            && FileVersionId.Create(metadata.VersionId).IsSuccess;
     }
 
     private async Task ReconcileFileAsync(
@@ -269,18 +283,5 @@ public sealed class ReconcileFileUploadsHandler(
         return true;
     }
 
-    private static bool MatchesContentUpdate(
-        FileMetadata? metadata,
-        FileVersionId? activeVersion,
-        FileContentUpdateAttemptId contentUpdateAttemptId)
-    {
-        return metadata is not null
-            && metadata.VersionId != activeVersion?.Value
-            && metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateAttemptId, out var storedUpdateId)
-            && Guid.TryParse(storedUpdateId, out var storedId)
-            && storedId == contentUpdateAttemptId.Value
-            && FileContentType.Create(metadata.ContentType).IsSuccess
-            && FileSize.Create(metadata.Size).IsSuccess
-            && FileVersionId.Create(metadata.VersionId).IsSuccess;
-    }
+
 }

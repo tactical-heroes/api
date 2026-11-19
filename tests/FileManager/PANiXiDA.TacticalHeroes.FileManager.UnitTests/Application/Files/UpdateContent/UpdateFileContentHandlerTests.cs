@@ -49,7 +49,7 @@ public sealed class UpdateFileContentHandlerTests
                 file.Status.ShouldBe(FileStatus.Updating);
                 file.VersionId!.Value.ShouldBe("initial");
                 call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.ContentUpdateAttemptId]
-                    .ShouldBe(file.ContentUpdateAttemptId!.Value.Value.ToString("D"));
+                    .ShouldBe(file.ContentUpdateAttemptId!.Value.ToString("D"));
                 _unitOfWork.ReceivedCalls().Count().ShouldBe(1);
                 return new FileUploadResult("replacement");
             });
@@ -100,6 +100,7 @@ public sealed class UpdateFileContentHandlerTests
                 throw new IOException("Metadata failed.");
             }
 
+            var operationId = condition == "operation" ? Guid.NewGuid() : file.ContentUpdateAttemptId!.Value;
             return condition == "missing" ? null : UpdatedMetadata(file) with
             {
                 ContentType = condition == "content-type" ? "image/png" : "text/plain",
@@ -108,7 +109,7 @@ public sealed class UpdateFileContentHandlerTests
                 Metadata = new Dictionary<string, string>
                 {
                     [FileMetadataNames.ContentUpdateAttemptId] =
-                        (condition == "operation" ? Guid.NewGuid() : file.ContentUpdateAttemptId!.Value.Value).ToString("D")
+                        operationId.ToString("D")
                 }
             };
         });
@@ -267,7 +268,7 @@ public sealed class UpdateFileContentHandlerTests
             3,
             new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateAttemptId] = file.ContentUpdateAttemptId!.Value.Value.ToString("D")
+                [FileMetadataNames.ContentUpdateAttemptId] = file.ContentUpdateAttemptId!.Value.ToString("D")
             },
             "replacement");
     }

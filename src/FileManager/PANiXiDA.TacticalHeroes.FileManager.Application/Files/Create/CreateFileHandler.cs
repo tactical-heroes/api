@@ -23,7 +23,10 @@ public sealed class CreateFileHandler(FileCreationService fileCreationService)
             name: command.Name,
             type: type.Value,
             userId: command.UserId,
-            metadata: new FileMetadata(command.ContentType, command.Size, ReadOnlyDictionary<string, string>.Empty),
+            metadata: new FileMetadata(
+                ContentType: command.ContentType,
+                Size: command.Size,
+                Metadata: ReadOnlyDictionary<string, string>.Empty),
             content: command.Content,
             folderId: command.FolderId,
             cancellationToken: cancellationToken);

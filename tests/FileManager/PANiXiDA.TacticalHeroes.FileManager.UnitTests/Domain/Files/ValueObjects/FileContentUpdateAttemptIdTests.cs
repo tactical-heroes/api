@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files.ValueObjects;
 
 public sealed class FileContentUpdateAttemptIdTests
 {
@@ -39,6 +39,6 @@ public sealed class FileContentUpdateAttemptIdTests
 
         var result = id.ToString();
 
-        result.ShouldBe(id.Value.ToString());
+        result.ShouldBe($"FileContentUpdateAttemptId {{ Value = {id.Value} }}");
     }
 }

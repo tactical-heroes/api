@@ -30,7 +30,10 @@ public sealed class CreatePersonalFileUploadUrlHandler(
             name: command.Name,
             type: FileType.Personal,
             userId: userId,
-            metadata: new FileMetadata(command.ContentType, command.Size, ReadOnlyDictionary<string, string>.Empty),
+            metadata: new FileMetadata(
+                ContentType: command.ContentType,
+                Size: command.Size,
+                Metadata: ReadOnlyDictionary<string, string>.Empty),
             folderId: command.FolderId,
             cancellationToken: cancellationToken);
     }

@@ -188,7 +188,7 @@ public sealed class File : AggregateRoot<FileId>
         ContentUpdateAttemptId = FileContentUpdateAttemptId.New();
         Status = FileStatus.Updating;
 
-        return Result.Success(ContentUpdateAttemptId.Value);
+        return Result.Success(ContentUpdateAttemptId);
     }
 
     public Result CompleteContentUpdate(

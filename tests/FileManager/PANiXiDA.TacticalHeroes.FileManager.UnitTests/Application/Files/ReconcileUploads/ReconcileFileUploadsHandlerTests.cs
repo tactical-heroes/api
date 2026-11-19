@@ -415,18 +415,22 @@ public sealed class ReconcileFileUploadsHandlerTests
         _files.GetUpdatingFilesAsync(Arg.Any<CancellationToken>()).Returns(new[] { file }.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
             .Returns(new FileMetadata("text/plain", 1, ReadOnlyDictionary<string, string>.Empty, "late"));
+        FileVersion[] versions =
+        [
+            new("late", DateTimeOffset.UtcNow),
+            new("initial", DateTimeOffset.UtcNow.AddMinutes(-2)),
+            new("replacement", DateTimeOffset.UtcNow.AddMinutes(-1))
+        ];
         _fileStorage.GetVersionsAsync(file.StorageKey.Value, Arg.Any<CancellationToken>())
-            .Returns(new[]
-            {
-                new FileVersion("late", DateTimeOffset.UtcNow),
-                new FileVersion("initial", DateTimeOffset.UtcNow.AddMinutes(-2)),
-                new FileVersion("replacement", DateTimeOffset.UtcNow.AddMinutes(-1))
-            }.ToAsyncEnumerable());
+            .Returns(versions.ToAsyncEnumerable());
         _fileStorage.GetMetadataAsync(file.StorageKey.Value, "replacement", Arg.Any<CancellationToken>())
             .Returns(new FileMetadata(
                 "image/png",
                 9,
-                new Dictionary<string, string> { [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString("D") },
+                new Dictionary<string, string>
+                {
+                    [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString("D")
+                },
                 "replacement"));
 
         await CreateHandler().HandleAsync(new ReconcileFileUploadsCommand(), TestContext.Current.CancellationToken);
@@ -495,7 +499,7 @@ public sealed class ReconcileFileUploadsHandlerTests
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
     }
 
-    [Theory(DisplayName = "Reconciliation should propagate database conflicts when a content update is finalized")]
+    [Theory(DisplayName = "Reconciliation should propagate database conflicts when content update is finalized")]
     [InlineData(false)]
     [InlineData(true)]
     public async Task HandleAsync_Should_PropagateDatabaseConflict_When_ContentUpdateIsFinalized(bool expired)
@@ -545,18 +549,16 @@ public sealed class ReconcileFileUploadsHandlerTests
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         if (listing)
         {
-            _fileStorage.GetVersionsAsync(file.StorageKey.Value, cancellation.Token).Returns(_ =>
-            {
-                cancellation.Cancel();
-                throw new OperationCanceledException(cancellation.Token);
-            });
+            _fileStorage.GetVersionsAsync(file.StorageKey.Value, cancellation.Token)
+                .Returns(CancelVersionsAsync(cancellation));
         }
         else
         {
-            _fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellation.Token).Returns(_ =>
+            _fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellation.Token).Returns(async _ =>
             {
-                cancellation.Cancel();
-                return Task.FromCanceled<FileMetadata?>(cancellation.Token);
+                await cancellation.CancelAsync();
+                cancellation.Token.ThrowIfCancellationRequested();
+                return null;
             });
         }
 
@@ -567,6 +569,13 @@ public sealed class ReconcileFileUploadsHandlerTests
         exception.ShouldBeAssignableTo<OperationCanceledException>();
         file.Status.ShouldBe(FileStatus.Updating);
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    private static async IAsyncEnumerable<FileVersion> CancelVersionsAsync(CancellationTokenSource cancellation)
+    {
+        await cancellation.CancelAsync();
+        cancellation.Token.ThrowIfCancellationRequested();
+        yield break;
     }
 
     private static File CreateFile()

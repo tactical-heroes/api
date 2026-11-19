@@ -1,6 +1,6 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
-public readonly partial record struct FileContentUpdateAttemptId : IStronglyTypedId
+public sealed partial class FileContentUpdateAttemptId : ValueObject
 {
     private FileContentUpdateAttemptId(Guid value)
     {
