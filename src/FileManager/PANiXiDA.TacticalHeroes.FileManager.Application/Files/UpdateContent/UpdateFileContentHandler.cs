@@ -66,13 +66,13 @@ public sealed class UpdateFileContentHandler(
             key: file.StorageKey.Value,
             versionId: uploadedVersion.Value.Value,
             cancellationToken: cancellationToken);
-        if (metadata is null
+        if (!FileContentUpdateMetadata.Matches(
+            metadata: metadata,
+            activeVersion: file.VersionId,
+            contentUpdateAttemptId: started.Value)
             || metadata.ContentType != contentType.Value.Value
             || metadata.Size != size.Value.Value
-            || metadata.VersionId != uploadedVersion.Value.Value
-            || !metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateAttemptId, out var storedUpdateId)
-            || !Guid.TryParse(storedUpdateId, out var contentUpdateAttemptId)
-            || contentUpdateAttemptId != started.Value.Value)
+            || metadata.VersionId != uploadedVersion.Value.Value)
         {
             return Result.Failure(Error.Conflict("Uploaded file content does not match the requested metadata."));
         }

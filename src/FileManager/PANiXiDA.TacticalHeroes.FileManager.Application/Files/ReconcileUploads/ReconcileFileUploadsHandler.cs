@@ -56,21 +56,6 @@ public sealed class ReconcileFileUploadsHandler(
         return Result.Success();
     }
 
-    private static bool MatchesContentUpdate(
-        FileMetadata? metadata,
-        FileVersionId? activeVersion,
-        FileContentUpdateAttemptId contentUpdateAttemptId)
-    {
-        return metadata is not null
-            && metadata.VersionId != activeVersion?.Value
-            && metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateAttemptId, out var storedUpdateId)
-            && Guid.TryParse(storedUpdateId, out var storedId)
-            && storedId == contentUpdateAttemptId.Value
-            && FileContentType.Create(metadata.ContentType).IsSuccess
-            && FileSize.Create(metadata.Size).IsSuccess
-            && FileVersionId.Create(metadata.VersionId).IsSuccess;
-    }
-
     private async Task ReconcileFileAsync(
         File file,
         bool expireUnusable,
@@ -163,7 +148,7 @@ public sealed class ReconcileFileUploadsHandler(
         CancellationToken cancellationToken)
     {
         var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
-        if (MatchesContentUpdate(
+        if (FileContentUpdateMetadata.Matches(
             metadata: current,
             activeVersion: file.VersionId,
             contentUpdateAttemptId: contentUpdateAttemptId))
@@ -184,7 +169,7 @@ public sealed class ReconcileFileUploadsHandler(
                 versionId: versionId,
                 cancellationToken: cancellationToken);
             if (metadata?.VersionId == versionId
-                && MatchesContentUpdate(
+                && FileContentUpdateMetadata.Matches(
                     metadata: metadata,
                     activeVersion: file.VersionId,
                     contentUpdateAttemptId: contentUpdateAttemptId))
