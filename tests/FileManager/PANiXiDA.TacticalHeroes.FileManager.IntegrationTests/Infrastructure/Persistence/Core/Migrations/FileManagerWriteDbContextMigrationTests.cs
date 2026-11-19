@@ -69,7 +69,7 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
                 .Select(item => item.DeletedAt)
                 .SingleAsync(cancellationToken);
             afterRollback.ShouldBe(stored.DeletedAt);
-            (await repository.GetByIdAsync(file.Id, cancellationToken)).ShouldBeNull();
+            (await context.Set<File>().AnyAsync(item => item.Id == file.Id, cancellationToken)).ShouldBeFalse();
         }
         finally
         {

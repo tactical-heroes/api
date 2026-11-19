@@ -158,7 +158,8 @@ public sealed class UpdateFileContentHandlerTests
         result.IsFailure.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
-        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(default!, default!, default!, TestContext.Current.CancellationToken);
+        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(
+            default!, default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Theory(DisplayName = "Content update should avoid storage when the request is invalid or unavailable")]
@@ -218,7 +219,8 @@ public sealed class UpdateFileContentHandlerTests
             TestContext.Current.CancellationToken));
 
         exception.ShouldBeOfType<IOException>();
-        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(default!, default!, default!, TestContext.Current.CancellationToken);
+        await _storage.DidNotReceiveWithAnyArgs().UploadAsync(
+            default!, default!, default!, TestContext.Current.CancellationToken);
     }
 
     private static File CreateFile(bool ready = true)
