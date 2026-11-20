@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -30,6 +31,16 @@ public sealed class ReconcileFileUploadsHandler(
         await foreach (var file in filesRepository.GetExpiredUploadsAsync(cancellationToken))
         {
             await ReconcileFileAsync(file: file, expireUnusable: true, cancellationToken: cancellationToken);
+        }
+
+        await foreach (var file in filesRepository.GetUpdatingFilesAsync(cancellationToken))
+        {
+            await ReconcileContentUpdateAsync(file: file, expireUnusable: false, cancellationToken: cancellationToken);
+        }
+
+        await foreach (var file in filesRepository.GetExpiredContentUpdatesAsync(cancellationToken))
+        {
+            await ReconcileContentUpdateAsync(file: file, expireUnusable: true, cancellationToken: cancellationToken);
         }
 
         await foreach (var file in filesRepository.GetFilesForDeletionAsync(cancellationToken))
@@ -78,6 +89,98 @@ public sealed class ReconcileFileUploadsHandler(
         }
     }
 
+    private async Task ReconcileContentUpdateAsync(
+        File file,
+        bool expireUnusable,
+        CancellationToken cancellationToken)
+    {
+        if (file.ContentUpdateAttemptId is not { } contentUpdateAttemptId)
+        {
+            return;
+        }
+
+        FileMetadata? metadata;
+        try
+        {
+            metadata = await FindUpdatedContentAsync(
+                file: file,
+                contentUpdateAttemptId: contentUpdateAttemptId,
+                cancellationToken: cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Could not inspect content update for file {FileId}; will retry", file.Id.Value);
+            return;
+        }
+
+        Result result;
+        if (metadata is not null)
+        {
+            result = file.CompleteContentUpdate(
+                contentUpdateAttemptId: contentUpdateAttemptId,
+                contentType: FileContentType.Create(metadata.ContentType).Value,
+                size: FileSize.Create(metadata.Size).Value,
+                versionId: FileVersionId.Create(metadata.VersionId).Value);
+        }
+        else if (expireUnusable)
+        {
+            result = file.CancelContentUpdate(contentUpdateAttemptId);
+        }
+        else
+        {
+            return;
+        }
+
+        if (result.IsSuccess)
+        {
+            filesRepository.Update(file);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    private async Task<FileMetadata?> FindUpdatedContentAsync(
+        File file,
+        FileContentUpdateAttemptId contentUpdateAttemptId,
+        CancellationToken cancellationToken)
+    {
+        var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
+        if (FileContentUpdatePolicy.CanAccept(
+            metadata: current,
+            activeVersion: file.VersionId,
+            contentUpdateAttemptId: contentUpdateAttemptId))
+        {
+            return current;
+        }
+
+        var versions = fileStorage.GetVersionsAsync(file.StorageKey.Value, cancellationToken);
+        await foreach (var versionId in versions.Select(version => version.VersionId))
+        {
+            if (versionId == file.VersionId?.Value || versionId == current?.VersionId)
+            {
+                continue;
+            }
+
+            var metadata = await fileStorage.GetMetadataAsync(
+                key: file.StorageKey.Value,
+                versionId: versionId,
+                cancellationToken: cancellationToken);
+            if (metadata?.VersionId == versionId
+                && FileContentUpdatePolicy.CanAccept(
+                    metadata: metadata,
+                    activeVersion: file.VersionId,
+                    contentUpdateAttemptId: contentUpdateAttemptId))
+            {
+                return metadata;
+            }
+        }
+
+        return null;
+    }
+
     private async Task BeginDeletionAsync(File file, CancellationToken cancellationToken)
     {
         if (file.Status != FileStatus.PendingUpload)
@@ -103,13 +206,17 @@ public sealed class ReconcileFileUploadsHandler(
     {
         var contentType = FileContentType.Create(metadata.ContentType);
         var size = FileSize.Create(metadata.Size);
-        if (contentType.IsFailure || size.IsFailure)
+        var versionId = FileVersionId.Create(metadata.VersionId);
+        if (contentType.IsFailure || size.IsFailure || versionId.IsFailure)
         {
             logger.LogWarning("Stored content for file {FileId} has invalid metadata", file.Id.Value);
             return false;
         }
 
-        var result = file.CompleteUpload(contentType: contentType.Value, size: size.Value);
+        var result = file.CompleteUpload(
+            contentType: contentType.Value,
+            size: size.Value,
+            versionId: versionId.Value);
         if (result.IsSuccess)
         {
             filesRepository.Update(aggregateRoot: file);

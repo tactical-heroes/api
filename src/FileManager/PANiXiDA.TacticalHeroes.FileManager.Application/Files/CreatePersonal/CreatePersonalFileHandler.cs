@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage.Models;
 
@@ -20,7 +22,10 @@ public sealed class CreatePersonalFileHandler(FileCreationService fileCreationSe
             name: command.Name,
             type: FileType.Personal,
             userId: userId,
-            metadata: new FileMetadata(command.ContentType, command.Size),
+            metadata: new FileMetadata(
+                ContentType: command.ContentType,
+                Size: command.Size,
+                Metadata: ReadOnlyDictionary<string, string>.Empty),
             content: command.Content,
             folderId: command.FolderId,
             cancellationToken: cancellationToken);

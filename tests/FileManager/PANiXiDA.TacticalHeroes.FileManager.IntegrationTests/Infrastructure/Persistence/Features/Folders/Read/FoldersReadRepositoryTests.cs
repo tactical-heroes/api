@@ -28,7 +28,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         repository.Add(folder);
         await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
@@ -51,7 +52,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
 
         var before = await readRepository.AnyAsync(cancellationToken);
         repository.Add(folder);
@@ -70,14 +72,16 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
     [InlineData(true, false)]
     [InlineData(true, true)]
     public async Task ReadDbModel_Should_RestoreAllColumnsWithoutTracking_When_ParentAndOwnershipVary(
-        bool nested, bool personal)
+        bool nested,
+        bool personal)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         UserId? userId = personal ? UserId.Create(Guid.CreateVersion7()).Value : null;
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: personal ? FileType.Personal : FileType.Avatar,
-            userId: userId).Value;
+            userId: userId)
+            .Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         repository.Add(folder);
@@ -120,7 +124,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var root = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
         var child = root.CreateChild(FolderName.Create("Players").Value);
         var grandchild = child.CreateChild(FolderName.Create("Heroes").Value);
         Folder[] folders = [root, child, grandchild];
@@ -155,7 +160,10 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
     [InlineData(null, true, 3, "Avatar")]
     [InlineData(null, false, 5, "Avatar")]
     public async Task GetPageAsync_Should_FilterBeforePaging_When_TypeAndOwnerVary(
-        string? type, bool own, long total, string name)
+        string? type,
+        bool own,
+        long total,
+        string name)
     {
         var userId = Guid.NewGuid();
         await AddFolderAsync("Alpha", "Personal", userId);
@@ -297,7 +305,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("Avatar", "nested")]
     [InlineData("Avatar", "deleted-parent")]
     public async Task GetDetailsByIdAsync_Should_ProjectPersistedMetadata_When_TypeAndParentStateVary(
-        string type, string parentState)
+        string type,
+        string parentState)
     {
         var userId = type == "Personal" ? Guid.NewGuid() : (Guid?)null;
         var parent = await AddFolderAsync("Parent", type, userId);
@@ -366,7 +375,10 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var owner = type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
         var parents = Enumerable.Range(0, 109)
             .Select(index => Folder.Create(
-                FolderName.Create($"Parent {index}").Value, FileType.FromName(type), owner).Value)
+                FolderName.Create($"Parent {index}").Value,
+                FileType.FromName(type),
+                owner)
+                .Value)
             .ToArray();
         var deletedChild = parents[108].CreateChild(FolderName.Create("Deleted child").Value);
         var deletedFile = File.Create(FileName.Create("deleted.txt").Value, FileType.FromName(type), owner).Value;
@@ -384,22 +396,34 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
                 else
                 {
                     var file = File.Create(
-                        FileName.Create($"file-{index}.txt").Value, FileType.FromName(type), owner).Value;
+                        FileName.Create($"file-{index}.txt").Value,
+                        FileType.FromName(type),
+                        owner)
+                        .Value;
                     file.MoveTo(parents[index]);
                     if (index % 3 == 2)
                     {
-                        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
+                        file.CompleteUpload(
+                            FileContentType.Create("text/plain").Value,
+                            FileSize.Create(1).Value,
+                            FileVersionId.Create("initial").Value);
                     }
                     db.Add(file);
                 }
             }
             var mixedFile = File.Create(
-                FileName.Create("also-active.txt").Value, FileType.FromName(type), owner).Value;
+                FileName.Create("also-active.txt").Value,
+                FileType.FromName(type),
+                owner)
+                .Value;
             mixedFile.MoveTo(parents[0]);
             db.Add(mixedFile);
             db.Add(parents[105].CreateChild(FolderName.Create("Active parent child").Value));
             var deletingFile = File.Create(
-                FileName.Create("deleting.txt").Value, FileType.FromName(type), owner).Value;
+                FileName.Create("deleting.txt").Value,
+                FileType.FromName(type),
+                owner)
+                .Value;
             deletingFile.MoveTo(parents[107]);
             deletingFile.BeginDeletion();
             db.AddRange(deletingFile, deletedChild, deletedFile);
@@ -485,7 +509,9 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
 
         var exists = await repository.HasAncestorAsync(
-            Guid.NewGuid(), Guid.NewGuid(), TestContext.Current.CancellationToken);
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            TestContext.Current.CancellationToken);
 
         exists.ShouldBeFalse();
     }
@@ -502,9 +528,11 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
             db.AddRange(first, second);
             await db.SaveChangesAsync(ct);
             await db.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE file_manager.folders SET parent_id = {second.Id.Value} WHERE id = {first.Id.Value}", ct);
+                $"UPDATE file_manager.folders SET parent_id = {second.Id.Value} WHERE id = {first.Id.Value}",
+                ct);
             await db.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE file_manager.folders SET parent_id = {first.Id.Value} WHERE id = {second.Id.Value}", ct);
+                $"UPDATE file_manager.folders SET parent_id = {first.Id.Value} WHERE id = {second.Id.Value}",
+                ct);
         }
         await using var readScope = Fixture.CreateScope();
         var repository = readScope.ServiceProvider.GetRequiredService<IFoldersReadRepository>();
@@ -583,7 +611,8 @@ public sealed class FoldersReadRepositoryTests(IntegrationTestFixture fixture)
         var folder = Folder.Create(
             FolderName.Create(name).Value,
             FileType.FromName(type),
-            userId is { } owner ? UserId.Create(owner).Value : null).Value;
+            userId is { } owner ? UserId.Create(owner).Value : null)
+            .Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFoldersRepository>();
         var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));

@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
@@ -41,7 +42,8 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
             using var uploadRequest = new HttpRequestMessage(HttpMethod.Post, Route + "/personal");
             uploadRequest.Headers.Add(TestAuthenticationHandler.UserIdHeader, userId.ToString());
             uploadRequest.Headers.Add(
-                TestAuthenticationHandler.PermissionsHeader, "file-manager.personal-files.create.own");
+                TestAuthenticationHandler.PermissionsHeader,
+                "file-manager.personal-files.create.own");
             using var content = new ByteArrayContent(bytes);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             uploadRequest.Content = new MultipartFormDataContent { { content, "File", name } };
@@ -57,7 +59,10 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
             await using var scope = Fixture.CreateScope();
             await using var content = new MemoryStream(bytes);
             await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
-                file.StorageKey.Value, content, "application/octet-stream", cancellationToken);
+                file.StorageKey.Value,
+                content,
+                "application/octet-stream",
+                cancellationToken);
             fileId = file.Id.Value;
         }
 
@@ -96,7 +101,10 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
     {
         var userId = Guid.NewGuid();
         var file = await AddFileAsync(
-            FileType.Personal, ownsFile ? userId : Guid.NewGuid(), "Ready", deleted: false);
+            FileType.Personal,
+            ownsFile ? userId : Guid.NewGuid(),
+            "Ready",
+            deleted: false);
 
         using var response = await SendRequestAsync(file.Id.Value, userId.ToString(), permission);
 
@@ -149,7 +157,10 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
         var userId = Guid.NewGuid();
         var type = FileType.FromName(typeName);
         var file = await AddFileAsync(
-            type, type == FileType.Personal ? userId : null, "Ready", deleted: false);
+            type,
+            type == FileType.Personal ? userId : null,
+            "Ready",
+            deleted: false);
 
         using var response = await SendRequestAsync(file.Id.Value, userId.ToString(), permission);
 
@@ -163,7 +174,31 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
         var file = await AddFileAsync(FileType.Personal, userId, "PendingUpload", deleted: false);
 
         using var response = await SendRequestAsync(
-            file.Id.Value, userId.ToString(), Permissions.FileManager.PersonalFiles.ReadOwn.Code);
+            file.Id.Value,
+            userId.ToString(),
+            Permissions.FileManager.PersonalFiles.ReadOwn.Code);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact(DisplayName = "Download URL endpoint should return conflict when active version is missing")]
+    public async Task HandleAsync_Should_ReturnConflict_When_ActiveVersionIsMissing()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var userId = Guid.NewGuid();
+        var file = await AddFileAsync(FileType.Personal, userId, "Ready", deleted: false);
+        await using (var scope = Fixture.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            await context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET version_id = NULL WHERE id = {file.Id.Value}",
+                cancellationToken);
+        }
+
+        using var response = await SendRequestAsync(
+            file.Id.Value,
+            userId.ToString(),
+            Permissions.FileManager.PersonalFiles.ReadOwn.Code);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
@@ -215,10 +250,22 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
         var file = File.Create(
             FileName.Create(name).Value,
             type,
-            userId is { } ownerId ? UserId.Create(ownerId).Value : null).Value;
+            userId is { } ownerId ? UserId.Create(ownerId).Value : null)
+            .Value;
+        await using var scope = Fixture.CreateScope();
         if (status != "PendingUpload")
         {
-            file.CompleteUpload(FileContentType.Create("application/octet-stream").Value, FileSize.Create(4).Value);
+            await using var content = new MemoryStream([1, 2, 3, 4]);
+            var uploaded = await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
+                file.StorageKey.Value,
+                content,
+                "application/octet-stream",
+                System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
+                TestContext.Current.CancellationToken);
+            file.CompleteUpload(
+                FileContentType.Create("application/octet-stream").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create(uploaded.VersionId).Value);
         }
 
         if (deleted)
@@ -226,7 +273,6 @@ public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixtur
             file.BeginDeletion();
         }
 
-        await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));
         repository.Add(file);

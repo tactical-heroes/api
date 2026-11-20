@@ -65,9 +65,11 @@ public sealed class FileManagerWriteDbContextMigrationTests(IntegrationTestFixtu
 
             await migrator.MigrateAsync("20261009050032_AddFileStorageKey", cancellationToken);
             var afterRollback = await readContext.Set<FileReadDbModel>().IgnoreQueryFilters()
-                .SingleAsync(item => item.Id == file.Id.Value, cancellationToken);
-            afterRollback.DeletedAt.ShouldBe(stored.DeletedAt);
-            (await repository.GetByIdAsync(file.Id, cancellationToken)).ShouldBeNull();
+                .Where(item => item.Id == file.Id.Value)
+                .Select(item => item.DeletedAt)
+                .SingleAsync(cancellationToken);
+            afterRollback.ShouldBe(stored.DeletedAt);
+            (await context.Set<File>().AnyAsync(item => item.Id == file.Id, cancellationToken)).ShouldBeFalse();
         }
         finally
         {
