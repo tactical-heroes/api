@@ -33,6 +33,7 @@ public sealed class File : AggregateRoot<FileId>
     public FileSize? Size { get; private set; }
     public FileVersionId? VersionId { get; private set; }
     public FileContentUpdateAttemptId? ContentUpdateAttemptId { get; private set; }
+    public FileRelocation? Relocation { get; private set; }
 
     public static Result<File> Create(
         FileName name,
@@ -46,13 +47,7 @@ public sealed class File : AggregateRoot<FileId>
         }
 
         var id = FileId.New();
-        var prefix = type.Name.ToLowerInvariant();
-        if (userId is { } ownerId)
-        {
-            prefix = $"{prefix}/{ownerId.Value:D}";
-        }
-
-        var storageKey = FileStorageKey.Create($"{prefix}/{id.Value:D}").Value;
+        var storageKey = CreateStorageKey(id: id, type: type, userId: userId);
 
         return Result.Success(new File(
             id: id,
@@ -64,6 +59,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Update(FileName name, FileType type, UserId? userId, Folder? folder)
     {
+        if (Status == FileStatus.Relocating)
+        {
+            return Result.Failure(Error.Conflict("A file being relocated cannot be updated."));
+        }
+
         if (Status == FileStatus.Updating)
         {
             return Result.Failure(Error.Conflict("File metadata cannot be changed while content is being updated."));
@@ -82,17 +82,81 @@ public sealed class File : AggregateRoot<FileId>
             return validation;
         }
 
+        if (Type != type || UserId != userId)
+        {
+            if (Status != FileStatus.Ready || VersionId is null || ContentType is null || Size is null)
+            {
+                return Result.Failure(Error.Conflict("Only ready files can change type or owner."));
+            }
+
+            Relocation = FileRelocation.Create(
+                attemptId: FileRelocationAttemptId.New(),
+                name: name,
+                type: type,
+                userId: userId,
+                folderId: folder?.Id,
+                storageKey: CreateStorageKey(id: Id, type: type, userId: userId));
+            Status = FileStatus.Relocating;
+
+            return Result.Success();
+        }
+
         Name = name;
-        Type = type;
-        UserId = userId;
         FolderId = folder?.Id;
+
+        return Result.Success();
+    }
+
+    public Result CompleteRelocation(
+        FileRelocationAttemptId attemptId,
+        FileVersionId versionId,
+        Folder? folder)
+    {
+        if (Status != FileStatus.Relocating || Relocation is not { } relocation || relocation.AttemptId != attemptId)
+        {
+            return Result.Failure(Error.Conflict("File relocation is no longer available."));
+        }
+
+        if (relocation.FolderId != folder?.Id)
+        {
+            return Result.Failure(Error.Conflict("The destination folder is no longer available."));
+        }
+
+        var validation = ValidateFolder(folder: folder, type: relocation.Type, userId: relocation.UserId);
+        if (validation.IsFailure)
+        {
+            return validation;
+        }
+
+        Name = relocation.Name;
+        Type = relocation.Type;
+        UserId = relocation.UserId;
+        FolderId = relocation.FolderId;
+        StorageKey = relocation.StorageKey;
+        VersionId = versionId;
+        Relocation = null;
+        Status = FileStatus.Ready;
+
+        return Result.Success();
+    }
+
+    public Result CancelRelocation(FileRelocationAttemptId attemptId)
+    {
+        if (Status != FileStatus.Relocating || Relocation?.AttemptId != attemptId)
+        {
+            return Result.Failure(Error.Conflict("File relocation is no longer available."));
+        }
+
+        Relocation = null;
+        Status = FileStatus.Ready;
 
         return Result.Success();
     }
 
     public Result<FileContentType> GetDownloadContentType()
     {
-        if ((Status != FileStatus.Ready && Status != FileStatus.Updating) || ContentType is not { } contentType)
+        if ((Status != FileStatus.Ready && Status != FileStatus.Updating && Status != FileStatus.Relocating)
+            || ContentType is not { } contentType)
         {
             return Result.Failure<FileContentType>(Error.Conflict("File is not ready for download."));
         }
@@ -102,6 +166,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Rename(FileName name)
     {
+        if (Status == FileStatus.Relocating)
+        {
+            return Result.Failure(Error.Conflict("A file being relocated cannot be renamed."));
+        }
+
         if (Status == FileStatus.Updating)
         {
             return Result.Failure(Error.Conflict("A file being updated cannot be renamed."));
@@ -120,6 +189,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result MoveTo(Folder? folder)
     {
+        if (Status == FileStatus.Relocating)
+        {
+            return Result.Failure(Error.Conflict("A file being relocated cannot be moved."));
+        }
+
         if (Status == FileStatus.Updating)
         {
             return Result.Failure(Error.Conflict("A file being updated cannot be moved."));
@@ -222,6 +296,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result BeginDeletion()
     {
+        if (Status == FileStatus.Relocating)
+        {
+            return Result.Failure(Error.Conflict("A file being relocated cannot be deleted."));
+        }
+
         if (Status == FileStatus.Updating)
         {
             return Result.Failure(Error.Conflict("A file being updated cannot be deleted."));
@@ -235,6 +314,17 @@ public sealed class File : AggregateRoot<FileId>
         Status = FileStatus.Deleting;
 
         return Result.Success();
+    }
+
+    private static FileStorageKey CreateStorageKey(FileId id, FileType type, UserId? userId)
+    {
+        var prefix = type.Name.ToLowerInvariant();
+        if (userId is { } ownerId)
+        {
+            prefix = $"{prefix}/{ownerId.Value}";
+        }
+
+        return FileStorageKey.Create($"{prefix}/{id.Value}").Value;
     }
 
     private static Result ValidateOwnership(FileType type, UserId? userId)

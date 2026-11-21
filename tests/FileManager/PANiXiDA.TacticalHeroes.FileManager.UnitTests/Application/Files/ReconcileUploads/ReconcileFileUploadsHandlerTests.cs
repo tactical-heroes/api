@@ -4,17 +4,21 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute.ExceptionExtensions;
 
-using PANiXiDA.Core.Application.Persistence;
+using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence.Errors;
-using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
+using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -31,6 +35,8 @@ public sealed class ReconcileFileUploadsHandlerTests
     {
         _fileStorage.GetVersionsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Array.Empty<FileVersion>().ToAsyncEnumerable());
+        _files.GetRelocatingFilesAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
@@ -616,6 +622,9 @@ public sealed class ReconcileFileUploadsHandlerTests
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
+            relocationService: new FileRelocationService(
+                _files, Substitute.For<IFoldersRepository>(), Substitute.For<IFolderHierarchyLock>(),
+                _fileStorage, _unitOfWork, Substitute.For<IScheduler>()));
     }
 }

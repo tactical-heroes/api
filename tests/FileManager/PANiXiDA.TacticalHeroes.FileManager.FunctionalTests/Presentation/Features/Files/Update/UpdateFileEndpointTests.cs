@@ -1,13 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.Core.Application.Messaging.Mediator;
+using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage;
+
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
@@ -68,11 +72,17 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         stored.Type.ShouldBe(targetType);
         stored.UserId.ShouldBe(ownerId);
         stored.FolderId.ShouldBe(folder.Id.Value);
-        stored.StorageKey.ShouldBe(file.StorageKey.Value);
+        stored.StorageKey.ShouldBe(targetType == "Personal"
+            ? $"personal/{ownerId}/{file.Id.Value}"
+            : $"avatar/{file.Id.Value}");
         stored.Status.ShouldBe("Ready");
         stored.ContentType.ShouldBe("text/plain");
         stored.Size.ShouldBe(bytes.Length);
-        stored.VersionId.ShouldBe(file.VersionId!.Value);
+        stored.VersionId.ShouldNotBeNullOrWhiteSpace();
+        if (stored.StorageKey != file.StorageKey.Value)
+        {
+            stored.VersionId.ShouldNotBe(file.VersionId!.Value);
+        }
         stored.ContentUpdateAttemptId.ShouldBeNull();
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{Route}/{file.Id.Value}/download-url");
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, (ownerId ?? actorId).ToString());
@@ -226,6 +236,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         var file = CreateFile("Personal", actorId);
         var folder = CreateFolder("Personal", actorId);
         file.MoveTo(folder);
+        await UploadFileAsync(file);
         await SaveAsync(file, folder);
         object body = omitted
             ? new { Name = "after.txt", Type = "Avatar" }
@@ -239,8 +250,8 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         stored.Type.ShouldBe("Avatar");
         stored.UserId.ShouldBeNull();
         stored.FolderId.ShouldBeNull();
-        stored.StorageKey.ShouldBe(file.StorageKey.Value);
-        stored.Status.ShouldBe("PendingUpload");
+        stored.StorageKey.ShouldBe($"avatar/{file.Id.Value}");
+        stored.Status.ShouldBe("Ready");
     }
 
     [Theory(DisplayName = "PUT file should preserve scope consistency when folder update runs concurrently")]
@@ -302,6 +313,100 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
             stored.Type.ShouldBe(savedFolder.AllowedFileType);
             stored.UserId.ShouldBe(savedFolder.UserId);
         }
+    }
+
+    [Fact(DisplayName = "PUT file should reject relocation when original upload is pending")]
+    public async Task HandleAsync_Should_RejectRelocation_When_OriginalUploadIsPending()
+    {
+        var actorId = Guid.NewGuid();
+        var file = CreateFile("Personal", actorId);
+        await SaveAsync(file);
+
+        using var response = await SendAsync(
+            file.Id.Value, new UpdateFileRequest("after.txt", "Avatar"), actorId, AllUpdates);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        var stored = await ReadAsync(file.Id.Value);
+        stored.Status.ShouldBe("PendingUpload");
+        stored.Type.ShouldBe("Personal");
+        stored.StorageKey.ShouldBe(file.StorageKey.Value);
+    }
+
+    [Theory(DisplayName = "Relocation worker should recover persisted intent when copy response was lost")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_Should_RecoverPersistedIntent_When_CopyResponseWasLost(bool destinationDeleted)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var actorId = Guid.NewGuid();
+        var file = CreateFile("Personal", actorId);
+        var destination = CreateFolder("Avatar", null);
+        await UploadFileAsync(file);
+        var oldKey = file.StorageKey;
+        var oldVersion = file.VersionId!;
+        file.Update(FileName.Create("relocated.txt").Value, FileType.Avatar, null, destination)
+            .IsSuccess.ShouldBeTrue();
+        var relocation = file.Relocation!;
+        await SaveAsync(file, destination);
+        string copiedVersion;
+        await using (var scope = Fixture.CreateScope())
+        {
+            var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
+            var copied = await storage.CopyAsync(
+                oldKey.Value, oldVersion.Value, relocation.StorageKey.Value, file.ContentType!.Value, file.Size!.Value,
+                new Dictionary<string, string>
+                {
+                    [FileMetadataNames.RelocationAttemptId] = relocation.AttemptId.Value.ToString()
+                }, ct);
+            copiedVersion = copied.VersionId!;
+            var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE file_manager.files SET updated_at = {DateTime.UnixEpoch} WHERE id = {file.Id.Value}", ct);
+            if (destinationDeleted)
+            {
+                db.Remove(await db.Set<Folder>().SingleAsync(folder => folder.Id == destination.Id, ct));
+                await db.SaveChangesAsync(ct);
+            }
+        }
+        using (var blocked = await SendAsync(
+            file.Id.Value, new UpdateFileRequest("blocked.txt", "Avatar"), actorId, AllUpdates))
+        {
+            blocked.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        }
+        await using (var scope = Fixture.CreateScope())
+        {
+            var result = await scope.ServiceProvider.GetRequiredService<IMediator>()
+                .SendAsync(new ReconcileFileUploadsCommand(), ct);
+            result.IsSuccess.ShouldBeTrue();
+        }
+
+        var stored = await ReadAsync(file.Id.Value);
+        stored.Status.ShouldBe("Ready");
+        stored.StorageKey.ShouldBe(destinationDeleted ? oldKey.Value : relocation.StorageKey.Value);
+        stored.VersionId.ShouldBe(destinationDeleted ? oldVersion.Value : copiedVersion);
+        stored.Name.ShouldBe(destinationDeleted ? "before.txt" : "relocated.txt");
+        stored.FolderId.ShouldBe(destinationDeleted ? null : destination.Id.Value);
+        await using var verificationScope = Fixture.CreateScope();
+        var storageAfter = verificationScope.ServiceProvider.GetRequiredService<IFileStorage>();
+        var source = await storageAfter.GetMetadataAsync(oldKey.Value, oldVersion.Value, ct);
+        source.ShouldNotBeNull();
+        var domain = await verificationScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
+            .Set<File>().SingleAsync(item => item.Id == file.Id, ct);
+        domain.Relocation.ShouldBeNull();
+    }
+
+    private async Task UploadFileAsync(File file)
+    {
+        await using var scope = Fixture.CreateScope();
+        await using var content = new MemoryStream([1, 2, 3, 4]);
+        var upload = await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
+            file.StorageKey.Value, content, "text/plain",
+            System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
+            TestContext.Current.CancellationToken);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create(upload.VersionId).Value).IsSuccess.ShouldBeTrue();
     }
 
     private static File CreateFile(string type, Guid ownerId)

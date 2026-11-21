@@ -1,8 +1,8 @@
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -538,18 +538,21 @@ public sealed class FileTests
         file.VersionId.ShouldBe(version);
     }
 
-    [Theory(DisplayName = "File update should preserve stored content when type and owner change")]
+    [Theory(DisplayName = "File update should switch content atomically when type and owner change")]
     [InlineData("Personal", "Personal", false)]
     [InlineData("Personal", "Avatar", true)]
     [InlineData("Avatar", "Personal", false)]
     [InlineData("Avatar", "Avatar", true)]
-    public void Update_Should_PreserveStoredContent_When_TypeAndOwnerChange(
+    public void Update_Should_SwitchContentAtomically_When_TypeAndOwnerChange(
         string sourceType, string targetType, bool detach)
     {
         var file = CreateFileWithType(sourceType);
         var version = FileVersionId.Create("initial").Value;
         file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(5).Value, version);
         var key = file.StorageKey;
+        var originalName = file.Name;
+        var originalType = file.Type;
+        var originalOwner = file.UserId;
         var owner = targetType == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
         var type = FileType.FromName(targetType);
         var folder = Folder.Create(FolderName.Create("Target").Value, type, owner).Value;
@@ -557,16 +560,123 @@ public sealed class FileTests
         var result = file.Update(FileName.Create("renamed.txt").Value, type, owner, detach ? null : folder);
 
         result.IsSuccess.ShouldBeTrue();
+        var relocated = sourceType != targetType || originalOwner != owner;
+        if (relocated)
+        {
+            file.Status.ShouldBe(FileStatus.Relocating);
+            file.StorageKey.ShouldBe(key);
+            file.VersionId.ShouldBe(version);
+            file.Name.ShouldBe(originalName);
+            file.Type.ShouldBe(originalType);
+            file.UserId.ShouldBe(originalOwner);
+            file.Relocation.ShouldNotBeNull();
+            file.GetDownloadContentType().IsSuccess.ShouldBeTrue();
+            file.Rename(FileName.Create("blocked.txt").Value).IsFailure.ShouldBeTrue();
+            file.MoveTo(null).IsFailure.ShouldBeTrue();
+            file.BeginDeletion().IsFailure.ShouldBeTrue();
+            file.BeginContentUpdate().IsFailure.ShouldBeTrue();
+            file.Update(originalName, originalType, originalOwner, null).IsFailure.ShouldBeTrue();
+            file.CompleteUpload(file.ContentType!, file.Size!, version).IsFailure.ShouldBeTrue();
+            file.CompleteRelocation(
+                file.Relocation.AttemptId,
+                FileVersionId.Create("copied").Value,
+                detach ? null : folder).IsSuccess.ShouldBeTrue();
+        }
+
         file.Name.Value.ShouldBe("renamed.txt");
         file.Type.ShouldBe(type);
         file.UserId.ShouldBe(owner);
         file.FolderId.ShouldBe(detach ? null : folder.Id);
-        file.StorageKey.ShouldBeSameAs(key);
+        file.StorageKey.Value.ShouldBe(type == FileType.Personal
+            ? $"personal/{owner!.Value.Value}/{file.Id.Value}"
+            : $"avatar/{file.Id.Value}");
         file.Status.ShouldBe(FileStatus.Ready);
-        file.VersionId.ShouldBe(version);
+        file.VersionId!.Value.ShouldBe(relocated ? "copied" : "initial");
+        file.Relocation.ShouldBeNull();
         file.ContentUpdateAttemptId.ShouldBeNull();
         file.ContentType!.Value.ShouldBe("text/plain");
         file.Size!.Value.ShouldBe(5);
+    }
+
+    [Theory(DisplayName = "Relocation completion should require matching intent when destination or attempt changes")]
+    [InlineData("success")]
+    [InlineData("attempt")]
+    [InlineData("missing-folder")]
+    [InlineData("folder-owner")]
+    [InlineData("folder-type")]
+    public void CompleteRelocation_Should_RequireMatchingIntent_When_DestinationOrAttemptChanges(string kind)
+    {
+        var file = CreateFile("Ready");
+        var owner = UserId.Create(Guid.NewGuid()).Value;
+        var folder = Folder.Create(FolderName.Create("Target").Value, FileType.Personal, owner).Value;
+        file.Update(FileName.Create("target.txt").Value, FileType.Personal, owner, folder).IsSuccess.ShouldBeTrue();
+        var relocation = file.Relocation!;
+        var key = file.StorageKey;
+        var oldVersion = file.VersionId;
+        var target = kind switch
+        {
+            "missing-folder" => null,
+            "folder-owner" => Folder.Create(FolderName.Create("Other").Value, FileType.Personal,
+                UserId.Create(Guid.NewGuid()).Value).Value,
+            "folder-type" => Folder.Create(FolderName.Create("Other").Value, FileType.Avatar, null).Value,
+            _ => folder
+        };
+        var success = kind == "success";
+
+        var result = file.CompleteRelocation(
+            kind == "attempt" ? FileRelocationAttemptId.New() : relocation.AttemptId,
+            FileVersionId.Create("initial").Value,
+            target);
+
+        result.IsSuccess.ShouldBe(success);
+        file.Status.ShouldBe(success ? FileStatus.Ready : FileStatus.Relocating);
+        file.StorageKey.ShouldBe(success ? relocation.StorageKey : key);
+        file.VersionId.ShouldBe(oldVersion);
+        file.Relocation.ShouldBe(success ? null : relocation);
+        if (success)
+        {
+            file.CompleteRelocation(relocation.AttemptId, oldVersion!, target).IsFailure.ShouldBeTrue();
+        }
+    }
+
+    [Theory(DisplayName = "Relocation cancellation should preserve active content when attempts vary")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CancelRelocation_Should_PreserveActiveContent_When_AttemptsVary(bool matches)
+    {
+        var file = CreateFile("Ready");
+        var key = file.StorageKey;
+        var name = file.Name;
+        file.Update(name, FileType.Personal, UserId.Create(Guid.NewGuid()).Value, null);
+        var relocation = file.Relocation!;
+
+        var result = file.CancelRelocation(matches ? relocation.AttemptId : FileRelocationAttemptId.New());
+
+        result.IsSuccess.ShouldBe(matches);
+        file.StorageKey.ShouldBe(key);
+        file.VersionId!.Value.ShouldBe("initial");
+        file.Name.ShouldBe(name);
+        file.Type.ShouldBe(FileType.Avatar);
+        file.Status.ShouldBe(matches ? FileStatus.Ready : FileStatus.Relocating);
+        file.Relocation.ShouldBe(matches ? null : relocation);
+        if (matches)
+        {
+            file.CancelRelocation(relocation.AttemptId).IsFailure.ShouldBeTrue();
+        }
+    }
+
+    [Fact(DisplayName = "File update should reject scope changes when original upload is pending")]
+    public void Update_Should_RejectScopeChanges_When_OriginalUploadIsPending()
+    {
+        var file = CreateFile("PendingUpload");
+        var key = file.StorageKey;
+
+        var result = file.Update(file.Name, FileType.Personal, UserId.Create(Guid.NewGuid()).Value, null);
+
+        result.IsFailure.ShouldBeTrue();
+        file.Status.ShouldBe(FileStatus.PendingUpload);
+        file.Relocation.ShouldBeNull();
+        file.StorageKey.ShouldBe(key);
     }
 
     [Theory(DisplayName = "File update should preserve all fields when proposed metadata is incompatible")]

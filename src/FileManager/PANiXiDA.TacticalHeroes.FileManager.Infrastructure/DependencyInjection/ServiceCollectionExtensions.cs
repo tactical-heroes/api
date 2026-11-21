@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
     {
         serviceCollection.AddScoped<FileAccessPolicy>();
         serviceCollection.AddScoped<FileCreationService>();
+        serviceCollection.AddScoped<FileRelocationService>();
         serviceCollection.AddScoped<FolderAccessPolicy>();
         serviceCollection.AddScoped<FolderAccessService>();
         serviceCollection.AddScoped<FolderCreationService>();

@@ -1,11 +1,12 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
@@ -14,8 +15,10 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Update;
 public sealed class UpdateFileHandler(
     IFilesRepository filesRepository,
     FolderAccessService folderAccessService,
-    FileAccessPolicy fileAccessPolicy)
-    : ICommandHandler<UpdateFileCommand, Result>, IRequireAuthorization, IRequireTransaction
+    FileAccessPolicy fileAccessPolicy,
+    IUnitOfWork unitOfWork,
+    FileRelocationService relocationService)
+    : ICommandHandler<UpdateFileCommand, Result>, IRequireAuthorization
 {
     public async Task<Result> HandleAsync(UpdateFileCommand command, CancellationToken cancellationToken)
     {
@@ -41,26 +44,44 @@ public sealed class UpdateFileHandler(
             return Result.Failure(Error.Forbidden("Access to the requested file type or owner is denied."));
         }
 
-        Folder? folder = null;
-        if (folderId.Value is { } targetId)
+        if ((file.Type != type.Value || file.UserId != ownerId.Value)
+            && file.Size?.Value > FileRelocationPolicy.MaximumCopySize)
         {
-            var destination = await folderAccessService.GetForUpdateAsync(targetId, cancellationToken);
-            if (destination.IsFailure)
-            {
-                return Result.Failure(destination.Errors);
-            }
-
-            folder = destination.Value;
+            return Result.Failure(Error.Validation("Files larger than 5 GiB cannot change type or owner."));
         }
 
-        var result = file.Update(name: name.Value, type: type.Value, userId: ownerId.Value, folder: folder);
-        if (result.IsFailure)
+        var result = Result.Success();
+        await unitOfWork.ExecuteInTransactionAsync(
+            action: async token =>
+            {
+                Folder? folder = null;
+                if (folderId.Value is { } targetId)
+                {
+                    var destination = await folderAccessService.GetForUpdateAsync(targetId, token);
+                    if (destination.IsFailure)
+                    {
+                        result = Result.Failure(destination.Errors);
+                        return;
+                    }
+
+                    folder = destination.Value;
+                }
+
+                result = file.Update(name: name.Value, type: type.Value, userId: ownerId.Value, folder: folder);
+                if (result.IsFailure)
+                {
+                    return;
+                }
+
+                filesRepository.Update(file);
+                await unitOfWork.SaveChangesAsync(token);
+            },
+            cancellationToken: cancellationToken);
+        if (result.IsFailure || file.Relocation is null)
         {
             return result;
         }
 
-        filesRepository.Update(file);
-
-        return Result.Success();
+        return await relocationService.RelocateAsync(file, cancellationToken);
     }
 }

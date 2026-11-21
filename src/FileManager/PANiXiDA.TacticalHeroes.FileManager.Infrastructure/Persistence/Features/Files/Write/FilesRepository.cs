@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
@@ -30,6 +30,16 @@ public sealed class FilesRepository(
         return Query
             .Where(file => file.FolderId == folderId && file.Status != FileStatus.Deleting)
             .ToListAsync(cancellationToken);
+    }
+
+    public IAsyncEnumerable<File> GetRelocatingFilesAsync(CancellationToken cancellationToken)
+    {
+        var updatedBefore = timeProvider.GetUtcNow().Subtract(options.Value.MinimumAge).UtcDateTime;
+
+        return GetFilesAsync(
+            Query.Where(file => file.Status == FileStatus.Relocating
+                && EF.Property<DateTime>(file, EfConstants.UpdatedAt) < updatedBefore),
+            cancellationToken);
     }
 
     public IAsyncEnumerable<File> GetPendingUploadsAsync(CancellationToken cancellationToken)

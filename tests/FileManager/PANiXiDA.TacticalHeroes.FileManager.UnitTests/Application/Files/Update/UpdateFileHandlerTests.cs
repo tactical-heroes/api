@@ -1,6 +1,10 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.Core.Application.Messaging.Scheduling;
+using PANiXiDA.Core.Application.Persistence;
+using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Update;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
@@ -8,9 +12,9 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -37,11 +41,17 @@ public sealed class UpdateFileHandlerTests
         folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         var acquisition = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         hierarchyLock.AcquireAsync(Arg.Any<CancellationToken>()).Returns(acquisition.Task);
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
         var policy = new FileAccessPolicy(user);
         var handler = new UpdateFileHandler(
             files,
             new FolderAccessService(folders, hierarchyLock, new FolderAccessPolicy(user, policy)),
-            policy);
+            policy,
+            unitOfWork,
+            new FileRelocationService(files, folders, hierarchyLock, Substitute.For<IFileStorage>(),
+                unitOfWork, Substitute.For<IScheduler>()));
 
         var pending = handler.HandleAsync(
             new UpdateFileCommand(file.Id.Value, "after.txt", "Personal", actorId, folder.Id.Value),
@@ -67,11 +77,17 @@ public sealed class UpdateFileHandlerTests
         var folders = Substitute.For<IFoldersRepository>();
         var hierarchyLock = Substitute.For<IFolderHierarchyLock>();
         var user = Substitute.For<ICurrentUser>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
         var policy = new FileAccessPolicy(user);
         var handler = new UpdateFileHandler(
             files,
             new FolderAccessService(folders, hierarchyLock, new FolderAccessPolicy(user, policy)),
-            policy);
+            policy,
+            unitOfWork,
+            new FileRelocationService(files, folders, hierarchyLock, Substitute.For<IFileStorage>(),
+                unitOfWork, Substitute.For<IScheduler>()));
 
         var result = await handler.HandleAsync(
             new UpdateFileCommand(Guid.Empty, "../file.txt", "unknown", Guid.Empty, Guid.Empty),

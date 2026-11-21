@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
@@ -76,6 +76,11 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
             .HasConversion(
                 id => id!.Value,
                 value => FileContentUpdateAttemptId.Create(value).Value)
+            .IsRequired(required: false);
+
+        builder.Property(file => file.Relocation)
+            .HasConversion(new FileRelocationConverter())
+            .HasColumnType("jsonb")
             .IsRequired(required: false);
 
         builder.Property(file => file.FolderId)

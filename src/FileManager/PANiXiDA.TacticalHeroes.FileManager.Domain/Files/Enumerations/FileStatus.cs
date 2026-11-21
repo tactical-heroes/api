@@ -11,6 +11,8 @@ public sealed partial class FileStatus : Enumeration<FileStatus>
     public static readonly FileStatus Deleting = new(3, nameof(Deleting));
     public static readonly FileStatus Updating = new(4, nameof(Updating));
 
+    public static readonly FileStatus Relocating = new(5, nameof(Relocating));
+
     private FileStatus(int id, string name)
         : base(id, name)
     {
