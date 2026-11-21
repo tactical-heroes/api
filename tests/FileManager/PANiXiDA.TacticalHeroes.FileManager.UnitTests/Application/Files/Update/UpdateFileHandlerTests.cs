@@ -12,9 +12,9 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -50,8 +50,13 @@ public sealed class UpdateFileHandlerTests
             new FolderAccessService(folders, hierarchyLock, new FolderAccessPolicy(user, policy)),
             policy,
             unitOfWork,
-            new FileRelocationService(files, folders, hierarchyLock, Substitute.For<IFileStorage>(),
-                unitOfWork, Substitute.For<IScheduler>()));
+            new FileRelocationService(
+                files,
+                folders,
+                hierarchyLock,
+                Substitute.For<IFileStorage>(),
+                unitOfWork,
+                Substitute.For<IScheduler>()));
 
         var pending = handler.HandleAsync(
             new UpdateFileCommand(file.Id.Value, "after.txt", "Personal", actorId, folder.Id.Value),
@@ -86,8 +91,13 @@ public sealed class UpdateFileHandlerTests
             new FolderAccessService(folders, hierarchyLock, new FolderAccessPolicy(user, policy)),
             policy,
             unitOfWork,
-            new FileRelocationService(files, folders, hierarchyLock, Substitute.For<IFileStorage>(),
-                unitOfWork, Substitute.For<IScheduler>()));
+            new FileRelocationService(
+                files,
+                folders,
+                hierarchyLock,
+                Substitute.For<IFileStorage>(),
+                unitOfWork,
+                Substitute.For<IScheduler>()));
 
         var result = await handler.HandleAsync(
             new UpdateFileCommand(Guid.Empty, "../file.txt", "unknown", Guid.Empty, Guid.Empty),
@@ -107,8 +117,10 @@ public sealed class UpdateFileHandlerTests
         user.UserId.Returns(Guid.NewGuid());
         user.HasPermission(Arg.Any<string>()).Returns(true);
         var file = File.Create(FileName.Create("large.bin").Value, FileType.Avatar, null).Value;
-        file.CompleteUpload(FileContentType.Create("application/octet-stream").Value,
-            FileSize.Create(5L * 1024 * 1024 * 1024 + 1).Value, FileVersionId.Create("source").Value);
+        file.CompleteUpload(
+            FileContentType.Create("application/octet-stream").Value,
+            FileSize.Create(5L * 1024 * 1024 * 1024 + 1).Value,
+            FileVersionId.Create("source").Value);
         var files = Substitute.For<IFilesRepository>();
         files.GetByIdAsync(file.Id, ct).Returns(file);
         var folders = Substitute.For<IFoldersRepository>();
@@ -116,13 +128,16 @@ public sealed class UpdateFileHandlerTests
         var storage = Substitute.For<IFileStorage>();
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var policy = new FileAccessPolicy(user);
-        var handler = new UpdateFileHandler(files,
+        var handler = new UpdateFileHandler(
+            files,
             new FolderAccessService(folders, hierarchyLock, new FolderAccessPolicy(user, policy)),
-            policy, unitOfWork,
+            policy,
+            unitOfWork,
             new FileRelocationService(files, folders, hierarchyLock, storage, unitOfWork, Substitute.For<IScheduler>()));
 
         var result = await handler.HandleAsync(
-            new UpdateFileCommand(file.Id.Value, "after.bin", "Personal", Guid.NewGuid()), ct);
+            new UpdateFileCommand(file.Id.Value, "after.bin", "Personal", Guid.NewGuid()),
+            ct);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);

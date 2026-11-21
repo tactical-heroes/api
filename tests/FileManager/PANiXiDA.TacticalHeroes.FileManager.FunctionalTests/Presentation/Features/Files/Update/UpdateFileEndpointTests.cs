@@ -2,16 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Messaging.Mediator;
-using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.Core.Application.Storage.Constants;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
@@ -36,7 +36,8 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
     [InlineData("Avatar", "Personal")]
     [InlineData("Avatar", "Avatar")]
     public async Task HandleAsync_Should_PreserveDownloadableContent_When_TypeAndOwnerChange(
-        string sourceType, string targetType)
+        string sourceType,
+        string targetType)
     {
         var ct = TestContext.Current.CancellationToken;
         var actorId = Guid.NewGuid();
@@ -119,14 +120,20 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
     [InlineData("Avatar", false, "file-manager.avatars.update", 204)]
     [InlineData("Avatar", false, "file-manager.personal-files.update.all", 404)]
     public async Task HandleAsync_Should_ApplyUpdateScopes_When_TypeAndOwnershipVary(
-        string type, bool own, string permission, int code)
+        string type,
+        bool own,
+        string permission,
+        int code)
     {
         var actorId = Guid.NewGuid();
         var file = CreateFile(type, own ? actorId : Guid.NewGuid());
         await SaveAsync(file);
 
         using var response = await SendAsync(
-            file.Id.Value, new UpdateFileRequest("after.txt", type, file.UserId?.Value), actorId, permission);
+            file.Id.Value,
+            new UpdateFileRequest("after.txt", type, file.UserId?.Value),
+            actorId,
+            permission);
 
         ((int)response.StatusCode).ShouldBe(code);
         (await ReadAsync(file.Id.Value)).Name.ShouldBe(code == 204 ? "after.txt" : "before.txt");
@@ -137,7 +144,9 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
     [InlineData("Personal", "Avatar", "file-manager.personal-files.update.all")]
     [InlineData("Avatar", "Personal", "file-manager.avatars.update")]
     public async Task HandleAsync_Should_DenyTransition_When_NewScopeIsForbidden(
-        string sourceType, string targetType, string permission)
+        string sourceType,
+        string targetType,
+        string permission)
     {
         var actorId = Guid.NewGuid();
         var file = CreateFile(sourceType, actorId);
@@ -270,7 +279,9 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         await scope.ServiceProvider.GetRequiredService<IFolderHierarchyLock>().AcquireAsync(ct);
         using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/folders/{folder.Id.Value}");
         request.Content = JsonContent.Create(new UpdateFolderRequest(
-            "After", changeType ? "Avatar" : "Personal", changeType ? null : Guid.NewGuid()));
+            "After",
+            changeType ? "Avatar" : "Personal",
+            changeType ? null : Guid.NewGuid()));
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, actorId.ToString());
         request.Headers.Add(TestAuthenticationHandler.PermissionsHeader, AllUpdates);
         var update = Fixture.Client.SendAsync(request, ct);
@@ -323,7 +334,10 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         await SaveAsync(file);
 
         using var response = await SendAsync(
-            file.Id.Value, new UpdateFileRequest("after.txt", "Avatar"), actorId, AllUpdates);
+            file.Id.Value,
+            new UpdateFileRequest("after.txt", "Avatar"),
+            actorId,
+            AllUpdates);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         var stored = await ReadAsync(file.Id.Value);
@@ -345,7 +359,8 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         var oldKey = file.StorageKey;
         var oldVersion = file.VersionId!;
         file.Update(FileName.Create("relocated.txt").Value, FileType.Avatar, null, destination)
-            .IsSuccess.ShouldBeTrue();
+            .IsSuccess
+            .ShouldBeTrue();
         var relocation = file.Relocation!;
         await SaveAsync(file, destination);
         string copiedVersion;
@@ -353,15 +368,21 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         {
             var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
             var copied = await storage.CopyAsync(
-                oldKey.Value, oldVersion.Value, relocation.StorageKey.Value, file.ContentType!.Value, file.Size!.Value,
+                oldKey.Value,
+                oldVersion.Value,
+                relocation.StorageKey.Value,
+                file.ContentType!.Value,
+                file.Size!.Value,
                 new Dictionary<string, string>
                 {
                     [FileMetadataNames.RelocationAttemptId] = relocation.AttemptId.Value.ToString()
-                }, ct);
+                },
+                ct);
             copiedVersion = copied.VersionId!;
             var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
             await db.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE file_manager.files SET updated_at = {DateTime.UnixEpoch} WHERE id = {file.Id.Value}", ct);
+                $"UPDATE file_manager.files SET updated_at = {DateTime.UnixEpoch} WHERE id = {file.Id.Value}",
+                ct);
             if (destinationDeleted)
             {
                 db.Remove(await db.Set<Folder>().SingleAsync(folder => folder.Id == destination.Id, ct));
@@ -369,7 +390,10 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
             }
         }
         using (var blocked = await SendAsync(
-            file.Id.Value, new UpdateFileRequest("blocked.txt", "Avatar"), actorId, AllUpdates))
+            file.Id.Value,
+            new UpdateFileRequest("blocked.txt", "Avatar"),
+            actorId,
+            AllUpdates))
         {
             blocked.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         }
@@ -400,13 +424,17 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         await using var scope = Fixture.CreateScope();
         await using var content = new MemoryStream([1, 2, 3, 4]);
         var upload = await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
-            file.StorageKey.Value, content, "text/plain",
+            file.StorageKey.Value,
+            content,
+            "text/plain",
             System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
             TestContext.Current.CancellationToken);
         file.CompleteUpload(
             FileContentType.Create("text/plain").Value,
             FileSize.Create(4).Value,
-            FileVersionId.Create(upload.VersionId).Value).IsSuccess.ShouldBeTrue();
+            FileVersionId.Create(upload.VersionId).Value)
+            .IsSuccess
+            .ShouldBeTrue();
     }
 
     private static File CreateFile(string type, Guid ownerId)
@@ -414,7 +442,8 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         return File.Create(
             FileName.Create("before.txt").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(ownerId).Value : null).Value;
+            type == "Personal" ? UserId.Create(ownerId).Value : null)
+            .Value;
     }
 
     private static Folder CreateFolder(string type, Guid? ownerId)
@@ -422,11 +451,13 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         return Folder.Create(
             FolderName.Create("Documents").Value,
             FileType.FromName(type),
-            UserId.Create(ownerId).Value).Value;
+            UserId.Create(ownerId).Value)
+            .Value;
     }
 
     private static async Task<bool> WaitForWritersAsync(
-        FileManagerWriteDbContext dbContext, CancellationToken cancellationToken)
+        FileManagerWriteDbContext dbContext,
+        CancellationToken cancellationToken)
     {
         var deadline = DateTime.UtcNow.AddSeconds(10);
         while (DateTime.UtcNow < deadline)
@@ -467,7 +498,8 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         await using var scope = Fixture.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FileManagerReadDbContext>();
         return await db.Set<FileReadDbModel>().IgnoreQueryFilters().SingleAsync(
-            file => file.Id == id, TestContext.Current.CancellationToken);
+            file => file.Id == id,
+            TestContext.Current.CancellationToken);
     }
 
     private async Task<HttpResponseMessage> SendAsync(Guid id, object body, Guid? actorId, string permission)

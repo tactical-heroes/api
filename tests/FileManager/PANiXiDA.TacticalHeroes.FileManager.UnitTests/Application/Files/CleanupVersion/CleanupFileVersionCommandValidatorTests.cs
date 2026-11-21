@@ -10,7 +10,9 @@ public sealed class CleanupFileVersionCommandValidatorTests
     public void Validate_Should_ValidateIdentity_When_CommandValuesVary(bool valid)
     {
         var command = new CleanupFileVersionCommand(
-            valid ? Guid.NewGuid() : Guid.Empty, valid ? "avatar/file" : "", valid ? "version" : "");
+            valid ? Guid.NewGuid() : Guid.Empty,
+            valid ? "avatar/file" : "",
+            valid ? "version" : "");
 
         var result = new CleanupFileVersionCommandValidator().Validate(command);
 

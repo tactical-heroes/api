@@ -9,21 +9,22 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Write;
 
-internal sealed class FileRelocationConverter() : ValueConverter<FileRelocation, string>(
-    relocation => Serialize(relocation),
+internal sealed class FileRelocationConverter() : ValueConverter<FileRelocation?, string>(
+    relocation => Serialize(relocation!),
     value => Deserialize(value))
 {
     private static string Serialize(FileRelocation relocation)
     {
-        return JsonSerializer.Serialize(new
-        {
-            AttemptId = relocation.AttemptId.Value,
-            Name = relocation.Name.Value,
-            Type = relocation.Type.Name,
-            UserId = relocation.UserId?.Value,
-            FolderId = relocation.FolderId?.Value,
-            StorageKey = relocation.StorageKey.Value
-        });
+        return JsonSerializer.Serialize(
+            new
+            {
+                AttemptId = relocation.AttemptId.Value,
+                Name = relocation.Name.Value,
+                Type = relocation.Type.Name,
+                UserId = relocation.UserId?.Value,
+                FolderId = relocation.FolderId?.Value,
+                StorageKey = relocation.StorageKey.Value
+            });
     }
 
     private static FileRelocation Deserialize(string value)

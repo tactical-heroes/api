@@ -9,7 +9,7 @@ public sealed class FileStatusTests
     {
         var values = FileStatus.GetAll();
 
-        values.ShouldBe([FileStatus.PendingUpload, FileStatus.Ready, FileStatus.Deleting, FileStatus.Updating]);
+        values.ShouldBe([FileStatus.PendingUpload, FileStatus.Ready, FileStatus.Deleting, FileStatus.Updating, FileStatus.Relocating]);
     }
 
     [Theory(DisplayName = "File status should resolve known identifiers when id is known")]
@@ -17,6 +17,7 @@ public sealed class FileStatusTests
     [InlineData(2, "Ready")]
     [InlineData(3, "Deleting")]
     [InlineData(4, "Updating")]
+    [InlineData(5, "Relocating")]
     public void FromId_Should_ReturnValue_When_IdIsKnown(int id, string name)
     {
         var value = FileStatus.FromId(id);
@@ -26,7 +27,7 @@ public sealed class FileStatusTests
 
     [Theory(DisplayName = "File status should reject unknown identifiers when id is unknown")]
     [InlineData(0)]
-    [InlineData(5)]
+    [InlineData(6)]
     public void FromId_Should_Throw_When_IdIsUnknown(int id)
     {
         Action action = () => FileStatus.FromId(id);

@@ -16,17 +16,23 @@ public sealed class CleanupFileVersionHandlerTests
     [InlineData("same-key", "retired", true)]
     [InlineData("old-key", "active", true)]
     public async Task HandleAsync_Should_DeleteOnlyRetiredContent_When_VersionsVary(
-        string key, string version, bool deleted)
+        string key,
+        string version,
+        bool deleted)
     {
         var ct = TestContext.Current.CancellationToken;
         var file = File.Create(FileName.Create("a.txt").Value, FileType.Avatar, null).Value;
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value,
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
             FileVersionId.Create("active").Value);
         var files = Substitute.For<IFilesRepository>();
         var storage = Substitute.For<IFileStorage>();
         files.GetByIdAsync(file.Id, ct).Returns(file);
-        var command = new CleanupFileVersionCommand(file.Id.Value,
-            key == "same-key" ? file.StorageKey.Value : "old-key", version);
+        var command = new CleanupFileVersionCommand(
+            file.Id.Value,
+            key == "same-key" ? file.StorageKey.Value : "old-key",
+            version);
 
         var result = await new CleanupFileVersionHandler(files, storage).HandleAsync(command, ct);
 
@@ -43,7 +49,8 @@ public sealed class CleanupFileVersionHandlerTests
         var files = Substitute.For<IFilesRepository>();
 
         var result = await new CleanupFileVersionHandler(files, storage).HandleAsync(
-            new CleanupFileVersionCommand(Guid.Empty, "", ""), TestContext.Current.CancellationToken);
+            new CleanupFileVersionCommand(Guid.Empty, "", ""),
+            TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         storage.ReceivedCalls().ShouldBeEmpty();

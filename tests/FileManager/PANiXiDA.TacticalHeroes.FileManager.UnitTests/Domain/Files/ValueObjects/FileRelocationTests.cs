@@ -26,12 +26,17 @@ public sealed class FileRelocationTests
         relocation.StorageKey.ShouldBe(key);
         relocation.ShouldBe(FileRelocation.Create(attempt, name, FileType.Personal, owner, folder, key));
     }
+
     [Fact(DisplayName = "File relocation should describe its intent when converted to string")]
     public void ToString_Should_DescribeIntent_When_ConvertedToString()
     {
         var relocation = FileRelocation.Create(
-            FileRelocationAttemptId.New(), FileName.Create("a.txt").Value, FileType.Avatar,
-            null, null, FileStorageKey.Create("avatar/file").Value);
+            FileRelocationAttemptId.New(),
+            FileName.Create("a.txt").Value,
+            FileType.Avatar,
+            null,
+            null,
+            FileStorageKey.Create("avatar/file").Value);
 
         relocation.ToString().ShouldContain("FileRelocation");
         relocation.ToString().ShouldContain("a.txt");

@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 

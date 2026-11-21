@@ -1,8 +1,8 @@
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -544,7 +544,9 @@ public sealed class FileTests
     [InlineData("Avatar", "Personal", false)]
     [InlineData("Avatar", "Avatar", true)]
     public void Update_Should_SwitchContentAtomically_When_TypeAndOwnerChange(
-        string sourceType, string targetType, bool detach)
+        string sourceType,
+        string targetType,
+        bool detach)
     {
         var file = CreateFileWithType(sourceType);
         var version = FileVersionId.Create("initial").Value;
@@ -580,7 +582,9 @@ public sealed class FileTests
             file.CompleteRelocation(
                 file.Relocation.AttemptId,
                 FileVersionId.Create("copied").Value,
-                detach ? null : folder).IsSuccess.ShouldBeTrue();
+                detach ? null : folder)
+                .IsSuccess
+                .ShouldBeTrue();
         }
 
         file.Name.Value.ShouldBe("renamed.txt");
@@ -616,8 +620,11 @@ public sealed class FileTests
         var target = kind switch
         {
             "missing-folder" => null,
-            "folder-owner" => Folder.Create(FolderName.Create("Other").Value, FileType.Personal,
-                UserId.Create(Guid.NewGuid()).Value).Value,
+            "folder-owner" => Folder.Create(
+                FolderName.Create("Other").Value,
+                FileType.Personal,
+                UserId.Create(Guid.NewGuid()).Value)
+                .Value,
             "folder-type" => Folder.Create(FolderName.Create("Other").Value, FileType.Avatar, null).Value,
             _ => folder
         };
@@ -696,7 +703,8 @@ public sealed class FileTests
         var destination = Folder.Create(
             FolderName.Create("Target").Value,
             kind == "folder-type" ? FileType.Avatar : FileType.Personal,
-            kind == "folder-type" ? null : UserId.Create(Guid.NewGuid()).Value).Value;
+            kind == "folder-type" ? null : UserId.Create(Guid.NewGuid()).Value)
+            .Value;
         if (kind == "deleting")
         {
             file.BeginDeletion();
@@ -757,6 +765,7 @@ public sealed class FileTests
         return File.Create(
             FileName.Create("before.txt").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : null).Value;
+            type == "Personal" ? UserId.Create(Guid.NewGuid()).Value : null)
+            .Value;
     }
 }

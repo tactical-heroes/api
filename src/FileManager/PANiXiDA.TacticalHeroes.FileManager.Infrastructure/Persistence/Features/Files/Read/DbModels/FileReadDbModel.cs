@@ -16,6 +16,7 @@ public sealed class FileReadDbModel : AuditableReadDbModel<Guid>
     public long? Size { get; set; }
     public string? VersionId { get; set; }
     public Guid? ContentUpdateAttemptId { get; set; }
+
     [Column(TypeName = "jsonb")]
     public string? Relocation { get; set; }
 

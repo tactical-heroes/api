@@ -27,11 +27,16 @@ public sealed class FileRelocationPolicyTests
             values[FileMetadataNames.RelocationAttemptId] = kind == "invalid-attempt" ? "invalid" : marker;
         }
         var metadata = kind == "missing" ? null : new FileMetadata(
-            kind == "type" ? "image/png" : "text/plain", kind == "size" ? 9 : 4,
-            values, kind == "version" ? null : "version");
+            kind == "type" ? "image/png" : "text/plain",
+            kind == "size" ? 9 : 4,
+            values,
+            kind == "version" ? null : "version");
 
-        var result = FileRelocationPolicy.CanAccept(metadata, attempt,
-            FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        var result = FileRelocationPolicy.CanAccept(
+            metadata,
+            attempt,
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value);
 
         result.ShouldBe(accepted);
     }

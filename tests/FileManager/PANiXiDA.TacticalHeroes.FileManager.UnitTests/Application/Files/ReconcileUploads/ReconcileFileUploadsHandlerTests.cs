@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute.ExceptionExtensions;
 
 using PANiXiDA.Core.Application.Messaging.Scheduling;
-using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Persistence;
+using PANiXiDA.Core.Application.Persistence.Errors;
+using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
-using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
@@ -624,7 +624,11 @@ public sealed class ReconcileFileUploadsHandlerTests
             unitOfWork: _unitOfWork,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
             relocationService: new FileRelocationService(
-                _files, Substitute.For<IFoldersRepository>(), Substitute.For<IFolderHierarchyLock>(),
-                _fileStorage, _unitOfWork, Substitute.For<IScheduler>()));
+                _files,
+                Substitute.For<IFoldersRepository>(),
+                Substitute.For<IFolderHierarchyLock>(),
+                _fileStorage,
+                _unitOfWork,
+                Substitute.For<IScheduler>()));
     }
 }

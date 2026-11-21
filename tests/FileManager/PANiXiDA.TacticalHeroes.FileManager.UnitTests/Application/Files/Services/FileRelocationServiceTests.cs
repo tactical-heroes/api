@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
+using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
-using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
@@ -11,9 +11,9 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -43,7 +43,9 @@ public sealed class FileRelocationServiceTests
         unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), ct)
             .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(ct));
         var file = File.Create(FileName.Create("old.txt").Value, FileType.Avatar, null).Value;
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value,
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
             FileVersionId.Create("source").Value);
         var owner = UserId.Create(Guid.NewGuid()).Value;
         var folder = Folder.Create(FolderName.Create("Target").Value, FileType.Personal, owner).Value;
@@ -54,24 +56,39 @@ public sealed class FileRelocationServiceTests
         if (kind == "folder-changed")
         {
             folders.GetUntrackedByIdAsync(folder.Id, ct).Returns(Folder.Create(
-                FolderName.Create("Other").Value, FileType.Avatar, null).Value);
+                FolderName.Create("Other").Value,
+                FileType.Avatar,
+                null)
+                .Value);
         }
-        var metadata = new FileMetadata("text/plain", 4, new Dictionary<string, string>
-        {
-            [FileMetadataNames.RelocationAttemptId] = relocation.AttemptId.Value.ToString()
-        }, "destination");
+        var metadata = new FileMetadata(
+            "text/plain",
+            4,
+            new Dictionary<string, string>
+            {
+                [FileMetadataNames.RelocationAttemptId] = relocation.AttemptId.Value.ToString()
+            },
+            "destination");
         var current = new FileMetadata("text/plain", 4, new Dictionary<string, string>(), "unrelated");
         storage.GetMetadataAsync(relocation.StorageKey.Value, ct).Returns(kind == "latest" ? metadata : current);
-        storage.GetVersionsAsync(relocation.StorageKey.Value, ct).Returns(
-            (kind == "historical"
-                ? new[] { new FileVersion("unrelated", DateTimeOffset.UnixEpoch),
-                    new FileVersion("destination", DateTimeOffset.UnixEpoch) }
-                : Array.Empty<FileVersion>()).ToAsyncEnumerable());
+        FileVersion[] versions = kind == "historical"
+            ? [
+                new FileVersion("unrelated", DateTimeOffset.UnixEpoch),
+                new FileVersion("destination", DateTimeOffset.UnixEpoch)
+            ]
+            : [];
+        storage.GetVersionsAsync(relocation.StorageKey.Value, ct).Returns(versions.ToAsyncEnumerable());
         storage.GetMetadataAsync(relocation.StorageKey.Value, "destination", ct)
             .Returns(kind == "wrong-metadata" ? metadata with { Size = 9 }
                 : kind == "wrong-version" ? metadata with { VersionId = "other" } : metadata);
-        storage.CopyAsync(sourceKey.Value, "source", relocation.StorageKey.Value, "text/plain", 4,
-                Arg.Any<IReadOnlyDictionary<string, string>>(), ct)
+        storage.CopyAsync(
+            sourceKey.Value,
+            "source",
+            relocation.StorageKey.Value,
+            "text/plain",
+            4,
+            Arg.Any<IReadOnlyDictionary<string, string>>(),
+            ct)
             .Returns(call =>
             {
                 file.Status.ShouldBe(FileStatus.Relocating);
@@ -97,7 +114,8 @@ public sealed class FileRelocationServiceTests
                 Arg.Is<CleanupFileVersionCommand>(command => command.FileId == file.Id.Value
                     && command.StorageKey == (cancelled ? relocation.StorageKey.Value : sourceKey.Value)
                     && command.VersionId == (cancelled ? "destination" : "source")),
-                TimeSpan.FromDays(7), ct);
+                TimeSpan.FromDays(7),
+                ct);
         }
         else
         {
@@ -105,10 +123,15 @@ public sealed class FileRelocationServiceTests
             scheduler.ReceivedCalls().ShouldBeEmpty();
         }
         await storage.Received(kind is "latest" or "historical" ? 0 : 1).CopyAsync(
-            sourceKey.Value, "source", relocation.StorageKey.Value, "text/plain", 4,
+            sourceKey.Value,
+            "source",
+            relocation.StorageKey.Value,
+            "text/plain",
+            4,
             Arg.Is<IReadOnlyDictionary<string, string>>(values =>
-                values[FileMetadataNames.RelocationAttemptId] == relocation.AttemptId.Value.ToString()), ct);
-        await storage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default!, default);
+                values[FileMetadataNames.RelocationAttemptId] == relocation.AttemptId.Value.ToString()),
+            ct);
+        await storage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default!, ct);
     }
 
     [Fact(DisplayName = "Relocation should require persisted intent when file is ready")]
@@ -116,9 +139,13 @@ public sealed class FileRelocationServiceTests
     {
         var storage = Substitute.For<IFileStorage>();
         var file = File.Create(FileName.Create("a.txt").Value, FileType.Avatar, null).Value;
-        var service = new FileRelocationService(Substitute.For<IFilesRepository>(),
-            Substitute.For<IFoldersRepository>(), Substitute.For<IFolderHierarchyLock>(), storage,
-            Substitute.For<IUnitOfWork>(), Substitute.For<IScheduler>());
+        var service = new FileRelocationService(
+            Substitute.For<IFilesRepository>(),
+            Substitute.For<IFoldersRepository>(),
+            Substitute.For<IFolderHierarchyLock>(),
+            storage,
+            Substitute.For<IUnitOfWork>(),
+            Substitute.For<IScheduler>());
 
         var result = await service.RelocateAsync(file, TestContext.Current.CancellationToken);
 
