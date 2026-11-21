@@ -14,6 +14,38 @@ namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Domain.Games;
 
 public sealed class GameTests
 {
+    [Fact(DisplayName = "Game should stay waiting when prepared battle is assigned")]
+    public void AssignBattle_Should_StayWaiting_When_PreparedBattleIsAssigned()
+    {
+        var game = GameTestData.Create();
+        var battleId = BattleId.New();
+        game.ClearDomainEvents();
+
+        var result = game.AssignBattle(battleId);
+
+        result.IsSuccess.ShouldBeTrue();
+        game.BattleId.ShouldBe(battleId);
+        game.Status.ShouldBe(GameStatus.WaitingForPlayers);
+        game.StartedAt.ShouldBeNull();
+        game.GetDomainEvents().ShouldBeEmpty();
+        game.AssignBattle(battleId).IsSuccess.ShouldBeTrue();
+        game.AssignBattle(BattleId.New()).IsFailure.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Game should reject another battle when battle is already prepared")]
+    public void Start_Should_RejectAnotherBattle_When_BattleIsAlreadyPrepared()
+    {
+        var game = GameTestData.Create();
+        var battleId = BattleId.New();
+        game.AssignBattle(battleId).IsSuccess.ShouldBeTrue();
+
+        var result = game.Start(BattleId.New(), GameTestData.At(10));
+
+        result.IsFailure.ShouldBeTrue();
+        game.BattleId.ShouldBe(battleId);
+        game.Status.ShouldBe(GameStatus.WaitingForPlayers);
+    }
+
     [Theory(DisplayName = "Game should start with two distinct participants when mode is supported")]
     [InlineData("RankedDuel")]
     [InlineData("CasualDuel")]

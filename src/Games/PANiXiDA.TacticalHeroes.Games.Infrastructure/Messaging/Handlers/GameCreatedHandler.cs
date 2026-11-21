@@ -10,7 +10,11 @@ public static class GameCreatedHandler
         return new IntegrationEvent(
             GameId: domainEvent.GameId,
             FirstMatchSearchId: domainEvent.FirstMatchSearchId,
-            SecondMatchSearchId: domainEvent.SecondMatchSearchId)
+            SecondMatchSearchId: domainEvent.SecondMatchSearchId,
+            FirstPlayerId: domainEvent.FirstPlayerId,
+            FirstBuildId: domainEvent.FirstBuildId,
+            SecondPlayerId: domainEvent.SecondPlayerId,
+            SecondBuildId: domainEvent.SecondBuildId)
         {
             Id = domainEvent.Id,
             OccurredOnUtc = domainEvent.OccurredOnUtc

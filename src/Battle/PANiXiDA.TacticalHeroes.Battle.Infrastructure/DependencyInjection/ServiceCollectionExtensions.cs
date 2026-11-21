@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Clients.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.DependencyInjection;
@@ -15,6 +16,8 @@ public static class ServiceCollectionExtensions
             BattleWriteDbContext,
             BattleReadDbContext>(
                 configuration);
+
+        serviceCollection.AddClients();
 
         return serviceCollection;
     }
