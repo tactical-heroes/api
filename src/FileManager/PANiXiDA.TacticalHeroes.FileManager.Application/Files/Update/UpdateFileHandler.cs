@@ -59,7 +59,7 @@ public sealed class UpdateFileHandler(
             ownerId: ownerId.Value,
             folderId: folderId.Value,
             cancellationToken: cancellationToken);
-        if (result.IsFailure || file.Relocation is null)
+        if (result.IsFailure || file.RelocationAttemptId is null)
         {
             return result;
         }

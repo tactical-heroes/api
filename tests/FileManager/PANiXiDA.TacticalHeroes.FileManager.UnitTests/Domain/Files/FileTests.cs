@@ -571,7 +571,12 @@ public sealed class FileTests
             file.Name.ShouldBe(originalName);
             file.Type.ShouldBe(originalType);
             file.UserId.ShouldBe(originalOwner);
-            file.Relocation.ShouldNotBeNull();
+            file.RelocationAttemptId.ShouldNotBeNull();
+            file.RelocationName!.Value.ShouldBe("renamed.txt");
+            file.RelocationType.ShouldBe(type);
+            file.RelocationUserId.ShouldBe(owner);
+            file.RelocationFolderId.ShouldBe(detach ? null : folder.Id);
+            file.RelocationStorageKey.ShouldNotBeNull();
             file.GetDownloadContentType().IsSuccess.ShouldBeTrue();
             file.Rename(FileName.Create("blocked.txt").Value).IsFailure.ShouldBeTrue();
             file.MoveTo(null).IsFailure.ShouldBeTrue();
@@ -580,7 +585,7 @@ public sealed class FileTests
             file.Update(originalName, originalType, originalOwner, null).IsFailure.ShouldBeTrue();
             file.CompleteUpload(file.ContentType!, file.Size!, version).IsFailure.ShouldBeTrue();
             file.CompleteRelocation(
-                file.Relocation.AttemptId,
+                file.RelocationAttemptId!,
                 FileVersionId.Create("copied").Value,
                 detach ? null : folder)
                 .IsSuccess
@@ -596,7 +601,12 @@ public sealed class FileTests
             : $"avatar/{file.Id.Value}");
         file.Status.ShouldBe(FileStatus.Ready);
         file.VersionId!.Value.ShouldBe(relocated ? "copied" : "initial");
-        file.Relocation.ShouldBeNull();
+        file.RelocationAttemptId.ShouldBeNull();
+        file.RelocationName.ShouldBeNull();
+        file.RelocationType.ShouldBeNull();
+        file.RelocationUserId.ShouldBeNull();
+        file.RelocationFolderId.ShouldBeNull();
+        file.RelocationStorageKey.ShouldBeNull();
         file.ContentUpdateAttemptId.ShouldBeNull();
         file.ContentType!.Value.ShouldBe("text/plain");
         file.Size!.Value.ShouldBe(5);
@@ -614,7 +624,8 @@ public sealed class FileTests
         var owner = UserId.Create(Guid.NewGuid()).Value;
         var folder = Folder.Create(FolderName.Create("Target").Value, FileType.Personal, owner).Value;
         file.Update(FileName.Create("target.txt").Value, FileType.Personal, owner, folder).IsSuccess.ShouldBeTrue();
-        var relocation = file.Relocation!;
+        var attemptId = file.RelocationAttemptId!;
+        var destinationKey = file.RelocationStorageKey!;
         var key = file.StorageKey;
         var oldVersion = file.VersionId;
         var target = kind switch
@@ -631,18 +642,23 @@ public sealed class FileTests
         var success = kind == "success";
 
         var result = file.CompleteRelocation(
-            kind == "attempt" ? FileOperationAttemptId.New() : relocation.AttemptId,
+            kind == "attempt" ? FileOperationAttemptId.New() : attemptId,
             FileVersionId.Create("initial").Value,
             target);
 
         result.IsSuccess.ShouldBe(success);
         file.Status.ShouldBe(success ? FileStatus.Ready : FileStatus.Relocating);
-        file.StorageKey.ShouldBe(success ? relocation.StorageKey : key);
+        file.StorageKey.ShouldBe(success ? destinationKey : key);
         file.VersionId.ShouldBe(oldVersion);
-        file.Relocation.ShouldBe(success ? null : relocation);
+        file.RelocationAttemptId.ShouldBe(success ? null : attemptId);
+        file.RelocationName.ShouldBe(success ? null : FileName.Create("target.txt").Value);
+        file.RelocationType.ShouldBe(success ? null : FileType.Personal);
+        file.RelocationUserId.ShouldBe(success ? null : owner);
+        file.RelocationFolderId.ShouldBe(success ? null : folder.Id);
+        file.RelocationStorageKey.ShouldBe(success ? null : destinationKey);
         if (success)
         {
-            file.CompleteRelocation(relocation.AttemptId, oldVersion!, target).IsFailure.ShouldBeTrue();
+            file.CompleteRelocation(attemptId, oldVersion!, target).IsFailure.ShouldBeTrue();
         }
     }
 
@@ -655,9 +671,10 @@ public sealed class FileTests
         var key = file.StorageKey;
         var name = file.Name;
         file.Update(name, FileType.Personal, UserId.Create(Guid.NewGuid()).Value, null);
-        var relocation = file.Relocation!;
+        var attemptId = file.RelocationAttemptId!;
+        var destinationKey = file.RelocationStorageKey!;
 
-        var result = file.CancelRelocation(matches ? relocation.AttemptId : FileOperationAttemptId.New());
+        var result = file.CancelRelocation(matches ? attemptId : FileOperationAttemptId.New());
 
         result.IsSuccess.ShouldBe(matches);
         file.StorageKey.ShouldBe(key);
@@ -665,10 +682,13 @@ public sealed class FileTests
         file.Name.ShouldBe(name);
         file.Type.ShouldBe(FileType.Avatar);
         file.Status.ShouldBe(matches ? FileStatus.Ready : FileStatus.Relocating);
-        file.Relocation.ShouldBe(matches ? null : relocation);
+        file.RelocationAttemptId.ShouldBe(matches ? null : attemptId);
+        file.RelocationName.ShouldBe(matches ? null : name);
+        file.RelocationType.ShouldBe(matches ? null : FileType.Personal);
+        file.RelocationStorageKey.ShouldBe(matches ? null : destinationKey);
         if (matches)
         {
-            file.CancelRelocation(relocation.AttemptId).IsFailure.ShouldBeTrue();
+            file.CancelRelocation(attemptId).IsFailure.ShouldBeTrue();
         }
     }
 
@@ -682,7 +702,12 @@ public sealed class FileTests
 
         result.IsFailure.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.PendingUpload);
-        file.Relocation.ShouldBeNull();
+        file.RelocationAttemptId.ShouldBeNull();
+        file.RelocationName.ShouldBeNull();
+        file.RelocationType.ShouldBeNull();
+        file.RelocationUserId.ShouldBeNull();
+        file.RelocationFolderId.ShouldBeNull();
+        file.RelocationStorageKey.ShouldBeNull();
         file.StorageKey.ShouldBe(key);
     }
 

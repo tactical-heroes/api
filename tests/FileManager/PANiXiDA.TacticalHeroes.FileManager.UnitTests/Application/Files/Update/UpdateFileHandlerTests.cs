@@ -148,7 +148,7 @@ public sealed class UpdateFileHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        file.Relocation.ShouldBeNull();
+        file.RelocationAttemptId.ShouldBeNull();
         file.Type.ShouldBe(FileType.Avatar);
         unitOfWork.ReceivedCalls().ShouldBeEmpty();
         storage.ReceivedCalls().ShouldBeEmpty();

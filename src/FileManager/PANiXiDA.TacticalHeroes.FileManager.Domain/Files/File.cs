@@ -33,7 +33,12 @@ public sealed class File : AggregateRoot<FileId>
     public FileSize? Size { get; private set; }
     public FileVersionId? VersionId { get; private set; }
     public FileOperationAttemptId? ContentUpdateAttemptId { get; private set; }
-    public FileRelocation? Relocation { get; private set; }
+    public FileOperationAttemptId? RelocationAttemptId { get; private set; }
+    public FileName? RelocationName { get; private set; }
+    public FileType? RelocationType { get; private set; }
+    public UserId? RelocationUserId { get; private set; }
+    public FolderId? RelocationFolderId { get; private set; }
+    public FileStorageKey? RelocationStorageKey { get; private set; }
 
     public static Result<File> Create(
         FileName name,
@@ -89,13 +94,12 @@ public sealed class File : AggregateRoot<FileId>
                 return Result.Failure(Error.Conflict("Only ready files can change type or owner."));
             }
 
-            Relocation = FileRelocation.Create(
-                attemptId: FileOperationAttemptId.New(),
-                name: name,
-                type: type,
-                userId: userId,
-                folderId: folder?.Id,
-                storageKey: CreateStorageKey(id: Id, type: type, userId: userId));
+            RelocationAttemptId = FileOperationAttemptId.New();
+            RelocationName = name;
+            RelocationType = type;
+            RelocationUserId = userId;
+            RelocationFolderId = folder?.Id;
+            RelocationStorageKey = CreateStorageKey(id: Id, type: type, userId: userId);
             Status = FileStatus.Relocating;
 
             return Result.Success();
@@ -112,29 +116,33 @@ public sealed class File : AggregateRoot<FileId>
         FileVersionId versionId,
         Folder? folder)
     {
-        if (Status != FileStatus.Relocating || Relocation is not { } relocation || relocation.AttemptId != attemptId)
+        if (Status != FileStatus.Relocating
+            || RelocationAttemptId != attemptId
+            || RelocationName is not { } name
+            || RelocationType is not { } type
+            || RelocationStorageKey is not { } storageKey)
         {
             return Result.Failure(Error.Conflict("File relocation is no longer available."));
         }
 
-        if (relocation.FolderId != folder?.Id)
+        if (RelocationFolderId != folder?.Id)
         {
             return Result.Failure(Error.Conflict("The destination folder is no longer available."));
         }
 
-        var validation = ValidateFolder(folder: folder, type: relocation.Type, userId: relocation.UserId);
+        var validation = ValidateFolder(folder: folder, type: type, userId: RelocationUserId);
         if (validation.IsFailure)
         {
             return validation;
         }
 
-        Name = relocation.Name;
-        Type = relocation.Type;
-        UserId = relocation.UserId;
-        FolderId = relocation.FolderId;
-        StorageKey = relocation.StorageKey;
+        Name = name;
+        Type = type;
+        UserId = RelocationUserId;
+        FolderId = RelocationFolderId;
+        StorageKey = storageKey;
         VersionId = versionId;
-        Relocation = null;
+        ClearRelocation();
         Status = FileStatus.Ready;
 
         return Result.Success();
@@ -142,12 +150,12 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result CancelRelocation(FileOperationAttemptId attemptId)
     {
-        if (Status != FileStatus.Relocating || Relocation?.AttemptId != attemptId)
+        if (Status != FileStatus.Relocating || RelocationAttemptId != attemptId)
         {
             return Result.Failure(Error.Conflict("File relocation is no longer available."));
         }
 
-        Relocation = null;
+        ClearRelocation();
         Status = FileStatus.Ready;
 
         return Result.Success();
@@ -366,5 +374,15 @@ public sealed class File : AggregateRoot<FileId>
         }
 
         return Result.Success();
+    }
+
+    private void ClearRelocation()
+    {
+        RelocationAttemptId = null;
+        RelocationName = null;
+        RelocationType = null;
+        RelocationUserId = null;
+        RelocationFolderId = null;
+        RelocationStorageKey = null;
     }
 }

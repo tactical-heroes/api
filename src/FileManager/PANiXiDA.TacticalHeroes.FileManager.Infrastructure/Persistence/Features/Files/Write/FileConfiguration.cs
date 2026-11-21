@@ -78,9 +78,43 @@ internal sealed class FileConfiguration : AuditableEntityConfiguration<File>
                 value => FileOperationAttemptId.Create(value).Value)
             .IsRequired(required: false);
 
-        builder.Property(file => file.Relocation)
-            .HasConversion(new FileRelocationConverter())
-            .HasColumnType("jsonb")
+        builder.Property(file => file.RelocationAttemptId)
+            .HasConversion(
+                id => id!.Value,
+                value => FileOperationAttemptId.Create(value).Value)
+            .IsRequired(required: false);
+
+        builder.Property(file => file.RelocationName)
+            .HasConversion(
+                name => name!.Value,
+                value => FileName.Create(value).Value)
+            .HasMaxLength(FileName.MaxLength)
+            .IsRequired(required: false);
+
+        builder.Property(file => file.RelocationType)
+            .HasConversion(
+                type => type!.Name,
+                value => FileType.Create(value).Value)
+            .HasMaxLength(FileType.MaxLength)
+            .IsRequired(required: false);
+
+        builder.Property(file => file.RelocationUserId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => UserId.Create(value).Value)
+            .IsRequired(required: false);
+
+        builder.Property(file => file.RelocationFolderId)
+            .HasConversion(
+                id => id!.Value.Value,
+                value => FolderId.Create(value).Value)
+            .IsRequired(required: false);
+
+        builder.Property(file => file.RelocationStorageKey)
+            .HasConversion(
+                key => key!.Value,
+                value => FileStorageKey.Create(value).Value)
+            .HasMaxLength(FileStorageKey.MaxLength)
             .IsRequired(required: false);
 
         builder.Property(file => file.FolderId)

@@ -50,7 +50,8 @@ public sealed class FileRelocationServiceTests
         var owner = UserId.Create(Guid.NewGuid()).Value;
         var folder = Folder.Create(FolderName.Create("Target").Value, FileType.Personal, owner).Value;
         file.Update(FileName.Create("new.txt").Value, FileType.Personal, owner, folder).IsSuccess.ShouldBeTrue();
-        var relocation = file.Relocation!;
+        var attemptId = file.RelocationAttemptId!;
+        var destinationKey = file.RelocationStorageKey!;
         var sourceKey = file.StorageKey;
         folders.GetUntrackedByIdAsync(folder.Id, ct).Returns(kind == "folder-deleted" ? null : folder);
         if (kind == "folder-changed")
@@ -66,25 +67,25 @@ public sealed class FileRelocationServiceTests
             4,
             new Dictionary<string, string>
             {
-                [FileMetadataNames.OperationAttemptId] = relocation.AttemptId.Value.ToString()
+                [FileMetadataNames.OperationAttemptId] = attemptId.Value.ToString()
             },
             "destination");
         var current = new FileMetadata("text/plain", 4, new Dictionary<string, string>(), "unrelated");
-        storage.GetMetadataAsync(relocation.StorageKey.Value, ct).Returns(kind == "latest" ? metadata : current);
+        storage.GetMetadataAsync(destinationKey.Value, ct).Returns(kind == "latest" ? metadata : current);
         FileVersion[] versions = kind == "historical"
             ? [
                 new FileVersion("unrelated", DateTimeOffset.UnixEpoch),
                 new FileVersion("destination", DateTimeOffset.UnixEpoch)
             ]
             : [];
-        storage.GetVersionsAsync(relocation.StorageKey.Value, ct).Returns(versions.ToAsyncEnumerable());
-        storage.GetMetadataAsync(relocation.StorageKey.Value, "destination", ct)
+        storage.GetVersionsAsync(destinationKey.Value, ct).Returns(versions.ToAsyncEnumerable());
+        storage.GetMetadataAsync(destinationKey.Value, "destination", ct)
             .Returns(kind == "wrong-metadata" ? metadata with { Size = 9 }
                 : kind == "wrong-version" ? metadata with { VersionId = "other" } : metadata);
         storage.CopyAsync(
             sourceKey.Value,
             "source",
-            relocation.StorageKey.Value,
+            destinationKey.Value,
             "text/plain",
             4,
             Arg.Any<IReadOnlyDictionary<string, string>>(),
@@ -104,15 +105,20 @@ public sealed class FileRelocationServiceTests
         var cancelled = kind is "folder-deleted" or "folder-changed";
         result.IsSuccess.ShouldBe(!unusable && !cancelled);
         file.Status.ShouldBe(unusable ? FileStatus.Relocating : FileStatus.Ready);
-        file.StorageKey.ShouldBe(unusable || cancelled ? sourceKey : relocation.StorageKey);
+        file.StorageKey.ShouldBe(unusable || cancelled ? sourceKey : destinationKey);
         file.VersionId!.Value.ShouldBe(unusable || cancelled ? "source" : "destination");
         if (!unusable)
         {
-            file.Relocation.ShouldBeNull();
+            file.RelocationAttemptId.ShouldBeNull();
+            file.RelocationName.ShouldBeNull();
+            file.RelocationType.ShouldBeNull();
+            file.RelocationUserId.ShouldBeNull();
+            file.RelocationFolderId.ShouldBeNull();
+            file.RelocationStorageKey.ShouldBeNull();
             files.Received(1).Update(file);
             await scheduler.Received(1).ScheduleAsync(
                 Arg.Is<CleanupFileVersionCommand>(command => command.FileId == file.Id.Value
-                    && command.StorageKey == (cancelled ? relocation.StorageKey.Value : sourceKey.Value)
+                    && command.StorageKey == (cancelled ? destinationKey.Value : sourceKey.Value)
                     && command.VersionId == (cancelled ? "destination" : "source")),
                 TimeSpan.FromDays(7),
                 ct);
@@ -125,11 +131,11 @@ public sealed class FileRelocationServiceTests
         await storage.Received(kind is "latest" or "historical" ? 0 : 1).CopyAsync(
             sourceKey.Value,
             "source",
-            relocation.StorageKey.Value,
+            destinationKey.Value,
             "text/plain",
             4,
             Arg.Is<IReadOnlyDictionary<string, string>>(values =>
-                values[FileMetadataNames.OperationAttemptId] == relocation.AttemptId.Value.ToString()),
+                values[FileMetadataNames.OperationAttemptId] == attemptId.Value.ToString()),
             ct);
         await storage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default!, ct);
     }

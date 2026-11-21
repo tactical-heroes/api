@@ -7,6 +7,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
@@ -27,7 +28,9 @@ public sealed class FileRelocationService(
 
     public async Task<Result> RelocateAsync(File file, CancellationToken cancellationToken)
     {
-        if (file.Relocation is not { } relocation
+        if (file.Status != FileStatus.Relocating
+            || file.RelocationAttemptId is not { } attemptId
+            || file.RelocationStorageKey is not { } destinationKey
             || file.VersionId is not { } sourceVersion
             || file.ContentType is not { } contentType
             || file.Size is not { } size)
@@ -36,7 +39,8 @@ public sealed class FileRelocationService(
         }
 
         var metadata = await FindCopyAsync(
-            relocation: relocation,
+            attemptId: attemptId,
+            destinationKey: destinationKey,
             contentType: contentType,
             size: size,
             cancellationToken: cancellationToken);
@@ -45,12 +49,12 @@ public sealed class FileRelocationService(
             var copied = await fileStorage.CopyAsync(
                 sourceKey: file.StorageKey.Value,
                 sourceVersionId: sourceVersion.Value,
-                destinationKey: relocation.StorageKey.Value,
+                destinationKey: destinationKey.Value,
                 contentType: contentType.Value,
                 size: size.Value,
                 metadata: new Dictionary<string, string>
                 {
-                    [FileMetadataNames.OperationAttemptId] = relocation.AttemptId.Value.ToString()
+                    [FileMetadataNames.OperationAttemptId] = attemptId.Value.ToString()
                 },
                 cancellationToken: cancellationToken);
             var copiedVersion = FileVersionId.Create(copied.VersionId);
@@ -60,7 +64,7 @@ public sealed class FileRelocationService(
             }
 
             metadata = await fileStorage.GetMetadataAsync(
-                key: relocation.StorageKey.Value,
+                key: destinationKey.Value,
                 versionId: copiedVersion.Value.Value,
                 cancellationToken: cancellationToken);
             if (metadata?.VersionId != copiedVersion.Value.Value)
@@ -71,7 +75,7 @@ public sealed class FileRelocationService(
 
         if (!FileRelocationPolicy.CanAccept(
             metadata: metadata,
-            attemptId: relocation.AttemptId,
+            attemptId: attemptId,
             contentType: contentType,
             size: size))
         {
@@ -80,29 +84,31 @@ public sealed class FileRelocationService(
 
         return await CompleteAsync(
             file: file,
-            relocation: relocation,
+            attemptId: attemptId,
+            destinationKey: destinationKey,
             sourceVersion: sourceVersion,
             versionId: FileVersionId.Create(metadata.VersionId).Value,
             cancellationToken: cancellationToken);
     }
 
     private async Task<FileMetadata?> FindCopyAsync(
-        FileRelocation relocation,
+        FileOperationAttemptId attemptId,
+        FileStorageKey destinationKey,
         FileContentType contentType,
         FileSize size,
         CancellationToken cancellationToken)
     {
-        var current = await fileStorage.GetMetadataAsync(relocation.StorageKey.Value, cancellationToken);
+        var current = await fileStorage.GetMetadataAsync(destinationKey.Value, cancellationToken);
         if (FileRelocationPolicy.CanAccept(
             metadata: current,
-            attemptId: relocation.AttemptId,
+            attemptId: attemptId,
             contentType: contentType,
             size: size))
         {
             return current;
         }
 
-        var versions = fileStorage.GetVersionsAsync(relocation.StorageKey.Value, cancellationToken);
+        var versions = fileStorage.GetVersionsAsync(destinationKey.Value, cancellationToken);
         await foreach (var versionId in versions.Select(version => version.VersionId))
         {
             if (versionId == current?.VersionId)
@@ -111,13 +117,13 @@ public sealed class FileRelocationService(
             }
 
             var metadata = await fileStorage.GetMetadataAsync(
-                key: relocation.StorageKey.Value,
+                key: destinationKey.Value,
                 versionId: versionId,
                 cancellationToken: cancellationToken);
             if (metadata?.VersionId == versionId
                 && FileRelocationPolicy.CanAccept(
                     metadata: metadata,
-                    attemptId: relocation.AttemptId,
+                    attemptId: attemptId,
                     contentType: contentType,
                     size: size))
             {
@@ -130,7 +136,8 @@ public sealed class FileRelocationService(
 
     private async Task<Result> CompleteAsync(
         File file,
-        FileRelocation relocation,
+        FileOperationAttemptId attemptId,
+        FileStorageKey destinationKey,
         FileVersionId sourceVersion,
         FileVersionId versionId,
         CancellationToken cancellationToken)
@@ -141,19 +148,19 @@ public sealed class FileRelocationService(
             action: async token =>
             {
                 Folder? folder = null;
-                if (relocation.FolderId is { } folderId)
+                if (file.RelocationFolderId is { } folderId)
                 {
                     await hierarchyLock.AcquireAsync(token);
                     folder = await foldersRepository.GetUntrackedByIdAsync(folderId, token);
                 }
 
                 result = file.CompleteRelocation(
-                    attemptId: relocation.AttemptId,
+                    attemptId: attemptId,
                     versionId: versionId,
                     folder: folder);
                 if (result.IsFailure)
                 {
-                    var cancelled = file.CancelRelocation(relocation.AttemptId);
+                    var cancelled = file.CancelRelocation(attemptId);
                     if (cancelled.IsFailure)
                     {
                         return;
@@ -161,7 +168,7 @@ public sealed class FileRelocationService(
 
                     await ScheduleCleanupAsync(
                         file: file,
-                        key: relocation.StorageKey,
+                        key: destinationKey,
                         versionId: versionId,
                         cancellationToken: token);
                 }

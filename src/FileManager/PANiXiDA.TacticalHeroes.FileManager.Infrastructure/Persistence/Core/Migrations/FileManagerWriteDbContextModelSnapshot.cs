@@ -61,9 +61,32 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("character varying(255)")
                         .HasColumnName("name");
 
-                    b.Property<string>("Relocation")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("relocation");
+                    b.Property<Guid?>("RelocationAttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("relocation_attempt_id");
+
+                    b.Property<Guid?>("RelocationFolderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("relocation_folder_id");
+
+                    b.Property<string>("RelocationName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("relocation_name");
+
+                    b.Property<string>("RelocationStorageKey")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("relocation_storage_key");
+
+                    b.Property<string>("RelocationType")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("relocation_type");
+
+                    b.Property<Guid?>("RelocationUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("relocation_user_id");
 
                     b.Property<long?>("Size")
                         .HasColumnType("bigint")

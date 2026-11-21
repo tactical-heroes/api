@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
@@ -16,9 +14,12 @@ public sealed class FileReadDbModel : AuditableReadDbModel<Guid>
     public long? Size { get; set; }
     public string? VersionId { get; set; }
     public Guid? ContentUpdateAttemptId { get; set; }
-
-    [Column(TypeName = "jsonb")]
-    public string? Relocation { get; set; }
+    public Guid? RelocationAttemptId { get; set; }
+    public string? RelocationName { get; set; }
+    public string? RelocationType { get; set; }
+    public Guid? RelocationUserId { get; set; }
+    public Guid? RelocationFolderId { get; set; }
+    public string? RelocationStorageKey { get; set; }
 
     public FolderReadDbModel? Folder { get; set; }
 }

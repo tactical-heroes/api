@@ -361,7 +361,8 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         file.Update(FileName.Create("relocated.txt").Value, FileType.Avatar, null, destination)
             .IsSuccess
             .ShouldBeTrue();
-        var relocation = file.Relocation!;
+        var attemptId = file.RelocationAttemptId!;
+        var destinationKey = file.RelocationStorageKey!;
         await SaveAsync(file, destination);
         string copiedVersion;
         await using (var scope = Fixture.CreateScope())
@@ -370,12 +371,12 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
             var copied = await storage.CopyAsync(
                 oldKey.Value,
                 oldVersion.Value,
-                relocation.StorageKey.Value,
+                destinationKey.Value,
                 file.ContentType!.Value,
                 file.Size!.Value,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.OperationAttemptId] = relocation.AttemptId.Value.ToString()
+                    [FileMetadataNames.OperationAttemptId] = attemptId.Value.ToString()
                 },
                 ct);
             copiedVersion = copied.VersionId!;
@@ -406,7 +407,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
 
         var stored = await ReadAsync(file.Id.Value);
         stored.Status.ShouldBe("Ready");
-        stored.StorageKey.ShouldBe(destinationDeleted ? oldKey.Value : relocation.StorageKey.Value);
+        stored.StorageKey.ShouldBe(destinationDeleted ? oldKey.Value : destinationKey.Value);
         stored.VersionId.ShouldBe(destinationDeleted ? oldVersion.Value : copiedVersion);
         stored.Name.ShouldBe(destinationDeleted ? "before.txt" : "relocated.txt");
         stored.FolderId.ShouldBe(destinationDeleted ? null : destination.Id.Value);
@@ -417,7 +418,12 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         var domain = await verificationScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
             .Set<File>()
             .SingleAsync(item => item.Id == file.Id, ct);
-        domain.Relocation.ShouldBeNull();
+        domain.RelocationAttemptId.ShouldBeNull();
+        domain.RelocationName.ShouldBeNull();
+        domain.RelocationType.ShouldBeNull();
+        domain.RelocationUserId.ShouldBeNull();
+        domain.RelocationFolderId.ShouldBeNull();
+        domain.RelocationStorageKey.ShouldBeNull();
     }
 
     private static File CreateFile(string type, Guid ownerId)
