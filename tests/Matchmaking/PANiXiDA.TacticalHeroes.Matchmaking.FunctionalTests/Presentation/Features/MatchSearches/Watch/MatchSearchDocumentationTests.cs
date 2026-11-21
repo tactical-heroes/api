@@ -29,7 +29,8 @@ public sealed class MatchSearchDocumentationTests(FunctionalTestFixture fixture)
         scalar.ShouldContain(SignalRDocument.TrimStart('/'));
         openApi.StatusCode.ShouldBe(HttpStatusCode.OK);
         var document = asyncApi.RootElement;
-        document.GetProperty("channels").EnumerateObject().ShouldHaveSingleItem().Name.ShouldBe(MatchSearchHub.Route);
+        var channel = document.GetProperty("channels").EnumerateObject().ShouldHaveSingleItem().Value;
+        channel.GetProperty("address").GetString().ShouldBe(MatchSearchHub.Route);
         var operation = document.GetProperty("operations").EnumerateObject().ShouldHaveSingleItem().Value;
         operation.GetProperty("action").GetString().ShouldBe("send");
         operation.GetProperty("summary").GetString()
