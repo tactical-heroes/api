@@ -19,9 +19,7 @@ public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>
 
     public static HubEndpointConventionBuilder Map(HubMapBuilder hubs)
     {
-        return hubs.MapHub<MatchSearchHub>(Route)
-            .RequireAuthorization()
-            .WithBearerDocumentation();
+        return hubs.MapHub<MatchSearchHub>(Route).RequireAuthorization();
     }
 
     public override async Task OnConnectedAsync()
