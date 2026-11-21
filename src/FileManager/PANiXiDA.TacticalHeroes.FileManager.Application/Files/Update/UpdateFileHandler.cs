@@ -10,6 +10,8 @@ using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
+
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Update;
 
 public sealed class UpdateFileHandler(
