@@ -3,6 +3,7 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -40,19 +41,24 @@ public sealed class FileAccessPolicy(ICurrentUser currentUser)
 
     public bool CanUpdate(File file)
     {
+        return CanUpdate(file.Type, file.UserId);
+    }
+
+    public bool CanUpdate(FileType type, UserId? userId)
+    {
         if (!currentUser.IsAuthenticated)
         {
             return false;
         }
 
-        if (file.Type == FileType.Personal)
+        if (type == FileType.Personal)
         {
             return currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateAll.Code)
-                || (file.UserId?.Value == currentUser.UserId
+                || (userId?.Value == currentUser.UserId
                     && currentUser.HasPermission(Permissions.FileManager.PersonalFiles.UpdateOwn.Code));
         }
 
-        return file.Type == FileType.Avatar
+        return type == FileType.Avatar
             && currentUser.HasPermission(Permissions.FileManager.Avatars.Update.Code);
     }
 

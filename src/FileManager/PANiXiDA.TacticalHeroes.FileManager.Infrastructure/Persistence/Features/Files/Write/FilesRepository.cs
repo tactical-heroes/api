@@ -32,6 +32,16 @@ public sealed class FilesRepository(
             .ToListAsync(cancellationToken);
     }
 
+    public IAsyncEnumerable<File> GetRelocatingFilesAsync(CancellationToken cancellationToken)
+    {
+        var updatedBefore = timeProvider.GetUtcNow().Subtract(options.Value.MinimumAge).UtcDateTime;
+
+        return GetFilesAsync(
+            Query.Where(file => file.Status == FileStatus.Relocating
+                && EF.Property<DateTime>(file, EfConstants.UpdatedAt) < updatedBefore),
+            cancellationToken);
+    }
+
     public IAsyncEnumerable<File> GetPendingUploadsAsync(CancellationToken cancellationToken)
     {
         var reconciliationOptions = options.Value;

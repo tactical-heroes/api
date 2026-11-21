@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute.ExceptionExtensions;
 
+using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
@@ -11,6 +12,7 @@ using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -31,6 +33,8 @@ public sealed class ReconcileFileUploadsHandlerTests
     {
         _fileStorage.GetVersionsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Array.Empty<FileVersion>().ToAsyncEnumerable());
+        _files.GetRelocatingFilesAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
@@ -391,7 +395,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 size,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] =
+                    [FileMetadataNames.OperationAttemptId] =
                         (condition == "other" ? Guid.NewGuid() : operation.Value).ToString()
                 },
                 condition == "versionless" ? null : "replacement"));
@@ -435,7 +439,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 9,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
+                    [FileMetadataNames.OperationAttemptId] = operation.Value.ToString()
                 },
                 "replacement"));
 
@@ -475,7 +479,7 @@ public sealed class ReconcileFileUploadsHandlerTests
 
         file.Status.ShouldBe(FileStatus.Ready);
         file.StorageKey.ShouldBe(key);
-        file.ContentUpdateAttemptId.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
         file.VersionId!.Value.ShouldBe("initial");
         file.Size!.Value.ShouldBe(4);
         _files.DidNotReceive().Delete(file);
@@ -537,7 +541,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                     9,
                     new Dictionary<string, string>
                     {
-                        [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
+                        [FileMetadataNames.OperationAttemptId] = operation.Value.ToString()
                     },
                     "replacement"));
         }
@@ -616,6 +620,11 @@ public sealed class ReconcileFileUploadsHandlerTests
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
+            relocationService: new FileRelocationService(
+                _files,
+                _fileStorage,
+                _unitOfWork,
+                Substitute.For<IScheduler>()));
     }
 }

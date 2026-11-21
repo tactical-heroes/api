@@ -6,11 +6,15 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using Npgsql;
 
+using NSubstitute;
+
+using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -439,7 +443,12 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
+            relocationService: new FileRelocationService(
+                filesRepository,
+                services.GetRequiredService<IFileStorage>(),
+                services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
+                Substitute.For<IScheduler>()));
     }
 
     private async Task<File> SaveFileAsync(string condition = "pending", FileType? type = null)
