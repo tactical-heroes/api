@@ -16,7 +16,10 @@ public sealed class FolderDeletedHandlerTests
     private readonly IFilesRepository _files = Substitute.For<IFilesRepository>();
 
     private readonly Folder _folder = Folder.Create(
-        FolderName.Create("Avatars").Value, FileType.Avatar, userId: null).Value;
+        FolderName.Create("Avatars").Value,
+        FileType.Avatar,
+        userId: null)
+        .Value;
 
     public FolderDeletedHandlerTests()
     {
@@ -41,7 +44,10 @@ public sealed class FolderDeletedHandlerTests
     public async Task HandleAsync_Should_BeginDeletionForAllFiles_When_ActiveFilesArePresent(int count)
     {
         var files = Enumerable.Range(0, count).Select(_ => CreateFile()).ToList();
-        files[1].CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
+        files[1].CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(1).Value,
+            FileVersionId.Create("initial").Value);
         files[2].BeginDeletion();
         _files.GetNonDeletingByFolderAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns(files);
         var handler = new FolderDeletedHandler(_files);
@@ -54,6 +60,24 @@ public sealed class FolderDeletedHandlerTests
             _files.Received(1).Update(file);
         }
         await _files.Received(1).GetNonDeletingByFolderAsync(_folder.Id, TestContext.Current.CancellationToken);
+    }
+
+    [Fact(DisplayName = "Folder deletion should leave updating files unchanged when folder is deleted")]
+    public async Task HandleAsync_Should_LeaveUpdatingFileUnchanged_When_FolderIsDeleted()
+    {
+        var file = CreateFile();
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(1).Value,
+            FileVersionId.Create("initial").Value);
+        file.BeginContentUpdate();
+        _files.GetNonDeletingByFolderAsync(_folder.Id, Arg.Any<CancellationToken>()).Returns([file]);
+        var handler = new FolderDeletedHandler(_files);
+
+        await handler.HandleAsync(new FolderDeleted(_folder.Id.Value), TestContext.Current.CancellationToken);
+
+        file.Status.ShouldBe(FileStatus.Updating);
+        _files.DidNotReceive().Update(file);
     }
 
     private File CreateFile()

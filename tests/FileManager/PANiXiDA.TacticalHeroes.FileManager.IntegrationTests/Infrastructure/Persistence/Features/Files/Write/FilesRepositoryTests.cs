@@ -140,7 +140,10 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var activeAvatar = CreateFile();
         deleting.BeginDeletion();
         deleted.BeginDeletion();
-        deletedReady.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        deletedReady.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         avatar.BeginDeletion();
         activeAvatar.BeginDeletion();
         foreach (var file in new[] { deleting, deleted, deletedReady, pending, avatar, activeAvatar })
@@ -308,7 +311,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         {
             file.CompleteUpload(
                 FileContentType.Create("image/png").Value,
-                FileSize.Create(4096).Value);
+                FileSize.Create(4096).Value,
+                FileVersionId.Create("initial").Value);
         }
 
         if (status == "Deleting")
@@ -347,7 +351,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             var pendingFile = await repository.GetByIdAsync(file.Id, cancellationToken);
             pendingFile!.CompleteUpload(
                 contentType,
-                size);
+                size,
+                FileVersionId.Create("initial").Value);
             pendingFile.Rename(FileName.Create("new-avatar.png").Value);
             repository.Update(pendingFile);
             await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
@@ -372,7 +377,10 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = CreateFile();
-        file.CompleteUpload(FileContentType.Create("image/png").Value, FileSize.Create(4096).Value);
+        file.CompleteUpload(
+            FileContentType.Create("image/png").Value,
+            FileSize.Create(4096).Value,
+            FileVersionId.Create("initial").Value);
         await SaveNewFileAsync(file, cancellationToken);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
@@ -389,7 +397,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
 
         (await repository.GetByIdAsync(file.Id, cancellationToken)).ShouldBeNull();
         var deleted = await context.Set<File>().IgnoreQueryFilters().SingleAsync(
-            item => item.Id == file.Id, cancellationToken);
+            item => item.Id == file.Id,
+            cancellationToken);
         context.Entry(deleted).Property<DateTime?>(EfConstants.DeletedAt).CurrentValue.ShouldNotBeNull();
         deleted.Status.ShouldBe(FileStatus.Deleting);
         deleted.StorageKey.ShouldBe(file.StorageKey);
@@ -415,7 +424,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             .SaveChangesAsync(cancellationToken);
         completingFile!.CompleteUpload(
             FileContentType.Create("image/png").Value,
-            FileSize.Create(4096).Value);
+            FileSize.Create(4096).Value,
+            FileVersionId.Create("initial").Value);
 
         completionRepository.Update(completingFile);
         Func<Task> saveStaleFile = () => completionScope.ServiceProvider
@@ -443,7 +453,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
         await using (var scope = Fixture.CreateScope())
         {
             scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
@@ -476,7 +487,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
         file.MoveTo(folder).IsSuccess.ShouldBeTrue();
 
         Func<Task> saveFile = () => SaveNewFileAsync(file, cancellationToken);
@@ -502,7 +514,10 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
             file.MoveTo(root);
         }
         files[4].MoveTo(nested);
-        files[1].CompleteUpload(FileContentType.Create("image/png").Value, FileSize.Create(1).Value);
+        files[1].CompleteUpload(
+            FileContentType.Create("image/png").Value,
+            FileSize.Create(1).Value,
+            FileVersionId.Create("initial").Value);
         files[2].BeginDeletion();
         await using (var scope = Fixture.CreateScope())
         {
@@ -547,7 +562,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         return File.Create(
             FileName.Create("avatar.png").Value,
             FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
     }
 
     private static File CreatePersonalFile()
@@ -555,7 +571,8 @@ public sealed class FilesRepositoryTests(IntegrationTestFixture fixture)
         return File.Create(
             name: FileName.Create("file.txt").Value,
             type: FileType.Personal,
-            userId: UserId.Create(Guid.NewGuid()).Value).Value;
+            userId: UserId.Create(Guid.NewGuid()).Value)
+            .Value;
     }
 
     private async Task SaveNewFileAsync(File file, CancellationToken cancellationToken)

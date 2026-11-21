@@ -31,6 +31,8 @@ public sealed class File : AggregateRoot<FileId>
     public FileStatus Status { get; private set; }
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
+    public FileVersionId? VersionId { get; private set; }
+    public FileContentUpdateAttemptId? ContentUpdateAttemptId { get; private set; }
 
     public static Result<File> Create(
         FileName name,
@@ -62,6 +64,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Update(FileName name, FileType type, UserId? userId, Folder? folder)
     {
+        if (Status == FileStatus.Updating)
+        {
+            return Result.Failure(Error.Conflict("File metadata cannot be changed while content is being updated."));
+        }
+
         if (Status == FileStatus.Deleting)
         {
             return Result.Failure(Error.Conflict("A file being deleted cannot be updated."));
@@ -85,7 +92,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result<FileContentType> GetDownloadContentType()
     {
-        if (Status != FileStatus.Ready || ContentType is not { } contentType)
+        if ((Status != FileStatus.Ready && Status != FileStatus.Updating) || ContentType is not { } contentType)
         {
             return Result.Failure<FileContentType>(Error.Conflict("File is not ready for download."));
         }
@@ -95,6 +102,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result Rename(FileName name)
     {
+        if (Status == FileStatus.Updating)
+        {
+            return Result.Failure(Error.Conflict("A file being updated cannot be renamed."));
+        }
+
         if (Status == FileStatus.Deleting)
         {
             return Result.Failure(
@@ -108,6 +120,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result MoveTo(Folder? folder)
     {
+        if (Status == FileStatus.Updating)
+        {
+            return Result.Failure(Error.Conflict("A file being updated cannot be moved."));
+        }
+
         if (Status == FileStatus.Deleting)
         {
             return Result.Failure(
@@ -127,14 +144,19 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result CompleteUpload(
         FileContentType contentType,
-        FileSize size)
+        FileSize size,
+        FileVersionId versionId)
     {
         if (Status == FileStatus.Ready)
         {
-            return ContentType == contentType && Size == size
-                ? Result.Success()
-                : Result.Failure(
-                    Error.Conflict("File content cannot be replaced after upload."));
+            if (ContentType != contentType
+                || Size != size
+                || VersionId != versionId)
+            {
+                return Result.Failure(Error.Conflict("File content cannot be replaced after upload."));
+            }
+
+            return Result.Success();
         }
 
         if (Status != FileStatus.PendingUpload)
@@ -145,6 +167,54 @@ public sealed class File : AggregateRoot<FileId>
 
         ContentType = contentType;
         Size = size;
+        VersionId = versionId;
+        Status = FileStatus.Ready;
+
+        return Result.Success();
+    }
+
+    public Result<FileContentUpdateAttemptId> BeginContentUpdate()
+    {
+        if (Status != FileStatus.Ready)
+        {
+            return Result.Failure<FileContentUpdateAttemptId>(
+                Error.Conflict("Only ready file content can be replaced."));
+        }
+
+        ContentUpdateAttemptId = FileContentUpdateAttemptId.New();
+        Status = FileStatus.Updating;
+
+        return Result.Success(ContentUpdateAttemptId);
+    }
+
+    public Result CompleteContentUpdate(
+        FileContentUpdateAttemptId contentUpdateAttemptId,
+        FileContentType contentType,
+        FileSize size,
+        FileVersionId versionId)
+    {
+        if (Status != FileStatus.Updating || ContentUpdateAttemptId != contentUpdateAttemptId || VersionId == versionId)
+        {
+            return Result.Failure(Error.Conflict("File content upload is no longer available."));
+        }
+
+        ContentType = contentType;
+        Size = size;
+        VersionId = versionId;
+        ContentUpdateAttemptId = null;
+        Status = FileStatus.Ready;
+
+        return Result.Success();
+    }
+
+    public Result CancelContentUpdate(FileContentUpdateAttemptId contentUpdateAttemptId)
+    {
+        if (Status != FileStatus.Updating || ContentUpdateAttemptId != contentUpdateAttemptId)
+        {
+            return Result.Failure(Error.Conflict("File content upload is no longer available."));
+        }
+
+        ContentUpdateAttemptId = null;
         Status = FileStatus.Ready;
 
         return Result.Success();
@@ -152,6 +222,11 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result BeginDeletion()
     {
+        if (Status == FileStatus.Updating)
+        {
+            return Result.Failure(Error.Conflict("A file being updated cannot be deleted."));
+        }
+
         if (Status == FileStatus.Deleting)
         {
             return Result.Success();

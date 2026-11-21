@@ -87,7 +87,9 @@ public sealed class DeleteFileEndpointTests(ManualReconciliationTestFixture fixt
     [InlineData("Avatar", false, "file-manager.avatars.read")]
     [InlineData("Avatar", false, "")]
     public async Task HandleAsync_Should_PreserveFile_When_MatchingDeletePermissionIsAbsent(
-        string type, bool ownsFile, string permission)
+        string type,
+        bool ownsFile,
+        string permission)
     {
         var userId = Guid.NewGuid();
         var file = await AddFileAsync(type, ownsFile ? userId : Guid.NewGuid(), "Ready");
@@ -192,7 +194,10 @@ public sealed class DeleteFileEndpointTests(ManualReconciliationTestFixture fixt
         response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
         if (upload)
         {
-            stale.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value)
+            stale.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create("initial").Value)
                 .IsSuccess
                 .ShouldBeTrue();
         }
@@ -241,6 +246,7 @@ public sealed class DeleteFileEndpointTests(ManualReconciliationTestFixture fixt
                     BucketName = PANiXiDA.TacticalHeroes.Testing.Storage.S3TestStorage.BucketName
                 },
                 TestContext.Current.CancellationToken);
+            await Fixture.Storage.EnableVersioningAsync(TestContext.Current.CancellationToken);
         }
 
         await ReconcileAsync();
@@ -269,10 +275,14 @@ public sealed class DeleteFileEndpointTests(ManualReconciliationTestFixture fixt
         var file = File.Create(
             FileName.Create("file.txt").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(userId).Value : null).Value;
+            type == "Personal" ? UserId.Create(userId).Value : null)
+            .Value;
         if (status == "Ready")
         {
-            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create("initial").Value);
         }
         else if (status == "Deleting")
         {

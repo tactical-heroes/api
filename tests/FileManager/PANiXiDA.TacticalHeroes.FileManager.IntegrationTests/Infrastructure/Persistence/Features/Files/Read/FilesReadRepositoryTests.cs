@@ -42,7 +42,10 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         stored.MoveTo(folder).IsSuccess.ShouldBeTrue();
         if (completed)
         {
-            stored.CompleteUpload(FileContentType.Create("image/png").Value, FileSize.Create(4096).Value)
+            stored.CompleteUpload(
+                FileContentType.Create("image/png").Value,
+                FileSize.Create(4096).Value,
+                FileVersionId.Create("initial").Value)
                 .IsSuccess
                 .ShouldBeTrue();
         }
@@ -127,7 +130,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     [InlineData(true, false)]
     [InlineData(true, true)]
     public async Task ReadDbModel_Should_RestoreAllColumnsWithoutTracking_When_UploadStateAndOwnershipVary(
-        bool completed, bool personal)
+        bool completed,
+        bool personal)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var file = await AddFileAsync(personal, cancellationToken);
@@ -142,7 +146,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         {
             stored.CompleteUpload(
                 FileContentType.Create("image/png").Value,
-                FileSize.Create(4096).Value);
+                FileSize.Create(4096).Value,
+                FileVersionId.Create("initial").Value);
             repository.Update(stored);
             await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
                 .SaveChangesAsync(cancellationToken);
@@ -183,7 +188,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
         await using var scope = Fixture.CreateScope();
         scope.ServiceProvider.GetRequiredService<IFoldersRepository>().Add(folder);
         await scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext))
@@ -219,7 +225,10 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("Personal", false, 4, "Beta")]
     [InlineData("Avatar", false, 1, "Avatar")]
     public async Task GetPageAsync_Should_RestrictRowsBeforePaging_When_AccessScopeVaries(
-        string type, bool own, long expectedTotal, string expectedName)
+        string type,
+        bool own,
+        long expectedTotal,
+        string expectedName)
     {
         var userId = Guid.NewGuid();
         await AddFileAsync("Alpha", "Personal", userId);
@@ -318,7 +327,11 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     [InlineData("Personal", true, 2, "Alpha personal", "Delta personal")]
     [InlineData("Avatar", false, 2, "Charlie avatar", "Foxtrot avatar")]
     public async Task GetPageAsync_Should_ApplyFiltersBeforePaging_When_TypeAndOwnerVary(
-        string? type, bool own, long total, string first, string second)
+        string? type,
+        bool own,
+        long total,
+        string first,
+        string second)
     {
         var userId = Guid.NewGuid();
         await AddFileAsync("Alpha personal", "Personal", userId);
@@ -390,7 +403,8 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
         var file = File.Create(
             FileName.Create("avatar.png").Value,
             personal ? FileType.Personal : FileType.Avatar,
-            personal ? UserId.Create(Guid.CreateVersion7()).Value : null).Value;
+            personal ? UserId.Create(Guid.CreateVersion7()).Value : null)
+            .Value;
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         repository.Add(file);
@@ -401,15 +415,23 @@ public sealed class FilesReadRepositoryTests(IntegrationTestFixture fixture)
     }
 
     private async Task<File> AddFileAsync(
-        string name, string type, Guid? userId, bool deleted = false, string status = "Ready")
+        string name,
+        string type,
+        Guid? userId,
+        bool deleted = false,
+        string status = "Ready")
     {
         var file = File.Create(
             FileName.Create(name).Value,
             FileType.FromName(type),
-            userId is { } owner ? UserId.Create(owner).Value : null).Value;
+            userId is { } owner ? UserId.Create(owner).Value : null)
+            .Value;
         if (status != "PendingUpload")
         {
-            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create("initial").Value);
         }
         if (status == "Deleting" || deleted)
         {

@@ -82,13 +82,23 @@ public sealed class FileCreationService(
             return Result.Failure<Guid>(reservation.Errors);
         }
 
-        await fileStorage.UploadAsync(
+        var uploaded = await fileStorage.UploadAsync(
             key: file.StorageKey.Value,
             content: content,
             contentType: contentType.Value.Value,
+            metadata: System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
             cancellationToken: cancellationToken);
 
-        var completed = file.CompleteUpload(contentType: contentType.Value, size: size.Value);
+        var versionId = FileVersionId.Create(uploaded.VersionId);
+        if (versionId.IsFailure)
+        {
+            return Result.Failure<Guid>(versionId.Errors);
+        }
+
+        var completed = file.CompleteUpload(
+            contentType: contentType.Value,
+            size: size.Value,
+            versionId: versionId.Value);
         if (completed.IsFailure)
         {
             return Result.Failure<Guid>(completed.Errors);

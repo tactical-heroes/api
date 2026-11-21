@@ -1,7 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Matchmaking.MatchmakingTestData;
 
@@ -42,5 +45,47 @@ public sealed class MatchSearchesReadRepositoryTests(IntegrationTestFixture fixt
         var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesReadRepository>();
 
         (await repository.AnyAsync(cancellationToken)).ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "Repository should order searches when timestamps run backwards")]
+    public async Task GetStateByPlayerIdAsync_Should_OrderSearches_When_TimestampsRunBackwards()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var scope = fixture.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
+        var reads = scope.ServiceProvider.GetRequiredService<IMatchSearchesReadRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(MatchmakingWriteDbContext));
+        var first = CreateSearch();
+        repository.Add(first);
+        await unitOfWork.SaveChangesAsync(ct);
+        var initial = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
+        initial.Id.ShouldBe(first.Id.Value);
+        initial.Status.ShouldBe("Searching");
+        first.Cancel().IsSuccess.ShouldBeTrue();
+        repository.Update(first);
+        await unitOfWork.SaveChangesAsync(ct);
+        var cancelled = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
+        cancelled.Status.ShouldBe("Cancelled");
+        var newer = MatchSearch.Create(
+            first.PlayerId,
+            first.BuildId,
+            first.Rating,
+            first.Mode,
+            MatchmakingTimestamp.Create(first.QueuedAt.Value.AddHours(-1))).Value;
+        repository.Add(newer);
+        await unitOfWork.SaveChangesAsync(ct);
+        var latest = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
+        latest.Id.ShouldBe(newer.Id.Value);
+        first.Cancel().IsSuccess.ShouldBeTrue();
+        repository.Update(first);
+        await unitOfWork.SaveChangesAsync(ct);
+
+        (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldBe(latest);
+        newer.Cancel().IsSuccess.ShouldBeTrue();
+        repository.Update(newer);
+        await unitOfWork.SaveChangesAsync(ct);
+        var terminal = (await reads.GetStateByPlayerIdAsync(first.PlayerId.Value, ct)).ShouldNotBeNull();
+        terminal.Id.ShouldBe(newer.Id.Value);
+        terminal.Status.ShouldBe("Cancelled");
     }
 }

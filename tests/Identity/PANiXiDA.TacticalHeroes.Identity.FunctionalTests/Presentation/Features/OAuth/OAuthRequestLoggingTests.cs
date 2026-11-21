@@ -182,7 +182,10 @@ public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : Fu
         completion.Attributes["url.path"].ShouldBe(path);
         completion.Attributes["http.request.method"].ShouldBe(HttpMethods.Post);
         completion.Attributes["http.response.status_code"].ShouldBe(expectedStatus);
-        var errors = loggerProvider.Records.Where(record => record.Level >= LogLevel.Error).ToArray();
+        var errors = loggerProvider.Records
+            .Where(record => record.Level >= LogLevel.Error
+                && Equals(record.Attributes.GetValueOrDefault("url.path"), path))
+            .ToArray();
         errors.Length.ShouldBe(
             expectedLevel == LogLevel.Error ? 1 : 0,
             string.Join(Environment.NewLine, errors.Select(record => $"{record.Message}: {record.Exception}")));

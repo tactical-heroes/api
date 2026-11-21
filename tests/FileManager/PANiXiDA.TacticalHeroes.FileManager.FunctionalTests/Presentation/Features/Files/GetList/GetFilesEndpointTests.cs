@@ -24,7 +24,9 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
     [InlineData("file-manager.personal-files.read.all", 4, "Beta")]
     [InlineData("file-manager.personal-files.read.own,file-manager.personal-files.read.all", 4, "Beta")]
     public async Task HandleAsync_Should_ApplyOwnershipBeforePaging_When_PersonalPermissionVaries(
-        string permission, long total, string name)
+        string permission,
+        long total,
+        string name)
     {
         var userId = Guid.NewGuid();
         await AddFileAsync("Alpha", "Personal", userId);
@@ -36,11 +38,14 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         await AddFileAsync("Aardvark", "Personal", userId, deleted: true);
 
         using var response = await SendAsync(
-            "?type=Personal&pageNumber=2&pageSize=1", userId.ToString(), permission);
+            "?type=Personal&pageNumber=2&pageSize=1",
+            userId.ToString(),
+            permission);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
-            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+            TestJsonSerializerOptions.Web,
+            TestContext.Current.CancellationToken);
         page.ShouldNotBeNull();
         page.TotalCount.ShouldBe(total);
         page.PageNumber.ShouldBe(2);
@@ -68,7 +73,8 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
-            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+            TestJsonSerializerOptions.Web,
+            TestContext.Current.CancellationToken);
         page.ShouldNotBeNull();
         page.TotalCount.ShouldBe(1);
         var item = page.Items.ShouldHaveSingleItem();
@@ -92,7 +98,8 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
-            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+            TestJsonSerializerOptions.Web,
+            TestContext.Current.CancellationToken);
         page.ShouldNotBeNull();
         page.TotalCount.ShouldBe(2);
         page.Items.Select(item => item.Name).ShouldBe(["Zeta report", "Alpha REPORT"]);
@@ -107,7 +114,8 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
     [InlineData("Personal", "file-manager.personal-files.read")]
     [InlineData("Personal", "file-manager.personal-files.create.all")]
     public async Task HandleAsync_Should_ForbidAccess_When_TheMatchingReadPermissionIsAbsent(
-        string type, string permission)
+        string type,
+        string permission)
     {
         var userId = Guid.NewGuid();
 
@@ -146,11 +154,14 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
     public async Task HandleAsync_Should_ReturnEmptyPage_When_AccessibleFilesAreAbsent()
     {
         using var response = await SendAsync(
-            "?type=Personal", Guid.NewGuid().ToString(), "file-manager.personal-files.read.own");
+            "?type=Personal",
+            Guid.NewGuid().ToString(),
+            "file-manager.personal-files.read.own");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
-            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+            TestJsonSerializerOptions.Web,
+            TestContext.Current.CancellationToken);
         page.ShouldNotBeNull();
         page.TotalCount.ShouldBe(0);
         page.Items.ShouldBeEmpty();
@@ -168,7 +179,10 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         "Delta personal",
         "Foxtrot avatar")]
     public async Task HandleAsync_Should_CombineAccessibleTypes_When_TypeIsOmitted(
-        string permissions, long total, string first, string second)
+        string permissions,
+        long total,
+        string first,
+        string second)
     {
         var userId = Guid.NewGuid();
         await AddFileAsync("Alpha personal", "Personal", userId);
@@ -182,11 +196,14 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         var pageNumber = total > 2 ? 2 : 1;
 
         using var response = await SendAsync(
-            $"?pageNumber={pageNumber}&pageSize=2", userId.ToString(), permissions);
+            $"?pageNumber={pageNumber}&pageSize=2",
+            userId.ToString(),
+            permissions);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
-            TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+            TestJsonSerializerOptions.Web,
+            TestContext.Current.CancellationToken);
         page.ShouldNotBeNull();
         page.TotalCount.ShouldBe(total);
         page.Items.Select(item => item.Name).ShouldBe([first, second]);
@@ -235,7 +252,8 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         if (allowed)
         {
             var page = await response.Content.ReadFromJsonAsync<PaginationResult<FileListItemResponse>>(
-                TestJsonSerializerOptions.Web, TestContext.Current.CancellationToken);
+                TestJsonSerializerOptions.Web,
+                TestContext.Current.CancellationToken);
             page.ShouldNotBeNull();
             page.TotalCount.ShouldBe(2);
             page.Items.ShouldHaveSingleItem().Name.ShouldBe("Selected owner");
@@ -258,8 +276,12 @@ public sealed class GetFilesEndpointTests(FunctionalTestFixture fixture) : Funct
         var file = File.Create(
             FileName.Create(name).Value,
             FileType.FromName(type),
-            userId is { } owner ? UserId.Create(owner).Value : null).Value;
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            userId is { } owner ? UserId.Create(owner).Value : null)
+            .Value;
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         if (deleted)
         {
             file.BeginDeletion();

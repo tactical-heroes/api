@@ -157,8 +157,12 @@ public sealed class GetFileDetailsEndpointTests(FunctionalTestFixture fixture) :
         var file = File.Create(
             FileName.Create("file.txt").Value,
             FileType.FromName(type),
-            userId is { } owner ? UserId.Create(owner).Value : null).Value;
-        if (completed) file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            userId is { } owner ? UserId.Create(owner).Value : null)
+            .Value;
+        if (completed) file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         await using var scope = Fixture.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IFilesRepository>();
         var unitOfWork = scope.ServiceProvider.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext));

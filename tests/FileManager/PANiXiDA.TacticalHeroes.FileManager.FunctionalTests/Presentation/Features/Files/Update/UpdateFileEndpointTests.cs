@@ -40,14 +40,21 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         var file = CreateFile(sourceType, actorId);
         var folder = CreateFolder(targetType, ownerId);
         byte[] bytes = [1, 2, 3, 4];
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(bytes.Length).Value);
-        await SaveAsync(file, folder);
         await using (var scope = Fixture.CreateScope())
         {
             await using var content = new MemoryStream(bytes);
-            await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
-                file.StorageKey.Value, content, "text/plain", ct);
+            var uploaded = await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
+                file.StorageKey.Value,
+                content,
+                "text/plain",
+                System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
+                ct);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(bytes.Length).Value,
+                FileVersionId.Create(uploaded.VersionId).Value);
         }
+        await SaveAsync(file, folder);
         var body = new UpdateFileRequest("after.txt", targetType, ownerId, folder.Id.Value);
 
         using var response = await SendAsync(file.Id.Value, body, actorId, AllUpdates);
@@ -65,6 +72,8 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         stored.Status.ShouldBe("Ready");
         stored.ContentType.ShouldBe("text/plain");
         stored.Size.ShouldBe(bytes.Length);
+        stored.VersionId.ShouldBe(file.VersionId!.Value);
+        stored.ContentUpdateAttemptId.ShouldBeNull();
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{Route}/{file.Id.Value}/download-url");
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, (ownerId ?? actorId).ToString());
         request.Headers.Add(
@@ -148,6 +157,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
     [InlineData("missing", 404)]
     [InlineData("deleted", 404)]
     [InlineData("deleting", 409)]
+    [InlineData("updating", 409)]
     [InlineData("folder-missing", 404)]
     [InlineData("folder-type", 400)]
     [InlineData("folder-owner", 400)]
@@ -165,6 +175,14 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         if (kind == "deleting")
         {
             file.BeginDeletion();
+        }
+        if (kind == "updating")
+        {
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(5).Value,
+                FileVersionId.Create("initial").Value);
+            file.BeginContentUpdate();
         }
         await SaveAsync(file, original, folder);
         if (kind == "deleted")
@@ -193,6 +211,9 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         stored.Type.ShouldBe("Personal");
         stored.UserId.ShouldBe(actorId);
         stored.FolderId.ShouldBe(original.Id.Value);
+        stored.Status.ShouldBe(file.Status.Name);
+        stored.VersionId.ShouldBe(file.VersionId?.Value);
+        stored.ContentUpdateAttemptId.ShouldBe(file.ContentUpdateAttemptId?.Value);
         stored.StorageKey.ShouldBe(file.StorageKey.Value);
     }
 

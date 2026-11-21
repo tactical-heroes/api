@@ -36,19 +36,25 @@ public sealed class MoveFileHandlerTests
     [InlineData("Personal", "file-manager.personal-files.update.all", true)]
     [InlineData("Avatar", "file-manager.avatars.update", false)]
     public async Task HandleAsync_Should_UpdateOnlyTheFile_When_DestinationIsCompatible(
-        string type, string permission, bool foreignOwner)
+        string type,
+        string permission,
+        bool foreignOwner)
     {
         _user.HasPermission(permission).Returns(true);
         var ownerId = foreignOwner ? Guid.NewGuid() : _userId;
         var folder = CreateFolder(type, ownerId);
         var file = CreateFile(type, ownerId);
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
         var key = file.StorageKey;
 
         var result = await CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value, folder.Id.Value), TestContext.Current.CancellationToken);
+            new MoveFileCommand(file.Id.Value, folder.Id.Value),
+            TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         file.FolderId.ShouldBe(folder.Id);
@@ -74,7 +80,8 @@ public sealed class MoveFileHandlerTests
         _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var pending = CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value, folder.Id.Value), TestContext.Current.CancellationToken);
+            new MoveFileCommand(file.Id.Value, folder.Id.Value),
+            TestContext.Current.CancellationToken);
         var fileWasRead = _files.ReceivedCalls().Any();
         var folderWasRead = _folders.ReceivedCalls().Any();
         acquisition.SetResult();
@@ -95,7 +102,8 @@ public sealed class MoveFileHandlerTests
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var result = await CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value), TestContext.Current.CancellationToken);
+            new MoveFileCommand(file.Id.Value),
+            TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         file.FolderId.ShouldBeNull();
@@ -116,7 +124,8 @@ public sealed class MoveFileHandlerTests
         }
 
         var result = await CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value, Guid.NewGuid()), TestContext.Current.CancellationToken);
+            new MoveFileCommand(file.Id.Value, Guid.NewGuid()),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.NotFound, "File was not found.");
         _files.DidNotReceiveWithAnyArgs().Update(default!);
@@ -139,7 +148,8 @@ public sealed class MoveFileHandlerTests
         }
 
         var result = await CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value, folder.Id.Value), TestContext.Current.CancellationToken);
+            new MoveFileCommand(file.Id.Value, folder.Id.Value),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.NotFound, "Folder was not found.");
         file.FolderId.ShouldBeNull();
@@ -150,7 +160,8 @@ public sealed class MoveFileHandlerTests
     [InlineData("Avatar", false)]
     [InlineData("Personal", true)]
     public async Task HandleAsync_Should_PreservePlacement_When_DestinationIsIncompatible(
-        string destinationType, bool differentOwner)
+        string destinationType,
+        bool differentOwner)
     {
         _user.HasPermission("file-manager.personal-files.update.all").Returns(true);
         _user.HasPermission("file-manager.avatars.update").Returns(true);
@@ -162,7 +173,8 @@ public sealed class MoveFileHandlerTests
         _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var result = await CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value, folder.Id.Value), TestContext.Current.CancellationToken);
+            new MoveFileCommand(file.Id.Value, folder.Id.Value),
+            TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
@@ -185,7 +197,8 @@ public sealed class MoveFileHandlerTests
         _folders.GetByIdAsync(folder.Id, Arg.Any<CancellationToken>()).Returns(folder);
 
         var result = await CreateHandler().HandleAsync(
-            new MoveFileCommand(file.Id.Value, detach ? null : folder.Id.Value), TestContext.Current.CancellationToken);
+            new MoveFileCommand(file.Id.Value, detach ? null : folder.Id.Value),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "A file being deleted cannot be moved.");
         file.FolderId.ShouldBe(folder.Id);
@@ -212,7 +225,8 @@ public sealed class MoveFileHandlerTests
         return File.Create(
             FileName.Create("file.txt").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(ownerId).Value : null).Value;
+            type == "Personal" ? UserId.Create(ownerId).Value : null)
+            .Value;
     }
 
     private static Folder CreateFolder(string type, Guid ownerId)
@@ -220,13 +234,16 @@ public sealed class MoveFileHandlerTests
         return Folder.Create(
             FolderName.Create("Documents").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(ownerId).Value : null).Value;
+            type == "Personal" ? UserId.Create(ownerId).Value : null)
+            .Value;
     }
 
     private MoveFileHandler CreateHandler()
     {
         var policy = new FileAccessPolicy(_user);
         return new MoveFileHandler(
-            _files, new FolderAccessService(_folders, _hierarchyLock, new FolderAccessPolicy(_user, policy)), policy);
+            _files,
+            new FolderAccessService(_folders, _hierarchyLock, new FolderAccessPolicy(_user, policy)),
+            policy);
     }
 }

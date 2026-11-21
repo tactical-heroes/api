@@ -14,8 +14,11 @@ public sealed class FolderDeletedHandler(IFilesRepository filesRepository) : IEv
             cancellationToken: cancellationToken);
         foreach (var file in files)
         {
-            file.BeginDeletion();
-            filesRepository.Update(file);
+            var result = file.BeginDeletion();
+            if (result.IsSuccess)
+            {
+                filesRepository.Update(file);
+            }
         }
     }
 }

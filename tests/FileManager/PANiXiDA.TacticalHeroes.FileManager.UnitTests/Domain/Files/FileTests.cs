@@ -23,11 +23,13 @@ public sealed class FileTests
         var file = File.Create(
             name,
             type,
-            userId).Value;
+            userId)
+            .Value;
         var other = File.Create(
             name,
             type,
-            userId).Value;
+            userId)
+            .Value;
 
         var expected = type == FileType.Personal
             ? $"personal/{userId!.Value.Value:D}/{file.Id.Value:D}"
@@ -47,12 +49,14 @@ public sealed class FileTests
         var file = File.Create(
             FileName.Create("file.png").Value,
             type,
-            userId).Value;
+            userId)
+            .Value;
         var key = file.StorageKey;
         var folder = Folder.Create(
             FolderName.Create("Original").Value,
             type,
-            userId).Value;
+            userId)
+            .Value;
         var destination = folder.CreateChild(FolderName.Create("Destination").Value);
 
         file.Rename(FileName.Create("renamed.webp").Value).IsSuccess.ShouldBeTrue();
@@ -60,7 +64,8 @@ public sealed class FileTests
         file.MoveTo(destination).IsSuccess.ShouldBeTrue();
         file.CompleteUpload(
             FileContentType.Create("image/png").Value,
-            FileSize.Create(128).Value)
+            FileSize.Create(128).Value,
+            FileVersionId.Create("initial").Value)
             .IsSuccess
             .ShouldBeTrue();
         file.BeginDeletion().IsSuccess.ShouldBeTrue();
@@ -77,7 +82,8 @@ public sealed class FileTests
         var file = File.Create(
             name,
             fileType,
-            userId: null).Value;
+            userId: null)
+            .Value;
 
         file.Id.Value.Version.ShouldBe(7);
         file.Name.ShouldBe(name);
@@ -95,7 +101,9 @@ public sealed class FileTests
     [InlineData("Personal", false, false)]
     [InlineData("Personal", true, true)]
     public void Create_Should_RequireUserIdOnlyForPersonalFiles_When_OwnershipVaries(
-        string typeName, bool owned, bool valid)
+        string typeName,
+        bool owned,
+        bool valid)
     {
         UserId? userId = owned ? UserId.Create(Guid.CreateVersion7()).Value : null;
 
@@ -183,7 +191,8 @@ public sealed class FileTests
         var folder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
 
         var result = file.MoveTo(folder);
 
@@ -227,7 +236,8 @@ public sealed class FileTests
         var originalFolder = Folder.Create(
             name: FolderName.Create("Avatars").Value,
             allowedFileType: FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
         var destination = originalFolder.CreateChild(FolderName.Create("Players").Value);
         file.MoveTo(originalFolder);
 
@@ -248,16 +258,19 @@ public sealed class FileTests
         var file = File.Create(
             name: FileName.Create("personal.png").Value,
             type: FileType.Personal,
-            userId: userId).Value;
+            userId: userId)
+            .Value;
         var originalFolder = Folder.Create(
             name: FolderName.Create("Personal").Value,
             allowedFileType: FileType.Personal,
-            userId: userId).Value;
+            userId: userId)
+            .Value;
         file.MoveTo(originalFolder).IsSuccess.ShouldBeTrue();
         var destination = Folder.Create(
             name: FolderName.Create("Documents").Value,
             allowedFileType: FileType.Personal,
-            userId: sameOwner ? userId : UserId.Create(Guid.CreateVersion7()).Value).Value;
+            userId: sameOwner ? userId : UserId.Create(Guid.CreateVersion7()).Value)
+            .Value;
 
         var result = file.MoveTo(destination);
 
@@ -280,11 +293,13 @@ public sealed class FileTests
         var file = File.Create(
             name: FileName.Create("image.png").Value,
             type: FileType.FromName(fileType),
-            userId: fileType == "Personal" ? userId : null).Value;
+            userId: fileType == "Personal" ? userId : null)
+            .Value;
         var folder = Folder.Create(
             name: FolderName.Create("Images").Value,
             allowedFileType: FileType.FromName(folderType),
-            userId: folderType == "Personal" ? userId : null).Value;
+            userId: folderType == "Personal" ? userId : null)
+            .Value;
 
         var result = file.MoveTo(folder);
 
@@ -303,7 +318,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             contentType,
-            size);
+            size,
+            FileVersionId.Create("initial").Value);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
@@ -320,7 +336,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             contentType,
-            size);
+            size,
+            FileVersionId.Create("initial").Value);
 
         result.IsSuccess.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.Ready);
@@ -332,7 +349,8 @@ public sealed class FileTests
     [InlineData("image/webp", 128)]
     [InlineData("image/png", 129)]
     public void CompleteUpload_Should_ReturnConflict_When_ContentDiffers(
-        string contentType, long size)
+        string contentType,
+        long size)
     {
         var file = CreateFile("Ready");
         var originalContentType = file.ContentType;
@@ -340,7 +358,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             FileContentType.Create(contentType).Value,
-            FileSize.Create(size).Value);
+            FileSize.Create(size).Value,
+            FileVersionId.Create("initial").Value);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "File content cannot be replaced after upload.");
         file.Status.ShouldBe(FileStatus.Ready);
@@ -358,7 +377,8 @@ public sealed class FileTests
 
         var result = file.CompleteUpload(
             contentType,
-            size);
+            size,
+            FileVersionId.Create("initial").Value);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "Only pending uploads can be completed.");
         file.Status.Name.ShouldBe(status);
@@ -371,7 +391,8 @@ public sealed class FileTests
     [InlineData("Ready", "Deleting")]
     [InlineData("Deleting", "Deleting")]
     public void BeginDeletion_Should_RespectLifecycle_When_StatusIsProvided(
-        string status, string expectedStatus)
+        string status,
+        string expectedStatus)
     {
         var file = CreateFile(status);
         var contentType = file.ContentType;
@@ -385,6 +406,138 @@ public sealed class FileTests
         file.Size.ShouldBeSameAs(size);
     }
 
+    [Fact(DisplayName = "Content update should retain the active version when update starts")]
+    public void BeginContentUpdate_Should_RetainActiveContent_When_UpdateStarts()
+    {
+        var file = CreateFile("Ready");
+        var key = file.StorageKey;
+        var size = file.Size;
+        var version = FileVersionId.Create("initial").Value;
+
+        var result = file.BeginContentUpdate();
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Value.Version.ShouldBe(7);
+        file.ContentUpdateAttemptId.ShouldBe(result.Value);
+        file.VersionId.ShouldBe(version);
+        file.StorageKey.ShouldBeSameAs(key);
+        file.Size.ShouldBeSameAs(size);
+        file.Status.ShouldBe(FileStatus.Updating);
+        file.GetDownloadContentType().IsSuccess.ShouldBeTrue();
+        file.BeginContentUpdate().IsFailure.ShouldBeTrue();
+        file.Rename(FileName.Create("renamed.txt").Value).IsFailure.ShouldBeTrue();
+        file.MoveTo(null).IsFailure.ShouldBeTrue();
+        file.BeginDeletion().IsFailure.ShouldBeTrue();
+        file.CompleteUpload(
+            file.ContentType!,
+            file.Size!,
+            FileVersionId.Create("initial").Value)
+            .IsFailure
+            .ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "Content update should require its operation and a new version when update is completed")]
+    [InlineData(true, true, true, true)]
+    [InlineData(true, false, true, false)]
+    [InlineData(true, true, false, false)]
+    [InlineData(false, false, true, false)]
+    public void CompleteContentUpdate_Should_RequireMatchingOperation_When_UpdateIsCompleted(
+        bool updating,
+        bool matching,
+        bool newVersion,
+        bool success)
+    {
+        var file = CreateFile("Ready");
+        var key = file.StorageKey;
+        var size = file.Size;
+        var contentType = file.ContentType;
+        var initial = FileVersionId.Create("initial").Value;
+        file.CompleteUpload(contentType!, size!, initial);
+        var operation = updating ? file.BeginContentUpdate().Value : FileContentUpdateAttemptId.New();
+        var supplied = matching ? operation : FileContentUpdateAttemptId.New();
+        var version = FileVersionId.Create(newVersion ? "replacement" : "initial").Value;
+
+        var result = file.CompleteContentUpdate(
+            supplied,
+            FileContentType.Create("image/png").Value,
+            FileSize.Create(9).Value,
+            version);
+
+        result.IsSuccess.ShouldBe(success);
+        file.StorageKey.ShouldBe(key);
+        file.ContentUpdateAttemptId.ShouldBe(success || !updating ? null : operation);
+        file.VersionId.ShouldBe(success ? version : initial);
+        file.Size.ShouldBe(success ? FileSize.Create(9).Value : size);
+        file.ContentType.ShouldBe(success ? FileContentType.Create("image/png").Value : contentType);
+        file.Status.ShouldBe(success || !updating ? FileStatus.Ready : FileStatus.Updating);
+    }
+
+    [Theory(DisplayName = "Content update should reject files when file is not ready")]
+    [InlineData("PendingUpload")]
+    [InlineData("Deleting")]
+    public void BeginContentUpdate_Should_RejectFile_When_FileIsNotReady(string status)
+    {
+        var file = CreateFile(status);
+
+        var result = file.BeginContentUpdate();
+
+        result.IsFailure.ShouldBeTrue();
+        file.Status.Name.ShouldBe(status);
+        file.ContentUpdateAttemptId.ShouldBeNull();
+    }
+
+    [Theory(DisplayName = "Content update should restore active content when a matching attempt is cancelled")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CancelContentUpdate_Should_RestoreActiveContent_When_AMatchingAttemptIsCancelled(bool matching)
+    {
+        var file = CreateFile("Ready");
+        var key = file.StorageKey;
+        var contentType = file.ContentType;
+        var size = file.Size;
+        var version = FileVersionId.Create("initial").Value;
+        var operation = file.BeginContentUpdate().Value;
+
+        var result = file.CancelContentUpdate(matching ? operation : FileContentUpdateAttemptId.New());
+
+        result.IsSuccess.ShouldBe(matching);
+        file.StorageKey.ShouldBe(key);
+        file.VersionId.ShouldBe(version);
+        file.ContentType.ShouldBe(contentType);
+        file.Size.ShouldBe(size);
+        file.Status.ShouldBe(matching ? FileStatus.Ready : FileStatus.Updating);
+        file.ContentUpdateAttemptId.ShouldBe(matching ? null : operation);
+        if (matching)
+        {
+            var next = file.BeginContentUpdate().Value;
+            next.ShouldNotBe(operation);
+            file.CompleteContentUpdate(
+                operation,
+                contentType!,
+                size!,
+                FileVersionId.Create("late").Value)
+                .IsFailure
+                .ShouldBeTrue();
+            file.CancelContentUpdate(operation).IsFailure.ShouldBeTrue();
+        }
+    }
+
+    [Fact(DisplayName = "Upload completion should reject a different version when metadata is identical")]
+    public void CompleteUpload_Should_RejectDifferentVersion_When_MetadataIsIdentical()
+    {
+        var file = CreateFile("Ready");
+        var version = FileVersionId.Create("initial").Value;
+        file.CompleteUpload(file.ContentType!, file.Size!, version);
+
+        var result = file.CompleteUpload(
+            file.ContentType!,
+            file.Size!,
+            FileVersionId.Create("different").Value);
+
+        result.IsFailure.ShouldBeTrue();
+        file.VersionId.ShouldBe(version);
+    }
+
     [Theory(DisplayName = "File update should preserve stored content when type and owner change")]
     [InlineData("Personal", "Personal", false)]
     [InlineData("Personal", "Avatar", true)]
@@ -394,7 +547,8 @@ public sealed class FileTests
         string sourceType, string targetType, bool detach)
     {
         var file = CreateFileWithType(sourceType);
-        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(5).Value);
+        var version = FileVersionId.Create("initial").Value;
+        file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(5).Value, version);
         var key = file.StorageKey;
         var owner = targetType == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
         var type = FileType.FromName(targetType);
@@ -409,6 +563,8 @@ public sealed class FileTests
         file.FolderId.ShouldBe(detach ? null : folder.Id);
         file.StorageKey.ShouldBeSameAs(key);
         file.Status.ShouldBe(FileStatus.Ready);
+        file.VersionId.ShouldBe(version);
+        file.ContentUpdateAttemptId.ShouldBeNull();
         file.ContentType!.Value.ShouldBe("text/plain");
         file.Size!.Value.ShouldBe(5);
     }
@@ -419,6 +575,7 @@ public sealed class FileTests
     [InlineData("folder-type")]
     [InlineData("folder-owner")]
     [InlineData("deleting")]
+    [InlineData("updating")]
     public void Update_Should_PreserveAllFields_When_ProposedMetadataIsIncompatible(string kind)
     {
         var file = CreateFileWithType("Personal");
@@ -434,19 +591,31 @@ public sealed class FileTests
         {
             file.BeginDeletion();
         }
+        if (kind == "updating")
+        {
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(5).Value,
+                FileVersionId.Create("initial").Value);
+            file.BeginContentUpdate();
+        }
+        var version = file.VersionId;
+        var attempt = file.ContentUpdateAttemptId;
         var status = file.Status;
         var key = file.StorageKey;
 
         var result = file.Update(FileName.Create("renamed.txt").Value, type, owner, destination);
 
         result.IsFailure.ShouldBeTrue();
-        result.Errors
-            .ShouldAllBe(error => error.Type == (kind == "deleting" ? ErrorType.Conflict : ErrorType.Validation));
+        var expectedErrorType = kind is "deleting" or "updating" ? ErrorType.Conflict : ErrorType.Validation;
+        result.Errors.ShouldAllBe(error => error.Type == expectedErrorType);
         file.Name.Value.ShouldBe("before.txt");
         file.Type.ShouldBe(FileType.Personal);
         file.UserId.ShouldBe(original.UserId);
         file.FolderId.ShouldBe(original.Id);
         file.Status.ShouldBe(status);
+        file.VersionId.ShouldBe(version);
+        file.ContentUpdateAttemptId.ShouldBe(attempt);
         file.StorageKey.ShouldBeSameAs(key);
     }
 
@@ -455,13 +624,15 @@ public sealed class FileTests
         var file = File.Create(
             FileName.Create("avatar.png").Value,
             FileType.Avatar,
-            userId: null).Value;
+            userId: null)
+            .Value;
 
         if (status == "Ready")
         {
             file.CompleteUpload(
                 FileContentType.Create("image/png").Value,
-                FileSize.Create(128).Value);
+                FileSize.Create(128).Value,
+                FileVersionId.Create("initial").Value);
         }
         else if (status == "Deleting")
         {

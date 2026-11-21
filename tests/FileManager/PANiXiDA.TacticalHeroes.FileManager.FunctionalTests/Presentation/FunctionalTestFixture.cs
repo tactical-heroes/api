@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using Npgsql;
+
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
@@ -63,7 +65,21 @@ public class FunctionalTestFixture : IAsyncLifetime
 
     public async Task ResetDatabaseAsync(CancellationToken cancellationToken)
     {
-        await _database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+        const int MaxAttempts = 3;
+        for (var attempt = 0; attempt < MaxAttempts; attempt++)
+        {
+            try
+            {
+                await _database.ResetPostgreSqlDatabaseAsync(cancellationToken);
+                break;
+            }
+            catch (PostgresException exception) when (
+                exception.SqlState == PostgresErrorCodes.DeadlockDetected && attempt + 1 < MaxAttempts)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
+            }
+        }
+
         await Storage.ResetAsync(cancellationToken);
     }
 

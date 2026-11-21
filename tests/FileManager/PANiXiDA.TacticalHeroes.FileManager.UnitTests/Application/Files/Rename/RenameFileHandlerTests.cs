@@ -30,13 +30,19 @@ public sealed class RenameFileHandlerTests
     [InlineData("Avatar", "PendingUpload", "file-manager.avatars.update", false)]
     [InlineData("Avatar", "Ready", "file-manager.avatars.update", false)]
     public async Task HandleAsync_Should_PreserveContentMetadata_When_RenameIsPermitted(
-        string type, string status, string permission, bool foreignOwner)
+        string type,
+        string status,
+        string permission,
+        bool foreignOwner)
     {
         _user.HasPermission(permission).Returns(true);
         var file = CreateFile(type, foreignOwner ? Guid.NewGuid() : _userId);
         if (status == "Ready")
         {
-            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(4).Value);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(4).Value,
+                FileVersionId.Create("initial").Value);
         }
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
         var key = file.StorageKey;
@@ -45,7 +51,8 @@ public sealed class RenameFileHandlerTests
         var size = file.Size;
 
         var result = await CreateHandler().HandleAsync(
-            new RenameFileCommand(file.Id.Value, " отчёт.txt "), TestContext.Current.CancellationToken);
+            new RenameFileCommand(file.Id.Value, " отчёт.txt "),
+            TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         file.Name.Value.ShouldBe("отчёт.txt");
@@ -65,14 +72,17 @@ public sealed class RenameFileHandlerTests
     [InlineData("Avatar", false, "file-manager.avatars.read")]
     [InlineData("Avatar", false, "file-manager.personal-files.update.all")]
     public async Task HandleAsync_Should_ConcealFile_When_UpdateIsDenied(
-        string type, bool foreignOwner, string permission)
+        string type,
+        bool foreignOwner,
+        string permission)
     {
         _user.HasPermission(permission).Returns(true);
         var file = CreateFile(type, foreignOwner ? Guid.NewGuid() : _userId);
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var result = await CreateHandler().HandleAsync(
-            new RenameFileCommand(file.Id.Value, "new.txt"), TestContext.Current.CancellationToken);
+            new RenameFileCommand(file.Id.Value, "new.txt"),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.NotFound, "File was not found.");
         file.Name.Value.ShouldBe("file.txt");
@@ -90,7 +100,8 @@ public sealed class RenameFileHandlerTests
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var result = await CreateHandler().HandleAsync(
-            new RenameFileCommand(file.Id.Value, "new.txt"), TestContext.Current.CancellationToken);
+            new RenameFileCommand(file.Id.Value, "new.txt"),
+            TestContext.Current.CancellationToken);
 
         result.ShouldHaveSingleError(ErrorType.Conflict, "A file being deleted cannot be renamed.");
         file.Status.ShouldBe(FileStatus.Deleting);
@@ -126,7 +137,8 @@ public sealed class RenameFileHandlerTests
         _files.GetByIdAsync(file.Id, Arg.Any<CancellationToken>()).Returns(file);
 
         var result = await CreateHandler().HandleAsync(
-            new RenameFileCommand(file.Id.Value, name), TestContext.Current.CancellationToken);
+            new RenameFileCommand(file.Id.Value, name),
+            TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
@@ -140,7 +152,8 @@ public sealed class RenameFileHandlerTests
         return File.Create(
             name: FileName.Create("file.txt").Value,
             type: fileType,
-            userId: fileType == FileType.Personal ? UserId.Create(ownerId).Value : null).Value;
+            userId: fileType == FileType.Personal ? UserId.Create(ownerId).Value : null)
+            .Value;
     }
 
     private RenameFileHandler CreateHandler()

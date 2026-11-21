@@ -46,6 +46,29 @@ public sealed class FilesRepository(
             cancellationToken);
     }
 
+    public IAsyncEnumerable<File> GetUpdatingFilesAsync(CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+        var updatedBefore = now.Subtract(options.Value.MinimumAge).UtcDateTime;
+        var expiresBefore = now.Subtract(options.Value.ExpirationAge).UtcDateTime;
+
+        return GetFilesAsync(
+            Query.Where(file => file.Status == FileStatus.Updating
+                && EF.Property<DateTime>(file, EfConstants.UpdatedAt) >= expiresBefore
+                && EF.Property<DateTime>(file, EfConstants.UpdatedAt) < updatedBefore),
+            cancellationToken);
+    }
+
+    public IAsyncEnumerable<File> GetExpiredContentUpdatesAsync(CancellationToken cancellationToken)
+    {
+        var expiresBefore = timeProvider.GetUtcNow().Subtract(options.Value.ExpirationAge).UtcDateTime;
+
+        return GetFilesAsync(
+            Query.Where(file => file.Status == FileStatus.Updating
+                && EF.Property<DateTime>(file, EfConstants.UpdatedAt) < expiresBefore),
+            cancellationToken);
+    }
+
     public IAsyncEnumerable<File> GetExpiredUploadsAsync(CancellationToken cancellationToken)
     {
         var expiresBefore = timeProvider.GetUtcNow().Subtract(options.Value.ExpirationAge).UtcDateTime;

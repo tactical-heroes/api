@@ -41,14 +41,17 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         var lockingDb = lockingScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         await using var transaction = await lockingDb.Database.BeginTransactionAsync(ct);
         await lockingDb.Database.ExecuteSqlInterpolatedAsync(
-            $"SELECT 1 FROM file_manager.folders WHERE id = {child.Id.Value} FOR UPDATE", ct);
+            $"SELECT 1 FROM file_manager.folders WHERE id = {child.Id.Value} FOR UPDATE",
+            ct);
         HttpStatusCode status;
         bool childVisible;
 
         try
         {
             using var response = await SendAsync(
-                root.Id.Value, userId.ToString(), "file-manager.personal-files.delete.own");
+                root.Id.Value,
+                userId.ToString(),
+                "file-manager.personal-files.delete.own");
             status = response.StatusCode;
             await WaitForCascadeAsync([root], [file]);
             await using var readScope = Fixture.CreateScope();
@@ -149,7 +152,9 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         };
         var permission = type == "Personal" ? "file-manager.personal-files.delete.own" : "file-manager.avatars.delete";
         using var response = await SendAsync(
-            root.Id.Value, userId.ToString(), permission);
+            root.Id.Value,
+            userId.ToString(),
+            permission);
         using var otherResponse = await SendAsync(otherRoot.Id.Value, userId.ToString(), permission);
         await WaitForCascadeAsync([root, otherRoot], []);
         await creatingScope.ServiceProvider.TrackActivity()
@@ -209,7 +214,9 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         await SaveAsync([root, .. children], files);
 
         using var response = await SendAsync(
-            root.Id.Value, userId.ToString(), "file-manager.personal-files.delete.own");
+            root.Id.Value,
+            userId.ToString(),
+            "file-manager.personal-files.delete.own");
         await WaitForCascadeAsync([root, .. children], files);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
@@ -229,7 +236,9 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         var file = CreateFile(child, 1);
         await SaveAsync([root, child], [file]);
         using var response = await SendAsync(
-            root.Id.Value, userId.ToString(), "file-manager.personal-files.delete.own");
+            root.Id.Value,
+            userId.ToString(),
+            "file-manager.personal-files.delete.own");
         await WaitForCascadeAsync([root, child], [file]);
         await using var scope = Fixture.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
@@ -260,7 +269,10 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
     [InlineData("Avatar", false, "file-manager.personal-files.delete.all", false)]
     [InlineData("Avatar", false, "file-manager.avatars.read", false)]
     public async Task HandleAsync_Should_RespectPermissionScopes_When_TypeAndOwnershipVary(
-        string type, bool own, string permission, bool allowed)
+        string type,
+        bool own,
+        string permission,
+        bool allowed)
     {
         var userId = Guid.NewGuid();
         var folder = CreateFolder(type, own ? userId : Guid.NewGuid());
@@ -282,7 +294,8 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
     [InlineData("empty", 400)]
     [InlineData("anonymous", 401)]
     public async Task HandleAsync_Should_RejectRequest_When_IdentifierOrAuthenticationIsUnavailable(
-        string kind, int code)
+        string kind,
+        int code)
     {
         var userId = Guid.NewGuid();
         var folder = CreateFolder("Personal", userId);
@@ -290,7 +303,9 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         if (kind == "deleted")
         {
             using var initial = await SendAsync(
-                folder.Id.Value, userId.ToString(), "file-manager.personal-files.delete.own");
+                folder.Id.Value,
+                userId.ToString(),
+                "file-manager.personal-files.delete.own");
             initial.StatusCode.ShouldBe(HttpStatusCode.Accepted);
         }
 
@@ -307,7 +322,8 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         return Folder.Create(
             FolderName.Create("Root").Value,
             FileType.FromName(type),
-            type == "Personal" ? UserId.Create(userId).Value : null).Value;
+            type == "Personal" ? UserId.Create(userId).Value : null)
+            .Value;
     }
 
     private static File CreateFile(Folder folder, int index)
@@ -316,7 +332,10 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         file.MoveTo(folder);
         if (index % 3 != 0)
         {
-            file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(1).Value);
+            file.CompleteUpload(
+                FileContentType.Create("text/plain").Value,
+                FileSize.Create(1).Value,
+                FileVersionId.Create("initial").Value);
         }
         if (index % 3 == 2)
         {
@@ -342,7 +361,10 @@ public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fi
         {
             await using var content = new MemoryStream([1]);
             await storage.UploadAsync(
-                file.StorageKey.Value, content, "text/plain", TestContext.Current.CancellationToken);
+                file.StorageKey.Value,
+                content,
+                "text/plain",
+                TestContext.Current.CancellationToken);
         }
     }
 
