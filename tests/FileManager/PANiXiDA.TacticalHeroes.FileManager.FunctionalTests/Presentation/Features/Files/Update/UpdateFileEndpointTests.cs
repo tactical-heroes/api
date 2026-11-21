@@ -382,7 +382,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
             var download = await response.Content.ReadFromJsonAsync<GetFileDownloadUrlResponse>(ct);
             download.ShouldNotBeNull();
             using var client = new HttpClient();
-            (await client.GetByteArrayAsync(download.Url, ct)).ShouldBe(new byte[] { 1, 2, 3, 4 });
+            (await client.GetByteArrayAsync(download.Url, ct)).ShouldBe([1, 2, 3, 4]);
         }
         string copiedVersion;
         await using (var scope = Fixture.CreateScope())
