@@ -6,6 +6,7 @@ using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
@@ -59,7 +60,7 @@ public sealed class UpdateFileHandler(
             ownerId: ownerId.Value,
             folderId: folderId.Value,
             cancellationToken: cancellationToken);
-        if (result.IsFailure || file.RelocationAttemptId is null)
+        if (result.IsFailure || file.Status != FileStatus.Relocating)
         {
             return result;
         }

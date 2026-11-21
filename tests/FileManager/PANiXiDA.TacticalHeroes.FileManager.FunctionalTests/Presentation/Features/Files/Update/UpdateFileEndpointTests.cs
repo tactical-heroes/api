@@ -8,6 +8,7 @@ using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
@@ -84,7 +85,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         {
             stored.VersionId.ShouldNotBe(file.VersionId!.Value);
         }
-        stored.ContentUpdateAttemptId.ShouldBeNull();
+        stored.OperationAttemptId.ShouldBeNull();
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{Route}/{file.Id.Value}/download-url");
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, (ownerId ?? actorId).ToString());
         request.Headers.Add(
@@ -232,7 +233,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         stored.FolderId.ShouldBe(original.Id.Value);
         stored.Status.ShouldBe(file.Status.Name);
         stored.VersionId.ShouldBe(file.VersionId?.Value);
-        stored.ContentUpdateAttemptId.ShouldBe(file.ContentUpdateAttemptId?.Value);
+        stored.OperationAttemptId.ShouldBe(file.OperationAttemptId?.Value);
         stored.StorageKey.ShouldBe(file.StorageKey.Value);
     }
 
@@ -361,9 +362,28 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         file.Update(FileName.Create("relocated.txt").Value, FileType.Avatar, null, destination)
             .IsSuccess
             .ShouldBeTrue();
-        var attemptId = file.RelocationAttemptId!;
-        var destinationKey = file.RelocationStorageKey!;
+        var attemptId = file.OperationAttemptId!;
+        var destinationKey = file.GetTargetStorageKey();
         await SaveAsync(file, destination);
+        var pending = await ReadAsync(file.Id.Value);
+        pending.Name.ShouldBe("relocated.txt");
+        pending.Type.ShouldBe("Avatar");
+        pending.UserId.ShouldBeNull();
+        pending.FolderId.ShouldBe(destination.Id.Value);
+        pending.OperationAttemptId.ShouldBe(attemptId.Value);
+        pending.StorageKey.ShouldBe(oldKey.Value);
+        pending.VersionId.ShouldBe(oldVersion.Value);
+        using (var request = new HttpRequestMessage(HttpMethod.Get, $"{Route}/{file.Id.Value}/download-url"))
+        {
+            request.Headers.Add(TestAuthenticationHandler.UserIdHeader, actorId.ToString());
+            request.Headers.Add(TestAuthenticationHandler.PermissionsHeader, "file-manager.avatars.read");
+            using var response = await Fixture.Client.SendAsync(request, ct);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
+            var download = await response.Content.ReadFromJsonAsync<GetFileDownloadUrlResponse>(ct);
+            download.ShouldNotBeNull();
+            using var client = new HttpClient();
+            (await client.GetByteArrayAsync(download.Url, ct)).ShouldBe(new byte[] { 1, 2, 3, 4 });
+        }
         string copiedVersion;
         await using (var scope = Fixture.CreateScope())
         {
@@ -407,10 +427,10 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
 
         var stored = await ReadAsync(file.Id.Value);
         stored.Status.ShouldBe("Ready");
-        stored.StorageKey.ShouldBe(destinationDeleted ? oldKey.Value : destinationKey.Value);
-        stored.VersionId.ShouldBe(destinationDeleted ? oldVersion.Value : copiedVersion);
-        stored.Name.ShouldBe(destinationDeleted ? "before.txt" : "relocated.txt");
-        stored.FolderId.ShouldBe(destinationDeleted ? null : destination.Id.Value);
+        stored.StorageKey.ShouldBe(destinationKey.Value);
+        stored.VersionId.ShouldBe(copiedVersion);
+        stored.Name.ShouldBe("relocated.txt");
+        stored.FolderId.ShouldBe(destination.Id.Value);
         await using var verificationScope = Fixture.CreateScope();
         var storageAfter = verificationScope.ServiceProvider.GetRequiredService<IFileStorage>();
         var source = await storageAfter.GetMetadataAsync(oldKey.Value, oldVersion.Value, ct);
@@ -418,12 +438,26 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         var domain = await verificationScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
             .Set<File>()
             .SingleAsync(item => item.Id == file.Id, ct);
-        domain.RelocationAttemptId.ShouldBeNull();
-        domain.RelocationName.ShouldBeNull();
-        domain.RelocationType.ShouldBeNull();
-        domain.RelocationUserId.ShouldBeNull();
-        domain.RelocationFolderId.ShouldBeNull();
-        domain.RelocationStorageKey.ShouldBeNull();
+        domain.OperationAttemptId.ShouldBeNull();
+        if (destinationDeleted)
+        {
+            await using (var scope = Fixture.CreateScope())
+            {
+                var result = await scope.ServiceProvider.GetRequiredService<IMediator>()
+                    .SendAsync(new ReconcileFolderDeletionsCommand(), ct);
+                result.IsSuccess.ShouldBeTrue();
+            }
+            await WaitForDeletingAsync(file.Id.Value, ct);
+            await using (var scope = Fixture.CreateScope())
+            {
+                var result = await scope.ServiceProvider.GetRequiredService<IMediator>()
+                    .SendAsync(new ReconcileFileUploadsCommand(), ct);
+                result.IsSuccess.ShouldBeTrue();
+            }
+
+            (await ReadAsync(file.Id.Value)).DeletedAt.ShouldNotBeNull();
+            (await storageAfter.GetMetadataAsync(destinationKey.Value, ct)).ShouldBeNull();
+        }
     }
 
     private static File CreateFile(string type, Guid ownerId)
@@ -471,6 +505,22 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
             await Task.Delay(10, cancellationToken);
         }
         return false;
+    }
+
+    private async Task WaitForDeletingAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var deadline = TimeProvider.System.GetUtcNow().AddSeconds(20);
+        while (TimeProvider.System.GetUtcNow() < deadline)
+        {
+            if ((await ReadAsync(id)).Status == "Deleting")
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+        }
+
+        throw new TimeoutException("Folder deletion did not mark the relocated file for deletion.");
     }
 
     private async Task UploadFileAsync(File file)

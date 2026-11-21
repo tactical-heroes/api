@@ -32,13 +32,7 @@ public sealed class File : AggregateRoot<FileId>
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
     public FileVersionId? VersionId { get; private set; }
-    public FileOperationAttemptId? ContentUpdateAttemptId { get; private set; }
-    public FileOperationAttemptId? RelocationAttemptId { get; private set; }
-    public FileName? RelocationName { get; private set; }
-    public FileType? RelocationType { get; private set; }
-    public UserId? RelocationUserId { get; private set; }
-    public FolderId? RelocationFolderId { get; private set; }
-    public FileStorageKey? RelocationStorageKey { get; private set; }
+    public FileOperationAttemptId? OperationAttemptId { get; private set; }
 
     public static Result<File> Create(
         FileName name,
@@ -94,68 +88,33 @@ public sealed class File : AggregateRoot<FileId>
                 return Result.Failure(Error.Conflict("Only ready files can change type or owner."));
             }
 
-            RelocationAttemptId = FileOperationAttemptId.New();
-            RelocationName = name;
-            RelocationType = type;
-            RelocationUserId = userId;
-            RelocationFolderId = folder?.Id;
-            RelocationStorageKey = CreateStorageKey(id: Id, type: type, userId: userId);
+            OperationAttemptId = FileOperationAttemptId.New();
             Status = FileStatus.Relocating;
-
-            return Result.Success();
         }
 
         Name = name;
+        Type = type;
+        UserId = userId;
         FolderId = folder?.Id;
 
         return Result.Success();
     }
 
-    public Result CompleteRelocation(
-        FileOperationAttemptId attemptId,
-        FileVersionId versionId,
-        Folder? folder)
+    public FileStorageKey GetTargetStorageKey()
     {
-        if (Status != FileStatus.Relocating
-            || RelocationAttemptId != attemptId
-            || RelocationName is not { } name
-            || RelocationType is not { } type
-            || RelocationStorageKey is not { } storageKey)
-        {
-            return Result.Failure(Error.Conflict("File relocation is no longer available."));
-        }
-
-        if (RelocationFolderId != folder?.Id)
-        {
-            return Result.Failure(Error.Conflict("The destination folder is no longer available."));
-        }
-
-        var validation = ValidateFolder(folder: folder, type: type, userId: RelocationUserId);
-        if (validation.IsFailure)
-        {
-            return validation;
-        }
-
-        Name = name;
-        Type = type;
-        UserId = RelocationUserId;
-        FolderId = RelocationFolderId;
-        StorageKey = storageKey;
-        VersionId = versionId;
-        ClearRelocation();
-        Status = FileStatus.Ready;
-
-        return Result.Success();
+        return CreateStorageKey(id: Id, type: Type, userId: UserId);
     }
 
-    public Result CancelRelocation(FileOperationAttemptId attemptId)
+    public Result CompleteRelocation(FileOperationAttemptId attemptId, FileVersionId versionId)
     {
-        if (Status != FileStatus.Relocating || RelocationAttemptId != attemptId)
+        if (Status != FileStatus.Relocating || OperationAttemptId != attemptId)
         {
             return Result.Failure(Error.Conflict("File relocation is no longer available."));
         }
 
-        ClearRelocation();
+        StorageKey = GetTargetStorageKey();
+        VersionId = versionId;
+        OperationAttemptId = null;
         Status = FileStatus.Ready;
 
         return Result.Success();
@@ -263,10 +222,10 @@ public sealed class File : AggregateRoot<FileId>
                 Error.Conflict("Only ready file content can be replaced."));
         }
 
-        ContentUpdateAttemptId = FileOperationAttemptId.New();
+        OperationAttemptId = FileOperationAttemptId.New();
         Status = FileStatus.Updating;
 
-        return Result.Success(ContentUpdateAttemptId);
+        return Result.Success(OperationAttemptId);
     }
 
     public Result CompleteContentUpdate(
@@ -275,7 +234,7 @@ public sealed class File : AggregateRoot<FileId>
         FileSize size,
         FileVersionId versionId)
     {
-        if (Status != FileStatus.Updating || ContentUpdateAttemptId != contentUpdateAttemptId || VersionId == versionId)
+        if (Status != FileStatus.Updating || OperationAttemptId != contentUpdateAttemptId || VersionId == versionId)
         {
             return Result.Failure(Error.Conflict("File content upload is no longer available."));
         }
@@ -283,7 +242,7 @@ public sealed class File : AggregateRoot<FileId>
         ContentType = contentType;
         Size = size;
         VersionId = versionId;
-        ContentUpdateAttemptId = null;
+        OperationAttemptId = null;
         Status = FileStatus.Ready;
 
         return Result.Success();
@@ -291,12 +250,12 @@ public sealed class File : AggregateRoot<FileId>
 
     public Result CancelContentUpdate(FileOperationAttemptId contentUpdateAttemptId)
     {
-        if (Status != FileStatus.Updating || ContentUpdateAttemptId != contentUpdateAttemptId)
+        if (Status != FileStatus.Updating || OperationAttemptId != contentUpdateAttemptId)
         {
             return Result.Failure(Error.Conflict("File content upload is no longer available."));
         }
 
-        ContentUpdateAttemptId = null;
+        OperationAttemptId = null;
         Status = FileStatus.Ready;
 
         return Result.Success();
@@ -374,15 +333,5 @@ public sealed class File : AggregateRoot<FileId>
         }
 
         return Result.Success();
-    }
-
-    private void ClearRelocation()
-    {
-        RelocationAttemptId = null;
-        RelocationName = null;
-        RelocationType = null;
-        RelocationUserId = null;
-        RelocationFolderId = null;
-        RelocationStorageKey = null;
     }
 }

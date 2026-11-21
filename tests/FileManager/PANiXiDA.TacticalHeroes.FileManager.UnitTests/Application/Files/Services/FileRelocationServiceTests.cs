@@ -6,13 +6,11 @@ using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
@@ -29,14 +27,10 @@ public sealed class FileRelocationServiceTests
     [InlineData("missing-version")]
     [InlineData("wrong-version")]
     [InlineData("wrong-metadata")]
-    [InlineData("folder-deleted")]
-    [InlineData("folder-changed")]
     public async Task RelocateAsync_Should_RetainActiveContentUntilValidatedCopy_When_RecoveryPathsVary(string kind)
     {
         var ct = TestContext.Current.CancellationToken;
         var files = Substitute.For<IFilesRepository>();
-        var folders = Substitute.For<IFoldersRepository>();
-        var hierarchyLock = Substitute.For<IFolderHierarchyLock>();
         var storage = Substitute.For<IFileStorage>();
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var scheduler = Substitute.For<IScheduler>();
@@ -50,18 +44,9 @@ public sealed class FileRelocationServiceTests
         var owner = UserId.Create(Guid.NewGuid()).Value;
         var folder = Folder.Create(FolderName.Create("Target").Value, FileType.Personal, owner).Value;
         file.Update(FileName.Create("new.txt").Value, FileType.Personal, owner, folder).IsSuccess.ShouldBeTrue();
-        var attemptId = file.RelocationAttemptId!;
-        var destinationKey = file.RelocationStorageKey!;
+        var attemptId = file.OperationAttemptId!;
+        var destinationKey = file.GetTargetStorageKey();
         var sourceKey = file.StorageKey;
-        folders.GetUntrackedByIdAsync(folder.Id, ct).Returns(kind == "folder-deleted" ? null : folder);
-        if (kind == "folder-changed")
-        {
-            folders.GetUntrackedByIdAsync(folder.Id, ct).Returns(Folder.Create(
-                FolderName.Create("Other").Value,
-                FileType.Avatar,
-                null)
-                .Value);
-        }
         var metadata = new FileMetadata(
             "text/plain",
             4,
@@ -97,34 +82,36 @@ public sealed class FileRelocationServiceTests
                 file.VersionId!.Value.ShouldBe("source");
                 return new FileCopyResult(kind == "missing-version" ? null : "destination");
             });
-        var service = new FileRelocationService(files, folders, hierarchyLock, storage, unitOfWork, scheduler);
+        var service = new FileRelocationService(
+            files,
+            storage,
+            unitOfWork,
+            scheduler);
 
         var result = await service.RelocateAsync(file, ct);
 
         var unusable = kind is "missing-version" or "wrong-version" or "wrong-metadata";
-        var cancelled = kind is "folder-deleted" or "folder-changed";
-        result.IsSuccess.ShouldBe(!unusable && !cancelled);
+        result.IsSuccess.ShouldBe(!unusable);
         file.Status.ShouldBe(unusable ? FileStatus.Relocating : FileStatus.Ready);
-        file.StorageKey.ShouldBe(unusable || cancelled ? sourceKey : destinationKey);
-        file.VersionId!.Value.ShouldBe(unusable || cancelled ? "source" : "destination");
+        file.StorageKey.ShouldBe(unusable ? sourceKey : destinationKey);
+        file.VersionId!.Value.ShouldBe(unusable ? "source" : "destination");
+        file.Name.Value.ShouldBe("new.txt");
+        file.Type.ShouldBe(FileType.Personal);
+        file.UserId.ShouldBe(owner);
         if (!unusable)
         {
-            file.RelocationAttemptId.ShouldBeNull();
-            file.RelocationName.ShouldBeNull();
-            file.RelocationType.ShouldBeNull();
-            file.RelocationUserId.ShouldBeNull();
-            file.RelocationFolderId.ShouldBeNull();
-            file.RelocationStorageKey.ShouldBeNull();
+            file.OperationAttemptId.ShouldBeNull();
             files.Received(1).Update(file);
             await scheduler.Received(1).ScheduleAsync(
                 Arg.Is<CleanupFileVersionCommand>(command => command.FileId == file.Id.Value
-                    && command.StorageKey == (cancelled ? destinationKey.Value : sourceKey.Value)
-                    && command.VersionId == (cancelled ? "destination" : "source")),
+                    && command.StorageKey == sourceKey.Value
+                    && command.VersionId == "source"),
                 TimeSpan.FromDays(7),
                 ct);
         }
         else
         {
+            file.OperationAttemptId.ShouldBe(attemptId);
             files.DidNotReceiveWithAnyArgs().Update(default!);
             scheduler.ReceivedCalls().ShouldBeEmpty();
         }
@@ -147,8 +134,6 @@ public sealed class FileRelocationServiceTests
         var file = File.Create(FileName.Create("a.txt").Value, FileType.Avatar, null).Value;
         var service = new FileRelocationService(
             Substitute.For<IFilesRepository>(),
-            Substitute.For<IFoldersRepository>(),
-            Substitute.For<IFolderHierarchyLock>(),
             storage,
             Substitute.For<IUnitOfWork>(),
             Substitute.For<IScheduler>());

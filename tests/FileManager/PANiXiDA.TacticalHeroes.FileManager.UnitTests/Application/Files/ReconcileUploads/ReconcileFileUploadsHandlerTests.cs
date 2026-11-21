@@ -13,12 +13,10 @@ using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -481,7 +479,7 @@ public sealed class ReconcileFileUploadsHandlerTests
 
         file.Status.ShouldBe(FileStatus.Ready);
         file.StorageKey.ShouldBe(key);
-        file.ContentUpdateAttemptId.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
         file.VersionId!.Value.ShouldBe("initial");
         file.Size!.Value.ShouldBe(4);
         _files.DidNotReceive().Delete(file);
@@ -625,8 +623,6 @@ public sealed class ReconcileFileUploadsHandlerTests
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
             relocationService: new FileRelocationService(
                 _files,
-                Substitute.For<IFoldersRepository>(),
-                Substitute.For<IFolderHierarchyLock>(),
                 _fileStorage,
                 _unitOfWork,
                 Substitute.For<IScheduler>()));

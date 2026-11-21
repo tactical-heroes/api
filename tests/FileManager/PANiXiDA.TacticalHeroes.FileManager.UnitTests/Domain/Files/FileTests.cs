@@ -418,7 +418,7 @@ public sealed class FileTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Value.Version.ShouldBe(7);
-        file.ContentUpdateAttemptId.ShouldBe(result.Value);
+        file.OperationAttemptId.ShouldBe(result.Value);
         file.VersionId.ShouldBe(version);
         file.StorageKey.ShouldBeSameAs(key);
         file.Size.ShouldBeSameAs(size);
@@ -465,7 +465,7 @@ public sealed class FileTests
 
         result.IsSuccess.ShouldBe(success);
         file.StorageKey.ShouldBe(key);
-        file.ContentUpdateAttemptId.ShouldBe(success || !updating ? null : operation);
+        file.OperationAttemptId.ShouldBe(success || !updating ? null : operation);
         file.VersionId.ShouldBe(success ? version : initial);
         file.Size.ShouldBe(success ? FileSize.Create(9).Value : size);
         file.ContentType.ShouldBe(success ? FileContentType.Create("image/png").Value : contentType);
@@ -483,7 +483,7 @@ public sealed class FileTests
 
         result.IsFailure.ShouldBeTrue();
         file.Status.Name.ShouldBe(status);
-        file.ContentUpdateAttemptId.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
     }
 
     [Theory(DisplayName = "Content update should restore active content when a matching attempt is cancelled")]
@@ -506,7 +506,7 @@ public sealed class FileTests
         file.ContentType.ShouldBe(contentType);
         file.Size.ShouldBe(size);
         file.Status.ShouldBe(matching ? FileStatus.Ready : FileStatus.Updating);
-        file.ContentUpdateAttemptId.ShouldBe(matching ? null : operation);
+        file.OperationAttemptId.ShouldBe(matching ? null : operation);
         if (matching)
         {
             var next = file.BeginContentUpdate().Value;
@@ -538,12 +538,12 @@ public sealed class FileTests
         file.VersionId.ShouldBe(version);
     }
 
-    [Theory(DisplayName = "File update should switch content atomically when type and owner change")]
+    [Theory(DisplayName = "File update should apply metadata and retain active storage when scope changes")]
     [InlineData("Personal", "Personal", false)]
     [InlineData("Personal", "Avatar", true)]
     [InlineData("Avatar", "Personal", false)]
     [InlineData("Avatar", "Avatar", true)]
-    public void Update_Should_SwitchContentAtomically_When_TypeAndOwnerChange(
+    public void Update_Should_RetainActiveStorageWhileApplyingMetadata_When_ScopeChanges(
         string sourceType,
         string targetType,
         bool detach)
@@ -552,8 +552,6 @@ public sealed class FileTests
         var version = FileVersionId.Create("initial").Value;
         file.CompleteUpload(FileContentType.Create("text/plain").Value, FileSize.Create(5).Value, version);
         var key = file.StorageKey;
-        var originalName = file.Name;
-        var originalType = file.Type;
         var originalOwner = file.UserId;
         var owner = targetType == "Personal" ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
         var type = FileType.FromName(targetType);
@@ -562,134 +560,109 @@ public sealed class FileTests
         var result = file.Update(FileName.Create("renamed.txt").Value, type, owner, detach ? null : folder);
 
         result.IsSuccess.ShouldBeTrue();
+        file.Name.Value.ShouldBe("renamed.txt");
+        file.Type.ShouldBe(type);
+        file.UserId.ShouldBe(owner);
+        file.FolderId.ShouldBe(detach ? null : folder.Id);
+        file.StorageKey.ShouldBe(key);
+        file.VersionId.ShouldBe(version);
         var relocated = sourceType != targetType || originalOwner != owner;
         if (relocated)
         {
             file.Status.ShouldBe(FileStatus.Relocating);
-            file.StorageKey.ShouldBe(key);
-            file.VersionId.ShouldBe(version);
-            file.Name.ShouldBe(originalName);
-            file.Type.ShouldBe(originalType);
-            file.UserId.ShouldBe(originalOwner);
-            file.RelocationAttemptId.ShouldNotBeNull();
-            file.RelocationName!.Value.ShouldBe("renamed.txt");
-            file.RelocationType.ShouldBe(type);
-            file.RelocationUserId.ShouldBe(owner);
-            file.RelocationFolderId.ShouldBe(detach ? null : folder.Id);
-            file.RelocationStorageKey.ShouldNotBeNull();
+            file.OperationAttemptId.ShouldNotBeNull();
             file.GetDownloadContentType().IsSuccess.ShouldBeTrue();
             file.Rename(FileName.Create("blocked.txt").Value).IsFailure.ShouldBeTrue();
             file.MoveTo(null).IsFailure.ShouldBeTrue();
             file.BeginDeletion().IsFailure.ShouldBeTrue();
             file.BeginContentUpdate().IsFailure.ShouldBeTrue();
-            file.Update(originalName, originalType, originalOwner, null).IsFailure.ShouldBeTrue();
+            file.Update(file.Name, type, owner, null).IsFailure.ShouldBeTrue();
             file.CompleteUpload(file.ContentType!, file.Size!, version).IsFailure.ShouldBeTrue();
-            file.CompleteRelocation(
-                file.RelocationAttemptId!,
-                FileVersionId.Create("copied").Value,
-                detach ? null : folder)
+            file.CompleteRelocation(file.OperationAttemptId, FileVersionId.Create("copied").Value)
                 .IsSuccess
                 .ShouldBeTrue();
         }
 
-        file.Name.Value.ShouldBe("renamed.txt");
-        file.Type.ShouldBe(type);
-        file.UserId.ShouldBe(owner);
-        file.FolderId.ShouldBe(detach ? null : folder.Id);
         file.StorageKey.Value.ShouldBe(type == FileType.Personal
             ? $"personal/{owner!.Value.Value}/{file.Id.Value}"
             : $"avatar/{file.Id.Value}");
         file.Status.ShouldBe(FileStatus.Ready);
         file.VersionId!.Value.ShouldBe(relocated ? "copied" : "initial");
-        file.RelocationAttemptId.ShouldBeNull();
-        file.RelocationName.ShouldBeNull();
-        file.RelocationType.ShouldBeNull();
-        file.RelocationUserId.ShouldBeNull();
-        file.RelocationFolderId.ShouldBeNull();
-        file.RelocationStorageKey.ShouldBeNull();
-        file.ContentUpdateAttemptId.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
         file.ContentType!.Value.ShouldBe("text/plain");
         file.Size!.Value.ShouldBe(5);
     }
 
-    [Theory(DisplayName = "Relocation completion should require matching intent when destination or attempt changes")]
-    [InlineData("success")]
-    [InlineData("attempt")]
-    [InlineData("missing-folder")]
-    [InlineData("folder-owner")]
-    [InlineData("folder-type")]
-    public void CompleteRelocation_Should_RequireMatchingIntent_When_DestinationOrAttemptChanges(string kind)
-    {
-        var file = CreateFile("Ready");
-        var owner = UserId.Create(Guid.NewGuid()).Value;
-        var folder = Folder.Create(FolderName.Create("Target").Value, FileType.Personal, owner).Value;
-        file.Update(FileName.Create("target.txt").Value, FileType.Personal, owner, folder).IsSuccess.ShouldBeTrue();
-        var attemptId = file.RelocationAttemptId!;
-        var destinationKey = file.RelocationStorageKey!;
-        var key = file.StorageKey;
-        var oldVersion = file.VersionId;
-        var target = kind switch
-        {
-            "missing-folder" => null,
-            "folder-owner" => Folder.Create(
-                FolderName.Create("Other").Value,
-                FileType.Personal,
-                UserId.Create(Guid.NewGuid()).Value)
-                .Value,
-            "folder-type" => Folder.Create(FolderName.Create("Other").Value, FileType.Avatar, null).Value,
-            _ => folder
-        };
-        var success = kind == "success";
-
-        var result = file.CompleteRelocation(
-            kind == "attempt" ? FileOperationAttemptId.New() : attemptId,
-            FileVersionId.Create("initial").Value,
-            target);
-
-        result.IsSuccess.ShouldBe(success);
-        file.Status.ShouldBe(success ? FileStatus.Ready : FileStatus.Relocating);
-        file.StorageKey.ShouldBe(success ? destinationKey : key);
-        file.VersionId.ShouldBe(oldVersion);
-        file.RelocationAttemptId.ShouldBe(success ? null : attemptId);
-        file.RelocationName.ShouldBe(success ? null : FileName.Create("target.txt").Value);
-        file.RelocationType.ShouldBe(success ? null : FileType.Personal);
-        file.RelocationUserId.ShouldBe(success ? null : owner);
-        file.RelocationFolderId.ShouldBe(success ? null : folder.Id);
-        file.RelocationStorageKey.ShouldBe(success ? null : destinationKey);
-        if (success)
-        {
-            file.CompleteRelocation(attemptId, oldVersion!, target).IsFailure.ShouldBeTrue();
-        }
-    }
-
-    [Theory(DisplayName = "Relocation cancellation should preserve active content when attempts vary")]
+    [Theory(DisplayName = "File target key should follow current scope when metadata changes")]
     [InlineData(true)]
     [InlineData(false)]
-    public void CancelRelocation_Should_PreserveActiveContent_When_AttemptsVary(bool matches)
+    public void GetTargetStorageKey_Should_FollowCurrentScope_When_MetadataChanges(bool personal)
+    {
+        var file = CreateFileWithType(personal ? "Avatar" : "Personal");
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("active").Value);
+        var sourceKey = file.StorageKey;
+        var owner = personal ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
+        file.Update(file.Name, personal ? FileType.Personal : FileType.Avatar, owner, null).IsSuccess.ShouldBeTrue();
+
+        var targetKey = file.GetTargetStorageKey();
+
+        targetKey.Value.ShouldBe(personal
+            ? $"personal/{owner!.Value.Value}/{file.Id.Value}"
+            : $"avatar/{file.Id.Value}");
+        targetKey.ShouldNotBe(sourceKey);
+        file.StorageKey.ShouldBe(sourceKey);
+    }
+
+    [Theory(DisplayName = "Relocation completion should require the current attempt when operation state varies")]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void CompleteRelocation_Should_RequireCurrentAttempt_When_OperationStateVaries(bool relocating, bool matches)
     {
         var file = CreateFile("Ready");
-        var key = file.StorageKey;
-        var name = file.Name;
-        file.Update(name, FileType.Personal, UserId.Create(Guid.NewGuid()).Value, null);
-        var attemptId = file.RelocationAttemptId!;
-        var destinationKey = file.RelocationStorageKey!;
-
-        var result = file.CancelRelocation(matches ? attemptId : FileOperationAttemptId.New());
-
-        result.IsSuccess.ShouldBe(matches);
-        file.StorageKey.ShouldBe(key);
-        file.VersionId!.Value.ShouldBe("initial");
-        file.Name.ShouldBe(name);
-        file.Type.ShouldBe(FileType.Avatar);
-        file.Status.ShouldBe(matches ? FileStatus.Ready : FileStatus.Relocating);
-        file.RelocationAttemptId.ShouldBe(matches ? null : attemptId);
-        file.RelocationName.ShouldBe(matches ? null : name);
-        file.RelocationType.ShouldBe(matches ? null : FileType.Personal);
-        file.RelocationStorageKey.ShouldBe(matches ? null : destinationKey);
-        if (matches)
+        if (relocating)
         {
-            file.CancelRelocation(attemptId).IsFailure.ShouldBeTrue();
+            file.Update(file.Name, FileType.Personal, UserId.Create(Guid.NewGuid()).Value, null)
+                .IsSuccess
+                .ShouldBeTrue();
         }
+        var attemptId = file.OperationAttemptId ?? FileOperationAttemptId.New();
+        var sourceKey = file.StorageKey;
+        var targetKey = file.GetTargetStorageKey();
+        var success = relocating && matches;
+
+        var result = file.CompleteRelocation(
+            matches ? attemptId : FileOperationAttemptId.New(),
+            FileVersionId.Create("initial").Value);
+
+        result.IsSuccess.ShouldBe(success);
+        file.Status.ShouldBe(success || !relocating ? FileStatus.Ready : FileStatus.Relocating);
+        file.StorageKey.ShouldBe(success ? targetKey : sourceKey);
+        file.VersionId!.Value.ShouldBe("initial");
+        file.OperationAttemptId.ShouldBe(success || !relocating ? null : attemptId);
+    }
+
+    [Fact(DisplayName = "File operation identifier should be reused by both flows when operations run sequentially")]
+    public void BeginContentUpdate_Should_UseSharedOperationField_When_RelocationHasCompleted()
+    {
+        var file = CreateFile("Ready");
+        file.Update(file.Name, FileType.Personal, UserId.Create(Guid.NewGuid()).Value, null)
+            .IsSuccess
+            .ShouldBeTrue();
+        var relocationId = file.OperationAttemptId!;
+        file.CompleteRelocation(relocationId, FileVersionId.Create("copied").Value).IsSuccess.ShouldBeTrue();
+
+        var update = file.BeginContentUpdate();
+
+        update.IsSuccess.ShouldBeTrue();
+        file.OperationAttemptId.ShouldBe(update.Value);
+        update.Value.ShouldNotBe(relocationId);
+        file.Status.ShouldBe(FileStatus.Updating);
+        file.CancelContentUpdate(update.Value).IsSuccess.ShouldBeTrue();
+        file.OperationAttemptId.ShouldBeNull();
     }
 
     [Fact(DisplayName = "File update should reject scope changes when original upload is pending")]
@@ -702,12 +675,7 @@ public sealed class FileTests
 
         result.IsFailure.ShouldBeTrue();
         file.Status.ShouldBe(FileStatus.PendingUpload);
-        file.RelocationAttemptId.ShouldBeNull();
-        file.RelocationName.ShouldBeNull();
-        file.RelocationType.ShouldBeNull();
-        file.RelocationUserId.ShouldBeNull();
-        file.RelocationFolderId.ShouldBeNull();
-        file.RelocationStorageKey.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
         file.StorageKey.ShouldBe(key);
     }
 
@@ -743,7 +711,7 @@ public sealed class FileTests
             file.BeginContentUpdate();
         }
         var version = file.VersionId;
-        var attempt = file.ContentUpdateAttemptId;
+        var attempt = file.OperationAttemptId;
         var status = file.Status;
         var key = file.StorageKey;
 
@@ -758,7 +726,7 @@ public sealed class FileTests
         file.FolderId.ShouldBe(original.Id);
         file.Status.ShouldBe(status);
         file.VersionId.ShouldBe(version);
-        file.ContentUpdateAttemptId.ShouldBe(attempt);
+        file.OperationAttemptId.ShouldBe(attempt);
         file.StorageKey.ShouldBeSameAs(key);
     }
 

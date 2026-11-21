@@ -52,8 +52,6 @@ public sealed class UpdateFileHandlerTests
             unitOfWork,
             new FileRelocationService(
                 files,
-                folders,
-                hierarchyLock,
                 Substitute.For<IFileStorage>(),
                 unitOfWork,
                 Substitute.For<IScheduler>()));
@@ -93,8 +91,6 @@ public sealed class UpdateFileHandlerTests
             unitOfWork,
             new FileRelocationService(
                 files,
-                folders,
-                hierarchyLock,
                 Substitute.For<IFileStorage>(),
                 unitOfWork,
                 Substitute.For<IScheduler>()));
@@ -136,8 +132,6 @@ public sealed class UpdateFileHandlerTests
             unitOfWork,
             new FileRelocationService(
                 files,
-                folders,
-                hierarchyLock,
                 storage,
                 unitOfWork,
                 Substitute.For<IScheduler>()));
@@ -148,7 +142,7 @@ public sealed class UpdateFileHandlerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
-        file.RelocationAttemptId.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
         file.Type.ShouldBe(FileType.Avatar);
         unitOfWork.ReceivedCalls().ShouldBeEmpty();
         storage.ReceivedCalls().ShouldBeEmpty();

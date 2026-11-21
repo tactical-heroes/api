@@ -5,12 +5,9 @@ using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
@@ -18,8 +15,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 
 public sealed class FileRelocationService(
     IFilesRepository filesRepository,
-    IFoldersRepository foldersRepository,
-    IFolderHierarchyLock hierarchyLock,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
     IScheduler scheduler)
@@ -29,8 +24,7 @@ public sealed class FileRelocationService(
     public async Task<Result> RelocateAsync(File file, CancellationToken cancellationToken)
     {
         if (file.Status != FileStatus.Relocating
-            || file.RelocationAttemptId is not { } attemptId
-            || file.RelocationStorageKey is not { } destinationKey
+            || file.OperationAttemptId is not { } attemptId
             || file.VersionId is not { } sourceVersion
             || file.ContentType is not { } contentType
             || file.Size is not { } size)
@@ -38,6 +32,7 @@ public sealed class FileRelocationService(
             return Result.Failure(Error.Conflict("File relocation has no active content."));
         }
 
+        var destinationKey = file.GetTargetStorageKey();
         var metadata = await FindCopyAsync(
             attemptId: attemptId,
             destinationKey: destinationKey,
@@ -85,7 +80,6 @@ public sealed class FileRelocationService(
         return await CompleteAsync(
             file: file,
             attemptId: attemptId,
-            destinationKey: destinationKey,
             sourceVersion: sourceVersion,
             versionId: FileVersionId.Create(metadata.VersionId).Value,
             cancellationToken: cancellationToken);
@@ -137,7 +131,6 @@ public sealed class FileRelocationService(
     private async Task<Result> CompleteAsync(
         File file,
         FileOperationAttemptId attemptId,
-        FileStorageKey destinationKey,
         FileVersionId sourceVersion,
         FileVersionId versionId,
         CancellationToken cancellationToken)
@@ -147,41 +140,18 @@ public sealed class FileRelocationService(
         await unitOfWork.ExecuteInTransactionAsync(
             action: async token =>
             {
-                Folder? folder = null;
-                if (file.RelocationFolderId is { } folderId)
-                {
-                    await hierarchyLock.AcquireAsync(token);
-                    folder = await foldersRepository.GetUntrackedByIdAsync(folderId, token);
-                }
-
-                result = file.CompleteRelocation(
-                    attemptId: attemptId,
-                    versionId: versionId,
-                    folder: folder);
+                result = file.CompleteRelocation(attemptId, versionId);
                 if (result.IsFailure)
                 {
-                    var cancelled = file.CancelRelocation(attemptId);
-                    if (cancelled.IsFailure)
-                    {
-                        return;
-                    }
-
-                    await ScheduleCleanupAsync(
-                        file: file,
-                        key: destinationKey,
-                        versionId: versionId,
-                        cancellationToken: token);
-                }
-                else
-                {
-                    await ScheduleCleanupAsync(
-                        file: file,
-                        key: sourceKey,
-                        versionId: sourceVersion,
-                        cancellationToken: token);
+                    return;
                 }
 
                 filesRepository.Update(file);
+                await ScheduleCleanupAsync(
+                    file: file,
+                    key: sourceKey,
+                    versionId: sourceVersion,
+                    cancellationToken: token);
                 await unitOfWork.SaveChangesAsync(token);
             },
             cancellationToken: cancellationToken);

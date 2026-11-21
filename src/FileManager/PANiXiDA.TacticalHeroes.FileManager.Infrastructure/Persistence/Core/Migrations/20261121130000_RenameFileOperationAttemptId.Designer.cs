@@ -12,8 +12,8 @@ using System;
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
-    [Migration("20261121130000_AddFileRelocations")]
-    partial class AddFileRelocations
+    [Migration("20261121130000_RenameFileOperationAttemptId")]
+    partial class RenameFileOperationAttemptId
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -34,9 +34,9 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ContentUpdateAttemptId")
+                    b.Property<Guid?>("OperationAttemptId")
                         .HasColumnType("uuid")
-                        .HasColumnName("content_update_attempt_id");
+                        .HasColumnName("operation_attempt_id");
 
                     b.Property<string>("ContentType")
                         .HasMaxLength(255)
@@ -62,33 +62,6 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("name");
-
-                    b.Property<Guid?>("RelocationAttemptId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("relocation_attempt_id");
-
-                    b.Property<Guid?>("RelocationFolderId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("relocation_folder_id");
-
-                    b.Property<string>("RelocationName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("relocation_name");
-
-                    b.Property<string>("RelocationStorageKey")
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)")
-                        .HasColumnName("relocation_storage_key");
-
-                    b.Property<string>("RelocationType")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("relocation_type");
-
-                    b.Property<Guid?>("RelocationUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("relocation_user_id");
 
                     b.Property<long?>("Size")
                         .HasColumnType("bigint")

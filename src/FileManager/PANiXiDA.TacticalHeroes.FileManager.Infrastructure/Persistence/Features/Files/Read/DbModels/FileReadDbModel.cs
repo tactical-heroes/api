@@ -13,13 +13,7 @@ public sealed class FileReadDbModel : AuditableReadDbModel<Guid>
     public string? ContentType { get; set; }
     public long? Size { get; set; }
     public string? VersionId { get; set; }
-    public Guid? ContentUpdateAttemptId { get; set; }
-    public Guid? RelocationAttemptId { get; set; }
-    public string? RelocationName { get; set; }
-    public string? RelocationType { get; set; }
-    public Guid? RelocationUserId { get; set; }
-    public Guid? RelocationFolderId { get; set; }
-    public string? RelocationStorageKey { get; set; }
+    public Guid? OperationAttemptId { get; set; }
 
     public FolderReadDbModel? Folder { get; set; }
 }

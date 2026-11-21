@@ -15,10 +15,10 @@ namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Pe
 
 public sealed class FileRelocationPersistenceTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {
-    [Theory(DisplayName = "Relocation fields should survive reload and cancellation when target scope varies")]
+    [Theory(DisplayName = "Relocation should preserve its shared identifier when target scope varies")]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task SaveChangesAsync_Should_PersistAndClearRelocationFields_When_TargetScopeVaries(bool personal)
+    public async Task SaveChangesAsync_Should_PersistOperationAndMetadata_When_TargetScopeVaries(bool personal)
     {
         var ct = TestContext.Current.CancellationToken;
         var owner = UserId.Create(Guid.NewGuid()).Value;
@@ -43,8 +43,8 @@ public sealed class FileRelocationPersistenceTests(IntegrationTestFixture fixtur
         file.Update(FileName.Create("after.txt").Value, type, personal ? owner : null, folder)
             .IsSuccess
             .ShouldBeTrue();
-        var attemptId = file.RelocationAttemptId;
-        var destinationKey = file.RelocationStorageKey;
+        var attemptId = file.OperationAttemptId;
+        var destinationKey = file.GetTargetStorageKey();
         await using var scope = Fixture.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         db.Add(folder);
@@ -55,30 +55,27 @@ public sealed class FileRelocationPersistenceTests(IntegrationTestFixture fixtur
         var stored = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
 
         stored.Status.ShouldBe(FileStatus.Relocating);
-        stored.Name.Value.ShouldBe("before.txt");
+        stored.Name.Value.ShouldBe("after.txt");
+        stored.Type.ShouldBe(type);
+        stored.UserId.ShouldBe(personal ? owner : null);
+        stored.FolderId.ShouldBe(folder.Id);
         stored.StorageKey.ShouldBe(sourceKey);
         stored.VersionId!.Value.ShouldBe("active");
-        stored.RelocationAttemptId.ShouldBe(attemptId);
-        stored.RelocationName!.Value.ShouldBe("after.txt");
-        stored.RelocationType.ShouldBe(type);
-        stored.RelocationUserId.ShouldBe(personal ? owner : null);
-        stored.RelocationFolderId.ShouldBe(folder.Id);
-        stored.RelocationStorageKey.ShouldBe(destinationKey);
+        stored.OperationAttemptId.ShouldBe(attemptId);
+        stored.GetTargetStorageKey().ShouldBe(destinationKey);
 
-        stored.CancelRelocation(attemptId!).IsSuccess.ShouldBeTrue();
+        stored.CompleteRelocation(attemptId!, FileVersionId.Create("copied").Value).IsSuccess.ShouldBeTrue();
         await db.SaveChangesAsync(ct);
         db.ChangeTracker.Clear();
-        var cancelled = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
+        var completed = await db.Set<File>().SingleAsync(item => item.Id == file.Id, ct);
 
-        cancelled.Status.ShouldBe(FileStatus.Ready);
-        cancelled.Name.Value.ShouldBe("before.txt");
-        cancelled.StorageKey.ShouldBe(sourceKey);
-        cancelled.VersionId!.Value.ShouldBe("active");
-        cancelled.RelocationAttemptId.ShouldBeNull();
-        cancelled.RelocationName.ShouldBeNull();
-        cancelled.RelocationType.ShouldBeNull();
-        cancelled.RelocationUserId.ShouldBeNull();
-        cancelled.RelocationFolderId.ShouldBeNull();
-        cancelled.RelocationStorageKey.ShouldBeNull();
+        completed.Status.ShouldBe(FileStatus.Ready);
+        completed.Name.Value.ShouldBe("after.txt");
+        completed.Type.ShouldBe(type);
+        completed.UserId.ShouldBe(personal ? owner : null);
+        completed.FolderId.ShouldBe(folder.Id);
+        completed.StorageKey.ShouldBe(destinationKey);
+        completed.VersionId!.Value.ShouldBe("copied");
+        completed.OperationAttemptId.ShouldBeNull();
     }
 }

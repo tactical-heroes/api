@@ -101,7 +101,7 @@ public sealed class ReconcileFileUploadsHandler(
         bool expireUnusable,
         CancellationToken cancellationToken)
     {
-        if (file.ContentUpdateAttemptId is not { } contentUpdateAttemptId)
+        if (file.OperationAttemptId is not { } contentUpdateAttemptId)
         {
             return;
         }

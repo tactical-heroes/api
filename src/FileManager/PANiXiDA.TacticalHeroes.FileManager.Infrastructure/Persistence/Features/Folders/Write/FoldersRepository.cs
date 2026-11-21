@@ -13,11 +13,6 @@ public sealed class FoldersRepository(
             dbContext),
         IFoldersRepository
 {
-    public Task<Folder?> GetUntrackedByIdAsync(FolderId id, CancellationToken cancellationToken)
-    {
-        return Query.AsNoTracking().SingleOrDefaultAsync(folder => folder.Id == id, cancellationToken);
-    }
-
     public Task<List<Folder>> GetChildrenAsync(FolderId parentId, CancellationToken cancellationToken)
     {
         return Query
