@@ -645,7 +645,7 @@ public sealed class FileTests
         file.OperationAttemptId.ShouldBe(success || !relocating ? null : attemptId);
     }
 
-    [Fact(DisplayName = "File operation identifier should be reused by both flows when operations run sequentially")]
+    [Fact(DisplayName = "File operation identifier should be reused when relocation has completed")]
     public void BeginContentUpdate_Should_UseSharedOperationField_When_RelocationHasCompleted()
     {
         var file = CreateFile("Ready");
