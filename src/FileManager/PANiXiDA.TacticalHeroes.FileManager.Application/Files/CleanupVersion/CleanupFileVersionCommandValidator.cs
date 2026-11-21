@@ -7,8 +7,12 @@ public sealed class CleanupFileVersionCommandValidator : AbstractValidator<Clean
 {
     public CleanupFileVersionCommandValidator()
     {
-        RuleFor(command => command.FileId).MustBeValueObject(FileId.Create);
-        RuleFor(command => command.StorageKey).MustBeValueObject(FileStorageKey.Create);
-        RuleFor(command => command.VersionId).MustBeValueObject(FileVersionId.Create);
+        RuleFor(command => command.FileId)
+            .MustBeValidDomainValue(FileId.Create);
+
+        RuleFor(command => command.StorageKey)
+            .MustBeValidDomainValue(FileStorageKey.Create);
+        RuleFor(command => command.VersionId)
+            .MustBeValidDomainValue(FileVersionId.Create);
     }
 }

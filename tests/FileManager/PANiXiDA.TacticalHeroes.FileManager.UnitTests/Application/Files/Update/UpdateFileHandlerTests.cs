@@ -98,4 +98,39 @@ public sealed class UpdateFileHandlerTests
         folders.ReceivedCalls().ShouldBeEmpty();
         hierarchyLock.ReceivedCalls().ShouldBeEmpty();
     }
+    [Fact(DisplayName = "Update file handler should reject oversized copies before persistence when file scope changes")]
+    public async Task HandleAsync_Should_RejectOversizedCopiesBeforePersistence_When_FileScopeChanges()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var user = Substitute.For<ICurrentUser>();
+        user.IsAuthenticated.Returns(true);
+        user.UserId.Returns(Guid.NewGuid());
+        user.HasPermission(Arg.Any<string>()).Returns(true);
+        var file = File.Create(FileName.Create("large.bin").Value, FileType.Avatar, null).Value;
+        file.CompleteUpload(FileContentType.Create("application/octet-stream").Value,
+            FileSize.Create(5L * 1024 * 1024 * 1024 + 1).Value, FileVersionId.Create("source").Value);
+        var files = Substitute.For<IFilesRepository>();
+        files.GetByIdAsync(file.Id, ct).Returns(file);
+        var folders = Substitute.For<IFoldersRepository>();
+        var hierarchyLock = Substitute.For<IFolderHierarchyLock>();
+        var storage = Substitute.For<IFileStorage>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        var policy = new FileAccessPolicy(user);
+        var handler = new UpdateFileHandler(files,
+            new FolderAccessService(folders, hierarchyLock, new FolderAccessPolicy(user, policy)),
+            policy, unitOfWork,
+            new FileRelocationService(files, folders, hierarchyLock, storage, unitOfWork, Substitute.For<IScheduler>()));
+
+        var result = await handler.HandleAsync(
+            new UpdateFileCommand(file.Id.Value, "after.bin", "Personal", Guid.NewGuid()), ct);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        file.Relocation.ShouldBeNull();
+        file.Type.ShouldBe(FileType.Avatar);
+        unitOfWork.ReceivedCalls().ShouldBeEmpty();
+        storage.ReceivedCalls().ShouldBeEmpty();
+        files.DidNotReceiveWithAnyArgs().Update(default!);
+    }
+
 }
