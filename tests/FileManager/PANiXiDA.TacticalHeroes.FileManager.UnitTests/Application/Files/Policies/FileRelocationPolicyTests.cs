@@ -24,7 +24,7 @@ public sealed class FileRelocationPolicyTests
         var values = new Dictionary<string, string>();
         if (kind != "marker")
         {
-            values[FileMetadataNames.RelocationAttemptId] = kind == "invalid-attempt" ? "invalid" : marker;
+            values[FileMetadataNames.OperationAttemptId] = kind == "invalid-attempt" ? "invalid" : marker;
         }
         var metadata = kind == "missing" ? null : new FileMetadata(
             kind == "type" ? "image/png" : "text/plain",

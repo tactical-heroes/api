@@ -50,7 +50,7 @@ public sealed class FileRelocationService(
                 size: size.Value,
                 metadata: new Dictionary<string, string>
                 {
-                    [FileMetadataNames.RelocationAttemptId] = relocation.AttemptId.Value.ToString()
+                    [FileMetadataNames.OperationAttemptId] = relocation.AttemptId.Value.ToString()
                 },
                 cancellationToken: cancellationToken);
             var copiedVersion = FileVersionId.Create(copied.VersionId);

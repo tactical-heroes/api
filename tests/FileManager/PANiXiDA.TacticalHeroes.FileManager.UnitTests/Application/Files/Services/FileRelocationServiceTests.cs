@@ -66,7 +66,7 @@ public sealed class FileRelocationServiceTests
             4,
             new Dictionary<string, string>
             {
-                [FileMetadataNames.RelocationAttemptId] = relocation.AttemptId.Value.ToString()
+                [FileMetadataNames.OperationAttemptId] = relocation.AttemptId.Value.ToString()
             },
             "destination");
         var current = new FileMetadata("text/plain", 4, new Dictionary<string, string>(), "unrelated");
@@ -129,7 +129,7 @@ public sealed class FileRelocationServiceTests
             "text/plain",
             4,
             Arg.Is<IReadOnlyDictionary<string, string>>(values =>
-                values[FileMetadataNames.RelocationAttemptId] == relocation.AttemptId.Value.ToString()),
+                values[FileMetadataNames.OperationAttemptId] == relocation.AttemptId.Value.ToString()),
             ct);
         await storage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default!, ct);
     }

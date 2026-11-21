@@ -397,7 +397,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 size,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] =
+                    [FileMetadataNames.OperationAttemptId] =
                         (condition == "other" ? Guid.NewGuid() : operation.Value).ToString()
                 },
                 condition == "versionless" ? null : "replacement"));
@@ -441,7 +441,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 9,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
+                    [FileMetadataNames.OperationAttemptId] = operation.Value.ToString()
                 },
                 "replacement"));
 
@@ -543,7 +543,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                     9,
                     new Dictionary<string, string>
                     {
-                        [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
+                        [FileMetadataNames.OperationAttemptId] = operation.Value.ToString()
                     },
                     "replacement"));
         }

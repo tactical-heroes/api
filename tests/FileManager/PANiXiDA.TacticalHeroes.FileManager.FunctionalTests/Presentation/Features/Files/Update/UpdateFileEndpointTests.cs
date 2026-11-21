@@ -375,7 +375,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
                 file.Size!.Value,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.RelocationAttemptId] = relocation.AttemptId.Value.ToString()
+                    [FileMetadataNames.OperationAttemptId] = relocation.AttemptId.Value.ToString()
                 },
                 ct);
             copiedVersion = copied.VersionId!;

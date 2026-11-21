@@ -53,7 +53,7 @@ public sealed class UpdateFileContentHandler(
             contentType: contentType.Value.Value,
             metadata: new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateAttemptId] = started.Value.Value.ToString()
+                [FileMetadataNames.OperationAttemptId] = started.Value.Value.ToString()
             },
             cancellationToken: cancellationToken);
         var uploadedVersion = FileVersionId.Create(uploaded.VersionId);

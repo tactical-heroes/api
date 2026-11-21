@@ -21,7 +21,7 @@ public static class FileRelocationPolicy
             && metadata.ContentType == contentType.Value
             && metadata.Size == size.Value
             && FileVersionId.Create(metadata.VersionId).IsSuccess
-            && metadata.Metadata.TryGetValue(FileMetadataNames.RelocationAttemptId, out var storedAttempt)
+            && metadata.Metadata.TryGetValue(FileMetadataNames.OperationAttemptId, out var storedAttempt)
             && Guid.TryParse(storedAttempt, out var parsedAttempt)
             && parsedAttempt == attemptId.Value;
     }

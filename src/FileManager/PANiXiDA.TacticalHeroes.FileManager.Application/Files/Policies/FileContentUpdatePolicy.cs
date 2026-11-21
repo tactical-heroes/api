@@ -16,7 +16,7 @@ internal static class FileContentUpdatePolicy
     {
         return metadata is not null
             && metadata.VersionId != activeVersion?.Value
-            && metadata.Metadata.TryGetValue(FileMetadataNames.ContentUpdateAttemptId, out var storedUpdateId)
+            && metadata.Metadata.TryGetValue(FileMetadataNames.OperationAttemptId, out var storedUpdateId)
             && Guid.TryParse(storedUpdateId, out var storedId)
             && storedId == contentUpdateAttemptId.Value
             && FileContentType.Create(metadata.ContentType).IsSuccess

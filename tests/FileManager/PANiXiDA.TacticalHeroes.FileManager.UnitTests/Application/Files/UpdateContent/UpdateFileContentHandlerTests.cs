@@ -48,7 +48,7 @@ public sealed class UpdateFileContentHandlerTests
             {
                 file.Status.ShouldBe(FileStatus.Updating);
                 file.VersionId!.Value.ShouldBe("initial");
-                call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.ContentUpdateAttemptId]
+                call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.OperationAttemptId]
                     .ShouldBe(file.ContentUpdateAttemptId!.Value.ToString());
                 _unitOfWork.ReceivedCalls().Count().ShouldBe(1);
                 return new FileUploadResult("replacement");
@@ -108,7 +108,7 @@ public sealed class UpdateFileContentHandlerTests
                 VersionId = condition == "version" ? "different" : "replacement",
                 Metadata = new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] =
+                    [FileMetadataNames.OperationAttemptId] =
                         operationId.ToString()
                 }
             };
@@ -234,7 +234,7 @@ public sealed class UpdateFileContentHandlerTests
             3,
             new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateAttemptId] = file.ContentUpdateAttemptId!.Value.ToString()
+                [FileMetadataNames.OperationAttemptId] = file.ContentUpdateAttemptId!.Value.ToString()
             },
             "replacement");
     }
