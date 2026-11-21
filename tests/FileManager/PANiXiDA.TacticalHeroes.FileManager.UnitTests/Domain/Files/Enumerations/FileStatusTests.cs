@@ -9,14 +9,16 @@ public sealed class FileStatusTests
     {
         var values = FileStatus.GetAll();
 
-        values.ShouldBe(
-            [
-                FileStatus.PendingUpload,
-                FileStatus.Ready,
-                FileStatus.Deleting,
-                FileStatus.Updating,
-                FileStatus.Relocating
-            ]);
+        FileStatus[] expected =
+        [
+            FileStatus.PendingUpload,
+            FileStatus.Ready,
+            FileStatus.Deleting,
+            FileStatus.Updating,
+            FileStatus.Relocating
+        ];
+
+        values.ShouldBe(expected);
     }
 
     [Theory(DisplayName = "File status should resolve known identifiers when id is known")]

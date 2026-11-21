@@ -50,12 +50,35 @@ public sealed class UpdateFileHandler(
             return Result.Failure(Error.Validation("Files larger than 5 GiB cannot change type or owner."));
         }
 
+        var result = await UpdateAsync(
+            file: file,
+            name: name.Value,
+            type: type.Value,
+            ownerId: ownerId.Value,
+            folderId: folderId.Value,
+            cancellationToken: cancellationToken);
+        if (result.IsFailure || file.Relocation is null)
+        {
+            return result;
+        }
+
+        return await relocationService.RelocateAsync(file, cancellationToken);
+    }
+
+    private async Task<Result> UpdateAsync(
+        File file,
+        FileName name,
+        FileType type,
+        UserId? ownerId,
+        FolderId? folderId,
+        CancellationToken cancellationToken)
+    {
         var result = Result.Success();
         await unitOfWork.ExecuteInTransactionAsync(
             action: async token =>
             {
                 Folder? folder = null;
-                if (folderId.Value is { } targetId)
+                if (folderId is { } targetId)
                 {
                     var destination = await folderAccessService.GetForUpdateAsync(targetId, token);
                     if (destination.IsFailure)
@@ -67,7 +90,7 @@ public sealed class UpdateFileHandler(
                     folder = destination.Value;
                 }
 
-                result = file.Update(name: name.Value, type: type.Value, userId: ownerId.Value, folder: folder);
+                result = file.Update(name: name, type: type, userId: ownerId, folder: folder);
                 if (result.IsFailure)
                 {
                     return;
@@ -77,11 +100,7 @@ public sealed class UpdateFileHandler(
                 await unitOfWork.SaveChangesAsync(token);
             },
             cancellationToken: cancellationToken);
-        if (result.IsFailure || file.Relocation is null)
-        {
-            return result;
-        }
 
-        return await relocationService.RelocateAsync(file, cancellationToken);
+        return result;
     }
 }

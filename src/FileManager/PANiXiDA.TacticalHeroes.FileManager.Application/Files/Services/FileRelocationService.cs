@@ -78,7 +78,63 @@ public sealed class FileRelocationService(
             return Result.Failure(Error.Conflict("Copied file content does not match the relocation."));
         }
 
-        var versionId = FileVersionId.Create(metadata.VersionId).Value;
+        return await CompleteAsync(
+            file: file,
+            relocation: relocation,
+            sourceVersion: sourceVersion,
+            versionId: FileVersionId.Create(metadata.VersionId).Value,
+            cancellationToken: cancellationToken);
+    }
+
+    private async Task<FileMetadata?> FindCopyAsync(
+        FileRelocation relocation,
+        FileContentType contentType,
+        FileSize size,
+        CancellationToken cancellationToken)
+    {
+        var current = await fileStorage.GetMetadataAsync(relocation.StorageKey.Value, cancellationToken);
+        if (FileRelocationPolicy.CanAccept(
+            metadata: current,
+            attemptId: relocation.AttemptId,
+            contentType: contentType,
+            size: size))
+        {
+            return current;
+        }
+
+        var versions = fileStorage.GetVersionsAsync(relocation.StorageKey.Value, cancellationToken);
+        await foreach (var versionId in versions.Select(version => version.VersionId))
+        {
+            if (versionId == current?.VersionId)
+            {
+                continue;
+            }
+
+            var metadata = await fileStorage.GetMetadataAsync(
+                key: relocation.StorageKey.Value,
+                versionId: versionId,
+                cancellationToken: cancellationToken);
+            if (metadata?.VersionId == versionId
+                && FileRelocationPolicy.CanAccept(
+                    metadata: metadata,
+                    attemptId: relocation.AttemptId,
+                    contentType: contentType,
+                    size: size))
+            {
+                return metadata;
+            }
+        }
+
+        return null;
+    }
+
+    private async Task<Result> CompleteAsync(
+        File file,
+        FileRelocation relocation,
+        FileVersionId sourceVersion,
+        FileVersionId versionId,
+        CancellationToken cancellationToken)
+    {
         var sourceKey = file.StorageKey;
         var result = Result.Success();
         await unitOfWork.ExecuteInTransactionAsync(
@@ -124,47 +180,6 @@ public sealed class FileRelocationService(
             cancellationToken: cancellationToken);
 
         return result;
-    }
-
-    private async Task<FileMetadata?> FindCopyAsync(
-        FileRelocation relocation,
-        FileContentType contentType,
-        FileSize size,
-        CancellationToken cancellationToken)
-    {
-        var current = await fileStorage.GetMetadataAsync(relocation.StorageKey.Value, cancellationToken);
-        if (FileRelocationPolicy.CanAccept(
-            metadata: current,
-            attemptId: relocation.AttemptId,
-            contentType: contentType,
-            size: size))
-        {
-            return current;
-        }
-
-        await foreach (var version in fileStorage.GetVersionsAsync(relocation.StorageKey.Value, cancellationToken))
-        {
-            if (version.VersionId == current?.VersionId)
-            {
-                continue;
-            }
-
-            var metadata = await fileStorage.GetMetadataAsync(
-                key: relocation.StorageKey.Value,
-                versionId: version.VersionId,
-                cancellationToken: cancellationToken);
-            if (metadata?.VersionId == version.VersionId
-                && FileRelocationPolicy.CanAccept(
-                    metadata: metadata,
-                    attemptId: relocation.AttemptId,
-                    contentType: contentType,
-                    size: size))
-            {
-                return metadata;
-            }
-        }
-
-        return null;
     }
 
     private Task ScheduleCleanupAsync(
