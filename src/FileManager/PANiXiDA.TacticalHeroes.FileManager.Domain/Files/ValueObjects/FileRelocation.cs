@@ -7,7 +7,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 public sealed partial class FileRelocation : ValueObject
 {
     private FileRelocation(
-        FileRelocationAttemptId attemptId,
+        FileOperationAttemptId attemptId,
         FileName name,
         FileType type,
         UserId? userId,
@@ -22,7 +22,7 @@ public sealed partial class FileRelocation : ValueObject
         StorageKey = storageKey;
     }
 
-    public FileRelocationAttemptId AttemptId { get; }
+    public FileOperationAttemptId AttemptId { get; }
     public FileName Name { get; }
     public FileType Type { get; }
     public UserId? UserId { get; }
@@ -30,7 +30,7 @@ public sealed partial class FileRelocation : ValueObject
     public FileStorageKey StorageKey { get; }
 
     public static FileRelocation Create(
-        FileRelocationAttemptId attemptId,
+        FileOperationAttemptId attemptId,
         FileName name,
         FileType type,
         UserId? userId,

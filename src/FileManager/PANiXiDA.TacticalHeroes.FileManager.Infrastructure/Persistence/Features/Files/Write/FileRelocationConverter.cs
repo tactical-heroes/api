@@ -36,7 +36,7 @@ internal sealed class FileRelocationConverter() : ValueConverter<FileRelocation?
         var folder = root.GetProperty(nameof(FileRelocation.FolderId));
 
         return FileRelocation.Create(
-            attemptId: FileRelocationAttemptId.Create(attemptId).Value,
+            attemptId: FileOperationAttemptId.Create(attemptId).Value,
             name: FileName.Create(root.GetProperty(nameof(FileRelocation.Name)).GetString()!).Value,
             type: FileType.Create(root.GetProperty(nameof(FileRelocation.Type)).GetString()!).Value,
             userId: UserId.Create(owner.ValueKind == JsonValueKind.Null ? null : owner.GetGuid()).Value,

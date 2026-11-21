@@ -151,7 +151,7 @@ public sealed class ReconcileFileUploadsHandler(
 
     private async Task<FileMetadata?> FindUpdatedContentAsync(
         File file,
-        FileContentUpdateAttemptId contentUpdateAttemptId,
+        FileOperationAttemptId contentUpdateAttemptId,
         CancellationToken cancellationToken)
     {
         var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);

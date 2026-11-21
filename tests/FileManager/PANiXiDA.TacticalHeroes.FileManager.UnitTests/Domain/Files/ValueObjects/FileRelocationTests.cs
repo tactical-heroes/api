@@ -10,7 +10,7 @@ public sealed class FileRelocationTests
     [Fact(DisplayName = "File relocation should preserve intended metadata when created")]
     public void Create_Should_PreserveIntendedMetadata_When_Created()
     {
-        var attempt = FileRelocationAttemptId.New();
+        var attempt = FileOperationAttemptId.New();
         var name = FileName.Create("target.txt").Value;
         var owner = UserId.Create(Guid.NewGuid()).Value;
         var folder = FolderId.New();
@@ -31,7 +31,7 @@ public sealed class FileRelocationTests
     public void ToString_Should_DescribeIntent_When_ConvertedToString()
     {
         var relocation = FileRelocation.Create(
-            FileRelocationAttemptId.New(),
+            FileOperationAttemptId.New(),
             FileName.Create("a.txt").Value,
             FileType.Avatar,
             null,

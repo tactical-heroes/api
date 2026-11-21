@@ -19,7 +19,7 @@ public sealed class FileRelocationPolicyTests
     [InlineData("invalid-attempt", false)]
     public void CanAccept_Should_RequireVerifiedContent_When_MetadataVaries(string kind, bool accepted)
     {
-        var attempt = FileRelocationAttemptId.New();
+        var attempt = FileOperationAttemptId.New();
         var marker = kind == "attempt" ? Guid.NewGuid().ToString() : attempt.Value.ToString();
         var values = new Dictionary<string, string>();
         if (kind != "marker")

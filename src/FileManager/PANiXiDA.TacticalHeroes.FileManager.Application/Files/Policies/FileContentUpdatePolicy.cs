@@ -12,7 +12,7 @@ internal static class FileContentUpdatePolicy
     public static bool CanAccept(
         [NotNullWhen(true)] FileMetadata? metadata,
         FileVersionId? activeVersion,
-        FileContentUpdateAttemptId contentUpdateAttemptId)
+        FileOperationAttemptId contentUpdateAttemptId)
     {
         return metadata is not null
             && metadata.VersionId != activeVersion?.Value

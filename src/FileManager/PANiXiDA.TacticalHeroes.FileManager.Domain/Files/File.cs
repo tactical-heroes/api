@@ -32,7 +32,7 @@ public sealed class File : AggregateRoot<FileId>
     public FileContentType? ContentType { get; private set; }
     public FileSize? Size { get; private set; }
     public FileVersionId? VersionId { get; private set; }
-    public FileContentUpdateAttemptId? ContentUpdateAttemptId { get; private set; }
+    public FileOperationAttemptId? ContentUpdateAttemptId { get; private set; }
     public FileRelocation? Relocation { get; private set; }
 
     public static Result<File> Create(
@@ -90,7 +90,7 @@ public sealed class File : AggregateRoot<FileId>
             }
 
             Relocation = FileRelocation.Create(
-                attemptId: FileRelocationAttemptId.New(),
+                attemptId: FileOperationAttemptId.New(),
                 name: name,
                 type: type,
                 userId: userId,
@@ -108,7 +108,7 @@ public sealed class File : AggregateRoot<FileId>
     }
 
     public Result CompleteRelocation(
-        FileRelocationAttemptId attemptId,
+        FileOperationAttemptId attemptId,
         FileVersionId versionId,
         Folder? folder)
     {
@@ -140,7 +140,7 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result CancelRelocation(FileRelocationAttemptId attemptId)
+    public Result CancelRelocation(FileOperationAttemptId attemptId)
     {
         if (Status != FileStatus.Relocating || Relocation?.AttemptId != attemptId)
         {
@@ -247,22 +247,22 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result<FileContentUpdateAttemptId> BeginContentUpdate()
+    public Result<FileOperationAttemptId> BeginContentUpdate()
     {
         if (Status != FileStatus.Ready)
         {
-            return Result.Failure<FileContentUpdateAttemptId>(
+            return Result.Failure<FileOperationAttemptId>(
                 Error.Conflict("Only ready file content can be replaced."));
         }
 
-        ContentUpdateAttemptId = FileContentUpdateAttemptId.New();
+        ContentUpdateAttemptId = FileOperationAttemptId.New();
         Status = FileStatus.Updating;
 
         return Result.Success(ContentUpdateAttemptId);
     }
 
     public Result CompleteContentUpdate(
-        FileContentUpdateAttemptId contentUpdateAttemptId,
+        FileOperationAttemptId contentUpdateAttemptId,
         FileContentType contentType,
         FileSize size,
         FileVersionId versionId)
@@ -281,7 +281,7 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public Result CancelContentUpdate(FileContentUpdateAttemptId contentUpdateAttemptId)
+    public Result CancelContentUpdate(FileOperationAttemptId contentUpdateAttemptId)
     {
         if (Status != FileStatus.Updating || ContentUpdateAttemptId != contentUpdateAttemptId)
         {

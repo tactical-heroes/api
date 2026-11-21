@@ -453,8 +453,8 @@ public sealed class FileTests
         var contentType = file.ContentType;
         var initial = FileVersionId.Create("initial").Value;
         file.CompleteUpload(contentType!, size!, initial);
-        var operation = updating ? file.BeginContentUpdate().Value : FileContentUpdateAttemptId.New();
-        var supplied = matching ? operation : FileContentUpdateAttemptId.New();
+        var operation = updating ? file.BeginContentUpdate().Value : FileOperationAttemptId.New();
+        var supplied = matching ? operation : FileOperationAttemptId.New();
         var version = FileVersionId.Create(newVersion ? "replacement" : "initial").Value;
 
         var result = file.CompleteContentUpdate(
@@ -498,7 +498,7 @@ public sealed class FileTests
         var version = FileVersionId.Create("initial").Value;
         var operation = file.BeginContentUpdate().Value;
 
-        var result = file.CancelContentUpdate(matching ? operation : FileContentUpdateAttemptId.New());
+        var result = file.CancelContentUpdate(matching ? operation : FileOperationAttemptId.New());
 
         result.IsSuccess.ShouldBe(matching);
         file.StorageKey.ShouldBe(key);
@@ -631,7 +631,7 @@ public sealed class FileTests
         var success = kind == "success";
 
         var result = file.CompleteRelocation(
-            kind == "attempt" ? FileRelocationAttemptId.New() : relocation.AttemptId,
+            kind == "attempt" ? FileOperationAttemptId.New() : relocation.AttemptId,
             FileVersionId.Create("initial").Value,
             target);
 
@@ -657,7 +657,7 @@ public sealed class FileTests
         file.Update(name, FileType.Personal, UserId.Create(Guid.NewGuid()).Value, null);
         var relocation = file.Relocation!;
 
-        var result = file.CancelRelocation(matches ? relocation.AttemptId : FileRelocationAttemptId.New());
+        var result = file.CancelRelocation(matches ? relocation.AttemptId : FileOperationAttemptId.New());
 
         result.IsSuccess.ShouldBe(matches);
         file.StorageKey.ShouldBe(key);

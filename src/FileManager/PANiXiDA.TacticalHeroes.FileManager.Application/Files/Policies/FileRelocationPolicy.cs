@@ -13,7 +13,7 @@ public static class FileRelocationPolicy
 
     public static bool CanAccept(
         [NotNullWhen(true)] FileMetadata? metadata,
-        FileRelocationAttemptId attemptId,
+        FileOperationAttemptId attemptId,
         FileContentType contentType,
         FileSize size)
     {
