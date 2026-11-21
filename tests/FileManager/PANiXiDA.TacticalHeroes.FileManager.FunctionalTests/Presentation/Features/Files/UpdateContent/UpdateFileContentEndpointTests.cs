@@ -516,7 +516,14 @@ public sealed class UpdateFileContentEndpointTests(
             long size,
             IReadOnlyDictionary<string, string> metadata,
             CancellationToken cancellationToken)
-            => inner.CopyAsync(sourceKey, sourceVersionId, destinationKey, contentType, size, metadata, cancellationToken);
+            => inner.CopyAsync(
+                sourceKey,
+                sourceVersionId,
+                destinationKey,
+                contentType,
+                size,
+                metadata,
+                cancellationToken);
 
         public Task DeleteAsync(string key, string versionId, CancellationToken cancellationToken)
             => inner.DeleteAsync(key, versionId, cancellationToken);

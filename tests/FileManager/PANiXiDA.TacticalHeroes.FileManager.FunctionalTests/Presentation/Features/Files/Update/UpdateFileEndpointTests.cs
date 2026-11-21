@@ -415,26 +415,9 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
         var source = await storageAfter.GetMetadataAsync(oldKey.Value, oldVersion.Value, ct);
         source.ShouldNotBeNull();
         var domain = await verificationScope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>()
-            .Set<File>().SingleAsync(item => item.Id == file.Id, ct);
+            .Set<File>()
+            .SingleAsync(item => item.Id == file.Id, ct);
         domain.Relocation.ShouldBeNull();
-    }
-
-    private async Task UploadFileAsync(File file)
-    {
-        await using var scope = Fixture.CreateScope();
-        await using var content = new MemoryStream([1, 2, 3, 4]);
-        var upload = await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
-            file.StorageKey.Value,
-            content,
-            "text/plain",
-            System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
-            TestContext.Current.CancellationToken);
-        file.CompleteUpload(
-            FileContentType.Create("text/plain").Value,
-            FileSize.Create(4).Value,
-            FileVersionId.Create(upload.VersionId).Value)
-            .IsSuccess
-            .ShouldBeTrue();
     }
 
     private static File CreateFile(string type, Guid ownerId)
@@ -482,6 +465,24 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
             await Task.Delay(10, cancellationToken);
         }
         return false;
+    }
+
+    private async Task UploadFileAsync(File file)
+    {
+        await using var scope = Fixture.CreateScope();
+        await using var content = new MemoryStream([1, 2, 3, 4]);
+        var upload = await scope.ServiceProvider.GetRequiredService<IFileStorage>().UploadAsync(
+            file.StorageKey.Value,
+            content,
+            "text/plain",
+            System.Collections.ObjectModel.ReadOnlyDictionary<string, string>.Empty,
+            TestContext.Current.CancellationToken);
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create(upload.VersionId).Value)
+            .IsSuccess
+            .ShouldBeTrue();
     }
 
     private async Task SaveAsync(File file, params Folder[] folders)

@@ -108,7 +108,8 @@ public sealed class UpdateFileHandlerTests
         folders.ReceivedCalls().ShouldBeEmpty();
         hierarchyLock.ReceivedCalls().ShouldBeEmpty();
     }
-    [Fact(DisplayName = "Update file handler should reject oversized copies before persistence when file scope changes")]
+
+    [Fact(DisplayName = "File update should reject oversized copies when file scope changes")]
     public async Task HandleAsync_Should_RejectOversizedCopiesBeforePersistence_When_FileScopeChanges()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -133,7 +134,13 @@ public sealed class UpdateFileHandlerTests
             new FolderAccessService(folders, hierarchyLock, new FolderAccessPolicy(user, policy)),
             policy,
             unitOfWork,
-            new FileRelocationService(files, folders, hierarchyLock, storage, unitOfWork, Substitute.For<IScheduler>()));
+            new FileRelocationService(
+                files,
+                folders,
+                hierarchyLock,
+                storage,
+                unitOfWork,
+                Substitute.For<IScheduler>()));
 
         var result = await handler.HandleAsync(
             new UpdateFileCommand(file.Id.Value, "after.bin", "Personal", Guid.NewGuid()),
@@ -147,5 +154,4 @@ public sealed class UpdateFileHandlerTests
         storage.ReceivedCalls().ShouldBeEmpty();
         files.DidNotReceiveWithAnyArgs().Update(default!);
     }
-
 }
