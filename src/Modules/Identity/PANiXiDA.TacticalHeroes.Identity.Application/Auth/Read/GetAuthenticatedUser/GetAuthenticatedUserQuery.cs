@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common.ReadModels;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Read.GetAuthenticatedUser;
 

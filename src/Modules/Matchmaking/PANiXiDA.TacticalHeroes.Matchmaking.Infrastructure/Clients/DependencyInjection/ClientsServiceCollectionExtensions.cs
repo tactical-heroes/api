@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients.DependencyInjection;
 

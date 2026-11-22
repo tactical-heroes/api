@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common.ReadModels;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
 
 public interface IMatchSearchStateNotifier
 {

@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common.ReadModels;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;

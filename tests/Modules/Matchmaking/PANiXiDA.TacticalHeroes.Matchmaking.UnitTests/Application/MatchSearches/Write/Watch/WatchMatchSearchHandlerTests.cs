@@ -1,10 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common.ReadModels;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Write.Watch;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.ReadModels;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Write.Watch;
 

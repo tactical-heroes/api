@@ -1,5 +1,5 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common.ReadModels;
 using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Read.GetAuthenticatedUser;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Read.GetAuthenticatedUser;

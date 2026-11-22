@@ -224,25 +224,31 @@ public sealed class ReadModelConventionTests
         foreach (var source in modelSources)
         {
             var segments = source.DirectorySegments;
-            if (segments is not [_, "Read", .., _] and not [_, "Common"])
+            var slice = segments switch
+            {
+                [_, "Read", .., var readSlice] => readSlice,
+                [_, "Common", "ReadModels", ..] => "Common",
+                _ => null
+            };
+            if (slice is null)
             {
                 yield return $"{model.FullName} must reside under <Feature>/Read/<UseCase> "
-                    + "or <Feature>/Common in Application.";
+                    + "or <Feature>/Common/ReadModels in Application.";
                 continue;
             }
 
             foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
-                component, "Persistence", "Features", segments[0], "Read", segments[^1]))
+                component, "Persistence", "Features", segments[0], "Read", slice))
             {
                 yield return violation;
             }
-        }
 
-        if (contractType == typeof(IReadModelMapper<,,>))
-        {
-            foreach (var violation in GetMapperLocationViolations(component))
+            if (contractType == typeof(IReadModelMapper<,,>))
             {
-                yield return violation;
+                foreach (var violation in GetMapperLocationViolations(component, slice))
+                {
+                    yield return violation;
+                }
             }
         }
     }
@@ -262,7 +268,8 @@ public sealed class ReadModelConventionTests
     }
 
     private static IEnumerable<string> GetMapperLocationViolations(
-        Type mapper)
+        Type mapper,
+        string slice)
     {
         var mapperContract = InfrastructurePersistenceConvention
             .GetClosedGenericInterface(
@@ -305,7 +312,7 @@ public sealed class ReadModelConventionTests
             "Features",
             featureName,
             "Read",
-            GetReadModel(mapper, typeof(IReadModelMapper<,,>)).Namespace!.Split('.')[^1]);
+            slice);
     }
 
     private static IEnumerable<string> GetAggregateNavigationViolations(

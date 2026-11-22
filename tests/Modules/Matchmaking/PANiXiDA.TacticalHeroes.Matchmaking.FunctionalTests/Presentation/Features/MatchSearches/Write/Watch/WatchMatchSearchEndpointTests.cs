@@ -8,7 +8,7 @@ using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Abstractions;
 using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
 using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common.ReadModels;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
@@ -227,8 +227,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
             replica, player.UserId.Value, messagePack, TestContext.Current.CancellationToken);
         await ReadAsync(socket);
         await using var notifierScope = fixture.Services.CreateAsyncScope();
-        var notifier = notifierScope.ServiceProvider.GetRequiredService<
-            PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions.IMatchSearchStateNotifier>();
+        var notifier = notifierScope.ServiceProvider.GetRequiredService<IMatchSearchStateNotifier>();
         var queuedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(3));
         var expected = new MatchSearchReadModel(
             Guid.NewGuid(), "Matched", Guid.NewGuid(), queuedAt, queuedAt.AddMinutes(5));

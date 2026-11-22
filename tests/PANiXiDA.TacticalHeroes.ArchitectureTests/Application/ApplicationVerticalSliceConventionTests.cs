@@ -3,6 +3,7 @@ using FluentValidation;
 using PANiXiDA.Core.Application.Messaging.EventBus.Handlers;
 using PANiXiDA.Core.Application.Messaging.Mediator.Contracts;
 using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
+using PANiXiDA.Core.Application.Querying;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 
@@ -55,6 +56,21 @@ public sealed class ApplicationVerticalSliceConventionTests
             .ToArray();
 
         Assert.NotEmpty(applicationTypes);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Application read models should reside in a use case or Common ReadModels when declared")]
+    public void ApplicationReadModels_Should_ResideInUseCasesOrCommonReadModels_When_Declared()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var readModels = GetApplicationTypes()
+            .Where(target => typeof(IReadModel).IsAssignableFrom(target.Type))
+            .ToArray();
+        var violations = readModels
+            .SelectMany(target => GetReadModelLocationViolations(repositoryRoot, target))
+            .ToArray();
+
+        Assert.NotEmpty(readModels);
         Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
     }
 
@@ -189,6 +205,26 @@ public sealed class ApplicationVerticalSliceConventionTests
         {
             yield return $"{type.FullName} must have a matching source file under "
                 + $"<Feature>/{string.Join('/', expectedFolders)}.";
+        }
+    }
+
+    private static IEnumerable<string> GetReadModelLocationViolations(
+        string repositoryRoot,
+        ApplicationType target)
+    {
+        var type = target.Type;
+        var assemblyName = target.Module.ApplicationAssemblyName;
+        string[] segments = type.Namespace == assemblyName
+            ? []
+            : GetRelativeNamespace(type, assemblyName).Split('.');
+        var isCommonModel = segments is [_, "Common", "ReadModels", ..];
+        var isUseCaseModel = segments is [_, "Read" or "Write" or "Recurring" or "Deferred", _, ..];
+
+        if ((!isCommonModel && !isUseCaseModel)
+            || !File.Exists(GetExpectedSourceFilePath(repositoryRoot, target.Module, type)))
+        {
+            yield return $"{type.FullName} must have a matching source file in a use case folder "
+                + "or under <Feature>/Common/ReadModels.";
         }
     }
 

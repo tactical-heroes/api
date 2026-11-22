@@ -303,6 +303,9 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     Проверка `ApplicationSupportTypes_Should_ResideInFeatureSupportFolders_When_Declared`
     фиксирует папки `Events`, `Policies`, `Services`, `Common/Options` и
     `Common/Factories` на уровне соответствующей фичи.
+    Проверка `ApplicationReadModels_Should_ResideInUseCasesOrCommonReadModels_When_Declared`
+    требует, чтобы `IReadModel` лежала в папке сценария или в
+    `<Feature>/Common/ReadModels` с соответствующим namespace.
 
 49. `ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared` —
     `ICommand` оканчивается на `Command`, `IQuery` — на `Query`,
@@ -464,7 +467,7 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
 79. `ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared`
     — mapper и sorting для `Application/<AggregatePlural>/Read/<Slice>`
     находятся в `Persistence/Features/<AggregatePlural>/Read/<Slice>`.
-    Для общей ReadModel из `Application/<AggregatePlural>/Common` используется
+    Для общей ReadModel из `Application/<AggregatePlural>/Common/ReadModels` используется
     `Persistence/Features/<AggregatePlural>/Read/Common`. Проверяются
     физические пути и namespace.
 
