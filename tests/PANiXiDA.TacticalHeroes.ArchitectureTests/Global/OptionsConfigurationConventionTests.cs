@@ -138,27 +138,34 @@ public sealed class OptionsConfigurationConventionTests
             ? assemblyName[..^ApplicationAssemblySuffix.Length] + InfrastructureAssemblySuffix
             : assemblyName;
         var validatorTypeName = optionsType.Name + ValidatorSuffix;
+        var optionsDirectoryName = optionsType.Name[..^OptionsSuffix.Length];
         var validatorNamespace = isApplicationOptions
-            ? $"{validatorAssemblyName}.Options.{optionsType.Name[..^OptionsSuffix.Length]}"
+            ? $"{validatorAssemblyName}.<Area>.{OptionsDirectoryName}.{optionsDirectoryName}"
             : optionsType.Namespace;
-        var validatorFullName = $"{validatorNamespace}.{validatorTypeName}";
-        var validatorType = ArchitectureDefinition.s_productionAssemblies
+        var validatorAssembly = ArchitectureDefinition.s_productionAssemblies
             .SingleOrDefault(assembly => string.Equals(
                 assembly.GetName().Name,
                 validatorAssemblyName,
-                StringComparison.Ordinal))
-            ?.GetType(
-                name: validatorFullName,
-                throwOnError: false,
-                ignoreCase: false);
+                StringComparison.Ordinal));
+        var validatorTypes = validatorAssembly?.GetTypes()
+            .Where(type => !type.IsNested
+                && string.Equals(type.Name, validatorTypeName, StringComparison.Ordinal)
+                && (isApplicationOptions
+                    ? GetRelativeNamespaceSegments(type, validatorAssemblyName)
+                        is [_, OptionsDirectoryName, var name]
+                        && string.Equals(name, optionsDirectoryName, StringComparison.Ordinal)
+                    : string.Equals(type.Namespace, validatorNamespace, StringComparison.Ordinal)))
+            .ToArray()
+            ?? [];
 
-        if (validatorType is null)
+        if (validatorTypes.Length != 1)
         {
-            yield return $"{optionsType.FullName} requires "
-                + $"{validatorFullName}.";
+            yield return $"{optionsType.FullName} must have exactly one "
+                + $"{validatorNamespace}.{validatorTypeName}. Found {validatorTypes.Length}.";
             yield break;
         }
 
+        var validatorType = validatorTypes[0];
         var validateOptionsType = typeof(IValidateOptions<>)
             .MakeGenericType(optionsType);
 
@@ -205,11 +212,9 @@ public sealed class OptionsConfigurationConventionTests
 
         if (isApplicationOptions)
         {
-            foreach (var violation in GetOptionsDirectoryViolations(
-                repositoryRoot: repositoryRoot,
-                sourceFiles: sourceFiles,
-                optionsType: validatorType,
-                expectedDirectoryName: optionsType.Name[..^OptionsSuffix.Length]))
+            foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
+                validatorType,
+                GetRelativeNamespaceSegments(validatorType, validatorAssemblyName)))
             {
                 yield return violation;
             }
@@ -233,6 +238,14 @@ public sealed class OptionsConfigurationConventionTests
                     repositoryRoot,
                     validatorSourceFiles[0])}'.";
         }
+    }
+
+    private static string[] GetRelativeNamespaceSegments(Type type, string assemblyName)
+    {
+        var prefix = assemblyName + ".";
+        return type.Namespace is { } typeNamespace && typeNamespace.StartsWith(prefix, StringComparison.Ordinal)
+            ? typeNamespace[prefix.Length..].Split('.')
+            : [];
     }
 
     private static IEnumerable<string> GetValidateOnStartViolations(
@@ -265,8 +278,7 @@ public sealed class OptionsConfigurationConventionTests
     private static IEnumerable<string> GetOptionsDirectoryViolations(
         string repositoryRoot,
         IReadOnlyCollection<string> sourceFiles,
-        Type optionsType,
-        string? expectedDirectoryName = null)
+        Type optionsType)
     {
         var optionsSourceFiles = FindSourceFiles(
             sourceFiles,
@@ -291,7 +303,7 @@ public sealed class OptionsConfigurationConventionTests
         }
 
         var optionsDirectory = new DirectoryInfo(optionsDirectoryPath);
-        expectedDirectoryName ??= optionsType.Name[..^OptionsSuffix.Length];
+        var expectedDirectoryName = optionsType.Name[..^OptionsSuffix.Length];
 
         if (!string.Equals(
             optionsDirectory.Name,
