@@ -300,8 +300,8 @@ internal static class PresentationArchitectureConvention
                 .Ancestors()
                 .OfType<BaseNamespaceDeclarationSyntax>()
                 .Reverse()
-                .Select(namespaceDeclaration =>
-                    namespaceDeclaration.Name.ToString()));
+                .Select(namespaceDeclaration => string.Concat(
+                    namespaceDeclaration.Name.DescendantTokens().Select(token => token.ValueText))));
     }
 
     private static bool HasPathSegment(

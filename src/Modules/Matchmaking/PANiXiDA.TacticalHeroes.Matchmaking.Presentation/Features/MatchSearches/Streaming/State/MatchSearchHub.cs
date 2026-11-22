@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.SignalR;
 using PANiXiDA.Core.Presentation.SignalR.Helpers;
 using PANiXiDA.Core.Presentation.SignalR.Hubs;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Write.Watch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State.Requests.Watch;
+
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
 
 public sealed class MatchSearchHub(IMediator mediator) : Hub<IMatchSearchClient>, IDocumentedHubEndpoint
 {

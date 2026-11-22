@@ -3,9 +3,10 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
-using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Write.Watch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State.Notifications
+    .StateChanged;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Write.Watch;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Streaming.State;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class MatchSearchDocumentationTests(FunctionalTestFixture fixture)

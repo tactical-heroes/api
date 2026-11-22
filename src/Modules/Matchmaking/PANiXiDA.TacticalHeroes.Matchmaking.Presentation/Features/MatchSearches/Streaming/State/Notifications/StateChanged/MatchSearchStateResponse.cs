@@ -1,4 +1,5 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State.Notifications
+    .StateChanged;
 
 public sealed record MatchSearchStateResponse(
     Guid? Id,

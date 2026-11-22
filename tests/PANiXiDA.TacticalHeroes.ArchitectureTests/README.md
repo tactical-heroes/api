@@ -553,6 +553,10 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     — каждый конкретный `IEndpoint<TGroup>` находится в `Read/<UseCase>`
     или `Write/<UseCase>` под корнем своего `TGroup`. Generic-параметр
     указывает на `IEndpointGroup` из корня этой фичи.
+    `SignalRHubs_Should_FollowStreamingLayout_When_Declared` проверяет путь и
+    namespace SignalR-хабов `Features/<Feature>/Streaming/<Stream>`.
+    Клиентский интерфейс типизированного хаба живёт рядом с ним. Остальные
+    типы потока группируются в `Requests/<Operation>` и `Notifications/<Event>`.
 
 98. `Endpoints_Should_EndWithEndpoint_When_Declared` — каждый конкретный
     `IEndpoint` должен оканчиваться на `Endpoint`.

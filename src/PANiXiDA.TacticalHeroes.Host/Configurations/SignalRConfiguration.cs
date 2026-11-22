@@ -1,6 +1,7 @@
 using PANiXiDA.Core.Presentation.SignalR.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State.Notifications
+    .StateChanged;
 
 using PolyType;
 

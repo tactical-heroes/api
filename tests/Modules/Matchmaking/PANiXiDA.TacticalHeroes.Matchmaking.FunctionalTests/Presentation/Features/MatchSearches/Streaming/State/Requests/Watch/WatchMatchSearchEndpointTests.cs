@@ -18,7 +18,8 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State.Notifications
+    .StateChanged;
 using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
 using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
@@ -30,7 +31,8 @@ using Build = PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build;
 using BuildPlayerId = PANiXiDA.TacticalHeroes.Builds.Domain.Players.PlayerId;
 using Player = PANiXiDA.TacticalHeroes.Players.Domain.Players.Player;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Write.Watch;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Streaming.State
+    .Requests.Watch;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
