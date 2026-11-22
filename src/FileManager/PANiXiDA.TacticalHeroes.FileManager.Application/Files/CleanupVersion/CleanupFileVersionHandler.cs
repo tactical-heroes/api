@@ -21,15 +21,32 @@ public sealed class CleanupFileVersionHandler(IFilesRepository filesRepository, 
         }
 
         var file = await filesRepository.GetByIdAsync(id.Value, cancellationToken);
-        if (file is not null && file.StorageKey == key.Value && file.VersionId == version.Value)
+        var activeVersionId = file is not null && file.StorageKey == key.Value ? file.VersionId?.Value : null;
+        if (activeVersionId == version.Value.Value)
         {
             return Result.Success();
         }
 
-        await fileStorage.DeleteAsync(
-            key: key.Value.Value,
-            versionId: version.Value.Value,
-            cancellationToken: cancellationToken);
+        var versions = await fileStorage.GetVersionsAsync(key.Value.Value, cancellationToken)
+            .ToListAsync(cancellationToken);
+        var boundaryIndex = versions.FindIndex(storedVersion => storedVersion.VersionId == version.Value.Value);
+        if (boundaryIndex < 0)
+        {
+            return Result.Success();
+        }
+
+        foreach (var retiredVersion in versions.Skip(boundaryIndex + 1).Append(versions[boundaryIndex]))
+        {
+            if (retiredVersion.VersionId == activeVersionId)
+            {
+                continue;
+            }
+
+            await fileStorage.DeleteAsync(
+                key: key.Value.Value,
+                versionId: retiredVersion.VersionId,
+                cancellationToken: cancellationToken);
+        }
 
         return Result.Success();
     }
