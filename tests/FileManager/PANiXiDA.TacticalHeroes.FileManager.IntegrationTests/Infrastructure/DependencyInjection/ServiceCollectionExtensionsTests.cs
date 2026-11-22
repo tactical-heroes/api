@@ -6,9 +6,9 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 
 using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
@@ -39,6 +39,7 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
         url.AbsolutePath.ShouldBe($"/{S3TestStorage.BucketName}/{S3TestStorage.KeyPrefix}/{file.StorageKey.Value}");
         url.Query.ShouldContain("X-Amz-Signature=");
     }
+
     [Theory(DisplayName = "Relocation settings should use validated configuration when infrastructure is registered")]
     [InlineData(null, true)]
     [InlineData("2.00:00:00", true)]
