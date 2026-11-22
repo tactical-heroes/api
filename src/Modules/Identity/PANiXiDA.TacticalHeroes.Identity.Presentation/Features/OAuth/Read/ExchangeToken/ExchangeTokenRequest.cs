@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Write.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Read.ExchangeToken;
 
 public sealed record ExchangeTokenRequest(
     [property: JsonPropertyName("grant_type")] string GrantType,

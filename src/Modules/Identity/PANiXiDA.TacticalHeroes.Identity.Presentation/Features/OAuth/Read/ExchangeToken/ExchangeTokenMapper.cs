@@ -3,7 +3,7 @@ using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.ExchangeToken.GetU
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Write.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Read.ExchangeToken;
 
 [Mapper]
 internal static partial class ExchangeTokenMapper
