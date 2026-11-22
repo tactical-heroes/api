@@ -35,16 +35,16 @@ public sealed class CleanupFileVersionHandler(IFilesRepository filesRepository, 
             return Result.Success();
         }
 
-        foreach (var retiredVersion in versions.Skip(boundaryIndex + 1).Append(versions[boundaryIndex]))
+        var retiredVersionIds = versions
+            .Skip(boundaryIndex + 1)
+            .Append(versions[boundaryIndex])
+            .Select(retiredVersion => retiredVersion.VersionId)
+            .Where(retiredVersionId => retiredVersionId != activeVersionId);
+        foreach (var retiredVersionId in retiredVersionIds)
         {
-            if (retiredVersion.VersionId == activeVersionId)
-            {
-                continue;
-            }
-
             await fileStorage.DeleteAsync(
                 key: key.Value.Value,
-                versionId: retiredVersion.VersionId,
+                versionId: retiredVersionId,
                 cancellationToken: cancellationToken);
         }
 
