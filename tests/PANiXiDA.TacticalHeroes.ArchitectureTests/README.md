@@ -710,18 +710,22 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      — endpoint не должен повторять тот же `RequireAuthorization` или
      `AllowAnonymous`, который уже объявлен его endpoint group.
 
-132. `ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared`
+132. `ConfigurationOptions_Should_HaveRegisteredValidatorsInExpectedLayer_When_Declared`
      — каждый конфигурационный `<Name>Options` с константой `SectionName`
      должен иметь зарегистрированный `<Name>OptionsValidator`, реализующий
-     `IValidateOptions<TOptions>` и расположенный рядом с options-классом.
+     `IValidateOptions<TOptions>`. Для options-класса Infrastructure валидатор
+     располагается в той же сборке, namespace и папке. Для options-класса
+     Application валидатор располагается в Infrastructure того же модуля:
+     namespace `<Module>.Infrastructure.Options.<Name>`, папка `Options/<Name>/`.
 
 133. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
      конфигурационный options-класс должен регистрироваться через
      `AddOptions<TOptions>()` с последующим вызовом `ValidateOnStart()`.
 
 134. `ConfigurationOptions_Should_ResideInDedicatedOptionsSubdirectories_When_Declared`
-     — каждый конфигурационный `<Name>Options` должен располагаться вместе со
-     своим validator в выделенной папке `Options/<Name>/`.
+     — каждый конфигурационный `<Name>Options` должен располагаться в
+     выделенной папке `Options/<Name>/`. Размещение валидатора относительно
+     options-класса определяется правилом 132.
 
 135. `AggregateRootsAndEntities_Should_AcceptOnlyDomainTypes_When_MethodsAreDeclared`
      — публичные и internal-методы агрегатов и entity, включая фабрики,
