@@ -3,12 +3,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Write;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.DependencyInjection;
@@ -21,14 +22,14 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddOptions<FileRelocationSettings>()
-            .Bind(configuration.GetSection($"{nameof(FileManager)}:Relocation"))
-            .Validate(
-                settings => settings.CleanupDelay > TimeSpan.Zero,
-                "File relocation cleanup delay must be greater than zero.")
+        serviceCollection.AddSingleton<
+            IValidateOptions<FileRelocationOptions>,
+            FileRelocationOptionsValidator>();
+        serviceCollection.AddOptions<FileRelocationOptions>()
+            .Bind(configuration.GetSection(FileRelocationOptions.SectionName))
             .ValidateOnStart();
-        serviceCollection.AddSingleton<FileRelocationSettings>(provider =>
-            provider.GetRequiredService<IOptions<FileRelocationSettings>>().Value);
+        serviceCollection.AddSingleton<FileRelocationOptions>(provider =>
+            provider.GetRequiredService<IOptions<FileRelocationOptions>>().Value);
         serviceCollection.AddScoped<FileAccessPolicy>();
         serviceCollection.AddScoped<FileCreationService>();
         serviceCollection.AddScoped<FileRelocationService>();

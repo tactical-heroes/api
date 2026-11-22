@@ -13,9 +13,9 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -452,7 +452,7 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
                 fileStorageVersionService,
                 services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
                 Substitute.For<IScheduler>(),
-                services.GetRequiredService<FileRelocationSettings>()),
+                services.GetRequiredService<FileRelocationOptions>()),
             fileStorageVersionService: fileStorageVersionService,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }

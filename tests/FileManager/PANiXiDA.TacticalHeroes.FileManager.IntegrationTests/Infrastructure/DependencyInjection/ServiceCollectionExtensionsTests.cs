@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Storage;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
@@ -40,12 +40,12 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
         url.Query.ShouldContain("X-Amz-Signature=");
     }
 
-    [Theory(DisplayName = "Relocation settings should use validated configuration when infrastructure is registered")]
+    [Theory(DisplayName = "Relocation options should use validated configuration when infrastructure is registered")]
     [InlineData(null, true)]
     [InlineData("2.00:00:00", true)]
     [InlineData("00:00:00", false)]
     [InlineData("-1.00:00:00", false)]
-    public void AddInfrastructure_Should_UseValidatedRelocationSettings_When_InfrastructureIsRegistered(
+    public void AddInfrastructure_Should_UseValidatedRelocationOptions_When_InfrastructureIsRegistered(
         string? cleanupDelay,
         bool valid)
     {
@@ -55,7 +55,7 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
         };
         if (cleanupDelay is not null)
         {
-            values["FileManager:Relocation:CleanupDelay"] = cleanupDelay;
+            values[$"{FileRelocationOptions.SectionName}:CleanupDelay"] = cleanupDelay;
         }
 
         var configuration = new ConfigurationBuilder()
@@ -74,10 +74,10 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
         }
 
         validator.Validate();
-        var settings = provider.GetRequiredService<FileRelocationSettings>();
-        settings.CleanupDelay.ShouldBe(cleanupDelay is null
+        var options = provider.GetRequiredService<FileRelocationOptions>();
+        options.CleanupDelay.ShouldBe(cleanupDelay is null
             ? TimeSpan.FromDays(7)
             : TimeSpan.Parse(cleanupDelay, CultureInfo.InvariantCulture));
-        settings.ShouldBeSameAs(provider.GetRequiredService<IOptions<FileRelocationSettings>>().Value);
+        options.ShouldBeSameAs(provider.GetRequiredService<IOptions<FileRelocationOptions>>().Value);
     }
 }
