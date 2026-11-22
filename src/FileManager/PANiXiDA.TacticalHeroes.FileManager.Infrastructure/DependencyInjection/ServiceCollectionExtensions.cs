@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
@@ -19,6 +21,14 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
+        serviceCollection.AddOptions<FileRelocationSettings>()
+            .Bind(configuration.GetSection($"{nameof(FileManager)}:Relocation"))
+            .Validate(
+                settings => settings.CleanupDelay > TimeSpan.Zero,
+                "File relocation cleanup delay must be greater than zero.")
+            .ValidateOnStart();
+        serviceCollection.AddSingleton<FileRelocationSettings>(provider =>
+            provider.GetRequiredService<IOptions<FileRelocationSettings>>().Value);
         serviceCollection.AddScoped<FileAccessPolicy>();
         serviceCollection.AddScoped<FileCreationService>();
         serviceCollection.AddScoped<FileRelocationService>();

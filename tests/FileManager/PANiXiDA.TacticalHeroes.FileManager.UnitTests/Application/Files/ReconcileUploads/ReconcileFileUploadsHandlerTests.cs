@@ -13,6 +13,7 @@ using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -626,7 +627,8 @@ public sealed class ReconcileFileUploadsHandlerTests
                 _fileStorage,
                 fileStorageVersionService,
                 _unitOfWork,
-                Substitute.For<IScheduler>()),
+                Substitute.For<IScheduler>(),
+                new FileRelocationSettings()),
             fileStorageVersionService: fileStorageVersionService,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }

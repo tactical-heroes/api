@@ -4,6 +4,7 @@ using PANiXiDA.Core.Application.Storage.Constants;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -17,10 +18,9 @@ public sealed class FileRelocationService(
     IFileStorage fileStorage,
     FileStorageVersionService fileStorageVersionService,
     IUnitOfWork unitOfWork,
-    IScheduler scheduler)
+    IScheduler scheduler,
+    FileRelocationSettings settings)
 {
-    private static readonly TimeSpan s_cleanupDelay = TimeSpan.FromDays(7);
-
     public async Task<Result> RelocateAsync(File file, CancellationToken cancellationToken)
     {
         if (file.Status != FileStatus.Relocating
@@ -112,7 +112,7 @@ public sealed class FileRelocationService(
                         FileId: file.Id.Value,
                         StorageKey: sourceKey.Value,
                         VersionId: sourceVersion.Value),
-                    delay: s_cleanupDelay,
+                    delay: settings.CleanupDelay,
                     cancellationToken: token);
                 await unitOfWork.SaveChangesAsync(token);
             },

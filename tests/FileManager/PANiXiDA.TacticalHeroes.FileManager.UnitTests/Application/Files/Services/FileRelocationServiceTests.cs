@@ -6,6 +6,7 @@ using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -34,6 +35,7 @@ public sealed class FileRelocationServiceTests
         var storage = Substitute.For<IFileStorage>();
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var scheduler = Substitute.For<IScheduler>();
+        var settings = new FileRelocationSettings { CleanupDelay = TimeSpan.FromDays(2) };
         unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), ct)
             .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(ct));
         var file = File.Create(FileName.Create("old.txt").Value, FileType.Avatar, null).Value;
@@ -87,7 +89,8 @@ public sealed class FileRelocationServiceTests
             storage,
             new FileStorageVersionService(storage),
             unitOfWork,
-            scheduler);
+            scheduler,
+            settings);
 
         var result = await service.RelocateAsync(file, ct);
 
@@ -107,7 +110,7 @@ public sealed class FileRelocationServiceTests
                 Arg.Is<CleanupFileVersionCommand>(command => command.FileId == file.Id.Value
                     && command.StorageKey == sourceKey.Value
                     && command.VersionId == "source"),
-                TimeSpan.FromDays(7),
+                settings.CleanupDelay,
                 ct);
         }
         else
@@ -138,7 +141,8 @@ public sealed class FileRelocationServiceTests
             storage,
             new FileStorageVersionService(storage),
             Substitute.For<IUnitOfWork>(),
-            Substitute.For<IScheduler>());
+            Substitute.For<IScheduler>(),
+            new FileRelocationSettings());
 
         var result = await service.RelocateAsync(file, TestContext.Current.CancellationToken);
 

@@ -1,6 +1,12 @@
+using System.Globalization;
+
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Storage;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
@@ -32,5 +38,45 @@ public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixt
         url.GetLeftPart(UriPartial.Authority).ShouldBe(Fixture.Storage.ServiceUrl);
         url.AbsolutePath.ShouldBe($"/{S3TestStorage.BucketName}/{S3TestStorage.KeyPrefix}/{file.StorageKey.Value}");
         url.Query.ShouldContain("X-Amz-Signature=");
+    }
+    [Theory(DisplayName = "Relocation settings should use validated configuration when infrastructure is registered")]
+    [InlineData(null, true)]
+    [InlineData("2.00:00:00", true)]
+    [InlineData("00:00:00", false)]
+    [InlineData("-1.00:00:00", false)]
+    public void AddInfrastructure_Should_UseValidatedRelocationSettings_When_InfrastructureIsRegistered(
+        string? cleanupDelay,
+        bool valid)
+    {
+        var values = new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:PostgreSqlConnectionString"] = Fixture.ConnectionString
+        };
+        if (cleanupDelay is not null)
+        {
+            values["FileManager:Relocation:CleanupDelay"] = cleanupDelay;
+        }
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(values)
+            .AddInMemoryCollection(Fixture.Storage.GetConfiguration(nameof(FileManager)))
+            .Build();
+        var services = new ServiceCollection();
+        services.AddInfrastructure(configuration);
+        using var provider = services.BuildServiceProvider();
+        var validator = provider.GetRequiredService<IStartupValidator>();
+
+        if (!valid)
+        {
+            Should.Throw<OptionsValidationException>(validator.Validate);
+            return;
+        }
+
+        validator.Validate();
+        var settings = provider.GetRequiredService<FileRelocationSettings>();
+        settings.CleanupDelay.ShouldBe(cleanupDelay is null
+            ? TimeSpan.FromDays(7)
+            : TimeSpan.Parse(cleanupDelay, CultureInfo.InvariantCulture));
+        settings.ShouldBeSameAs(provider.GetRequiredService<IOptions<FileRelocationSettings>>().Value);
     }
 }

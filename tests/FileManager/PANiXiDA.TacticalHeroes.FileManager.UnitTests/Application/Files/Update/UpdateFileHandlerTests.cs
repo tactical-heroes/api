@@ -5,6 +5,7 @@ using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Settings;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Update;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
@@ -56,7 +57,8 @@ public sealed class UpdateFileHandlerTests
                 storage,
                 new FileStorageVersionService(storage),
                 unitOfWork,
-                Substitute.For<IScheduler>()));
+                Substitute.For<IScheduler>(),
+                new FileRelocationSettings()));
 
         var pending = handler.HandleAsync(
             new UpdateFileCommand(file.Id.Value, "after.txt", "Personal", actorId, folder.Id.Value),
@@ -97,7 +99,8 @@ public sealed class UpdateFileHandlerTests
                 storage,
                 new FileStorageVersionService(storage),
                 unitOfWork,
-                Substitute.For<IScheduler>()));
+                Substitute.For<IScheduler>(),
+                new FileRelocationSettings()));
 
         var result = await handler.HandleAsync(
             new UpdateFileCommand(Guid.Empty, "../file.txt", "unknown", Guid.Empty, Guid.Empty),
@@ -139,7 +142,8 @@ public sealed class UpdateFileHandlerTests
                 storage,
                 new FileStorageVersionService(storage),
                 unitOfWork,
-                Substitute.For<IScheduler>()));
+                Substitute.For<IScheduler>(),
+                new FileRelocationSettings()));
 
         var result = await handler.HandleAsync(
             new UpdateFileCommand(file.Id.Value, "after.bin", "Personal", Guid.NewGuid()),
