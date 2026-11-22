@@ -7,10 +7,10 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 
 using PANiXiDA.TacticalHeroes.Games.IntegrationTests.Games;
 using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
 using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
 using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Features.Games.Read.DbModels;
 

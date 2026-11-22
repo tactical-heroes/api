@@ -5,8 +5,8 @@ using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Persistence.Errors;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Events;
 using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Events;
 using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.ConfirmMatch;
 using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;

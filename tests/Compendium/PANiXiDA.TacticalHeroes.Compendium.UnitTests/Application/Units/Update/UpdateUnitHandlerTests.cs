@@ -1,9 +1,9 @@
 using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Units;
 using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.Update;
 

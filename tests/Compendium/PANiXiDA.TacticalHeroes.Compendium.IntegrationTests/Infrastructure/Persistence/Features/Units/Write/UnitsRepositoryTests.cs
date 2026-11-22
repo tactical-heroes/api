@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Units;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
 using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Units.Write;
