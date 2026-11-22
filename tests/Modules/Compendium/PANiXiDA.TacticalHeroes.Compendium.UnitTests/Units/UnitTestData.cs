@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Write.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Write.Update;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;

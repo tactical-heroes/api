@@ -1,5 +1,6 @@
 using FluentValidation;
 
+using PANiXiDA.Core.Application.Messaging.EventBus.Handlers;
 using PANiXiDA.Core.Application.Messaging.Mediator.Contracts;
 using PANiXiDA.Core.Application.Messaging.Mediator.Handlers;
 
@@ -41,6 +42,20 @@ public sealed class ApplicationVerticalSliceConventionTests
             violations.Length == 0,
             $"Application use case location violations:{Environment.NewLine}"
                 + string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact(DisplayName = "Application support types should reside in feature support folders when declared")]
+    public void ApplicationSupportTypes_Should_ResideInFeatureSupportFolders_When_Declared()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var applicationTypes = GetApplicationTypes();
+
+        var violations = applicationTypes
+            .SelectMany(target => GetSupportTypeLocationViolations(repositoryRoot, target))
+            .ToArray();
+
+        Assert.NotEmpty(applicationTypes);
+        Assert.True(violations.Length == 0, string.Join(Environment.NewLine, violations));
     }
 
     [Fact(DisplayName = "Application use case types should have expected role suffixes when declared")]
@@ -141,16 +156,63 @@ public sealed class ApplicationVerticalSliceConventionTests
     private static IEnumerable<string> GetUseCaseLocationViolations(
         ApplicationUseCase useCase)
     {
-        var violations = new List<string>();
+        var isQuery = GetRequestSuffix(useCase.RequestType) == QuerySuffix;
+        var segments = useCase.RelativeNamespaceSegments;
 
-        if (useCase.RelativeNamespaceSegments.Length < 2)
+        if (segments is [_, var operationGroup, _, ..]
+            && (isQuery
+                ? operationGroup == "Read"
+                : operationGroup is "Write" or "Recurring" or "Deferred"))
         {
-            violations.Add(
-                $"{useCase.RequestType.FullName} must reside in a concrete "
-                    + $"feature folder below at least one grouping folder.");
+            yield break;
         }
 
-        return violations;
+        var expectedGroups = isQuery ? "Read" : "Write, Recurring, or Deferred";
+        yield return $"{useCase.RequestType.FullName} must reside under <Feature>/<OperationGroup>/<UseCase> "
+            + $"with {expectedGroups} as its operation group.";
+    }
+
+    private static IEnumerable<string> GetSupportTypeLocationViolations(
+        string repositoryRoot,
+        ApplicationType target)
+    {
+        var type = target.Type;
+        var expectedFolders = GetSupportTypeFolders(type);
+        if (expectedFolders.Length == 0)
+        {
+            yield break;
+        }
+
+        var segments = GetRelativeNamespace(type, target.Module.ApplicationAssemblyName).Split('.');
+        if (!segments.Skip(1).Take(expectedFolders.Length).SequenceEqual(expectedFolders, StringComparer.Ordinal)
+            || !File.Exists(GetExpectedSourceFilePath(repositoryRoot, target.Module, type)))
+        {
+            yield return $"{type.FullName} must have a matching source file under "
+                + $"<Feature>/{string.Join('/', expectedFolders)}.";
+        }
+    }
+
+    private static string[] GetSupportTypeFolders(Type type)
+    {
+        if (!type.IsClass)
+        {
+            return [];
+        }
+
+        if (type.GetInterfaces().Any(candidate =>
+            candidate.IsGenericType && candidate.GetGenericTypeDefinition() == typeof(IEventHandler<>)))
+        {
+            return ["Events"];
+        }
+
+        return type.Name switch
+        {
+            var name when name.EndsWith("Policy", StringComparison.Ordinal) => ["Policies"],
+            var name when name.EndsWith("Service", StringComparison.Ordinal) => ["Services"],
+            var name when name.EndsWith("Options", StringComparison.Ordinal) => ["Common", "Options"],
+            var name when name.EndsWith("Factory", StringComparison.Ordinal) => ["Common", "Factories"],
+            _ => []
+        };
     }
 
     private static List<string> GetUseCaseRoleSuffixViolations(

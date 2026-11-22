@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Players.Application.Players.GetInternalPlayer;
+using PANiXiDA.TacticalHeroes.Players.Application.Players.Read.GetInternalPlayer;
 
 namespace PANiXiDA.TacticalHeroes.Players.Application.Players.Abstractions;
 

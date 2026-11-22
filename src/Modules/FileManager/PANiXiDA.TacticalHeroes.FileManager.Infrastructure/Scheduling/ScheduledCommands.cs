@@ -1,7 +1,7 @@
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Recurring.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Recurring.ReconcileDeletions;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
 

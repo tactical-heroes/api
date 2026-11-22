@@ -1,0 +1,12 @@
+using System.Security.Claims;
+
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Write.Create;
+
+public sealed record CreateUserCommand(
+    string Email,
+    string UserName,
+    string Password,
+    bool IsConfirmed,
+    IReadOnlyCollection<Claim> Claims,
+    string Status,
+    IReadOnlyCollection<Guid> RoleIds) : ICommand<Result<Guid>>;

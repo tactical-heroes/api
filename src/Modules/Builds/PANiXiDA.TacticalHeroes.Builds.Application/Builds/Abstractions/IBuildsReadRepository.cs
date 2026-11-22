@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Builds.Application.Builds.GetInternalBuild;
+using PANiXiDA.TacticalHeroes.Builds.Application.Builds.Read.GetInternalBuild;
 
 namespace PANiXiDA.TacticalHeroes.Builds.Application.Builds.Abstractions;
 

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Builds.Application.Builds.Abstractions;
-using PANiXiDA.TacticalHeroes.Builds.Application.Builds.GetInternalBuild;
+using PANiXiDA.TacticalHeroes.Builds.Application.Builds.Read.GetInternalBuild;
 using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Features.Builds.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Features.Builds.Read.GetInternalBuild;

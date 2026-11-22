@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Read.GetList;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;

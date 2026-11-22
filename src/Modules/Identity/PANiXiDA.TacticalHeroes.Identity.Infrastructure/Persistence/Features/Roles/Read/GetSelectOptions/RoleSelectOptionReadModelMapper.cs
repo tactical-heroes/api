@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Read.GetSelectOptions;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;

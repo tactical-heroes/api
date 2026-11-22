@@ -1,7 +1,7 @@
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Recurring.Expire;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Recurring.Process;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
 

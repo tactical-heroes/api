@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Common.Filters;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 

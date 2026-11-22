@@ -1,0 +1,15 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Write.Create;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+
+using Riok.Mapperly.Abstractions;
+
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Write.Create;
+
+[Mapper]
+[UseStaticMapper(typeof(Claim))]
+internal static partial class CreateUserMapper
+{
+    internal static partial CreateUserCommand ToCommand(CreateUserRequest request);
+
+    internal static partial CreateUserResponse ToResponse(Guid id);
+}

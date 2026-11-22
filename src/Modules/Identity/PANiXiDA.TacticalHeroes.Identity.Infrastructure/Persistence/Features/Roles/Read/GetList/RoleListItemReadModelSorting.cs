@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.GetList;
 

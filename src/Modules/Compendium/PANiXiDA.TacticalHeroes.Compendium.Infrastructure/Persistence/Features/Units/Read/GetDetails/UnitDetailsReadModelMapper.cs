@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Read.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;

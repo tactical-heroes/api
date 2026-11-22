@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Read.GetSelectOptions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
 

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
-using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Write.Watch;
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
