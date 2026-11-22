@@ -153,9 +153,10 @@ public sealed class OptionsConfigurationConventionTests
                 && (isApplicationOptions
                     ? GetRelativeNamespaceSegments(type, validatorAssemblyName)
                         is [_, OptionsDirectoryName, var name]
-                            && string.Equals(name, optionsDirectoryName, StringComparison.Ordinal)
+                        && string.Equals(name, optionsDirectoryName, StringComparison.Ordinal)
                     : string.Equals(type.Namespace, validatorNamespace, StringComparison.Ordinal)))
-            .ToArray() ?? [];
+            .ToArray()
+            ?? [];
 
         if (validatorTypes.Length != 1)
         {
