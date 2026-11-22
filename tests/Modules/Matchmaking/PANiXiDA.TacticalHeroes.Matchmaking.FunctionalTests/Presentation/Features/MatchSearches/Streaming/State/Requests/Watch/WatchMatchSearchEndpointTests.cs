@@ -31,8 +31,8 @@ using Build = PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build;
 using BuildPlayerId = PANiXiDA.TacticalHeroes.Builds.Domain.Players.PlayerId;
 using Player = PANiXiDA.TacticalHeroes.Players.Domain.Players.Player;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Streaming.State.Requests
-    .Watch;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Streaming.State
+    .Requests.Watch;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
