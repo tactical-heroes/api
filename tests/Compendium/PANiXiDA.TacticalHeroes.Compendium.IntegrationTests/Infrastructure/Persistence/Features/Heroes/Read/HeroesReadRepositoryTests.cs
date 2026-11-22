@@ -1,12 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Heroes;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Heroes.Read;
 

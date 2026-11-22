@@ -1,6 +1,6 @@
+using PANiXiDA.TacticalHeroes.Battle.UnitTests.Battles;
 using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units;
 using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Events;
-using PANiXiDA.TacticalHeroes.Battle.UnitTests.Battles;
 
 using BattleAggregate = PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle;
 

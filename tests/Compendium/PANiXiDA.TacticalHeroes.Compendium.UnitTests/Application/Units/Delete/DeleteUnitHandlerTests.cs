@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Delete;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
 using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Units;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Delete;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.Delete;
 

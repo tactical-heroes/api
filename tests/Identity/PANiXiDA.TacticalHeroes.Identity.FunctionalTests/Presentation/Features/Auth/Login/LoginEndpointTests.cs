@@ -6,9 +6,9 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.ResultPattern;
 
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Common;
-using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Login;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ResetPassword;

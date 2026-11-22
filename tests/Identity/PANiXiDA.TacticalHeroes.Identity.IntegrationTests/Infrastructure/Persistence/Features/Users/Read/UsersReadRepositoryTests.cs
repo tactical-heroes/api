@@ -2,11 +2,11 @@ using System.Security.Claims;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Common.Filters;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Read;
 

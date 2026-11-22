@@ -6,8 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ForgotPassword;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ResetPassword;

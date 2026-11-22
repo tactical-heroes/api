@@ -6,11 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
 
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core.Migrations;
-using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 using Wolverine;

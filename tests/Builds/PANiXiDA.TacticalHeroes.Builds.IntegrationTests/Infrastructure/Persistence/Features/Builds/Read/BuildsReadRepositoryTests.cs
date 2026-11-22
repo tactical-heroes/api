@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using PANiXiDA.TacticalHeroes.Builds.IntegrationTests.Builds;
 using PANiXiDA.TacticalHeroes.Modules.Builds.Application.Builds.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Abstractions;
 using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Builds.IntegrationTests.Builds;
 
 namespace PANiXiDA.TacticalHeroes.Builds.IntegrationTests.Infrastructure.Persistence.Features.Builds.Read;
 

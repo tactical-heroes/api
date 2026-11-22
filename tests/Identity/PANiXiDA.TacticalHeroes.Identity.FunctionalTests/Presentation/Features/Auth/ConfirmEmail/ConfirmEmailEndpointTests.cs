@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ConfirmEmail;
 using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Register;

@@ -14,6 +14,8 @@ using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Cor
 using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Scheduling;
 using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
 
+using Wolverine.Util;
+
 using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Battle.Application.ApplicationAssembly;
 using BuildsApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Builds.Application.ApplicationAssembly;
 using CompendiumApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Compendium.Application.ApplicationAssembly;
@@ -22,8 +24,6 @@ using GamesApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Games.Applicati
 using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Identity.Application.ApplicationAssembly;
 using MatchmakingApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.ApplicationAssembly;
 using PlayersApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Players.Application.ApplicationAssembly;
-
-using Wolverine.Util;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations;
 
