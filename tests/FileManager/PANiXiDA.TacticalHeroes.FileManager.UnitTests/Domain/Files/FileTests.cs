@@ -593,10 +593,10 @@ public sealed class FileTests
         file.Size!.Value.ShouldBe(5);
     }
 
-    [Theory(DisplayName = "File target key should follow current scope when metadata changes")]
+    [Theory(DisplayName = "File update should preserve active storage key when scope changes")]
     [InlineData(true)]
     [InlineData(false)]
-    public void GetTargetStorageKey_Should_FollowCurrentScope_When_MetadataChanges(bool personal)
+    public void Update_Should_PreserveActiveStorageKey_When_ScopeChanges(bool personal)
     {
         var file = CreateFileWithType(personal ? "Avatar" : "Personal");
         file.CompleteUpload(
@@ -607,7 +607,7 @@ public sealed class FileTests
         var owner = personal ? UserId.Create(Guid.NewGuid()).Value : (UserId?)null;
         file.Update(file.Name, personal ? FileType.Personal : FileType.Avatar, owner, null).IsSuccess.ShouldBeTrue();
 
-        var targetKey = file.GetTargetStorageKey();
+        var targetKey = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
 
         targetKey.Value.ShouldBe(personal
             ? $"personal/{owner!.Value.Value}/{file.Id.Value}"
@@ -631,7 +631,7 @@ public sealed class FileTests
         }
         var attemptId = file.OperationAttemptId ?? FileOperationAttemptId.New();
         var sourceKey = file.StorageKey;
-        var targetKey = file.GetTargetStorageKey();
+        var targetKey = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
         var success = relocating && matches;
 
         var result = file.CompleteRelocation(

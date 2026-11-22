@@ -45,7 +45,7 @@ public sealed class FileRelocationServiceTests
         var folder = Folder.Create(FolderName.Create("Target").Value, FileType.Personal, owner).Value;
         file.Update(FileName.Create("new.txt").Value, FileType.Personal, owner, folder).IsSuccess.ShouldBeTrue();
         var attemptId = file.OperationAttemptId!;
-        var destinationKey = file.GetTargetStorageKey();
+        var destinationKey = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
         var sourceKey = file.StorageKey;
         var metadata = new FileMetadata(
             "text/plain",

@@ -363,7 +363,7 @@ public sealed class UpdateFileEndpointTests(ManualReconciliationTestFixture fixt
             .IsSuccess
             .ShouldBeTrue();
         var attemptId = file.OperationAttemptId!;
-        var destinationKey = file.GetTargetStorageKey();
+        var destinationKey = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
         await SaveAsync(file, destination);
         var pending = await ReadAsync(file.Id.Value);
         pending.Name.ShouldBe("relocated.txt");

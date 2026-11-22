@@ -32,7 +32,7 @@ public sealed class FileRelocationService(
             return Result.Failure(Error.Conflict("File relocation has no active content."));
         }
 
-        var destinationKey = file.GetTargetStorageKey();
+        var destinationKey = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
         var metadata = await FindCopyAsync(
             attemptId: attemptId,
             destinationKey: destinationKey,

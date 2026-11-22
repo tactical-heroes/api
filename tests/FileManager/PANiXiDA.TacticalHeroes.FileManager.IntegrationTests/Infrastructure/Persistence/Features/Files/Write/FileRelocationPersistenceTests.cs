@@ -44,7 +44,7 @@ public sealed class FileRelocationPersistenceTests(IntegrationTestFixture fixtur
             .IsSuccess
             .ShouldBeTrue();
         var attemptId = file.OperationAttemptId;
-        var destinationKey = file.GetTargetStorageKey();
+        var destinationKey = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
         await using var scope = Fixture.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FileManagerWriteDbContext>();
         db.Add(folder);
@@ -62,7 +62,9 @@ public sealed class FileRelocationPersistenceTests(IntegrationTestFixture fixtur
         stored.StorageKey.ShouldBe(sourceKey);
         stored.VersionId!.Value.ShouldBe("active");
         stored.OperationAttemptId.ShouldBe(attemptId);
-        stored.GetTargetStorageKey().ShouldBe(destinationKey);
+        FileStorageKey.Create(id: stored.Id, type: stored.Type, userId: stored.UserId)
+            .Value
+            .ShouldBe(destinationKey);
 
         stored.CompleteRelocation(attemptId!, FileVersionId.Create("copied").Value).IsSuccess.ShouldBeTrue();
         await db.SaveChangesAsync(ct);

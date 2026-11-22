@@ -100,11 +100,6 @@ public sealed class File : AggregateRoot<FileId>
         return Result.Success();
     }
 
-    public FileStorageKey GetTargetStorageKey()
-    {
-        return FileStorageKey.Create(id: Id, type: Type, userId: UserId).Value;
-    }
-
     public Result CompleteRelocation(FileOperationAttemptId attemptId, FileVersionId versionId)
     {
         if (Status != FileStatus.Relocating || OperationAttemptId != attemptId)
@@ -112,7 +107,7 @@ public sealed class File : AggregateRoot<FileId>
             return Result.Failure(Error.Conflict("File relocation is no longer available."));
         }
 
-        StorageKey = GetTargetStorageKey();
+        StorageKey = FileStorageKey.Create(id: Id, type: Type, userId: UserId).Value;
         VersionId = versionId;
         OperationAttemptId = null;
         Status = FileStatus.Ready;
