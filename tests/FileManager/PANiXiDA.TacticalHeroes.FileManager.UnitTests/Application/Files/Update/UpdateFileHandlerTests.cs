@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging.Abstractions;
+
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
@@ -58,7 +60,8 @@ public sealed class UpdateFileHandlerTests
                 new FileStorageVersionService(storage),
                 unitOfWork,
                 Substitute.For<IScheduler>(),
-                new FileRelocationOptions()));
+                new FileRelocationOptions(),
+                NullLogger<FileRelocationService>.Instance));
 
         var pending = handler.HandleAsync(
             new UpdateFileCommand(file.Id.Value, "after.txt", "Personal", actorId, folder.Id.Value),
@@ -100,7 +103,8 @@ public sealed class UpdateFileHandlerTests
                 new FileStorageVersionService(storage),
                 unitOfWork,
                 Substitute.For<IScheduler>(),
-                new FileRelocationOptions()));
+                new FileRelocationOptions(),
+                NullLogger<FileRelocationService>.Instance));
 
         var result = await handler.HandleAsync(
             new UpdateFileCommand(Guid.Empty, "../file.txt", "unknown", Guid.Empty, Guid.Empty),
@@ -143,7 +147,8 @@ public sealed class UpdateFileHandlerTests
                 new FileStorageVersionService(storage),
                 unitOfWork,
                 Substitute.For<IScheduler>(),
-                new FileRelocationOptions()));
+                new FileRelocationOptions(),
+                NullLogger<FileRelocationService>.Instance));
 
         var result = await handler.HandleAsync(
             new UpdateFileCommand(file.Id.Value, "after.bin", "Personal", Guid.NewGuid()),

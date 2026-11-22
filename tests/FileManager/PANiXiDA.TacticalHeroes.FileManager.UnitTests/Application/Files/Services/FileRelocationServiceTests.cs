@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging.Abstractions;
+
 using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
@@ -90,7 +92,8 @@ public sealed class FileRelocationServiceTests
             new FileStorageVersionService(storage),
             unitOfWork,
             scheduler,
-            options);
+            options,
+            NullLogger<FileRelocationService>.Instance);
 
         var result = await service.RelocateAsync(file, ct);
 
@@ -142,7 +145,8 @@ public sealed class FileRelocationServiceTests
             new FileStorageVersionService(storage),
             Substitute.For<IUnitOfWork>(),
             Substitute.For<IScheduler>(),
-            new FileRelocationOptions());
+            new FileRelocationOptions(),
+            NullLogger<FileRelocationService>.Instance);
 
         var result = await service.RelocateAsync(file, TestContext.Current.CancellationToken);
 

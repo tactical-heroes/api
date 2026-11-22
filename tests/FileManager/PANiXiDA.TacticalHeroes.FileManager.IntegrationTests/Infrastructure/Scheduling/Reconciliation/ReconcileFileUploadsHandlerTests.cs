@@ -452,7 +452,8 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
                 fileStorageVersionService,
                 services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
                 Substitute.For<IScheduler>(),
-                services.GetRequiredService<FileRelocationOptions>()),
+                services.GetRequiredService<FileRelocationOptions>(),
+                NullLogger<FileRelocationService>.Instance),
             fileStorageVersionService: fileStorageVersionService,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
