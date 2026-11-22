@@ -12,8 +12,6 @@ using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
-using Wolverine.Util;
-
 using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration
     .MatchSearchExpirationTestSupport;
 using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
@@ -23,22 +21,6 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expir
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class MatchSearchExpirationMediatorTests(FunctionalTestFixture fixture)
 {
-    [Theory(DisplayName = "Scheduled commands should retain stored message identities when registered")]
-    [InlineData(
-        typeof(ConfirmMatchCommand),
-        "PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch.ConfirmMatchCommand")]
-    [InlineData(
-        typeof(ExpireMatchSearchesCommand),
-        "PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire.ExpireMatchSearchesCommand")]
-    public void ScheduledCommands_Should_RetainStoredMessageIdentities_When_Registered(
-        Type commandType,
-        string storedMessageIdentity)
-    {
-        var messageIdentity = commandType.ToMessageTypeName();
-
-        messageIdentity.ShouldBe(storedMessageIdentity);
-    }
-
     [Fact(DisplayName = "Expiration should preserve other states when command is dispatched repeatedly")]
     public async Task HandleAsync_Should_PreserveOtherStates_When_CommandIsDispatchedRepeatedly()
     {

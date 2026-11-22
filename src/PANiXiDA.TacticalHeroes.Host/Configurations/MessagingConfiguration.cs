@@ -7,13 +7,10 @@ using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
 using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Host.Configurations.Messaging;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
-
-using Wolverine.Util;
 
 using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
 using BuildsApplicationAssembly = PANiXiDA.TacticalHeroes.Builds.Application.ApplicationAssembly;
@@ -28,11 +25,6 @@ namespace PANiXiDA.TacticalHeroes.Host.Configurations;
 
 internal static class MessagingConfiguration
 {
-    static MessagingConfiguration()
-    {
-        WolverineMessageNaming.InsertFirst<ScheduledCommandNaming>();
-    }
-
     internal static WebApplicationBuilder AddMessaging(
         this WebApplicationBuilder builder)
     {
