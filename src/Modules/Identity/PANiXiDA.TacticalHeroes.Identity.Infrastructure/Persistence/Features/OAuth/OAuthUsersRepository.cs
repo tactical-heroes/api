@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.ExchangeToken.GetUserTokenPrincipal;
 using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.GetUserInfo;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
@@ -36,7 +36,7 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext, IOptio
             : EnsureAvailable(user);
     }
 
-    public async Task<Result<ExchangeTokenReadModel>> GetExchangeTokenByUserIdAsync(
+    public async Task<Result<OAuthUserTokenPrincipalReadModel>> GetTokenPrincipalByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken)
     {
@@ -45,16 +45,16 @@ public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext, IOptio
 
         if (applicationUser is null)
         {
-            return Result.Failure<ExchangeTokenReadModel>(
+            return Result.Failure<OAuthUserTokenPrincipalReadModel>(
                 error: Error.NotFound(message: "User was not found."));
         }
 
         var availabilityResult = EnsureAvailable(applicationUser);
 
         return availabilityResult.IsFailure
-            ? Result.Failure<ExchangeTokenReadModel>(errors: availabilityResult.Errors)
+            ? Result.Failure<OAuthUserTokenPrincipalReadModel>(errors: availabilityResult.Errors)
             : Result.Success(
-                value: new ExchangeTokenReadModel(
+                value: new OAuthUserTokenPrincipalReadModel(
                     Claims: IdentityClaimsFactory.Create(
                         user: applicationUser,
                         identityOptions: identityOptions.Value)));

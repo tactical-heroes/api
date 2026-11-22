@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.GetClientTokenPrincipal;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.ExchangeToken.GetClientTokenPrincipal;
 
 public sealed class GetClientTokenPrincipalQueryValidator
     : AbstractValidator<GetClientTokenPrincipalQuery>

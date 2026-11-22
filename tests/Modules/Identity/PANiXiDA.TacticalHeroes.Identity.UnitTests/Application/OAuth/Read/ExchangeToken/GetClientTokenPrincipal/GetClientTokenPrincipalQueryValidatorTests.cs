@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.GetClientTokenPrincipal;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Read.ExchangeToken.GetClientTokenPrincipal;
 
-namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.Read.GetClientTokenPrincipal;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.Read.ExchangeToken.GetClientTokenPrincipal;
 
 public sealed class GetClientTokenPrincipalQueryValidatorTests
 {

@@ -102,10 +102,10 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
     }
 
     [Theory(
-        DisplayName = "GetExchangeTokenByUserIdAsync should load authorization graph in one query when user exists")]
+        DisplayName = "GetTokenPrincipalByUserIdAsync should load authorization graph in one query when user exists")]
     [InlineData(null)]
     [InlineData("custom_stamp")]
-    public async Task GetExchangeTokenByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists(
+    public async Task GetTokenPrincipalByUserIdAsync_Should_LoadAuthorizationGraphInOneQuery_When_UserExists(
         string? securityStampClaimType)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -150,7 +150,7 @@ public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
         var repository = new OAuthUsersRepository(
             scope.ServiceProvider.GetRequiredService<IdentityReadDbContext>(), Options.Create(identityOptions));
 
-        var result = await repository.GetExchangeTokenByUserIdAsync(
+        var result = await repository.GetTokenPrincipalByUserIdAsync(
             user.Id,
             cancellationToken);
 
