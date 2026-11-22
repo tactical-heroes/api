@@ -620,11 +620,11 @@ public sealed class ReconcileFileUploadsHandlerTests
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
             relocationService: new FileRelocationService(
                 _files,
                 _fileStorage,
                 _unitOfWork,
-                Substitute.For<IScheduler>()));
+                Substitute.For<IScheduler>()),
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 }

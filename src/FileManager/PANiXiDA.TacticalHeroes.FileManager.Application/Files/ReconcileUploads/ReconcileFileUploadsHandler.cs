@@ -17,8 +17,8 @@ public sealed class ReconcileFileUploadsHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
-    ILogger<ReconcileFileUploadsHandler> logger,
-    FileRelocationService relocationService)
+    FileRelocationService relocationService,
+    ILogger<ReconcileFileUploadsHandler> logger)
     : ICommandHandler<ReconcileFileUploadsCommand, Result>
 {
     public async Task<Result> HandleAsync(

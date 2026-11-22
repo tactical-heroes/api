@@ -443,12 +443,12 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-            logger: NullLogger<ReconcileFileUploadsHandler>.Instance,
             relocationService: new FileRelocationService(
                 filesRepository,
                 services.GetRequiredService<IFileStorage>(),
                 services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
-                Substitute.For<IScheduler>()));
+                Substitute.For<IScheduler>()),
+            logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 
     private async Task<File> SaveFileAsync(string condition = "pending", FileType? type = null)
