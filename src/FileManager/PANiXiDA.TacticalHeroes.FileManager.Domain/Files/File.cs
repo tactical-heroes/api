@@ -46,7 +46,7 @@ public sealed class File : AggregateRoot<FileId>
         }
 
         var id = FileId.New();
-        var storageKey = CreateStorageKey(id: id, type: type, userId: userId);
+        var storageKey = FileStorageKey.Create(id: id, type: type, userId: userId).Value;
 
         return Result.Success(new File(
             id: id,
@@ -102,7 +102,7 @@ public sealed class File : AggregateRoot<FileId>
 
     public FileStorageKey GetTargetStorageKey()
     {
-        return CreateStorageKey(id: Id, type: Type, userId: UserId);
+        return FileStorageKey.Create(id: Id, type: Type, userId: UserId).Value;
     }
 
     public Result CompleteRelocation(FileOperationAttemptId attemptId, FileVersionId versionId)
@@ -281,17 +281,6 @@ public sealed class File : AggregateRoot<FileId>
         Status = FileStatus.Deleting;
 
         return Result.Success();
-    }
-
-    private static FileStorageKey CreateStorageKey(FileId id, FileType type, UserId? userId)
-    {
-        var prefix = type.Name.ToLowerInvariant();
-        if (userId is { } ownerId)
-        {
-            prefix = $"{prefix}/{ownerId.Value}";
-        }
-
-        return FileStorageKey.Create($"{prefix}/{id.Value}").Value;
     }
 
     private static Result ValidateOwnership(FileType type, UserId? userId)

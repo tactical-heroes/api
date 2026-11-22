@@ -1,5 +1,8 @@
 using System.Text;
 
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+
 namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
 public sealed partial class FileStorageKey : ValueObject
@@ -41,5 +44,16 @@ public sealed partial class FileStorageKey : ValueObject
         }
 
         return Result.Success(new FileStorageKey(value));
+    }
+
+    public static Result<FileStorageKey> Create(FileId id, FileType type, UserId? userId)
+    {
+        var prefix = type.Name.ToLowerInvariant();
+        if (userId is { } ownerId)
+        {
+            prefix = $"{prefix}/{ownerId.Value}";
+        }
+
+        return Create($"{prefix}/{id.Value}");
     }
 }
