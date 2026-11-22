@@ -49,7 +49,7 @@ public sealed class FileContentUpdatePersistenceTests(IntegrationTestFixture fix
         }
 
         result.ShouldHaveSingleItem().Id.ShouldBe(old.Id);
-        result[0].ContentUpdateAttemptId.ShouldBe(old.ContentUpdateAttemptId);
+        result[0].OperationAttemptId.ShouldBe(old.OperationAttemptId);
         result[0].VersionId.ShouldBe(old.VersionId);
         result[0].Status.ShouldBe(FileStatus.Updating);
         result[0].StorageKey.ShouldBe(old.StorageKey);

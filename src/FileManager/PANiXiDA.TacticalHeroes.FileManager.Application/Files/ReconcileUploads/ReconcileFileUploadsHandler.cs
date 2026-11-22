@@ -4,6 +4,7 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
@@ -16,6 +17,8 @@ public sealed class ReconcileFileUploadsHandler(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
     IUnitOfWork unitOfWork,
+    FileRelocationService relocationService,
+    FileStorageVersionService fileStorageVersionService,
     ILogger<ReconcileFileUploadsHandler> logger)
     : ICommandHandler<ReconcileFileUploadsCommand, Result>
 {
@@ -51,6 +54,11 @@ public sealed class ReconcileFileUploadsHandler(
         await foreach (var file in filesRepository.GetDeletedFilesAsync(cancellationToken))
         {
             await DeleteFileContentAsync(file: file, inspectFirst: true, cancellationToken: cancellationToken);
+        }
+
+        await foreach (var file in filesRepository.GetRelocatingFilesAsync(cancellationToken))
+        {
+            await relocationService.RelocateAsync(file, cancellationToken);
         }
 
         return Result.Success();
@@ -94,7 +102,7 @@ public sealed class ReconcileFileUploadsHandler(
         bool expireUnusable,
         CancellationToken cancellationToken)
     {
-        if (file.ContentUpdateAttemptId is not { } contentUpdateAttemptId)
+        if (file.OperationAttemptId is not { } contentUpdateAttemptId)
         {
             return;
         }
@@ -102,9 +110,13 @@ public sealed class ReconcileFileUploadsHandler(
         FileMetadata? metadata;
         try
         {
-            metadata = await FindUpdatedContentAsync(
-                file: file,
-                contentUpdateAttemptId: contentUpdateAttemptId,
+            metadata = await fileStorageVersionService.FindAsync(
+                key: file.StorageKey,
+                canAccept: candidate => FileContentUpdatePolicy.CanAccept(
+                    metadata: candidate,
+                    activeVersion: file.VersionId,
+                    contentUpdateAttemptId: contentUpdateAttemptId),
+                excludedVersion: file.VersionId,
                 cancellationToken: cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -140,45 +152,6 @@ public sealed class ReconcileFileUploadsHandler(
             filesRepository.Update(file);
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
-    }
-
-    private async Task<FileMetadata?> FindUpdatedContentAsync(
-        File file,
-        FileContentUpdateAttemptId contentUpdateAttemptId,
-        CancellationToken cancellationToken)
-    {
-        var current = await fileStorage.GetMetadataAsync(file.StorageKey.Value, cancellationToken);
-        if (FileContentUpdatePolicy.CanAccept(
-            metadata: current,
-            activeVersion: file.VersionId,
-            contentUpdateAttemptId: contentUpdateAttemptId))
-        {
-            return current;
-        }
-
-        var versions = fileStorage.GetVersionsAsync(file.StorageKey.Value, cancellationToken);
-        await foreach (var versionId in versions.Select(version => version.VersionId))
-        {
-            if (versionId == file.VersionId?.Value || versionId == current?.VersionId)
-            {
-                continue;
-            }
-
-            var metadata = await fileStorage.GetMetadataAsync(
-                key: file.StorageKey.Value,
-                versionId: versionId,
-                cancellationToken: cancellationToken);
-            if (metadata?.VersionId == versionId
-                && FileContentUpdatePolicy.CanAccept(
-                    metadata: metadata,
-                    activeVersion: file.VersionId,
-                    contentUpdateAttemptId: contentUpdateAttemptId))
-            {
-                return metadata;
-            }
-        }
-
-        return null;
     }
 
     private async Task BeginDeletionAsync(File file, CancellationToken cancellationToken)

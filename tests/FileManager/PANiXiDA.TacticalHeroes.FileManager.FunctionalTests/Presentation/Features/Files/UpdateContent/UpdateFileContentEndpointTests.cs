@@ -55,7 +55,7 @@ public sealed class UpdateFileContentEndpointTests(
         stored.Size!.Value.ShouldBe(bytes.Length);
         stored.StorageKey.ShouldBe(file.StorageKey);
         stored.VersionId.ShouldNotBe(file.VersionId);
-        stored.ContentUpdateAttemptId.ShouldBeNull();
+        stored.OperationAttemptId.ShouldBeNull();
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{Route}/{file.Id.Value}/download-url");
         request.Headers.Add(TestAuthenticationHandler.UserIdHeader, actorId.ToString());
         request.Headers.Add(
@@ -149,7 +149,7 @@ public sealed class UpdateFileContentEndpointTests(
         current.Status.ShouldBe(FileStatus.Ready);
         current.StorageKey.ShouldBe(file.StorageKey);
         current.VersionId.ShouldNotBe(file.VersionId);
-        current.ContentUpdateAttemptId.ShouldBeNull();
+        current.OperationAttemptId.ShouldBeNull();
         current.Size!.Value.ShouldBe(4);
     }
 
@@ -174,14 +174,14 @@ public sealed class UpdateFileContentEndpointTests(
         var pending = await ReadAsync(file.Id.Value);
         pending.Status.ShouldBe(FileStatus.Updating);
         pending.StorageKey.ShouldBe(file.StorageKey);
-        pending.ContentUpdateAttemptId.ShouldNotBeNull();
+        pending.OperationAttemptId.ShouldNotBeNull();
         await AgeUpdateAsync(file.Id.Value, expired: false);
         await ReconcileAsync();
         var current = await ReadAsync(file.Id.Value);
         current.Status.ShouldBe(FileStatus.Ready);
         current.StorageKey.ShouldBe(file.StorageKey);
         current.VersionId.ShouldNotBe(file.VersionId);
-        current.ContentUpdateAttemptId.ShouldBeNull();
+        current.OperationAttemptId.ShouldBeNull();
         current.Size!.Value.ShouldBe(3);
         current.ContentType!.Value.ShouldBe("image/png");
         await using var verification = Fixture.CreateScope();
@@ -196,7 +196,7 @@ public sealed class UpdateFileContentEndpointTests(
         var ct = TestContext.Current.CancellationToken;
         var actorId = Guid.NewGuid();
         var file = await SaveAsync("Avatar", actorId, "in-progress");
-        var cancelledOperation = file.ContentUpdateAttemptId!;
+        var cancelledOperation = file.OperationAttemptId!;
         await AgeUpdateAsync(file.Id.Value, expired: false);
         await ReconcileAsync();
         (await ReadAsync(file.Id.Value)).Status.ShouldBe(FileStatus.Updating);
@@ -208,7 +208,7 @@ public sealed class UpdateFileContentEndpointTests(
         restored.Status.ShouldBe(FileStatus.Ready);
         restored.StorageKey.ShouldBe(file.StorageKey);
         restored.VersionId.ShouldBe(file.VersionId);
-        restored.ContentUpdateAttemptId.ShouldBeNull();
+        restored.OperationAttemptId.ShouldBeNull();
         await using var scope = Fixture.CreateScope();
         var storage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
         var intercepted = new InterceptingFileStorage(
@@ -222,7 +222,7 @@ public sealed class UpdateFileContentEndpointTests(
                     "text/plain",
                     new Dictionary<string, string>
                     {
-                        [FileMetadataNames.ContentUpdateAttemptId] = cancelledOperation.Value.ToString()
+                        [FileMetadataNames.OperationAttemptId] = cancelledOperation.Value.ToString()
                     },
                     ct);
                 throw new IOException("Response lost after a late upload.");
@@ -235,7 +235,7 @@ public sealed class UpdateFileContentEndpointTests(
         updating.Status.ShouldBe(FileStatus.Updating);
         await AssertDownloadAsync(file.Id.Value, actorId, [1, 2, 3, 4]);
         var current = await storage.GetMetadataAsync(file.StorageKey.Value, ct);
-        current!.Metadata[FileMetadataNames.ContentUpdateAttemptId].ShouldBe(cancelledOperation.Value.ToString());
+        current!.Metadata[FileMetadataNames.OperationAttemptId].ShouldBe(cancelledOperation.Value.ToString());
 
         await AgeUpdateAsync(file.Id.Value, expired: false);
         await ReconcileAsync();
@@ -311,7 +311,7 @@ public sealed class UpdateFileContentEndpointTests(
         var current = await ReadAsync(file.Id.Value);
         current.StorageKey.ShouldBe(file.StorageKey);
         current.Status.ShouldBe(FileStatus.Updating);
-        current.ContentUpdateAttemptId.ShouldNotBeNull();
+        current.OperationAttemptId.ShouldNotBeNull();
         await using var verification = Fixture.CreateScope();
         var storage = verification.ServiceProvider.GetRequiredService<IFileStorage>();
         (await storage.GetMetadataAsync(file.StorageKey.Value, ct)).ShouldNotBeNull();
@@ -507,6 +507,26 @@ public sealed class UpdateFileContentEndpointTests(
 
         public Task<FileMetadata?> GetMetadataAsync(string key, CancellationToken cancellationToken)
             => inner.GetMetadataAsync(key, cancellationToken);
+
+        public Task<FileCopyResult> CopyAsync(
+            string sourceKey,
+            string sourceVersionId,
+            string destinationKey,
+            string contentType,
+            long size,
+            IReadOnlyDictionary<string, string> metadata,
+            CancellationToken cancellationToken)
+            => inner.CopyAsync(
+                sourceKey,
+                sourceVersionId,
+                destinationKey,
+                contentType,
+                size,
+                metadata,
+                cancellationToken);
+
+        public Task DeleteAsync(string key, string versionId, CancellationToken cancellationToken)
+            => inner.DeleteAsync(key, versionId, cancellationToken);
 
         public Task DeleteAsync(string key, CancellationToken cancellationToken)
             => inner.DeleteAsync(key, cancellationToken);

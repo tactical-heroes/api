@@ -5,6 +5,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 public interface IFilesRepository : IRepository<FileId, File>
 {
     Task<List<File>> GetNonDeletingByFolderAsync(FolderId folderId, CancellationToken cancellationToken);
+    IAsyncEnumerable<File> GetRelocatingFilesAsync(CancellationToken cancellationToken);
     IAsyncEnumerable<File> GetPendingUploadsAsync(CancellationToken cancellationToken);
     IAsyncEnumerable<File> GetUpdatingFilesAsync(CancellationToken cancellationToken);
     IAsyncEnumerable<File> GetExpiredContentUpdatesAsync(CancellationToken cancellationToken);

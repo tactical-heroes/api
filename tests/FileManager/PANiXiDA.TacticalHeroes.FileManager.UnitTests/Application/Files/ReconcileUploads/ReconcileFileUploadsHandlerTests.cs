@@ -1,16 +1,20 @@
 using System.Collections.ObjectModel;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute.ExceptionExtensions;
 
+using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
 
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
@@ -31,6 +35,8 @@ public sealed class ReconcileFileUploadsHandlerTests
     {
         _fileStorage.GetVersionsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Array.Empty<FileVersion>().ToAsyncEnumerable());
+        _files.GetRelocatingFilesAsync(Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>())
             .Returns(Array.Empty<File>().ToAsyncEnumerable());
         _unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
@@ -391,7 +397,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 size,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] =
+                    [FileMetadataNames.OperationAttemptId] =
                         (condition == "other" ? Guid.NewGuid() : operation.Value).ToString()
                 },
                 condition == "versionless" ? null : "replacement"));
@@ -435,7 +441,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                 9,
                 new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
+                    [FileMetadataNames.OperationAttemptId] = operation.Value.ToString()
                 },
                 "replacement"));
 
@@ -475,7 +481,7 @@ public sealed class ReconcileFileUploadsHandlerTests
 
         file.Status.ShouldBe(FileStatus.Ready);
         file.StorageKey.ShouldBe(key);
-        file.ContentUpdateAttemptId.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
         file.VersionId!.Value.ShouldBe("initial");
         file.Size!.Value.ShouldBe(4);
         _files.DidNotReceive().Delete(file);
@@ -537,7 +543,7 @@ public sealed class ReconcileFileUploadsHandlerTests
                     9,
                     new Dictionary<string, string>
                     {
-                        [FileMetadataNames.ContentUpdateAttemptId] = operation.Value.ToString()
+                        [FileMetadataNames.OperationAttemptId] = operation.Value.ToString()
                     },
                     "replacement"));
         }
@@ -589,6 +595,146 @@ public sealed class ReconcileFileUploadsHandlerTests
         _unitOfWork.ReceivedCalls().ShouldBeEmpty();
     }
 
+    [Theory(DisplayName = "Reconciliation should continue other relocations when storage fails for one file")]
+    [InlineData("inspect")]
+    [InlineData("list")]
+    [InlineData("copy")]
+    [InlineData("verify")]
+    public async Task HandleAsync_Should_ContinueOtherRelocations_When_StorageFailsForOneFile(string stage)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var failed = CreateRelocatingFile();
+        var next = CreateRelocatingFile();
+        var failedKey = FileStorageKey.Create(id: failed.Id, type: failed.Type, userId: failed.UserId).Value;
+        var nextKey = FileStorageKey.Create(id: next.Id, type: next.Type, userId: next.UserId).Value;
+        _files.GetRelocatingFilesAsync(ct).Returns(new[] { failed, next }.ToAsyncEnumerable());
+        _fileStorage.GetMetadataAsync(nextKey.Value, ct).Returns(CreateRelocationMetadata(next));
+        var failure = new IOException("Storage is unavailable.");
+        if (stage == "inspect")
+        {
+            _fileStorage.GetMetadataAsync(failedKey.Value, ct).ThrowsAsync(failure);
+        }
+        else if (stage == "list")
+        {
+            _fileStorage.GetVersionsAsync(failedKey.Value, ct).Returns(_ => throw failure);
+        }
+        else if (stage == "copy")
+        {
+            _fileStorage.CopyAsync(
+                failed.StorageKey.Value,
+                failed.VersionId!.Value,
+                failedKey.Value,
+                failed.ContentType!.Value,
+                failed.Size!.Value,
+                Arg.Any<IReadOnlyDictionary<string, string>>(),
+                ct)
+                .ThrowsAsync(failure);
+        }
+        else
+        {
+            _fileStorage.CopyAsync(
+                failed.StorageKey.Value,
+                failed.VersionId!.Value,
+                failedKey.Value,
+                failed.ContentType!.Value,
+                failed.Size!.Value,
+                Arg.Any<IReadOnlyDictionary<string, string>>(),
+                ct)
+                .Returns(new FileCopyResult("relocated"));
+            _fileStorage.GetMetadataAsync(failedKey.Value, "relocated", ct).ThrowsAsync(failure);
+        }
+        var logger = Substitute.For<ILogger<FileRelocationService>>();
+
+        var result = await CreateHandler(logger).HandleAsync(new ReconcileFileUploadsCommand(), ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        failed.Status.ShouldBe(FileStatus.Relocating);
+        failed.VersionId!.Value.ShouldBe("initial");
+        failed.OperationAttemptId.ShouldNotBeNull();
+        next.Status.ShouldBe(FileStatus.Ready);
+        next.StorageKey.ShouldBe(nextKey);
+        next.VersionId!.Value.ShouldBe("relocated");
+        _files.DidNotReceive().Update(failed);
+        _files.Received(1).Update(next);
+        await _unitOfWork.Received(1).SaveChangesAsync(ct);
+        var log = logger.ReceivedCalls().Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log));
+        log.GetArguments()[0].ShouldBe(LogLevel.Error);
+        log.GetArguments()[3].ShouldBeSameAs(failure);
+    }
+
+    [Fact(DisplayName = "Reconciliation should propagate cancellation when inspecting a relocation")]
+    public async Task HandleAsync_Should_PropagateCancellation_When_InspectingARelocation()
+    {
+        var file = CreateRelocatingFile();
+        var key = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        _files.GetRelocatingFilesAsync(cancellation.Token).Returns(new[] { file }.ToAsyncEnumerable());
+        _fileStorage.GetMetadataAsync(key.Value, cancellation.Token).Returns(async _ =>
+        {
+            await cancellation.CancelAsync();
+            cancellation.Token.ThrowIfCancellationRequested();
+            return null;
+        });
+        var logger = Substitute.For<ILogger<FileRelocationService>>();
+
+        var exception = await Record.ExceptionAsync(() => CreateHandler(logger).HandleAsync(
+            new ReconcileFileUploadsCommand(),
+            cancellation.Token));
+
+        exception.ShouldBeAssignableTo<OperationCanceledException>();
+        file.Status.ShouldBe(FileStatus.Relocating);
+        _unitOfWork.ReceivedCalls().ShouldBeEmpty();
+        _files.DidNotReceiveWithAnyArgs().Update(default!);
+        logger.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    [Fact(DisplayName = "Reconciliation should propagate database failure when relocation is finalized")]
+    public async Task HandleAsync_Should_PropagateDatabaseFailure_When_RelocationIsFinalized()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var file = CreateRelocatingFile();
+        var next = CreateRelocatingFile();
+        var key = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
+        var nextKey = FileStorageKey.Create(id: next.Id, type: next.Type, userId: next.UserId).Value;
+        _files.GetRelocatingFilesAsync(ct).Returns(new[] { file, next }.ToAsyncEnumerable());
+        _fileStorage.GetMetadataAsync(key.Value, ct).Returns(CreateRelocationMetadata(file));
+        var failure = new IOException("Database write failed.");
+        _unitOfWork.SaveChangesAsync(ct).ThrowsAsync(failure);
+        var logger = Substitute.For<ILogger<FileRelocationService>>();
+
+        var exception = await Record.ExceptionAsync(() => CreateHandler(logger).HandleAsync(
+            new ReconcileFileUploadsCommand(),
+            ct));
+
+        exception.ShouldBeSameAs(failure);
+        await _fileStorage.DidNotReceive().GetMetadataAsync(nextKey.Value, ct);
+        logger.ReceivedCalls().ShouldBeEmpty();
+    }
+
+    private static File CreateRelocatingFile()
+    {
+        var file = CreateFile();
+        file.CompleteUpload(
+            FileContentType.Create("text/plain").Value,
+            FileSize.Create(4).Value,
+            FileVersionId.Create("initial").Value);
+        file.Update(name: file.Name, type: FileType.Avatar, userId: null, folder: null).IsSuccess.ShouldBeTrue();
+
+        return file;
+    }
+
+    private static FileMetadata CreateRelocationMetadata(File file)
+    {
+        return new FileMetadata(
+            "text/plain",
+            4,
+            new Dictionary<string, string>
+            {
+                [FileMetadataNames.OperationAttemptId] = file.OperationAttemptId!.Value.ToString()
+            },
+            "relocated");
+    }
+
     private static async IAsyncEnumerable<FileVersion> CancelVersionsAsync(CancellationTokenSource cancellation)
     {
         await cancellation.CancelAsync();
@@ -610,12 +756,22 @@ public sealed class ReconcileFileUploadsHandlerTests
         _files.GetPendingUploadsAsync(Arg.Any<CancellationToken>()).Returns(files.ToAsyncEnumerable());
     }
 
-    private ReconcileFileUploadsHandler CreateHandler()
+    private ReconcileFileUploadsHandler CreateHandler(ILogger<FileRelocationService>? relocationLogger = null)
     {
+        var fileStorageVersionService = new FileStorageVersionService(_fileStorage);
         return new ReconcileFileUploadsHandler(
             filesRepository: _files,
             fileStorage: _fileStorage,
             unitOfWork: _unitOfWork,
+            relocationService: new FileRelocationService(
+                _files,
+                _fileStorage,
+                fileStorageVersionService,
+                _unitOfWork,
+                Substitute.For<IScheduler>(),
+                new FileRelocationOptions(),
+                relocationLogger ?? NullLogger<FileRelocationService>.Instance),
+            fileStorageVersionService: fileStorageVersionService,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 }

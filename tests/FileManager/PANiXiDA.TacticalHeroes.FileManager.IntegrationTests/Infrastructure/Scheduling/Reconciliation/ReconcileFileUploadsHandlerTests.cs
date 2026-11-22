@@ -6,11 +6,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using Npgsql;
 
+using NSubstitute;
+
+using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
@@ -435,10 +440,21 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             options: options,
             timeProvider: TimeProvider.System);
 
+        var fileStorageVersionService = new FileStorageVersionService(
+            services.GetRequiredService<IFileStorage>());
         return new ReconcileFileUploadsHandler(
             filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
             unitOfWork: services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
+            relocationService: new FileRelocationService(
+                filesRepository,
+                services.GetRequiredService<IFileStorage>(),
+                fileStorageVersionService,
+                services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
+                Substitute.For<IScheduler>(),
+                services.GetRequiredService<FileRelocationOptions>(),
+                NullLogger<FileRelocationService>.Instance),
+            fileStorageVersionService: fileStorageVersionService,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 

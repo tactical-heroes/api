@@ -48,8 +48,8 @@ public sealed class UpdateFileContentHandlerTests
             {
                 file.Status.ShouldBe(FileStatus.Updating);
                 file.VersionId!.Value.ShouldBe("initial");
-                call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.ContentUpdateAttemptId]
-                    .ShouldBe(file.ContentUpdateAttemptId!.Value.ToString());
+                call.Arg<IReadOnlyDictionary<string, string>>()[FileMetadataNames.OperationAttemptId]
+                    .ShouldBe(file.OperationAttemptId!.Value.ToString());
                 _unitOfWork.ReceivedCalls().Count().ShouldBe(1);
                 return new FileUploadResult("replacement");
             });
@@ -64,7 +64,7 @@ public sealed class UpdateFileContentHandlerTests
         result.IsSuccess.ShouldBeTrue();
         file.StorageKey.ShouldBe(key);
         file.VersionId!.Value.ShouldBe("replacement");
-        file.ContentUpdateAttemptId.ShouldBeNull();
+        file.OperationAttemptId.ShouldBeNull();
         file.Status.ShouldBe(FileStatus.Ready);
         file.Size!.Value.ShouldBe(3);
         await _unitOfWork.Received(2).SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -100,7 +100,7 @@ public sealed class UpdateFileContentHandlerTests
                 throw new IOException("Metadata failed.");
             }
 
-            var operationId = condition == "operation" ? Guid.NewGuid() : file.ContentUpdateAttemptId!.Value;
+            var operationId = condition == "operation" ? Guid.NewGuid() : file.OperationAttemptId!.Value;
             return condition == "missing" ? null : UpdatedMetadata(file) with
             {
                 ContentType = condition == "content-type" ? "image/png" : "text/plain",
@@ -108,7 +108,7 @@ public sealed class UpdateFileContentHandlerTests
                 VersionId = condition == "version" ? "different" : "replacement",
                 Metadata = new Dictionary<string, string>
                 {
-                    [FileMetadataNames.ContentUpdateAttemptId] =
+                    [FileMetadataNames.OperationAttemptId] =
                         operationId.ToString()
                 }
             };
@@ -156,7 +156,7 @@ public sealed class UpdateFileContentHandlerTests
         if (condition != "save-error")
         {
             file.Status.ShouldBe(FileStatus.Updating);
-            file.ContentUpdateAttemptId.ShouldNotBeNull();
+            file.OperationAttemptId.ShouldNotBeNull();
             file.VersionId!.Value.ShouldBe("initial");
             file.Size!.Value.ShouldBe(4);
         }
@@ -234,7 +234,7 @@ public sealed class UpdateFileContentHandlerTests
             3,
             new Dictionary<string, string>
             {
-                [FileMetadataNames.ContentUpdateAttemptId] = file.ContentUpdateAttemptId!.Value.ToString()
+                [FileMetadataNames.OperationAttemptId] = file.OperationAttemptId!.Value.ToString()
             },
             "replacement");
     }
