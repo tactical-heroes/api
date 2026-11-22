@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetList;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.GetList;
 
 [Mapper(IncludedConstructors = MemberVisibility.All)]
 internal static partial class GetRolesMapper

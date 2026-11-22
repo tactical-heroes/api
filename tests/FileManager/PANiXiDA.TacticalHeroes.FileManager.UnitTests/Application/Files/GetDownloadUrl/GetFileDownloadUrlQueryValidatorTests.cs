@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDownloadUrl;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDownloadUrl;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.GetDownloadUrl;
 

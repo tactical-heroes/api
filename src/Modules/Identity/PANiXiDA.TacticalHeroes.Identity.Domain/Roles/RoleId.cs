@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
 
 public readonly partial record struct RoleId : IStronglyTypedId
 {

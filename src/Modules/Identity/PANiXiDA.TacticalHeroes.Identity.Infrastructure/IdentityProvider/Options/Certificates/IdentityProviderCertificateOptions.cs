@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Certificates;
 
 public sealed class IdentityProviderCertificateOptions
 {

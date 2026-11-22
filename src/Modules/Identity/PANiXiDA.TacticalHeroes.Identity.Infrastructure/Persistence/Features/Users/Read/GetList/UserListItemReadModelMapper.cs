@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.GetList;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 internal sealed partial class UserListItemReadModelMapper

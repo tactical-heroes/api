@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.Players.Domain.Files;
-using PANiXiDA.TacticalHeroes.Players.Domain.Players;
-using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
-using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Files;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Write;
+namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Features.Players.Write;
 
 internal sealed class PlayerConfiguration : AuditableEntityConfiguration<Player>
 {

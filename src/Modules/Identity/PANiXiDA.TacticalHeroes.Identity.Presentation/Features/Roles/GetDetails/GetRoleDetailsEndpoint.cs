@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.GetDetails;
 
 internal sealed class GetRoleDetailsEndpoint : IEndpoint<RolesEndpoints>
 {

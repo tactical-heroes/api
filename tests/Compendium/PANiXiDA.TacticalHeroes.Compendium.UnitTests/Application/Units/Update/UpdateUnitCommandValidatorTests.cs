@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.Update;
 

@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
 
 using Wolverine.Runtime;
 

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.Core.Domain.Entities;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
@@ -104,8 +104,8 @@ public sealed class NullForgivingConventionTests
                        #nullable enable
                        using Microsoft.EntityFrameworkCore;
                        using PANiXiDA.Core.Domain.Entities;
-                       using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
-                       using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
+                       using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
+                       using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
 
                        public sealed class Sample : Entity<HeroId>
                        {

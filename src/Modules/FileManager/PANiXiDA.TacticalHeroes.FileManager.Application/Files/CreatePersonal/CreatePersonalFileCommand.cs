@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonal;
 
 public sealed record CreatePersonalFileCommand(
     string Name,

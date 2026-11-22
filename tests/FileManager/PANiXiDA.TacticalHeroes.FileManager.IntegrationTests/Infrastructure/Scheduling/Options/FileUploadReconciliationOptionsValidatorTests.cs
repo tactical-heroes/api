@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Scheduling.Options;
 

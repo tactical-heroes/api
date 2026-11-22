@@ -1,6 +1,6 @@
 using PANiXiDA.Core.Domain.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
 
 public sealed partial class MatchmakingMode : Enumeration<MatchmakingMode>
 {

@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.SignalR;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
-using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
 
 internal sealed class MatchSearchStateNotifier(
     IHubContext<MatchSearchHub, IMatchSearchClient> hubContext) : IMatchSearchStateNotifier

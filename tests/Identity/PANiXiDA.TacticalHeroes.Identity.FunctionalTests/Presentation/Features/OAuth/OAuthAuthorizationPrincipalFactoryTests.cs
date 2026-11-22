@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Common;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 

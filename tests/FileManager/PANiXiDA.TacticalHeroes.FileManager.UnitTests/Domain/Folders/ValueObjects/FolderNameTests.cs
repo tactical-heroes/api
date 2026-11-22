@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Folders.ValueObjects;
 

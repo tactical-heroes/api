@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles;
 
-using BattleAggregate = PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle;
+using BattleAggregate = PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle;
 
-namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Features.Battles.Write;
+namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Features.Battles.Write;
 
 internal sealed class BattleConfiguration : AuditableEntityConfiguration<BattleAggregate>
 {

@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Players.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Players.UnitTests.Domain.Players;
 

@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Abstractions;
 
 public interface IUnitsReadRepository : IReadRepository<Guid>
 {

@@ -4,31 +4,31 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.ResultPattern;
 
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Abstractions;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
-using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
-using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Players.Domain.Users;
-using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
 
 using Wolverine;
 using Wolverine.Tracking;
 
-using Build = PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build;
-using BuildPlayerId = PANiXiDA.TacticalHeroes.Builds.Domain.Players.PlayerId;
-using Player = PANiXiDA.TacticalHeroes.Players.Domain.Players.Player;
+using Build = PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Build;
+using BuildPlayerId = PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Players.PlayerId;
+using Player = PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Player;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
 
@@ -228,7 +228,7 @@ public sealed class WatchMatchSearchEndpointTests(FunctionalTestFixture fixture)
         await ReadAsync(socket);
         await using var notifierScope = fixture.Services.CreateAsyncScope();
         var notifier = notifierScope.ServiceProvider.GetRequiredService<
-            PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions.IMatchSearchStateNotifier>();
+            PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions.IMatchSearchStateNotifier>();
         var queuedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(3));
         var expected = new MatchSearchReadModel(
             Guid.NewGuid(), "Matched", Guid.NewGuid(), queuedAt, queuedAt.AddMinutes(5));

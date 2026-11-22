@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users;
 

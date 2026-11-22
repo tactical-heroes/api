@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.TokenProviders;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.TokenProviders;
 
 internal sealed class IdentityProviderTokenProviderOptionsValidator
     : IValidateOptions<IdentityProviderOptions>

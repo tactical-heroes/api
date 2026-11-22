@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Persistence.Features.Folders.Write;
 

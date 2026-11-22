@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonalUploadUrl;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CreatePersonalUploadUrl;
 
 public sealed record CreatePersonalFileUploadUrlResponse(
     Guid Id,

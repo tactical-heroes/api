@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonalUploadUrl;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonalUploadUrl;
 
 public sealed class CreatePersonalFileUploadUrlCommandValidator : AbstractValidator<CreatePersonalFileUploadUrlCommand>
 {

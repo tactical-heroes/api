@@ -1,15 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Common.Filters;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Common.Filters;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read;
 
 public sealed class UsersReadRepository(IdentityReadDbContext dbContext) :
     EfReadRepository<IdentityReadDbContext, Guid, UserReadDbModel>(dbContext),

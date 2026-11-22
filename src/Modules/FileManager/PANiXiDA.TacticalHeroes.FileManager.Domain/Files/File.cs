@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
 
 public sealed class File : AggregateRoot<FileId>
 {

@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
 
 public sealed record CreateFactionResponse(Guid Id);

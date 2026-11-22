@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Register;
 
 internal sealed class RegisterUserEndpoint : IEndpoint<AuthEndpoints>
 {

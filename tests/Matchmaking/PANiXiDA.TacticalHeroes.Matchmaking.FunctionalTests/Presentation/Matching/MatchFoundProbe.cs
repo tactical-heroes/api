@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Contracts.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Contracts.MatchSearches;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 

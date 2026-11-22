@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Enumerations;
 

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetDetails;
 
 public sealed record HeroDetailsReadModel(
     Guid Id,

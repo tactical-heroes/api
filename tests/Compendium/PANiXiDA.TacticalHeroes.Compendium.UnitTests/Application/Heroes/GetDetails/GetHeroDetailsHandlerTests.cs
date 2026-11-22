@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetDetails;
 using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Heroes;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Heroes.GetDetails;

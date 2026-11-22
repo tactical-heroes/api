@@ -3,7 +3,7 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Revoke;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Revoke;
 
 internal sealed class RevokeEndpoint : IEndpoint<OAuthEndpoints>
 {

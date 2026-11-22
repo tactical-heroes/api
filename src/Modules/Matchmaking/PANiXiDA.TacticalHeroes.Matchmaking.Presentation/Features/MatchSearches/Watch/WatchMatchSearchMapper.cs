@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Watch;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Watch;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Watch;
 
 internal static class WatchMatchSearchMapper
 {

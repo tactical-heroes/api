@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetStatuses;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetStatuses;
 

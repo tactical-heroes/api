@@ -5,13 +5,14 @@ using Npgsql;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Matchmaking.MatchmakingTestData;
 
@@ -51,7 +52,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         result.First().QueuedAt.ShouldBe(searches[0].QueuedAt);
         result.First().ExpiresAt.ShouldBe(searches[0].ExpiresAt);
         var context = scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
-        var entries = context.ChangeTracker.Entries<Domain.MatchSearches.MatchSearch>().ToArray();
+        var entries = context.ChangeTracker.Entries<MatchSearch>().ToArray();
         entries.Length.ShouldBe(151);
         entries.ShouldAllBe(entry => entry.State == EntityState.Unchanged);
     }
@@ -219,7 +220,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
         await UnitOfWork(scope.ServiceProvider).SaveChangesAsync(cancellationToken);
 
         var context = scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
-        (await context.Set<Domain.MatchSearches.MatchSearch>().CountAsync(cancellationToken)).ShouldBe(2);
+        (await context.Set<MatchSearch>().CountAsync(cancellationToken)).ShouldBe(2);
     }
 
     [Fact(DisplayName = "Repository should preserve matched search when reloaded")]
@@ -468,7 +469,7 @@ public sealed class MatchSearchesRepositoryTests(IntegrationTestFixture fixture)
 
         restored.ShouldBeNull();
         var context = scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
-        var exists = await context.Set<Domain.MatchSearches.MatchSearch>()
+        var exists = await context.Set<MatchSearch>()
             .IgnoreQueryFilters()
             .AnyAsync(row => row.Id == search.Id, ct);
         exists.ShouldBeTrue();

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Common;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ChangePassword;
 
 internal sealed class ChangePasswordEndpoint : IEndpoint<AuthEndpoints>
 {

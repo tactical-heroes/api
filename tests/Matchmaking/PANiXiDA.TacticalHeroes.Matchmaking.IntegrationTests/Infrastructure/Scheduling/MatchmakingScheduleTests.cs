@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Scheduling;
 
 using Wolverine;
 

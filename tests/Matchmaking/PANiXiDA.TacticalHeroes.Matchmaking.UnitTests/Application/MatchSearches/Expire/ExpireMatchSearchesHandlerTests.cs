@@ -1,11 +1,11 @@
 using PANiXiDA.Core.SpecificationPattern.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
 

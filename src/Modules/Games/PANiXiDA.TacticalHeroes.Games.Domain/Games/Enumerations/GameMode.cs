@@ -1,6 +1,6 @@
 using PANiXiDA.Core.Domain.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
+namespace PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
 
 public sealed partial class GameMode : Enumeration<GameMode>
 {

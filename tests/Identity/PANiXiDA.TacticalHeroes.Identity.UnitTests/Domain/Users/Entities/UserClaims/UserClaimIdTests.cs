@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Entities.UserClaims;
 

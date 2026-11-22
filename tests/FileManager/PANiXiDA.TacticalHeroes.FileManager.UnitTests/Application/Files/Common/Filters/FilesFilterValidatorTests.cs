@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Filters;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Common.Filters;
 

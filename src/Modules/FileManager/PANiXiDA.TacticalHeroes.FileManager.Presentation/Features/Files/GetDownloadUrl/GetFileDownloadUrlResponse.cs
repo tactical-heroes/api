@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
 public sealed record GetFileDownloadUrlResponse(
     string Url,

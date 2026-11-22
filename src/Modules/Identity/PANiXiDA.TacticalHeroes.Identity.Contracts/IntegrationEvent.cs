@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Contracts;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Contracts;
 
 public abstract record IntegrationEvent
 {

@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims.GetPermissions;
 
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 

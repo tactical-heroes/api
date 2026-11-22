@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
 
 public readonly partial record struct UserId : IStronglyTypedId
 {

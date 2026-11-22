@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
 

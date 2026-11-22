@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetList;
 
 internal sealed class GetUsersEndpoint : IEndpoint<UsersEndpoints>
 {

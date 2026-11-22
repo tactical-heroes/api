@@ -8,15 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
-using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonal;
-using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CreatePersonal;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDetails;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Files.CreatePersonal;

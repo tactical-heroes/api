@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
 
 public sealed partial class UserStatus : Enumeration<UserStatus>
 {

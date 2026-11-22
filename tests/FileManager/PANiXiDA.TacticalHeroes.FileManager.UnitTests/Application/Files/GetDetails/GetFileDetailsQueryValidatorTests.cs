@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.GetDetails;
 

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     public partial class AddFolderConcurrencyToken : Migration
     {

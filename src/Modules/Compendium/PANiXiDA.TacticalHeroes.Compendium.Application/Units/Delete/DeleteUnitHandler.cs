@@ -1,9 +1,9 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Delete;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Delete;
 
 public sealed class DeleteUnitHandler(IUnitsRepository unitsRepository)
     : ICommandHandler<DeleteUnitCommand, Result>, IRequireAuthorization, IRequireTransaction

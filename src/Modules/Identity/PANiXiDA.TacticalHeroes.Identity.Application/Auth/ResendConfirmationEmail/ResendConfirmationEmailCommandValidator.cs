@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResendConfirmationEmail;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ResendConfirmationEmail;
 
 public sealed class ResendConfirmationEmailCommandValidator : AbstractValidator<ResendConfirmationEmailCommand>
 {

@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 

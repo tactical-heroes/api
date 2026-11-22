@@ -1,6 +1,6 @@
 using System.Net.Http.Headers;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.GetUserInfo;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.GetUserInfo;
 

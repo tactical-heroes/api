@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Units.GetList;
 
 public sealed record UnitListItemResponse(
     Guid Id,

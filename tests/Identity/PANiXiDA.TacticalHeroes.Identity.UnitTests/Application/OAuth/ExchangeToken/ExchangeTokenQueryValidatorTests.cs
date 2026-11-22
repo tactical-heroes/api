@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.ExchangeToken;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.ExchangeToken;
 

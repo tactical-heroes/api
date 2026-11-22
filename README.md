@@ -206,7 +206,8 @@ through the S3 bucket's `AbortIncompleteMultipartUpload` lifecycle policy.
 ## Repository Layout
 
 - `src/Modules/<ModuleName>/` contains each business module and its Contracts, Domain,
-  Application, Infrastructure, and Presentation projects.
+  Application, Infrastructure, and Presentation projects. Their root namespace is
+  `PANiXiDA.TacticalHeroes.Modules.<ModuleName>.<Layer>`.
 - `src/PANiXiDA.TacticalHeroes.Host/` contains the API host and module wiring.
 - `src/PANiXiDA.TacticalHeroes.Common/` contains shared application code.
 - `tests/` - unit, integration, functional, and architecture tests.

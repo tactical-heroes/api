@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
 
 public interface IRolesReadRepository : IReadRepository<Guid>
 {

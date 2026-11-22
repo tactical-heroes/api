@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetSelectOptions;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.GetSelectOptions;
 
 [Mapper]
 internal static partial class GetRoleSelectOptionsMapper

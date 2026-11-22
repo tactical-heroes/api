@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Write;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Write;
 
 public sealed class FoldersRepository(
     FileManagerWriteDbContext dbContext)

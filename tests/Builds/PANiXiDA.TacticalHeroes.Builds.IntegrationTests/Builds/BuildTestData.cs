@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Builds.IntegrationTests.Builds;
 

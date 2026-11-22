@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildHeroes;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildHeroes;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Heroes;
 
 namespace PANiXiDA.TacticalHeroes.Builds.UnitTests.Domain.Builds.Entities.BuildHeroes;
 

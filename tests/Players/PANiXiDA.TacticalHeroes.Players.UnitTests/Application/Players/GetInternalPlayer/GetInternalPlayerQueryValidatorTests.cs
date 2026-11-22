@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Players.Application.Players.GetInternalPlayer;
+using PANiXiDA.TacticalHeroes.Modules.Players.Application.Players.GetInternalPlayer;
 
 namespace PANiXiDA.TacticalHeroes.Players.UnitTests.Application.Players.GetInternalPlayer;
 

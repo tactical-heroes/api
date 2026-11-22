@@ -10,7 +10,7 @@ using Microsoft.OpenApi;
 
 using OpenIddict.Server.AspNetCore;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Logout;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Logout;
 
 internal sealed class LogoutEndpoint : IEndpoint<OAuthEndpoints>
 {

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 
 public sealed class MatchSearchReadDbModel : AuditableReadDbModel<Guid>
 {

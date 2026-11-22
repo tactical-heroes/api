@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
 
 public sealed record Claim(
     string Type,

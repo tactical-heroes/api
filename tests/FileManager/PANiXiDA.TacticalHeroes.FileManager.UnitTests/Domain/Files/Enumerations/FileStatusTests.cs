@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Enumerations;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files.Enumerations;
 

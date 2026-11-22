@@ -1,14 +1,14 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Update;
 
 public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrentUser currentUser)
     : ICommandHandler<UpdateUserCommand, Result>, IRequireAuthorization, IRequireTransaction

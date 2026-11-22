@@ -35,7 +35,7 @@ public sealed class AggregateReadPersistenceConventionTests
             .Single(assembly => assembly.GetName().Name == module.InfrastructureAssemblyName);
         var contextName = InfrastructurePersistenceConvention.GetModuleShortName(module) + "ReadDbContext";
         var contextType = infrastructure.GetType(
-            module.InfrastructureAssemblyName + ".Persistence.Core." + contextName);
+            module.InfrastructureNamespace + ".Persistence.Core." + contextName);
         if (contextType is null
             || contextType.IsAbstract
             || InfrastructurePersistenceConvention.GetClosedGenericBaseType(
@@ -57,7 +57,7 @@ public sealed class AggregateReadPersistenceConventionTests
         foreach (var aggregate in aggregates)
         {
             var feature = EnglishNamingConvention.Pluralize(aggregate.Name);
-            var contractName = $"{module.ApplicationAssemblyName}.{feature}.Abstractions.I{feature}ReadRepository";
+            var contractName = $"{module.ApplicationNamespace}.{feature}.Abstractions.I{feature}ReadRepository";
             var contract = application.GetType(contractName);
             if (contract is not { IsInterface: true }
                 || InfrastructurePersistenceConvention.GetClosedGenericInterface(
@@ -67,7 +67,7 @@ public sealed class AggregateReadPersistenceConventionTests
                 yield return $"{aggregate.FullName} must declare Application interface '{contractName}'.";
             }
 
-            var readNamespace = $"{module.InfrastructureAssemblyName}.Persistence.Features.{feature}.Read";
+            var readNamespace = $"{module.InfrastructureNamespace}.Persistence.Features.{feature}.Read";
             var modelName = $"{readNamespace}.DbModels.{aggregate.Name}ReadDbModel";
             var model = infrastructure.GetType(modelName);
             if (model is null

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Handlers;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Handlers;
 
-using DomainEvent = PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events.UserRegistered;
+using DomainEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events.UserRegistered;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Messaging;
 

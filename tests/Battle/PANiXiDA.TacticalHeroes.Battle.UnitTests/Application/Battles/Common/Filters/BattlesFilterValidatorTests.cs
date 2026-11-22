@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Battle.Application.Battles.Common.Filters;
+using PANiXiDA.TacticalHeroes.Modules.Battle.Application.Battles.Common.Filters;
 
 namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Application.Battles.Common.Filters;
 

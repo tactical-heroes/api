@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
 
 public sealed record GameAssignmentRequested(
     Guid GameId,

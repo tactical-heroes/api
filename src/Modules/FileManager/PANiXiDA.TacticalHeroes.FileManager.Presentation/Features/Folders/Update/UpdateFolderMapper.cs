@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Update;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Update;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.Update;
 
 [Mapper]
 internal static partial class UpdateFolderMapper

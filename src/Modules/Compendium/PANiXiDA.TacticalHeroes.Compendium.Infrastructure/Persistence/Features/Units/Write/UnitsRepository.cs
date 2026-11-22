@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Units.Write;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Units.Write;
 
 public sealed class UnitsRepository(
     CompendiumWriteDbContext dbContext)

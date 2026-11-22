@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Logout;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Logout;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.Logout;
 

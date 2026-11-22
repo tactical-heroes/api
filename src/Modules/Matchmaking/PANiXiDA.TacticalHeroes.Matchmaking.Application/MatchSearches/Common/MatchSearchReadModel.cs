@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Common;
 
 public sealed record MatchSearchReadModel(
     Guid? Id,

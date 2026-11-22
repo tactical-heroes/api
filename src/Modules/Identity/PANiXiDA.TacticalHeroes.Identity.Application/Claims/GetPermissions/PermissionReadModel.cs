@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims.GetPermissions;
 
 public sealed record PermissionReadModel(
     string Code,

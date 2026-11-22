@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Delete;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Delete;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.Delete;
 

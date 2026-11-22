@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Delete;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Delete;
 
 public sealed class DeleteRoleCommandValidator : AbstractValidator<DeleteRoleCommand>
 {

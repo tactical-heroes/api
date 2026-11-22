@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Common.Filters;
 
 public sealed record FoldersFilter(
     string? Search = null,

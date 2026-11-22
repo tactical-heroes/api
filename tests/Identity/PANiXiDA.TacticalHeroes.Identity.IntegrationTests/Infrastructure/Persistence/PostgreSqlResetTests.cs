@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 

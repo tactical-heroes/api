@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims.GetPermissions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Claims.GetPermissions;
 

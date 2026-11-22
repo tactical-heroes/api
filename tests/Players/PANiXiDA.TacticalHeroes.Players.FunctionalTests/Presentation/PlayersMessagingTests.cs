@@ -6,7 +6,7 @@ using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.OutboxDispatcher;
 
-using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Players.FunctionalTests.Presentation;
 

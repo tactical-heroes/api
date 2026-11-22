@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
 
 public sealed partial class HeroMorale : ValueObject
 {

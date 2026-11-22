@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
-using PANiXiDA.TacticalHeroes.Players.Contracts.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Clients;
+using PANiXiDA.TacticalHeroes.Modules.Players.Contracts.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Clients;
 

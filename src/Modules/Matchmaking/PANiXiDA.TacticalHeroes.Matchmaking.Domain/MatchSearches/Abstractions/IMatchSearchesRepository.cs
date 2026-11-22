@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
 
 public interface IMatchSearchesRepository : IRepository<MatchSearchId, MatchSearch>
 {

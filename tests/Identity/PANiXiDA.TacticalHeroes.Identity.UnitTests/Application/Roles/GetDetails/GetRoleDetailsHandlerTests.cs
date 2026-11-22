@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetDetails;
 

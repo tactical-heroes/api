@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetDetails;
 
 public sealed class GetUnitDetailsHandler(
     IUnitsReadRepository unitsReadRepository)

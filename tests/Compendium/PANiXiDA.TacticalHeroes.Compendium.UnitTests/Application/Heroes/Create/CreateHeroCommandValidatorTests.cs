@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Create;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Create;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Heroes.Create;
 

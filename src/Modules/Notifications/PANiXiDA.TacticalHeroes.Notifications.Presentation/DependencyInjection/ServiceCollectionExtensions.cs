@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.Presentation.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Presentation.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

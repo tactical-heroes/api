@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Services;
+namespace PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Services;
 
 public static class DamageRandomizer
 {

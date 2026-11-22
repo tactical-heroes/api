@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Create;
 
 public sealed record CreateUserRequest(
     string Email,

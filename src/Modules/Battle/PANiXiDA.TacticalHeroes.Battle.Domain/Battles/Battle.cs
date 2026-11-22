@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
+using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units;
+using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Events;
 
-namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
+namespace PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles;
 
 public sealed class Battle : AggregateRoot<BattleId>
 {

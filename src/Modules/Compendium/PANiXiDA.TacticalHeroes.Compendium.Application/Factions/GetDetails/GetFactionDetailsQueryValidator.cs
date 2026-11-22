@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetDetails;
 
 public sealed class GetFactionDetailsQueryValidator
     : AbstractValidator<GetFactionDetailsQuery>

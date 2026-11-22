@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
     [Migration("20261007063900_AddFiles")]
@@ -27,7 +27,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")

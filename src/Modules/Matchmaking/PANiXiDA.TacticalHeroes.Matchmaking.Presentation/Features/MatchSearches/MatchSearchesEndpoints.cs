@@ -2,7 +2,7 @@ using Asp.Versioning;
 
 using Microsoft.AspNetCore.Routing;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches;
 
 internal sealed class MatchSearchesEndpoints : IEndpointGroup
 {

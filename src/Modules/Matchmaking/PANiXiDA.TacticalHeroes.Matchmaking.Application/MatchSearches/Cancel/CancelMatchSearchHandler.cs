@@ -1,12 +1,12 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Cancel;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Cancel;
 
 public sealed class CancelMatchSearchHandler(
     IMatchSearchesRepository matchSearchesRepository,

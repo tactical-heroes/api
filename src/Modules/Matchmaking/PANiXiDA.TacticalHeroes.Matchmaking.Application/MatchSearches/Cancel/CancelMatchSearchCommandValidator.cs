@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Cancel;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Cancel;
 
 public sealed class CancelMatchSearchCommandValidator : AbstractValidator<CancelMatchSearchCommand>
 {

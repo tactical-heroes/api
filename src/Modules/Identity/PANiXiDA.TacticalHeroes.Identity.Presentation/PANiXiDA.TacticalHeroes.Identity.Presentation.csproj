@@ -31,7 +31,7 @@
         <Using Include="PANiXiDA.Core.Presentation.Http.Endpoints" />
         <Using Include="PANiXiDA.Core.Presentation.Http.Helpers" />
 
-        <Using Include="PANiXiDA.TacticalHeroes.Identity.Contracts.OAuth" />
+        <Using Include="PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.OAuth" />
 
         <Using Include="OpenIddict.Abstractions" />
     </ItemGroup>

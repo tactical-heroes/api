@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Create;
 
 public sealed record CreateUnitCommand(
     string Name,

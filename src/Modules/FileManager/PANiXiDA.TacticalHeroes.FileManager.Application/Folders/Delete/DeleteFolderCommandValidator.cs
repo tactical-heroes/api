@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Delete;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Delete;
 
 public sealed class DeleteFolderCommandValidator : AbstractValidator<DeleteFolderCommand>
 {

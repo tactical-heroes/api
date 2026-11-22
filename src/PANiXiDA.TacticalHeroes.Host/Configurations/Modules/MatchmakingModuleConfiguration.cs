@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 

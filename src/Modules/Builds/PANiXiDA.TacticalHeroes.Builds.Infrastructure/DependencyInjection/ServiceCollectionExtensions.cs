@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Builds.Infrastructure.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

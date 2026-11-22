@@ -1,15 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Clients;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Lockout;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Password;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.TokenProviders;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.User;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Certificates;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Clients;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Lockout;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Password;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.TokenProviders;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.User;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.DependencyInjection;
 
 internal static class IdentityProviderOptionsServiceCollectionExtensions
 {

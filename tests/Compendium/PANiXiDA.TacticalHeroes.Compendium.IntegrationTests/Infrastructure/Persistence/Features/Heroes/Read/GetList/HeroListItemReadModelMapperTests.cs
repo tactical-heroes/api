@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Heroes.Read.GetList;
 

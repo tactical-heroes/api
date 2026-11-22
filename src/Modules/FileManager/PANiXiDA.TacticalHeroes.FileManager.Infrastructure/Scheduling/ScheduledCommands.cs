@@ -1,9 +1,9 @@
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.ReconcileDeletions;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling;
 
 public static class ScheduledCommands
 {

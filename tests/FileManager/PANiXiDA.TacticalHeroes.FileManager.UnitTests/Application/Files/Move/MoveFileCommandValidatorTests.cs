@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Move;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Move;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Move;
 

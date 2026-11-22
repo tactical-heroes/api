@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Builds.Application.Builds.Abstractions;
-using PANiXiDA.TacticalHeroes.Builds.Application.Builds.GetInternalBuild;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Application.Builds.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Application.Builds.GetInternalBuild;
 
 namespace PANiXiDA.TacticalHeroes.Builds.UnitTests.Application.Builds.GetInternalBuild;
 

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Write;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Write;
 
 internal sealed class FactionConfiguration : AuditableEntityConfiguration<Faction>
 {

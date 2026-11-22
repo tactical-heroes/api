@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Hosting;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.DependencyInjection;
 
 public static class HostBuilderExtensions
 {

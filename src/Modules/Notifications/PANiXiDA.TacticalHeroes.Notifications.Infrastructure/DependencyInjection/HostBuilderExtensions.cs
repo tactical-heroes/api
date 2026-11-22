@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Hosting;
 
-using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Messaging.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.DependencyInjection;
 
 public static class HostBuilderExtensions
 {

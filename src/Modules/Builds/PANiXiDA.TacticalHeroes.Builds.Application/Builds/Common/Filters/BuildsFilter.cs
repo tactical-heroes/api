@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Builds.Application.Builds.Common.Filters;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Application.Builds.Common.Filters;
 
 public sealed record BuildsFilter : IFilter;

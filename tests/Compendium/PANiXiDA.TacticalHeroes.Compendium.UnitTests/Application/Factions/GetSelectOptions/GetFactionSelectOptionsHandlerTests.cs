@@ -1,7 +1,7 @@
 using PANiXiDA.Core.Application.Querying.Limiting;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Common.Filters;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetSelectOptions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetSelectOptions;
 

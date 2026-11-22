@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.ValueObjects;
 
 public sealed partial class Rating : ValueObject
 {

@@ -1,11 +1,11 @@
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildHeroes;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildUnits;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Heroes;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Players;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildHeroes;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildUnits;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Units;
 
-namespace PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
 
 public sealed class Build : AggregateRoot<BuildId>
 {

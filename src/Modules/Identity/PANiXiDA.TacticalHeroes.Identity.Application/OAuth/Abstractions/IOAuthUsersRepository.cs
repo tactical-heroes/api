@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetUserInfo;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
 
 public interface IOAuthUsersRepository
 {

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Login;
 
 public sealed class LoginHandler(IUserCredentialsService userCredentialsService)
     : ICommandHandler<LoginCommand, Result<LoginSecurityProof>>

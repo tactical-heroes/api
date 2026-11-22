@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Authorize;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Authorize;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Authorize;
 
 [Mapper]
 internal static partial class AuthorizeMapper

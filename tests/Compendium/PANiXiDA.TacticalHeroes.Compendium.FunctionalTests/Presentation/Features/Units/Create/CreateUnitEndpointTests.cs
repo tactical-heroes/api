@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.Create;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Units.Create;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Units.Create;
 

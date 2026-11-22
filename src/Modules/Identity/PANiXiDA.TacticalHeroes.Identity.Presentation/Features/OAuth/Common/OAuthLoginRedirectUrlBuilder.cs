@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Common;
 
 internal static class OAuthLoginRedirectUrlBuilder
 {

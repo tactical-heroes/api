@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Move;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Move;
 
 public sealed class MoveFolderCommandValidator : AbstractValidator<MoveFolderCommand>
 {

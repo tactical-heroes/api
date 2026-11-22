@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetClientTokenPrincipal;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetClientTokenPrincipal;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.ExchangeToken;
 
 [Mapper]
 internal static partial class ExchangeTokenMapper

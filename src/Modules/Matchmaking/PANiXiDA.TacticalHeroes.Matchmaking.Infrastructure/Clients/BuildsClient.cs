@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.ReadModels;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Contracts.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.ReadModels;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Clients;
 
 public sealed class BuildsClient(IBuildsApi buildsApi) : IBuildsClient
 {

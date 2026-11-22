@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResendConfirmationEmail;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ResendConfirmationEmail;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResendConfirmationEmail;
 

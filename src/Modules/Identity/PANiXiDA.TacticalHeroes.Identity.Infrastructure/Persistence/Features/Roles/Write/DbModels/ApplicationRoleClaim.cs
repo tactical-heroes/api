@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
 public sealed class ApplicationRoleClaim : IdentityRoleClaim<Guid>
 {

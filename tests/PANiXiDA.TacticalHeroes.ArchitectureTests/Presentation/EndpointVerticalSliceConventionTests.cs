@@ -20,7 +20,7 @@ public sealed class EndpointVerticalSliceConventionTests
             .Select(target =>
             {
                 var feature = EnglishNamingConvention.Pluralize(target.Aggregate.Name);
-                var expectedName = $"{target.Module.PresentationAssemblyName}.Features.{feature}.{feature}Endpoints";
+                var expectedName = $"{target.Module.PresentationNamespace}.Features.{feature}.{feature}Endpoints";
 
                 return endpointGroups.Count(group => group.FullName == expectedName) == 1
                     ? null

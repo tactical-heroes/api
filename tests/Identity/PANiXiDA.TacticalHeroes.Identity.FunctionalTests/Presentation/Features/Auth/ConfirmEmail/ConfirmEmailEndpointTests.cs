@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ConfirmEmail;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ConfirmEmail;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Register;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ConfirmEmail;
 

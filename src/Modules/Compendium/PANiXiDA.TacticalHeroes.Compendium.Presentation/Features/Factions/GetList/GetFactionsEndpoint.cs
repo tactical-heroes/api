@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.GetList;
 
 internal sealed class GetFactionsEndpoint : IEndpoint<FactionsEndpoints>
 {

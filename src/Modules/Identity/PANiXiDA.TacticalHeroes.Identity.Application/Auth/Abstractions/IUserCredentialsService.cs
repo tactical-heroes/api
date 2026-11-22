@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Login;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
 
 public interface IUserCredentialsService
 {

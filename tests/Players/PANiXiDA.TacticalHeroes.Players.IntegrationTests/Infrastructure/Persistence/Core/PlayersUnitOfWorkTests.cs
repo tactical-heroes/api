@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Players.IntegrationTests.Infrastructure.Persistence.Core;
 

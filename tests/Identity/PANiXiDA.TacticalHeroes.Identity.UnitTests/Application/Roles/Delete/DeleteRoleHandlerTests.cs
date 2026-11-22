@@ -1,7 +1,7 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Delete;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Delete;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Delete;
 

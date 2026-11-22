@@ -2,14 +2,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Claims;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Auth;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Auth;
 
 public sealed class AuthenticatedUserService(IdentityReadDbContext dbContext, IOptions<IdentityOptions> identityOptions)
     : IAuthenticatedUserService

@@ -1,10 +1,10 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
 
 public sealed class GetFileDetailsHandler(
     IFilesReadRepository filesReadRepository,

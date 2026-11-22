@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Games.Application.Games.Abstractions;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Abstractions;
-using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Games.Application.Games.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Games.IntegrationTests.Games;
 
 namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Persistence.Features.Games.Read;

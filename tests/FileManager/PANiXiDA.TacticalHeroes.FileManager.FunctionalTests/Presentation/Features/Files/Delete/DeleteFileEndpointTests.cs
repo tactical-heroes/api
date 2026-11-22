@@ -7,15 +7,15 @@ using PANiXiDA.Core.Application.Persistence.Errors;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
 
-using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Files.Delete;
 

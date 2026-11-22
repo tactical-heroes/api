@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Login;
 
 public sealed record LoginRequest(
     string Email,

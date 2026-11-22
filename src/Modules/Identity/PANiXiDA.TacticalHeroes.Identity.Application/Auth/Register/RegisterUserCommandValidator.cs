@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Register;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Register;
 
 public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {

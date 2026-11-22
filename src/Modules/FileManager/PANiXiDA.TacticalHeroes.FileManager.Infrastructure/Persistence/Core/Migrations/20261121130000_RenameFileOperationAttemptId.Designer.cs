@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
 using System;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(FileManagerWriteDbContext))]
     [Migration("20261121130000_RenameFileOperationAttemptId")]
@@ -28,7 +28,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -124,7 +124,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     b.ToTable("files", "file_manager");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Folder", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Folder", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -183,18 +183,18 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Mi
                     b.ToTable("folders", "file_manager");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Folder", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Folder", null)
                         .WithMany()
                         .HasForeignKey("FolderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_files_folder_folder_id");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Folder", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Folder", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Folder", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Folder", null)
                         .WithMany()
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)

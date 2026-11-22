@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
 
 public interface IRolesRepository
 {

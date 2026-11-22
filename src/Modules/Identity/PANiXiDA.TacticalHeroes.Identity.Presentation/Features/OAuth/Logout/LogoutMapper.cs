@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Logout;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Logout;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Logout;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Logout;
 
 [Mapper]
 internal static partial class LogoutMapper

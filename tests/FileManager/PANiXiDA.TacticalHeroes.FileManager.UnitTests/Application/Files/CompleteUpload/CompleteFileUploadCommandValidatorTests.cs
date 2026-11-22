@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CompleteUpload;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CompleteUpload;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.CompleteUpload;
 

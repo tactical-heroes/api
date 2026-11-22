@@ -1,7 +1,7 @@
-using DomainEvent = PANiXiDA.TacticalHeroes.Games.Domain.Games.Events.GameCreated;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Games.Contracts.Games.GameCreated;
+using DomainEvent = PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Events.GameCreated;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Games.Contracts.Games.GameCreated;
 
-namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Messaging.Handlers;
 
 public static class GameCreatedHandler
 {

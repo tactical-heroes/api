@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Authorize;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Authorize;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.Authorize;
 

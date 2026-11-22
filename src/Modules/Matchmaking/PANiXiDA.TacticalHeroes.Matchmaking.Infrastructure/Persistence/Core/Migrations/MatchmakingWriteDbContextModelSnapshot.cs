@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(MatchmakingWriteDbContext))]
     partial class MatchmakingWriteDbContextModelSnapshot : ModelSnapshot
@@ -26,7 +26,7 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Mi
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.MatchSearch", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.MatchSearch", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")

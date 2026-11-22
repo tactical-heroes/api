@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Create;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Units;
 

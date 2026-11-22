@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Contracts.Builds;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Clients;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Clients;
 

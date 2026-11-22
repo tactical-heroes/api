@@ -2,8 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Seeding;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.OAuth;
 

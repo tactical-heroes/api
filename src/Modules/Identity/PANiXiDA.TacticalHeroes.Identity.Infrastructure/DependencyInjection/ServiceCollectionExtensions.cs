@@ -3,12 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Scheduling.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

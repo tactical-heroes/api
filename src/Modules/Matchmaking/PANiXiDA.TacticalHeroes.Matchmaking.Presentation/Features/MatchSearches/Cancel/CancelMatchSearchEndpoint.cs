@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Cancel;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Cancel;
 
 internal sealed class CancelMatchSearchEndpoint : IEndpoint<MatchSearchesEndpoints>
 {

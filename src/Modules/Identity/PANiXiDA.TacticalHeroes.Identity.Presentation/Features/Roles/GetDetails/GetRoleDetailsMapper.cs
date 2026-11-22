@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.GetDetails;
 
 [Mapper]
 [UseStaticMapper(typeof(Claim))]

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
 public sealed class FileUploadReconciliationOptionsValidator
     : IValidateOptions<FileUploadReconciliationOptions>

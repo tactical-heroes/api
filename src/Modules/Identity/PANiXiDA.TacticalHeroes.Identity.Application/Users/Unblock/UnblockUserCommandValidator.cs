@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Unblock;
 
 public sealed class UnblockUserCommandValidator : AbstractValidator<UnblockUserCommand>
 {

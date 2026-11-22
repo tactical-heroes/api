@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetList;
 
 public sealed class GetHeroesQueryValidator : AbstractValidator<GetHeroesQuery>
 {

@@ -5,9 +5,9 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.GetAuthenticatedUser;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Common;
 
 internal sealed class CurrentUserCookieSession(
     ICurrentUser currentUser,

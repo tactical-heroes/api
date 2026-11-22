@@ -1,11 +1,11 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Rename;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Rename;
 
 public sealed class RenameFolderHandler(IFoldersRepository foldersRepository, FolderAccessPolicy folderAccessPolicy)
     : ICommandHandler<RenameFolderCommand, Result>, IRequireAuthorization, IRequireTransaction

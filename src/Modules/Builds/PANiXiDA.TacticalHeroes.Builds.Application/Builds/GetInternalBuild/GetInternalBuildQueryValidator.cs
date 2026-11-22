@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
 
-namespace PANiXiDA.TacticalHeroes.Builds.Application.Builds.GetInternalBuild;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Application.Builds.GetInternalBuild;
 
 public sealed class GetInternalBuildQueryValidator : AbstractValidator<GetInternalBuildQuery>
 {

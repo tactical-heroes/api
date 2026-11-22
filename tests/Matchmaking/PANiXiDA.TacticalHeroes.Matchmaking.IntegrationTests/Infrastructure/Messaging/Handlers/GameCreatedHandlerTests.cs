@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Messaging.Handlers;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Messaging.Handlers;
 
-using SourceEvent = PANiXiDA.TacticalHeroes.Games.Contracts.Games.GameCreated;
+using SourceEvent = PANiXiDA.TacticalHeroes.Modules.Games.Contracts.Games.GameCreated;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Messaging.Handlers;
 

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDetails;
 
 public sealed record GetFileDetailsResponse(
     Guid Id,

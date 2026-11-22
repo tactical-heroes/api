@@ -1,8 +1,8 @@
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Register;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Create;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.Register;
 

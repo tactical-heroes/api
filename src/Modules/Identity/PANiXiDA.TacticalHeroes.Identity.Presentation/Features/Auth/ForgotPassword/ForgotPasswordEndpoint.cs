@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ForgotPassword;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ForgotPassword;
 
 internal sealed class ForgotPasswordEndpoint : IEndpoint<AuthEndpoints>
 {

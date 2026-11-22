@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Policies;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Policies;
 
 public static class MatchmakingPolicy
 {

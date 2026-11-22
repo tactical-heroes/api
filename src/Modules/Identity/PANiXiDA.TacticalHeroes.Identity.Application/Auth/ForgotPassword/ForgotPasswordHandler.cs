@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ForgotPassword;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ForgotPassword;
 
 public sealed class ForgotPasswordHandler(IUserCredentialsService userCredentialsService)
     : ICommandHandler<ForgotPasswordCommand, Result>, IRequireTransaction

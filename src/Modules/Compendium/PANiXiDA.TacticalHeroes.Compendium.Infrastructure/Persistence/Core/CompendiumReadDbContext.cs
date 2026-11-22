@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 
 public sealed class CompendiumReadDbContext(
     DbContextOptions<CompendiumReadDbContext> options)

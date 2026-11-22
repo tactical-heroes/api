@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetList;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.GetList;
 
 [Mapper(IncludedConstructors = MemberVisibility.All)]
 internal static partial class GetHeroesMapper

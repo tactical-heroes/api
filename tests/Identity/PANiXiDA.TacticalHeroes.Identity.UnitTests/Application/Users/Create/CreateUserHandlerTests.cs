@@ -1,10 +1,10 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Create;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 

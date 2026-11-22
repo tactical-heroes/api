@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Delete;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Delete;
 
 public sealed class DeleteRoleHandler(IRolesRepository rolesRepository, ICurrentUser currentUser)
     : ICommandHandler<DeleteRoleCommand, Result>, IRequireAuthorization, IRequireTransaction

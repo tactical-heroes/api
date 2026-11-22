@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetList;
 
 public sealed class GetHeroesHandler(IHeroesReadRepository heroesReadRepository)
     : IQueryHandler<GetHeroesQuery, Result<PaginationResult<HeroListItemReadModel>>>, IRequireAuthorization

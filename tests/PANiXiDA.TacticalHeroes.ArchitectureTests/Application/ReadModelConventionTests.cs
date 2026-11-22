@@ -9,11 +9,11 @@ using PANiXiDA.Core.Application.Querying.Pagination;
 using PANiXiDA.Core.Application.Storage.Models;
 using PANiXiDA.Core.ResultPattern;
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
-using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
-using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Application;
 

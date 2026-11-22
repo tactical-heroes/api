@@ -7,10 +7,10 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Server;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Certificates;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.DependencyInjection;
 
 internal static class OpenIddictServerBuilderExtensions
 {

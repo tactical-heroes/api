@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResetPassword;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ResetPassword;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ResetPassword;
 
 [Mapper]
 internal static partial class ResetPasswordMapper

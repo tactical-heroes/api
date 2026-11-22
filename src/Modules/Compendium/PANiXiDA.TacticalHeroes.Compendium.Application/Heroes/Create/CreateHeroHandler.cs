@@ -1,12 +1,12 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Create;
 
 public sealed class CreateHeroHandler(
     IHeroesRepository heroesRepository,

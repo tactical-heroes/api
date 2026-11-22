@@ -5,9 +5,9 @@ using Microsoft.Extensions.Options;
 using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Server;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Handlers;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Handlers;
 
 internal sealed class ValidateSecurityStampHandler(
     IdentityWriteDbContext dbContext,

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
 
 public sealed partial class GameTimestamp : ValueObject
 {

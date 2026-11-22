@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Unblock;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Unblock;
 

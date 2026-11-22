@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.Games.Domain.Battles;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
-using PANiXiDA.TacticalHeroes.Games.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Features.Games.Write;
+namespace PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Features.Games.Write;
 
 internal sealed class GameConfiguration : AuditableEntityConfiguration<Game>
 {

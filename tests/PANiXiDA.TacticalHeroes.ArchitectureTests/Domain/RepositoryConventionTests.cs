@@ -8,7 +8,7 @@ using PANiXiDA.Core.Domain.ValueObjects;
 using PANiXiDA.Core.SpecificationPattern.Abstractions;
 using PANiXiDA.Core.SpecificationPattern.Core;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 
@@ -536,7 +536,7 @@ public sealed class RepositoryConventionTests
             ?? throw new InvalidOperationException(
                 $"Repository interface '{repository.FullName}' does not have "
                     + $"a namespace.");
-        var namespacePrefix = assemblyName + ".";
+        var namespacePrefix = ArchitectureDefinition.GetModuleNamespace(assemblyName) + ".";
         var relativeNamespace = repositoryNamespace.StartsWith(
             namespacePrefix,
             StringComparison.Ordinal)

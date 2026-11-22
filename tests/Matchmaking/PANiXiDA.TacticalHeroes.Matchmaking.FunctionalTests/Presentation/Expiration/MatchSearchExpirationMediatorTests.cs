@@ -4,13 +4,13 @@ using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.ResultPattern;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.ConfirmMatch;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration
     .MatchSearchExpirationTestSupport;

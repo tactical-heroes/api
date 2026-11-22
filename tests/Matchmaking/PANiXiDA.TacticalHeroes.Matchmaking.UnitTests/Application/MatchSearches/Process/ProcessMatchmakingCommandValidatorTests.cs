@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Process;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Process;
 

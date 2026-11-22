@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResendConfirmationEmail;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Register;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ResendConfirmationEmail;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ResendConfirmationEmail;
 

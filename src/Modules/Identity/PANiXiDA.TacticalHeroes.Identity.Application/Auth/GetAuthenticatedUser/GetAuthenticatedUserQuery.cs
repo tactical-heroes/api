@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Common;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.GetAuthenticatedUser;
 
 public sealed record GetAuthenticatedUserQuery(
     Guid UserId,

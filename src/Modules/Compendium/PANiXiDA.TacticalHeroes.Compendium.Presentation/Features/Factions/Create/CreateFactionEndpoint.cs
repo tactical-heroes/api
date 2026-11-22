@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
 
 internal sealed class CreateFactionEndpoint : IEndpoint<FactionsEndpoints>
 {

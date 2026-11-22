@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Messaging.Handlers;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Messaging.Handlers;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Messaging.Handlers;
 

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
 
 public sealed record FileDetailsReadModel(
     Guid Id,

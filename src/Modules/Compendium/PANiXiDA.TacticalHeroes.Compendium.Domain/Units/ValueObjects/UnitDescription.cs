@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
 
 public sealed partial class UnitDescription : ValueObject
 {

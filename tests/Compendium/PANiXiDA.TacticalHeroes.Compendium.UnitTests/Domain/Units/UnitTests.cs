@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
 using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Units;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Units;

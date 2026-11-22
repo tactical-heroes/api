@@ -117,7 +117,7 @@ public sealed class DomainTypeUnitTestConventionTests
             {
                 var relativeNamespace = GetRelativeNamespace(
                     type,
-                    module.DomainAssemblyName);
+                    module.DomainNamespace);
                 var namespacePath = relativeNamespace.Replace(
                     '.',
                     Path.DirectorySeparatorChar);
@@ -165,16 +165,16 @@ public sealed class DomainTypeUnitTestConventionTests
 
     private static string GetRelativeNamespace(
         Type type,
-        string domainAssemblyName)
+        string domainNamespace)
     {
         var typeNamespace = type.Namespace
             ?? throw new InvalidOperationException(
                 $"Domain type '{type.FullName}' does not have a namespace.");
-        var domainNamespacePrefix = domainAssemblyName + ".";
+        var domainNamespacePrefix = domainNamespace + ".";
 
         if (string.Equals(
             typeNamespace,
-            domainAssemblyName,
+            domainNamespace,
             StringComparison.Ordinal))
         {
             return string.Empty;
@@ -189,7 +189,7 @@ public sealed class DomainTypeUnitTestConventionTests
 
         throw new InvalidOperationException(
             $"Domain type namespace '{typeNamespace}' must be "
-                + $"'{domainAssemblyName}' or start with "
+                + $"'{domainNamespace}' or start with "
                 + $"'{domainNamespacePrefix}'.");
     }
 

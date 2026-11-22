@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Claims.GetPermissions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Claims.GetPermissions;
 
 using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;

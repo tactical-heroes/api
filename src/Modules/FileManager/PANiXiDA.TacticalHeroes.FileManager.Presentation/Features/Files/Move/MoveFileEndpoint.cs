@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Move;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Move;
 
 internal sealed class MoveFileEndpoint : IEndpoint<FilesEndpoints>
 {

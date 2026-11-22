@@ -1,10 +1,10 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Delete;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Delete;
 
 public sealed class DeleteFileHandler(IFilesRepository filesRepository, FileAccessPolicy fileAccessPolicy)
     : ICommandHandler<DeleteFileCommand, Result>, IRequireAuthorization, IRequireTransaction

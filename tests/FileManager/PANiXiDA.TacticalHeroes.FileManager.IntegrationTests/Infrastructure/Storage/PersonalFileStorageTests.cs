@@ -9,16 +9,16 @@ using NSubstitute;
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonal;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Services;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Storage;

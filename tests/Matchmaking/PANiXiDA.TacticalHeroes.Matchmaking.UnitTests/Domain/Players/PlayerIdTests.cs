@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.Players;
 

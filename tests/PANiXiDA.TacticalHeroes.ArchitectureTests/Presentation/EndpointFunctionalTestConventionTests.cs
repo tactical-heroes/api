@@ -53,7 +53,7 @@ public sealed class EndpointFunctionalTestConventionTests
         var functionalTestsAssemblyName =
             moduleName + FunctionalTestsAssemblySuffix;
         var presentationNamespacePrefix =
-            presentationAssemblyName + ".";
+            ArchitectureDefinition.GetModuleNamespace(presentationAssemblyName) + ".";
 
         if (!endpointNamespace.StartsWith(
             presentationNamespacePrefix,

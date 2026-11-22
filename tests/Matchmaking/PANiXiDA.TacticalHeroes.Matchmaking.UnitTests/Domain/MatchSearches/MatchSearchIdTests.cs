@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchSearches;
 

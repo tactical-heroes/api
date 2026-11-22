@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.Create;
 
 internal sealed class CreateHeroEndpoint : IEndpoint<HeroesEndpoints>
 {

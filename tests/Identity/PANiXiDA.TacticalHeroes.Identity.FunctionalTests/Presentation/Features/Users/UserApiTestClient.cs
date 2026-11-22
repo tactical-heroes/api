@@ -1,9 +1,9 @@
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetList;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetStatuses;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Create;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetStatuses;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Update;
 
 using static PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.UsersApiConstants;
 

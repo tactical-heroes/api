@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Heroes;
 

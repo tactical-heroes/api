@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(CompendiumWriteDbContext))]
     [Migration("20261020090449_AddAutomaticConcurrencyTokens")]
@@ -30,7 +30,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Faction", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Faction", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -75,7 +75,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                     b.ToTable("factions", "compendium");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Hero", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Hero", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -126,7 +126,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Hero.Stats#HeroCombatStats", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Hero.Stats#HeroCombatStats", b1 =>
                         {
                             b1.IsRequired();
 
@@ -160,7 +160,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                     b.ToTable("heroes", "compendium");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Unit", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -211,7 +211,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "RangedAttack", "PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit.RangedAttack#UnitRangedAttack", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "RangedAttack", "PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Unit.RangedAttack#UnitRangedAttack", b1 =>
                         {
                             b1.IsRequired();
 
@@ -224,7 +224,7 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                                 .HasColumnName("ranged_attack_shots");
                         });
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit.Stats#UnitCombatStats", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Unit.Stats#UnitCombatStats", b1 =>
                         {
                             b1.IsRequired();
 
@@ -266,9 +266,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                     b.ToTable("units", "compendium");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Hero", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Hero", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Faction", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Faction", null)
                         .WithMany()
                         .HasForeignKey("FactionId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -276,9 +276,9 @@ namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Mig
                         .HasConstraintName("fk_heroes_factions_faction_id");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Unit", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Unit", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Faction", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Faction", null)
                         .WithMany()
                         .HasForeignKey("FactionId")
                         .OnDelete(DeleteBehavior.Restrict)

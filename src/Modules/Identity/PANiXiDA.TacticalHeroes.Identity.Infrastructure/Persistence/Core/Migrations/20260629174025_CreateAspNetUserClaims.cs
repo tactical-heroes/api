@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core.Migrations;
 
 [DbContext(typeof(IdentityWriteDbContext))]
 [Migration("20260629174025_CreateAspNetUserClaims")]

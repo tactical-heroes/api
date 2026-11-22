@@ -1,11 +1,11 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
-using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
 
 public sealed class MatchSearch : AggregateRoot<MatchSearchId>
 {

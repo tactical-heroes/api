@@ -170,7 +170,7 @@ internal static class InfrastructurePersistenceConvention
         var module = GetModule(type);
         var expectedNamespaces = relativeNamespaceCandidates
             .Select(segments =>
-                module.InfrastructureAssemblyName
+                module.InfrastructureNamespace
                     + "."
                     + string.Join(".", segments))
             .ToArray();

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetList;
 
 public sealed record UserListItemReadModel(
     Guid Id,

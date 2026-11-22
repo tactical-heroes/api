@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResetPassword;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ResetPassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResetPassword;
 

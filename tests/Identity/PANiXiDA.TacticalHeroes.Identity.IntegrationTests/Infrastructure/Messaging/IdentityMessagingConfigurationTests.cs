@@ -3,10 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Handlers;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Handlers;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
 
 namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Messaging;
 

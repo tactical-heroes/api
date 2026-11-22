@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core;
 
 public sealed class BattleReadDbContext(
     DbContextOptions<BattleReadDbContext> options)

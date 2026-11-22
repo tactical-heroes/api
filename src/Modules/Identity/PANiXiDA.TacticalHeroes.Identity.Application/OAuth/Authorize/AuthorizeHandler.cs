@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Authorize;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Authorize;
 
 public sealed class AuthorizeHandler(IOAuthUsersRepository usersRepository)
     : IQueryHandler<AuthorizeQuery, Result<AuthorizeReadModel>>

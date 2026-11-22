@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Games.Contracts.Games;
+namespace PANiXiDA.TacticalHeroes.Modules.Games.Contracts.Games;
 
 public sealed record GameCreated(
     Guid GameId,

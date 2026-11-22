@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetList;
 
 public sealed record FolderListItemReadModel(
     Guid Id,

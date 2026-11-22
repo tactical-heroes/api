@@ -1,13 +1,13 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Events;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Events;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Events;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
 
-using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Events;
 

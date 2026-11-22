@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation;
 
 public static class PresentationAssembly
 {

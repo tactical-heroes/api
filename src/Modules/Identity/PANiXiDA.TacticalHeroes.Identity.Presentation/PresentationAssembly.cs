@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation;
 
 public static class PresentationAssembly
 {

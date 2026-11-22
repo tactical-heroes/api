@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonal;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonal;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CreatePersonal;
 
 [Mapper]
 internal static partial class CreatePersonalFileMapper

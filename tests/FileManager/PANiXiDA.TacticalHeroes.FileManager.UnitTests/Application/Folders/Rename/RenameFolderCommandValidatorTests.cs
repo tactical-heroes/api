@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Rename;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Rename;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.Rename;
 

@@ -1,6 +1,6 @@
 using System.Net.Http.Headers;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
 
 public sealed partial class FileContentType : ValueObject
 {

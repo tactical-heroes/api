@@ -2,12 +2,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
 
-using PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Abstractions;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
-using PANiXiDA.TacticalHeroes.Builds.Domain.Players;
-using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Contracts.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Builds.FunctionalTests.Presentation.Internal;
 

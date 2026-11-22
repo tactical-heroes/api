@@ -1,9 +1,9 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Create;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Create;
 

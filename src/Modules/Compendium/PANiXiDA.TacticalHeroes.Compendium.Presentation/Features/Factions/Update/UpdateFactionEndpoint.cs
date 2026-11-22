@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Update;
 
 internal sealed class UpdateFactionEndpoint : IEndpoint<FactionsEndpoints>
 {

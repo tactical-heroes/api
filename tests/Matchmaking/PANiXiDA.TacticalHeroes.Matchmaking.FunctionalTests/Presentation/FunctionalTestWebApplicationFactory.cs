@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
 using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
-using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
 
 using Wolverine;
 

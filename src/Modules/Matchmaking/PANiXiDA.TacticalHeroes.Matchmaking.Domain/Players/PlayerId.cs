@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
 
 public readonly partial record struct PlayerId : IStronglyTypedId
 {

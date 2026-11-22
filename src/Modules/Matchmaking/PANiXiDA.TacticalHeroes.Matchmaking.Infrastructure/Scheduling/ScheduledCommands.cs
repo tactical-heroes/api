@@ -1,9 +1,9 @@
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Process;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Scheduling;
 
 public static class ScheduledCommands
 {

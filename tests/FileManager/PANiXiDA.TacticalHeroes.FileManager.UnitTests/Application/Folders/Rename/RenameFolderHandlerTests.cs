@@ -1,13 +1,13 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Rename;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Rename;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.Rename;
 

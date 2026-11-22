@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Cancel;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Cancel;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Cancel;
 

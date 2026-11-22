@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Update;
 
 internal sealed class UpdateFileEndpoint : IEndpoint<FilesEndpoints>
 {

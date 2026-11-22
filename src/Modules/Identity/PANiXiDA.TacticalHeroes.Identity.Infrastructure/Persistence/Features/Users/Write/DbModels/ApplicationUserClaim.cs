@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
 public sealed class ApplicationUserClaim : IdentityUserClaim<Guid>
 {

@@ -7,8 +7,8 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Update;
 

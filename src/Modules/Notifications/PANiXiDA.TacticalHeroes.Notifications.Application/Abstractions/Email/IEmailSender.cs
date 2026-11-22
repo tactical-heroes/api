@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
+using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Email;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Abstractions.Email;
 
 public interface IEmailSender
 {

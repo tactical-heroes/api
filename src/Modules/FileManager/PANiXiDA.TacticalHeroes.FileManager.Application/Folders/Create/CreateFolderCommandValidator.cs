@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Create;
 
 public sealed class CreateFolderCommandValidator : AbstractValidator<CreateFolderCommand>
 {

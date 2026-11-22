@@ -1,9 +1,9 @@
 using PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Factions;
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Create;
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.GetDetails;
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.GetList;
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Update;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.Create;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.GetList;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.Update;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Heroes;
 

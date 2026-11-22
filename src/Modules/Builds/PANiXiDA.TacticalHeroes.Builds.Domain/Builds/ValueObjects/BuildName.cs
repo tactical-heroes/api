@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.ValueObjects;
 
 public sealed partial class BuildName : ValueObject
 {

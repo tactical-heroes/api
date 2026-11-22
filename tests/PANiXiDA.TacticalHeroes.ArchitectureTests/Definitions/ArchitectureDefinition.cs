@@ -96,6 +96,12 @@ internal static class ArchitectureDefinition
     internal static string PresentationAssemblyNamePattern =>
         AssemblyNamePattern(PresentationLayerSuffix);
 
+    internal static string GetModuleNamespace(string assemblyName)
+    {
+        const string AssemblyPrefix = "PANiXiDA.TacticalHeroes.";
+        return $"{AssemblyPrefix}{ModulesDirectoryName}.{assemblyName[AssemblyPrefix.Length..]}";
+    }
+
     internal static string IncludeNamespaceSegment(string namespaceSegment)
     {
         return $".*\\.{Regex.Escape(namespaceSegment)}(\\..*)?$";

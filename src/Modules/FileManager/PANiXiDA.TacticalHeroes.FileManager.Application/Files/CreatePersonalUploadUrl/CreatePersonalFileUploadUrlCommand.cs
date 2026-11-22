@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Models;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Models;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonalUploadUrl;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonalUploadUrl;
 
 public sealed record CreatePersonalFileUploadUrlCommand(
     string Name,

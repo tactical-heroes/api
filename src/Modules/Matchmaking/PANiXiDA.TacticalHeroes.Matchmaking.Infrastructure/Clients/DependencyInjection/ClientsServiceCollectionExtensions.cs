@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Clients.DependencyInjection;
 
 internal static class ClientsServiceCollectionExtensions
 {

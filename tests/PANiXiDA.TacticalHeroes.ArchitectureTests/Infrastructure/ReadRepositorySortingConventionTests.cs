@@ -9,7 +9,7 @@ using PANiXiDA.Core.Application.Querying;
 using PANiXiDA.Core.Application.Querying.Sorting;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Read.Sorting;
 using PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Infrastructure;
 

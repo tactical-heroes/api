@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDetails;
 
 internal sealed class GetFileDetailsEndpoint : IEndpoint<FilesEndpoints>
 {

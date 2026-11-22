@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetList;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.GetList;
 

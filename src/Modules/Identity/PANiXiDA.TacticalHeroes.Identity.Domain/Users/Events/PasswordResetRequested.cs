@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
 
 public sealed record PasswordResetRequested(
     Guid UserId,

@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Units;
 

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.Create;
 
 internal sealed class CreateFolderEndpoint : IEndpoint<FoldersEndpoints>
 {

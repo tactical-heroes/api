@@ -2,12 +2,12 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.UpdateContent;
 
 public sealed class UpdateFileContentHandler(
     IFilesRepository filesRepository,

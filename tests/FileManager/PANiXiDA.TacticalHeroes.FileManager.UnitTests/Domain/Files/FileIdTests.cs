@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files;
 

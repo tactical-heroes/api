@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
 
 public readonly partial record struct MatchSearchId : IStronglyTypedId
 {

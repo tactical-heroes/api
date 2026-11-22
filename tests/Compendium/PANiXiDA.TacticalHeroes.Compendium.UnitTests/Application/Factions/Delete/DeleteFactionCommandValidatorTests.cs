@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Delete;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Delete;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Delete;
 

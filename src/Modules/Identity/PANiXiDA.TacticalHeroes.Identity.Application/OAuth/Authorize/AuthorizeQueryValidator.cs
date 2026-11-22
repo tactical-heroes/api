@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Authorize;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Authorize;
 
 public sealed class AuthorizeQueryValidator : AbstractValidator<AuthorizeQuery>
 {

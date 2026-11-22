@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Common.Filters;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Common.Filters;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Common.Filters;
 

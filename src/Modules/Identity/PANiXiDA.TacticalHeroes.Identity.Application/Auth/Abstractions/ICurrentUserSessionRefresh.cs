@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
 
 public interface ICurrentUserSessionRefresh
 {

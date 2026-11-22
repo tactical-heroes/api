@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ChangePassword;
 
 public sealed class ChangePasswordHandler(IUserCredentialsService userCredentialsService, ICurrentUser currentUser)
     : ICommandHandler<ChangePasswordCommand, Result>, IRequireTransaction

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Games.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
 
 public sealed partial class GameResult : ValueObject
 {

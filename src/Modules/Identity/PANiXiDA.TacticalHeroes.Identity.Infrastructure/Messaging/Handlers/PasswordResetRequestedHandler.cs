@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Builders;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Builders;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
 
-using DomainEvent = PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events.PasswordResetRequested;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.PasswordResetRequested;
+using DomainEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events.PasswordResetRequested;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.Users.PasswordResetRequested;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Handlers;
 
 public sealed class PasswordResetRequestedHandler(
     IOptions<IdentityMessagingOptions> options)

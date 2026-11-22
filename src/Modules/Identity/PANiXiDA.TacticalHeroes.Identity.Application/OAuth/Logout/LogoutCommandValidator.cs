@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Logout;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Logout;
 
 public sealed class LogoutCommandValidator : AbstractValidator<LogoutCommand>
 {

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Watch;
 
 public sealed class WatchMatchSearchCommandValidator : AbstractValidator<WatchMatchSearchCommand>
 {

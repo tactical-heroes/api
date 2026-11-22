@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetList;
 
 public sealed class GetRolesQueryValidator : AbstractValidator<GetRolesQuery>
 {

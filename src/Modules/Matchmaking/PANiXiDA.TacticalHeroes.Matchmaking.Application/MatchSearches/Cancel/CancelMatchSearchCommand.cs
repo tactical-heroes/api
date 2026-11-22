@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Cancel;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Cancel;
 
 public sealed record CancelMatchSearchCommand(Guid Id) : ICommand<Result>;

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Contracts.Builds;
 
 public interface IBuildsApi
 {

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ConfirmEmail;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ConfirmEmail;
 
 public sealed class ConfirmEmailCommandValidator : AbstractValidator<ConfirmEmailCommand>
 {

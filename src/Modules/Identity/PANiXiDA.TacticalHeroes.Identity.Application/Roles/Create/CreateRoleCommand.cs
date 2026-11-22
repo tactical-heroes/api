@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Create;
 
 public sealed record CreateRoleCommand(
     string Name,

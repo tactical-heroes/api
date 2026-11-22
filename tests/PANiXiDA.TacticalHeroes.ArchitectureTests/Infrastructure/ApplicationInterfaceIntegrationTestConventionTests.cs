@@ -167,7 +167,7 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         var implementationNamespace = implementation.Namespace
             ?? throw new InvalidOperationException(
                 $"Infrastructure implementation '{implementation.FullName}' does not have a namespace.");
-        var infrastructureNamespace = module.InfrastructureAssemblyName;
+        var infrastructureNamespace = module.InfrastructureNamespace;
         var infrastructureNamespacePrefix = infrastructureNamespace + ".";
         string relativeNamespace;
 

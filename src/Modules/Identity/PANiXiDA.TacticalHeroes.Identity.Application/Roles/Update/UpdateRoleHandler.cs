@@ -1,13 +1,13 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Update;
 
 public sealed class UpdateRoleHandler(
     IRolesRepository rolesRepository,

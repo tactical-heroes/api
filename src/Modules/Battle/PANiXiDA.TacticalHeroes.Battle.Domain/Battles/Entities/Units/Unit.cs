@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
-using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
+namespace PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units;
 
 public sealed class Unit : Entity<UnitId>
 {

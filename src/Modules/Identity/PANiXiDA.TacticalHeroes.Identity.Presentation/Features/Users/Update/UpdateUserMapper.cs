@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Update;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Update;
 
 [Mapper]
 [UseStaticMapper(typeof(Claim))]

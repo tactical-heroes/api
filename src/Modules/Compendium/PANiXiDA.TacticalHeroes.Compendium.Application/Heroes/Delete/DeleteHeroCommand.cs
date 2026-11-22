@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Delete;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Delete;
 
 public sealed record DeleteHeroCommand(Guid Id) : ICommand<Result>;

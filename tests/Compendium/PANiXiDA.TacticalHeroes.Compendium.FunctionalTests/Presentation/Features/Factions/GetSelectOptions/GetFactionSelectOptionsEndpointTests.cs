@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Factions.GetSelectOptions;
 

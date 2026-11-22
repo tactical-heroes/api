@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
 
 public interface IFoldersRepository : IRepository<FolderId, Folder>
 {

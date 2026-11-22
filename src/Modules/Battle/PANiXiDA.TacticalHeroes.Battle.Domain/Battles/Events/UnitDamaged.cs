@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
+namespace PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Events;
 
 public sealed record UnitDamaged(
     Guid BattleId,

@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetDetails;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.GetDetails;
 

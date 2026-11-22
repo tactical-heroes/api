@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
 
 public sealed class BuildsWriteDbContext(
     DbContextOptions<BuildsWriteDbContext> options,

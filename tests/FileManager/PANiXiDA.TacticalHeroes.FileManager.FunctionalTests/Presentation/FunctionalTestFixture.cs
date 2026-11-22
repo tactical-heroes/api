@@ -4,8 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 

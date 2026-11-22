@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Delete;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Delete;
 

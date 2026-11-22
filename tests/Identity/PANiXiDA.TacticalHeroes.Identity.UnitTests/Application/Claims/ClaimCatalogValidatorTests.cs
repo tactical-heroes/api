@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Claims;
 

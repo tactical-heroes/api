@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Update;
 
 public sealed record UpdateFileRequest(
     string Name,

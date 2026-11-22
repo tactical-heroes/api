@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Common.Urls;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common.Urls;
 
 internal static class AllowedRedirectUrlValidator
 {

@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.ReconcileDeletions;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.ReconcileDeletions;
 

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
 
 public sealed partial class FactionName : ValueObject
 {

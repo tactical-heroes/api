@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.ValueObjects;
 
 namespace PANiXiDA.TacticalHeroes.Players.UnitTests.Domain.Players.ValueObjects;
 

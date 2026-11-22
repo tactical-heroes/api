@@ -2,10 +2,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
-using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
+using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Email.Options.Smtp;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Email.DependencyInjection;
 
 internal static class EmailServiceCollectionExtensions
 {

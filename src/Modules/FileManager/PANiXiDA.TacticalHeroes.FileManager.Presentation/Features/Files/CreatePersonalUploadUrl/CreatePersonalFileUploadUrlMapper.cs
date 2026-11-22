@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Models;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonalUploadUrl;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Models;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonalUploadUrl;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonalUploadUrl;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CreatePersonalUploadUrl;
 
 [Mapper]
 internal static partial class CreatePersonalFileUploadUrlMapper

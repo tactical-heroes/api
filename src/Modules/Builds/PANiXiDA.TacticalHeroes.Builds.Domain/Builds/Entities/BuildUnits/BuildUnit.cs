@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Builds.Domain.Units;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Units;
 
-namespace PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildUnits;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildUnits;
 
 public sealed class BuildUnit : Entity<BuildUnitId>
 {

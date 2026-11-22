@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetDetails;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetDetails;
 

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http;
 
 using PANiXiDA.Core.Application.Querying.Limiting;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.GetSelectOptions;
 
 internal sealed class GetFactionSelectOptionsEndpoint : IEndpoint<FactionsEndpoints>
 {

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthSpa;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Options.OAuthSpa;
 
 public sealed class OAuthSpaOptions
 {

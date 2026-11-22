@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Register;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Register;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Register;
 
 [Mapper]
 internal static partial class RegisterUserMapper

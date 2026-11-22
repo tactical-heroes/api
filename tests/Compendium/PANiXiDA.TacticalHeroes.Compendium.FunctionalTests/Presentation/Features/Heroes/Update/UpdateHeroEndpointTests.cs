@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Update;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.Update;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Heroes.Update;
 

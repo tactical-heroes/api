@@ -1,9 +1,9 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetClientTokenPrincipal;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetClientTokenPrincipal;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.OAuth;
 
 public sealed class OAuthClientsRepository(IOpenIddictApplicationManager applicationManager)
     : IOAuthClientsRepository

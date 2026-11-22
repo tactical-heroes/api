@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResendConfirmationEmail;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ResendConfirmationEmail;
 
 internal sealed class ResendConfirmationEmailEndpoint : IEndpoint<AuthEndpoints>
 {

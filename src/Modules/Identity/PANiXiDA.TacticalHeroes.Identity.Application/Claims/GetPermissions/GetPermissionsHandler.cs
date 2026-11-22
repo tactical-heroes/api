@@ -2,7 +2,7 @@ using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims.GetPermissions;
 
 public sealed class GetPermissionsHandler
     : IQueryHandler<GetPermissionsQuery, Result<IReadOnlyCollection<PermissionReadModel>>>, IRequireAuthorization

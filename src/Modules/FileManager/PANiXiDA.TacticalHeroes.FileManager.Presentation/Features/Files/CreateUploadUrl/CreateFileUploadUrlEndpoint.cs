@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreateUploadUrl;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CreateUploadUrl;
 
 internal sealed class CreateFileUploadUrlEndpoint : IEndpoint<FilesEndpoints>
 {

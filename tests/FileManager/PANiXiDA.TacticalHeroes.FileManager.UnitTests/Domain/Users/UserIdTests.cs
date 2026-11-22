@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Users;
 

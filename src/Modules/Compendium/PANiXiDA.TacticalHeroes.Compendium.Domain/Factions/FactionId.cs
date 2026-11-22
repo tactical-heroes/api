@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
 
 public readonly partial record struct FactionId : IStronglyTypedId
 {

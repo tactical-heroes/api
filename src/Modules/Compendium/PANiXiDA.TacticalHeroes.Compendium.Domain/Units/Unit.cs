@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
 
 public sealed class Unit : AggregateRoot<UnitId>
 {

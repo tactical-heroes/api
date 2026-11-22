@@ -5,13 +5,13 @@ using Npgsql;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 
-using PANiXiDA.TacticalHeroes.Games.Domain.Battles;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Abstractions;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
-using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Features.Games.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Features.Games.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Games.IntegrationTests.Games;
 
 namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Persistence.Features.Games.Write;

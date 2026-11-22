@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Events;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Folders.Events;
 

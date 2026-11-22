@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Builds.Application.Builds.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Builds.Application.Builds.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Builds.Application.Builds.GetInternalBuild;
+namespace PANiXiDA.TacticalHeroes.Modules.Builds.Application.Builds.GetInternalBuild;
 
 public sealed class GetInternalBuildHandler(IBuildsReadRepository buildsReadRepository)
     : IQueryHandler<GetInternalBuildQuery, Result<BuildReadModel>>

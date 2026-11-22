@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Application;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application;
 
 public static class ApplicationAssembly
 {

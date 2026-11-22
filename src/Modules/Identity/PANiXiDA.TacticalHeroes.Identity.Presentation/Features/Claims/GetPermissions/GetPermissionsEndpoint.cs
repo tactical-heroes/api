@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Claims.GetPermissions;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Claims.GetPermissions;
 
 internal sealed class GetPermissionsEndpoint : IEndpoint<ClaimsEndpoints>
 {

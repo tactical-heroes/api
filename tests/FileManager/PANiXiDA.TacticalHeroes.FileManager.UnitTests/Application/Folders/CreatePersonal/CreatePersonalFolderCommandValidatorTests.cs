@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.CreatePersonal;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.CreatePersonal;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.CreatePersonal;
 

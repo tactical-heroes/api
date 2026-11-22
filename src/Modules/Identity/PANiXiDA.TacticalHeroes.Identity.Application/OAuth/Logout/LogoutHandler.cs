@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Logout;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Logout;
 
 public sealed class LogoutHandler(IUserSessionService sessions)
     : ICommandHandler<LogoutCommand, Result>, IRequireTransaction

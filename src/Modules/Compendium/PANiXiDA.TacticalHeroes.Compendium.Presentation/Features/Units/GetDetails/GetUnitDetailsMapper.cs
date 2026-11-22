@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetDetails;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Units.GetDetails;
 
 [Mapper]
 internal static partial class GetUnitDetailsMapper

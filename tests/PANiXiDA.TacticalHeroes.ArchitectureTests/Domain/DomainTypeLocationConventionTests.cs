@@ -28,9 +28,9 @@ public sealed class DomainTypeLocationConventionTests
         var violations = aggregateRoots
             .SelectMany(type =>
             {
-                var assemblyName = GetAssemblyName(type);
+                var domainNamespace = ArchitectureDefinition.GetModuleNamespace(GetAssemblyName(type));
                 var expectedNamespace =
-                    $"{assemblyName}."
+                    $"{domainNamespace}."
                         + $"{EnglishNamingConvention.Pluralize(type.Name)}";
 
                 return GetLocationViolations(
@@ -307,7 +307,7 @@ public sealed class DomainTypeLocationConventionTests
             StringComparison.Ordinal));
         var isCommonEnumeration =
             categoryDirectoryName == EnumerationsDirectoryName
-                && ownerNamespace == $"{GetAssemblyName(ownedType)}.Common";
+                && ownerNamespace == $"{ArchitectureDefinition.GetModuleNamespace(GetAssemblyName(ownedType))}.Common";
         var violations = new List<string>();
 
         if (!hasOwner && !isCommonEnumeration)
@@ -413,8 +413,8 @@ public sealed class DomainTypeLocationConventionTests
             ];
         }
 
-        var expectedNamespace =
-            $"{GetAssemblyName(identifier)}.{EnglishNamingConvention.Pluralize(externalOwner.Name)}";
+        var domainNamespace = ArchitectureDefinition.GetModuleNamespace(GetAssemblyName(identifier));
+        var expectedNamespace = $"{domainNamespace}.{EnglishNamingConvention.Pluralize(externalOwner.Name)}";
         var violations = GetLocationViolations(
             repositoryRoot,
             identifier,
@@ -465,7 +465,7 @@ public sealed class DomainTypeLocationConventionTests
             candidate.DomainAssemblyName == assemblyName);
         var moduleDirectoryName =
             module.Name[(module.Name.LastIndexOf('.') + 1)..];
-        var namespacePrefix = assemblyName + ".";
+        var namespacePrefix = module.DomainNamespace + ".";
         var relativeNamespace = expectedNamespace.StartsWith(
             namespacePrefix,
             StringComparison.Ordinal)

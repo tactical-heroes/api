@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.ExchangeToken;
 
 public sealed class ExchangeTokenHandler(IOAuthUsersRepository usersRepository)
     : IQueryHandler<ExchangeTokenQuery, Result<ExchangeTokenReadModel>>

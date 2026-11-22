@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
-using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Games.Domain.Players;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Players;
 
 namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Games;
 

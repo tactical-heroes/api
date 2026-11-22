@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ForgotPassword;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ForgotPassword;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ForgotPassword;
 

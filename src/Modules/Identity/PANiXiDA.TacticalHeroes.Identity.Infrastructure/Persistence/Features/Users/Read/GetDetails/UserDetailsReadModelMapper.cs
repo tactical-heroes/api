@@ -1,10 +1,10 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetDetails;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.GetDetails;
 
 internal sealed class UserDetailsReadModelMapper
     : IReadModelMapper<Guid, UserReadDbModel, UserDetailsReadModel>

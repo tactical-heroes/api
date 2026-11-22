@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Watch;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Watch;
 

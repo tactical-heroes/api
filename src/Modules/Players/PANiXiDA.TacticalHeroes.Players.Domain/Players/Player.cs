@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Players.Domain.Files;
-using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
-using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Files;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Players.Domain.Players;
+namespace PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
 
 public sealed class Player : AggregateRoot<PlayerId>
 {

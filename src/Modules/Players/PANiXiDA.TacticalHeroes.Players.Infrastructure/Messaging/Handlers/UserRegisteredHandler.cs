@@ -1,7 +1,7 @@
-using DomainEvent = PANiXiDA.TacticalHeroes.Players.Domain.Players.Events.PlayerRegistrationRequested;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.UserRegistered;
+using DomainEvent = PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Events.PlayerRegistrationRequested;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.Users.UserRegistered;
 
-namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Messaging.Handlers;
 
 public static class UserRegisteredHandler
 {

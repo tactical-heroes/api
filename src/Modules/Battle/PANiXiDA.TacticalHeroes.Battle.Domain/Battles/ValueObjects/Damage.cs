@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.ValueObjects;
 
 public sealed partial class Damage : ValueObject
 {

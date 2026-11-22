@@ -469,7 +469,7 @@ public sealed class ReadRepositoryConventionTests
             ?? throw new InvalidOperationException(
                 $"Read repository interface '{readRepository.FullName}' does "
                     + $"not have a namespace.");
-        var namespacePrefix = assemblyName + ".";
+        var namespacePrefix = ArchitectureDefinition.GetModuleNamespace(assemblyName) + ".";
         var relativeNamespace = repositoryNamespace.StartsWith(
             namespacePrefix,
             StringComparison.Ordinal)

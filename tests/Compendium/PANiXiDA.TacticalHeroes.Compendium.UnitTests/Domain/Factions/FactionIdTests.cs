@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
 
 namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Factions;
 

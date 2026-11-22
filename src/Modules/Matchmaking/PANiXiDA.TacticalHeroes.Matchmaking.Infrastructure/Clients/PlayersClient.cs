@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.ReadModels;
-using PANiXiDA.TacticalHeroes.Players.Contracts.Players;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.ReadModels;
+using PANiXiDA.TacticalHeroes.Modules.Players.Contracts.Players;
 
-namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Clients;
 
 public sealed class PlayersClient(IPlayersApi playersApi) : IPlayersClient
 {

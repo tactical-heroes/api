@@ -2,12 +2,12 @@ using System.Reflection;
 
 using Microsoft.Extensions.Hosting;
 
-using PANiXiDA.TacticalHeroes.Notifications.Application;
-using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Modules.Notifications.Application;
+using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Abstractions.Email;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Messaging.DependencyInjection;
 
 internal static class MessagingHostBuilderExtensions
 {

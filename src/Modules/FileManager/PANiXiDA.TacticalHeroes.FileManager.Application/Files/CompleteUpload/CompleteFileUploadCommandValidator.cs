@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CompleteUpload;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CompleteUpload;
 
 public sealed class CompleteFileUploadCommandValidator : AbstractValidator<CompleteFileUploadCommand>
 {

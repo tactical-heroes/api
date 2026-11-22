@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Update;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Update;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Update;
 

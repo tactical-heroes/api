@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
     public partial class _20260726_154512_EnsureSchema_CreateSequence : Migration

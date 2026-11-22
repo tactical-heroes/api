@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
 
 public sealed class CompendiumWriteDbContext(
     DbContextOptions<CompendiumWriteDbContext> options,

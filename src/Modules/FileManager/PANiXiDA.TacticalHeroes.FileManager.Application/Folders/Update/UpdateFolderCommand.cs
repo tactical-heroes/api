@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Update;
 
 public sealed record UpdateFolderCommand(
     Guid Id,

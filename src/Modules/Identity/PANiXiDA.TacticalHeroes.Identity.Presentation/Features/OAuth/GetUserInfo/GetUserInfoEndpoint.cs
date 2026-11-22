@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Common;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.GetUserInfo;
 
 internal sealed class GetUserInfoEndpoint : IEndpoint<OAuthEndpoints>
 {

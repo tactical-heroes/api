@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Players.Application.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Players.Application.Players.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Players.Application.Players.GetInternalPlayer;
+namespace PANiXiDA.TacticalHeroes.Modules.Players.Application.Players.GetInternalPlayer;
 
 public sealed class GetInternalPlayerHandler(IPlayersReadRepository playersReadRepository)
     : IQueryHandler<GetInternalPlayerQuery, Result<PlayerReadModel>>

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Update;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Update;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Update;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Update;
 
 [Mapper]
 internal static partial class UpdateFactionMapper

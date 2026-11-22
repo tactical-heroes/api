@@ -1,9 +1,9 @@
 using FluentValidation;
 
-using PANiXiDA.TacticalHeroes.Games.Application.Games.Events;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Abstractions;
-using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
+using PANiXiDA.TacticalHeroes.Modules.Games.Application.Games.Events;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Events;
 
 namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Application.Games.Events;
 

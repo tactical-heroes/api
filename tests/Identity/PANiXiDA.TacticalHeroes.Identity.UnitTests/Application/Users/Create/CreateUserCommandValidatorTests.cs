@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Create;
 
 namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 

@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(GamesWriteDbContext))]
     partial class GamesWriteDbContextModelSnapshot : ModelSnapshot
@@ -27,7 +27,7 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.GameParticipant", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants.GameParticipant", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -65,7 +65,7 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                     b.ToTable("game_participants", "games");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Games.Domain.Games.Game", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Game", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -116,7 +116,7 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Result", "PANiXiDA.TacticalHeroes.Games.Domain.Games.Game.Result#GameResult", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Result", "PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Game.Result#GameResult", b1 =>
                         {
                             b1.Property<bool>("IsDraw")
                                 .HasColumnType("boolean")
@@ -140,9 +140,9 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                     b.ToTable("games", "games");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.GameParticipant", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants.GameParticipant", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Games.Domain.Games.Game", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Game", null)
                         .WithMany("Participants")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -150,7 +150,7 @@ namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migratio
                         .HasConstraintName("fk_game_participants_game_game_id");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Games.Domain.Games.Game", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Game", b =>
                 {
                     b.Navigation("Participants");
                 });

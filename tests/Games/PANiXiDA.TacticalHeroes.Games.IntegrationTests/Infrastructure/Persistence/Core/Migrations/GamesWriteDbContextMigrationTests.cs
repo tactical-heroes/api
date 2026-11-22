@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
 
 namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
 

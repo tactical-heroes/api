@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
 
 internal sealed partial class FactionSelectOptionReadModelSorting
     : IReadModelSorting<FactionSelectOptionReadModel>

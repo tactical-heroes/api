@@ -1,8 +1,8 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetDetails;
 
 public sealed record UserDetailsReadModel(
     Guid Id,

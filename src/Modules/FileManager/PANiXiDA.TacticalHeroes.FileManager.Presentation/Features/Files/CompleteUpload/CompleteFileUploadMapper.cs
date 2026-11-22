@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CompleteUpload;
+using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CompleteUpload;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CompleteUpload;
+namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CompleteUpload;
 
 [Mapper]
 internal static partial class CompleteFileUploadMapper
