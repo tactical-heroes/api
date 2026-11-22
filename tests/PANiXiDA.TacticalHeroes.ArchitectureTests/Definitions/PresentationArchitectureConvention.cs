@@ -265,6 +265,7 @@ internal static class PresentationArchitectureConvention
         return Path.Combine(
             FindRepositoryRoot(),
             SourceDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             moduleDirectoryName,
             module.PresentationAssemblyName);
     }

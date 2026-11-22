@@ -477,6 +477,7 @@ public sealed class DomainTypeLocationConventionTests
         return Path.Combine(
             repositoryRoot,
             SourceDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             moduleDirectoryName,
             assemblyName,
             relativeNamespace.Replace(

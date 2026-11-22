@@ -310,6 +310,7 @@ public sealed class ApplicationHandlerConventionTests
         return Path.Combine(
             repositoryRoot,
             TestsDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             moduleDirectoryName,
             unitTestsAssemblyName,
             ApplicationDirectoryName,

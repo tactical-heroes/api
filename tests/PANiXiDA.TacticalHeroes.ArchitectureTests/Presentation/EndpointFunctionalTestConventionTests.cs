@@ -72,6 +72,7 @@ public sealed class EndpointFunctionalTestConventionTests
         return Path.Combine(
             repositoryRoot,
             TestsDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             moduleDirectoryName,
             functionalTestsAssemblyName,
             "Presentation",

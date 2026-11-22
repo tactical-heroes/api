@@ -481,6 +481,7 @@ public sealed class ReadRepositoryConventionTests
         return Path.Combine(
             repositoryRoot,
             SourceDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             moduleDirectoryName,
             assemblyName,
             relativeNamespace.Replace(

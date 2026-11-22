@@ -224,6 +224,7 @@ internal static class InfrastructurePersistenceConvention
         return Path.Combine(
             FindRepositoryRoot(),
             SourceDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             GetModuleShortName(module),
             module.InfrastructureAssemblyName);
     }

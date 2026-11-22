@@ -128,6 +128,7 @@ public sealed class DomainTypeUnitTestConventionTests
                     ExpectedTestFilePath: Path.Combine(
                         repositoryRoot,
                         TestsDirectoryName,
+                        ArchitectureDefinition.ModulesDirectoryName,
                         moduleDirectoryName,
                         unitTestsAssemblyName,
                         DomainDirectoryName,

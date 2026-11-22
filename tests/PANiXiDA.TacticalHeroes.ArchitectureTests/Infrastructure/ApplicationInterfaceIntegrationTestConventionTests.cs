@@ -203,6 +203,7 @@ public sealed partial class ApplicationInterfaceIntegrationTestConventionTests
         return Path.Combine(
             repositoryRoot,
             TestsDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             moduleDirectoryName,
             integrationTestsAssemblyName,
             InfrastructureDirectoryName,
