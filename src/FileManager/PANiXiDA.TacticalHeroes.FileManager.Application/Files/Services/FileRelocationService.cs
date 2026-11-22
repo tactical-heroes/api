@@ -107,30 +107,17 @@ public sealed class FileRelocationService(
                 }
 
                 filesRepository.Update(file);
-                await ScheduleCleanupAsync(
-                    file: file,
-                    key: sourceKey,
-                    versionId: sourceVersion,
+                await scheduler.ScheduleAsync(
+                    command: new CleanupFileVersionCommand(
+                        FileId: file.Id.Value,
+                        StorageKey: sourceKey.Value,
+                        VersionId: sourceVersion.Value),
+                    delay: s_cleanupDelay,
                     cancellationToken: token);
                 await unitOfWork.SaveChangesAsync(token);
             },
             cancellationToken: cancellationToken);
 
         return result;
-    }
-
-    private Task ScheduleCleanupAsync(
-        File file,
-        FileStorageKey key,
-        FileVersionId versionId,
-        CancellationToken cancellationToken)
-    {
-        return scheduler.ScheduleAsync(
-            command: new CleanupFileVersionCommand(
-                FileId: file.Id.Value,
-                StorageKey: key.Value,
-                VersionId: versionId.Value),
-            delay: s_cleanupDelay,
-            cancellationToken: cancellationToken);
     }
 }
