@@ -1,0 +1,40 @@
+using System.Collections.ObjectModel;
+
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.Core.Application.Storage.Models;
+
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Models;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Write.CreatePersonalUploadUrl;
+
+public sealed class CreatePersonalFileUploadUrlHandler(
+    FileCreationService fileCreationService,
+    ICurrentUser currentUser)
+    :
+        ICommandHandler<CreatePersonalFileUploadUrlCommand, Result<FileUploadUrl>>,
+        IRequireAuthorization,
+        IRequireTransaction
+{
+    public Task<Result<FileUploadUrl>> HandleAsync(
+        CreatePersonalFileUploadUrlCommand command,
+        CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is not { } userId || userId == Guid.Empty)
+        {
+            return Task.FromResult(Result.Failure<FileUploadUrl>(Error.Unauthorized("A user account is required.")));
+        }
+
+        return fileCreationService.CreateUploadUrlAsync(
+            name: command.Name,
+            type: FileType.Personal,
+            userId: userId,
+            metadata: new FileMetadata(
+                ContentType: command.ContentType,
+                Size: command.Size,
+                Metadata: ReadOnlyDictionary<string, string>.Empty),
+            folderId: command.FolderId,
+            cancellationToken: cancellationToken);
+    }
+}

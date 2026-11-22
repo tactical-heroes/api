@@ -1,0 +1,39 @@
+using System.Security.Claims;
+
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Write.Update;
+
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Write.Update;
+
+public sealed class UpdateRoleCommandValidatorTests
+{
+    [Fact(DisplayName = "Update role validator should accept valid input when command is valid")]
+    public void Validate_Should_ReturnValidResult_When_CommandIsValid()
+    {
+        var validator = new UpdateRoleCommandValidator();
+
+        var result = validator.Validate(
+            new UpdateRoleCommand(
+                Guid.CreateVersion7(),
+                "Developer",
+                false,
+                [new Claim("permission", "compendium.heroes.update")]));
+
+        result.IsValid.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Update role validator should reject invalid input when command is invalid")]
+    public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
+    {
+        var validator = new UpdateRoleCommandValidator();
+
+        var result = validator.Validate(
+            new UpdateRoleCommand(Guid.Empty, "", false, [new Claim("", "")]));
+
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateRoleCommand.Id));
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(UpdateRoleCommand.Name));
+        result.Errors
+            .Count(error =>
+                error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
+            .ShouldBe(3);
+    }
+}

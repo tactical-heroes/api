@@ -1,0 +1,22 @@
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Read.GetDetails;
+
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.Read.GetDetails;
+
+public sealed class GetFolderDetailsQueryValidatorTests
+{
+    [Theory(DisplayName = "Folder details validator should validate the identifier when id validity varies")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Validate_Should_ValidateIdentifier_When_IdValidityVaries(bool valid)
+    {
+        var query = new GetFolderDetailsQuery(valid ? Guid.NewGuid() : Guid.Empty);
+
+        var result = new GetFolderDetailsQueryValidator().Validate(query);
+
+        result.IsValid.ShouldBe(valid);
+        if (!valid)
+        {
+            result.Errors.ShouldContain(error => error.PropertyName == nameof(query.Id));
+        }
+    }
+}

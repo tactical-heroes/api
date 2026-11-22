@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
 using PANiXiDA.TacticalHeroes.Identity.Application.Users.Common.Filters;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Read.GetList;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.GetDetails;

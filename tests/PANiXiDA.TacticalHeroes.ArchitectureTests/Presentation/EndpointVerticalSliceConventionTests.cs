@@ -179,12 +179,12 @@ public sealed class EndpointVerticalSliceConventionTests
                     '.',
                     StringSplitOptions.RemoveEmptyEntries);
 
-        if (relativeFeatureSegments.Length == 0)
+        if (relativeFeatureSegments is not ["Read" or "Write", _, ..])
         {
             return
             [
-                $"{endpoint.FullName} must reside in a concrete feature "
-                    + $"folder below '{groupNamespace}'."
+                $"{endpoint.FullName} must reside in a concrete use case "
+                    + $"folder below '{groupNamespace}.Read' or '{groupNamespace}.Write'."
             ];
         }
 

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Read.GetAuthenticatedUser;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 

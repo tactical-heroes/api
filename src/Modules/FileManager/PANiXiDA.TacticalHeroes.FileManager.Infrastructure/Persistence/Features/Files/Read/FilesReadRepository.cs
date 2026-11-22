@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Read.GetList;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;

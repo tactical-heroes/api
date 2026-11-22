@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
-using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Read.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Read.GetSelectOptions;
 
 namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 

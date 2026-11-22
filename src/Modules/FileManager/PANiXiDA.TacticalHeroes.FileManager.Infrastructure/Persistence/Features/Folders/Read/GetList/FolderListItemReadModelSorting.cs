@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetList;
 

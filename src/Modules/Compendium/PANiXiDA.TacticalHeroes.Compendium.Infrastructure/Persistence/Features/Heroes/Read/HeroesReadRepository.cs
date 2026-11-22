@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
-using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Read.GetList;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
 using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetDetails;

@@ -1,0 +1,33 @@
+using System.Collections.ObjectModel;
+
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.Core.Application.Storage.Models;
+
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Write.CreatePersonal;
+
+public sealed class CreatePersonalFileHandler(FileCreationService fileCreationService, ICurrentUser currentUser)
+    : ICommandHandler<CreatePersonalFileCommand, Result<Guid>>, IRequireAuthorization
+{
+    public Task<Result<Guid>> HandleAsync(CreatePersonalFileCommand command, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserId is not { } userId || userId == Guid.Empty)
+        {
+            return Task.FromResult(Result.Failure<Guid>(Error.Unauthorized("A user account is required.")));
+        }
+
+        return fileCreationService.CreateAsync(
+            name: command.Name,
+            type: FileType.Personal,
+            userId: userId,
+            metadata: new FileMetadata(
+                ContentType: command.ContentType,
+                Size: command.Size,
+                Metadata: ReadOnlyDictionary<string, string>.Empty),
+            content: command.Content,
+            folderId: command.FolderId,
+            cancellationToken: cancellationToken);
+    }
+}

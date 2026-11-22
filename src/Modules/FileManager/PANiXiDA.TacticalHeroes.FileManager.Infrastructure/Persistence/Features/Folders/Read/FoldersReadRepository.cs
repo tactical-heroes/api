@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetDetails;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Read.GetList;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;

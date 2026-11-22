@@ -1,0 +1,12 @@
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Write.Create;
+
+public sealed record CreateUserRequest(
+    string Email,
+    string UserName,
+    string Password,
+    bool IsConfirmed,
+    IReadOnlyCollection<Claim> Claims,
+    string Status,
+    IReadOnlyCollection<Guid> RoleIds);

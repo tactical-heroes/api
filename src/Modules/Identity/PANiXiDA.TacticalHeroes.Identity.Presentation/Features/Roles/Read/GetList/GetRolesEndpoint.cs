@@ -1,0 +1,35 @@
+using Microsoft.AspNetCore.Http;
+
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Read.GetList;
+
+internal sealed class GetRolesEndpoint : IEndpoint<RolesEndpoints>
+{
+    public string Route { get; } = "/";
+    public string Name { get; } = "GetRoles";
+    public string Summary { get; } = "Get roles";
+
+    public void Map(EndpointMapBuilder builder)
+    {
+        builder.MapGet(builder.Route, HandleAsync)
+            .Produces<PaginationResult<RoleListItemResponse>>(StatusCodes.Status200OK)
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+    }
+
+    private static async Task<IResult> HandleAsync(
+        [AsParameters] PaginationParameters paginationParameters,
+        [AsParameters] SortingParameters sortingParameters,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.QueryAsync(
+            GetRolesMapper.ToQuery(
+                paginationParameters: paginationParameters,
+                sortingParameters: sortingParameters),
+            cancellationToken);
+
+        return result.ToHttpResult(onSuccess: page =>
+            TypedResults.Ok(value: GetRolesMapper.ToResponse(page: page)));
+    }
+}

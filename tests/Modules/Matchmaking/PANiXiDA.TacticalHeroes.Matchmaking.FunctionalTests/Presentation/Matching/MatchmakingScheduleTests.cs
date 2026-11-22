@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Recurring.Process;
 
 using Wolverine.Runtime;
 

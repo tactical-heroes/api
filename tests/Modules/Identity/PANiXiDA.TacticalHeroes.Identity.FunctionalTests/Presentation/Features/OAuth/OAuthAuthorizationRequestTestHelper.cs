@@ -6,8 +6,8 @@ using OpenIddict.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
 using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Write.Login;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Write.Create;
 
 namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 

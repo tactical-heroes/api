@@ -1,0 +1,28 @@
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Write.ChangePassword;
+
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Write.ChangePassword;
+
+public sealed class ChangePasswordCommandValidatorTests
+{
+    [Fact(DisplayName = "Change password validator should accept valid input when command is valid")]
+    public void Validate_Should_ReturnValidResult_When_CommandIsValid()
+    {
+        var validator = new ChangePasswordCommandValidator();
+
+        var result = validator.Validate(
+            new ChangePasswordCommand("CurrentPassword1!", "NewPassword1!"));
+
+        result.IsValid.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Change password validator should reject invalid input when command is invalid")]
+    public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
+    {
+        var validator = new ChangePasswordCommandValidator();
+
+        var result = validator.Validate(new ChangePasswordCommand("", ""));
+
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(ChangePasswordCommand.CurrentPassword));
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(ChangePasswordCommand.NewPassword));
+    }
+}

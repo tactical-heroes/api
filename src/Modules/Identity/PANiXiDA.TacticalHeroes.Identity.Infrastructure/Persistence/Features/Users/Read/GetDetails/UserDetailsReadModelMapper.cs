@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Read.GetDetails;
 using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 

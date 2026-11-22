@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Builds.Application.Builds.GetInternalBuild;
+using PANiXiDA.TacticalHeroes.Builds.Application.Builds.Read.GetInternalBuild;
 using PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
 
 using Riok.Mapperly.Abstractions;

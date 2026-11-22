@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Players.Application.Players.GetInternalPlayer;
+using PANiXiDA.TacticalHeroes.Players.Application.Players.Read.GetInternalPlayer;
 using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;

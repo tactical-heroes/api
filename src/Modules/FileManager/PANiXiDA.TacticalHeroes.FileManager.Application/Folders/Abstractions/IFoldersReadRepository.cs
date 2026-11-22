@@ -1,6 +1,6 @@
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetDetails;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Read.GetList;
 
 namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 

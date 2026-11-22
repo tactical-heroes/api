@@ -1,0 +1,73 @@
+using PANiXiDA.Core.Application.Authentication.Abstractions;
+using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Write.Update;
+
+public sealed class UpdateUserHandler(IUsersRepository usersRepository, ICurrentUser currentUser)
+    : ICommandHandler<UpdateUserCommand, Result>, IRequireAuthorization, IRequireTransaction
+{
+    public static IReadOnlyCollection<string> AllPermissions { get; } = [Permissions.Identity.Users.Update.Code];
+
+    public async Task<Result> HandleAsync(
+        UpdateUserCommand command,
+        CancellationToken cancellationToken)
+    {
+        var idResult = UserId.Create(value: command.Id);
+        var emailResult = Email.Create(value: command.Email);
+        var userNameResult = UserName.Create(value: command.UserName);
+        var statusResult = UserStatus.Create(value: command.Status);
+        var roleIdsResult = RoleId.Create(command.RoleIds);
+        var validationResult = Result.Combine(idResult, emailResult, userNameResult, statusResult, roleIdsResult);
+
+        if (validationResult.IsFailure)
+        {
+            return Result.Failure(errors: validationResult.Errors);
+        }
+
+        var claims = new List<UserClaim>();
+
+        foreach (var claim in command.Claims)
+        {
+            var typeResult = ClaimType.Create(value: claim.Type);
+            var valueResult = ClaimValue.Create(value: claim.Value);
+            var claimResult = Result.Combine(typeResult, valueResult);
+
+            if (claimResult.IsFailure)
+            {
+                return Result.Failure(errors: claimResult.Errors);
+            }
+
+            claims.Add(UserClaim.Create(type: typeResult.Value, value: valueResult.Value));
+        }
+
+        var userResult = await usersRepository.GetByIdAsync(
+            id: idResult.Value,
+            cancellationToken: cancellationToken);
+
+        if (userResult.IsFailure)
+        {
+            return Result.Failure(errors: userResult.Errors);
+        }
+
+        var user = userResult.Value;
+        user.Update(
+            email: emailResult.Value,
+            userName: userNameResult.Value,
+            status: statusResult.Value,
+            confirmationStatus: UserConfirmationStatus.From(isConfirmed: command.IsConfirmed),
+            roleIds: roleIdsResult.Value,
+            claims: claims);
+
+        return await usersRepository.UpdateAsync(
+            user: user,
+            currentAccessToken: currentUser.UserId == command.Id ? currentUser.AccessToken : null,
+            cancellationToken: cancellationToken);
+    }
+}

@@ -186,13 +186,25 @@ public sealed class ReadModelConventionTests
 
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
-        return root is null || semanticModel is null ? [] :
-            [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()
+        var projectDirectory = Path.GetDirectoryName(document.Project.FilePath);
+        var sourceDirectory = Path.GetDirectoryName(document.FilePath);
+        if (root is null || semanticModel is null || projectDirectory is null || sourceDirectory is null)
+        {
+            return [];
+        }
+
+        var directorySegments = Path.GetRelativePath(projectDirectory, sourceDirectory)
+            .Split(Path.DirectorySeparatorChar);
+
+        return
+        [
+            .. root.DescendantNodes().OfType<TypeDeclarationSyntax>()
                 .Select(declaration => semanticModel.GetDeclaredSymbol(declaration))
                 .OfType<INamedTypeSymbol>()
                 .Where(type => type.AllInterfaces
                     .Any(contract => contract.ToDisplayString() == "PANiXiDA.Core.Application.Querying.IReadModel"))
-                .Select(type => new ModelSource(type.ToDisplayString(), Path.GetDirectoryName(document.FilePath)!))];
+                .Select(type => new ModelSource(type.ToDisplayString(), directorySegments))
+        ];
     }
 
     private static IEnumerable<string> GetComponentLocationViolations(
@@ -211,10 +223,16 @@ public sealed class ReadModelConventionTests
 
         foreach (var source in modelSources)
         {
-            var slice = Path.GetFileName(source.Directory);
-            var feature = Path.GetFileName(Path.GetDirectoryName(source.Directory));
+            var segments = source.DirectorySegments;
+            if (segments is not [_, "Read", .., _] and not [_, "Common"])
+            {
+                yield return $"{model.FullName} must reside under <Feature>/Read/<UseCase> "
+                    + "or <Feature>/Common in Application.";
+                continue;
+            }
+
             foreach (var violation in InfrastructurePersistenceConvention.GetLocationViolations(
-                component, "Persistence", "Features", feature!, "Read", slice))
+                component, "Persistence", "Features", segments[0], "Read", segments[^1]))
             {
                 yield return violation;
             }
@@ -379,5 +397,5 @@ public sealed class ReadModelConventionTests
                     && type.GenericTypeArguments[0] == elementType);
     }
 
-    private sealed record ModelSource(string Name, string Directory);
+    private sealed record ModelSource(string Name, string[] DirectorySegments);
 }

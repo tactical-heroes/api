@@ -5,11 +5,11 @@ using Microsoft.IdentityModel.JsonWebTokens;
 
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetList;
-using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Read.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Read.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Write.Create;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Write.Update;
 
 using static PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.RolesApiConstants;
 

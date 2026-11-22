@@ -297,10 +297,12 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     генератор регистрации Wolverine мог ссылаться на валидаторы из Host.
 
 48. `ApplicationUseCases_Should_ResideInFeatureFolders_When_Declared` — каждый
-    `ICommand` и `IQuery` должен находиться в папке конкретной фичи ниже хотя бы
-    одной группирующей папки. Между корнем Application и feature-папкой
-    разрешено любое количество логических подпапок, например
-    `Auth/ChangePassword` или `Users/Administration/Block`.
+    `IQuery` находится в `<Feature>/Read/<UseCase>`. Команды `ICommand`
+    находятся в `<Feature>/Write/<UseCase>`, `<Feature>/Recurring/<UseCase>`
+    или `<Feature>/Deferred/<UseCase>` по способу запуска.
+    Проверка `ApplicationSupportTypes_Should_ResideInFeatureSupportFolders_When_Declared`
+    фиксирует папки `Events`, `Policies`, `Services`, `Common/Options` и
+    `Common/Factories` на уровне соответствующей фичи.
 
 49. `ApplicationUseCaseTypes_Should_HaveExpectedRoleSuffixes_When_Declared` —
     `ICommand` оканчивается на `Command`, `IQuery` — на `Query`,
@@ -460,10 +462,11 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     верхнеуровневыми `internal sealed class`.
 
 79. `ReadModelComponents_Should_ResideInMatchingApplicationSlices_When_Declared`
-    — mapper и sorting должны находиться в
-    `Persistence/Features/<AggregatePlural>/Read/<Slice>`, где `<Slice>` —
-    папка соответствующей ReadModel в Application. Проверяются физические
-    пути и namespace.
+    — mapper и sorting для `Application/<AggregatePlural>/Read/<Slice>`
+    находятся в `Persistence/Features/<AggregatePlural>/Read/<Slice>`.
+    Для общей ReadModel из `Application/<AggregatePlural>/Common` используется
+    `Persistence/Features/<AggregatePlural>/Read/Common`. Проверяются
+    физические пути и namespace.
 
 80. `ReadModelSorting_Should_ShareMapperDirectory_When_Declared` — sorting
     должен находиться в одной папке и namespace с mapper той же ReadModel;
@@ -544,10 +547,9 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
     предоставлять только getter.
 
 97. `Endpoints_Should_ResideInFeatureSlicesUnderTheirGenericGroups_When_Declared`
-    — каждый конкретный `IEndpoint<TGroup>` должен находиться в feature-папке
-    внутри дерева своего `TGroup`; между корнем группы и feature-папкой
-    допускаются логические подпапки. Generic-параметр обязан указывать на
-    `IEndpointGroup` из корня этого дерева.
+    — каждый конкретный `IEndpoint<TGroup>` находится в `Read/<UseCase>`
+    или `Write/<UseCase>` под корнем своего `TGroup`. Generic-параметр
+    указывает на `IEndpointGroup` из корня этой фичи.
 
 98. `Endpoints_Should_EndWithEndpoint_When_Declared` — каждый конкретный
     `IEndpoint` должен оканчиваться на `Endpoint`.
