@@ -1,4 +1,4 @@
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common.ReadModels;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
 

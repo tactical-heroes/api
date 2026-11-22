@@ -1,6 +1,5 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
 
 namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Write.Watch;
