@@ -1,0 +1,731 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+using OpenIddict.Abstractions;
+using OpenIddict.EntityFrameworkCore.Models;
+
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.IdentityProvider.Services;
+
+public sealed class UserCredentialsServiceTests(IntegrationTestFixture fixture)
+    : IntegrationTestBase(fixture)
+{
+    private const string Password = "StrongPassword1!";
+
+    [Fact(DisplayName = "RegisterAsync should persist an unconfirmed user when credentials are valid")]
+    public async Task RegisterAsync_Should_PersistUnconfirmedUser_When_CredentialsAreValid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        await Fixture.SeedRolesAsync(cancellationToken);
+
+        var result = await service.RegisterAsync(
+            " REGISTER@Example.COM ",
+            " registered-hero ",
+            Password,
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var context = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        (await context.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeTrue();
+        var user = await userManager.FindByIdAsync(result.Value.ToString());
+        user.ShouldNotBeNull();
+        user.Email.ShouldBe("register@example.com");
+        user.UserName.ShouldBe("registered-hero");
+        user.EmailConfirmed.ShouldBeFalse();
+        (await userManager.GetRolesAsync(user)).ShouldBe(["Player"]);
+
+        var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+        var trackedUser = aggregateTracker.GetAll()
+            .ShouldHaveSingleItem()
+            .ShouldBeOfType<User>();
+        trackedUser.Id.Value.ShouldBe(result.Value);
+        trackedUser.UserName.Value.ShouldBe("registered-hero");
+        trackedUser.Status.ShouldBe(UserStatus.Active);
+        var domainEvent = trackedUser.GetDomainEvents()
+            .OfType<EmailConfirmationRequested>()
+            .ShouldHaveSingleItem();
+        domainEvent.Email.ShouldBe(user.Email);
+        domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact(DisplayName = "Registration should assign the configured role when default has custom name")]
+    public async Task RegisterAsync_Should_AssignConfiguredRole_When_DefaultHasCustomName()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await Fixture.SeedRolesAsync(cancellationToken);
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var role = await dbContext.Set<ApplicationRole>().SingleAsync(item => item.IsDefault, cancellationToken);
+        role.Name = "Newcomer";
+        role.NormalizedName = "NEWCOMER";
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.RegisterAsync("newcomer@example.com", "newcomer", Password, cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var user = await dbContext.Set<ApplicationUser>().Include(item => item.Roles)
+            .SingleAsync(item => item.Id == result.Value, cancellationToken);
+        user.Roles.ShouldHaveSingleItem().RoleId.ShouldBe(role.Id);
+    }
+
+    [Theory(
+        DisplayName = "RegisterAsync should reject invalid credentials without persistence when credentials are invalid")]
+    [InlineData("invalid-email", "hero", 1)]
+    [InlineData("hero@example.com", "", 1)]
+    [InlineData("invalid-email", "", 2)]
+    public async Task RegisterAsync_Should_ReturnValidationFailuresWithoutPersisting_When_CredentialsAreInvalid(
+        string email,
+        string userName,
+        int errorCount)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+
+        var result = await service.RegisterAsync(email, userName, Password, cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.Count.ShouldBe(errorCount);
+        result.Errors.ShouldAllBe(error => error.Type == ErrorType.Validation);
+        (await userManager.Users.AnyAsync(cancellationToken)).ShouldBeFalse();
+        aggregateTracker.GetAll().ShouldBeEmpty();
+    }
+
+    [Theory(DisplayName = "Registration should reject invalid default role configuration when default role is invalid")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RegisterAsync_Should_RejectInvalidDefaultRole_When_DefaultRoleIsInvalid(bool emptyRoleId)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var scope = Fixture.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        if (emptyRoleId)
+        {
+            dbContext.Set<ApplicationRole>().Add(new ApplicationRole
+            {
+                Id = Guid.Empty,
+                Name = "Player",
+                NormalizedName = "PLAYER",
+                IsDefault = true
+            });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.RegisterAsync("hero@example.com", "hero", Password, cancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        (await dbContext.Set<ApplicationUser>().AnyAsync(cancellationToken)).ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "LoginAsync should return the user id in one read query when credentials are valid")]
+    public async Task LoginAsync_Should_ReturnUserIdInOneReadQuery_When_CredentialsAreValid()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "admin",
+            Claims =
+            [
+                new ApplicationRoleClaim
+                {
+                    ClaimType = "permission",
+                    ClaimValue = "identity.users.manage"
+                }
+            ]
+        };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "login@example.com",
+            UserName = "login-user",
+            EmailConfirmed = true,
+            Status = UserStatus.Active.Name,
+            LockoutEnabled = true,
+            Claims =
+            [
+                new ApplicationUserClaim
+                {
+                    ClaimType = "permission",
+                    ClaimValue = "identity.profile.read"
+                }
+            ]
+        };
+
+        await AddAsync(role, user);
+        Fixture.CommandCounter.Reset();
+
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.LoginAsync(
+            user.Email,
+            Password,
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.UserId.ShouldBe(user.Id);
+        result.Value.SecurityStamp.ShouldNotBeNullOrEmpty();
+        Fixture.CommandCounter.Count.ShouldBe(1);
+    }
+
+    [Fact(DisplayName = "Login should return unauthorized for an invalid password when password is invalid")]
+    public async Task LoginAsync_Should_ReturnUnauthorized_When_PasswordIsInvalid()
+    {
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "login-role"
+        };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "invalid-password@example.com",
+            UserName = "invalid-password-hero",
+            EmailConfirmed = true,
+            Status = UserStatus.Active.Name,
+            LockoutEnabled = true
+        };
+        await AddAsync(role, user);
+
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+
+        var result = await service.LoginAsync(
+            user.Email,
+            "WrongPassword1!",
+            TestContext.Current.CancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
+    }
+
+    [Fact(
+        DisplayName = "Change password should replace credentials stored by ASP.NET Core Identity when current password is valid")]
+    public async Task ChangePasswordAsync_Should_ReplacePassword_When_CurrentPasswordIsValid()
+    {
+        var role = new ApplicationRole
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "password-role"
+        };
+        var user = new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = "change-password@example.com",
+            UserName = "change-password-hero",
+            EmailConfirmed = true,
+            Status = UserStatus.Active.Name,
+            LockoutEnabled = true
+        };
+        await AddAsync(role, user);
+
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var authorizationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var authorization = await authorizationManager.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = user.Id.ToString(),
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        var authorizationId = await authorizationManager.GetIdAsync(authorization, cancellationToken);
+        authorizationId.ShouldNotBeNull();
+
+        var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var accessToken = await CreateAccessTokenAsync(
+            tokenManager,
+            user.Id.ToString(),
+            authorizationId,
+            cancellationToken);
+        var changeResult = await service.ChangePasswordAsync(
+            user.Id,
+            accessToken,
+            Password,
+            "NewStrongPassword1!",
+            cancellationToken);
+        var loginResult = await service.LoginAsync(
+            user.Email,
+            "NewStrongPassword1!",
+            cancellationToken);
+
+        changeResult.IsSuccess.ShouldBeTrue();
+        loginResult.IsSuccess.ShouldBeTrue();
+        loginResult.Value.UserId.ShouldBe(user.Id);
+    }
+
+    [Theory(
+        DisplayName = "Password change should revoke other authorizations and tokens when current session is valid")]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Valid)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Valid)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Redeemed)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, OpenIddictConstants.Statuses.Valid)]
+    public async Task ChangePasswordAsync_Should_RevokeOtherFamilies_When_CurrentSessionIsValid(
+        string tokenType,
+        string tokenStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var user = CreateUser("revoke-other@example.com", "revoke-other-hero", isConfirmed: true);
+        await AddUserAsync(user);
+        var otherSubject = Guid.CreateVersion7().ToString();
+        string currentId;
+        string otherId;
+        await using (var scope = Fixture.CreateScope())
+        {
+            var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+            var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+            var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+            currentId = await CreateAuthorizationAsync(authorizations, user.Id.ToString(), cancellationToken);
+            otherId = await CreateAuthorizationAsync(authorizations, user.Id.ToString(), cancellationToken);
+            foreach (var descriptor in new[]
+            {
+                new OpenIddictTokenDescriptor { Subject = user.Id.ToString(), AuthorizationId = currentId },
+                new OpenIddictTokenDescriptor { Subject = user.Id.ToString(), AuthorizationId = otherId },
+                new OpenIddictTokenDescriptor { Subject = user.Id.ToString() },
+                new OpenIddictTokenDescriptor { Subject = otherSubject }
+            })
+            {
+                descriptor.Type = tokenType;
+                descriptor.Status = tokenStatus;
+                await tokens.CreateAsync(descriptor, cancellationToken);
+            }
+
+            var accessToken = await CreateAccessTokenAsync(tokens, user.Id.ToString(), currentId, cancellationToken);
+            var result = await service.ChangePasswordAsync(
+                user.Id, accessToken, Password, "NewStrongPassword1!", cancellationToken);
+
+            result.IsSuccess.ShouldBeTrue();
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var persistedTokens = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .Include(token => token.Authorization)
+            .ToListAsync(cancellationToken);
+        persistedTokens.Where(token => token.Authorization?.Id.ToString() == currentId && token.Type == tokenType)
+            .ShouldAllBe(token => token.Status == (tokenType == OpenIddictConstants.TokenTypeIdentifiers.RefreshToken
+                ? tokenStatus
+                : OpenIddictConstants.Statuses.Revoked));
+        persistedTokens.Where(
+            token => token.Subject == user.Id.ToString() && token.Authorization?.Id.ToString() != currentId)
+            .ShouldAllBe(token => token.Status == OpenIddictConstants.Statuses.Revoked);
+        persistedTokens.Single(token => token.Subject == otherSubject).Status.ShouldBe(tokenStatus);
+        var persistedAuthorizations = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        persistedAuthorizations.Single(authorization => authorization.Id.ToString() == currentId)
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+        persistedAuthorizations.Single(authorization => authorization.Id.ToString() == otherId)
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Revoked);
+    }
+
+    [Theory(DisplayName = "Password change should preserve the password when current authorization is invalid")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ChangePasswordAsync_Should_PreservePassword_When_CurrentAuthorizationIsInvalid(
+        bool foreignSubject)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var user = CreateUser("invalid-session@example.com", "invalid-session-hero", isConfirmed: true);
+        await AddUserAsync(user);
+        await using var scope = Fixture.CreateScope();
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var subject = foreignSubject ? Guid.CreateVersion7().ToString() : user.Id.ToString();
+        var authorizationId = await CreateAuthorizationAsync(authorizations, subject, cancellationToken);
+        if (!foreignSubject)
+        {
+            var authorization = await authorizations.FindByIdAsync(authorizationId, cancellationToken);
+            authorization.ShouldNotBeNull();
+            (await authorizations.TryRevokeAsync(authorization, cancellationToken)).ShouldBeTrue();
+        }
+
+        var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var accessToken = await CreateAccessTokenAsync(tokenManager, subject, authorizationId, cancellationToken);
+        var result = await service.ChangePasswordAsync(
+            user.Id, accessToken, Password, "NewStrongPassword1!", cancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
+        var login = await service.LoginAsync(user.Email!, Password, cancellationToken);
+        login.IsSuccess.ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "Password change should preserve the password when access token is invalid")]
+    [InlineData(null, null, false)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Revoked, true)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Valid, true)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Valid, false)]
+    public async Task ChangePasswordAsync_Should_PreservePassword_When_AccessTokenIsInvalid(
+        string? tokenType,
+        string? tokenStatus,
+        bool linkedAuthorization)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var user = CreateUser("invalid-access@example.com", "invalid-access-hero", isConfirmed: true);
+        await AddUserAsync(user);
+        await using var scope = Fixture.CreateScope();
+        var authorizations = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+        var tokens = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var referenceId = Guid.CreateVersion7().ToString("N");
+        if (tokenType is not null)
+        {
+            var authorizationId = linkedAuthorization
+                ? await CreateAuthorizationAsync(authorizations, user.Id.ToString(), cancellationToken)
+                : null;
+            await tokens.CreateAsync(
+                new OpenIddictTokenDescriptor
+                {
+                    Subject = user.Id.ToString(),
+                    AuthorizationId = authorizationId,
+                    ReferenceId = referenceId,
+                    Type = tokenType,
+                    Status = tokenStatus
+                },
+                cancellationToken);
+        }
+
+        var result = await service.ChangePasswordAsync(
+            user.Id, referenceId, Password, "NewStrongPassword1!", cancellationToken);
+
+        result.Errors.ShouldHaveSingleItem().Type.ShouldBe(ErrorType.Unauthorized);
+        var login = await service.LoginAsync(user.Email!, Password, cancellationToken);
+        login.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "ConfirmEmailAsync should confirm an unconfirmed user when token is valid")]
+    public async Task ConfirmEmailAsync_Should_ConfirmUser_When_TokenIsValid()
+    {
+        var user = CreateUser(
+            "confirm@example.com",
+            "confirm-hero",
+            isConfirmed: false);
+        await AddUserAsync(user);
+
+        await using var scope = Fixture.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var persistedUser = await userManager.FindByIdAsync(user.Id.ToString());
+        persistedUser.ShouldNotBeNull();
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(persistedUser);
+
+        var result = await service.ConfirmEmailAsync(
+            user.Id,
+            token,
+            TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        (await userManager.IsEmailConfirmedAsync(persistedUser)).ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "ResendConfirmationEmailAsync should track a confirmation request when user is unconfirmed")]
+    public async Task ResendConfirmationEmailAsync_Should_TrackRequest_When_UserIsUnconfirmed()
+    {
+        var user = CreateUser(
+            "resend@example.com",
+            "resend-hero",
+            isConfirmed: false);
+        await AddUserAsync(user);
+
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+
+        var result = await service.ResendConfirmationEmailAsync(
+            user.Email!,
+            TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var trackedUser = aggregateTracker.GetAll()
+            .ShouldHaveSingleItem()
+            .ShouldBeOfType<User>();
+        var domainEvent = trackedUser.GetDomainEvents()
+            .OfType<EmailConfirmationRequested>()
+            .ShouldHaveSingleItem();
+        domainEvent.Email.ShouldBe(user.Email);
+        domainEvent.ConfirmationToken.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact(DisplayName = "ForgotPasswordAsync should track a password reset request when user is confirmed")]
+    public async Task ForgotPasswordAsync_Should_TrackRequest_When_UserIsConfirmed()
+    {
+        var user = CreateUser(
+            "forgot@example.com",
+            "forgot-hero",
+            isConfirmed: true);
+        await AddUserAsync(user);
+
+        await using var scope = Fixture.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var aggregateTracker = scope.ServiceProvider.GetRequiredService<IAggregateTracker>();
+
+        var result = await service.ForgotPasswordAsync(
+            user.Email!,
+            TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var trackedUser = aggregateTracker.GetAll()
+            .ShouldHaveSingleItem()
+            .ShouldBeOfType<User>();
+        var domainEvent = trackedUser.GetDomainEvents()
+            .OfType<PasswordResetRequested>()
+            .ShouldHaveSingleItem();
+        domainEvent.Email.ShouldBe(user.Email);
+        domainEvent.PasswordResetToken.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact(DisplayName = "ResetPasswordAsync should replace a user's password when token is valid")]
+    public async Task ResetPasswordAsync_Should_ReplacePassword_When_TokenIsValid()
+    {
+        const string NewPassword = "NewStrongPassword1!";
+        var user = CreateUser(
+            "reset@example.com",
+            "reset-hero",
+            isConfirmed: true);
+        await AddUserAsync(user);
+
+        await using var scope = Fixture.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+        var persistedUser = await userManager.FindByIdAsync(user.Id.ToString());
+        persistedUser.ShouldNotBeNull();
+        var token = await userManager.GeneratePasswordResetTokenAsync(persistedUser);
+
+        var result = await service.ResetPasswordAsync(
+            user.Id,
+            token,
+            NewPassword,
+            TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        (await userManager.CheckPasswordAsync(persistedUser, Password)).ShouldBeFalse();
+        (await userManager.CheckPasswordAsync(persistedUser, NewPassword)).ShouldBeTrue();
+    }
+
+    [Theory(DisplayName = "ResetPasswordAsync should revoke only the user's sessions when reset succeeds")]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.AccessToken, OpenIddictConstants.Statuses.Valid)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Valid)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.RefreshToken, OpenIddictConstants.Statuses.Redeemed)]
+    [InlineData(OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode, OpenIddictConstants.Statuses.Valid)]
+    public async Task ResetPasswordAsync_Should_RevokeOnlyUserSessions_When_ResetSucceeds(
+        string tokenType,
+        string tokenStatus)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var user = CreateUser("revoke@example.com", "revoke-hero", isConfirmed: true);
+        var otherUserId = Guid.CreateVersion7();
+        await AddUserAsync(user);
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+            var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+            var persistedUser = await userManager.FindByIdAsync(user.Id.ToString());
+            persistedUser.ShouldNotBeNull();
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(persistedUser);
+
+            var authorizationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+            foreach (var subject in new[] { user.Id, user.Id, otherUserId })
+            {
+                await authorizationManager.CreateAsync(
+                    new OpenIddictAuthorizationDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = subject.ToString(),
+                        Type = tokenType,
+                        Status = subject == user.Id ? tokenStatus : OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
+            }
+
+            var result = await service.ResetPasswordAsync(
+                user.Id,
+                resetToken,
+                "NewStrongPassword1!",
+                cancellationToken);
+
+            result.IsSuccess.ShouldBeTrue();
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var tokens = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        tokens.Where(token => token.Subject == user.Id.ToString())
+            .Select(token => token.Status)
+            .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
+        tokens.Single(token => token.Subject == otherUserId.ToString())
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+
+        var authorizations = await dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization<Guid>>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        authorizations.Where(authorization => authorization.Subject == user.Id.ToString())
+            .Select(authorization => authorization.Status)
+            .ShouldBe([OpenIddictConstants.Statuses.Revoked, OpenIddictConstants.Statuses.Revoked]);
+        authorizations.Single(authorization => authorization.Subject == otherUserId.ToString())
+            .Status
+            .ShouldBe(OpenIddictConstants.Statuses.Valid);
+    }
+
+    [Theory(DisplayName = "ResetPasswordAsync should preserve tokens and password when reset fails")]
+    [InlineData("invalid-token", "NewStrongPassword1!")]
+    [InlineData(null, "weak")]
+    public async Task ResetPasswordAsync_Should_PreserveTokensAndPassword_When_ResetFails(
+        string? invalidToken,
+        string newPassword)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var user = CreateUser("failed-reset@example.com", "failed-reset-hero", isConfirmed: true);
+        await AddUserAsync(user);
+
+        await using (var scope = Fixture.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var tokenManager = scope.ServiceProvider.GetRequiredService<IOpenIddictTokenManager>();
+            var service = scope.ServiceProvider.GetRequiredService<IUserCredentialsService>();
+            var persistedUser = await userManager.FindByIdAsync(user.Id.ToString());
+            persistedUser.ShouldNotBeNull();
+            var resetToken = invalidToken ?? await userManager.GeneratePasswordResetTokenAsync(persistedUser);
+
+            foreach (var tokenType in new[]
+            {
+                OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                OpenIddictConstants.TokenTypeIdentifiers.RefreshToken,
+                OpenIddictConstants.TokenTypeIdentifiers.Private.AuthorizationCode
+            })
+            {
+                await tokenManager.CreateAsync(
+                    new OpenIddictTokenDescriptor
+                    {
+                        Subject = user.Id.ToString(),
+                        Type = tokenType,
+                        Status = OpenIddictConstants.Statuses.Valid
+                    },
+                    cancellationToken);
+            }
+
+            var result = await service.ResetPasswordAsync(user.Id, resetToken, newPassword, cancellationToken);
+
+            result.IsFailure.ShouldBeTrue();
+            (await userManager.CheckPasswordAsync(persistedUser, Password)).ShouldBeTrue();
+        }
+
+        await using var verificationScope = Fixture.CreateScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<IdentityWriteDbContext>();
+        var statuses = await dbContext.Set<OpenIddictEntityFrameworkCoreToken<Guid>>()
+            .Select(token => token.Status)
+            .ToListAsync(cancellationToken);
+
+        statuses.Count.ShouldBe(3);
+        statuses.ShouldAllBe(status => status == OpenIddictConstants.Statuses.Valid);
+    }
+
+    private static async Task<string> CreateAccessTokenAsync(
+        IOpenIddictTokenManager manager,
+        string subject,
+        string authorizationId,
+        CancellationToken cancellationToken)
+    {
+        var referenceId = Guid.CreateVersion7().ToString("N");
+        await manager.CreateAsync(
+            new OpenIddictTokenDescriptor
+            {
+                Subject = subject,
+                AuthorizationId = authorizationId,
+                ReferenceId = referenceId,
+                Type = OpenIddictConstants.TokenTypeIdentifiers.AccessToken,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        return referenceId;
+    }
+
+    private static async Task<string> CreateAuthorizationAsync(
+        IOpenIddictAuthorizationManager manager,
+        string subject,
+        CancellationToken cancellationToken)
+    {
+        var authorization = await manager.CreateAsync(
+            new OpenIddictAuthorizationDescriptor
+            {
+                Subject = subject,
+                Type = OpenIddictConstants.AuthorizationTypes.AdHoc,
+                Status = OpenIddictConstants.Statuses.Valid
+            },
+            cancellationToken);
+        var identifier = await manager.GetIdAsync(authorization, cancellationToken);
+        identifier.ShouldNotBeNull();
+        return identifier;
+    }
+
+    private static ApplicationUser CreateUser(
+        string email,
+        string userName,
+        bool isConfirmed)
+    {
+        return new ApplicationUser
+        {
+            Id = Guid.CreateVersion7(),
+            Email = email,
+            UserName = userName,
+            EmailConfirmed = isConfirmed,
+            Status = UserStatus.Active.Name,
+            LockoutEnabled = true
+        };
+    }
+
+    private async Task AddAsync(
+        ApplicationRole role,
+        ApplicationUser user)
+    {
+        await using var scope = Fixture.CreateScope();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        (await roleManager.CreateAsync(role: role)).Succeeded.ShouldBeTrue();
+        (await userManager.CreateAsync(user: user, password: Password)).Succeeded.ShouldBeTrue();
+        (await userManager.AddToRoleAsync(user, role.Name!)).Succeeded.ShouldBeTrue();
+    }
+
+    private async Task AddUserAsync(ApplicationUser user)
+    {
+        await using var scope = Fixture.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        (await userManager.CreateAsync(user: user, password: Password)).Succeeded.ShouldBeTrue();
+    }
+}

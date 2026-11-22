@@ -84,50 +84,53 @@
     <Project Path="src/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.Infrastructure/PANiXiDA.TacticalHeroes.Notifications.Infrastructure.csproj" />
     <Project Path="src/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.Presentation/PANiXiDA.TacticalHeroes.Notifications.Presentation.csproj" />
   </Folder>
-  <Folder Name="/tests/Identity/">
-    <Project Path="tests/Identity/PANiXiDA.TacticalHeroes.Identity.FunctionalTests/PANiXiDA.TacticalHeroes.Identity.FunctionalTests.csproj" />
-    <Project Path="tests/Identity/PANiXiDA.TacticalHeroes.Identity.IntegrationTests/PANiXiDA.TacticalHeroes.Identity.IntegrationTests.csproj" />
-    <Project Path="tests/Identity/PANiXiDA.TacticalHeroes.Identity.UnitTests/PANiXiDA.TacticalHeroes.Identity.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Identity/">
+    <Project Path="tests/Modules/Identity/PANiXiDA.TacticalHeroes.Identity.FunctionalTests/PANiXiDA.TacticalHeroes.Identity.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Identity/PANiXiDA.TacticalHeroes.Identity.IntegrationTests/PANiXiDA.TacticalHeroes.Identity.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Identity/PANiXiDA.TacticalHeroes.Identity.UnitTests/PANiXiDA.TacticalHeroes.Identity.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/Battle/">
-    <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.FunctionalTests/PANiXiDA.TacticalHeroes.Battle.FunctionalTests.csproj" />
-    <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.IntegrationTests/PANiXiDA.TacticalHeroes.Battle.IntegrationTests.csproj" />
-    <Project Path="tests/Battle/PANiXiDA.TacticalHeroes.Battle.UnitTests/PANiXiDA.TacticalHeroes.Battle.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Battle/">
+    <Project Path="tests/Modules/Battle/PANiXiDA.TacticalHeroes.Battle.FunctionalTests/PANiXiDA.TacticalHeroes.Battle.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Battle/PANiXiDA.TacticalHeroes.Battle.IntegrationTests/PANiXiDA.TacticalHeroes.Battle.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Battle/PANiXiDA.TacticalHeroes.Battle.UnitTests/PANiXiDA.TacticalHeroes.Battle.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/Matchmaking/">
-    <Project Path="tests/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests/PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.csproj" />
-    <Project Path="tests/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests/PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.csproj" />
-    <Project Path="tests/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.UnitTests/PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Matchmaking/">
+    <Project Path="tests/Modules/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests/PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests/PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Matchmaking/PANiXiDA.TacticalHeroes.Matchmaking.UnitTests/PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/Games/">
-    <Project Path="tests/Games/PANiXiDA.TacticalHeroes.Games.FunctionalTests/PANiXiDA.TacticalHeroes.Games.FunctionalTests.csproj" />
-    <Project Path="tests/Games/PANiXiDA.TacticalHeroes.Games.IntegrationTests/PANiXiDA.TacticalHeroes.Games.IntegrationTests.csproj" />
-    <Project Path="tests/Games/PANiXiDA.TacticalHeroes.Games.UnitTests/PANiXiDA.TacticalHeroes.Games.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Games/">
+    <Project Path="tests/Modules/Games/PANiXiDA.TacticalHeroes.Games.FunctionalTests/PANiXiDA.TacticalHeroes.Games.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Games/PANiXiDA.TacticalHeroes.Games.IntegrationTests/PANiXiDA.TacticalHeroes.Games.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Games/PANiXiDA.TacticalHeroes.Games.UnitTests/PANiXiDA.TacticalHeroes.Games.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/Builds/">
-    <Project Path="tests/Builds/PANiXiDA.TacticalHeroes.Builds.FunctionalTests/PANiXiDA.TacticalHeroes.Builds.FunctionalTests.csproj" />
-    <Project Path="tests/Builds/PANiXiDA.TacticalHeroes.Builds.IntegrationTests/PANiXiDA.TacticalHeroes.Builds.IntegrationTests.csproj" />
-    <Project Path="tests/Builds/PANiXiDA.TacticalHeroes.Builds.UnitTests/PANiXiDA.TacticalHeroes.Builds.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Builds/">
+    <Project Path="tests/Modules/Builds/PANiXiDA.TacticalHeroes.Builds.FunctionalTests/PANiXiDA.TacticalHeroes.Builds.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Builds/PANiXiDA.TacticalHeroes.Builds.IntegrationTests/PANiXiDA.TacticalHeroes.Builds.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Builds/PANiXiDA.TacticalHeroes.Builds.UnitTests/PANiXiDA.TacticalHeroes.Builds.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/Players/">
-    <Project Path="tests/Players/PANiXiDA.TacticalHeroes.Players.FunctionalTests/PANiXiDA.TacticalHeroes.Players.FunctionalTests.csproj" />
-    <Project Path="tests/Players/PANiXiDA.TacticalHeroes.Players.IntegrationTests/PANiXiDA.TacticalHeroes.Players.IntegrationTests.csproj" />
-    <Project Path="tests/Players/PANiXiDA.TacticalHeroes.Players.UnitTests/PANiXiDA.TacticalHeroes.Players.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Players/">
+    <Project Path="tests/Modules/Players/PANiXiDA.TacticalHeroes.Players.FunctionalTests/PANiXiDA.TacticalHeroes.Players.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Players/PANiXiDA.TacticalHeroes.Players.IntegrationTests/PANiXiDA.TacticalHeroes.Players.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Players/PANiXiDA.TacticalHeroes.Players.UnitTests/PANiXiDA.TacticalHeroes.Players.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/Compendium/">
-    <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.csproj" />
-    <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.csproj" />
-    <Project Path="tests/Compendium/PANiXiDA.TacticalHeroes.Compendium.UnitTests/PANiXiDA.TacticalHeroes.Compendium.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Compendium/">
+    <Project Path="tests/Modules/Compendium/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests/PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Compendium/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests/PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Compendium/PANiXiDA.TacticalHeroes.Compendium.UnitTests/PANiXiDA.TacticalHeroes.Compendium.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/FileManager/">
-    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.csproj" />
-    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.csproj" />
-    <Project Path="tests/FileManager/PANiXiDA.TacticalHeroes.FileManager.UnitTests/PANiXiDA.TacticalHeroes.FileManager.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/FileManager/">
+    <Project Path="tests/Modules/FileManager/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests/PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/FileManager/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests/PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/FileManager/PANiXiDA.TacticalHeroes.FileManager.UnitTests/PANiXiDA.TacticalHeroes.FileManager.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/tests/Notifications/">
-    <Project Path="tests/Notifications/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests.csproj" />
-    <Project Path="tests/Notifications/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.csproj" />
-    <Project Path="tests/Notifications/PANiXiDA.TacticalHeroes.Notifications.UnitTests/PANiXiDA.TacticalHeroes.Notifications.UnitTests.csproj" />
+  <Folder Name="/tests/Modules/Notifications/">
+    <Project Path="tests/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests.csproj" />
+    <Project Path="tests/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.csproj" />
+    <Project Path="tests/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.UnitTests/PANiXiDA.TacticalHeroes.Notifications.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/">
+    <File Path="tests/Modules/Directory.Build.props" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PANiXiDA.TacticalHeroes.Common.UnitTests/PANiXiDA.TacticalHeroes.Common.UnitTests.csproj" />

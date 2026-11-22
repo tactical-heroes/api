@@ -1,0 +1,34 @@
+using System.Security.Claims;
+
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Create;
+
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Roles.Create;
+
+public sealed class CreateRoleCommandValidatorTests
+{
+    [Fact(DisplayName = "Create role validator should accept valid input when command is valid")]
+    public void Validate_Should_ReturnValidResult_When_CommandIsValid()
+    {
+        var validator = new CreateRoleCommandValidator();
+
+        var result = validator.Validate(
+            new CreateRoleCommand("Developer", false, [new Claim("permission", "compendium.heroes.update")]));
+
+        result.IsValid.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "Create role validator should reject invalid input when command is invalid")]
+    public void Validate_Should_ReturnErrors_When_CommandIsInvalid()
+    {
+        var validator = new CreateRoleCommandValidator();
+
+        var result = validator.Validate(
+            new CreateRoleCommand("", false, [new Claim("", "")]));
+
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateRoleCommand.Name));
+        result.Errors
+            .Count(error =>
+                error.PropertyName.StartsWith("Claims[0]", StringComparison.Ordinal))
+            .ShouldBe(3);
+    }
+}

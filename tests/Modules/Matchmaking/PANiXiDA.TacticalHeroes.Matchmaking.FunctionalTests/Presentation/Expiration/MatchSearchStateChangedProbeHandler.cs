@@ -1,0 +1,11 @@
+using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+
+namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration;
+
+public static class MatchSearchStateChangedProbeHandler
+{
+    public static void Handle(MatchSearchStateChanged domainEvent, MatchSearchStateChangedProbe probe)
+    {
+        probe.Record(domainEvent);
+    }
+}

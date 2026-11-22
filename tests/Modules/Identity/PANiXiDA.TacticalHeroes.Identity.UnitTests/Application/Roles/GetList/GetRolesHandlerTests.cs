@@ -1,0 +1,32 @@
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetList;
+
+namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Roles.GetList;
+
+public sealed class GetRolesHandlerTests
+{
+    [Fact(DisplayName = "Role list handler should return a page from the read repository when repository succeeds")]
+    public async Task HandleAsync_Should_ReturnPage_When_RepositorySucceeds()
+    {
+        var pagination = new PaginationParameters(1, 20);
+        var sorting = SortingParameters.None;
+        var page = PaginationResult<RoleListItemReadModel>.Create(
+            [new RoleListItemReadModel(Guid.CreateVersion7(), "Developer", false)],
+            1,
+            20,
+            1);
+        var rolesReadRepository = Substitute.For<IRolesReadRepository>();
+        rolesReadRepository.GetPageAsync(pagination, sorting, Arg.Any<CancellationToken>())
+            .Returns(page);
+        var handler = new GetRolesHandler(rolesReadRepository);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        var result = await handler.HandleAsync(
+            new GetRolesQuery(pagination, sorting),
+            cancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(page);
+        await rolesReadRepository.Received(1).GetPageAsync(pagination, sorting, cancellationToken);
+    }
+}

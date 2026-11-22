@@ -210,7 +210,10 @@ through the S3 bucket's `AbortIncompleteMultipartUpload` lifecycle policy.
   `PANiXiDA.TacticalHeroes.Modules.<ModuleName>.<Layer>`.
 - `src/PANiXiDA.TacticalHeroes.Host/` contains the API host and module wiring.
 - `src/PANiXiDA.TacticalHeroes.Common/` contains shared application code.
-- `tests/` - unit, integration, functional, and architecture tests.
+- `tests/Modules/<ModuleName>/` mirrors the business modules and contains their
+  unit, integration, and functional tests. Their root namespace is
+  `PANiXiDA.TacticalHeroes.Modules.<ModuleName>.<TestProject>`.
+- `tests/` also contains architecture tests, Common unit tests, and shared test infrastructure.
 - `tools/` - service tooling, including the EF migrator.
 - `deploy/helm/` - Helm deployment values.
 
