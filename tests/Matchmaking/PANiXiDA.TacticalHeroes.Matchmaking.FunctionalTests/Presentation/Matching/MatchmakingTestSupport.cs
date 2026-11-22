@@ -18,7 +18,9 @@ namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Match
 internal static class MatchmakingTestSupport
 {
     internal static MatchSearch CreateSearch(
-        int rating = 1500, string mode = "RankedDuel", DateTimeOffset? queuedAt = null)
+        int rating = 1500,
+        string mode = "RankedDuel",
+        DateTimeOffset? queuedAt = null)
     {
         return MatchSearch.Create(
             PlayerId.New(),
@@ -29,12 +31,24 @@ internal static class MatchmakingTestSupport
     }
 
     internal static async Task SeedAsync(
-        IServiceProvider services, IEnumerable<MatchSearch> searches, CancellationToken ct)
+        IServiceProvider services,
+        IEnumerable<MatchSearch> searches,
+        CancellationToken ct)
     {
         await using var scope = services.CreateAsyncScope();
         var repository = scope.ServiceProvider.GetRequiredService<IMatchSearchesRepository>();
         foreach (var search in searches)
         {
+            var builds = scope.ServiceProvider.GetRequiredService<
+                PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core.BuildsWriteDbContext>();
+            await builds.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                INSERT INTO builds.builds (id, player_id, name, created_at, updated_at)
+                VALUES ({search.BuildId.Value}, {search.PlayerId.Value}, {"Matchmaking fixture"},
+                    {DateTimeOffset.UtcNow}, {DateTimeOffset.UtcNow})
+                ON CONFLICT (id) DO NOTHING
+                """,
+                ct);
             repository.Add(search);
         }
 
@@ -43,7 +57,9 @@ internal static class MatchmakingTestSupport
     }
 
     internal static async Task<IReadOnlyList<MatchSearchReadDbModel>> ReadAsync(
-        IServiceProvider services, Guid[] ids, CancellationToken ct)
+        IServiceProvider services,
+        Guid[] ids,
+        CancellationToken ct)
     {
         await using var scope = services.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<MatchmakingReadDbContext>()
@@ -53,7 +69,9 @@ internal static class MatchmakingTestSupport
     }
 
     internal static async Task<MatchFound> WaitForFoundAsync(
-        IServiceProvider services, Guid searchId, CancellationToken ct)
+        IServiceProvider services,
+        Guid searchId,
+        CancellationToken ct)
     {
         var probe = services.GetRequiredService<MatchFoundProbe>();
         var deadline = DateTimeOffset.UtcNow.AddSeconds(45);

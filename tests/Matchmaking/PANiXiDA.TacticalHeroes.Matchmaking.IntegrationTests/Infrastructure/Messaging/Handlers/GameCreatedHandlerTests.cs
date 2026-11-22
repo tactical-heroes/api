@@ -12,6 +12,10 @@ public sealed class GameCreatedHandlerTests
         var source = new SourceEvent(
             Guid.CreateVersion7(),
             Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
             Guid.CreateVersion7());
 
         var result = GameCreatedHandler.Handle(source);

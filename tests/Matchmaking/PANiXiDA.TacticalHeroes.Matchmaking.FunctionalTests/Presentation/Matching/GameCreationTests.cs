@@ -20,6 +20,7 @@ using Wolverine.Tracking;
 
 using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
 
+using BattleCreatedContract = PANiXiDA.TacticalHeroes.Battle.Contracts.Battles.BattleCreated;
 using CreatedContract = PANiXiDA.TacticalHeroes.Games.Contracts.Games.GameCreated;
 using FoundContract = PANiXiDA.TacticalHeroes.Matchmaking.Contracts.MatchSearches.MatchFound;
 
@@ -69,6 +70,10 @@ public sealed class GameCreationTests(FunctionalTestFixture fixture)
             .Set<Game>()
             .AsNoTracking()
             .SingleAsync(item => item.Id == GameId.Create(created.GameId).Value, ct);
+        var battleCreated = tracked.FindSingleTrackedMessageOfType<BattleCreatedContract>();
+        battleCreated.GameId.ShouldBe(game.Id.Value);
+        game.BattleId.ShouldNotBeNull().Value.ShouldBe(battleCreated.BattleId);
+        game.StartedAt.ShouldBeNull();
         game.Mode.Name.ShouldBe(mode);
         game.Status.Name.ShouldBe("WaitingForPlayers");
         game.Participants.Count.ShouldBe(2);

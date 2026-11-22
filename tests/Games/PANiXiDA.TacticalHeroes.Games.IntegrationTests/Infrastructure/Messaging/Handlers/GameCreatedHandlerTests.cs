@@ -12,6 +12,10 @@ public sealed class GameCreatedHandlerTests
         var source = new SourceEvent(
             Guid.CreateVersion7(),
             Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
+            Guid.CreateVersion7(),
             Guid.CreateVersion7());
 
         var result = GameCreatedHandler.Handle(source);
@@ -19,6 +23,10 @@ public sealed class GameCreatedHandlerTests
         result.GameId.ShouldBe(source.GameId);
         result.FirstMatchSearchId.ShouldBe(source.FirstMatchSearchId);
         result.SecondMatchSearchId.ShouldBe(source.SecondMatchSearchId);
+        result.FirstPlayerId.ShouldBe(source.FirstPlayerId);
+        result.SecondPlayerId.ShouldBe(source.SecondPlayerId);
+        result.FirstBuildId.ShouldBe(source.FirstBuildId);
+        result.SecondBuildId.ShouldBe(source.SecondBuildId);
         result.Id.ShouldBe(source.Id);
         result.OccurredOnUtc.ShouldBe(source.OccurredOnUtc);
     }

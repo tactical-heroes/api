@@ -62,9 +62,30 @@ public sealed class Game : AggregateRoot<GameId>
         game.AddDomainEvent(new GameCreated(
             GameId: game.Id.Value,
             FirstMatchSearchId: firstMatchSearchId.Value,
-            SecondMatchSearchId: secondMatchSearchId.Value));
+            SecondMatchSearchId: secondMatchSearchId.Value,
+            FirstPlayerId: firstParticipant.PlayerId.Value,
+            FirstBuildId: firstParticipant.BuildId.Value,
+            SecondPlayerId: secondParticipant.PlayerId.Value,
+            SecondBuildId: secondParticipant.BuildId.Value));
 
         return ResultFactory.Success(game);
+    }
+
+    public Result AssignBattle(BattleId battleId)
+    {
+        if (BattleId == battleId)
+        {
+            return ResultFactory.Success();
+        }
+
+        if (Status != GameStatus.WaitingForPlayers || BattleId is not null)
+        {
+            return ResultFactory.Failure(Error.Conflict("Only a waiting game without a battle can be assigned one."));
+        }
+
+        BattleId = battleId;
+
+        return ResultFactory.Success();
     }
 
     public Result Start(BattleId battleId, GameTimestamp now)
@@ -77,6 +98,11 @@ public sealed class Game : AggregateRoot<GameId>
         if (Status != GameStatus.WaitingForPlayers)
         {
             return ResultFactory.Failure(Error.Conflict("Only a waiting game can be started."));
+        }
+
+        if (BattleId is not null && BattleId != battleId)
+        {
+            return ResultFactory.Failure(Error.Conflict("The game must start with its assigned battle."));
         }
 
         BattleId = battleId;
