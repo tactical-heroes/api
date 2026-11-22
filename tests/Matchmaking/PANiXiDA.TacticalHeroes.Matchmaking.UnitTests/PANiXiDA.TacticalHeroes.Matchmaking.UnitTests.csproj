@@ -13,8 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Application\PANiXiDA.TacticalHeroes.Matchmaking.Application.csproj" />
-        <ProjectReference Include="..\..\..\src\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Domain\PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Application\PANiXiDA.TacticalHeroes.Matchmaking.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Matchmaking\PANiXiDA.TacticalHeroes.Matchmaking.Domain\PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
         <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
     </ItemGroup>
 

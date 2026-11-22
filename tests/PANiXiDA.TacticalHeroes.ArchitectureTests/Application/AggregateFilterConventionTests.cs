@@ -141,6 +141,7 @@ public sealed class AggregateFilterConventionTests
         var expectedPath = Path.Combine(
             source.RepositoryRoot,
             "src",
+            ArchitectureDefinition.ModulesDirectoryName,
             InfrastructurePersistenceConvention.GetModuleShortName(module),
             module.ApplicationAssemblyName,
             pluralName,

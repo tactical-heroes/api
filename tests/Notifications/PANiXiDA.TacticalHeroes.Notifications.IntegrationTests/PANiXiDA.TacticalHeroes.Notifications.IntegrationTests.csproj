@@ -12,11 +12,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
-        <ProjectReference Include="..\..\..\src\Notifications\PANiXiDA.TacticalHeroes.Notifications.Application\PANiXiDA.TacticalHeroes.Notifications.Application.csproj" />
-        <ProjectReference Include="..\..\..\src\Notifications\PANiXiDA.TacticalHeroes.Notifications.Domain\PANiXiDA.TacticalHeroes.Notifications.Domain.csproj" />
-        <ProjectReference Include="..\..\..\src\Notifications\PANiXiDA.TacticalHeroes.Notifications.Infrastructure\PANiXiDA.TacticalHeroes.Notifications.Infrastructure.csproj" />
-        <ProjectReference Include="..\..\..\src\Notifications\PANiXiDA.TacticalHeroes.Notifications.Presentation\PANiXiDA.TacticalHeroes.Notifications.Presentation.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Notifications\PANiXiDA.TacticalHeroes.Notifications.Application\PANiXiDA.TacticalHeroes.Notifications.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Notifications\PANiXiDA.TacticalHeroes.Notifications.Domain\PANiXiDA.TacticalHeroes.Notifications.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Notifications\PANiXiDA.TacticalHeroes.Notifications.Infrastructure\PANiXiDA.TacticalHeroes.Notifications.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Notifications\PANiXiDA.TacticalHeroes.Notifications.Presentation\PANiXiDA.TacticalHeroes.Notifications.Presentation.csproj" />
         <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
     </ItemGroup>
 

@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <ItemGroup>
-      <PackageReference Include="PANiXiDA.Core.Application" />
+        <PackageReference Include="PANiXiDA.Core.Application" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
-        <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
+        <ProjectReference Include="..\..\..\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Matchmaking.Domain\PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>

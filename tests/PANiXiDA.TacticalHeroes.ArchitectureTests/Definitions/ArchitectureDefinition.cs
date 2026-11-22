@@ -13,6 +13,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Definitions;
 
 internal static class ArchitectureDefinition
 {
+    internal const string ModulesDirectoryName = "Modules";
+
     internal const string CommonAssemblyName = "PANiXiDA.TacticalHeroes.Common";
 
     private const string ContractsLayerSuffix = ".Contracts";

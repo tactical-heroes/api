@@ -413,6 +413,7 @@ public sealed class ApplicationVerticalSliceConventionTests
         return Path.Combine(
             repositoryRoot,
             SourceDirectoryName,
+            ArchitectureDefinition.ModulesDirectoryName,
             moduleDirectoryName,
             assemblyName,
             relativeNamespace.Replace(
@@ -439,6 +440,7 @@ public sealed class ApplicationVerticalSliceConventionTests
                         var projectDirectory = Path.Combine(
                             repositoryRoot,
                             SourceDirectoryName,
+                            ArchitectureDefinition.ModulesDirectoryName,
                             moduleDirectoryName,
                             assemblyName);
 

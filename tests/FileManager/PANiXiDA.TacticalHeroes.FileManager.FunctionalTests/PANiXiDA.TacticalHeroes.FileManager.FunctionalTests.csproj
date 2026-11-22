@@ -15,11 +15,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
-        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Application\PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
-        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Domain\PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\FileManager\PANiXiDA.TacticalHeroes.FileManager.Application\PANiXiDA.TacticalHeroes.FileManager.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\FileManager\PANiXiDA.TacticalHeroes.FileManager.Domain\PANiXiDA.TacticalHeroes.FileManager.Domain.csproj" />
         <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Host\PANiXiDA.TacticalHeroes.Host.csproj" />
-        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
-        <ProjectReference Include="..\..\..\src\FileManager\PANiXiDA.TacticalHeroes.FileManager.Presentation\PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\FileManager\PANiXiDA.TacticalHeroes.FileManager.Infrastructure\PANiXiDA.TacticalHeroes.FileManager.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\FileManager\PANiXiDA.TacticalHeroes.FileManager.Presentation\PANiXiDA.TacticalHeroes.FileManager.Presentation.csproj" />
         <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
     </ItemGroup>
 

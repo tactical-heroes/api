@@ -14,15 +14,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\Players\PANiXiDA.TacticalHeroes.Players.Contracts\PANiXiDA.TacticalHeroes.Players.Contracts.csproj" />
-        <ProjectReference Include="..\..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
-        <ProjectReference Include="..\..\..\src\Identity\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Players\PANiXiDA.TacticalHeroes.Players.Contracts\PANiXiDA.TacticalHeroes.Players.Contracts.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Identity\PANiXiDA.TacticalHeroes.Identity.Contracts\PANiXiDA.TacticalHeroes.Identity.Contracts.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Identity\PANiXiDA.TacticalHeroes.Identity.Domain\PANiXiDA.TacticalHeroes.Identity.Domain.csproj" />
         <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
-        <ProjectReference Include="..\..\..\src\Players\PANiXiDA.TacticalHeroes.Players.Application\PANiXiDA.TacticalHeroes.Players.Application.csproj" />
-        <ProjectReference Include="..\..\..\src\Players\PANiXiDA.TacticalHeroes.Players.Domain\PANiXiDA.TacticalHeroes.Players.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Players\PANiXiDA.TacticalHeroes.Players.Application\PANiXiDA.TacticalHeroes.Players.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Players\PANiXiDA.TacticalHeroes.Players.Domain\PANiXiDA.TacticalHeroes.Players.Domain.csproj" />
         <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Host\PANiXiDA.TacticalHeroes.Host.csproj" />
-        <ProjectReference Include="..\..\..\src\Players\PANiXiDA.TacticalHeroes.Players.Infrastructure\PANiXiDA.TacticalHeroes.Players.Infrastructure.csproj" />
-        <ProjectReference Include="..\..\..\src\Players\PANiXiDA.TacticalHeroes.Players.Presentation\PANiXiDA.TacticalHeroes.Players.Presentation.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Players\PANiXiDA.TacticalHeroes.Players.Infrastructure\PANiXiDA.TacticalHeroes.Players.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Players\PANiXiDA.TacticalHeroes.Players.Presentation\PANiXiDA.TacticalHeroes.Players.Presentation.csproj" />
         <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
     </ItemGroup>
 

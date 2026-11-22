@@ -15,11 +15,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
-        <ProjectReference Include="..\..\..\src\Compendium\PANiXiDA.TacticalHeroes.Compendium.Application\PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
-        <ProjectReference Include="..\..\..\src\Compendium\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Compendium\PANiXiDA.TacticalHeroes.Compendium.Application\PANiXiDA.TacticalHeroes.Compendium.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Compendium\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
         <ProjectReference Include="..\..\..\src\PANiXiDA.TacticalHeroes.Host\PANiXiDA.TacticalHeroes.Host.csproj" />
-        <ProjectReference Include="..\..\..\src\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
-        <ProjectReference Include="..\..\..\src\Compendium\PANiXiDA.TacticalHeroes.Compendium.Presentation\PANiXiDA.TacticalHeroes.Compendium.Presentation.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Compendium\PANiXiDA.TacticalHeroes.Compendium.Infrastructure\PANiXiDA.TacticalHeroes.Compendium.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Compendium\PANiXiDA.TacticalHeroes.Compendium.Presentation\PANiXiDA.TacticalHeroes.Compendium.Presentation.csproj" />
         <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
     </ItemGroup>
 

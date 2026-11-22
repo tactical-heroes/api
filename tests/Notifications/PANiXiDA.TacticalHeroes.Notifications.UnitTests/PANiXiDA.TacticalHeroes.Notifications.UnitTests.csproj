@@ -13,8 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\Notifications\PANiXiDA.TacticalHeroes.Notifications.Application\PANiXiDA.TacticalHeroes.Notifications.Application.csproj" />
-        <ProjectReference Include="..\..\..\src\Notifications\PANiXiDA.TacticalHeroes.Notifications.Domain\PANiXiDA.TacticalHeroes.Notifications.Domain.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Notifications\PANiXiDA.TacticalHeroes.Notifications.Application\PANiXiDA.TacticalHeroes.Notifications.Application.csproj" />
+        <ProjectReference Include="..\..\..\src\Modules\Notifications\PANiXiDA.TacticalHeroes.Notifications.Domain\PANiXiDA.TacticalHeroes.Notifications.Domain.csproj" />
         <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Testing\PANiXiDA.TacticalHeroes.Testing.csproj" />
     </ItemGroup>
 

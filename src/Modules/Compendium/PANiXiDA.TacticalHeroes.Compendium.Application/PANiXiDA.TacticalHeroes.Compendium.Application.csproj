@@ -4,8 +4,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
-        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Matchmaking.Domain\PANiXiDA.TacticalHeroes.Matchmaking.Domain.csproj" />
+        <ProjectReference Include="..\..\..\PANiXiDA.TacticalHeroes.Common\PANiXiDA.TacticalHeroes.Common.csproj" />
+        <ProjectReference Include="..\PANiXiDA.TacticalHeroes.Compendium.Domain\PANiXiDA.TacticalHeroes.Compendium.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
