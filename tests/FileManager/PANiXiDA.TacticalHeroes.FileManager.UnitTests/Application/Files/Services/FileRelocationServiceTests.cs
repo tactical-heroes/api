@@ -85,6 +85,7 @@ public sealed class FileRelocationServiceTests
         var service = new FileRelocationService(
             files,
             storage,
+            new FileStorageVersionService(storage),
             unitOfWork,
             scheduler);
 
@@ -135,6 +136,7 @@ public sealed class FileRelocationServiceTests
         var service = new FileRelocationService(
             Substitute.For<IFilesRepository>(),
             storage,
+            new FileStorageVersionService(storage),
             Substitute.For<IUnitOfWork>(),
             Substitute.For<IScheduler>());
 

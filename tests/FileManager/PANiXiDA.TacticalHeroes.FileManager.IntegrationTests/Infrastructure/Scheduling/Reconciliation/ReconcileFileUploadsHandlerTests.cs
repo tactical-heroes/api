@@ -439,6 +439,8 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             options: options,
             timeProvider: TimeProvider.System);
 
+        var fileStorageVersionService = new FileStorageVersionService(
+            services.GetRequiredService<IFileStorage>());
         return new ReconcileFileUploadsHandler(
             filesRepository: filesRepository,
             fileStorage: services.GetRequiredService<IFileStorage>(),
@@ -446,8 +448,10 @@ public sealed class ReconcileFileUploadsHandlerTests(IntegrationTestFixture fixt
             relocationService: new FileRelocationService(
                 filesRepository,
                 services.GetRequiredService<IFileStorage>(),
+                fileStorageVersionService,
                 services.GetRequiredKeyedService<IUnitOfWork>(typeof(FileManagerWriteDbContext)),
                 Substitute.For<IScheduler>()),
+            fileStorageVersionService: fileStorageVersionService,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 

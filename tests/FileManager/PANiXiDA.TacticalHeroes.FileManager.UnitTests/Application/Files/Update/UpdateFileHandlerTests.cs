@@ -44,6 +44,7 @@ public sealed class UpdateFileHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
+        var storage = Substitute.For<IFileStorage>();
         var policy = new FileAccessPolicy(user);
         var handler = new UpdateFileHandler(
             files,
@@ -52,7 +53,8 @@ public sealed class UpdateFileHandlerTests
             unitOfWork,
             new FileRelocationService(
                 files,
-                Substitute.For<IFileStorage>(),
+                storage,
+                new FileStorageVersionService(storage),
                 unitOfWork,
                 Substitute.For<IScheduler>()));
 
@@ -83,6 +85,7 @@ public sealed class UpdateFileHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         unitOfWork.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(call => call.ArgAt<Func<CancellationToken, Task>>(0)(call.ArgAt<CancellationToken>(1)));
+        var storage = Substitute.For<IFileStorage>();
         var policy = new FileAccessPolicy(user);
         var handler = new UpdateFileHandler(
             files,
@@ -91,7 +94,8 @@ public sealed class UpdateFileHandlerTests
             unitOfWork,
             new FileRelocationService(
                 files,
-                Substitute.For<IFileStorage>(),
+                storage,
+                new FileStorageVersionService(storage),
                 unitOfWork,
                 Substitute.For<IScheduler>()));
 
@@ -133,6 +137,7 @@ public sealed class UpdateFileHandlerTests
             new FileRelocationService(
                 files,
                 storage,
+                new FileStorageVersionService(storage),
                 unitOfWork,
                 Substitute.For<IScheduler>()));
 

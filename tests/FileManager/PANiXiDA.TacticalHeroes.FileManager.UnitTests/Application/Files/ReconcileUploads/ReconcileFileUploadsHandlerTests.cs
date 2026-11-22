@@ -616,6 +616,7 @@ public sealed class ReconcileFileUploadsHandlerTests
 
     private ReconcileFileUploadsHandler CreateHandler()
     {
+        var fileStorageVersionService = new FileStorageVersionService(_fileStorage);
         return new ReconcileFileUploadsHandler(
             filesRepository: _files,
             fileStorage: _fileStorage,
@@ -623,8 +624,10 @@ public sealed class ReconcileFileUploadsHandlerTests
             relocationService: new FileRelocationService(
                 _files,
                 _fileStorage,
+                fileStorageVersionService,
                 _unitOfWork,
                 Substitute.For<IScheduler>()),
+            fileStorageVersionService: fileStorageVersionService,
             logger: NullLogger<ReconcileFileUploadsHandler>.Instance);
     }
 }

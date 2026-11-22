@@ -1,7 +1,6 @@
 using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
-using PANiXiDA.Core.Application.Storage.Models;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
@@ -16,6 +15,7 @@ namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 public sealed class FileRelocationService(
     IFilesRepository filesRepository,
     IFileStorage fileStorage,
+    FileStorageVersionService fileStorageVersionService,
     IUnitOfWork unitOfWork,
     IScheduler scheduler)
 {
@@ -33,11 +33,14 @@ public sealed class FileRelocationService(
         }
 
         var destinationKey = FileStorageKey.Create(id: file.Id, type: file.Type, userId: file.UserId).Value;
-        var metadata = await FindCopyAsync(
-            attemptId: attemptId,
-            destinationKey: destinationKey,
-            contentType: contentType,
-            size: size,
+        var metadata = await fileStorageVersionService.FindAsync(
+            key: destinationKey,
+            canAccept: candidate => FileRelocationPolicy.CanAccept(
+                metadata: candidate,
+                attemptId: attemptId,
+                contentType: contentType,
+                size: size),
+            excludedVersion: null,
             cancellationToken: cancellationToken);
         if (metadata is null)
         {
@@ -83,49 +86,6 @@ public sealed class FileRelocationService(
             sourceVersion: sourceVersion,
             versionId: FileVersionId.Create(metadata.VersionId).Value,
             cancellationToken: cancellationToken);
-    }
-
-    private async Task<FileMetadata?> FindCopyAsync(
-        FileOperationAttemptId attemptId,
-        FileStorageKey destinationKey,
-        FileContentType contentType,
-        FileSize size,
-        CancellationToken cancellationToken)
-    {
-        var current = await fileStorage.GetMetadataAsync(destinationKey.Value, cancellationToken);
-        if (FileRelocationPolicy.CanAccept(
-            metadata: current,
-            attemptId: attemptId,
-            contentType: contentType,
-            size: size))
-        {
-            return current;
-        }
-
-        var versions = fileStorage.GetVersionsAsync(destinationKey.Value, cancellationToken);
-        await foreach (var versionId in versions.Select(version => version.VersionId))
-        {
-            if (versionId == current?.VersionId)
-            {
-                continue;
-            }
-
-            var metadata = await fileStorage.GetMetadataAsync(
-                key: destinationKey.Value,
-                versionId: versionId,
-                cancellationToken: cancellationToken);
-            if (metadata?.VersionId == versionId
-                && FileRelocationPolicy.CanAccept(
-                    metadata: metadata,
-                    attemptId: attemptId,
-                    contentType: contentType,
-                    size: size))
-            {
-                return metadata;
-            }
-        }
-
-        return null;
     }
 
     private async Task<Result> CompleteAsync(
