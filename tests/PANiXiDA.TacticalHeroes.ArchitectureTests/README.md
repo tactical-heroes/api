@@ -717,8 +717,8 @@ dotnet test --project tests/PANiXiDA.TacticalHeroes.ArchitectureTests/PANiXiDA.T
      должен иметь зарегистрированный `<Name>OptionsValidator`, реализующий
      `IValidateOptions<TOptions>`. Для options-класса Infrastructure валидатор
      располагается в той же сборке, namespace и папке. Для options-класса
-     Application валидатор располагается в Infrastructure того же модуля:
-     namespace `<Module>.Infrastructure.Options.<Name>`, папка `Options/<Name>/`.
+     Application валидатор располагается в Infrastructure того же модуля в
+     `<Area>/Options/<Name>/`, с namespace `<Module>.Infrastructure.<Area>.Options.<Name>`.
 
 133. `ConfigurationOptions_Should_UseValidateOnStart_When_Registered` — каждый
      конфигурационный options-класс должен регистрироваться через
