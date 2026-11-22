@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Roles.GetList;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetList;
 
 public sealed class GetRolesQueryValidatorTests
 {

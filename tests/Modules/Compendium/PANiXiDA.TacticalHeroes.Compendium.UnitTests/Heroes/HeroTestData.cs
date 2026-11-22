@@ -1,12 +1,12 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Create;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Update;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Heroes;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Heroes;
 
 internal static class HeroTestData
 {

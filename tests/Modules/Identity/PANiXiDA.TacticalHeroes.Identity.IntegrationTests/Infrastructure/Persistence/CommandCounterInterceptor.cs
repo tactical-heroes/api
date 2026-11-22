@@ -2,7 +2,7 @@ using System.Data.Common;
 
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 
 public sealed class CommandCounterInterceptor : DbCommandInterceptor
 {

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.ExchangeToken;
 
 public sealed record ExchangeTokenResponse(
     [property: JsonPropertyName("access_token")] string AccessToken,

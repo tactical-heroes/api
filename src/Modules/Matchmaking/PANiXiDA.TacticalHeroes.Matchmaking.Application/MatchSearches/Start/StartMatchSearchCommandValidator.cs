@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Start;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Start;
 
 public sealed class StartMatchSearchCommandValidator : AbstractValidator<StartMatchSearchCommand>
 {

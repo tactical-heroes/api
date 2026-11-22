@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common.Urls;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Authorize;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common.Urls;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Login;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
 
 internal sealed class LoginEndpoint : IEndpoint<AuthEndpoints>
 {

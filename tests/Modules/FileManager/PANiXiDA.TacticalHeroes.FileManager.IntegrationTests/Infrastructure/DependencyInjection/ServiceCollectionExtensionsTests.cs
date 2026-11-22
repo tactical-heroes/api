@@ -5,15 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Storage;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Options.FileRelocation;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 
-using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.IntegrationTests.Infrastructure.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.DependencyInjection;
 
 public sealed class ServiceCollectionExtensionsTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 public sealed class IdentityReadDbContext(
     DbContextOptions<IdentityReadDbContext> options)

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.Create;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.Create;
 
 public sealed record CreateFolderRequest(
     string Name,

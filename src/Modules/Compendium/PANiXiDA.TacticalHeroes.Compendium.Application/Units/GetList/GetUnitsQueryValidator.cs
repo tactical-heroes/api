@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetList;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetList;
 
 public sealed class GetUnitsQueryValidator : AbstractValidator<GetUnitsQuery>
 {

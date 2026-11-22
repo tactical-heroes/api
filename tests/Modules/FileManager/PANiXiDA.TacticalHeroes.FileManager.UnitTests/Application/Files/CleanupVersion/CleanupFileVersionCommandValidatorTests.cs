@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CleanupVersion;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Files.CleanupVersion;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.CleanupVersion;
 
 public sealed class CleanupFileVersionCommandValidatorTests
 {

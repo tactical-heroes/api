@@ -3,18 +3,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Options.FileRelocation;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Services;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Services;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Options.FileRelocation;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Write;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling.DependencyInjection;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Options.FileRelocation;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Write;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

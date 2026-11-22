@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core.Migrations;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations;
 
 [DbContext(typeof(IdentityWriteDbContext))]
 [Migration("20261027190000_GrantFileManagerPermissions")]

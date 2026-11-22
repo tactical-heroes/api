@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.GetAuthenticatedUser;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
 
 public sealed class GetAuthenticatedUserHandler(IAuthenticatedUserService service, IUserSessionService sessions)
     : IQueryHandler<GetAuthenticatedUserQuery, Result<AuthenticatedUserReadModel>>

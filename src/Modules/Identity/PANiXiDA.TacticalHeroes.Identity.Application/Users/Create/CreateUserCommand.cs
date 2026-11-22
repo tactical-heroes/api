@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 
 public sealed record CreateUserCommand(
     string Email,

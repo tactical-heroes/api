@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.ReadModels;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.ReadModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
 
 public interface IBuildsClient
 {

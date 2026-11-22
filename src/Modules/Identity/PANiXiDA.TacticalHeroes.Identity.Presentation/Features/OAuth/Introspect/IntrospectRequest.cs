@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Introspect;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Introspect;
 
 public sealed record IntrospectRequest(
     [property: JsonPropertyName("client_id")] string ClientId,

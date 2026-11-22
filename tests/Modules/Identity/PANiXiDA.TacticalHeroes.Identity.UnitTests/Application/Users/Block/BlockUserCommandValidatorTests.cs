@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Block;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Block;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Users.Block;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Block;
 
 public sealed class BlockUserCommandValidatorTests
 {

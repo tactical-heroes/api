@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Abstractions.Email;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Email;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Notifications.PasswordReset;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Domain.Notifications.Events;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Notifications.PasswordReset;
+using PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.UnitTests.Application.Notifications.PasswordReset;
+namespace PANiXiDA.TacticalHeroes.Notifications.UnitTests.Application.Notifications.PasswordReset;
 
 public sealed class PasswordResetNotificationRequestedHandlerTests
 {

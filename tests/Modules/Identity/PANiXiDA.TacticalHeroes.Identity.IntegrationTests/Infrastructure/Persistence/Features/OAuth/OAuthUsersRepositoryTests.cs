@@ -8,15 +8,15 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Claims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.OAuth;
 
 public sealed class OAuthUsersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

@@ -1,7 +1,0 @@
-<Project>
-    <Import Project="../../Directory.Build.props" />
-
-    <PropertyGroup>
-        <RootNamespace>$(MSBuildProjectName.Replace('PANiXiDA.TacticalHeroes.', 'PANiXiDA.TacticalHeroes.Modules.'))</RootNamespace>
-    </PropertyGroup>
-</Project>

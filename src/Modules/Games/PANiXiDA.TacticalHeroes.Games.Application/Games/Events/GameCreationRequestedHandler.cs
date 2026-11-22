@@ -1,15 +1,15 @@
 using FluentValidation.Results;
 
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Events;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Players;
+using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Abstractions;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
+using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Application.Games.Events;
+namespace PANiXiDA.TacticalHeroes.Games.Application.Games.Events;
 
 public sealed class GameCreationRequestedHandler(IGamesRepository gamesRepository)
     : IEventHandler<GameCreationRequested>

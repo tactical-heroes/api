@@ -15,13 +15,13 @@ using OpenIddict.Server;
 
 using PANiXiDA.Core.ResultPattern;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Services;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ChangePassword;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Auth.ChangePassword;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ChangePassword;
 
 [Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class ChangePasswordEndpointTests(FunctionalTestFixture fixture)

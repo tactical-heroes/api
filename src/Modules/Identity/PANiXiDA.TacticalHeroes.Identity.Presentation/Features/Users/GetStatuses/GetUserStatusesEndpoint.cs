@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetStatuses;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetStatuses;
 
 internal sealed class GetUserStatusesEndpoint : IEndpoint<UsersEndpoints>
 {

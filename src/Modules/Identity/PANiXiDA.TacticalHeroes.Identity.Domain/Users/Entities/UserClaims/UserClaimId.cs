@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
 
 public readonly partial record struct UserClaimId : IStronglyTypedId
 {

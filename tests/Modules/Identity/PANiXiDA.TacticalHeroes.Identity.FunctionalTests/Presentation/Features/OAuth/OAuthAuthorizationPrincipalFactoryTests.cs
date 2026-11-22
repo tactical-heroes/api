@@ -2,9 +2,9 @@ using System.Security.Claims;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 
 public sealed class OAuthAuthorizationPrincipalFactoryTests
 {

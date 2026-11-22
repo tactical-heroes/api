@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
 
 public static class MatchSearchStateChangedProbeHandler
 {

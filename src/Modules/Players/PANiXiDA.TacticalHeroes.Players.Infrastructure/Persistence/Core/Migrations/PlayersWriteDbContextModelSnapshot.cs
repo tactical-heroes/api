@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(PlayersWriteDbContext))]
     partial class PlayersWriteDbContextModelSnapshot : ModelSnapshot
@@ -26,7 +26,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Cor
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Player", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Players.Domain.Players.Player", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")

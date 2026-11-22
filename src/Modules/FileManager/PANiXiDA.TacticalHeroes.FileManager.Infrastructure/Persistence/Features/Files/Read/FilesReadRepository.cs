@@ -1,16 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetList;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read;
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read;
 
 public sealed class FilesReadRepository(FileManagerReadDbContext dbContext)
     :

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Delete;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Delete;
 
 internal sealed class DeleteRoleEndpoint : IEndpoint<RolesEndpoints>
 {

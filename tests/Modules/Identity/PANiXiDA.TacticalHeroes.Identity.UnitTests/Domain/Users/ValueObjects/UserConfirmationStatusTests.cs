@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Domain.Users.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.ValueObjects;
 
 public sealed class UserConfirmationStatusTests
 {

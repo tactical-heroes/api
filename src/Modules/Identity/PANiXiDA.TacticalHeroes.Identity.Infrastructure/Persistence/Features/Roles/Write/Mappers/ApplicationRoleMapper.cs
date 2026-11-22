@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
 
 internal static class ApplicationRoleMapper
 {

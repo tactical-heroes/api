@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Roles;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles;
 
 internal static class RolesApiConstants
 {

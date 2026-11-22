@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth.Introspect;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Introspect;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ApiTokenValidationTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)

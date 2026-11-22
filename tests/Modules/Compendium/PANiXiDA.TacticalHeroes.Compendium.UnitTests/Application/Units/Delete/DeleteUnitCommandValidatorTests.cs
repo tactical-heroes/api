@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Delete;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Delete;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Units.Delete;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.Delete;
 
 public sealed class DeleteUnitCommandValidatorTests
 {

@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Mappers;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
 
 public sealed class RolesRepository(
     IdentityWriteDbContext dbContext,

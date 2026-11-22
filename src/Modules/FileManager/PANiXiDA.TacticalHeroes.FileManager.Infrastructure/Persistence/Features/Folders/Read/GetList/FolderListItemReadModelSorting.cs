@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetList;
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetList;
 
 internal sealed partial class FolderListItemReadModelSorting : IReadModelSorting<FolderListItemReadModel>
 {

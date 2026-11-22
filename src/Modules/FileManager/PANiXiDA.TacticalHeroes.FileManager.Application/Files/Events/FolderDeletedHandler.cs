@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Events;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Events;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Events;
 
 public sealed class FolderDeletedHandler(IFilesRepository filesRepository) : IEventHandler<FolderDeleted>
 {

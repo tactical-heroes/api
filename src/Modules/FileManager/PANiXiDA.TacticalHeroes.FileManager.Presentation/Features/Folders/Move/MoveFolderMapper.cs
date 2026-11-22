@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Move;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Move;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.Move;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.Move;
 
 [Mapper]
 internal static partial class MoveFolderMapper

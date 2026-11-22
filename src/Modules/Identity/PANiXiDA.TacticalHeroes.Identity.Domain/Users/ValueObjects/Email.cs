@@ -1,6 +1,6 @@
 using System.Net.Mail;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
 public sealed partial class Email : ValueObject
 {

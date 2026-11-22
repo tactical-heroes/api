@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Move;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Move;
 
 public sealed class MoveFileCommandValidator : AbstractValidator<MoveFileCommand>
 {

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Messaging.Handlers;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Messaging.Handlers;
 
-using SourceEvent = PANiXiDA.TacticalHeroes.Modules.Matchmaking.Contracts.MatchSearches.MatchFound;
+using SourceEvent = PANiXiDA.TacticalHeroes.Matchmaking.Contracts.MatchSearches.MatchFound;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.IntegrationTests.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Messaging.Handlers;
 
 public sealed class MatchFoundHandlerTests
 {

@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
 public sealed class User : AggregateRoot<UserId>
 {

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ConfirmEmail;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ConfirmEmail;
 
 public sealed record ConfirmEmailCommand(
     Guid UserId,

@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CleanupVersion;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
 
 public sealed class CleanupFileVersionCommandValidator : AbstractValidator<CleanupFileVersionCommand>
 {

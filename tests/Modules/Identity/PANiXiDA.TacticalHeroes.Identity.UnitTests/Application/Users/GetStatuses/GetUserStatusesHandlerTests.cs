@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetStatuses;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Users.GetStatuses;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetStatuses;
 
 public sealed class GetUserStatusesHandlerTests
 {

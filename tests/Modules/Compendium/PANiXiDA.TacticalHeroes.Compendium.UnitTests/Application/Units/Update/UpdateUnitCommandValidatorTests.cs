@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Units.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.Update;
 
 public sealed class UpdateUnitCommandValidatorTests
 {

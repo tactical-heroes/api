@@ -1,14 +1,14 @@
 using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CleanupVersion;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
-using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Files.CleanupVersion;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.CleanupVersion;
 
 public sealed class CleanupFileVersionHandlerTests
 {

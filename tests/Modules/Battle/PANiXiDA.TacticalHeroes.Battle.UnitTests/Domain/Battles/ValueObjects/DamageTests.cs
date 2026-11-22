@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Domain.Battles.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.ValueObjects;
 
 public sealed class DamageTests
 {

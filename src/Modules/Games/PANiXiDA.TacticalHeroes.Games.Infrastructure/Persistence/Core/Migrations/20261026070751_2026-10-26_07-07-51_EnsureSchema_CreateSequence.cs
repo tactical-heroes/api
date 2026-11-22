@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
     public partial class _20261026_070751_EnsureSchema_CreateSequence : Migration

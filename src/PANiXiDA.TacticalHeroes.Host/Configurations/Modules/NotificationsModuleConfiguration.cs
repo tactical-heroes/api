@@ -1,5 +1,5 @@
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Presentation.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Notifications.Presentation.DependencyInjection;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations.Modules;
 

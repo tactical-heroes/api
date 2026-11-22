@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Password;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Password;
 
 public sealed class IdentityProviderPasswordOptions
 {

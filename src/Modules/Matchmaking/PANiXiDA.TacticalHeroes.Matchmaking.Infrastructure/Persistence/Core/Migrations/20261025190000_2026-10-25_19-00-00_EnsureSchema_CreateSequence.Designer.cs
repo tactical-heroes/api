@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(MatchmakingWriteDbContext))]
     [Migration("20261025190000_2026-10-25_19-00-00_EnsureSchema_CreateSequence")]

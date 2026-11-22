@@ -1,18 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetList;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Read;
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read;
 
 public sealed class FoldersReadRepository(FileManagerReadDbContext dbContext)
     :

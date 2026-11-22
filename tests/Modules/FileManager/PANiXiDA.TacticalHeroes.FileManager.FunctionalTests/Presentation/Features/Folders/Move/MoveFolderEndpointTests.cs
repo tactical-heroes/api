@@ -1,21 +1,21 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.Move;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.Move;
 
-using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation.Features.Folders.Move;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Folders.Move;
 
 [Collection(ManualReconciliationTestCollectionDefinition.Name)]
 public sealed class MoveFolderEndpointTests(ManualReconciliationTestFixture fixture) : FunctionalTestBase(fixture)

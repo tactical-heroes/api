@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
 
 internal sealed class IdentityMessagingOptionsValidator
     : IValidateOptions<IdentityMessagingOptions>

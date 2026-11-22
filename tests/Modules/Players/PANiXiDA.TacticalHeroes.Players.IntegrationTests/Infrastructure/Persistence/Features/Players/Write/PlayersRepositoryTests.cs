@@ -5,15 +5,15 @@ using Npgsql;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Files;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Features.Players.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Players.Domain.Files;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.IntegrationTests.Infrastructure.Persistence.Features.Players.Write;
+namespace PANiXiDA.TacticalHeroes.Players.IntegrationTests.Infrastructure.Persistence.Features.Players.Write;
 
 public sealed class PlayersRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

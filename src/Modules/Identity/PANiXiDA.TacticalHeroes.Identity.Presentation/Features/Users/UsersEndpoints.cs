@@ -2,7 +2,7 @@ using Asp.Versioning;
 
 using Microsoft.AspNetCore.Routing;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users;
 
 internal sealed class UsersEndpoints : IEndpointGroup
 {

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonalUploadUrl;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonalUploadUrl;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Files.CreatePersonalUploadUrl;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.CreatePersonalUploadUrl;
 
 public sealed class CreatePersonalFileUploadUrlCommandValidatorTests
 {

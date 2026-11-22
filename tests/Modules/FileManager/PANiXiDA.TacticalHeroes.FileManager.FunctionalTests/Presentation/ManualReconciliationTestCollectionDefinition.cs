@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation;
 
 [CollectionDefinition(Name)]
 public sealed class ManualReconciliationTestCollectionDefinition

@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

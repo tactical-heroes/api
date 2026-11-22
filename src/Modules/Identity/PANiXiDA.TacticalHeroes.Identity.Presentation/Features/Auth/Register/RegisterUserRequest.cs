@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Register;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Register;
 
 public sealed record RegisterUserRequest(
     string Email,

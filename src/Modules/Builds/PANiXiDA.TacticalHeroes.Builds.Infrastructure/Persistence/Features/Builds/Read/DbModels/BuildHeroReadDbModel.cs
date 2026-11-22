@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Features.Builds.Read.DbModels;
+namespace PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Features.Builds.Read.DbModels;
 
 public sealed class BuildHeroReadDbModel : ReadDbModel<Guid>
 {

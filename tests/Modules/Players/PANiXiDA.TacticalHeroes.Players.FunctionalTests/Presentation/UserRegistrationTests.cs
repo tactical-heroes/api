@@ -3,20 +3,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
 
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Files;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Domain.Files;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
 using Wolverine.Runtime;
 using Wolverine.Tracking;
 
-using IdentityDomainEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events.UserRegistered;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.Users.UserRegistered;
+using IdentityDomainEvent = PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events.UserRegistered;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.UserRegistered;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Players.FunctionalTests.Presentation;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class UserRegistrationTests(FunctionalTestFixture fixture)

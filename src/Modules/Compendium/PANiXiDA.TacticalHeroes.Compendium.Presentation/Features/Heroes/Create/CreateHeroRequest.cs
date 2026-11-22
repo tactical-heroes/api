@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Heroes.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Heroes.Create;
 
 public sealed record CreateHeroRequest(
     string Name,

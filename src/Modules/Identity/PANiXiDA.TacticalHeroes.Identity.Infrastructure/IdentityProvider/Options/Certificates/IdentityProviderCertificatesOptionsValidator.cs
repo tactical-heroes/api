@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Common;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Certificates;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
 
 internal sealed class IdentityProviderCertificatesOptionsValidator(IHostEnvironment? environment = null)
     : IValidateOptions<IdentityProviderOptions>

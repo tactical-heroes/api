@@ -2,11 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.Battle.IntegrationTests;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {

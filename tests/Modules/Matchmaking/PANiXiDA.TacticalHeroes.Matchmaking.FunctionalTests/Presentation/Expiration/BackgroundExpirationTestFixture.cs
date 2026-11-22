@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
 
 public sealed class BackgroundExpirationTestFixture : FunctionalTestFixture
 {

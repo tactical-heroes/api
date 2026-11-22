@@ -2,12 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {

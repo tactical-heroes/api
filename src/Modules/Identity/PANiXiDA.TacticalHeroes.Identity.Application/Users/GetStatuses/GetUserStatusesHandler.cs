@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetStatuses;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
 
 public sealed class GetUserStatusesHandler
     : IQueryHandler<GetUserStatusesQuery, Result<IReadOnlyCollection<UserStatusReadModel>>>, IRequireAuthorization

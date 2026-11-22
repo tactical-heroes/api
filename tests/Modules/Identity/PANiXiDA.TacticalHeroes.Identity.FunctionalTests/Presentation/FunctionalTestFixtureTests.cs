@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class FunctionalTestFixtureTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)

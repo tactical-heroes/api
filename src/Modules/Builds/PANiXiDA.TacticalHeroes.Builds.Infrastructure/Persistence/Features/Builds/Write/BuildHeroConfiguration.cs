@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildHeroes;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildHeroes;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Heroes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Features.Builds.Write;
+namespace PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Features.Builds.Write;
 
 internal sealed class BuildHeroConfiguration : IEntityTypeConfiguration<BuildHero>
 {

@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Delete;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
 
 public sealed class DeleteUserHandler(IUsersRepository usersRepository)
     : ICommandHandler<DeleteUserCommand, Result>, IRequireAuthorization, IRequireTransaction

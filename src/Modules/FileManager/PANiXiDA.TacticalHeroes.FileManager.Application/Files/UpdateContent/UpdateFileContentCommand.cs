@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.UpdateContent;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
 
 public sealed record UpdateFileContentCommand(
     Guid Id,

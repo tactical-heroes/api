@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetList;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetList;
 
 internal sealed class GetFilesEndpoint : IEndpoint<FilesEndpoints>
 {

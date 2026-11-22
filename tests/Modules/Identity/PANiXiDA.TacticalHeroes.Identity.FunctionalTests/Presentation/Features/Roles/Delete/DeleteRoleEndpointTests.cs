@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Users;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Roles.Delete;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Delete;
 
 [Collection(RolesFunctionalTestCollectionDefinition.Name)]
 public sealed class DeleteRoleEndpointTests(FunctionalTestFixture fixture)

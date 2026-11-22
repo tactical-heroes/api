@@ -8,12 +8,12 @@ using Npgsql;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Seeding;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core.Migrations;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 public sealed class FunctionalTestFixture : IAsyncLifetime
 {

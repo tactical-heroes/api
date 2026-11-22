@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetList;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 
 public sealed class GetFactionsQueryValidator : AbstractValidator<GetFactionsQuery>
 {

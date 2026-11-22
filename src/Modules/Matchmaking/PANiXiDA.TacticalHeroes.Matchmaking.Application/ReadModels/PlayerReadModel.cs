@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.ReadModels;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.ReadModels;
 
 public sealed record PlayerReadModel(Guid Id, int Rating) : IReadModel;

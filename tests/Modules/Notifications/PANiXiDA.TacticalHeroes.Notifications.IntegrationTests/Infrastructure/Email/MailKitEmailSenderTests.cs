@@ -1,9 +1,9 @@
 using System.Net;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.Users;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Email;
+using PANiXiDA.TacticalHeroes.Identity.Contracts.Users;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.IntegrationTests.Infrastructure.Email;
+namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
 [Collection(MailpitIntegrationTestCollectionDefinition.Name)]
 public sealed class MailKitEmailSenderTests(MailpitIntegrationTestFixture fixture)

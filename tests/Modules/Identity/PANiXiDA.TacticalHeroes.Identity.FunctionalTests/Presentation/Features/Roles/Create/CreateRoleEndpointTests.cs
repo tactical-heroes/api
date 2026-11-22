@@ -1,12 +1,12 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Create;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Update;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Update;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Roles.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.Create;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class CreateRoleEndpointTests(FunctionalTestFixture fixture)

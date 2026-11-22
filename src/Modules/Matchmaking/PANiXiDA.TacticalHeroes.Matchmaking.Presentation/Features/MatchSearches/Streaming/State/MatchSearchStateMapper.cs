@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Streaming.State;
 
 [Mapper]
 internal static partial class MatchSearchStateMapper

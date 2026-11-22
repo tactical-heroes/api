@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Factions.Read
+namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Factions.Read
     .GetSelectOptions;
 
 public sealed class FactionSelectOptionReadModelMapperTests

@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.OAuth.GetUserInfo;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.GetUserInfo;
 
 public sealed class GetUserInfoHandlerTests
 {

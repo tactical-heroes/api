@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetClientTokenPrincipal;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetClientTokenPrincipal;
 
 public sealed class GetClientTokenPrincipalHandler(IOAuthClientsRepository clientsRepository)
     : IQueryHandler<GetClientTokenPrincipalQuery, Result<OAuthClientTokenPrincipalReadModel>>

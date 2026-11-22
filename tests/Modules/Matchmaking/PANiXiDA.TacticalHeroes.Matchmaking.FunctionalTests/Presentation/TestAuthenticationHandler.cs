@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
 internal sealed class TestAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,

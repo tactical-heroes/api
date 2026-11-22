@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Events;
-using PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Battles;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Events;
+using PANiXiDA.TacticalHeroes.Battle.UnitTests.Battles;
 
-using BattleAggregate = PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle;
+using BattleAggregate = PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Domain.Battles;
+namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles;
 
 public sealed class BattleTests
 {

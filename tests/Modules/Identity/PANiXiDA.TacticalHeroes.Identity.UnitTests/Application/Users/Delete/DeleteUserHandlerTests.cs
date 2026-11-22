@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Delete;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Users.Delete;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Delete;
 
 public sealed class DeleteUserHandlerTests
 {

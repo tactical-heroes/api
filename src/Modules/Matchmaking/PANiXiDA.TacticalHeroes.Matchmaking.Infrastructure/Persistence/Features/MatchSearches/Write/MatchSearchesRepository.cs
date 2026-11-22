@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using PANiXiDA.Core.SpecificationPattern.Abstractions;
 using PANiXiDA.Core.SpecificationPattern.Extensions;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Write;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Write;
 
 public sealed class MatchSearchesRepository(
     MatchmakingWriteDbContext dbContext)

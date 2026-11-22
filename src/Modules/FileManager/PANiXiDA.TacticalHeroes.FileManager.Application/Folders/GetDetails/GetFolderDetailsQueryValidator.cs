@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetDetails;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetDetails;
 
 public sealed class GetFolderDetailsQueryValidator
     : AbstractValidator<GetFolderDetailsQuery>

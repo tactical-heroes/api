@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Rename;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Rename;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Rename;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Rename;
 
 [Mapper]
 internal static partial class RenameFileMapper

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Create;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Create;
 
 public sealed record CreateFileCommand(
     string Name,

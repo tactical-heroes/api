@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Delete;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Delete;
 
 public sealed class DeleteFactionCommandValidator : AbstractValidator<DeleteFactionCommand>
 {

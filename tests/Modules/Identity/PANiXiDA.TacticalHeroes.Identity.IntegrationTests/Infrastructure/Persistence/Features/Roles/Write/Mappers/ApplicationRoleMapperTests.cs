@@ -1,8 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.Mappers;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Write
-    .Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Write.Mappers;
 
 public sealed class ApplicationRoleMapperTests
 {

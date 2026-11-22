@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ForgotPassword;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ForgotPassword;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ForgotPassword;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ForgotPassword;
 
 [Mapper]
 internal static partial class ForgotPasswordMapper

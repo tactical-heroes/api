@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
+namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 
 public interface IFilesRepository : IRepository<FileId, File>
 {

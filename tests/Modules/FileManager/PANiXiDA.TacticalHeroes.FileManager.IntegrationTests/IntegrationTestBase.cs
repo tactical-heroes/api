@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public abstract class IntegrationTestBase(IntegrationTestFixture fixture)

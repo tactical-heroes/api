@@ -1,11 +1,11 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Create;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Users.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Create;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class CreateUserEndpointTests(FunctionalTestFixture fixture)

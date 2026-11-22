@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Create;
 
 public sealed class CreateHeroCommandValidator : AbstractValidator<CreateHeroCommand>
 {

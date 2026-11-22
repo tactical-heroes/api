@@ -1,11 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Games.Application.Games.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Games.IntegrationTests.Games;
+using PANiXiDA.TacticalHeroes.Games.Application.Games.Abstractions;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Abstractions;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Games.IntegrationTests.Games;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.IntegrationTests.Infrastructure.Persistence.Features.Games.Read;
+namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Persistence.Features.Games.Read;
 
 public sealed class GamesReadRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

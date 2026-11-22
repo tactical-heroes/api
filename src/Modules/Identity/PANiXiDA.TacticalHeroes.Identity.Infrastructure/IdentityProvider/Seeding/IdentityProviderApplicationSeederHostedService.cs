@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Seeding;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
 
 internal sealed class IdentityProviderApplicationSeederHostedService(
     IServiceScopeFactory serviceScopeFactory)

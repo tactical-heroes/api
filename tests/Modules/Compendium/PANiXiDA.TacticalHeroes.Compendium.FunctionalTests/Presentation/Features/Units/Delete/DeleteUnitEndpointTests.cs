@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Units.Delete;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Units.Delete;
 
 public sealed class DeleteUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

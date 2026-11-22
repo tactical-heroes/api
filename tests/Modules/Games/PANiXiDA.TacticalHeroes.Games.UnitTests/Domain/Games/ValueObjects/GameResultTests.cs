@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Players;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.UnitTests.Domain.Games.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Domain.Games.ValueObjects;
 
 public sealed class GameResultTests
 {

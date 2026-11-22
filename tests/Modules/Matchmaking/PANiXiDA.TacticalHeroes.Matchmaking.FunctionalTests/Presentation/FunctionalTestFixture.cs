@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
 public class FunctionalTestFixture : IAsyncLifetime
 {
@@ -128,11 +128,11 @@ public class FunctionalTestFixture : IAsyncLifetime
             .Build();
         var services = new ServiceCollection();
         services.AddInfrastructure(configuration);
-        PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+        PANiXiDA.TacticalHeroes.Players.Infrastructure.DependencyInjection.ServiceCollectionExtensions
             .AddInfrastructure(services, configuration);
-        PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+        PANiXiDA.TacticalHeroes.Builds.Infrastructure.DependencyInjection.ServiceCollectionExtensions
             .AddInfrastructure(services, configuration);
-        PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.DependencyInjection.ServiceCollectionExtensions
+        PANiXiDA.TacticalHeroes.Games.Infrastructure.DependencyInjection.ServiceCollectionExtensions
             .AddInfrastructure(services, configuration);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();

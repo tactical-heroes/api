@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Units.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.Create;
 
 public sealed class CreateUnitCommandValidatorTests
 {

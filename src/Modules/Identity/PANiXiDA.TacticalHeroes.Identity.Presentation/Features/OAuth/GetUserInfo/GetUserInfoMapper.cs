@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.GetUserInfo;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
 
 internal static class GetUserInfoMapper
 {

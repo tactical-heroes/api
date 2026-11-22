@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Delete;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Delete;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Delete;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Delete;
 
 [Mapper]
 internal static partial class DeleteUserMapper

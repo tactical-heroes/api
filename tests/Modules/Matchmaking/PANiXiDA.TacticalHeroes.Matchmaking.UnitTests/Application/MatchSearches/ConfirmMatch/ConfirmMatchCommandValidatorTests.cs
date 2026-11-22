@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.ConfirmMatch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Application.MatchSearches.ConfirmMatch;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.ConfirmMatch;
 
 public sealed class ConfirmMatchCommandValidatorTests
 {

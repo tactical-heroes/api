@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Builders;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Builders;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Options.IdentityMessaging;
 
-using DomainEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events.EmailConfirmationRequested;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.Users.EmailConfirmationRequested;
+using DomainEvent = PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events.EmailConfirmationRequested;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.EmailConfirmationRequested;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Messaging.Handlers;
 
 public sealed class EmailConfirmationRequestedHandler(
     IOptions<IdentityMessagingOptions> options)

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
 
 public sealed class Role : AggregateRoot<RoleId>
 {

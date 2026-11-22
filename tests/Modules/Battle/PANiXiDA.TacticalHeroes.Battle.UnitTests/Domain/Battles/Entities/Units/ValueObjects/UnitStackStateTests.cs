@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Domain.Battles.Entities.Units.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.Entities.Units.ValueObjects;
 
 public sealed class UnitStackStateTests
 {

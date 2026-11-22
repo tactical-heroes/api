@@ -293,7 +293,7 @@ public sealed class ApplicationVerticalSliceConventionTests
                             var relativeNamespaceSegments =
                                 GetRelativeNamespace(
                                     requestType,
-                                    module.ApplicationNamespace)
+                                    module.ApplicationAssemblyName)
                                     .Split(
                                         '.',
                                         StringSplitOptions.RemoveEmptyEntries);
@@ -408,7 +408,7 @@ public sealed class ApplicationVerticalSliceConventionTests
             module.Name[(module.Name.LastIndexOf('.') + 1)..];
         var relativeNamespace = GetRelativeNamespace(
             type,
-            ArchitectureDefinition.GetModuleNamespace(assemblyName));
+            assemblyName);
 
         return Path.Combine(
             repositoryRoot,
@@ -493,12 +493,12 @@ public sealed class ApplicationVerticalSliceConventionTests
 
     private static string GetRelativeNamespace(
         Type type,
-        string rootNamespace)
+        string assemblyName)
     {
         var typeNamespace = type.Namespace
             ?? throw new InvalidOperationException(
                 $"Type '{type.FullName}' does not have a namespace.");
-        var namespacePrefix = rootNamespace + ".";
+        var namespacePrefix = assemblyName + ".";
 
         if (!typeNamespace.StartsWith(
             namespacePrefix,

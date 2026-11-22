@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Providers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Providers;
 
 internal sealed class PasswordResetTokenProvider(
     IDataProtectionProvider dataProtectionProvider,

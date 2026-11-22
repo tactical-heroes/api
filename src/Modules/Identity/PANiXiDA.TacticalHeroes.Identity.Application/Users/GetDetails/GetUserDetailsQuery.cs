@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 
 public sealed record GetUserDetailsQuery(Guid Id)
     : IQuery<Result<UserDetailsReadModel>>;

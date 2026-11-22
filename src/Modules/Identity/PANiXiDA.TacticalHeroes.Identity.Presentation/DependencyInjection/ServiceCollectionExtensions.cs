@@ -2,12 +2,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Options.OAuthSpa;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Options.OAuthToken;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthSpa;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthToken;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

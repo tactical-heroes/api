@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants;
+namespace PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants;
 
 public readonly partial record struct GameParticipantId : IStronglyTypedId
 {

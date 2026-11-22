@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public abstract class FunctionalTestBase(FunctionalTestFixture fixture)

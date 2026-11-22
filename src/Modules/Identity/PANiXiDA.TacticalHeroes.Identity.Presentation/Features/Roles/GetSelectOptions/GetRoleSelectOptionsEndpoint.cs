@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetSelectOptions;
 
 internal sealed class GetRoleSelectOptionsEndpoint : IEndpoint<RolesEndpoints>
 {

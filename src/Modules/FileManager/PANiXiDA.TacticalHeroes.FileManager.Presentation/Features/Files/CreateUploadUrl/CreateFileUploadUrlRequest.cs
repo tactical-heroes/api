@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CreateUploadUrl;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreateUploadUrl;
 
 public sealed record CreateFileUploadUrlRequest(
     string Name,

@@ -3,15 +3,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.IntegrationTests.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Units;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Units.Write;
+namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Features.Units.Write;
 
 public sealed class UnitsRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

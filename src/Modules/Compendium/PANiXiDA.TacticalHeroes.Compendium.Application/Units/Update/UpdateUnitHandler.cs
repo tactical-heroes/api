@@ -1,12 +1,12 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 
 public sealed class UpdateUnitHandler(
     IUnitsRepository unitsRepository,

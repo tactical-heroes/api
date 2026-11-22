@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Common;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.Common;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.Common;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 internal sealed partial class MatchSearchReadModelMapper

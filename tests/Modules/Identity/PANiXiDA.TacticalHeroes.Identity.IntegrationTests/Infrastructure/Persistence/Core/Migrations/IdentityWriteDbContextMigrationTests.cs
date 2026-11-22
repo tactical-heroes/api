@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
 
 public sealed class IdentityWriteDbContextMigrationTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

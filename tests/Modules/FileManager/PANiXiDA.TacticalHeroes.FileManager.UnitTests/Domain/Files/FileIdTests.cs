@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Domain.Files;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Files;
 
 public sealed class FileIdTests
 {

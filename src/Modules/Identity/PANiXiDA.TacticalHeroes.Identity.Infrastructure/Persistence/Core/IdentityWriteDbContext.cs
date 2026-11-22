@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 using OpenIddict.EntityFrameworkCore.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 public sealed class IdentityWriteDbContext(
     DbContextOptions<IdentityWriteDbContext> options,

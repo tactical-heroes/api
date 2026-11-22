@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Update;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 
 public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCommand>
 {

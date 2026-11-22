@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Contracts.MatchSearches;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Contracts.MatchSearches;
 
 public sealed record MatchFound(
     Guid FirstMatchSearchId,

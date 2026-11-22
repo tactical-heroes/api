@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.GetList;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Update;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Factions;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Factions;
 
 internal sealed class FactionsApiTestClient(FunctionalTestFixture fixture)
 {

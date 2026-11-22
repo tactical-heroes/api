@@ -75,7 +75,7 @@ public sealed class AggregateFilterConventionTests
         ApplicationType[] sourceTypes)
     {
         var pluralName = EnglishNamingConvention.Pluralize(aggregate.Name);
-        var filterName = $"{module.ApplicationNamespace}.{pluralName}.Common.Filters.{pluralName}Filter";
+        var filterName = $"{module.ApplicationAssemblyName}.{pluralName}.Common.Filters.{pluralName}Filter";
         var filter = FindType(sourceTypes, module, filterName);
 
         if (filter is null)

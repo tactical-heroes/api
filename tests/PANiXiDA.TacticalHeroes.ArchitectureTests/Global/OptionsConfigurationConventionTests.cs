@@ -139,8 +139,7 @@ public sealed class OptionsConfigurationConventionTests
             : assemblyName;
         var validatorTypeName = optionsType.Name + ValidatorSuffix;
         var validatorNamespace = isApplicationOptions
-            ? $"{ArchitectureDefinition.GetModuleNamespace(validatorAssemblyName)}.Options."
-                + optionsType.Name[..^OptionsSuffix.Length]
+            ? $"{validatorAssemblyName}.Options.{optionsType.Name[..^OptionsSuffix.Length]}"
             : optionsType.Namespace;
         var validatorFullName = $"{validatorNamespace}.{validatorTypeName}";
         var validatorType = ArchitectureDefinition.s_productionAssemblies

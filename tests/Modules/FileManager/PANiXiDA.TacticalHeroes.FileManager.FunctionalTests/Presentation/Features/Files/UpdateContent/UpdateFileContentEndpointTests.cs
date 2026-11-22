@@ -7,20 +7,20 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.ReconcileUploads;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.UpdateContent;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDownloadUrl;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
-using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation.Features.Files.UpdateContent;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Files.UpdateContent;
 
 [Collection(ManualReconciliationTestCollectionDefinition.Name)]
 public sealed class UpdateFileContentEndpointTests(
@@ -407,7 +407,7 @@ public sealed class UpdateFileContentEndpointTests(
             .IgnoreQueryFilters()
             .AsNoTracking()
             .SingleAsync(
-                file => file.Id == PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.FileId.Create(id).Value,
+                file => file.Id == PANiXiDA.TacticalHeroes.FileManager.Domain.Files.FileId.Create(id).Value,
                 TestContext.Current.CancellationToken);
     }
 

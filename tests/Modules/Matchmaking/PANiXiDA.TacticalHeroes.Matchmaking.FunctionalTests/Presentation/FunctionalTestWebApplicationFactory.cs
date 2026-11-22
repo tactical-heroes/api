@@ -7,14 +7,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
 internal sealed class FunctionalTestWebApplicationFactory(
     bool matchmakingScheduleEnabled,

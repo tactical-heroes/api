@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(IdentityWriteDbContext))]
     partial class IdentityWriteDbContextModelSnapshot : ModelSnapshot
@@ -311,7 +311,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.ToTable("open_iddict_tokens", "identity");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -363,7 +363,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.ToTable("asp_net_roles", "identity");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRoleClaim", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -398,7 +398,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.ToTable("asp_net_role_claims", "identity");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -499,7 +499,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.ToTable("asp_net_users", "identity");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserClaim", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -534,7 +534,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.ToTable("asp_net_user_claims", "identity");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserLogin", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserLogin", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("text")
@@ -561,7 +561,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.ToTable("asp_net_user_logins", "identity");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserRole", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserRole", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
@@ -631,9 +631,9 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.Navigation("Authorization");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRoleClaim", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRoleClaim", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", "Role")
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", "Role")
                         .WithMany("Claims")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -643,9 +643,9 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserClaim", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserClaim", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", "User")
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", "User")
                         .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -655,9 +655,9 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserLogin", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserLogin", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", "User")
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", "User")
                         .WithMany("Logins")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -667,16 +667,16 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserRole", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUserRole", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", "Role")
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
 
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", "User")
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", "User")
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -690,7 +690,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -710,14 +710,14 @@ namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Co
                     b.Navigation("Tokens");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels.ApplicationRole", b =>
                 {
                     b.Navigation("Claims");
 
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels.ApplicationUser", b =>
                 {
                     b.Navigation("Claims");
 

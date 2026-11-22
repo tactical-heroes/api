@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Builds.FunctionalTests.Presentation;
 
 internal sealed class FunctionalTestWebApplicationFactory : WebApplicationFactory<Program>
 {

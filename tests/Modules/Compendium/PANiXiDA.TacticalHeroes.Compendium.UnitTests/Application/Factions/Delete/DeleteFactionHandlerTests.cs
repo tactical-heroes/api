@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Delete;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Delete;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Factions.Delete;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Delete;
 
 public sealed class DeleteFactionHandlerTests
 {

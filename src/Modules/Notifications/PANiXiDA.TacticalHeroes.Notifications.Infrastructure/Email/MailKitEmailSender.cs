@@ -4,11 +4,11 @@ using Microsoft.Extensions.Options;
 
 using MimeKit;
 
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Abstractions.Email;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Email;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Email.Options.Smtp;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Email;
+namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email;
 
 internal sealed class MailKitEmailSender(
     IOptions<SmtpOptions> options) : IEmailSender

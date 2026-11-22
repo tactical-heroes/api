@@ -1,9 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 using PANiXiDA.TacticalHeroes.Testing.Assertions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Write
-    .Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Users.Write.Mappers;
 
 public sealed class ApplicationUserMapperTests
 {

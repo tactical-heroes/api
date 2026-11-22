@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.GetDetails;
 
 public sealed class GetUserDetailsQueryValidator : AbstractValidator<GetUserDetailsQuery>
 {

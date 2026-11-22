@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Domain.Heroes;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Heroes;
 
 public sealed class HeroIdTests
 {

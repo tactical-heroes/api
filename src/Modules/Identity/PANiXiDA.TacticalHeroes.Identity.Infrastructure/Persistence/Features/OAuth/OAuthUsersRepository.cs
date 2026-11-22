@@ -2,15 +2,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.ExchangeToken;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetUserInfo;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Claims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
 
 public sealed class OAuthUsersRepository(IdentityReadDbContext dbContext, IOptions<IdentityOptions> identityOptions)
     : IOAuthUsersRepository

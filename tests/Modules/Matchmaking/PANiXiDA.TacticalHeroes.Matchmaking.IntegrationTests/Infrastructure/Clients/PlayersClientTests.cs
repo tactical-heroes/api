@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Clients;
-using PANiXiDA.TacticalHeroes.Modules.Players.Contracts.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
+using PANiXiDA.TacticalHeroes.Players.Contracts.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.IntegrationTests.Infrastructure.Clients;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Clients;
 
 public sealed class PlayersClientTests
 {

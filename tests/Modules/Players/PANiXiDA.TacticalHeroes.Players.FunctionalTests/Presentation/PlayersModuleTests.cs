@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Players.FunctionalTests.Presentation;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class PlayersModuleTests(FunctionalTestFixture fixture)

@@ -6,13 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Events;
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ForgotPassword;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ResetPassword;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Events;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ForgotPassword;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Auth.ForgotPassword;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Auth.ForgotPassword;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ForgotPasswordEndpointTests(FunctionalTestFixture fixture)

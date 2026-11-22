@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Features.Players.Write;
+namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Write;
 
 public sealed class PlayersRepository(PlayersWriteDbContext dbContext)
     :

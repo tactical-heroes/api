@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.IntegrationTests.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Persistence.Core;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class MatchmakingUnitOfWorkTests(IntegrationTestFixture fixture)

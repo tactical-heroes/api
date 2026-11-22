@@ -1,9 +1,9 @@
 using System.Net.Http.Headers;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Users.GetStatuses;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.GetStatuses;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetUserStatusesEndpointTests(FunctionalTestFixture fixture)

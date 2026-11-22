@@ -2,9 +2,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.DependencyInjection;
 
 internal static class SchedulingServiceCollectionExtensions
 {

@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Application;
+namespace PANiXiDA.TacticalHeroes.Games.Application;
 
 public static class ApplicationAssembly
 {

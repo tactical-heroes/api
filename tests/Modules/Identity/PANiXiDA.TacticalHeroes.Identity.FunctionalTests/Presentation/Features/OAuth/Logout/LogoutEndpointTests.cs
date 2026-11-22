@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth.Logout;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Logout;
 
 [Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class LogoutEndpointTests(FunctionalTestFixture fixture)

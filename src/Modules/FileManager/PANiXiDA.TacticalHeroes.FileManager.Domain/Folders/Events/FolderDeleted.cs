@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Events;
+namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
 
 public sealed record FolderDeleted(Guid FolderId) : DomainEvent;

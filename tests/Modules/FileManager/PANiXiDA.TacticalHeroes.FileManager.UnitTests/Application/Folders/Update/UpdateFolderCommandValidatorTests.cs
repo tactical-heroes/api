@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Update;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Update;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Folders.Update;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.Update;
 
 public sealed class UpdateFolderCommandValidatorTests
 {

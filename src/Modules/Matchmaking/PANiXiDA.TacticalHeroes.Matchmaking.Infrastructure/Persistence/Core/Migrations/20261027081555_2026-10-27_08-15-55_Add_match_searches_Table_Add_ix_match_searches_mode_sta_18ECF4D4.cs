@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
     public partial class _20261027_081555_Add_match_searches_Table_Add_ix_match_searches_mode_sta_18ECF4D4 : Migration

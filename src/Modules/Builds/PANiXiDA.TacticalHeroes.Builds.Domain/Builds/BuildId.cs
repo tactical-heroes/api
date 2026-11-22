@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
+namespace PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
 
 public readonly partial record struct BuildId : IStronglyTypedId
 {

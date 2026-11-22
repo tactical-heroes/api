@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
+namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
 
 public readonly partial record struct UnitId : IStronglyTypedId
 {

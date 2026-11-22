@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Heroes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildHeroes;
+namespace PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildHeroes;
 
 public sealed class BuildHero : Entity<BuildHeroId>
 {

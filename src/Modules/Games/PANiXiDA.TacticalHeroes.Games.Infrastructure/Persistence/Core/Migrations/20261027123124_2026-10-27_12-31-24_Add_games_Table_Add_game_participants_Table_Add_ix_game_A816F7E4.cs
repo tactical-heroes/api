@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
     public partial class _20261027_123124_Add_games_Table_Add_game_participants_Table_Add_ix_game_A816F7E4 : Migration

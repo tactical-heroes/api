@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Rename;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Rename;
 
 public sealed record RenameFileRequest(string Name);

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Par;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Par;
 
 public sealed record ParRequest(
     [property: JsonPropertyName("response_type")] string ResponseType,

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
 public interface IUsersRepository
 {

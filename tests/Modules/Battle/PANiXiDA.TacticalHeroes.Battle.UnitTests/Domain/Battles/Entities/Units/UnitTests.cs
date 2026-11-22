@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Battles;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Battle.UnitTests.Battles;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Domain.Battles.Entities.Units;
+namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.Entities.Units;
 
 public sealed class UnitTests
 {

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 public abstract class FunctionalTestBase(FunctionalTestFixture fixture) : IAsyncLifetime
 {

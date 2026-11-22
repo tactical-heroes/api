@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
 
 public sealed class SearchingMatchSearchSpecification(MatchmakingTimestamp now) : Specification<MatchSearch>
 {

@@ -1,11 +1,11 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Update;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Heroes;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Heroes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Heroes.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Heroes.Update;
 
 public sealed class UpdateHeroHandlerTests
 {

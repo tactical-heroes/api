@@ -3,7 +3,7 @@ using System.Security.Claims;
 using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Claims;
 
 public sealed class ClaimCatalogValidator : AbstractValidator<Claim>
 {

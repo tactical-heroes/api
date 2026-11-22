@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.GetDetails;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 
 internal sealed class CreateRoleEndpoint : IEndpoint<RolesEndpoints>
 {

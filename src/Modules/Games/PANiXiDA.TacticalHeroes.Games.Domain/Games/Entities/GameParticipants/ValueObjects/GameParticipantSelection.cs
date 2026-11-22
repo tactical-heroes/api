@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Players;
+using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
 
 public sealed partial class GameParticipantSelection : ValueObject
 {

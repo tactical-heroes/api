@@ -1,12 +1,12 @@
 using PANiXiDA.Core.Application.Messaging.Scheduling;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.ConfirmMatch;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Policies;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Policies;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Process;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
 
 public sealed class ProcessMatchmakingHandler(
     IMatchSearchesRepository matchSearchesRepository,

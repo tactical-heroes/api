@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Domain.Players;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.Players;
 
 public sealed class PlayerIdTests
 {

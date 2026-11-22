@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation;
 
 internal sealed class TestAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Heroes.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Heroes.GetDetails;
 
 public sealed class GetHeroDetailsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

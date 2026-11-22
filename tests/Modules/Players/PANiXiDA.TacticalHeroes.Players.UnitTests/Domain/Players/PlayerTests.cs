@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Files;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Domain.Files;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.ValueObjects;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.UnitTests.Domain.Players;
+namespace PANiXiDA.TacticalHeroes.Players.UnitTests.Domain.Players;
 
 public sealed class PlayerTests
 {

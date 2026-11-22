@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ResetPassword;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ResetPassword;
 
 internal sealed class ResetPasswordEndpoint : IEndpoint<AuthEndpoints>
 {

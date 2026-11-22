@@ -3,11 +3,11 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.IntegrationTests.Infrastructure.Scheduling.Reconciliation;
+namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Scheduling.Reconciliation;
 
 public sealed class FolderDeletionScheduleTests
 {

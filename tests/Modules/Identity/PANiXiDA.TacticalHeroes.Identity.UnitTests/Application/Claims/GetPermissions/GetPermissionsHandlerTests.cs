@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims.GetPermissions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Claims.GetPermissions;
 
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Claims.GetPermissions;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Claims.GetPermissions;
 
 public sealed class GetPermissionsHandlerTests
 {

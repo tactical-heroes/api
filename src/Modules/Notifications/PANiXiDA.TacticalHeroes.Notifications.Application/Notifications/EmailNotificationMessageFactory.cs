@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Net;
 
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Email;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Domain.Notifications.Events;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Notifications;
+namespace PANiXiDA.TacticalHeroes.Notifications.Application.Notifications;
 
 internal static class EmailNotificationMessageFactory
 {

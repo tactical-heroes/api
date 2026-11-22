@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.GetUserInfo;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.GetUserInfo;
 
 public sealed class GetUserInfoHandler(IOAuthUsersRepository usersRepository)
     : IQueryHandler<GetUserInfoQuery, Result<UserInfoReadModel>>

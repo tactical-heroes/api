@@ -1,7 +1,7 @@
-using DomainEvent = PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events.MatchFound;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Matchmaking.Contracts.MatchSearches.MatchFound;
+using DomainEvent = PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events.MatchFound;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Matchmaking.Contracts.MatchSearches.MatchFound;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Messaging.Handlers;
 
 public static class MatchFoundHandler
 {

@@ -1,8 +1,8 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Create;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Users.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Create;
 
 public sealed class CreateUserCommandValidatorTests
 {

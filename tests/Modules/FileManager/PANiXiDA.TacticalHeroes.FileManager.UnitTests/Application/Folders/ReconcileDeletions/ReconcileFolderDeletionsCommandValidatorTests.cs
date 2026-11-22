@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.ReconcileDeletions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Folders.ReconcileDeletions;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.ReconcileDeletions;
 
 public sealed class ReconcileFolderDeletionsCommandValidatorTests
 {

@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Unblock;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Users.Unblock;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.Unblock;
 
 public sealed class UnblockUserHandlerTests
 {

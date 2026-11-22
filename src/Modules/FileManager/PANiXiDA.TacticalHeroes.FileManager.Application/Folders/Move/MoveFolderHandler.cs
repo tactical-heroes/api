@@ -1,11 +1,11 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Services;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Move;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Move;
 
 public sealed class MoveFolderHandler(
     IFoldersRepository foldersRepository,

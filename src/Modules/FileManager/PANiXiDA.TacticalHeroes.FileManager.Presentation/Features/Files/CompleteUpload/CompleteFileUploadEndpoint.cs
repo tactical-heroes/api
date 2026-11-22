@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CompleteUpload;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CompleteUpload;
 
 internal sealed class CompleteFileUploadEndpoint : IEndpoint<FilesEndpoints>
 {

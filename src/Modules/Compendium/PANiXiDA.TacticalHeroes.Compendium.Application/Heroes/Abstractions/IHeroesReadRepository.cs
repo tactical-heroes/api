@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Abstractions;
 
 public interface IHeroesReadRepository : IReadRepository<Guid>
 {

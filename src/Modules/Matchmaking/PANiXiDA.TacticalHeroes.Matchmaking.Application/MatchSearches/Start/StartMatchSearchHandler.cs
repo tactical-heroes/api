@@ -1,14 +1,14 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Start;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Start;
 
 public sealed class StartMatchSearchHandler(
     IMatchSearchesRepository matchSearchesRepository,

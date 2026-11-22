@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ConfirmEmail;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ConfirmEmail;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ConfirmEmail;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ConfirmEmail;
 
 [Mapper]
 internal static partial class ConfirmEmailMapper

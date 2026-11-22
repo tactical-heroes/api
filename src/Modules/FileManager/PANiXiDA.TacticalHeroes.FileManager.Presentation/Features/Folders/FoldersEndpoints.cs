@@ -2,7 +2,7 @@ using Asp.Versioning;
 
 using Microsoft.AspNetCore.Routing;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders;
 
 internal sealed class FoldersEndpoints : IEndpointGroup
 {

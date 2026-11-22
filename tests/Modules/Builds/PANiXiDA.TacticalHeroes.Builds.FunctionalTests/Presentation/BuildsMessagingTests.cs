@@ -6,9 +6,9 @@ using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.OutboxDispatcher;
 
-using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Builds.FunctionalTests.Presentation;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class BuildsMessagingTests(FunctionalTestFixture fixture)

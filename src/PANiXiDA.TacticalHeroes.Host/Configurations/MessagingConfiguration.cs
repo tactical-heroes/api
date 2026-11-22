@@ -1,39 +1,30 @@
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.DependencyInjection;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Constants;
 
-using PANiXiDA.TacticalHeroes.Host.Configurations.Messaging;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling;
-using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Scheduling;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
-
-using Wolverine.Util;
-
-using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Battle.Application.ApplicationAssembly;
-using BuildsApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Builds.Application.ApplicationAssembly;
-using CompendiumApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Compendium.Application.ApplicationAssembly;
-using FileManagerApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.FileManager.Application.ApplicationAssembly;
-using GamesApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Games.Application.ApplicationAssembly;
-using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Identity.Application.ApplicationAssembly;
-using MatchmakingApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.ApplicationAssembly;
-using PlayersApplicationAssembly = PANiXiDA.TacticalHeroes.Modules.Players.Application.ApplicationAssembly;
+using BattleApplicationAssembly = PANiXiDA.TacticalHeroes.Battle.Application.ApplicationAssembly;
+using BuildsApplicationAssembly = PANiXiDA.TacticalHeroes.Builds.Application.ApplicationAssembly;
+using CompendiumApplicationAssembly = PANiXiDA.TacticalHeroes.Compendium.Application.ApplicationAssembly;
+using FileManagerApplicationAssembly = PANiXiDA.TacticalHeroes.FileManager.Application.ApplicationAssembly;
+using GamesApplicationAssembly = PANiXiDA.TacticalHeroes.Games.Application.ApplicationAssembly;
+using IdentityApplicationAssembly = PANiXiDA.TacticalHeroes.Identity.Application.ApplicationAssembly;
+using MatchmakingApplicationAssembly = PANiXiDA.TacticalHeroes.Matchmaking.Application.ApplicationAssembly;
+using PlayersApplicationAssembly = PANiXiDA.TacticalHeroes.Players.Application.ApplicationAssembly;
 
 namespace PANiXiDA.TacticalHeroes.Host.Configurations;
 
 internal static class MessagingConfiguration
 {
-    static MessagingConfiguration()
-    {
-        WolverineMessageNaming.InsertFirst<ModuleMessageNaming>();
-    }
-
     internal static WebApplicationBuilder AddMessaging(
         this WebApplicationBuilder builder)
     {

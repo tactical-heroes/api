@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Start;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Start;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Application.MatchSearches.Start;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Start;
 
 public sealed class StartMatchSearchCommandValidatorTests
 {

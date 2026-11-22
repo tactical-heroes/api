@@ -1,9 +1,9 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetList;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
 
 public sealed class GetFoldersHandler(
     IFoldersReadRepository foldersReadRepository,

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Block;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Block;
 
 internal sealed class BlockUserEndpoint : IEndpoint<UsersEndpoints>
 {

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ResetPassword;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResetPassword;
 
 public sealed class ResetPasswordHandler(IUserCredentialsService userCredentialsService)
     : ICommandHandler<ResetPasswordCommand, Result>, IRequireTransaction

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Common;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 internal static class OAuthRequestScopes
 {

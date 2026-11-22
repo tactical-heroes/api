@@ -1,16 +1,16 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
 
 using Wolverine.Runtime;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration
     .MatchSearchExpirationTestSupport;
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
 
 [Collection(BackgroundExpirationTestCollectionDefinition.Name)]
 public sealed class MatchSearchExpirationScheduleTests(BackgroundExpirationTestFixture fixture)

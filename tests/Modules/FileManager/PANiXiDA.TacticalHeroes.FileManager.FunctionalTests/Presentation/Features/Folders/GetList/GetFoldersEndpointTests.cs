@@ -3,15 +3,15 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation.Features.Folders.GetList;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Folders.GetList;
 
 public sealed class GetFoldersEndpointTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)
 {

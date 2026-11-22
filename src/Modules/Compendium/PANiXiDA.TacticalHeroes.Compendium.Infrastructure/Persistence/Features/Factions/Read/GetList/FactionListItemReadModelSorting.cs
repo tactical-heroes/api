@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetList;
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetList;
 
 internal sealed partial class FactionListItemReadModelSorting
     : IReadModelSorting<FactionListItemReadModel>

@@ -2,7 +2,7 @@ using System.Text.Json;
 
 using Microsoft.Extensions.Hosting;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth.OpenApi;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.OpenApi;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class OpenApiSecurityDocumentTests(FunctionalTestFixture fixture)

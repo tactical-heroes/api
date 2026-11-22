@@ -8,17 +8,17 @@ using Npgsql;
 using OpenIddict.Abstractions;
 using OpenIddict.EntityFrameworkCore.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Roles;
 
-using UserTestData = PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Users.IntegrationTestData;
+using UserTestData = PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users.IntegrationTestData;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Write;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Features.Roles.Write;
 
 public sealed class RolesRepositoryTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

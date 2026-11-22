@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetList;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
 
 public sealed class GetFilesQueryValidator : AbstractValidator<GetFilesQuery>
 {

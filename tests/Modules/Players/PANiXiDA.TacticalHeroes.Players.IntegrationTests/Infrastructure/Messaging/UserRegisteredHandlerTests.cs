@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Messaging.Handlers;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Messaging.Handlers;
 
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.Users.UserRegistered;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.UserRegistered;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.IntegrationTests.Infrastructure.Messaging;
+namespace PANiXiDA.TacticalHeroes.Players.IntegrationTests.Infrastructure.Messaging;
 
 public sealed class UserRegisteredHandlerTests
 {

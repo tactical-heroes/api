@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 [CollectionDefinition(Name)]
 public sealed class RolesFunctionalTestCollectionDefinition : ICollectionFixture<FunctionalTestFixture>

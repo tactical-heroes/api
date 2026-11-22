@@ -5,11 +5,11 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Certificates;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Certificates;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.IdentityProvider;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.IdentityProvider;
 
 public sealed class IdentityProviderCertificatesOptionsValidatorTests
 {

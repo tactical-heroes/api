@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Folders.Common.Filters;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.Common.Filters;
 
 public sealed class FoldersFilterValidatorTests
 {

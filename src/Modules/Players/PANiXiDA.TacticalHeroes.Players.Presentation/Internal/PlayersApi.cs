@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Players.Contracts.Players;
+using PANiXiDA.TacticalHeroes.Players.Contracts.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Presentation.Internal;
+namespace PANiXiDA.TacticalHeroes.Players.Presentation.Internal;
 
 internal sealed class PlayersApi(IMediator mediator) : IPlayersApi
 {

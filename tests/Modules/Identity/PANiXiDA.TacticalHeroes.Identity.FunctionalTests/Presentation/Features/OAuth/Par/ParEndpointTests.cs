@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth.Par;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Par;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class ParEndpointTests(FunctionalTestFixture fixture)

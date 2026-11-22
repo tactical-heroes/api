@@ -1,10 +1,10 @@
 using PANiXiDA.Core.Application.Querying.Limiting;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetList;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
 
 public interface IFactionsReadRepository : IReadRepository<Guid>
 {

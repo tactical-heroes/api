@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Messaging.Handlers;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Messaging.Handlers;
 
-using SourceEvent = PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Events.GameCreated;
+using SourceEvent = PANiXiDA.TacticalHeroes.Games.Domain.Games.Events.GameCreated;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.IntegrationTests.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Messaging.Handlers;
 
 public sealed class GameCreatedHandlerTests
 {

@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Matchmaking;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking;
 
 internal static class MatchmakingTestData
 {

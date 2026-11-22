@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Units.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Units.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Units.Create;
 
 public sealed class CreateUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

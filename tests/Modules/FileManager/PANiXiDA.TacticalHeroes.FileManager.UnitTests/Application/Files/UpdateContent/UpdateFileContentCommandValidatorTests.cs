@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.UpdateContent;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.UpdateContent;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Files.UpdateContent;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.UpdateContent;
 
 public sealed class UpdateFileContentCommandValidatorTests
 {

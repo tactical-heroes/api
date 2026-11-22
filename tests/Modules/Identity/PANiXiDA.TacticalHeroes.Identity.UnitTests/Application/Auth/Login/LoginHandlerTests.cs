@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Auth.Login;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.Login;
 
 public sealed class LoginHandlerTests
 {

@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(CompendiumWriteDbContext))]
     [Migration("20260727105039_AddFactions")]
@@ -29,7 +29,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Faction", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Faction", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")

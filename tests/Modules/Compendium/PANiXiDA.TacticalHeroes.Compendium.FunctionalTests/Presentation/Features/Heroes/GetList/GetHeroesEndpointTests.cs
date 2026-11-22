@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Heroes.GetList;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Heroes.GetList;
 
 public sealed class GetHeroesEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

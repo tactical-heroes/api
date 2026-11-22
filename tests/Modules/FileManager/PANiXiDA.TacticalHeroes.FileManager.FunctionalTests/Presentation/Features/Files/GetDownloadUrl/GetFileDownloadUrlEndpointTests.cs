@@ -8,17 +8,17 @@ using PANiXiDA.Core.Application.Storage;
 
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.CreatePersonal;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDownloadUrl;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.CreatePersonal;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
-using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation.Features.Files.GetDownloadUrl;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Files.GetDownloadUrl;
 
 public sealed class GetFileDownloadUrlEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

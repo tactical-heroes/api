@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Folders.GetList;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.GetList;
 
 public sealed class GetFoldersQueryValidatorTests
 {

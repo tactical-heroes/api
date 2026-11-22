@@ -8,17 +8,17 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CleanupVersion;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Write;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Write;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Scheduling.Options.FileUploadReconciliation;
 using PANiXiDA.TacticalHeroes.Testing.Storage;
 
-using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.IntegrationTests.Infrastructure.Storage;
+namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Storage;
 
 public sealed class FileVersionCleanupTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {

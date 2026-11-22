@@ -1,7 +1,7 @@
-using DomainEvent = PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events.GameAssignmentRequested;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Games.Contracts.Games.GameCreated;
+using DomainEvent = PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events.GameAssignmentRequested;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Games.Contracts.Games.GameCreated;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Messaging.Handlers;
 
 public static class GameCreatedHandler
 {

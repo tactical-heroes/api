@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 
 public sealed record CreateFactionCommand(
     string Name,

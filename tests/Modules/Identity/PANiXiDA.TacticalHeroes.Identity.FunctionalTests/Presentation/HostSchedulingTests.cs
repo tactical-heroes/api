@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Wolverine.Runtime;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 [Collection(RolesFunctionalTestCollectionDefinition.Name)]
 public sealed class HostSchedulingTests(FunctionalTestFixture fixture)

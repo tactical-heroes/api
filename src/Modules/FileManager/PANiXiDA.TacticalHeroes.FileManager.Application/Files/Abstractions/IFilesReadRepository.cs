@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetList;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Abstractions;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Abstractions;
 
 public interface IFilesReadRepository : IReadRepository<Guid>
 {

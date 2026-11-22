@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Users.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.GetDetails;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetUserDetailsEndpointTests(FunctionalTestFixture fixture)

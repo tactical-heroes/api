@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Builds.Contracts.Builds;
+using PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Clients;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Clients;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.IntegrationTests.Infrastructure.Clients;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Clients;
 
 public sealed class BuildsClientTests
 {

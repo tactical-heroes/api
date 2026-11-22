@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Contracts.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Contracts.MatchSearches;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 
 public sealed class MatchFoundProbe
 {

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Update;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
 
 public sealed record UpdateRoleCommand(
     Guid Id,

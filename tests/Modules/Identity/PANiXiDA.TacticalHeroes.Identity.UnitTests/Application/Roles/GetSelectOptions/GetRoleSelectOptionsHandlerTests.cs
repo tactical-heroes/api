@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Roles.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.GetSelectOptions;
 
 public sealed class GetRoleSelectOptionsHandlerTests
 {

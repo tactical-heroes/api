@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Domain.Battles;
+namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles;
 
 public sealed class BattleIdTests
 {

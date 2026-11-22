@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.IntegrationTests.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Persistence.Core;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class GamesUnitOfWorkTests(IntegrationTestFixture fixture)

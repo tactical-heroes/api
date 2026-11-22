@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
-        <Using Include="PANiXiDA.TacticalHeroes.Modules.Identity.Contracts" />
+        <Using Include="PANiXiDA.TacticalHeroes.Identity.Contracts" />
     </ItemGroup>
 </Project>

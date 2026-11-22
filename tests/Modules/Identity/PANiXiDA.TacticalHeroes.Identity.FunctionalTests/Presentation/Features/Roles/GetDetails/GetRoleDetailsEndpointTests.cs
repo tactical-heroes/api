@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Roles.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Roles.GetDetails;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetRoleDetailsEndpointTests(FunctionalTestFixture fixture)

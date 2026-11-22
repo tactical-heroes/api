@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
 
 public sealed record GetRoleSelectOptionsQuery()
     : IQuery<Result<IReadOnlyList<RoleSelectOptionReadModel>>>;

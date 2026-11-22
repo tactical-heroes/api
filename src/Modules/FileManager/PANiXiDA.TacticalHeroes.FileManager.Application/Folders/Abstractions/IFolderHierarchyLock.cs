@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
 
 public interface IFolderHierarchyLock
 {

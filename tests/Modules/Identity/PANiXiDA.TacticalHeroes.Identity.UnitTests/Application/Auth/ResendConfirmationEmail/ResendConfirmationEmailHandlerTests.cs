@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ResendConfirmationEmail;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ResendConfirmationEmail;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Auth.ResendConfirmationEmail;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ResendConfirmationEmail;
 
 public sealed class ResendConfirmationEmailHandlerTests
 {

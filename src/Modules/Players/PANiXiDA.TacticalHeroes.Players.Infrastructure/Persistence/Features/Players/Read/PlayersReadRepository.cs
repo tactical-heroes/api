@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 
-using PANiXiDA.TacticalHeroes.Modules.Players.Application.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Players.Application.Players.GetInternalPlayer;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Features.Players.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Features.Players.Read.GetInternalPlayer;
+using PANiXiDA.TacticalHeroes.Players.Application.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Application.Players.GetInternalPlayer;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Read.GetInternalPlayer;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Features.Players.Read;
+namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Features.Players.Read;
 
 public sealed class PlayersReadRepository(PlayersReadDbContext dbContext)
     :

@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
 
 public sealed class GetRoleSelectOptionsHandler(IRolesReadRepository rolesReadRepository) :
     IQueryHandler<GetRoleSelectOptionsQuery, Result<IReadOnlyList<RoleSelectOptionReadModel>>>,

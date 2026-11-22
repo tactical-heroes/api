@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetList;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Read.GetList;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.GetList;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 internal sealed partial class RoleListItemReadModelMapper

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
     public partial class AddMatchSearchGameId : Migration

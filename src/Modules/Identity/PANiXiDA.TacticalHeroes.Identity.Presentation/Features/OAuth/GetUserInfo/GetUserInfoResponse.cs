@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.GetUserInfo;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
 
 public sealed record GetUserInfoResponse(
     [property: JsonPropertyName("sub")] string Subject,

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Domain.Users;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Domain.Users;
 
 public sealed class UserIdTests
 {

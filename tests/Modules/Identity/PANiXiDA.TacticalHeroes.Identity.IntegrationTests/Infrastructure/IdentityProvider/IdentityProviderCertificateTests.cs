@@ -11,10 +11,10 @@ using Microsoft.IdentityModel.Tokens;
 
 using OpenIddict.Server;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.IdentityProvider;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.IdentityProvider;
 
 public sealed class IdentityProviderCertificateTests
 {

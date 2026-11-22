@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Common;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Application.MatchSearches.Events;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Events;
 
 public sealed class MatchSearchStateChangedHandlerTests
 {

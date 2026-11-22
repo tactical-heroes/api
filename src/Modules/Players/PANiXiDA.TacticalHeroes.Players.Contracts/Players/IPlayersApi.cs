@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Contracts.Players;
+namespace PANiXiDA.TacticalHeroes.Players.Contracts.Players;
 
 public interface IPlayersApi
 {

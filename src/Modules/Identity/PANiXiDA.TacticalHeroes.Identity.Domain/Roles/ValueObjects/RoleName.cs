@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
 
 public sealed partial class RoleName : ValueObject
 {

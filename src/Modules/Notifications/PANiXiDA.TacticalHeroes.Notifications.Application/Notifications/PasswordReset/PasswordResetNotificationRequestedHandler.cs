@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Abstractions.Email;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Domain.Notifications.Events;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Notifications.PasswordReset;
+namespace PANiXiDA.TacticalHeroes.Notifications.Application.Notifications.PasswordReset;
 
 public sealed class PasswordResetNotificationRequestedHandler(
     IEmailSender emailSender) : IEventHandler<PasswordResetNotificationRequested>

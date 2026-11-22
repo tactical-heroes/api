@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
 
 public sealed partial class FolderName : ValueObject
 {

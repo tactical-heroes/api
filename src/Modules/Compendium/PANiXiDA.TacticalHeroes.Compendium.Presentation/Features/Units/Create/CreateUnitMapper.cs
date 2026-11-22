@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Create;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Units.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.Create;
 
 [Mapper]
 internal static partial class CreateUnitMapper

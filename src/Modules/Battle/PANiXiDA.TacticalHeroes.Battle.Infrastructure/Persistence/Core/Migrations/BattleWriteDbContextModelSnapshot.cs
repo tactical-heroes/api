@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(BattleWriteDbContext))]
     partial class BattleWriteDbContextModelSnapshot : ModelSnapshot
@@ -27,7 +27,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -60,7 +60,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core
                     b.ToTable("battles", "battle");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.Unit", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.Unit", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -76,7 +76,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "DamageRange", "PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.Unit.DamageRange#DamageRange", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "DamageRange", "PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.Unit.DamageRange#DamageRange", b1 =>
                         {
                             b1.IsRequired();
 
@@ -89,7 +89,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core
                                 .HasColumnName("damage_range_minimum");
                         });
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "StackState", "PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.Unit.StackState#UnitStackState", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "StackState", "PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.Unit.StackState#UnitStackState", b1 =>
                         {
                             b1.IsRequired();
 
@@ -102,7 +102,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core
                                 .HasColumnName("stack_state_current_unit_health");
                         });
 
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.Unit.Stats#UnitCombatStats", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Stats", "PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.Unit.Stats#UnitCombatStats", b1 =>
                         {
                             b1.IsRequired();
 
@@ -128,9 +128,9 @@ namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core
                     b.ToTable("units", "battle");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.Unit", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.Unit", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle", null)
                         .WithMany("Units")
                         .HasForeignKey("BattleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -138,7 +138,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core
                         .HasConstraintName("fk_units_battles_battle_id");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle", b =>
                 {
                     b.Navigation("Units");
                 });

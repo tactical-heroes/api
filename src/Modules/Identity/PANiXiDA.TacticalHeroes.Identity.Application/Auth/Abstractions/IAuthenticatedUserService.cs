@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 
 public interface IAuthenticatedUserService
 {

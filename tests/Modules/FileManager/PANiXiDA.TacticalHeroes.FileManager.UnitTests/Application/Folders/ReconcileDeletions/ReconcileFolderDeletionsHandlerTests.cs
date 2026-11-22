@@ -2,11 +2,11 @@ using NSubstitute.ExceptionExtensions;
 
 using PANiXiDA.Core.Application.Messaging.EventBus;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.ReconcileDeletions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Events;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Folders.ReconcileDeletions;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.ReconcileDeletions;
 
 public sealed class ReconcileFolderDeletionsHandlerTests
 {

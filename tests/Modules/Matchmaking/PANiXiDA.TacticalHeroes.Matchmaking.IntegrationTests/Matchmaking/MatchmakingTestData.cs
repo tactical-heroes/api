@@ -1,13 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.IntegrationTests.Matchmaking;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Matchmaking;
 
 internal static class MatchmakingTestData
 {

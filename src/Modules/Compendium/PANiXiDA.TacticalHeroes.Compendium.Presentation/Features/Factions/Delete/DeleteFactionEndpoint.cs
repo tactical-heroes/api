@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Delete;
+namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Delete;
 
 internal sealed class DeleteFactionEndpoint : IEndpoint<FactionsEndpoints>
 {

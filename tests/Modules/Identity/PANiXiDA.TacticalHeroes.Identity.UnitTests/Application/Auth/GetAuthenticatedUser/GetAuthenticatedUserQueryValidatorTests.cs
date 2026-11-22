@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.GetAuthenticatedUser;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.GetAuthenticatedUser;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Auth.GetAuthenticatedUser;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.GetAuthenticatedUser;
 
 public sealed class GetAuthenticatedUserQueryValidatorTests
 {

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Update;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Factions.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Factions.Update;
 
 public sealed class UpdateFactionEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

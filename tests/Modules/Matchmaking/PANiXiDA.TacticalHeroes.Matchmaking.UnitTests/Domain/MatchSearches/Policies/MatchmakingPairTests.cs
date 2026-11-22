@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Policies;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Policies;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Domain.MatchSearches.Policies;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchSearches.Policies;
 
 public sealed class MatchmakingPairTests
 {

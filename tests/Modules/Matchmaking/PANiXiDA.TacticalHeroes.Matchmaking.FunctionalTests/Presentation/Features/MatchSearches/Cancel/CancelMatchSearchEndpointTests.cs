@@ -5,32 +5,32 @@ using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.ResultPattern;
 
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.ConfirmMatch;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Games;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Start;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Abstractions;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.ValueObjects;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Players;
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Features.MatchSearches.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Start;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
 
-using Build = PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Build;
-using BuildPlayerId = PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Players.PlayerId;
-using Player = PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Player;
+using Build = PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build;
+using BuildPlayerId = PANiXiDA.TacticalHeroes.Builds.Domain.Players.PlayerId;
+using Player = PANiXiDA.TacticalHeroes.Players.Domain.Players.Player;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Cancel;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Cancel;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class CancelMatchSearchEndpointTests(FunctionalTestFixture fixture)

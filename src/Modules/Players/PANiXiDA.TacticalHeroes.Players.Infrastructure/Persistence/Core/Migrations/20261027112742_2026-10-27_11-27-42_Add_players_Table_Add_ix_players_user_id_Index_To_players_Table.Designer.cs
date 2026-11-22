@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(PlayersWriteDbContext))]
     [Migration("20261027112742_2026-10-27_11-27-42_Add_players_Table_Add_ix_players_user_id_Index_To_players_Table")]
@@ -29,7 +29,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Cor
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Player", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Players.Domain.Players.Player", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")

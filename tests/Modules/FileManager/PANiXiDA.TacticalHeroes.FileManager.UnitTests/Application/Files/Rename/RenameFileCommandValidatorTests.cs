@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Rename;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Rename;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Files.Rename;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.Rename;
 
 public sealed class RenameFileCommandValidatorTests
 {

@@ -4,24 +4,24 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.ReconcileUploads;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.ReconcileDeletions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Events;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.ReconcileDeletions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Files.Read.DbModels;
+using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Features.Folders.Read.DbModels;
 
 using Wolverine.Tracking;
 
-using File = PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.File;
+using File = PANiXiDA.TacticalHeroes.FileManager.Domain.Files.File;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation.Features.Folders.Delete;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation.Features.Folders.Delete;
 
 [Collection(ManualReconciliationTestCollectionDefinition.Name)]
 public sealed class DeleteFolderEndpointTests(ManualReconciliationTestFixture fixture) : FunctionalTestBase(fixture)

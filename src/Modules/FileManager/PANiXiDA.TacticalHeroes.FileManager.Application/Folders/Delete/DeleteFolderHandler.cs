@@ -1,12 +1,12 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Messaging.EventBus;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Events;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Events;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Delete;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Delete;
 
 public sealed class DeleteFolderHandler(
     IFoldersRepository foldersRepository,

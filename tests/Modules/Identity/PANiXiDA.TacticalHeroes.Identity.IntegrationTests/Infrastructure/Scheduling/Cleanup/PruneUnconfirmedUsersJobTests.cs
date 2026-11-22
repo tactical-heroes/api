@@ -3,16 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Scheduling.Cleanup;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
 using Quartz;
 using Quartz.Extensibility;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Scheduling.Cleanup;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Scheduling.Cleanup;
 
 public sealed class PruneUnconfirmedUsersJobTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

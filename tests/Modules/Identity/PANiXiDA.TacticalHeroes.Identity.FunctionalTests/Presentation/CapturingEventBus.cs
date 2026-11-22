@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.Core.Domain.DomainEvents;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 internal sealed class CapturingEventBus : IEventBus
 {

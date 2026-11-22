@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 
 public readonly partial record struct BuildId : IStronglyTypedId
 {

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Delete;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Delete;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Delete;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Delete;
 
 [Mapper]
 internal static partial class DeleteFileMapper

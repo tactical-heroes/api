@@ -3,17 +3,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 
-using PANiXiDA.TacticalHeroes.Modules.Battle.Application.Battles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Features.Battles.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Battle.Application.Battles.Abstractions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Abstractions;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Features.Battles.Read.DbModels;
 
-using BattleAggregate = PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle;
+using BattleAggregate = PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.IntegrationTests.Infrastructure.Persistence.Features.Battles.Write;
+namespace PANiXiDA.TacticalHeroes.Battle.IntegrationTests.Infrastructure.Persistence.Features.Battles.Write;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class BattlesRepositoryTests(IntegrationTestFixture fixture)

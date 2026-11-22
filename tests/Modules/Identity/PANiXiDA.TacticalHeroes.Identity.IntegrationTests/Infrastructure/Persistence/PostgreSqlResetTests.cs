@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 
 public sealed class PostgreSqlResetTests(IntegrationTestFixture fixture)
     : IntegrationTestBase(fixture)

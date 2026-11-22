@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core.Migrations
 {
     public partial class AddFileStorageKey : Migration
     {

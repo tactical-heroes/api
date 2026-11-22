@@ -1,8 +1,8 @@
 using System.Net.Http.Headers;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Users.Block;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users.Block;
 
 [Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class BlockUserEndpointTests(FunctionalTestFixture fixture)

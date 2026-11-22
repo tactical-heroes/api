@@ -1,8 +1,8 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Create;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Roles.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Create;
 
 public sealed class CreateRoleCommandValidatorTests
 {

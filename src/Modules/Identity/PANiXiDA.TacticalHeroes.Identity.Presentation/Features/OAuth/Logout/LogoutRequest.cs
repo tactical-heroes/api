@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 using Microsoft.AspNetCore.Mvc;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Logout;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Logout;
 
 public sealed record LogoutRequest(
     [property: FromQuery(Name = "id_token_hint")]

@@ -3,10 +3,10 @@ using System.Collections.ObjectModel;
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Services;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.CreatePersonal;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.CreatePersonal;
 
 public sealed class CreatePersonalFileHandler(FileCreationService fileCreationService, ICurrentUser currentUser)
     : ICommandHandler<CreatePersonalFileCommand, Result<Guid>>, IRequireAuthorization

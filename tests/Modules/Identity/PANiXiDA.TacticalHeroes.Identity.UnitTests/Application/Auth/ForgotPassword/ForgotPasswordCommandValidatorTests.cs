@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ForgotPassword;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ForgotPassword;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Auth.ForgotPassword;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ForgotPassword;
 
 public sealed class ForgotPasswordCommandValidatorTests
 {

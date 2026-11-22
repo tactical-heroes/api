@@ -1,14 +1,14 @@
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Battles;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Events;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Games.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Events;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
 
 using ResultFactory = PANiXiDA.Core.ResultPattern.Result;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
+namespace PANiXiDA.TacticalHeroes.Games.Domain.Games;
 
 public sealed class Game : AggregateRoot<GameId>
 {

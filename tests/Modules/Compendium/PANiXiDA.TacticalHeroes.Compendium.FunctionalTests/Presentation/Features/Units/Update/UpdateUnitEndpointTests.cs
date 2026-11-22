@@ -3,9 +3,9 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Units.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Units.Update;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Units.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Units.Update;
 
 public sealed class UpdateUnitEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

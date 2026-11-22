@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Application;
+namespace PANiXiDA.TacticalHeroes.Notifications.Application;
 
 public static class ApplicationAssembly
 {

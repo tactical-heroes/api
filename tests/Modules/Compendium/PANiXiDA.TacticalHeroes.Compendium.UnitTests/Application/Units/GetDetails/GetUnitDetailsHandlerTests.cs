@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Units;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Units.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.GetDetails;
 
 public sealed class GetUnitDetailsHandlerTests
 {

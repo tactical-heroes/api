@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Players.Infrastructure.Persistence.Core.Migrations
 {
     /// <inheritdoc />
     public partial class _20261027_112742_Add_players_Table_Add_ix_players_user_id_Index_To_players_Table : Migration

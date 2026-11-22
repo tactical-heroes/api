@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 
 public sealed class CreateFactionCommandValidator : AbstractValidator<CreateFactionCommand>
 {

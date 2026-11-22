@@ -1,9 +1,9 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Watch;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Watch;
 
 public sealed class WatchMatchSearchHandler(
     IPlayersClient playersClient,

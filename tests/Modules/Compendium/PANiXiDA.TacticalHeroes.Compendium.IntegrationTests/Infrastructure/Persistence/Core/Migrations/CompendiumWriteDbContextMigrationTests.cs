@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
+namespace PANiXiDA.TacticalHeroes.Compendium.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class CompendiumWriteDbContextMigrationTests(

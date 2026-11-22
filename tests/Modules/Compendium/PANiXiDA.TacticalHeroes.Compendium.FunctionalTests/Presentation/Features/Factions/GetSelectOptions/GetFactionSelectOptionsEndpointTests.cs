@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Factions.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Factions.GetSelectOptions;
 
 public sealed class GetFactionSelectOptionsEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Builds.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(BuildsWriteDbContext))]
     partial class BuildsWriteDbContextModelSnapshot : ModelSnapshot
@@ -26,7 +26,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core
             modelBuilder.HasSequence("EntityFrameworkHiLoSequence")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Build", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -72,7 +72,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core
                     b.ToTable("builds", "builds");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildHeroes.BuildHero", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildHeroes.BuildHero", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -102,7 +102,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core
                     b.ToTable("build_heroes", "builds");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildUnits.BuildUnit", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildUnits.BuildUnit", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -132,9 +132,9 @@ namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core
                     b.ToTable("build_units", "builds");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildHeroes.BuildHero", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildHeroes.BuildHero", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Build", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build", null)
                         .WithMany("Heroes")
                         .HasForeignKey("BuildId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -142,9 +142,9 @@ namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core
                         .HasConstraintName("fk_build_heroes_builds_build_id");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildUnits.BuildUnit", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildUnits.BuildUnit", b =>
                 {
-                    b.HasOne("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Build", null)
+                    b.HasOne("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build", null)
                         .WithMany("Units")
                         .HasForeignKey("BuildId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -152,7 +152,7 @@ namespace PANiXiDA.TacticalHeroes.Modules.Builds.Infrastructure.Persistence.Core
                         .HasConstraintName("fk_build_units_builds_build_id");
                 });
 
-            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Build", b =>
+            modelBuilder.Entity("PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Build", b =>
                 {
                     b.Navigation("Heroes");
 

@@ -10,10 +10,10 @@ using Microsoft.Extensions.Options;
 
 using OpenIddict.Server.AspNetCore;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Options.OAuthToken;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Options.OAuthToken;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.ExchangeToken;
 
 internal sealed class ExchangeTokenEndpoint : IEndpoint<OAuthEndpoints>
 {

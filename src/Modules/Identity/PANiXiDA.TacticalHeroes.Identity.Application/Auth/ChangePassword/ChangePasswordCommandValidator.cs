@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ChangePassword;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
 
 public sealed class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand>
 {

@@ -2,7 +2,7 @@ using Asp.Versioning;
 
 using Microsoft.AspNetCore.Routing;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.Presentation.Features.Battles;
+namespace PANiXiDA.TacticalHeroes.Battle.Presentation.Features.Battles;
 
 internal sealed class BattlesEndpoints : IEndpointGroup
 {

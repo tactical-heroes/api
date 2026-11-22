@@ -1,15 +1,15 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
 
 public sealed class FolderAccessPolicy(ICurrentUser currentUser, FileAccessPolicy fileAccessPolicy)
 {

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation.Features.Factions.Delete;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation.Features.Factions.Delete;
 
 public sealed class DeleteFactionEndpointTests(FunctionalTestFixture fixture)
     : FunctionalTestBase(fixture)

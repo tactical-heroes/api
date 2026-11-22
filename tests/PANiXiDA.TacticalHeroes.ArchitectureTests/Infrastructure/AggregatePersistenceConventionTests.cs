@@ -80,7 +80,7 @@ public sealed class AggregatePersistenceConventionTests
                                 EnglishNamingConvention.Pluralize(
                                     aggregateType.Name);
                             var writeNamespace =
-                                module.InfrastructureNamespace
+                                module.InfrastructureAssemblyName
                                     + ".Persistence.Features."
                                     + featureName
                                     + ".Write";

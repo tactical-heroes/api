@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Services;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Services;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 
 public sealed partial class DamageRange : ValueObject
 {

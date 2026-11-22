@@ -1,18 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.Core.Application.Querying.Limiting;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetList;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetSelectOptions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetList;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Factions.Read;
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Factions.Read;
 
 public sealed class FactionsReadRepository(CompendiumReadDbContext dbContext)
     :

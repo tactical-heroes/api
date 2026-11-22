@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units.ValueObjects;
 
 public sealed partial class UnitStackState : ValueObject
 {

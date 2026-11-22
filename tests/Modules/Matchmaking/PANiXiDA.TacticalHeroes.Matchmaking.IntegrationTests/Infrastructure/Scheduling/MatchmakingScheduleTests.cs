@@ -3,11 +3,11 @@ using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.Configurations;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Scheduling;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Scheduling;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.IntegrationTests.Infrastructure.Scheduling;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Scheduling;
 
 public sealed class MatchmakingScheduleTests
 {

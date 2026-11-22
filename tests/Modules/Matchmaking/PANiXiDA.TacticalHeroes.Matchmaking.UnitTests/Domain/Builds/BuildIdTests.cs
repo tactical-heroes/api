@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Builds;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Domain.Builds;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.Builds;
 
 public sealed class BuildIdTests
 {

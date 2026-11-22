@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
 
 public interface IPlayersRepository : IRepository<PlayerId, Player>
 {

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Entities.BuildHeroes;
-using PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Entities.BuildHeroes;
+using PANiXiDA.TacticalHeroes.Builds.Domain.Heroes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.UnitTests.Domain.Builds.Entities.BuildHeroes;
+namespace PANiXiDA.TacticalHeroes.Builds.UnitTests.Domain.Builds.Entities.BuildHeroes;
 
 public sealed class BuildHeroTests
 {

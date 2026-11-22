@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Common;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Common;
 
 internal static class EnvironmentConstants
 {

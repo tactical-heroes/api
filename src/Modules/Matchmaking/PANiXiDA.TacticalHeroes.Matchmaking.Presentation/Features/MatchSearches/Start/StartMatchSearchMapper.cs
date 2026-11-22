@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Start;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Start;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Presentation.Features.MatchSearches.Start;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Presentation.Features.MatchSearches.Start;
 
 [Mapper]
 internal static partial class StartMatchSearchMapper

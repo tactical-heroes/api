@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Games.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests;
 
 [CollectionDefinition(Name)]
 public sealed class IntegrationTestCollectionDefinition : ICollectionFixture<IntegrationTestFixture>

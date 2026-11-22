@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Builds.Contracts.Builds;
+using PANiXiDA.TacticalHeroes.Builds.Contracts.Builds;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.Presentation.Internal;
+namespace PANiXiDA.TacticalHeroes.Builds.Presentation.Internal;
 
 internal sealed class BuildsApi(IMediator mediator) : IBuildsApi
 {

@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Email.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
+using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Domain.MatchSearches.Specifications;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Domain.MatchSearches.Specifications;
 
 public sealed class SearchingMatchSearchSpecificationTests
 {

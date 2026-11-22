@@ -1,9 +1,9 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ChangePassword;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Auth.ChangePassword;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Auth.ChangePassword;
 
 public sealed class ChangePasswordHandlerTests
 {

@@ -2,19 +2,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Login;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Mappers;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write.Mappers;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Services;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Services;
 
 public sealed class UserCredentialsService(
     UserManager<ApplicationUser> userManager,

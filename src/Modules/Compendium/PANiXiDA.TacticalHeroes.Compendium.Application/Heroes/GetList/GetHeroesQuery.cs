@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetList;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
 
 public sealed record GetHeroesQuery(
     PaginationParameters PaginationParameters,

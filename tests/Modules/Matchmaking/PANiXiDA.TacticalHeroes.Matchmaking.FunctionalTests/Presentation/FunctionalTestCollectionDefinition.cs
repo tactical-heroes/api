@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation;
 
 [CollectionDefinition(Name)]
 public sealed class FunctionalTestCollectionDefinition

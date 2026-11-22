@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Services;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Services;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.UnitTests.Domain.Battles.Services;
+namespace PANiXiDA.TacticalHeroes.Battle.UnitTests.Domain.Battles.Services;
 
 public sealed class DamageRandomizerTests
 {

@@ -1,15 +1,15 @@
 using PANiXiDA.Core.SpecificationPattern.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
+using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Application.MatchSearches.Expire;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Expire;
 
 public sealed class ExpireMatchSearchesHandlerTests
 {

@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Builds.FunctionalTests.Presentation;
 
 [CollectionDefinition(Name)]
 public sealed class FunctionalTestCollectionDefinition

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 
 public sealed class UpdateUnitCommandValidator : AbstractValidator<UpdateUnitCommand>
 {

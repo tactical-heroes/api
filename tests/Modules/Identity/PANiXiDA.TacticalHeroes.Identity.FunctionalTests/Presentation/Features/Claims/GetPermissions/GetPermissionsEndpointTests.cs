@@ -1,13 +1,13 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Claims.GetPermissions;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Claims.GetPermissions;
 
 using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 using PermissionCatalog = PANiXiDA.TacticalHeroes.Common.Authentication.Permissions.Permissions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Claims.GetPermissions;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Claims.GetPermissions;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetPermissionsEndpointTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)

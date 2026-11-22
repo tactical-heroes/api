@@ -3,12 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.ResultPattern;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.ConfirmMatch;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Process;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class MatchmakingMediatorTests(FunctionalTestFixture fixture)

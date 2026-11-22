@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 
 #nullable disable
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core.Migrations
+namespace PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core.Migrations
 {
     [DbContext(typeof(BattleWriteDbContext))]
     [Migration("20261024182549_2026-10-24_18-25-49_EnsureSchema_CreateSequence")]

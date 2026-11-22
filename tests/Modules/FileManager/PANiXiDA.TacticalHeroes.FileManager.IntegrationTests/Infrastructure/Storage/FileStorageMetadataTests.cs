@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Storage;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.IntegrationTests.Infrastructure.Storage;
+namespace PANiXiDA.TacticalHeroes.FileManager.IntegrationTests.Infrastructure.Storage;
 
 public sealed class FileStorageMetadataTests(IntegrationTestFixture fixture) : IntegrationTestBase(fixture)
 {

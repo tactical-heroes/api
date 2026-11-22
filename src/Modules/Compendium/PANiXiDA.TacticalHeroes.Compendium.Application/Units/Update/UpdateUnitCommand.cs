@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
 
 public sealed record UpdateUnitCommand(
     Guid Id,

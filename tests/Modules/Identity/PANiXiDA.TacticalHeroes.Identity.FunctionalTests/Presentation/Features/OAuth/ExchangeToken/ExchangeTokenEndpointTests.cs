@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.ExchangeToken;
 
 [Collection(SessionsFunctionalTestCollectionDefinition.Name)]
 public sealed class ExchangeTokenEndpointTests(FunctionalTestFixture fixture)

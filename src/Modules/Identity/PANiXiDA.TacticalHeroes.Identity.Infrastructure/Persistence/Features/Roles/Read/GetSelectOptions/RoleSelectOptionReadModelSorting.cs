@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Read.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Read.GetSelectOptions;
 
 internal sealed partial class RoleSelectOptionReadModelSorting : IReadModelSorting<RoleSelectOptionReadModel>
 {

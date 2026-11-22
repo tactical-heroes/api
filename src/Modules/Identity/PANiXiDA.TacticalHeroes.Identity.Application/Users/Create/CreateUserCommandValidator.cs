@@ -1,10 +1,10 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
 
 public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {

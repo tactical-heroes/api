@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetDetails;
 
 public sealed record GetUserDetailsResponse(
     Guid Id,

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.ExchangeToken;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.OAuth.ExchangeToken;
 
 public sealed class ExchangeTokenQueryValidator : AbstractValidator<ExchangeTokenQuery>
 {

@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Domain.Factions;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Factions;
 
 public sealed class FactionTests
 {

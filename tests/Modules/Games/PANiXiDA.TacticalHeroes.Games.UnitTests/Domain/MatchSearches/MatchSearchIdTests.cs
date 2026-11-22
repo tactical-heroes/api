@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Games.Domain.MatchSearches;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.UnitTests.Domain.MatchSearches;
+namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Domain.MatchSearches;
 
 public sealed class MatchSearchIdTests
 {

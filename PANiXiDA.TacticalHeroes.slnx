@@ -18,9 +18,6 @@
     <Project Path="src/PANiXiDA.TacticalHeroes.Common/PANiXiDA.TacticalHeroes.Common.csproj" />
     <Project Path="src/PANiXiDA.TacticalHeroes.Host/PANiXiDA.TacticalHeroes.Host.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/">
-    <File Path="src/Modules/Directory.Build.props" />
-  </Folder>
   <Folder Name="/src/Modules/Battle/">
     <Project Path="src/Modules/Battle/PANiXiDA.TacticalHeroes.Battle.Application/PANiXiDA.TacticalHeroes.Battle.Application.csproj" />
     <Project Path="src/Modules/Battle/PANiXiDA.TacticalHeroes.Battle.Contracts/PANiXiDA.TacticalHeroes.Battle.Contracts.csproj" />
@@ -128,9 +125,6 @@
     <Project Path="tests/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests/PANiXiDA.TacticalHeroes.Notifications.FunctionalTests.csproj" />
     <Project Path="tests/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests/PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.csproj" />
     <Project Path="tests/Modules/Notifications/PANiXiDA.TacticalHeroes.Notifications.UnitTests/PANiXiDA.TacticalHeroes.Notifications.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/tests/Modules/">
-    <File Path="tests/Modules/Directory.Build.props" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PANiXiDA.TacticalHeroes.Common.UnitTests/PANiXiDA.TacticalHeroes.Common.UnitTests.csproj" />

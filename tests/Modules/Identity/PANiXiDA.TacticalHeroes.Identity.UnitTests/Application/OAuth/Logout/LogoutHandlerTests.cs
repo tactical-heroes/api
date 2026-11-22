@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Logout;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Logout;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.OAuth.Logout;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.Logout;
 
 public sealed class LogoutHandlerTests
 {

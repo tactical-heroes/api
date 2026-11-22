@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Create;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Create;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
 [Mapper]
 [UseStaticMapper(typeof(Claim))]

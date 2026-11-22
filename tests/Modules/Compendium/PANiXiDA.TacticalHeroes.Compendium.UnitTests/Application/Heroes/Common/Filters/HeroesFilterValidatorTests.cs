@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Common.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Common.Filters;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Heroes.Common.Filters;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Heroes.Common.Filters;
 
 public sealed class HeroesFilterValidatorTests
 {

@@ -2,11 +2,11 @@ using System.Collections.Immutable;
 
 using PANiXiDA.Core.Domain.DomainEvents;
 
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Entities.Units;
-using PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Entities.Units;
+using PANiXiDA.TacticalHeroes.Battle.Domain.Battles.ValueObjects;
 
-using BattleAggregate = PANiXiDA.TacticalHeroes.Modules.Battle.Domain.Battles.Battle;
+using BattleAggregate = PANiXiDA.TacticalHeroes.Battle.Domain.Battles.Battle;
 
 namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Domain;
 

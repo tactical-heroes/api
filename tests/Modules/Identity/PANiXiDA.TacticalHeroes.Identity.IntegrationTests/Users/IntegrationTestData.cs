@@ -1,11 +1,11 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Users;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Users;
 
 internal static class IntegrationTestData
 {

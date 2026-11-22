@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Tracking;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Tracking;
 
 internal sealed class IdentityAggregateTracker(AggregateTracker efTracker) : IAggregateTracker
 {

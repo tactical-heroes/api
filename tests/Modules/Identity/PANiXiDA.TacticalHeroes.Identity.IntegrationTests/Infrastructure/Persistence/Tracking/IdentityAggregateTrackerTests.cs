@@ -2,14 +2,14 @@ using Microsoft.EntityFrameworkCore;
 
 using PANiXiDA.Core.Domain.AggregateRoots;
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Tracking;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Tracking;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence.Tracking;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence.Tracking;
 
 public sealed class IdentityAggregateTrackerTests
 {

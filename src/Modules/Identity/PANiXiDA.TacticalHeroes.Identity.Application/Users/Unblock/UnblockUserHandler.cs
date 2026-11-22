@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 using PANiXiDA.TacticalHeroes.Common.Authentication.Permissions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Unblock;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Users.Unblock;
 
 public sealed class UnblockUserHandler(IUsersRepository usersRepository)
     : ICommandHandler<UnblockUserCommand, Result>, IRequireAuthorization, IRequireTransaction

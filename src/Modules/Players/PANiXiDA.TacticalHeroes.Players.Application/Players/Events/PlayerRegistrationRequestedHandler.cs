@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Players.Events;
-using PANiXiDA.TacticalHeroes.Modules.Players.Domain.Users;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.Abstractions;
+using PANiXiDA.TacticalHeroes.Players.Domain.Players.Events;
+using PANiXiDA.TacticalHeroes.Players.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Players.Application.Players.Events;
+namespace PANiXiDA.TacticalHeroes.Players.Application.Players.Events;
 
 public sealed class PlayerRegistrationRequestedHandler(IPlayersRepository playersRepository)
     : IEventHandler<PlayerRegistrationRequested>

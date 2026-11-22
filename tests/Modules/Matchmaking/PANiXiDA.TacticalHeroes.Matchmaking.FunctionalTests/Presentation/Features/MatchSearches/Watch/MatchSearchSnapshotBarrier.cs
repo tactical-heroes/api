@@ -2,7 +2,7 @@ using System.Data.Common;
 
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Features.MatchSearches.Watch;
 
 internal sealed class MatchSearchSnapshotBarrier : DbCommandInterceptor
 {

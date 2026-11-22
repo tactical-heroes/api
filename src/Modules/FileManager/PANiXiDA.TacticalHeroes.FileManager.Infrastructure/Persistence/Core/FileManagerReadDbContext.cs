@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Infrastructure.Persistence.Core;
+namespace PANiXiDA.TacticalHeroes.FileManager.Infrastructure.Persistence.Core;
 
 public sealed class FileManagerReadDbContext(
     DbContextOptions<FileManagerReadDbContext> options)

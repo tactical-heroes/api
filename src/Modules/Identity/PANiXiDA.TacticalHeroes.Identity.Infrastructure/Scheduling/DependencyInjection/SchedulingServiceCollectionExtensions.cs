@@ -2,12 +2,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Scheduling.Cleanup;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Cleanup;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.Options.IdentityCleanup;
 
 using Quartz;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Scheduling.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Scheduling.DependencyInjection;
 
 internal static class SchedulingServiceCollectionExtensions
 {

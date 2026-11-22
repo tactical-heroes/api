@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDownloadUrl;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDownloadUrl;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Files.GetDownloadUrl;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Files.GetDownloadUrl;
 
 public sealed class GetFileDownloadUrlQueryValidatorTests
 {

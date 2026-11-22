@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.CreatePersonal;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.CreatePersonal;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.UnitTests.Application.Folders.CreatePersonal;
+namespace PANiXiDA.TacticalHeroes.FileManager.UnitTests.Application.Folders.CreatePersonal;
 
 public sealed class CreatePersonalFolderCommandValidatorTests
 {

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
+namespace PANiXiDA.TacticalHeroes.Games.IntegrationTests.Infrastructure.Persistence.Core.Migrations;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
 public sealed class GamesWriteDbContextMigrationTests(IntegrationTestFixture fixture)

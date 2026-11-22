@@ -9,7 +9,7 @@ using OpenIddict.Abstractions;
 
 using CoreClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.FileManager.FunctionalTests.Presentation;
 
 internal sealed class TestAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,

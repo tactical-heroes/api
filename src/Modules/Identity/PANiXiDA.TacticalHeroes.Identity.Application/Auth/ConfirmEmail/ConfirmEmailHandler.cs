@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ConfirmEmail;
+namespace PANiXiDA.TacticalHeroes.Identity.Application.Auth.ConfirmEmail;
 
 public sealed class ConfirmEmailHandler(IUserCredentialsService userCredentialsService)
     : ICommandHandler<ConfirmEmailCommand, Result>, IRequireTransaction

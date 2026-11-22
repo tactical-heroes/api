@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDownloadUrl;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
 internal sealed class GetFileDownloadUrlEndpoint : IEndpoint<FilesEndpoints>
 {

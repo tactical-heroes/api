@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Units.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.GetDetails;
 
 public sealed class GetUnitDetailsQueryValidatorTests
 {

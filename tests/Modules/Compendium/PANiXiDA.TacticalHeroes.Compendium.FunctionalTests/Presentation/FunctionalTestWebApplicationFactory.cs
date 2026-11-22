@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Compendium.FunctionalTests.Presentation;
 
 internal sealed class FunctionalTestWebApplicationFactory
     : WebApplicationFactory<Program>

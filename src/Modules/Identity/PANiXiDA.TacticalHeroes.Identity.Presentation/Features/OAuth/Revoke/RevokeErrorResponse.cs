@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Revoke;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Revoke;
 
 public sealed record RevokeErrorResponse(
     [property: JsonPropertyName("error")] string Error,

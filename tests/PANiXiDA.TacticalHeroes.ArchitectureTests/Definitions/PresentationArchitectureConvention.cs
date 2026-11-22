@@ -35,20 +35,20 @@ internal static class PresentationArchitectureConvention
         return
         [
             .. ArchitectureDefinition.s_modules
-                .SelectMany(module =>
+                .Select(module =>
                     ArchitectureDefinition.s_productionAssemblies.Single(
                         assembly => string.Equals(
                             assembly.GetName().Name,
                             module.PresentationAssemblyName,
-                            StringComparison.Ordinal))
-                        .GetTypes()
-                        .Where(type =>
-                            type is { IsClass: true }
-                                && type.Namespace is not null
-                                && type.Namespace.StartsWith(
-                                    module.PresentationNamespace + ".",
-                                    StringComparison.Ordinal)
-                                && predicate(type)))
+                            StringComparison.Ordinal)))
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type =>
+                    type is { IsClass: true }
+                        && type.Namespace is not null
+                        && type.Namespace.StartsWith(
+                            type.Assembly.GetName().Name + ".",
+                            StringComparison.Ordinal)
+                        && predicate(type))
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)
         ];
     }
@@ -129,10 +129,13 @@ internal static class PresentationArchitectureConvention
 
     internal static string GetRelativeNamespace(Type type)
     {
+        var assemblyName = type.Assembly.GetName().Name
+            ?? throw new InvalidOperationException(
+                $"Could not determine assembly for '{type.FullName}'.");
         var typeNamespace = type.Namespace
             ?? throw new InvalidOperationException(
                 $"Type '{type.FullName}' does not have a namespace.");
-        var namespacePrefix = GetModule(type).PresentationNamespace + ".";
+        var namespacePrefix = assemblyName + ".";
 
         if (!typeNamespace.StartsWith(
             namespacePrefix,
@@ -152,7 +155,7 @@ internal static class PresentationArchitectureConvention
     {
         var module = GetModule(type);
         var expectedNamespace =
-            module.PresentationNamespace
+            module.PresentationAssemblyName
                 + "."
                 + string.Join(".", relativeNamespaceSegments);
         var expectedDirectory = Path.Combine(

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Common.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Factions.Common.Filters;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.Common.Filters;
 
 public sealed class FactionsFilterValidatorTests
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Unblock;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Unblock;
 
 internal sealed class UnblockUserEndpoint : IEndpoint<UsersEndpoints>
 {

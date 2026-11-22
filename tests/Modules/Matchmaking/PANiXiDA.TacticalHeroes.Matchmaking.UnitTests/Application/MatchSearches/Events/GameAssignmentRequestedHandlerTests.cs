@@ -1,12 +1,12 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Events;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.Games;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Events;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.Games;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Events;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
+using static PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Matchmaking.MatchmakingTestData;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Application.MatchSearches.Events;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Events;
 
 public sealed class GameAssignmentRequestedHandlerTests
 {

@@ -1,12 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Process;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Process;
 
 using Wolverine.Runtime;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
 
 [Collection(BackgroundMatchmakingTestCollectionDefinition.Name)]
 public sealed class MatchmakingScheduleTests(BackgroundMatchmakingTestFixture fixture)

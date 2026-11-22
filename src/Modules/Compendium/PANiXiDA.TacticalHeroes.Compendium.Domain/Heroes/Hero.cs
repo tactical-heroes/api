@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
+namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
 
 public sealed class Hero : AggregateRoot<HeroId>
 {

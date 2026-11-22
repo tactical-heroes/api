@@ -5,14 +5,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Application.Abstractions.Email;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Email.Options.Smtp;
+using PANiXiDA.TacticalHeroes.Notifications.Application.Abstractions.Email;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Email.Options.Smtp;
 
 using Wolverine;
 using Wolverine.Tracking;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.IntegrationTests.Infrastructure.Email;
+namespace PANiXiDA.TacticalHeroes.Notifications.IntegrationTests.Infrastructure.Email;
 
 public sealed class MailpitIntegrationTestFixture : IAsyncLifetime
 {

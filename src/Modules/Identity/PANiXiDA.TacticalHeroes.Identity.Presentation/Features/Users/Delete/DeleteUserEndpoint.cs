@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Delete;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Delete;
 
 internal sealed class DeleteUserEndpoint : IEndpoint<UsersEndpoints>
 {

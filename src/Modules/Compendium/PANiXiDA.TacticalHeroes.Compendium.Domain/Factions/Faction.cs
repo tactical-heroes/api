@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
+namespace PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
 
 public sealed class Faction : AggregateRoot<FactionId>
 {

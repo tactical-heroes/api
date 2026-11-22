@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Mappers;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Mappers;
 
 internal static class IdentityResultMapper
 {

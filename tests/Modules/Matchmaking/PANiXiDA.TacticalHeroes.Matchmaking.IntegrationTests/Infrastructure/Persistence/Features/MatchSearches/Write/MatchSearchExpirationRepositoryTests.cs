@@ -3,15 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Application.Persistence.Errors;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Specifications;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Specifications;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.IntegrationTests.Matchmaking.MatchmakingTestData;
+using static PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Matchmaking.MatchmakingTestData;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.IntegrationTests.Infrastructure.Persistence.Features
+namespace PANiXiDA.TacticalHeroes.Matchmaking.IntegrationTests.Infrastructure.Persistence.Features
     .MatchSearches.Write;
 
 [Collection(IntegrationTestCollectionDefinition.Name)]
@@ -54,7 +53,7 @@ public sealed class MatchSearchExpirationRepositoryTests(IntegrationTestFixture 
 
         result.Select(search => search.Id).ShouldBe([overdue.Id, boundary.Id]);
         var context = scope.ServiceProvider.GetRequiredService<MatchmakingWriteDbContext>();
-        var entries = context.ChangeTracker.Entries<MatchSearch>().ToArray();
+        var entries = context.ChangeTracker.Entries<Domain.MatchSearches.MatchSearch>().ToArray();
         entries.Length.ShouldBe(2);
         entries.ShouldAllBe(entry => entry.State == EntityState.Unchanged);
     }

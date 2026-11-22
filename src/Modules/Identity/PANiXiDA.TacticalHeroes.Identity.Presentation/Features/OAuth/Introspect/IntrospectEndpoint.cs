@@ -3,7 +3,7 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Introspect;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Introspect;
 
 internal sealed class IntrospectEndpoint : IEndpoint<OAuthEndpoints>
 {

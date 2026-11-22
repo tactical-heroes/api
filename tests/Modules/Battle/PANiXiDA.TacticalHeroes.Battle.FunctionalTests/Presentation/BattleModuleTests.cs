@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using PANiXiDA.Core.Infrastructure.Messaging.Wolverine.OutboxDispatcher;
 
-using PANiXiDA.TacticalHeroes.Modules.Battle.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Battle.Infrastructure.Persistence.Core;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Battle.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Battle.FunctionalTests.Presentation;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class BattleModuleTests(FunctionalTestFixture fixture)

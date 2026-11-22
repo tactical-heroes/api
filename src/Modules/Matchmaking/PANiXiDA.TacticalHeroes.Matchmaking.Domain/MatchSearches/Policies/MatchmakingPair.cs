@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Policies;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Policies;
 
 public sealed record MatchmakingPair
 {

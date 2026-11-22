@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetDetails;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 internal sealed partial class HeroDetailsReadModelMapper

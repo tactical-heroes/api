@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Delete;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Heroes;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Delete;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Heroes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Heroes.Delete;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Heroes.Delete;
 
 public sealed class DeleteHeroHandlerTests
 {

@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.ChangePassword;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.ChangePassword;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.ChangePassword;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.ChangePassword;
 
 [Mapper]
 internal static partial class ChangePasswordMapper

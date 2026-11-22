@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetStatuses;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetStatuses;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetStatuses;
 
 [Mapper]
 internal static partial class GetUserStatusesMapper

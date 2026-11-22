@@ -1,8 +1,8 @@
 using System.Net.Http.Headers;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.GetUserInfo;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.GetUserInfo;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth.GetUserInfo;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.GetUserInfo;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class GetUserInfoEndpointTests(FunctionalTestFixture fixture)

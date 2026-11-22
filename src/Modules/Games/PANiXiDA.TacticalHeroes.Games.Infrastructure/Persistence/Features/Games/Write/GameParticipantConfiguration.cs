@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Builds;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Players;
+using PANiXiDA.TacticalHeroes.Games.Domain.Builds;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Entities.GameParticipants.ValueObjects;
+using PANiXiDA.TacticalHeroes.Games.Domain.Players;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.Infrastructure.Persistence.Features.Games.Write;
+namespace PANiXiDA.TacticalHeroes.Games.Infrastructure.Persistence.Features.Games.Write;
 
 internal sealed class GameParticipantConfiguration : IEntityTypeConfiguration<GameParticipant>
 {

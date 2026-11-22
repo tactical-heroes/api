@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Application.MatchSearches.Expire;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Expire;
 
 public sealed class ExpireMatchSearchesCommandValidatorTests
 {

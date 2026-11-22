@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Authorize;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Authorize;
 
 public sealed record AuthorizeRequest(
     [property: FromQuery(Name = "client_id")] string ClientId,

@@ -2,9 +2,9 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Read.DbModels;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Claims;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 
 internal static class IdentityClaimsFactory
 {

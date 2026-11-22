@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Common.Filters;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Common.Filters;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.UnitTests.Application.MatchSearches.Common.Filters;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.UnitTests.Application.MatchSearches.Common.Filters;
 
 public sealed class MatchSearchesFilterValidatorTests
 {

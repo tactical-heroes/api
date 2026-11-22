@@ -4,19 +4,19 @@ using PANiXiDA.Core.Application.Messaging.Mediator;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.ResultPattern;
 
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.ConfirmMatch;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Application.MatchSearches.Expire;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Domain.MatchSearches.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching;
-using PANiXiDA.TacticalHeroes.Modules.Matchmaking.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.ConfirmMatch;
+using PANiXiDA.TacticalHeroes.Matchmaking.Application.MatchSearches.Expire;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Abstractions;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.Enumerations;
+using PANiXiDA.TacticalHeroes.Matchmaking.Domain.MatchSearches.ValueObjects;
+using PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching;
+using PANiXiDA.TacticalHeroes.Matchmaking.Infrastructure.Persistence.Core;
 
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration
     .MatchSearchExpirationTestSupport;
-using static PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
+using static PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Matching.MatchmakingTestSupport;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Matchmaking.FunctionalTests.Presentation.Expiration;
+namespace PANiXiDA.TacticalHeroes.Matchmaking.FunctionalTests.Presentation.Expiration;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class MatchSearchExpirationMediatorTests(FunctionalTestFixture fixture)

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Heroes.ValueObjects;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Heroes.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Domain.Heroes.ValueObjects;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Domain.Heroes.ValueObjects;
 
 public sealed class HeroMoraleTests
 {

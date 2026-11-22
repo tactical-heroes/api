@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Create;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Create;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Create;
+namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Create;
 
 [Mapper]
 internal static partial class CreateFactionMapper

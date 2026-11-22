@@ -1,8 +1,8 @@
 using DomainEvent =
-    PANiXiDA.TacticalHeroes.Modules.Notifications.Domain.Notifications.Events.PasswordResetNotificationRequested;
-using IntegrationEvent = PANiXiDA.TacticalHeroes.Modules.Identity.Contracts.Users.PasswordResetRequested;
+    PANiXiDA.TacticalHeroes.Notifications.Domain.Notifications.Events.PasswordResetNotificationRequested;
+using IntegrationEvent = PANiXiDA.TacticalHeroes.Identity.Contracts.Users.PasswordResetRequested;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Notifications.Infrastructure.Messaging.Handlers;
+namespace PANiXiDA.TacticalHeroes.Notifications.Infrastructure.Messaging.Handlers;
 
 public static class PasswordResetRequestedHandler
 {

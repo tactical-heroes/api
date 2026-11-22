@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Presentation.Features.Factions.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.Presentation.Features.Factions.Update;
 
 public sealed record UpdateFactionRequest(
     string Name,

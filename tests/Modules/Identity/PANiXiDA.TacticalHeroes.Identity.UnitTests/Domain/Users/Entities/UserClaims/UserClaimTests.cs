@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Entities.UserClaims.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Domain.Users.Entities.UserClaims;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Entities.UserClaims;
 
 public sealed class UserClaimTests
 {

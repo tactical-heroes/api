@@ -5,18 +5,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PANiXiDA.Core.Infrastructure.Persistence.Ef.Tracking;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Auth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.OAuth;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Roles.Write;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Users.Write;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Tracking;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Auth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.OAuth;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Roles.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Users.Write;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Tracking;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.DependencyInjection;
 
 internal static class ServiceCollectionExtensions
 {

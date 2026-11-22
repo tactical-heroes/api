@@ -3,7 +3,7 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth;
 
 internal sealed class OAuthEndpoints : IEndpointGroup
 {

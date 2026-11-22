@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Delete;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Delete;
 
 public sealed class DeleteFileCommandValidator : AbstractValidator<DeleteFileCommand>
 {

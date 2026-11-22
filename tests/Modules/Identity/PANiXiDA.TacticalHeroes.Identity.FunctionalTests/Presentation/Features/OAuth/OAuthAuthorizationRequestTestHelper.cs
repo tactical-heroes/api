@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.Users;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Auth.Login;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.Create;
+using PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.Users;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Auth.Login;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.Create;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 
 internal static class OAuthAuthorizationRequestTestHelper
 {

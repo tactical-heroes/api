@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Games.Domain.Games.Enumerations;
+using PANiXiDA.TacticalHeroes.Games.Domain.Games.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Games.UnitTests.Domain.Games.Enumerations;
+namespace PANiXiDA.TacticalHeroes.Games.UnitTests.Domain.Games.Enumerations;
 
 public sealed class GameModeTests
 {

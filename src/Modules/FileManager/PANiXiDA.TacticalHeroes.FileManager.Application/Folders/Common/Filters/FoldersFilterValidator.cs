@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.ValueObjects;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Users;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Users;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Common.Filters;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 
 public sealed class FoldersFilterValidator : AbstractValidator<FoldersFilter>
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Folders.Delete;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Folders.Delete;
 
 internal sealed class DeleteFolderEndpoint : IEndpoint<FoldersEndpoints>
 {

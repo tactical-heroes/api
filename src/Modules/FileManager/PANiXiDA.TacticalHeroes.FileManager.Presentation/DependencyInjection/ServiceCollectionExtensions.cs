@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.DependencyInjection;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

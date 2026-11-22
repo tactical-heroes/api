@@ -3,9 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Files.ValueObjects;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.Policies;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 
 internal static class FileContentUpdatePolicy
 {

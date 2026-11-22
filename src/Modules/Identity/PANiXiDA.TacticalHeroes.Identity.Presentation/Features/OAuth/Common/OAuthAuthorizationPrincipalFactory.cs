@@ -4,7 +4,7 @@ using OpenIddict.Server.AspNetCore;
 
 using ApplicationClaimTypes = PANiXiDA.Core.Application.Authentication.ClaimTypes;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.OAuth.Common;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.OAuth.Common;
 
 internal static class OAuthAuthorizationPrincipalFactory
 {

@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Common.Filters;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Common.Filters;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.GetList;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.GetList;
 
 public sealed record GetFoldersQuery(
     FoldersFilter Filter,

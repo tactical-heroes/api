@@ -6,16 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 using OpenIddict.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.DependencyInjection;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Core.Migrations;
-using PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests.Infrastructure.Persistence;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.DependencyInjection;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.IdentityProvider;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Core.Migrations;
+using PANiXiDA.TacticalHeroes.Identity.IntegrationTests.Infrastructure.Persistence;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.IntegrationTests;
+namespace PANiXiDA.TacticalHeroes.Identity.IntegrationTests;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {

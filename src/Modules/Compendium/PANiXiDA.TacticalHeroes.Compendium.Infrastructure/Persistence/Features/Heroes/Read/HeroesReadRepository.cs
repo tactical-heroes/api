@@ -1,12 +1,12 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Heroes.GetList;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Core;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetDetails;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Heroes.GetList;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Core;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.DbModels;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.Infrastructure.Persistence.Features.Heroes.Read;
+namespace PANiXiDA.TacticalHeroes.Compendium.Infrastructure.Persistence.Features.Heroes.Read;
 
 public sealed class HeroesReadRepository(CompendiumReadDbContext dbContext)
     :

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Rename;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Rename;
 
 internal sealed class RenameFileEndpoint : IEndpoint<FilesEndpoints>
 {

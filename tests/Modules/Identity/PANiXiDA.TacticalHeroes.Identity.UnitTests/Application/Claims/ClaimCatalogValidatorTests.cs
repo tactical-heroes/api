@@ -1,8 +1,8 @@
 using System.Security.Claims;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Claims;
+using PANiXiDA.TacticalHeroes.Identity.Application.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Claims;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Claims;
 
 public sealed class ClaimCatalogValidatorTests
 {

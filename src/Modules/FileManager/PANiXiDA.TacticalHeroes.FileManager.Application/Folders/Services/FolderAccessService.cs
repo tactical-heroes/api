@@ -1,9 +1,9 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Policies;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Policies;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Folders.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Services;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
 
 public sealed class FolderAccessService(
     IFoldersRepository foldersRepository,

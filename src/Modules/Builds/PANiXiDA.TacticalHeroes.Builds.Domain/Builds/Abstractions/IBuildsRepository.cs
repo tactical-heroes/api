@@ -1,3 +1,3 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Builds.Domain.Builds.Abstractions;
+namespace PANiXiDA.TacticalHeroes.Builds.Domain.Builds.Abstractions;
 
 public interface IBuildsRepository : IRepository<BuildId, Build>;

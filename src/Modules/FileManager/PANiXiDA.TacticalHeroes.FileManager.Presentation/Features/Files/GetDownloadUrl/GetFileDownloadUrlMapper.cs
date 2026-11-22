@@ -1,10 +1,10 @@
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDownloadUrl;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDownloadUrl;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDownloadUrl;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDownloadUrl;
 
 [Mapper]
 internal static partial class GetFileDownloadUrlMapper

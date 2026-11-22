@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth;
 
 [Collection(RolesFunctionalTestCollectionDefinition.Name)]
 public sealed class OAuthRequestLoggingTests(FunctionalTestFixture fixture) : FunctionalTestBase(fixture)

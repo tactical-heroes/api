@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.Common.Filters;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Users.GetList;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetList;
 
 public sealed class GetUsersHandlerTests
 {

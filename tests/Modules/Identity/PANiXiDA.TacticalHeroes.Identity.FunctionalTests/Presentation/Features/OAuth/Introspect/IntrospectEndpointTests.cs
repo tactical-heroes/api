@@ -2,7 +2,7 @@ using System.Text.Json;
 
 using OpenIddict.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation.Features.OAuth.Introspect;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation.Features.OAuth.Introspect;
 
 [Collection(FunctionalTestCollectionDefinition.Name)]
 public sealed class IntrospectEndpointTests(FunctionalTestFixture fixture)

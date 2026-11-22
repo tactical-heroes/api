@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Options.Clients;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Options.Clients;
 
 public sealed class IdentityProviderClientOptions
 {

@@ -1,9 +1,9 @@
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.Services;
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Domain.Common.Enumerations;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Services;
+using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Folders.CreatePersonal;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Folders.CreatePersonal;
 
 public sealed class CreatePersonalFolderHandler(FolderCreationService folderCreationService, ICurrentUser currentUser)
     : ICommandHandler<CreatePersonalFolderCommand, Result<Guid>>, IRequireAuthorization, IRequireTransaction

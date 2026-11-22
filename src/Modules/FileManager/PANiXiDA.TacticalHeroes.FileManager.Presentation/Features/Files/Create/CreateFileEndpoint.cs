@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.Create;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.Create;
 
 internal sealed class CreateFileEndpoint : IEndpoint<FilesEndpoints>
 {

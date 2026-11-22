@@ -2,12 +2,12 @@ using System.Security.Claims;
 
 using PANiXiDA.Core.Application.Authentication.Abstractions;
 
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Roles.Update;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Roles.Update;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Roles.Update;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Roles.Update;
 
 public sealed class UpdateRoleHandlerTests
 {

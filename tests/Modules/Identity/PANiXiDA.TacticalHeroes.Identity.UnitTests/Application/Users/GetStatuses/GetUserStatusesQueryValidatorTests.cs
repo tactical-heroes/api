@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetStatuses;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetStatuses;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.Users.GetStatuses;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.Users.GetStatuses;
 
 public sealed class GetUserStatusesQueryValidatorTests
 {

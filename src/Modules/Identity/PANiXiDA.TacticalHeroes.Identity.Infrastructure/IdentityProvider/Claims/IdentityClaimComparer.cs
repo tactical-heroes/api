@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Claims;
+namespace PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Claims;
 
 internal sealed class IdentityClaimComparer : IEqualityComparer<Claim>
 {

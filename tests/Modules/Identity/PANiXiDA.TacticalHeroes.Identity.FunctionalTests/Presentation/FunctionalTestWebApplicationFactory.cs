@@ -12,16 +12,16 @@ using OpenIddict.Validation.SystemNetHttp;
 
 using PANiXiDA.Core.Application.Messaging.EventBus;
 using PANiXiDA.Core.ResultPattern;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Auth.Common;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.IdentityProvider.Seeding;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Infrastructure.Persistence.Features.Auth;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.Auth.Common;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.IdentityProvider.Seeding;
+using PANiXiDA.TacticalHeroes.Identity.Infrastructure.Persistence.Features.Auth;
 using PANiXiDA.TacticalHeroes.Testing.Databases;
 
 using Wolverine;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.FunctionalTests.Presentation;
+namespace PANiXiDA.TacticalHeroes.Identity.FunctionalTests.Presentation;
 
 internal sealed class FunctionalTestWebApplicationFactory(string connectionString, string environmentName = "Test")
     : WebApplicationFactory<Program>

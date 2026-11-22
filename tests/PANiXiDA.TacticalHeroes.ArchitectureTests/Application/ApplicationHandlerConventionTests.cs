@@ -297,7 +297,7 @@ public sealed class ApplicationHandlerConventionTests
     {
         var relativeNamespace = GetRelativeNamespace(
             applicationType,
-            module.ApplicationNamespace);
+            module.ApplicationAssemblyName);
         var moduleDirectoryName =
             module.Name[(module.Name.LastIndexOf('.') + 1)..];
         var unitTestsAssemblyName =
@@ -320,16 +320,16 @@ public sealed class ApplicationHandlerConventionTests
 
     private static string GetRelativeNamespace(
         Type type,
-        string applicationNamespace)
+        string applicationAssemblyName)
     {
         var typeNamespace = type.Namespace
             ?? throw new InvalidOperationException(
                 $"Application type '{type.FullName}' does not have a namespace.");
-        var applicationNamespacePrefix = applicationNamespace + ".";
+        var applicationNamespacePrefix = applicationAssemblyName + ".";
 
         if (string.Equals(
             typeNamespace,
-            applicationNamespace,
+            applicationAssemblyName,
             StringComparison.Ordinal))
         {
             return string.Empty;
@@ -344,7 +344,7 @@ public sealed class ApplicationHandlerConventionTests
 
         throw new InvalidOperationException(
             $"Application type namespace '{typeNamespace}' must be "
-                + $"'{applicationNamespace}' or start with "
+                + $"'{applicationAssemblyName}' or start with "
                 + $"'{applicationNamespacePrefix}'.");
     }
 

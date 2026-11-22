@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Roles.Entities.RoleClaims.ValueObjects;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Domain.Roles.Entities.RoleClaims;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Roles.Entities.RoleClaims;
 
 public sealed class RoleClaimTests
 {

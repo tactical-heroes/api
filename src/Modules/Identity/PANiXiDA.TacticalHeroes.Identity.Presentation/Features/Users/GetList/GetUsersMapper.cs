@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.Users.GetList;
+using PANiXiDA.TacticalHeroes.Identity.Application.Users.GetList;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Users.GetList;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Users.GetList;
 
 [Mapper(IncludedConstructors = MemberVisibility.All)]
 internal static partial class GetUsersMapper

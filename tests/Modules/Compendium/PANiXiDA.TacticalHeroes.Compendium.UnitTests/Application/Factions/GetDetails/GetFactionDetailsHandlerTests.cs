@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetDetails;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetDetails;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Factions.GetDetails;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetDetails;
 
 public sealed class GetFactionDetailsHandlerTests
 {

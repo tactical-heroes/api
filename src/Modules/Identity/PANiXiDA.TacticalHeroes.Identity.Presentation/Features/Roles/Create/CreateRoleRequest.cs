@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Common;
+using PANiXiDA.TacticalHeroes.Identity.Presentation.Common;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Roles.Create;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Roles.Create;
 
 public sealed record CreateRoleRequest(
     string Name,

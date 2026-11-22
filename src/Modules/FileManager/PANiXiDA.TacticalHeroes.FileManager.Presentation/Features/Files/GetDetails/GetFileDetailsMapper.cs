@@ -1,8 +1,8 @@
-using PANiXiDA.TacticalHeroes.Modules.FileManager.Application.Files.GetDetails;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.GetDetails;
 
 using Riok.Mapperly.Abstractions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.FileManager.Presentation.Features.Files.GetDetails;
+namespace PANiXiDA.TacticalHeroes.FileManager.Presentation.Features.Files.GetDetails;
 
 [Mapper]
 internal static partial class GetFileDetailsMapper

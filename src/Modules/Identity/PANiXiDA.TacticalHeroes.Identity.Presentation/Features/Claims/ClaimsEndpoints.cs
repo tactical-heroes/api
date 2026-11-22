@@ -2,7 +2,7 @@ using Asp.Versioning;
 
 using Microsoft.AspNetCore.Routing;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.Presentation.Features.Claims;
+namespace PANiXiDA.TacticalHeroes.Identity.Presentation.Features.Claims;
 
 internal sealed class ClaimsEndpoints : IEndpointGroup
 {

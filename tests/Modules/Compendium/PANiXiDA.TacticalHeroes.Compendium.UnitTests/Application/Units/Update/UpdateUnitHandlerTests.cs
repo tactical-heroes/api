@@ -1,11 +1,11 @@
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Units.Update;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Factions.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Domain.Units.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Units.Update;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Factions.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units;
+using PANiXiDA.TacticalHeroes.Compendium.Domain.Units.Abstractions;
+using PANiXiDA.TacticalHeroes.Compendium.UnitTests.Units;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Units.Update;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Units.Update;
 
 public sealed class UpdateUnitHandlerTests
 {

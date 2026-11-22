@@ -1,6 +1,6 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Domain.Users.Enumerations;
+using PANiXiDA.TacticalHeroes.Identity.Domain.Users.Enumerations;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Domain.Users.Enumerations;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Domain.Users.Enumerations;
 
 public sealed class UserStatusTests
 {

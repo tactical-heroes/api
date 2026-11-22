@@ -1,8 +1,8 @@
 using PANiXiDA.Core.Application.Querying.Limiting;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.Common.Filters;
-using PANiXiDA.TacticalHeroes.Modules.Compendium.Application.Factions.GetSelectOptions;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.Common.Filters;
+using PANiXiDA.TacticalHeroes.Compendium.Application.Factions.GetSelectOptions;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Compendium.UnitTests.Application.Factions.GetSelectOptions;
+namespace PANiXiDA.TacticalHeroes.Compendium.UnitTests.Application.Factions.GetSelectOptions;
 
 public sealed class GetFactionSelectOptionsQueryValidatorTests
 {

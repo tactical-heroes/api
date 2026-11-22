@@ -1,7 +1,7 @@
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Abstractions;
-using PANiXiDA.TacticalHeroes.Modules.Identity.Application.OAuth.Authorize;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Abstractions;
+using PANiXiDA.TacticalHeroes.Identity.Application.OAuth.Authorize;
 
-namespace PANiXiDA.TacticalHeroes.Modules.Identity.UnitTests.Application.OAuth.Authorize;
+namespace PANiXiDA.TacticalHeroes.Identity.UnitTests.Application.OAuth.Authorize;
 
 public sealed class AuthorizeHandlerTests
 {
