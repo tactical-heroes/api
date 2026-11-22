@@ -148,7 +148,7 @@ public sealed class FileVersionCleanupTests(IntegrationTestFixture fixture) : In
         byte value,
         CancellationToken cancellationToken)
     {
-        using var content = new MemoryStream([value]);
+        await using var content = new MemoryStream([value]);
         var uploaded = await storage.UploadAsync(
             key: key,
             content: content,

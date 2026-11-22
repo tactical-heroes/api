@@ -186,11 +186,7 @@ public sealed class CleanupFileVersionHandlerTests
     {
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         var storage = Substitute.For<IFileStorage>();
-        storage.GetVersionsAsync("avatar/file", cancellation.Token).Returns(_ =>
-        {
-            cancellation.Cancel();
-            throw new OperationCanceledException(cancellation.Token);
-        });
+        storage.GetVersionsAsync("avatar/file", cancellation.Token).Returns(ReadCanceledVersionsAsync(cancellation));
 
         var exception = await Record.ExceptionAsync(() =>
             new CleanupFileVersionHandler(Substitute.For<IFilesRepository>(), storage).HandleAsync(
@@ -224,7 +220,14 @@ public sealed class CleanupFileVersionHandlerTests
             .Select(call => call.GetArguments()[1] as string);
     }
 
-    private static async IAsyncEnumerable<FileVersion> ReadIncompleteVersionsAsync(Exception failure)
+    private static async IAsyncEnumerable<FileVersion> ReadCanceledVersionsAsync(CancellationTokenSource cancellation)
+    {
+        await cancellation.CancelAsync();
+        cancellation.Token.ThrowIfCancellationRequested();
+        yield break;
+    }
+
+    private static async IAsyncEnumerable<FileVersion> ReadIncompleteVersionsAsync(IOException failure)
     {
         yield return new FileVersion("retired", DateTimeOffset.UnixEpoch);
         await Task.Yield();
