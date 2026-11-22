@@ -11,7 +11,7 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
 using PANiXiDA.Core.Application.Storage.Models;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.ReconcileUploads;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;

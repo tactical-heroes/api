@@ -3,7 +3,7 @@ using PANiXiDA.Core.Application.Storage;
 using PANiXiDA.Core.Application.Storage.Constants;
 
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.CleanupVersion;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Abstractions;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.Enumerations;

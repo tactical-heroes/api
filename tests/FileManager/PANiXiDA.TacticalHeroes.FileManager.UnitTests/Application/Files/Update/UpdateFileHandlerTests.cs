@@ -3,7 +3,7 @@ using PANiXiDA.Core.Application.Messaging.Scheduling;
 using PANiXiDA.Core.Application.Persistence;
 using PANiXiDA.Core.Application.Storage;
 
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Update;

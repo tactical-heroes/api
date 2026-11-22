@@ -1,4 +1,4 @@
-namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
+namespace PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 
 public sealed class FileRelocationOptions
 {

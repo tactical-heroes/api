@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Infrastructure.Storage.S3.DependencyInjection;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Policies;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Services;
 using PANiXiDA.TacticalHeroes.FileManager.Application.Folders.Abstractions;

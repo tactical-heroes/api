@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using PANiXiDA.Core.Application.Storage;
-using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options;
+using PANiXiDA.TacticalHeroes.FileManager.Application.Files.Options.FileRelocation;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Common.Enumerations;
 using PANiXiDA.TacticalHeroes.FileManager.Domain.Files.ValueObjects;
 using PANiXiDA.TacticalHeroes.FileManager.Infrastructure.DependencyInjection;

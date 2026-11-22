@@ -9,6 +9,8 @@ namespace PANiXiDA.TacticalHeroes.ArchitectureTests.Global;
 
 public sealed class OptionsConfigurationConventionTests
 {
+    private const string ApplicationAssemblySuffix = ".Application";
+    private const string InfrastructureAssemblySuffix = ".Infrastructure";
     private const string OptionsSuffix = "Options";
     private const string OptionsDirectoryName = "Options";
     private const string SectionNameFieldName = "SectionName";
@@ -24,8 +26,8 @@ public sealed class OptionsConfigurationConventionTests
         "AddTransient"
     ];
 
-    [Fact(DisplayName = "Configuration options should have registered validators in same directory when declared")]
-    public void ConfigurationOptions_Should_HaveRegisteredValidatorsInSameDirectory_When_Declared()
+    [Fact(DisplayName = "Configuration options should have registered validators in expected layer when declared")]
+    public void ConfigurationOptions_Should_HaveRegisteredValidatorsInExpectedLayer_When_Declared()
     {
         var repositoryRoot = FindRepositoryRoot();
         var sourceFiles = GetProductionSourceFiles(repositoryRoot);
@@ -45,7 +47,7 @@ public sealed class OptionsConfigurationConventionTests
         Assert.True(
             violations.Length == 0,
             $"Configuration options must have a registered "
-                + $"IValidateOptions<TOptions> validator in the same directory:"
+                + $"IValidateOptions<TOptions> validator in the expected layer and directory:"
                 + $"{Environment.NewLine}"
                 + string.Join(Environment.NewLine, violations));
     }
@@ -128,12 +130,27 @@ public sealed class OptionsConfigurationConventionTests
         IReadOnlyCollection<ValidatorRegistration> validatorRegistrations,
         Type optionsType)
     {
+        var assemblyName = optionsType.Assembly.GetName().Name ?? string.Empty;
+        var isApplicationOptions = assemblyName.EndsWith(
+            ApplicationAssemblySuffix,
+            StringComparison.Ordinal);
+        var validatorAssemblyName = isApplicationOptions
+            ? assemblyName[..^ApplicationAssemblySuffix.Length] + InfrastructureAssemblySuffix
+            : assemblyName;
         var validatorTypeName = optionsType.Name + ValidatorSuffix;
-        var validatorFullName = $"{optionsType.Namespace}.{validatorTypeName}";
-        var validatorType = optionsType.Assembly.GetType(
-            name: validatorFullName,
-            throwOnError: false,
-            ignoreCase: false);
+        var validatorNamespace = isApplicationOptions
+            ? $"{validatorAssemblyName}.Options.{optionsType.Name[..^OptionsSuffix.Length]}"
+            : optionsType.Namespace;
+        var validatorFullName = $"{validatorNamespace}.{validatorTypeName}";
+        var validatorType = ArchitectureDefinition.s_productionAssemblies
+            .SingleOrDefault(assembly => string.Equals(
+                assembly.GetName().Name,
+                validatorAssemblyName,
+                StringComparison.Ordinal))
+            ?.GetType(
+                name: validatorFullName,
+                throwOnError: false,
+                ignoreCase: false);
 
         if (validatorType is null)
         {
@@ -186,7 +203,20 @@ public sealed class OptionsConfigurationConventionTests
                 + $"{validatorSourceFiles.Length}.";
         }
 
-        if (optionsSourceFiles.Length == 1
+        if (isApplicationOptions)
+        {
+            foreach (var violation in GetOptionsDirectoryViolations(
+                repositoryRoot: repositoryRoot,
+                sourceFiles: sourceFiles,
+                optionsType: validatorType,
+                expectedDirectoryName: optionsType.Name[..^OptionsSuffix.Length]))
+            {
+                yield return violation;
+            }
+        }
+
+        if (!isApplicationOptions
+            && optionsSourceFiles.Length == 1
             && validatorSourceFiles.Length == 1
             && !string.Equals(
                 Path.GetDirectoryName(optionsSourceFiles[0]),
@@ -235,7 +265,8 @@ public sealed class OptionsConfigurationConventionTests
     private static IEnumerable<string> GetOptionsDirectoryViolations(
         string repositoryRoot,
         IReadOnlyCollection<string> sourceFiles,
-        Type optionsType)
+        Type optionsType,
+        string? expectedDirectoryName = null)
     {
         var optionsSourceFiles = FindSourceFiles(
             sourceFiles,
@@ -260,7 +291,7 @@ public sealed class OptionsConfigurationConventionTests
         }
 
         var optionsDirectory = new DirectoryInfo(optionsDirectoryPath);
-        var expectedDirectoryName = optionsType.Name[..^OptionsSuffix.Length];
+        expectedDirectoryName ??= optionsType.Name[..^OptionsSuffix.Length];
 
         if (!string.Equals(
             optionsDirectory.Name,
